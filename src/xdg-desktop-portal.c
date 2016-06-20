@@ -385,7 +385,7 @@ send_filechooser_response (GTask *task,
     writable = FALSE;
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
-  g_variant_builder_add (&b, "s", handle);
+  g_variant_builder_add (&b, "o", handle);
   g_variant_builder_add (&b, "u", response);
 
   if (strcmp (data->signal_name, "OpenFilesResponse") == 0)
