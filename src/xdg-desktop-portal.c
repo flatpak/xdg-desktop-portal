@@ -17,7 +17,7 @@
 
 
 static GMainLoop *loop = NULL;
-static XdpDbusDocuments *documents = NULL;
+static XdpDocuments *documents = NULL;
 static char *mountpoint = NULL;
 
 static gboolean opt_verbose;
@@ -316,37 +316,37 @@ register_document (const char *uri,
   permissions[i++] = NULL;
 
   if (for_save)
-    ret = xdp_dbus_documents_call_add_named_sync (documents,
-                                                  g_variant_new_handle (fd_in),
-                                                  basename,
-                                                  TRUE,
-                                                  TRUE,
-                                                  fd_list,
-                                                  &doc_id,
-                                                  NULL,
-                                                  NULL,
-                                                  error);
+    ret = xdp_documents_call_add_named_sync (documents,
+                                             g_variant_new_handle (fd_in),
+                                             basename,
+                                             TRUE,
+                                             TRUE,
+                                             fd_list,
+                                             &doc_id,
+                                             NULL,
+                                             NULL,
+                                             error);
   else
-    ret = xdp_dbus_documents_call_add_sync (documents,
-                                            g_variant_new_handle (fd_in),
-                                            TRUE,
-                                            TRUE,
-                                            fd_list,
-                                            &doc_id,
-                                            NULL,
-                                            NULL,
-                                            error);
+    ret = xdp_documents_call_add_sync (documents,
+                                       g_variant_new_handle (fd_in),
+                                       TRUE,
+                                       TRUE,
+                                       fd_list,
+                                       &doc_id,
+                                       NULL,
+                                       NULL,
+                                       error);
   g_object_unref (fd_list);
 
   if (!ret)
     return NULL;
 
-  if (!xdp_dbus_documents_call_grant_permissions_sync (documents,
-                                                       doc_id,
-                                                       app_id,
-                                                       permissions,
-                                                       NULL,
-                                                       error))
+  if (!xdp_documents_call_grant_permissions_sync (documents,
+                                                  doc_id,
+                                                  app_id,
+                                                  permissions,
+                                                  NULL,
+                                                  error))
     return NULL;
 
   return g_build_filename (mountpoint, doc_id, basename, NULL);
@@ -663,11 +663,11 @@ on_bus_acquired (GDBusConnection *connection,
 
   flatpak_connection_track_name_owners (connection);
 
-  documents = xdp_dbus_documents_proxy_new_sync (connection, 0,
-                                                 "org.freedesktop.portal.Documents",
-                                                 "/org/freedesktop/portal/documents",
-                                                 NULL, NULL);
-  xdp_dbus_documents_call_get_mount_point_sync (documents, &mountpoint, NULL, NULL);
+  documents = xdp_documents_proxy_new_sync (connection, 0,
+                                            "org.freedesktop.portal.Documents",
+                                            "/org/freedesktop/portal/documents",
+                                            NULL, NULL);
+  xdp_documents_call_get_mount_point_sync (documents, &mountpoint, NULL, NULL);
 }
 
 static void

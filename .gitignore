@@ -18,6 +18,7 @@ compile
 *.service
 xdg-desktop-portal
 xdp-dbus.[ch]
+xdp-impl-dbus.[ch]
 xdg-desktop-portal.pc
 .dirstamp
 xdg-desktop-resources.c
