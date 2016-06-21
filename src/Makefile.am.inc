@@ -65,6 +65,8 @@ xdg_desktop_portal_SOURCES = \
 	src/file-chooser.h              \
         src/open-uri.c                  \
         src/open-uri.h                  \
+        src/print.c                     \
+        src/print.h                     \
 	src/request.c                   \
 	src/request.h                   \
 	src/xdp-utils.c             \

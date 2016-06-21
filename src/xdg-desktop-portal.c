@@ -16,6 +16,7 @@
 #include "xdp-dbus.h"
 #include "file-chooser.h"
 #include "open-uri.h"
+#include "print.h"
 #include "request.h"
 
 static GMainLoop *loop = NULL;
@@ -285,6 +286,31 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     {
       GDBusInterfaceSkeleton *skeleton = open_uri_create (connection, implementation->dbus_name);
+      if (skeleton != NULL)
+        {
+          g_dbus_interface_skeleton_set_flags (skeleton,
+                                               G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+          g_signal_connect (skeleton, "g-authorize-method",
+                            G_CALLBACK (authorize_callback),
+                            NULL);
+
+          if (!g_dbus_interface_skeleton_export (skeleton,
+                                                 connection,
+                                                 "/org/freedesktop/portal/desktop",
+                                                 &error))
+            {
+              g_warning ("error: %s\n", error->message);
+              g_clear_error (&error);
+            }
+        }
+
+      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+    }
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Print");
+  if (implementation != NULL)
+    {
+      GDBusInterfaceSkeleton *skeleton = print_create (connection, implementation->dbus_name);
       if (skeleton != NULL)
         {
           g_dbus_interface_skeleton_set_flags (skeleton,
