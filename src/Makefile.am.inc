@@ -11,6 +11,7 @@ xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
 BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources)
 
 PORTAL_IFACE_FILES =\
+	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
 	data/org.freedesktop.portal.AppChooser.xml \
 	data/org.freedesktop.portal.Print.xml \
@@ -60,8 +61,12 @@ nodist_xdg_desktop_portal_SOURCES = \
 
 xdg_desktop_portal_SOURCES = \
 	src/xdg-desktop-portal.c	\
-	src/flatpak-utils.c	\
-	src/flatpak-utils.h	\
+	src/file-chooser.c              \
+	src/file-chooser.h              \
+	src/request.c                   \
+	src/request.h                   \
+	src/flatpak-utils.c             \
+	src/flatpak-utils.h             \
 	src/flatpak-portal-error.c	\
 	src/flatpak-portal-error.h	\
 	src/xdg-desktop-resources.c	\

@@ -27,7 +27,7 @@
 G_BEGIN_DECLS
 
 /**
- * XdpErrorEnum:
+ * FlatpakErrorEnum: Sync change to this with flatpak
  */
 typedef enum {
   FLATPAK_PORTAL_ERROR_FAILED     = 0,
@@ -38,7 +38,6 @@ typedef enum {
   FLATPAK_PORTAL_ERROR_CANCELLED,
   FLATPAK_PORTAL_ERROR_WINDOW_DESTROYED,
 } FlatpakErrorEnum;
-
 
 #define FLATPAK_PORTAL_ERROR flatpak_portal_error_quark ()
 

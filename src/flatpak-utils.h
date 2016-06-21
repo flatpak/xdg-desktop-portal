@@ -23,26 +23,10 @@
 
 #include <gio/gio.h>
 
-void  flatpak_invocation_lookup_app_id (GDBusMethodInvocation *invocation,
-                                        GCancellable          *cancellable,
-                                        GAsyncReadyCallback    callback,
-                                        gpointer               user_data);
-
-char *flatpak_invocation_lookup_app_id_finish (GDBusMethodInvocation *invocation,
-                                               GAsyncResult          *result,
-                                               GError               **error);
-
-void  flatpak_connection_lookup_app_id (GDBusConnection       *connection,
-                                        const char            *sender,
-                                        GCancellable          *cancellable,
-                                        GAsyncReadyCallback    callback,
-                                        gpointer               user_data);
-
-char *flatpak_connection_lookup_app_id_finish (GDBusConnection  *connection,
-                                               GAsyncResult     *result,
-                                               GError          **error);
-
-void  flatpak_connection_track_name_owners (GDBusConnection *connection);
+char * flatpak_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
+                                              GCancellable          *cancellable,
+                                              GError               **error);
+void   flatpak_connection_track_name_owners  (GDBusConnection       *connection);
 
 
 #endif /* __FLATPAK_UTILS_H__ */
