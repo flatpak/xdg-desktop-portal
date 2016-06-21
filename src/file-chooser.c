@@ -151,7 +151,7 @@ unregister_handle (const char *handle)
   G_UNLOCK (request_by_handle);
 }
 
-Request *
+static Request *
 lookup_request_by_handle (const char *handle)
 {
   Request *request;
