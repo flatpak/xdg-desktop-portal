@@ -250,7 +250,6 @@ name_owner_changed (GDBusConnection *connection,
 
   ensure_app_ids ();
 
-g_print ("name owner changed for: %s from %s to %s\n", name, from, to);
   if (name[0] == ':' &&
       strcmp (name, from) == 0 &&
       strcmp (to, "") == 0)
@@ -260,7 +259,6 @@ g_print ("name owner changed for: %s from %s to %s\n", name, from, to);
       if (info != NULL)
         {
           info->exited = TRUE;
-g_print ("set info->exited\n");
           if (info->pending == NULL)
             g_hash_table_remove (app_ids, name);
         }
