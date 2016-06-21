@@ -109,6 +109,12 @@ register_portal (const char *path, GError **error)
                        "Not a valid interface name: %s", impl->interfaces[i]);
           return FALSE;
         }
+      if (!g_str_has_prefix (impl->interfaces[i], "org.freedesktop.impl.portal."))
+        {
+          g_set_error (error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_INVALID_VALUE,
+                       "Not a portal backend interface: %s", impl->interfaces[i]);
+          return FALSE;
+        }
     }
 
   impl->use_in = g_key_file_get_string_list (keyfile, "portal", "UseIn", NULL, error);
@@ -118,9 +124,9 @@ register_portal (const char *path, GError **error)
   if (opt_verbose)
     {
       g_autofree char *uses = g_strjoinv (", ", impl->use_in);
-      g_debug ("portal for %s", uses);
+      g_debug ("portal implementation for %s", uses);
       for (i = 0; impl->interfaces[i]; i++)
-        g_debug ("portal supports %s", impl->interfaces[i]);
+        g_debug ("portal implementation supports %s", impl->interfaces[i]);
     }
 
   implementations = g_list_prepend (implementations, impl);
@@ -169,7 +175,7 @@ load_installed_portals (void)
 }
 
 static PortalImplementation *
-find_portal (const char *interface)
+find_portal_implementation (const char *interface)
 {
   const char *desktops_str = g_getenv ("XDG_SESSION_DESKTOP");
   g_auto(GStrv) desktops = NULL;
@@ -241,7 +247,7 @@ on_bus_acquired (GDBusConnection *connection,
   PortalImplementation *implementation;
   g_autoptr(GError) error = NULL;
 
-  implementation = find_portal ("org.freedesktop.impl.portal.FileChooser");
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
     {
       GDBusInterfaceSkeleton *skeleton = file_chooser_create (connection, implementation->dbus_name);
@@ -262,6 +268,8 @@ on_bus_acquired (GDBusConnection *connection,
               g_clear_error (&error);
             }
         }
+
+      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
     }
 
   xdp_connection_track_name_owners (connection);
