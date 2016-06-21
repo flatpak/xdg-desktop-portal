@@ -67,8 +67,6 @@ xdg_desktop_portal_SOURCES = \
 	src/request.h                   \
 	src/xdp-utils.c             \
 	src/xdp-utils.h             \
-	src/flatpak-portal-error.c	\
-	src/flatpak-portal-error.h	\
 	src/xdg-desktop-resources.c	\
 	$(NULL)
 

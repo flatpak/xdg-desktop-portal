@@ -23,7 +23,6 @@
 #include <string.h>
 
 #include "xdp-utils.h"
-#include "flatpak-portal-error.h"
 
 G_LOCK_DEFINE (app_ids);
 static GHashTable *app_ids;
