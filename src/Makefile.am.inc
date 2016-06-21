@@ -15,6 +15,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.FileChooser.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
+	data/org.freedesktop.portal.NetworkMonitor.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -67,6 +68,8 @@ xdg_desktop_portal_SOURCES = \
         src/open-uri.h                  \
         src/print.c                     \
         src/print.h                     \
+        src/network-monitor.c           \
+        src/network-monitor.h           \
 	src/request.c                   \
 	src/request.h                   \
 	src/xdp-utils.c             \

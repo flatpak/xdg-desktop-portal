@@ -3,6 +3,7 @@ introspection_DATA = \
 	data/org.freedesktop.portal.FileChooser.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
+	data/org.freedesktop.portal.NetworkMonitor.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
