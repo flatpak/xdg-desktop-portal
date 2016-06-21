@@ -65,8 +65,8 @@ xdg_desktop_portal_SOURCES = \
 	src/file-chooser.h              \
 	src/request.c                   \
 	src/request.h                   \
-	src/flatpak-utils.c             \
-	src/flatpak-utils.h             \
+	src/xdp-utils.c             \
+	src/xdp-utils.h             \
 	src/flatpak-portal-error.c	\
 	src/flatpak-portal-error.h	\
 	src/xdg-desktop-resources.c	\

@@ -18,15 +18,15 @@
  *       Alexander Larsson <alexl@redhat.com>
  */
 
-#ifndef __FLATPAK_UTILS_H__
-#define __FLATPAK_UTILS_H__
+#ifndef __XDP_UTILS_H__
+#define __XDP_UTILS_H__
 
 #include <gio/gio.h>
 
-char * flatpak_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
-                                              GCancellable          *cancellable,
-                                              GError               **error);
-void   flatpak_connection_track_name_owners  (GDBusConnection       *connection);
+char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
+                                          GCancellable          *cancellable,
+                                          GError               **error);
+void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
 
 
-#endif /* __FLATPAK_UTILS_H__ */
+#endif /* __XDP_UTILS_H__ */

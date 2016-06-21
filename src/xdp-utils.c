@@ -22,7 +22,7 @@
 
 #include <string.h>
 
-#include "flatpak-utils.h"
+#include "xdp-utils.h"
 #include "flatpak-portal-error.h"
 
 G_LOCK_DEFINE (app_ids);
@@ -84,10 +84,10 @@ get_app_id_from_pid (pid_t pid,
 }
 
 static char *
-flatpak_connection_lookup_app_id_sync (GDBusConnection       *connection,
-                                       const char            *sender,
-                                       GCancellable          *cancellable,
-                                       GError               **error)
+xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
+                                   const char            *sender,
+                                   GCancellable          *cancellable,
+                                   GError               **error)
 {
   g_autoptr(GDBusMessage) msg = NULL;
   g_autoptr(GDBusMessage) reply = NULL;
@@ -141,14 +141,14 @@ flatpak_connection_lookup_app_id_sync (GDBusConnection       *connection,
 }
 
 char *
-flatpak_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
-                                       GCancellable          *cancellable,
-                                       GError               **error)
+xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
+                                   GCancellable          *cancellable,
+                                   GError               **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  return flatpak_connection_lookup_app_id_sync (connection, sender, cancellable, error);
+  return xdp_connection_lookup_app_id_sync (connection, sender, cancellable, error);
 }
 
 static void
@@ -176,7 +176,7 @@ name_owner_changed (GDBusConnection *connection,
 }
 
 void
-flatpak_connection_track_name_owners (GDBusConnection *connection)
+xdp_connection_track_name_owners (GDBusConnection *connection)
 {
   g_dbus_connection_signal_subscribe (connection,
                                       "org.freedesktop.DBus",

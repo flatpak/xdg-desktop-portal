@@ -12,7 +12,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "flatpak-utils.h"
+#include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "file-chooser.h"
 #include "request.h"
@@ -218,7 +218,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 
   g_autoptr(GError) error = NULL;
 
-  app_id = flatpak_invocation_lookup_app_id_sync (invocation, NULL, &error);
+  app_id = xdp_invocation_lookup_app_id_sync (invocation, NULL, &error);
   if (app_id == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -264,7 +264,7 @@ on_bus_acquired (GDBusConnection *connection,
         }
     }
 
-  flatpak_connection_track_name_owners (connection);
+  xdp_connection_track_name_owners (connection);
 
   documents = xdp_documents_proxy_new_sync (connection, 0,
                                             "org.freedesktop.portal.Documents",
