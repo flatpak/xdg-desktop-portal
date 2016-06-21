@@ -24,20 +24,19 @@
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
-  <interface name="org.freedesktop.portal.AppChooser">
+  <interface name="org.freedesktop.portal.OpenURIRequest">
+    <signal name="Response">
+      <arg type="u" name="response"/>
+      <arg type="a{sv}" name="options"/>
+    </signal>
+  </interface>
+
+  <interface name="org.freedesktop.portal.OpenURI">
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="uri" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
-    </method>
-    <signal name="OpenURIResponse">
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-    <method name="Close">
-      <arg type="o" name="handle" direction="in"/>
     </method>
   </interface>
 </node>

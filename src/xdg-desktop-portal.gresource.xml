@@ -2,7 +2,7 @@
 <gresources>
   <gresource prefix='/org/freedesktop/portal/desktop'>
     <file alias="org.freedesktop.portal.FileChooser.xml">data/org.freedesktop.portal.FileChooser.xml</file>
-    <file alias="org.freedesktop.portal.AppChooser.xml">data/org.freedesktop.portal.AppChooser.xml</file>
+    <file alias="org.freedesktop.portal.OpenURI.xml">data/org.freedesktop.portal.OpenURI.xml</file>
     <file alias="org.freedesktop.portal.Print.xml">data/org.freedesktop.portal.Print.xml</file>
   </gresource>
 </gresources>

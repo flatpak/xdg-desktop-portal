@@ -13,7 +13,7 @@ BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources)
 PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
-	data/org.freedesktop.portal.AppChooser.xml \
+	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
 	$(NULL)
 
@@ -63,6 +63,8 @@ xdg_desktop_portal_SOURCES = \
 	src/xdg-desktop-portal.c	\
 	src/file-chooser.c              \
 	src/file-chooser.h              \
+        src/open-uri.c                  \
+        src/open-uri.h                  \
 	src/request.c                   \
 	src/request.h                   \
 	src/xdp-utils.c             \
