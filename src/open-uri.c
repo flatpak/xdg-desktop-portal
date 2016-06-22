@@ -33,6 +33,7 @@ struct _OpenURIClass
 };
 
 static XdpImplAppChooser *app_chooser_impl;
+static XdpImplPermissionStore *permission_store_impl;
 static OpenURI *open_uri;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
@@ -272,6 +273,17 @@ open_uri_create (GDBusConnection *connection,
   if (app_chooser_impl == NULL)
     {
       g_warning ("Failed to create app chooser proxy: %s\n", error->message);
+      return NULL;
+    }
+
+  permission_store_impl = xdp_impl_permission_store_proxy_new_sync (connection,
+                                                                    G_DBUS_PROXY_FLAGS_NONE,
+                                                                    "org.freedesktop.impl.portal.PermissionStore",
+                                                                    "/org/freedesktop/impl/portal/PermissionStore",
+                                                                    NULL, &error);
+  if (permission_store_impl == NULL)
+    {
+      g_warning ("No permission store: %s", error->message);
       return NULL;
     }
 

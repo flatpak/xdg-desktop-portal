@@ -10,6 +10,14 @@ xdp_dbus_built_sources = src/xdp-dbus.c src/xdp-dbus.h
 xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
 BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources)
 
+FLATPAK_IFACE_FILES =\
+	$(FLATPAK_INTERFACES_DIR)/org.freedesktop.portal.Documents.xml \
+	$(NULL)
+
+FLATPAK_IMPL_IFACE_FILES =\
+	$(FLATPAK_INTERFACES_DIR)/org.freedesktop.impl.portal.PermissionStore.xml \
+	$(NULL)
+
 PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
@@ -25,22 +33,23 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Print.xml \
 	$(NULL)
 
-$(xdp_dbus_built_sources) : $(FLATPAK_INTERFACES_DIR)/org.freedesktop.portal.Documents.xml $(PORTAL_IFACE_FILES)
+$(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.portal.      \
 		--c-namespace Xdp                               \
 		--generate-c-code $(builddir)/src/xdp-dbus      \
 		--annotate "org.freedesktop.portal.Documents.Add()" "org.gtk.GDBus.C.UnixFD" "true" \
 		--annotate "org.freedesktop.portal.Documents.AddNamed()" "org.gtk.GDBus.C.UnixFD" "true" \
-		$(FLATPAK_INTERFACES_DIR)/org.freedesktop.portal.Documents.xml     \
+		$(FLATPAK_IFACE_FILES) \
 		$(PORTAL_IFACE_FILES) \
 		$(NULL)
 
-$(xdp_impl_dbus_built_sources) : $(PORTAL_IMPL_IFACE_FILES)
+$(xdp_impl_dbus_built_sources) : $(FLATPAK_IMPL_IFACE_FILES) $(PORTAL_IMPL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.impl.portal. \
 		--c-namespace XdpImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
+		$(FLATPAK_IMPL_IFACE_FILES) \
 		$(PORTAL_IMPL_IFACE_FILES) \
 		$(NULL)
 
