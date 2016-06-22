@@ -32,7 +32,7 @@ struct _OpenURIClass
   XdpOpenURISkeletonClass parent_class;
 };
 
-static XdpImplAppChooser *impl;
+static XdpImplAppChooser *app_chooser_impl;
 static OpenURI *open_uri;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
@@ -86,9 +86,9 @@ handle_close (XdpRequest *object,
 
   if (request->exported)
     {
-      const char *handle = g_object_get_data (G_OBJECT (request), "impl-handle");
+      const char *handle = g_object_get_data (G_OBJECT (request), "app-chooser-impl-handle");
 
-      if (!xdp_impl_app_chooser_call_close_sync (impl,
+      if (!xdp_impl_app_chooser_call_close_sync (app_chooser_impl,
                                                  request->sender, request->app_id, handle,
                                                  NULL, &error))
         {
@@ -117,7 +117,7 @@ handle_open_uri (XdpOpenURI *object,
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *impl_handle = NULL;
+  g_autofree char *app_chooser_impl_handle = NULL;
   g_auto(GStrv) choices = NULL;
   GList *infos, *l;
   g_autofree char *uri_scheme = NULL;
@@ -154,20 +154,20 @@ handle_open_uri (XdpOpenURI *object,
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
 
-  if (!xdp_impl_app_chooser_call_choose_application_sync (impl,
+  if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
                                                           sender, app_id,
                                                           arg_parent_window,
                                                           (const char * const *)choices,
                                                           arg_options,
-                                                          &impl_handle,
+                                                          &app_chooser_impl_handle,
                                                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "impl-handle", g_strdup (impl_handle), g_free);
-  register_handle (impl_handle, request);
+  g_object_set_data_full (G_OBJECT (request), "app-chooser-impl-handle", g_strdup (app_chooser_impl_handle), g_free);
+  register_handle (app_chooser_impl_handle, request);
 
   g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
@@ -264,22 +264,22 @@ open_uri_create (GDBusConnection *connection,
   request_by_handle = g_hash_table_new_full (g_str_hash, g_str_equal,
                                              g_free, g_object_unref);
 
-  impl = xdp_impl_app_chooser_proxy_new_sync (connection,
-                                              G_DBUS_PROXY_FLAGS_NONE,
-                                              dbus_name,
-                                              "/org/freedesktop/portal/desktop",
-                                              NULL, &error);
-  if (impl == NULL)
+  app_chooser_impl = xdp_impl_app_chooser_proxy_new_sync (connection,
+                                                          G_DBUS_PROXY_FLAGS_NONE,
+                                                          dbus_name,
+                                                          "/org/freedesktop/portal/desktop",
+                                                          NULL, &error);
+  if (app_chooser_impl == NULL)
     {
       g_warning ("Failed to create app chooser proxy: %s\n", error->message);
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (impl));
+  set_proxy_use_threads (G_DBUS_PROXY (app_chooser_impl));
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
 
-  g_signal_connect (impl, "choose-application-response", (GCallback)handle_choose_application_response, NULL);
+  g_signal_connect (app_chooser_impl, "choose-application-response", (GCallback)handle_choose_application_response, NULL);
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
 }
