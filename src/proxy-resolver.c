@@ -29,37 +29,21 @@ static void proxy_resolver_iface_init (XdpProxyResolverIface *iface);
 G_DEFINE_TYPE_WITH_CODE (ProxyResolver, proxy_resolver, XDP_TYPE_PROXY_RESOLVER_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_PROXY_RESOLVER, proxy_resolver_iface_init));
 
-static void
-lookup_done (GObject *source,
-             GAsyncResult *result,
-             gpointer user_data)
-{
-  GProxyResolver *resolver = G_PROXY_RESOLVER (source);
-  GDBusMethodInvocation *invocation = user_data;
-  g_auto (GStrv) proxies = NULL;
-  GError *error = NULL;
-
-  proxies = g_proxy_resolver_lookup_finish (resolver, result, &error);
-
-  if (error)
-    g_dbus_method_invocation_take_error (invocation, error);
-  else
-    g_dbus_method_invocation_return_value (invocation,
-                                           g_variant_new ("(^as)", proxies));
-}
-
 static gboolean
 proxy_resolver_handle_lookup (XdpProxyResolver *object,
                               GDBusMethodInvocation *invocation,
                               const char *arg_uri)
 {
   ProxyResolver *resolver = (ProxyResolver *)object;
+  GError *error = NULL;
+  g_auto (GStrv) proxies = NULL;
 
-  g_proxy_resolver_lookup_async (resolver->resolver,
-                                 arg_uri,
-                                 NULL,
-                                 lookup_done,
-                                 invocation);
+  proxies = g_proxy_resolver_lookup (resolver->resolver, arg_uri, NULL, &error);
+  if (error)
+    g_dbus_method_invocation_take_error (invocation, error);
+  else
+    g_dbus_method_invocation_return_value (invocation,
+                                           g_variant_new ("(^as)", proxies));
   return TRUE;
 }
 
