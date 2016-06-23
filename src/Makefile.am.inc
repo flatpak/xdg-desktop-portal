@@ -16,6 +16,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
 	data/org.freedesktop.portal.NetworkMonitor.xml \
+	data/org.freedesktop.portal.ProxyResolver.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -62,18 +63,20 @@ nodist_xdg_desktop_portal_SOURCES = \
 
 xdg_desktop_portal_SOURCES = \
 	src/xdg-desktop-portal.c	\
-	src/file-chooser.c              \
-	src/file-chooser.h              \
-        src/open-uri.c                  \
-        src/open-uri.h                  \
-        src/print.c                     \
-        src/print.h                     \
-        src/network-monitor.c           \
-        src/network-monitor.h           \
-	src/request.c                   \
-	src/request.h                   \
-	src/xdp-utils.c             \
-	src/xdp-utils.h             \
+	src/file-chooser.c		\
+	src/file-chooser.h		\
+	src/open-uri.c			\
+	src/open-uri.h			\
+	src/print.c			\
+	src/print.h			\
+	src/network-monitor.c		\
+	src/network-monitor.h		\
+	src/proxy-resolver.c		\
+	src/proxy-resolver.h		\
+	src/request.c			\
+	src/request.h			\
+	src/xdp-utils.c			\
+	src/xdp-utils.h			\
 	src/xdg-desktop-resources.c	\
 	$(NULL)
 

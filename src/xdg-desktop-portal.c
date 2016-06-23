@@ -19,6 +19,7 @@
 #include "print.h"
 #include "request.h"
 #include "network-monitor.h"
+#include "proxy-resolver.h"
 
 static GMainLoop *loop = NULL;
 XdpDocuments *documents = NULL;
@@ -335,6 +336,29 @@ on_bus_acquired (GDBusConnection *connection,
 
   {
   GDBusInterfaceSkeleton *skeleton = network_monitor_create (connection);
+  if (skeleton != NULL)
+    {
+      g_dbus_interface_skeleton_set_flags (skeleton,
+                                           G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+      g_signal_connect (skeleton, "g-authorize-method",
+                        G_CALLBACK (authorize_callback),
+                        NULL);
+
+      if (!g_dbus_interface_skeleton_export (skeleton,
+                                             connection,
+                                             "/org/freedesktop/portal/desktop",
+                                             &error))
+        {
+          g_warning ("error: %s\n", error->message);
+          g_clear_error (&error);
+        }
+    }
+
+  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+  }
+
+  {
+  GDBusInterfaceSkeleton *skeleton = proxy_resolver_create (connection);
   if (skeleton != NULL)
     {
       g_dbus_interface_skeleton_set_flags (skeleton,
