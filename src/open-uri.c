@@ -2,6 +2,7 @@
 
 #include <locale.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 
@@ -18,6 +19,7 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 
+#define TABLE_NAME "desktop-used-apps"
 typedef struct _OpenURI OpenURI;
 
 typedef struct _OpenURIClass OpenURIClass;
@@ -106,6 +108,60 @@ handle_close (XdpRequest *object,
   return TRUE;
 }
 
+static gboolean
+get_latest_choice_info (const char *app_id,
+                        const char *content_type,
+                        gchar **latest_chosen_id,
+                        gint *latest_chosen_count)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) out_perms = NULL;
+  g_autoptr(GVariant) out_data = NULL;
+
+  if (!xdp_impl_permission_store_call_lookup_sync (permission_store_impl,
+                                                   TABLE_NAME,
+                                                   content_type,
+                                                   &out_perms,
+                                                   &out_data,
+                                                   NULL,
+                                                   &error))
+    {
+      g_warning ("Error updating permission store: %s\n", error->message);
+      g_clear_error (&error);
+    }
+
+  if (out_perms != NULL)
+    {
+      GVariantIter iter;
+      GVariant *child;
+      gboolean app_found = FALSE;
+
+      g_variant_iter_init (&iter, out_perms);
+      while (!app_found && (child = g_variant_iter_next_value (&iter)))
+        {
+          const char *child_app_id;
+          g_autofree const char **permissions;
+
+          g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
+          if (g_strcmp0 (child_app_id, app_id) == 0 &&
+              permissions != NULL &&
+              permissions[0] != NULL)
+            {
+              g_auto(GStrv) permission_detail = g_strsplit (permissions[0], ":", 2);
+              if (g_strv_length (permission_detail) >= 2)
+                {
+                  *latest_chosen_id = g_strdup (permission_detail[0]);
+                  *latest_chosen_count = atoi(permission_detail[1]);
+                }
+              app_found = TRUE;
+            }
+          g_variant_unref (child);
+        }
+    }
+
+  return (*latest_chosen_id != NULL);
+}
+
 static void
 launch_application_with_uri (const char *choice_id,
                              const char *uri,
@@ -171,6 +227,7 @@ handle_open_uri (XdpOpenURI *object,
 
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
                                                           sender, app_id,
@@ -198,6 +255,43 @@ handle_open_uri (XdpOpenURI *object,
 }
 
 static void
+update_permissions_store (const char *app_id,const char *content_type, const char *chosen_id)
+{
+  g_autoptr(GError) error = NULL;
+  g_autofree char *latest_chosen_id = NULL;
+  gint latest_chosen_count = 0;
+  g_auto(GStrv) in_permissions = NULL;
+
+  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
+      (g_strcmp0 (chosen_id, latest_chosen_id) == 0))
+    {
+      latest_chosen_count++;
+    }
+  else
+    {
+      /* latest_chosen_id is heap-allocated */
+      latest_chosen_id = g_strdup (chosen_id);
+      latest_chosen_count = 0;
+    }
+
+  in_permissions = (GStrv) g_new0 (char *, 2);
+  in_permissions[0] = g_strdup_printf ("%s:%u", latest_chosen_id, latest_chosen_count);
+
+  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store_impl,
+                                                           TABLE_NAME,
+                                                           TRUE,
+                                                           content_type,
+                                                           app_id,
+                                                           (const char * const*) in_permissions,
+                                                           NULL,
+                                                           &error))
+    {
+      g_warning ("Error updating permission store: %s\n", error->message);
+      g_clear_error (&error);
+    }
+}
+
+static void
 handle_choose_application_response (XdpImplAppChooser *object,
                                     const gchar *arg_destination,
                                     const gchar *arg_handle,
@@ -218,11 +312,14 @@ handle_choose_application_response (XdpImplAppChooser *object,
     {
       const char *uri;
       const char *parent_window;
+      const char *content_type;
 
       uri = g_object_get_data (G_OBJECT (request), "uri");
       parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
+      content_type = g_object_get_data (G_OBJECT (request), "content-type");
 
       launch_application_with_uri (arg_choice, uri, parent_window);
+      update_permissions_store (request->app_id, content_type, arg_choice);
     }
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
