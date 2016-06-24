@@ -106,6 +106,23 @@ handle_close (XdpRequest *object,
   return TRUE;
 }
 
+static void
+launch_application_with_uri (const char *choice_id,
+                             const char *uri,
+                             const char *parent_window)
+{
+  g_autoptr(GAppInfo) info = G_APP_INFO (g_desktop_app_info_new (choice_id));
+  g_autoptr(GAppLaunchContext) context = g_app_launch_context_new ();
+  GList uris;
+
+  g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
+
+  uris.data = (gpointer)uri;
+  uris.next = NULL;
+
+  g_debug ("launching %s\n", choice_id);
+  g_app_info_launch_uris (info, &uris, context, NULL);
+}
 
 static gboolean
 handle_open_uri (XdpOpenURI *object,
@@ -199,22 +216,13 @@ handle_choose_application_response (XdpImplAppChooser *object,
 
   if (arg_response == 0)
     {
-      g_autoptr(GAppInfo) info = G_APP_INFO (g_desktop_app_info_new (arg_choice));
-      g_autoptr(GAppLaunchContext) context = g_app_launch_context_new ();
       const char *uri;
       const char *parent_window;
-      GList uris;
 
       uri = g_object_get_data (G_OBJECT (request), "uri");
       parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
 
-      g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
-
-      uris.data = (gpointer)uri;
-      uris.next = NULL;
-
-      g_debug ("launching %s\n", arg_choice);
-      g_app_info_launch_uris (info, &uris, context, NULL);
+      launch_application_with_uri (arg_choice, uri, parent_window);
     }
 
   g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
