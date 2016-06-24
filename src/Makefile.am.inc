@@ -25,12 +25,14 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Print.xml \
 	data/org.freedesktop.portal.NetworkMonitor.xml \
 	data/org.freedesktop.portal.ProxyResolver.xml \
+	data/org.freedesktop.portal.Screenshot.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
+	data/org.freedesktop.impl.portal.Screenshot.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
@@ -82,6 +84,8 @@ xdg_desktop_portal_SOURCES = \
 	src/network-monitor.h		\
 	src/proxy-resolver.c		\
 	src/proxy-resolver.h		\
+	src/screenshot.c		\
+	src/screenshot.h		\
 	src/request.c			\
 	src/request.h			\
         src/documents.c                 \
