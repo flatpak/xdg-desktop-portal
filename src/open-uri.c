@@ -307,7 +307,11 @@ update_permissions_store (const char *app_id,const char *content_type, const cha
   if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
       (g_strcmp0 (chosen_id, latest_chosen_id) == 0))
     {
-      latest_chosen_count++;
+      /* same app chosen once again: update the counter */
+      if (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)
+        latest_chosen_count = USE_DEFAULT_APP_THRESHOLD;
+      else
+        latest_chosen_count++;
     }
   else
     {
