@@ -20,6 +20,8 @@
 #include "xdp-impl-dbus.h"
 
 #define TABLE_NAME "desktop-used-apps"
+#define USE_DEFAULT_APP_THRESHOLD 5
+
 typedef struct _OpenURI OpenURI;
 
 typedef struct _OpenURIClass OpenURIClass;
@@ -196,6 +198,9 @@ handle_open_uri (XdpOpenURI *object,
   GList *infos, *l;
   g_autofree char *uri_scheme = NULL;
   g_autofree char *content_type = NULL;
+  g_autofree char *latest_chosen_id = NULL;
+  gint latest_chosen_count = 0;
+  GVariant *actual_options = NULL;
   int i;
 
   uri_scheme = g_uri_parse_scheme (arg_uri);
@@ -225,6 +230,43 @@ handle_open_uri (XdpOpenURI *object,
   choices[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
+  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
+      (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD))
+    {
+      /* If a recommended choice is found, just use it and skip the chooser dialog */
+      launch_application_with_uri (latest_chosen_id, arg_uri, arg_parent_window);
+
+      /* We need to close the request before completing, so do it here */
+      xdp_request_complete_close (XDP_REQUEST (request), invocation);
+      xdp_open_uri_complete_open_uri (object, invocation, request->id);
+      return TRUE;
+    }
+  else if (latest_chosen_id != NULL)
+    {
+      GVariantBuilder opts_builder;
+      GVariantIter iter;
+      GVariant *child;
+
+      /* Add extra options to the request for the backend */
+      g_variant_builder_init (&opts_builder, G_VARIANT_TYPE ("a{sv}"));
+      g_variant_iter_init (&iter, arg_options);
+      while ((child = g_variant_iter_next_value (&iter)))
+        {
+          g_variant_builder_add_value (&opts_builder, child);
+          g_variant_unref (child);
+        }
+      g_variant_builder_add (&opts_builder,
+                             "{sv}",
+                             "latest-choice",
+                             g_variant_new_string (latest_chosen_id));
+      actual_options = g_variant_builder_end (&opts_builder);
+    }
+  else
+    {
+      /* No need to add the extra option to the list */
+      actual_options = arg_options;
+    }
+
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
@@ -233,7 +275,7 @@ handle_open_uri (XdpOpenURI *object,
                                                           sender, app_id,
                                                           arg_parent_window,
                                                           (const char * const *)choices,
-                                                          arg_options,
+                                                          actual_options,
                                                           &app_chooser_impl_handle,
                                                           NULL, &error))
     {
