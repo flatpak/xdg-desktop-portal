@@ -318,11 +318,12 @@ static void emit_response (XdpImplFileChooser *object,
                            GVariant *arg_options)
 {
   g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  GVariantBuilder b;
+  GVariantBuilder uris;
+  GVariantBuilder results;
   g_autofree char *ruri = NULL;
   gboolean writable = TRUE;
-  GVariantBuilder a;
   g_autoptr(GError) error = NULL;
+  int n_children;
   int i;
 
   if (request == NULL)
@@ -333,7 +334,13 @@ static void emit_response (XdpImplFileChooser *object,
   if (!g_variant_lookup (arg_options, "b", "writable", &writable))
     writable = FALSE;
 
-  g_variant_builder_init (&a, G_VARIANT_TYPE ("as"));
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+
+  n_children = g_variant_n_children (arg_options);
+  for (i = 0; i < n_children; i++)
+    g_variant_builder_add_value (&results, g_variant_get_child_value (arg_options, i));
+
+  g_variant_builder_init (&uris, G_VARIANT_TYPE ("as"));
 
   for (i = 0; arg_uris[i] != NULL; i++)
     {
@@ -347,29 +354,17 @@ static void emit_response (XdpImplFileChooser *object,
       else
         {
           g_debug ("convert uri %s -> %s\n", uri, ruri);
-          g_variant_builder_add (&a, "s", ruri);
+          g_variant_builder_add (&uris, "s", ruri);
         }
     }
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
-  g_variant_builder_add (&b, "u", arg_response);
-  g_variant_builder_add (&b, "@as", g_variant_builder_end (&a));
-  g_variant_builder_add (&b, "@a{sv}", arg_options);
+  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&uris));
 
   if (request->exported)
     {
-      if (!g_dbus_connection_emit_signal (g_dbus_proxy_get_connection (G_DBUS_PROXY (object)),
-                                          request->sender,
-                                          request->id,
-                                          "org.freedesktop.portal.FileChooserRequest",
-                                          "Response",
-                                          g_variant_builder_end (&b),
-                                          &error))
-        {
-          g_warning ("Error emitting signal: %s\n", error->message);
-          g_clear_error (&error);
-        }
-
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 arg_response,
+                                 g_variant_builder_end (&results));
       unregister_handle (arg_handle);
       request_unexport (request);
     }

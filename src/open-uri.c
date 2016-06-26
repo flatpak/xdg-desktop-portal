@@ -346,7 +346,6 @@ handle_choose_application_response (XdpImplAppChooser *object,
                                     GVariant *arg_options)
 {
   g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  GVariantBuilder b;
   g_autoptr(GError) error = NULL;
 
   if (request == NULL)
@@ -368,24 +367,11 @@ handle_choose_application_response (XdpImplAppChooser *object,
       update_permissions_store (request->app_id, content_type, arg_choice);
     }
 
-  g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
-  g_variant_builder_add (&b, "u", arg_response);
-  g_variant_builder_add (&b, "@a{sv}", arg_options);
-
   if (request->exported)
     {
-      if (!g_dbus_connection_emit_signal (g_dbus_proxy_get_connection (G_DBUS_PROXY (object)),
-                                          request->sender,
-                                          request->id,
-                                          "org.freedesktop.portal.OpenURIRequest",
-                                          "Response",
-                                          g_variant_builder_end (&b),
-                                          &error))
-        {
-          g_warning ("Error emitting signal: %s\n", error->message);
-          g_clear_error (&error);
-        }
-
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 arg_response,
+                                 arg_options);
       unregister_handle (arg_handle);
       request_unexport (request);
     }
