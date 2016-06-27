@@ -3,27 +3,18 @@
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-
-#include <gio/gio.h>
-#include <gio/gunixfdlist.h>
 
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
+#include "request.h"
+#include "documents.h"
 #include "file-chooser.h"
 #include "open-uri.h"
 #include "print.h"
-#include "request.h"
 #include "network-monitor.h"
 #include "proxy-resolver.h"
 
 static GMainLoop *loop = NULL;
-XdpDocuments *documents = NULL;
-char *documents_mountpoint = NULL;
 
 static gboolean opt_verbose;
 static gboolean opt_replace;
@@ -278,11 +269,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   xdp_connection_track_name_owners (connection);
 
-  documents = xdp_documents_proxy_new_sync (connection, 0,
-                                            "org.freedesktop.portal.Documents",
-                                            "/org/freedesktop/portal/documents",
-                                            NULL, NULL);
-  xdp_documents_call_get_mount_point_sync (documents, &documents_mountpoint, NULL, NULL);
+  init_document_proxy (connection);
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.AppChooser");
   if (implementation != NULL)

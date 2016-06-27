@@ -84,6 +84,8 @@ xdg_desktop_portal_SOURCES = \
 	src/proxy-resolver.h		\
 	src/request.c			\
 	src/request.h			\
+        src/documents.c                 \
+        src/documents.h                 \
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	src/xdg-desktop-resources.c	\
