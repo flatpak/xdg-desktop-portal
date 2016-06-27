@@ -103,6 +103,35 @@ handle_close (XdpRequest *object,
   return TRUE;
 }
 
+typedef struct {
+  const char *key;
+  const GVariantType *type;
+} OptionKey;
+
+static OptionKey open_file_options[] = {
+  { "accept_label", G_VARIANT_TYPE_STRING },
+  { "filters", (const GVariantType *)"a(sa(us))" }
+};
+
+void
+copy_options (GVariant *arg_options,
+              GVariantBuilder *options,
+              OptionKey *supported_options,
+              int n_supported_options)
+{
+  GVariant *value;
+  int i;
+
+  for (i = 0; i < n_supported_options; i++)
+    {
+      value = g_variant_lookup_value (arg_options,
+                                      supported_options[i].key,
+                                      supported_options[i].type);
+      if (value)
+         g_variant_builder_add (options, supported_options[i].key);
+    }
+}
+
 static gboolean
 handle_open_file (XdpFileChooser *object,
                   GDBusMethodInvocation *invocation,
@@ -115,12 +144,16 @@ handle_open_file (XdpFileChooser *object,
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *impl_handle = NULL;
+  GVariantBuilder options;
+
+  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
 
   if (!xdp_impl_file_chooser_call_open_file_sync (impl,
                                                   sender, app_id,
                                                   arg_parent_window,
                                                   arg_title,
-                                                  arg_options,
+                                                  g_variant_builder_end (&options),
                                                   &impl_handle,
                                                   NULL, &error))
     {
@@ -153,12 +186,16 @@ handle_open_files (XdpFileChooser *object,
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *impl_handle = NULL;
+  GVariantBuilder options;
+
+  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
 
   if (!xdp_impl_file_chooser_call_open_files_sync (impl,
                                                    sender, app_id,
                                                    arg_parent_window,
                                                    arg_title,
-                                                   arg_options,
+                                                   g_variant_builder_end (&options),
                                                    &impl_handle,
                                                    NULL, &error))
     {
@@ -179,6 +216,13 @@ handle_open_files (XdpFileChooser *object,
   return TRUE;
 }
 
+static OptionKey save_file_options[] = {
+  { "accept_label", G_VARIANT_TYPE_STRING },
+  { "filters", (const GVariantType *)"a(sa(us))" },
+  { "current_name", G_VARIANT_TYPE_STRING },
+  { "current_folder", G_VARIANT_TYPE_BYTESTRING },
+  { "current_file", G_VARIANT_TYPE_BYTESTRING }
+};
 static gboolean
 handle_save_file (XdpFileChooser *object,
                   GDBusMethodInvocation *invocation,
@@ -191,12 +235,16 @@ handle_save_file (XdpFileChooser *object,
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *impl_handle = NULL;
+  GVariantBuilder options;
+
+  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  copy_options (arg_options, &options, save_file_options, G_N_ELEMENTS (save_file_options));
 
   if (!xdp_impl_file_chooser_call_save_file_sync (impl,
                                                   sender, app_id,
                                                   arg_parent_window,
                                                   arg_title,
-                                                  arg_options,
+                                                  g_variant_builder_end (&options),
                                                   &impl_handle,
                                                   NULL, &error))
     {
@@ -231,7 +279,6 @@ static void emit_response (XdpImplFileChooser *object,
   g_autofree char *ruri = NULL;
   gboolean writable = TRUE;
   g_autoptr(GError) error = NULL;
-  int n_children;
   int i;
 
   if (request == NULL)
@@ -243,10 +290,6 @@ static void emit_response (XdpImplFileChooser *object,
     writable = FALSE;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
-
-  n_children = g_variant_n_children (arg_options);
-  for (i = 0; i < n_children; i++)
-    g_variant_builder_add_value (&results, g_variant_get_child_value (arg_options, i));
 
   g_variant_builder_init (&uris, G_VARIANT_TYPE ("as"));
 

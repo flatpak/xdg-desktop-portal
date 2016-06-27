@@ -56,10 +56,6 @@
           <listitem><para>The label for the accept button. Mnemonic underlines are allowed.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>cancel_label s</term>
-          <listitem><para>The label for the cancel button. Mnemonic underlines are allowed.</para></listitem>
-        </varlistentry>
-        <varlistentry>
           <term>filters a(sa(us))</term>
           <listitem><para>Each item in the array specifies a single filter to offer to the user. The first string is a user-visible name for the filter. The a(us) specifies a list of filter strings, which can be either a glob pattern (indicated by 0) or a mimetype (indicated by 1).</para></listitem>
         </varlistentry>
@@ -96,10 +92,6 @@
         <varlistentry>
           <term>accept_label s</term>
           <listitem><para>The label for the accept button. Mnemonic underlines are allowed.</para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>cancel_label s</term>
-          <listitem><para>The label for the cancel button. Mnemonic underlines are allowed.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>filters a(sa(us))</term>
@@ -140,10 +132,6 @@
           <listitem><para>The label for the accept button. Mnemonic underlines are allowed.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>cancel_label s</term>
-          <listitem><para>The label for the cancel button. Mnemonic underlines are allowed.</para></listitem>
-        </varlistentry>
-        <varlistentry>
           <term>filters a(sa(us))</term>
           <listitem><para>Each item in the array specifies a single filter to offer to the user. The first string is a user-visible name for the filter. The a(us) specifies a list of filter strings, which can be either a glob pattern (indicated by 0) or a mimetype (indicated by 1).</para></listitem>
         </varlistentry>
@@ -152,11 +140,11 @@
           <listitem><para>A suggested filename.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>current_folder s</term>
+          <term>current_folder ay</term>
           <listitem><para>A suggested folder to save the file in.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>current_file s</term>
+          <term>current_file ay</term>
           <listitem><para>The current file (when saving an existing file).</para></listitem>
         </varlistentry>
       </variablelist>
