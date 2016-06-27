@@ -248,7 +248,7 @@ handle_open_uri (XdpOpenURI *object,
       GVariant *child;
 
       /* Add extra options to the request for the backend */
-      g_variant_builder_init (&opts_builder, G_VARIANT_TYPE ("a{sv}"));
+      g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_iter_init (&iter, arg_options);
       while ((child = g_variant_iter_next_value (&iter)))
         {
