@@ -13,11 +13,9 @@
 
 #include "screenshot.h"
 #include "request.h"
+#include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
-
-extern XdpDocuments *documents;
-extern char *documents_mountpoint;
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -43,77 +41,6 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_TYPE_SCREENSHOT_SKELETON,
 
 G_LOCK_DEFINE (request_by_handle);
 static GHashTable *request_by_handle;
-
-static char *
-register_document (const char *uri,
-                   const char *app_id,
-                   GError **error)
-{
-  g_autofree char *doc_id = NULL;
-  g_autofree char *path = NULL;
-  g_autofree char *basename = NULL;
-  g_autofree char *dirname = NULL;
-  GUnixFDList *fd_list = NULL;
-  int fd, fd_in;
-  g_autoptr(GFile) file = NULL;
-  gboolean ret = FALSE;
-  const char *permissions[5];
-  g_autofree char *fuse_path = NULL;
-  int i;
-
-  if (app_id == NULL || *app_id == 0)
-    return g_strdup (uri);
-
-  file = g_file_new_for_uri (uri);
-  path = g_file_get_path (file);
-  basename = g_path_get_basename (path);
-  dirname = g_path_get_dirname (path);
-
-  fd = open (path, O_PATH | O_CLOEXEC);
-
-  if (fd == -1)
-    {
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Failed to open %s", uri);
-      return NULL;
-    }
-
-  fd_list = g_unix_fd_list_new ();
-  fd_in = g_unix_fd_list_append (fd_list, fd, error);
-  close (fd);
-
-  if (fd_in == -1)
-    return NULL;
-
-  i = 0;
-  permissions[i++] = "read";
-  permissions[i++] = "grant";
-  permissions[i++] = NULL;
-
-  ret = xdp_documents_call_add_sync (documents,
-                                     g_variant_new_handle (fd_in),
-                                     TRUE,
-                                     TRUE,
-                                     fd_list,
-                                     &doc_id,
-                                     NULL,
-                                     NULL,
-                                     error);
-  g_object_unref (fd_list);
-
-  if (!ret)
-    return NULL;
-
-  if (!xdp_documents_call_grant_permissions_sync (documents,
-                                                  doc_id,
-                                                  app_id,
-                                                  permissions,
-                                                  NULL,
-                                                  error))
-    return NULL;
-
-  return g_build_filename (documents_mountpoint, doc_id, basename, NULL);
-}
 
 static void
 register_handle (const char *handle, Request *request)
@@ -239,7 +166,7 @@ handle_screenshot_response (XdpImplScreenshot *object,
 
   if (strcmp (arg_uri, "") != 0)
     {
-      ruri = register_document (arg_uri, request->app_id, &error);
+      ruri = register_document (arg_uri, request->app_id, FALSE, FALSE, &error);
       if (ruri == NULL)
         {
           g_warning ("Failed to register %s: %s\n", arg_uri, error->message);
