@@ -140,11 +140,11 @@
           <listitem><para>A suggested filename.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>current_folder s</term>
+          <term>current_folder ay</term>
           <listitem><para>A suggested folder to save the file in.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>current_file s</term>
+          <term>current_file ay</term>
           <listitem><para>The current file (when saving an existing file).</para></listitem>
         </varlistentry>
       </variablelist>

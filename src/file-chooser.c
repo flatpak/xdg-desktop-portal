@@ -220,8 +220,8 @@ static OptionKey save_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "current_name", G_VARIANT_TYPE_STRING },
-  { "current_folder", G_VARIANT_TYPE_STRING },
-  { "current_file", G_VARIANT_TYPE_STRING },
+  { "current_folder", G_VARIANT_TYPE_BYTESTRING },
+  { "current_file", G_VARIANT_TYPE_BYTESTRING }
 };
 static gboolean
 handle_save_file (XdpFileChooser *object,
