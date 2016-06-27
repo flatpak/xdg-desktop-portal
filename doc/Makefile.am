@@ -5,6 +5,7 @@ PORTAL_INTERFACES = 							\
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.OpenURI.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Print.xml 		\
+	$(top_srcdir)/data/org.freedesktop.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.NetworkMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.ProxyResolver.xml 	\
 	$(NULL)
@@ -14,6 +15,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.FileChooser.xml 			\
 	portal-org.freedesktop.portal.OpenURI.xml 			\
 	portal-org.freedesktop.portal.Print.xml 			\
+	portal-org.freedesktop.portal.Screenshot.xml 			\
 	portal-org.freedesktop.portal.NetworkMonitor.xml		\
 	portal-org.freedesktop.portal.ProxyResolver.xml			\
 	$(NULL)
