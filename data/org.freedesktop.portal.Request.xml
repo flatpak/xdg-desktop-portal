@@ -27,5 +27,9 @@
   <interface name="org.freedesktop.portal.Request">
     <method name="Close">
     </method>
+    <signal name="Response">
+      <arg type="u" name="response"/>
+      <arg type="a{sv}" name="results"/>
+    </signal>
   </interface>
 </node>

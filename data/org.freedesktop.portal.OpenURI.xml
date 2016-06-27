@@ -24,13 +24,6 @@
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
-  <interface name="org.freedesktop.portal.OpenURIRequest">
-    <signal name="Response">
-      <arg type="u" name="response"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-  </interface>
-
   <interface name="org.freedesktop.portal.OpenURI">
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
