@@ -15,6 +15,7 @@
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.OpenURI.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
   </reference>
