@@ -2,7 +2,46 @@
 
 #include <string.h>
 
-G_DEFINE_TYPE (Request, request, XDP_TYPE_REQUEST_SKELETON);
+static void request_skeleton_iface_init (XdpRequestIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_TYPE_REQUEST_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_TYPE_REQUEST, request_skeleton_iface_init))
+
+static void
+request_on_signal_response (XdpRequest *object,
+                            guint arg_response,
+                            GVariant *arg_results)
+{
+  Request *request = (Request *)object;
+  XdpRequestSkeleton *skeleton = XDP_REQUEST_SKELETON (object);
+  GList      *connections, *l;
+  GVariant   *signal_variant;
+
+  connections = g_dbus_interface_skeleton_get_connections (G_DBUS_INTERFACE_SKELETON (skeleton));
+
+  signal_variant = g_variant_ref_sink (g_variant_new ("(u@a{sv})",
+                                                      arg_response,
+                                                      arg_results));
+  for (l = connections; l != NULL; l = l->next)
+    {
+      GDBusConnection *connection = l->data;
+      g_dbus_connection_emit_signal (connection,
+                                     request->sender,
+                                     g_dbus_interface_skeleton_get_object_path (G_DBUS_INTERFACE_SKELETON (skeleton)),
+                                     "org.freedesktop.portal.Request",
+                                     "Response",
+                                     signal_variant,
+                                     NULL);
+    }
+  g_variant_unref (signal_variant);
+  g_list_free_full (connections, g_object_unref);
+}
+
+static void
+request_skeleton_iface_init (XdpRequestIface *iface)
+{
+  iface->response = request_on_signal_response;
+}
 
 G_LOCK_DEFINE (requests);
 static GHashTable *requests;
