@@ -20,12 +20,54 @@
  Author: Matthias Clasen <mclasen@redhat.com>
 -->
 <node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+  <!--
+      org.freedesktop.portal.NetworkMonitor:
+      @short_description: network monitoring
+
+      The NetworkMonitor interface provides network status information
+      to sandboxed applications. It is not a portal in the strict sense,
+      since it does not involve user interaction. Applications are
+      expected to use this interface indirectly, via a library API
+      such as the GLib GNetworkMonitor interface.
+  -->
   <interface name="org.freedesktop.portal.NetworkMonitor">
+    <!--
+        changed:
+        @available: whether network is currently available
+
+        Emitted when the network configuration changes.
+    -->
     <signal name="changed">
       <arg type="b" name="available"/>
     </signal>
+    <!--
+        available:
+
+        Whether the network is considereed available. That is,
+        whether the system as a default route for at least one
+        of IPv4 or IPv6.
+    -->
     <property name="available" type="b" access="read"/>
+    <!--
+        metered:
+
+        Whether the network is considered metered. That is, whether
+        the system as traffic flowing through the default connection
+        that is subject ot limitations by service providers.
+    -->
     <property name="metered" type="b" access="read"/>
+    <!--
+        connectivity:
+
+        More detailed information about the host's network
+        connectivity. The meaning of the value is:
+        <simplelist>
+          <member>1: Local only. The host is not configured with a route to the internet.</member>
+          <member>2: Limited connectivity. The host is connected to a network, but can't reach the full internet.</member>
+          <member>3: Captive portal. The host is behind a captive portal and cannot reach the full internet.</member>
+          <member>4: Full network. The host connected to a network, and can reach the full internet.</member>
+        </simplelist>
+    -->
     <property name="connectivity" type="u" access="read"/>
   </interface>
 </node>

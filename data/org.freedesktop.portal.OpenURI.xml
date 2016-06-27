@@ -24,7 +24,27 @@
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+       org.freedesktop.portal.OpenURI:
+       @short_description: portal for opening URIs
+
+       The OpenURI portal allows sandboxed applications to open
+       URIs (e.g. opening a link to the applications homepage)
+       under the control of the user.
+  -->
   <interface name="org.freedesktop.portal.OpenURI">
+    <!--
+        OpenURI:
+        @parent_window: identifier for the application window
+        @uri: the uri to open
+        @options: a vardict with optional further onformation
+        @handle: the object path for the #org.freedesktop.portal.Request object representing this call
+
+        Asks to open a uri.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+    -->
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="uri" direction="in"/>

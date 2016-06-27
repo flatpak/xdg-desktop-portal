@@ -20,7 +20,26 @@
  Author: Matthias Clasen <mclasen@redhat.com>
 -->
 <node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+  <!--
+      org.freedesktop.portal.ProxyResolver:
+      @short_description: proxy information
+
+      The ProxyResolver interface provides network proxy information to sandboxed
+      applications. It is not a portal in the strict sense, since it does not involve
+      user interaction. Applications are expected to use this interface indirectly,
+      via a library API such as the GLib GProxyResolver interface.
+  -->
   <interface name="org.freedesktop.portal.ProxyResolver">
+    <!--
+        Lookup:
+        @uri: the destination to connect to
+        @proxies: a list of proxy uris
+
+        Looks up which proxy to use to connect to @uri. The returned
+        proxy uri are of the form 'protocol://[user[:password]@host:port'.
+        The protocol can be http, rtsp, socks or another proxying protocol.
+        'direct://' is used when no proxy is needed.
+    -->
     <method name="Lookup">
       <arg type="s" name="uri" direction="in"/>
       <arg type="as" name="proxies" direction="out"/>
