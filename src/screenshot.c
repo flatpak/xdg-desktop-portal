@@ -221,14 +221,21 @@ handle_screenshot_response (XdpImplScreenshot *object,
                              GVariant *arg_options)
 {
   g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  GVariantBuilder b;
+  GVariantBuilder results;
   g_autofree char *ruri = NULL;
   g_autoptr(GError) error = NULL;
+  int n_children;
+  int i;
 
   if (request == NULL)
     return;
 
   REQUEST_AUTOLOCK (request);
+
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+  n_children = g_variant_n_children (arg_options);
+  for (i = 0; i < n_children; i++)
+    g_variant_builder_add_value (&results, g_variant_get_child_value (arg_options, i));
 
   if (strcmp (arg_uri, "") != 0)
     {
@@ -237,30 +244,16 @@ handle_screenshot_response (XdpImplScreenshot *object,
         {
           g_warning ("Failed to register %s: %s\n", arg_uri, error->message);
           g_clear_error (&error);
-          ruri = g_strdup ("");
         }
+      else
+        g_variant_builder_add (&results, "{&sv}", "uri", g_variant_new_string (ruri));
     }
-  else
-    ruri = g_strdup ("");
-
-  g_variant_builder_init (&b, G_VARIANT_TYPE_TUPLE);
-  g_variant_builder_add (&b, "u", arg_response);
-  g_variant_builder_add (&b, "s", ruri);
-  g_variant_builder_add (&b, "@a{sv}", arg_options);
 
   if (request->exported)
     {
-      if (!g_dbus_connection_emit_signal (g_dbus_proxy_get_connection (G_DBUS_PROXY (object)),
-                                          request->sender,
-                                          request->id,
-                                          "org.freedesktop.portal.ScreenshotRequest",
-                                          "Response",
-                                          g_variant_builder_end (&b),
-                                          &error))
-        {
-          g_warning ("Error emitting signal: %s\n", error->message);
-          g_clear_error (&error);
-        }
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 arg_response,
+                                 g_variant_builder_end (&results));
 
       unregister_handle (arg_handle);
       request_unexport (request);

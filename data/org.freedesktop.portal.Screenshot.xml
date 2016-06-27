@@ -24,14 +24,6 @@
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
-  <interface name="org.freedesktop.portal.ScreenshotRequest">
-    <signal name="Response">
-      <arg type="u" name="response"/>
-      <arg type="s" name="uri"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-  </interface>
-
   <interface name="org.freedesktop.portal.Screenshot">
     <method name="Screenshot">
       <arg type="s" name="parent_window" direction="in"/>
