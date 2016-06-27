@@ -59,6 +59,10 @@
           <term>filters a(sa(us))</term>
           <listitem><para>Each item in the array specifies a single filter to offer to the user. The first string is a user-visible name for the filter. The a(us) specifies a list of filter strings, which can be either a glob pattern (indicated by 0) or a mimetype (indicated by 1).</para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>choices a(ssa(ss)s)</term>
+          <listitem><para>A list of serialized combo boxes to add to the file chooser.</para></listitem>
+        </varlistentry>
       </variablelist>
 
       The following results get returned via the org.fredesktop.portal.Request::Response signal:
@@ -66,6 +70,10 @@
         <varlistentry>
           <term>uris as</term>
           <listitem><para>An array of strings containing the uri of the selected file.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>choices a(ss)</term>
+          <listitem><para>An array of pairs of strings, the first string being the ID of a combobox that was passed into this call, the second string being the selected option.</para></listitem>
         </varlistentry>
       </variablelist>
     -->
