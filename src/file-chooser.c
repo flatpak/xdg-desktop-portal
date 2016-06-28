@@ -78,7 +78,7 @@ handle_response (XdpImplRequest *object,
 
   for_save = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save"));
 
-  g_variant_lookup (arg_options, "^a&s", "uris", &uris);
+  g_variant_lookup (arg_options, "uris", "^a&s", &uris);
 
   REQUEST_AUTOLOCK (request);
 
