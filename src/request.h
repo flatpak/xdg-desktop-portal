@@ -28,6 +28,7 @@ Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);
+void request_sender_died (Request *request);
 
 static inline void
 auto_unlock_helper (GMutex **mutex)

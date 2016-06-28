@@ -2,6 +2,13 @@
 
 #include <string.h>
 
+enum {
+  SENDER_DIED,
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL];
+
 static void request_skeleton_iface_init (XdpRequestIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_TYPE_REQUEST_SKELETON,
@@ -80,6 +87,14 @@ request_class_init (RequestClass *klass)
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->finalize  = request_finalize;
+
+  signals[SENDER_DIED] = g_signal_new ("sender-died",
+                                       G_TYPE_FROM_CLASS (klass),
+                                       G_SIGNAL_RUN_LAST,
+                                       0,
+                                       NULL, NULL,
+                                       NULL,
+                                       G_TYPE_NONE, 0);
 }
 
 static gboolean
@@ -171,6 +186,12 @@ request_unexport (Request *request)
   request->exported = FALSE;
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   g_object_unref (request);
+}
+
+void
+request_sender_died (Request *request)
+{
+  g_signal_emit (request, signals[SENDER_DIED], 0);
 }
 
 typedef struct {
