@@ -153,7 +153,6 @@ handle_open_file (XdpFileChooser *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
@@ -179,11 +178,11 @@ handle_open_file (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
 
   if (!xdp_impl_file_chooser_call_open_file_sync (impl,
-                                                  sender, app_id,
+                                                  request->id,
+                                                  app_id,
                                                   arg_parent_window,
                                                   arg_title,
                                                   g_variant_builder_end (&options),
-                                                  request->id,
                                                   NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -206,7 +205,6 @@ handle_open_files (XdpFileChooser *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   XdpImplRequest *impl_request;
   GVariantBuilder options;
@@ -232,11 +230,11 @@ handle_open_files (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
 
   if (!xdp_impl_file_chooser_call_open_files_sync (impl,
-                                                   sender, app_id,
+                                                   request->id,
+                                                   app_id,
                                                    arg_parent_window,
                                                    arg_title,
                                                    g_variant_builder_end (&options),
-                                                   request->id,
                                                    NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -268,7 +266,6 @@ handle_save_file (XdpFileChooser *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   XdpImplRequest *impl_request;
   GVariantBuilder options;
@@ -296,11 +293,11 @@ handle_save_file (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
 
   if (!xdp_impl_file_chooser_call_save_file_sync (impl,
-                                                  sender, app_id,
+                                                  request->id,
+                                                  app_id,
                                                   arg_parent_window,
                                                   arg_title,
                                                   g_variant_builder_end (&options),
-                                                  request->id,
                                                   NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);

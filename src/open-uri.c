@@ -222,7 +222,6 @@ handle_open_uri (XdpOpenURI *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   g_auto(GStrv) choices = NULL;
@@ -323,11 +322,11 @@ handle_open_uri (XdpOpenURI *object,
   request_set_impl_request (request, impl_request);
 
   if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
-                                                          sender, app_id,
+                                                          request->id,
+                                                          app_id,
                                                           arg_parent_window,
                                                           (const char * const *)choices,
                                                           g_variant_builder_end (&opts_builder),
-                                                          request->id,
                                                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);

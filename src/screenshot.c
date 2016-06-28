@@ -103,7 +103,6 @@ handle_screenshot (XdpScreenshot *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
 
@@ -125,10 +124,10 @@ handle_screenshot (XdpScreenshot *object,
   request_set_impl_request (request, impl_request);
 
   if (!xdp_impl_screenshot_call_screenshot_sync (impl,
-                                                 sender, app_id,
+                                                 request->id,
+                                                 app_id,
                                                  arg_parent_window,
                                                  arg_options,
-                                                 request->id,
                                                  NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
