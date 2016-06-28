@@ -207,6 +207,11 @@ name_owner_changed (GDBusConnection *connection,
 
       if (data)
         {
+          GSList *l;
+
+          for (l = data->requests; l; l = l->next)
+            request_sender_died ((Request *)l->data);
+
           app_id_data_free (data);
         }
     }
