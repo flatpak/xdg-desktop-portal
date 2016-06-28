@@ -22,17 +22,35 @@
 
 #include <string.h>
 
+#include "request.h"
 #include "xdp-utils.h"
+#include "xdp-dbus.h"
 
 G_LOCK_DEFINE (app_ids);
 static GHashTable *app_ids;
+
+typedef struct {
+  char *app_id;
+  GSList *requests;
+} AppIdData;
+
+static void
+app_id_data_free (gpointer data)
+{
+  AppIdData *adata = data;
+
+  g_free (adata->app_id);
+  g_slist_free (adata->requests);
+
+  g_free (adata);
+}
 
 static void
 ensure_app_ids (void)
 {
   if (app_ids == NULL)
     app_ids = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                     g_free, g_free);
+                                     g_free, app_id_data_free);
 }
 
 static char *
@@ -130,9 +148,15 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   app_id = get_app_id_from_pid (pid, error);
   if (app_id)
     {
+      AppIdData *data;
+
+      data = g_new (AppIdData, 1);
+      data->app_id = g_strdup (app_id);
+      data->requests = NULL;
+
       G_LOCK (app_ids);
       ensure_app_ids ();
-      g_hash_table_insert (app_ids, g_strdup (sender), g_strdup (app_id));
+      g_hash_table_insert (app_ids, g_strdup (sender), data);
       G_UNLOCK (app_ids);
     }
 
@@ -160,6 +184,7 @@ name_owner_changed (GDBusConnection *connection,
                     gpointer         user_data)
 {
   const char *name, *from, *to;
+  AppIdData *data = NULL;
 
   g_variant_get (parameters, "(sss)", &name, &from, &to);
 
@@ -169,8 +194,21 @@ name_owner_changed (GDBusConnection *connection,
     {
       G_LOCK (app_ids);
       if (app_ids)
-        g_hash_table_remove (app_ids, name);
+        {
+          char *key;
+
+          if (g_hash_table_lookup_extended (app_ids, name, (gpointer *)&key, (gpointer *)&data))
+            {
+              g_hash_table_steal (app_ids, name);
+              g_free (key);
+            }
+        }
       G_UNLOCK (app_ids);
+
+      if (data)
+        {
+          app_id_data_free (data);
+        }
     }
 }
 
@@ -186,4 +224,27 @@ xdp_connection_track_name_owners (GDBusConnection *connection)
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
                                       NULL, NULL);
+}
+
+void
+xdp_register_request (Request *request)
+{
+  AppIdData *data;
+
+  G_LOCK (app_ids);
+  data = (AppIdData *)g_hash_table_lookup (app_ids, request->sender);
+  data->requests = g_slist_prepend (data->requests, request);
+  G_UNLOCK (app_ids);
+}
+
+void
+xdp_unregister_request (Request *request)
+{
+  AppIdData *data;
+
+  G_LOCK (app_ids);
+  data = (AppIdData *)g_hash_table_lookup (app_ids, request->sender);
+  if (data)
+    data->requests = g_slist_remove (data->requests, request);
+  G_UNLOCK (app_ids);
 }
