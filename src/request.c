@@ -57,6 +57,8 @@ request_finalize (GObject *object)
 {
   Request *request = (Request *)object;
 
+  xdp_unregister_request (request);
+
   G_LOCK (requests);
   g_hash_table_remove (requests, request->id);
   G_UNLOCK (requests);
@@ -125,6 +127,8 @@ request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id)
   g_hash_table_insert (requests, id, request);
 
   G_UNLOCK (requests);
+
+  xdp_register_request (request);
 
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (request),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
