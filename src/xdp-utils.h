@@ -18,8 +18,7 @@
  *       Alexander Larsson <alexl@redhat.com>
  */
 
-#ifndef __XDP_UTILS_H__
-#define __XDP_UTILS_H__
+#pragma once
 
 #include <gio/gio.h>
 
@@ -27,6 +26,3 @@ char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
                                           GError               **error);
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
-
-
-#endif /* __XDP_UTILS_H__ */
