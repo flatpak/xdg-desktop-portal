@@ -65,8 +65,6 @@ handle_response (XdpImplPrint *object,
                  GVariant *arg_options,
                  Request *request)
 {
-  REQUEST_AUTOLOCK (request);
-
   if (request->exported)
     {
       xdp_request_emit_response (XDP_REQUEST (request), arg_response, arg_options);

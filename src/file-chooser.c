@@ -80,8 +80,6 @@ handle_response (XdpImplRequest *object,
 
   g_variant_lookup (arg_options, "uris", "^a&s", &uris);
 
-  REQUEST_AUTOLOCK (request);
-
   if (!g_variant_lookup (arg_options, "b", "writable", &writable))
     writable = FALSE;
 

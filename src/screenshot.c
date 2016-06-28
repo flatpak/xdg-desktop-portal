@@ -70,7 +70,6 @@ handle_response (XdpImplScreenshot *object,
   g_autofree char *ruri = NULL;
   g_autoptr(GError) error = NULL;
 
-  REQUEST_AUTOLOCK (request);
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
   g_variant_lookup (arg_options, "uri", "&s", &uri);

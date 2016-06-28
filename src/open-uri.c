@@ -189,8 +189,6 @@ handle_response (XdpImplRequest *object,
 {
   g_autoptr(GError) error = NULL;
 
-  REQUEST_AUTOLOCK (request);
-
   if (arg_response == 0)
     {
       const char *uri;
