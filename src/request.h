@@ -1,7 +1,5 @@
+#include "xdp-utils.h"
 #include "xdp-dbus.h"
-
-typedef struct _Request Request;
-typedef struct _RequestClass RequestClass;
 
 struct _Request
 {

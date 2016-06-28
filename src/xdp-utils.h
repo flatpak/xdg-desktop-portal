@@ -23,6 +23,9 @@
 
 #include <gio/gio.h>
 
+typedef struct _Request Request;
+typedef struct _RequestClass RequestClass;
+
 char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
                                           GError               **error);
