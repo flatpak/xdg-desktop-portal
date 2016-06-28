@@ -50,6 +50,7 @@ void set_proxy_use_threads (GDBusProxy *proxy);
 
 void request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id);
 Request *request_from_invocation (GDBusMethodInvocation *invocation);
+Request *lookup_request_by_handle (const char *handle);
 void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);

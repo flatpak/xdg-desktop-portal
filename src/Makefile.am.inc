@@ -29,6 +29,7 @@ PORTAL_IFACE_FILES =\
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
+	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
@@ -39,6 +40,7 @@ $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.portal.      \
 		--c-namespace Xdp                               \
+                --c-generate-autocleanup all                      \
 		--generate-c-code $(builddir)/src/xdp-dbus      \
 		--annotate "org.freedesktop.portal.Documents.Add()" "org.gtk.GDBus.C.UnixFD" "true" \
 		--annotate "org.freedesktop.portal.Documents.AddNamed()" "org.gtk.GDBus.C.UnixFD" "true" \
@@ -50,6 +52,7 @@ $(xdp_impl_dbus_built_sources) : $(FLATPAK_IMPL_IFACE_FILES) $(PORTAL_IMPL_IFACE
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.impl.portal. \
 		--c-namespace XdpImpl                           \
+                --c-generate-autocleanup all                      \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
 		$(FLATPAK_IMPL_IFACE_FILES) \
 		$(PORTAL_IMPL_IFACE_FILES) \

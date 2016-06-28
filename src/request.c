@@ -121,6 +121,20 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
   return TRUE;
 }
 
+Request *
+lookup_request_by_handle (const char *handle)
+{
+  Request *request;
+
+  G_LOCK (requests);
+  request = (Request *)g_hash_table_lookup (requests, handle);
+  if (request)
+    g_object_ref (request);
+  G_UNLOCK (requests);
+
+  return request;
+}
+
 void
 request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id)
 {

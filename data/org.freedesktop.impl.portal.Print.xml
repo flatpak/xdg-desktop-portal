@@ -26,17 +26,6 @@
       <arg type="s" name="title" direction="in"/>
       <arg type="ay" name="filename" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
-    </method>
-    <signal name="PrintFileResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-    <method name="Close">
-      <arg type="s" name="sender" direction="in"/>
-      <arg type="s" name="app_id" direction="in"/>
       <arg type="o" name="handle" direction="in"/>
     </method>
   </interface>

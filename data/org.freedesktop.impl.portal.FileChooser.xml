@@ -25,48 +25,22 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
+      <arg type="o" name="handle" direction="in"/>
     </method>
-    <signal name="OpenFileResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="s" name="uri"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
     <method name="OpenFiles">
       <arg type="s" name="sender" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
+      <arg type="o" name="handle" direction="in"/>
     </method>
-    <signal name="OpenFilesResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="as" name="uris"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
     <method name="SaveFile">
       <arg type="s" name="sender" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
-    </method>
-    <signal name="SaveFileResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="s" name="uri"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-    <method name="Close">
-      <arg type="s" name="sender" direction="in"/>
-      <arg type="s" name="app_id" direction="in"/>
       <arg type="o" name="handle" direction="in"/>
     </method>
   </interface>

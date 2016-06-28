@@ -61,37 +61,93 @@ static void file_chooser_iface_init (XdpFileChooserIface *iface);
 G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser, XDP_TYPE_FILE_CHOOSER_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_FILE_CHOOSER, file_chooser_iface_init));
 
-G_LOCK_DEFINE (request_by_handle);
-static GHashTable *request_by_handle;
-
 static void
-register_handle (const char *handle, Request *request)
+emit_response (Request *request,
+               gboolean for_save,
+               guint arg_response,
+               const gchar *const *arg_uris,
+               GVariant *arg_options)
 {
-  G_LOCK (request_by_handle);
-  g_hash_table_insert (request_by_handle, g_strdup (handle), g_object_ref (request));
-  G_UNLOCK (request_by_handle);
+  GVariantBuilder uris;
+  GVariantBuilder results;
+  g_autofree char *ruri = NULL;
+  gboolean writable = TRUE;
+  g_autoptr(GError) error = NULL;
+  int i;
+
+  REQUEST_AUTOLOCK (request);
+
+  if (!g_variant_lookup (arg_options, "b", "writable", &writable))
+    writable = FALSE;
+
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+
+  g_variant_builder_init (&uris, G_VARIANT_TYPE ("as"));
+
+  for (i = 0; arg_uris[i] != NULL; i++)
+    {
+      const char *uri = arg_uris[i];
+      ruri = register_document (uri, request->app_id, for_save, writable, &error);
+      if (ruri == NULL)
+        {
+          g_warning ("Failed to register %s: %s\n", uri, error->message);
+          g_clear_error (&error);
+        }
+      else
+        {
+          g_debug ("convert uri %s -> %s\n", uri, ruri);
+          g_variant_builder_add (&uris, "s", ruri);
+        }
+    }
+
+  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&uris));
+
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 arg_response,
+                                 g_variant_builder_end (&results));
+      request_unexport (request);
+    }
 }
 
 static void
-unregister_handle (const char *handle)
+handle_open_file_response (XdpImplRequest *object,
+                           guint arg_response,
+                           GVariant *arg_options,
+                           Request *request)
 {
-  G_LOCK (request_by_handle);
-  g_hash_table_remove (request_by_handle, handle);
-  G_UNLOCK (request_by_handle);
+  const char *uris[2] = { NULL, NULL };
+
+  g_variant_lookup (arg_options, "&s", "uri", &uris[0]);
+
+  emit_response (request, FALSE, arg_response, uris, arg_options);
 }
 
-static Request *
-lookup_request_by_handle (const char *handle)
+static void
+handle_open_files_response (XdpImplFileChooser *object,
+                            guint arg_response,
+                            GVariant *arg_options,
+                            Request *request)
 {
-  Request *request;
+  const char **uris;
 
-  G_LOCK (request_by_handle);
-  request = g_hash_table_lookup (request_by_handle, handle);
-  if (request)
-    g_object_ref (request);
-  G_UNLOCK (request_by_handle);
+  g_variant_lookup (arg_options, "^a&s", "uris", &uris);
 
-  return request;
+  emit_response (request, FALSE, arg_response, uris, arg_options);
+}
+
+static void
+handle_save_file_response (XdpImplFileChooser *object,
+                           guint arg_response,
+                           GVariant *arg_options,
+                           Request *request)
+{
+  const char *uris[] = { NULL, NULL };
+
+  g_variant_lookup (arg_options, "&s", "uri", &uris[0]);
+
+  emit_response (request, TRUE, arg_response, uris, arg_options);
 }
 
 static gboolean
@@ -105,17 +161,14 @@ handle_close (XdpRequest *object,
 
   if (request->exported)
     {
-      const char *handle = g_object_get_data (G_OBJECT (request), "impl-handle");
+      XdpImplRequest *impl_request = g_object_get_data (G_OBJECT (request), "impl-request");
 
-      if (!xdp_impl_file_chooser_call_close_sync (impl,
-                                                  request->sender, request->app_id, handle,
-                                                  NULL, &error))
+      if (!xdp_impl_request_call_close_sync (impl_request, NULL, &error))
         {
           g_dbus_method_invocation_return_gerror (invocation, error);
           return TRUE;
         }
 
-      unregister_handle (handle);
       request_unexport (request);
     }
 
@@ -165,7 +218,7 @@ handle_open_file (XdpFileChooser *object,
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *impl_handle = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -176,15 +229,27 @@ handle_open_file (XdpFileChooser *object,
                                                   arg_parent_window,
                                                   arg_title,
                                                   g_variant_builder_end (&options),
-                                                  &impl_handle,
+                                                  request->id,
                                                   NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "impl-handle", g_strdup (impl_handle), g_free);
-  register_handle (impl_handle, request);
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_signal_connect (impl_request, "response", (GCallback)handle_open_file_response, request);
+
+  g_object_set_data_full (G_OBJECT (request), "impl-request", g_object_ref (impl_request), g_object_unref);
 
   g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
@@ -193,6 +258,7 @@ handle_open_file (XdpFileChooser *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
+
   return TRUE;
 }
 
@@ -207,7 +273,7 @@ handle_open_files (XdpFileChooser *object,
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *impl_handle = NULL;
+  XdpImplRequest *impl_request;
   GVariantBuilder options;
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -218,15 +284,27 @@ handle_open_files (XdpFileChooser *object,
                                                    arg_parent_window,
                                                    arg_title,
                                                    g_variant_builder_end (&options),
-                                                   &impl_handle,
+                                                   request->id,
                                                    NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "impl-handle", g_strdup (impl_handle), g_free);
-  register_handle (impl_handle, request);
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_signal_connect (impl_request, "response", (GCallback)handle_open_files_response, request);
+
+  g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
 
   g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
@@ -258,7 +336,7 @@ handle_save_file (XdpFileChooser *object,
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *impl_handle = NULL;
+  XdpImplRequest *impl_request;
   GVariantBuilder options;
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -269,15 +347,27 @@ handle_save_file (XdpFileChooser *object,
                                                   arg_parent_window,
                                                   arg_title,
                                                   g_variant_builder_end (&options),
-                                                  &impl_handle,
+                                                  request->id,
                                                   NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "impl-handle", g_strdup (impl_handle), g_free);
-  register_handle (impl_handle, request);
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_signal_connect (impl_request, "response", (GCallback)handle_save_file_response, request);
+
+  g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
 
   g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
@@ -287,116 +377,6 @@ handle_save_file (XdpFileChooser *object,
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
   return TRUE;
-}
-
-static void emit_response (XdpImplFileChooser *object,
-                           gboolean for_save,
-                           const gchar *arg_destination,
-                           const gchar *arg_handle,
-                           guint arg_response,
-                           const gchar *const *arg_uris,
-                           GVariant *arg_options)
-{
-  g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  GVariantBuilder uris;
-  GVariantBuilder results;
-  g_autofree char *ruri = NULL;
-  gboolean writable = TRUE;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GVariant) choices = NULL;
-  int i;
-
-  if (request == NULL)
-    return;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (!g_variant_lookup (arg_options, "b", "writable", &writable))
-    writable = FALSE;
-
-  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
-
-  choices = g_variant_lookup_value (arg_options, "choices", G_VARIANT_TYPE ("a(ss)"));
-  if (choices)
-    g_variant_builder_add (&results, "{sv}", "choices", choices);
-
-  g_variant_builder_init (&uris, G_VARIANT_TYPE ("as"));
-
-  for (i = 0; arg_uris[i] != NULL; i++)
-    {
-      const char *uri = arg_uris[i];
-      ruri = register_document (uri, request->app_id, for_save, writable, &error);
-      if (ruri == NULL)
-        {
-          g_warning ("Failed to register %s: %s\n", uri, error->message);
-          g_clear_error (&error);
-        }
-      else
-        {
-          g_debug ("convert uri %s -> %s\n", uri, ruri);
-          g_variant_builder_add (&uris, "s", ruri);
-        }
-    }
-
-  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&uris));
-
-  if (request->exported)
-    {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
-                                 g_variant_builder_end (&results));
-      unregister_handle (arg_handle);
-      request_unexport (request);
-    }
-}
-
-static void handle_open_file_response (XdpImplFileChooser *object,
-                                       const gchar *arg_destination,
-                                       const gchar *arg_handle,
-                                       guint arg_response,
-                                       const gchar *arg_uri,
-                                       GVariant *arg_options)
-{
-  const char *uris[] = { arg_uri, NULL };
-
-  emit_response (object, FALSE,
-                 arg_destination,
-                 arg_handle,
-                 arg_response,
-                 uris,
-                 arg_options);
-}
-
-static void handle_open_files_response (XdpImplFileChooser *object,
-                                        const gchar *arg_destination,
-                                        const gchar *arg_handle,
-                                        guint arg_response,
-                                        const gchar *const *arg_uris,
-                                        GVariant *arg_options)
-{
-  emit_response (object, FALSE,
-                 arg_destination,
-                 arg_handle,
-                 arg_response,
-                 arg_uris,
-                 arg_options);
-}
-
-static void handle_save_file_response (XdpImplFileChooser *object,
-                                       const gchar *arg_destination,
-                                       const gchar *arg_handle,
-                                       guint arg_response,
-                                       const gchar *arg_uri,
-                                       GVariant *arg_options)
-{
-  const char *uris[] = { arg_uri, NULL };
-
-  emit_response (object, TRUE,
-                 arg_destination,
-                 arg_handle,
-                 arg_response,
-                 uris,
-                 arg_options);
 }
 
 static void
@@ -423,9 +403,6 @@ file_chooser_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  request_by_handle = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                             g_free, g_object_unref);
-
   impl = xdp_impl_file_chooser_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                dbus_name,
@@ -441,7 +418,6 @@ file_chooser_create (GDBusConnection *connection,
 
   file_chooser = g_object_new (file_chooser_get_type (), NULL);
 
-  g_signal_connect (impl, "open-file-response", (GCallback)handle_open_file_response, NULL);
   g_signal_connect (impl, "open-files-response", (GCallback)handle_open_files_response, NULL);
   g_signal_connect (impl, "save-file-response", (GCallback)handle_save_file_response, NULL);
 

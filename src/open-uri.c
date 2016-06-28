@@ -66,40 +66,6 @@ static void open_uri_iface_init (XdpOpenURIIface *iface);
 G_DEFINE_TYPE_WITH_CODE (OpenURI, open_uri, XDP_TYPE_OPEN_URI_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_OPEN_URI, open_uri_iface_init));
 
-G_LOCK_DEFINE (request_by_handle);
-static GHashTable *request_by_handle;
-
-static void
-register_handle (const char *handle, Request *request)
-{
-  G_LOCK (request_by_handle);
-  g_hash_table_insert (request_by_handle, g_strdup (handle), g_object_ref (request));
-  G_UNLOCK (request_by_handle);
-}
-
-static void
-unregister_handle (const char *handle)
-{
-  G_LOCK (request_by_handle);
-  g_hash_table_remove (request_by_handle, handle);
-  G_UNLOCK (request_by_handle);
-}
-
-static Request *
-lookup_request_by_handle (const char *handle)
-{
-  Request *request;
-
-  G_LOCK (request_by_handle);
-  request = g_hash_table_lookup (request_by_handle, handle);
-  if (request)
-    g_object_ref (request);
-  G_UNLOCK (request_by_handle);
-
-  return request;
-}
-
-
 static gboolean
 handle_close (XdpRequest *object,
               GDBusMethodInvocation *invocation,
@@ -111,17 +77,14 @@ handle_close (XdpRequest *object,
 
   if (request->exported)
     {
-      const char *handle = g_object_get_data (G_OBJECT (request), "app-chooser-impl-handle");
+      XdpImplRequest *impl_request = g_object_get_data (G_OBJECT (request), "impl-request");
 
-      if (!xdp_impl_app_chooser_call_close_sync (app_chooser_impl,
-                                                 request->sender, request->app_id, handle,
-                                                 NULL, &error))
+      if (!xdp_impl_request_call_close_sync (impl_request, NULL, &error))
         {
           g_dbus_method_invocation_return_gerror (invocation, error);
           return TRUE;
         }
 
-      unregister_handle (handle);
       request_unexport (request);
     }
 
@@ -202,6 +165,83 @@ launch_application_with_uri (const char *choice_id,
   g_app_info_launch_uris (info, &uris, context, NULL);
 }
 
+static void
+update_permissions_store (const char *app_id,
+                          const char *content_type,
+                          const char *chosen_id)
+{
+  g_autoptr(GError) error = NULL;
+  g_autofree char *latest_chosen_id = NULL;
+  gint latest_chosen_count = 0;
+  g_auto(GStrv) in_permissions = NULL;
+
+  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
+      (g_strcmp0 (chosen_id, latest_chosen_id) == 0))
+    {
+      /* same app chosen once again: update the counter */
+      if (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)
+        latest_chosen_count = USE_DEFAULT_APP_THRESHOLD;
+      else
+        latest_chosen_count++;
+    }
+  else
+    {
+      /* latest_chosen_id is heap-allocated */
+      latest_chosen_id = g_strdup (chosen_id);
+      latest_chosen_count = 0;
+    }
+
+  in_permissions = (GStrv) g_new0 (char *, 2);
+  in_permissions[0] = g_strdup_printf ("%s:%u", latest_chosen_id, latest_chosen_count);
+
+  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store_impl,
+                                                           TABLE_NAME,
+                                                           TRUE,
+                                                           content_type,
+                                                           app_id,
+                                                           (const char * const*) in_permissions,
+                                                           NULL,
+                                                           &error))
+    {
+      g_warning ("Error updating permission store: %s\n", error->message);
+      g_clear_error (&error);
+    }
+}
+
+static void
+handle_response (XdpImplRequest *object,
+                 guint arg_response,
+                 GVariant *arg_options,
+                 Request *request)
+{
+  g_autoptr(GError) error = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  if (arg_response == 0)
+    {
+      const char *uri;
+      const char *parent_window;
+      const char *content_type;
+      const char *choice;
+
+      g_variant_lookup (arg_options, "&s", "choice", &choice);
+
+      uri = g_object_get_data (G_OBJECT (request), "uri");
+      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
+      content_type = g_object_get_data (G_OBJECT (request), "content-type");
+
+      launch_application_with_uri (choice, uri, parent_window);
+      update_permissions_store (request->app_id, content_type, choice);
+    }
+
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request), arg_response, arg_options);
+      request_unexport (request);
+    }
+}
+
 static gboolean
 handle_open_uri (XdpOpenURI *object,
                  GDBusMethodInvocation *invocation,
@@ -213,7 +253,7 @@ handle_open_uri (XdpOpenURI *object,
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *app_chooser_impl_handle = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
   g_auto(GStrv) choices = NULL;
   guint n_choices = 0;
   GList *infos, *l;
@@ -299,15 +339,27 @@ handle_open_uri (XdpOpenURI *object,
                                                           arg_parent_window,
                                                           (const char * const *)choices,
                                                           g_variant_builder_end (&opts_builder),
-                                                          &app_chooser_impl_handle,
+                                                          request->id,
                                                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "app-chooser-impl-handle", g_strdup (app_chooser_impl_handle), g_free);
-  register_handle (app_chooser_impl_handle, request);
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (app_chooser_impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (app_chooser_impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
+
+  g_object_set_data_full (G_OBJECT (request), "impl-request", g_object_ref (impl_request), g_object_unref);
 
   g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
@@ -317,87 +369,6 @@ handle_open_uri (XdpOpenURI *object,
 
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
   return TRUE;
-}
-
-static void
-update_permissions_store (const char *app_id,const char *content_type, const char *chosen_id)
-{
-  g_autoptr(GError) error = NULL;
-  g_autofree char *latest_chosen_id = NULL;
-  gint latest_chosen_count = 0;
-  g_auto(GStrv) in_permissions = NULL;
-
-  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
-      (g_strcmp0 (chosen_id, latest_chosen_id) == 0))
-    {
-      /* same app chosen once again: update the counter */
-      if (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)
-        latest_chosen_count = USE_DEFAULT_APP_THRESHOLD;
-      else
-        latest_chosen_count++;
-    }
-  else
-    {
-      /* latest_chosen_id is heap-allocated */
-      latest_chosen_id = g_strdup (chosen_id);
-      latest_chosen_count = 0;
-    }
-
-  in_permissions = (GStrv) g_new0 (char *, 2);
-  in_permissions[0] = g_strdup_printf ("%s:%u", latest_chosen_id, latest_chosen_count);
-
-  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store_impl,
-                                                           TABLE_NAME,
-                                                           TRUE,
-                                                           content_type,
-                                                           app_id,
-                                                           (const char * const*) in_permissions,
-                                                           NULL,
-                                                           &error))
-    {
-      g_warning ("Error updating permission store: %s\n", error->message);
-      g_clear_error (&error);
-    }
-}
-
-static void
-handle_choose_application_response (XdpImplAppChooser *object,
-                                    const gchar *arg_destination,
-                                    const gchar *arg_handle,
-                                    guint arg_response,
-                                    const gchar *arg_choice,
-                                    GVariant *arg_options)
-{
-  g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  g_autoptr(GError) error = NULL;
-
-  if (request == NULL)
-    return;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (arg_response == 0)
-    {
-      const char *uri;
-      const char *parent_window;
-      const char *content_type;
-
-      uri = g_object_get_data (G_OBJECT (request), "uri");
-      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
-      content_type = g_object_get_data (G_OBJECT (request), "content-type");
-
-      launch_application_with_uri (arg_choice, uri, parent_window);
-      update_permissions_store (request->app_id, content_type, arg_choice);
-    }
-
-  if (request->exported)
-    {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
-                                 arg_options);
-      unregister_handle (arg_handle);
-      request_unexport (request);
-    }
 }
 
 static void
@@ -421,9 +392,6 @@ open_uri_create (GDBusConnection *connection,
                  const char      *dbus_name)
 {
   g_autoptr(GError) error = NULL;
-
-  request_by_handle = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                             g_free, g_object_unref);
 
   app_chooser_impl = xdp_impl_app_chooser_proxy_new_sync (connection,
                                                           G_DBUS_PROXY_FLAGS_NONE,
@@ -450,8 +418,6 @@ open_uri_create (GDBusConnection *connection,
   set_proxy_use_threads (G_DBUS_PROXY (app_chooser_impl));
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
-
-  g_signal_connect (app_chooser_impl, "choose-application-response", (GCallback)handle_choose_application_response, NULL);
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
 }
