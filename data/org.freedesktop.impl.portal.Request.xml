@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
- Copyright (C) 2015 Red Hat, Inc.
+ Copyright (C) 2016 Red Hat, Inc.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -16,11 +16,12 @@
  License along with this library. If not, see <http://www.gnu.org/licenses/>.
 
  Author: Alexander Larsson <alexl@redhat.com>
+         Matthias Clasen <mclasen@redhat.com>
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.portal.Request:
+      org.freedesktop.impl.portal.Request:
       @short_description: shared request interface
 
       The Request interface is shared by all portal interfaces. When a
@@ -35,7 +36,7 @@
       The application can abort the interaction calling
       org.freedesktop.portal.Request.Close() on the Request object.
   -->
-  <interface name="org.freedesktop.portal.Request">
+  <interface name="org.freedesktop.impl.portal.Request">
 
     <!--
         Close:

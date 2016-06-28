@@ -17,7 +17,7 @@
 
  Author: Matthias Clasen <mclasen@redhat.com>
 -->
-<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <interface name="org.freedesktop.impl.portal.Print">
     <method name="PrintFile">
       <arg type="s" name="sender" direction="in"/>
