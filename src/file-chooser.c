@@ -150,33 +150,6 @@ handle_save_file_response (XdpImplFileChooser *object,
   emit_response (request, TRUE, arg_response, uris, arg_options);
 }
 
-static gboolean
-handle_close (XdpRequest *object,
-              GDBusMethodInvocation *invocation,
-              Request *request)
-{
-  g_autoptr(GError) error = NULL;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (request->exported)
-    {
-      XdpImplRequest *impl_request = g_object_get_data (G_OBJECT (request), "impl-request");
-
-      if (!xdp_impl_request_call_close_sync (impl_request, NULL, &error))
-        {
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-
-      request_unexport (request);
-    }
-
-  xdp_request_complete_close (XDP_REQUEST (request), invocation);
-
-  return TRUE;
-}
-
 typedef struct {
   const char *key;
   const GVariantType *type;
@@ -249,12 +222,9 @@ handle_open_file (XdpFileChooser *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_open_file_response, request);
 
-  g_object_set_data_full (G_OBJECT (request), "impl-request", g_object_ref (impl_request), g_object_unref);
-
-  g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
-
   REQUEST_AUTOLOCK (request);
 
+  request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
@@ -305,8 +275,6 @@ handle_open_files (XdpFileChooser *object,
   g_signal_connect (impl_request, "response", (GCallback)handle_open_files_response, request);
 
   g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
-
-  g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
   REQUEST_AUTOLOCK (request);
 
@@ -368,8 +336,6 @@ handle_save_file (XdpFileChooser *object,
   g_signal_connect (impl_request, "response", (GCallback)handle_save_file_response, request);
 
   g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
-
-  g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
 
   REQUEST_AUTOLOCK (request);
 

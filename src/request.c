@@ -58,9 +58,36 @@ request_on_signal_response (XdpRequest *object,
   g_list_free_full (connections, g_object_unref);
 }
 
+static gboolean
+handle_close (XdpRequest *object,
+              GDBusMethodInvocation *invocation)
+{
+  Request *request = (Request *)object;
+  g_autoptr(GError) error = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  if (request->exported)
+    {
+      if (request->impl_request &&
+          !xdp_impl_request_call_close_sync (request->impl_request, NULL, &error))
+        {
+          g_dbus_method_invocation_return_gerror (invocation, error);
+          return TRUE;
+        }
+
+      request_unexport (request);
+    }
+
+  xdp_request_complete_close (XDP_REQUEST (request), invocation);
+
+  return TRUE;
+}
+
 static void
 request_skeleton_iface_init (XdpRequestIface *iface)
 {
+  iface->handle_close = handle_close;
   iface->response = request_on_signal_response;
 }
 
@@ -82,10 +109,13 @@ request_finalize (GObject *object)
   g_hash_table_remove (requests, request->id);
   G_UNLOCK (requests);
 
+  g_clear_object (&request->impl_request);
+
   g_free (request->app_id);
   g_free (request->sender);
   g_free (request->id);
   g_mutex_clear (&request->mutex);
+
   G_OBJECT_CLASS (request_parent_class)->finalize (object);
 }
 
@@ -119,20 +149,6 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   return TRUE;
-}
-
-Request *
-lookup_request_by_handle (const char *handle)
-{
-  Request *request;
-
-  G_LOCK (requests);
-  request = (Request *)g_hash_table_lookup (requests, handle);
-  if (request)
-    g_object_ref (request);
-  G_UNLOCK (requests);
-
-  return request;
 }
 
 void
@@ -260,4 +276,11 @@ void
 set_proxy_use_threads (GDBusProxy *proxy)
 {
   g_signal_connect (proxy, "g-signal", (GCallback)proxy_g_signal_cb, NULL);
+}
+
+void
+request_set_impl_request (Request *request,
+                          XdpImplRequest *impl_request)
+{
+  g_set_object (&request->impl_request, impl_request);
 }
