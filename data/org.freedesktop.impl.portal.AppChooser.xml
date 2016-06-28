@@ -18,7 +18,44 @@
  Author: Matthias Clasen <mclasen@redhat.com>
 -->
 <node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+  <!--
+      org.freedesktop.impl.portal.AppChooser:
+      @short_description: interface for choosing an application
+
+      This backend can be used by portal implementations that
+      need to choose an application from a list of applications.
+  -->
   <interface name="org.freedesktop.impl.portal.AppChooser">
+    <!--
+        ChooseApplication:
+        @handle: object path to export the Request object at
+        @app_id: the app id of the application
+        @title: title for the app chooser dialog
+        @parent_window: identifier for the application window
+        @choices: app ids of applications to let the user choose from
+        @options: a  vardict with optional further information
+
+        Presents a list of applications to the user to choose one.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>latest-choice s</term>
+            <listitem><para>The app id that was selected the last time.</para></listitem>
+          </varlistentry>
+        </variablelist>
+
+      The following results get returned via the org.fredesktop.impl.portal.Request::Response signal:
+      <variablelist>
+        <varlistentry>
+          <term>choice s</term>
+          <listitem><para>The app id of the application that was selected.</para></listitem>
+        </varlistentry>
+      </variablelist>
+    -->
     <method name="ChooseApplication">
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>

@@ -24,26 +24,26 @@
       org.freedesktop.impl.portal.Request:
       @short_description: shared request interface
 
-      The Request interface is shared by all portal interfaces. When a
-      portal method is called, the reply includes a handle (i.e. object path)
-      for a Request object, which will stay alive for the duration of the
-      user interaction related to the method call.
+      The Request interface is shared by all portal backend interfaces.
+      When a backend method is called, the backend exports a Request object
+      on the object path that was sent with the method call. The Request
+      will stay alive for the duration of the user interaction related to
+      the method call.
 
-      The portal indicates that a portal request interaction is over by
-      emitting the #org.freedesktop.portal.Request::Response signal on the
+      The backend indicates that the user interaction is over by emitting
+      the #org.freedesktop.impl.portal.Request::Response signal on the
       Request object.
 
-      The application can abort the interaction calling
-      org.freedesktop.portal.Request.Close() on the Request object.
+      The portal can abort the interaction calling
+      org.freedesktop.impl.portal.Request.Close() on the Request object.
   -->
   <interface name="org.freedesktop.impl.portal.Request">
 
     <!--
         Close:
 
-        Ends the portal request and its user interaction (dialogs, etc)
-        to which this object refers. A Response signal will not be emitted
-        in this case.
+        Ends the user interaction (dialogs, etc) to which this object refers.
+        A Response signal will not be emitted in this case.
     -->
     <method name="Close">
     </method>

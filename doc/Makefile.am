@@ -8,6 +8,11 @@ PORTAL_INTERFACES = 							\
 	$(top_srcdir)/data/org.freedesktop.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.NetworkMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.ProxyResolver.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.AppChooser.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Print.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Screenshot.xml 	\
 	$(NULL)
 
 xml_files = 								\
@@ -18,6 +23,11 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Screenshot.xml 			\
 	portal-org.freedesktop.portal.NetworkMonitor.xml		\
 	portal-org.freedesktop.portal.ProxyResolver.xml			\
+	portal-org.freedesktop.portal.impl.Request.xml 			\
+	portal-org.freedesktop.portal.impl.FileChooser.xml		\
+	portal-org.freedesktop.portal.impl.AppChooser.xml 		\
+	portal-org.freedesktop.portal.impl.Print.xml 			\
+	portal-org.freedesktop.portal.impl.Screenshot.xml 			\
 	$(NULL)
 
 EXTRA_DIST = \

@@ -11,6 +11,13 @@
   </bookinfo>
   <reference>
     <title>Portal API Reference</title>
+    <partintro>
+    <para>
+      Portal interfaces (named org.freedesktop.portal.*)
+      are available to sandboxed applications. Requests made via
+      portal interfaces generally involve user interaction.
+    </para>
+    </partintro>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.OpenURI.xml"/>
@@ -18,5 +25,20 @@
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
+  </reference>
+  <reference>
+    <title>Portal Backend API Reference</title>
+    <partintro>
+    <para>
+      The portal backend interfaces (named org.freedesktop.impl.portal.*)
+      are not directly available to sandboxed applications. The portal
+      frontend is using them to carry out portal requests.
+    </para>
+    </partintro>
+    <xi:include href="portal-org.freedesktop.impl.portal.Request.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.AppChooser.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Print.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Screenshot.xml"/>
   </reference>
 </book>
