@@ -79,6 +79,24 @@ lookup_request_by_handle (const char *handle)
   return request;
 }
 
+static gboolean
+close_request (Request *request, GError **error)
+{
+  if (request->exported)
+    {
+      const char *handle = g_object_get_data (G_OBJECT (request), "app-chooser-impl-handle");
+
+      if (!xdp_impl_app_chooser_call_close_sync (app_chooser_impl,
+                                                 request->sender, request->app_id, handle,
+                                                 NULL, error))
+        return FALSE;
+
+      unregister_handle (handle);
+      request_unexport (request);
+    }
+
+  return TRUE;
+}
 
 static gboolean
 handle_close (XdpRequest *object,
@@ -89,25 +107,32 @@ handle_close (XdpRequest *object,
 
   REQUEST_AUTOLOCK (request);
 
-  if (request->exported)
+  if (!close_request (request, &error))
     {
-      const char *handle = g_object_get_data (G_OBJECT (request), "app-chooser-impl-handle");
-
-      if (!xdp_impl_app_chooser_call_close_sync (app_chooser_impl,
-                                                 request->sender, request->app_id, handle,
-                                                 NULL, &error))
-        {
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-
-      unregister_handle (handle);
-      request_unexport (request);
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
     }
 
   xdp_request_complete_close (XDP_REQUEST (request), invocation);
 
   return TRUE;
+}
+
+static void
+sender_died (Request *request)
+{
+  REQUEST_AUTOLOCK (request);
+  close_request (request, NULL);
+}
+
+static Request *
+get_request (GDBusMethodInvocation *invocation)
+{
+  Request *request = request_from_invocation (invocation);
+
+  g_signal_connect (request, "sender-died", G_CALLBACK (sender_died), NULL);
+
+  return request;
 }
 
 static gboolean
@@ -189,7 +214,7 @@ handle_open_uri (XdpOpenURI *object,
                  const gchar *arg_uri,
                  GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  Request *request = get_request (invocation);
   const char *app_id = request->app_id;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;

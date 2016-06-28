@@ -23,10 +23,15 @@
 
 #include <gio/gio.h>
 
+typedef struct _Request Request;
+typedef struct _RequestClass RequestClass;
+
 char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
                                           GError               **error);
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
+void   xdp_register_request              (Request               *request);
+void   xdp_unregister_request            (Request               *request);
 
 
 #endif /* __XDP_UTILS_H__ */

@@ -1,7 +1,5 @@
+#include "xdp-utils.h"
 #include "xdp-dbus.h"
-
-typedef struct _Request Request;
-typedef struct _RequestClass RequestClass;
 
 struct _Request
 {
@@ -30,6 +28,7 @@ Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);
+void request_sender_died (Request *request);
 
 static inline void
 auto_unlock_helper (GMutex **mutex)

@@ -2,6 +2,13 @@
 
 #include <string.h>
 
+enum {
+  SENDER_DIED,
+  LAST_SIGNAL
+};
+
+static guint signals[LAST_SIGNAL];
+
 static void request_skeleton_iface_init (XdpRequestIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_TYPE_REQUEST_SKELETON,
@@ -57,6 +64,8 @@ request_finalize (GObject *object)
 {
   Request *request = (Request *)object;
 
+  xdp_unregister_request (request);
+
   G_LOCK (requests);
   g_hash_table_remove (requests, request->id);
   G_UNLOCK (requests);
@@ -78,6 +87,14 @@ request_class_init (RequestClass *klass)
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->finalize  = request_finalize;
+
+  signals[SENDER_DIED] = g_signal_new ("sender-died",
+                                       G_TYPE_FROM_CLASS (klass),
+                                       G_SIGNAL_RUN_LAST,
+                                       0,
+                                       NULL, NULL,
+                                       NULL,
+                                       G_TYPE_NONE, 0);
 }
 
 static gboolean
@@ -126,6 +143,8 @@ request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id)
 
   G_UNLOCK (requests);
 
+  xdp_register_request (request);
+
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (request),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
   g_signal_connect (request, "g-authorize-method",
@@ -167,6 +186,12 @@ request_unexport (Request *request)
   request->exported = FALSE;
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   g_object_unref (request);
+}
+
+void
+request_sender_died (Request *request)
+{
+  g_signal_emit (request, signals[SENDER_DIED], 0);
 }
 
 typedef struct {
