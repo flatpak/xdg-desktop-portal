@@ -131,7 +131,8 @@ typedef struct {
 
 static OptionKey open_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
-  { "filters", (const GVariantType *)"a(sa(us))" }
+  { "filters", (const GVariantType *)"a(sa(us))" },
+  { "choices", (const GVariantType *)"a(ssa(ss)s)" }
 };
 
 void
@@ -149,7 +150,7 @@ copy_options (GVariant *arg_options,
                                       supported_options[i].key,
                                       supported_options[i].type);
       if (value)
-         g_variant_builder_add (options, supported_options[i].key);
+         g_variant_builder_add (options, "{sv}", supported_options[i].key, value);
     }
 }
 
@@ -242,8 +243,10 @@ static OptionKey save_file_options[] = {
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "current_name", G_VARIANT_TYPE_STRING },
   { "current_folder", G_VARIANT_TYPE_BYTESTRING },
-  { "current_file", G_VARIANT_TYPE_BYTESTRING }
+  { "current_file", G_VARIANT_TYPE_BYTESTRING },
+  { "choices", (const GVariantType *)"a(ssa(ss)s)" }
 };
+
 static gboolean
 handle_save_file (XdpFileChooser *object,
                   GDBusMethodInvocation *invocation,
@@ -300,6 +303,7 @@ static void emit_response (XdpImplFileChooser *object,
   g_autofree char *ruri = NULL;
   gboolean writable = TRUE;
   g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) choices = NULL;
   int i;
 
   if (request == NULL)
@@ -311,6 +315,10 @@ static void emit_response (XdpImplFileChooser *object,
     writable = FALSE;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+
+  choices = g_variant_lookup_value (arg_options, "choices", G_VARIANT_TYPE ("a(ss)"));
+  if (choices)
+    g_variant_builder_add (&results, "{sv}", "choices", choices);
 
   g_variant_builder_init (&uris, G_VARIANT_TYPE ("as"));
 
