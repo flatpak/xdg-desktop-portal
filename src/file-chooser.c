@@ -78,7 +78,8 @@ handle_response (XdpImplRequest *object,
 
   for_save = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save"));
 
-  g_variant_lookup (arg_options, "uris", "^a&s", &uris);
+  if (!g_variant_lookup (arg_options, "uris", "^a&s", &uris))
+    uris = NULL;
 
   if (!g_variant_lookup (arg_options, "b", "writable", &writable))
     writable = FALSE;
@@ -87,7 +88,7 @@ handle_response (XdpImplRequest *object,
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("as"));
 
-  for (i = 0; uris[i] != NULL; i++)
+  for (i = 0; uris && uris[i] != NULL; i++)
     {
       ruri = register_document (uris[i], request->app_id, for_save, writable, &error);
       if (ruri == NULL)
@@ -157,20 +158,10 @@ handle_open_file (XdpFileChooser *object,
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
-
-  if (!xdp_impl_file_chooser_call_open_file_sync (impl,
-                                                  sender, app_id,
-                                                  arg_parent_window,
-                                                  arg_title,
-                                                  g_variant_builder_end (&options),
-                                                  request->id,
-                                                  NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -185,9 +176,20 @@ handle_open_file (XdpFileChooser *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
 
-  REQUEST_AUTOLOCK (request);
-
   request_set_impl_request (request, impl_request);
+
+  if (!xdp_impl_file_chooser_call_open_file_sync (impl,
+                                                  sender, app_id,
+                                                  arg_parent_window,
+                                                  arg_title,
+                                                  g_variant_builder_end (&options),
+                                                  request->id,
+                                                  NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
@@ -209,20 +211,10 @@ handle_open_files (XdpFileChooser *object,
   XdpImplRequest *impl_request;
   GVariantBuilder options;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
-
-  if (!xdp_impl_file_chooser_call_open_files_sync (impl,
-                                                   sender, app_id,
-                                                   arg_parent_window,
-                                                   arg_title,
-                                                   g_variant_builder_end (&options),
-                                                   request->id,
-                                                   NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -237,13 +229,24 @@ handle_open_files (XdpFileChooser *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
 
-  g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
+  request_set_impl_request (request, impl_request);
 
-  REQUEST_AUTOLOCK (request);
+  if (!xdp_impl_file_chooser_call_open_files_sync (impl,
+                                                   sender, app_id,
+                                                   arg_parent_window,
+                                                   arg_title,
+                                                   g_variant_builder_end (&options),
+                                                   request->id,
+                                                   NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_file_chooser_complete_open_files (object, invocation, request->id);
+
   return TRUE;
 }
 
@@ -270,20 +273,10 @@ handle_save_file (XdpFileChooser *object,
   XdpImplRequest *impl_request;
   GVariantBuilder options;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   copy_options (arg_options, &options, save_file_options, G_N_ELEMENTS (save_file_options));
-
-  if (!xdp_impl_file_chooser_call_save_file_sync (impl,
-                                                  sender, app_id,
-                                                  arg_parent_window,
-                                                  arg_title,
-                                                  g_variant_builder_end (&options),
-                                                  request->id,
-                                                  NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -300,9 +293,19 @@ handle_save_file (XdpFileChooser *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
 
-  g_object_set_data_full (G_OBJECT (request), "impl-request", impl_request, g_object_unref);
+  request_set_impl_request (request, impl_request);
 
-  REQUEST_AUTOLOCK (request);
+  if (!xdp_impl_file_chooser_call_save_file_sync (impl,
+                                                  sender, app_id,
+                                                  arg_parent_window,
+                                                  arg_title,
+                                                  g_variant_builder_end (&options),
+                                                  request->id,
+                                                  NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 

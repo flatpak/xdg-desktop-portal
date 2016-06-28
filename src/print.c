@@ -86,18 +86,7 @@ handle_print_file (XdpPrint *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
 
-  if (!xdp_impl_print_call_print_file_sync (impl,
-                                            sender, app_id,
-                                            arg_parent_window,
-                                            arg_title,
-                                            arg_filename,
-                                            arg_options,
-                                            request->id,
-                                            NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
+  REQUEST_AUTOLOCK (request);
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -112,12 +101,25 @@ handle_print_file (XdpPrint *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
 
-  REQUEST_AUTOLOCK (request);
-
   request_set_impl_request (request, impl_request);
+
+  if (!xdp_impl_print_call_print_file_sync (impl,
+                                            sender, app_id,
+                                            arg_parent_window,
+                                            arg_title,
+                                            arg_filename,
+                                            arg_options,
+                                            request->id,
+                                            NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_print_complete_print_file (object, invocation, request->id);
+
   return TRUE;
 }
 

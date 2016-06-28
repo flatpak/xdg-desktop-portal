@@ -237,6 +237,8 @@ handle_open_uri (XdpOpenURI *object,
   gboolean use_first_choice = FALSE;
   int i;
 
+  REQUEST_AUTOLOCK (request);
+
   uri_scheme = g_uri_parse_scheme (arg_uri);
   if (uri_scheme && uri_scheme[0] != '\0')
     scheme_down = g_ascii_strdown (uri_scheme, -1);
@@ -305,18 +307,6 @@ handle_open_uri (XdpOpenURI *object,
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
-  if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
-                                                          sender, app_id,
-                                                          arg_parent_window,
-                                                          (const char * const *)choices,
-                                                          g_variant_builder_end (&opts_builder),
-                                                          request->id,
-                                                          NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (app_chooser_impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
                                                   g_dbus_proxy_get_name (G_DBUS_PROXY (app_chooser_impl)),
@@ -330,13 +320,24 @@ handle_open_uri (XdpOpenURI *object,
 
   g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
 
-  REQUEST_AUTOLOCK (request);
-
   request_set_impl_request (request, impl_request);
+
+  if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
+                                                          sender, app_id,
+                                                          arg_parent_window,
+                                                          (const char * const *)choices,
+                                                          g_variant_builder_end (&opts_builder),
+                                                          request->id,
+                                                          NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
+
   return TRUE;
 }
 
