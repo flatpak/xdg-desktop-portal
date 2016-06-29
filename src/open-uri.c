@@ -215,18 +215,23 @@ handle_open_uri (XdpOpenURI *object,
   g_autoptr(GError) error = NULL;
   g_autofree char *app_chooser_impl_handle = NULL;
   g_auto(GStrv) choices = NULL;
+  guint n_choices = 0;
   GList *infos, *l;
   g_autofree char *uri_scheme = NULL;
+  g_autofree char *scheme_down = NULL;
   g_autofree char *content_type = NULL;
   g_autofree char *latest_chosen_id = NULL;
   gint latest_chosen_count = 0;
   GVariantBuilder opts_builder;
+  gboolean use_first_choice = FALSE;
   int i;
 
   uri_scheme = g_uri_parse_scheme (arg_uri);
-  if (uri_scheme && uri_scheme[0] != '\0' && strcmp (uri_scheme, "file") != 0)
+  if (uri_scheme && uri_scheme[0] != '\0')
+    scheme_down = g_ascii_strdown (uri_scheme, -1);
+
+  if ((scheme_down != NULL) && (strcmp (scheme_down, "file") != 0))
     {
-      g_autofree char *scheme_down = g_ascii_strdown (uri_scheme, -1);
       content_type = g_strconcat ("x-scheme-handler/", scheme_down, NULL);
     }
   else
@@ -241,7 +246,8 @@ handle_open_uri (XdpOpenURI *object,
     }
 
   infos = g_app_info_get_recommended_for_type (content_type);
-  choices = g_new (char *, g_list_length (infos) + 1);
+  n_choices = g_list_length (infos);
+  choices = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
     {
       GAppInfo *info = l->data;
@@ -250,11 +256,22 @@ handle_open_uri (XdpOpenURI *object,
   choices[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
-  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
-      (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD))
+  /* We normally want a dialog to show up at least a few times, but for http[s] we can
+     make an exception in case there's only one candidate application to handle it */
+  if ((n_choices == 1) &&
+      ((g_strcmp0 (scheme_down, "http") == 0) || (g_strcmp0 (scheme_down, "https") == 0)))
+    {
+      use_first_choice = TRUE;
+    }
+
+  if (use_first_choice ||
+      (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
+       (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
-      launch_application_with_uri (latest_chosen_id, arg_uri, arg_parent_window);
+      launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
+                                   arg_uri,
+                                   arg_parent_window);
 
       /* We need to close the request before completing, so do it here */
       xdp_request_complete_close (XDP_REQUEST (request), invocation);
