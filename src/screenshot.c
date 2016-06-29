@@ -64,7 +64,7 @@ screenshot_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  Request *request = data;
+  g_autoptr(Request) request = data;
   guint response;
   GVariant *options;
   GVariantBuilder results;
@@ -141,7 +141,7 @@ handle_screenshot (XdpScreenshot *object,
                                        arg_options,
                                        NULL,
                                        screenshot_done,
-                                       request);
+                                       g_object_ref (request));
 
   xdp_screenshot_complete_screenshot (object, invocation, request->id);
 

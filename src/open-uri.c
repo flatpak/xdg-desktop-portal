@@ -186,7 +186,7 @@ app_chooser_done (GObject *source,
                   GAsyncResult *result,
                   gpointer data)
 {
-  Request *request = data;
+  g_autoptr (Request) request = data;
   guint response;
   GVariant *options;
   g_autoptr(GError) error = NULL;
@@ -339,7 +339,7 @@ handle_open_uri (XdpOpenURI *object,
                                                 g_variant_builder_end (&opts_builder),
                                                 NULL,
                                                 app_chooser_done,
-                                                request);
+                                                g_object_ref (request));
 
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
 

@@ -64,7 +64,7 @@ print_file_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  Request *request = data;
+  g_autoptr(Request) request = data;
   guint response;
   GVariant *options;
   g_autoptr(GError) error = NULL;
@@ -121,7 +121,8 @@ handle_print_file (XdpPrint *object,
                                   arg_filename,
                                   arg_options,
                                   NULL,
-                                  print_file_done, request);
+                                  print_file_done,
+                                  g_object_ref (request));
 
   xdp_print_complete_print_file (object, invocation, request->id);
 

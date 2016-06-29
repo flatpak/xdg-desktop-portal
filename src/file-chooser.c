@@ -66,7 +66,7 @@ open_file_done (GObject *source,
                 GAsyncResult *result,
                 gpointer data)
 {
-  Request *request = data;
+  g_autoptr(Request) request = data;
   guint response;
   GVariant *options;
   GVariantBuilder results;
@@ -86,8 +86,6 @@ open_file_done (GObject *source,
                                                     result,
                                                     &error))
     response = 2;
-
-g_print ("OpenFile done: %d %s\n", response, g_variant_print (options, 0));
 
   if (response != 0)
     goto out;
@@ -186,7 +184,6 @@ handle_open_file (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-g_print ("calling OpenFile\n");
   xdp_impl_file_chooser_call_open_file (impl,
                                         request->id,
                                         app_id,
@@ -195,7 +192,7 @@ g_print ("calling OpenFile\n");
                                         g_variant_builder_end (&options),
                                         NULL,
                                         open_file_done,
-                                        request);
+                                        g_object_ref (request));
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
@@ -207,7 +204,7 @@ open_files_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  Request *request = data;
+  g_autoptr(Request) request = data;
   guint response;
   GVariant *options;
   GVariantBuilder ruris;
@@ -307,7 +304,7 @@ handle_open_files (XdpFileChooser *object,
                                          g_variant_builder_end (&options),
                                          NULL,
                                          open_files_done,
-                                         request);
+                                         g_object_ref (request));
 
   xdp_file_chooser_complete_open_files (object, invocation, request->id);
 
@@ -328,7 +325,7 @@ save_file_done (GObject *source,
                 GAsyncResult *result,
                 gpointer data)
 {
-  Request *request = data;
+  g_autoptr(Request) request = data;
   guint response;
   GVariant *options;
   GVariantBuilder results;
@@ -420,7 +417,7 @@ handle_save_file (XdpFileChooser *object,
                                         g_variant_builder_end (&options),
                                         NULL,
                                         save_file_done,
-                                        request);
+                                        g_object_ref (request));
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
