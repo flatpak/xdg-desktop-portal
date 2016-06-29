@@ -49,8 +49,6 @@ GType request_get_type (void) G_GNUC_CONST;
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Request, g_object_unref)
 
-void set_proxy_use_threads (GDBusProxy *proxy);
-
 void request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id);
 Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
