@@ -32,13 +32,15 @@
         @app_id: the app id of the application
         @parent_window: identifier for the application window
         @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
 
         Takes a screenshot.
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
 
-        The following results get returned via the org.fredesktop.impl.portal.Request::Response signal:
+        The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
             <term>uri s</term>
@@ -47,12 +49,13 @@
         </variablelist>
 
     -->
-
     <method name="Screenshot">
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>
 </node>

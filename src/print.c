@@ -60,14 +60,26 @@ G_DEFINE_TYPE_WITH_CODE (Print, print, XDP_TYPE_PRINT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_PRINT, print_iface_init));
 
 static void
-handle_response (XdpImplPrint *object,
-                 guint arg_response,
-                 GVariant *arg_options,
-                 Request *request)
+print_file_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
 {
+  Request *request = data;
+  guint response;
+  GVariant *options;
+  g_autoptr(GError) error = NULL;
+
+  if (!xdp_impl_print_call_print_file_finish (XDP_IMPL_PRINT (source),
+                                              &response, &options,
+                                              result, &error))
+    {
+      response = 2;
+      options = NULL;
+    }
+
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request), arg_response, arg_options);
+      xdp_request_emit_response (XDP_REQUEST (request), response, options);
       request_unexport (request);
     }
 }
@@ -98,24 +110,18 @@ handle_print_file (XdpPrint *object,
       return TRUE;
     }
 
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_print_call_print_file_sync (impl,
-                                            request->id,
-                                            app_id,
-                                            arg_parent_window,
-                                            arg_title,
-                                            arg_filename,
-                                            arg_options,
-                                            NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_impl_print_call_print_file (impl,
+                                  request->id,
+                                  app_id,
+                                  arg_parent_window,
+                                  arg_title,
+                                  arg_filename,
+                                  arg_options,
+                                  NULL,
+                                  print_file_done, request);
 
   xdp_print_complete_print_file (object, invocation, request->id);
 

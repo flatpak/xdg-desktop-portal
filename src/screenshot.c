@@ -60,11 +60,13 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_TYPE_SCREENSHOT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_SCREENSHOT, screenshot_iface_init));
 
 static void
-handle_response (XdpImplScreenshot *object,
-                 guint arg_response,
-                 GVariant *arg_options,
-                 Request *request)
+screenshot_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
 {
+  Request *request = data;
+  guint response;
+  GVariant *options;
   GVariantBuilder results;
   const char *uri;
   g_autofree char *ruri = NULL;
@@ -72,7 +74,17 @@ handle_response (XdpImplScreenshot *object,
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
-  g_variant_lookup (arg_options, "uri", "&s", &uri);
+  if (!xdp_impl_screenshot_call_screenshot_finish (XDP_IMPL_SCREENSHOT (source),
+                                                   &response,
+                                                   &options,
+                                                   result,
+                                                   &error))
+    {
+      response = 2;
+      options = NULL;
+    }
+
+  g_variant_lookup (options, "uri", "&s", &uri);
 
   if (strcmp (uri, "") != 0)
     {
@@ -89,7 +101,7 @@ handle_response (XdpImplScreenshot *object,
   if (request->exported)
     {
       xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
+                                 response,
                                  g_variant_builder_end (&results));
       request_unexport (request);
     }
@@ -119,22 +131,17 @@ handle_screenshot (XdpScreenshot *object,
       return TRUE;
     }
 
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_screenshot_call_screenshot_sync (impl,
-                                                 request->id,
-                                                 app_id,
-                                                 arg_parent_window,
-                                                 arg_options,
-                                                 NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_impl_screenshot_call_screenshot (impl,
+                                       request->id,
+                                       app_id,
+                                       arg_parent_window,
+                                       arg_options,
+                                       NULL,
+                                       screenshot_done,
+                                       request);
 
   xdp_screenshot_complete_screenshot (object, invocation, request->id);
 

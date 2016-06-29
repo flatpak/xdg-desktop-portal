@@ -34,6 +34,8 @@
         @parent_window: identifier for the application window
         @title: title for the file chooser dialog
         @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
 
         Presents a file chooser dialog to the user to open a single file.
 
@@ -56,7 +58,7 @@
           </varlistentry>
         </variablelist>
 
-        The following results get returned via the org.fredesktop.impl.portal.Request::Response signal:
+        The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
             <term>uris as</term>
@@ -74,6 +76,8 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
     <!--
         OpenFiles:
@@ -82,6 +86,8 @@
         @parent_window: identifier for the application window
         @title: title for the file chooser dialog
         @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
 
         Presents a file chooser dialog to the user to open multiple files.
 
@@ -104,7 +110,7 @@
           </varlistentry>
         </variablelist>
 
-        The following results get returned via the org.fredesktop.impl.portal.Request::Response signal:
+        The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
             <term>uris as</term>
@@ -122,6 +128,8 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
     <!--
         SaveFile:
@@ -130,6 +138,8 @@
         @parent_window: identifier for the application window
         @title: title for the file chooser dialog
         @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
 
         Presents a file chooser dialog to the user to save a file.
 
@@ -164,7 +174,7 @@
           </varlistentry>
         </variablelist>
 
-        The following results get returned via the org.fredesktop.portal.Request::Response signal:
+        The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
             <term>uris as</term>
@@ -182,6 +192,8 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>
 </node>

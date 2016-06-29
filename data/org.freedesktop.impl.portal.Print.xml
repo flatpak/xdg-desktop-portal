@@ -34,6 +34,8 @@
         @title: title for the print dialog
         @filename: the pdf file to print
         @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
 
         Presents a print dialog to print a pdf file.
 
@@ -47,6 +49,8 @@
       <arg type="s" name="title" direction="in"/>
       <arg type="ay" name="filename" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>
 </node>

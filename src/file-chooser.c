@@ -62,53 +62,63 @@ G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser, XDP_TYPE_FILE_CHOOSER_SKELET
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_FILE_CHOOSER, file_chooser_iface_init));
 
 static void
-handle_response (XdpImplRequest *object,
-                 guint arg_response,
-                 GVariant *arg_options,
-                 Request *request)
+open_file_done (GObject *source,
+                GAsyncResult *result,
+                gpointer data)
 {
-  GVariantBuilder builder;
+  Request *request = data;
+  guint response;
+  GVariant *options;
   GVariantBuilder results;
+  GVariantBuilder ruris;
   g_autofree char *ruri = NULL;
   gboolean writable = TRUE;
   g_autoptr(GError) error = NULL;
-  int i;
   const char **uris;
-  gboolean for_save;
-
-  for_save = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save"));
-
-  if (!g_variant_lookup (arg_options, "uris", "^a&s", &uris))
-    uris = NULL;
-
-  if (!g_variant_lookup (arg_options, "b", "writable", &writable))
-    writable = FALSE;
+  GVariant *choices;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("as"));
+  if (!xdp_impl_file_chooser_call_open_file_finish (XDP_IMPL_FILE_CHOOSER (source),
+                                                    &response,
+                                                    &options,
+                                                    result,
+                                                    &error))
+    response = 2;
 
-  for (i = 0; uris && uris[i] != NULL; i++)
+g_print ("OpenFile done: %d %s\n", response, g_variant_print (options, 0));
+
+  if (response != 0)
+    goto out;
+
+  if (!g_variant_lookup (options, "b", "writable", &writable))
+    writable = FALSE;
+
+  choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
+  if (choices)
+    g_variant_builder_add (&results, "{sv}", "choices", choices);
+
+  if (g_variant_lookup (options, "uris", "^a&s", &uris))
     {
-      ruri = register_document (uris[i], request->app_id, for_save, writable, &error);
+      ruri = register_document (uris[0], request->app_id, FALSE, writable, &error);
       if (ruri == NULL)
         {
-          g_warning ("Failed to register %s: %s\n", uris[i], error->message);
+          g_warning ("Failed to register %s: %s\n", uris[0], error->message);
           g_clear_error (&error);
+          goto out;
         }
-      else
-        {
-          g_debug ("convert uri %s -> %s\n", uris[i], ruri);
-          g_variant_builder_add (&builder, "s", ruri);
-        }
+      g_debug ("convert uri %s -> %s\n", uris[0], ruri);
+      g_variant_builder_add (&ruris, "s", ruri);
     }
 
-  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&builder));
+out:
+  g_variant_builder_add (&results, "{sv}", "uris", g_variant_builder_end (&ruris));
 
   if (request->exported)
     {
       xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
+                                 response,
                                  g_variant_builder_end (&results));
       request_unexport (request);
     }
@@ -173,27 +183,88 @@ handle_open_file (XdpFileChooser *object,
       return TRUE;
     }
 
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_file_chooser_call_open_file_sync (impl,
-                                                  request->id,
-                                                  app_id,
-                                                  arg_parent_window,
-                                                  arg_title,
-                                                  g_variant_builder_end (&options),
-                                                  NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+g_print ("calling OpenFile\n");
+  xdp_impl_file_chooser_call_open_file (impl,
+                                        request->id,
+                                        app_id,
+                                        arg_parent_window,
+                                        arg_title,
+                                        g_variant_builder_end (&options),
+                                        NULL,
+                                        open_file_done,
+                                        request);
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
   return TRUE;
+}
+
+static void
+open_files_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
+{
+  Request *request = data;
+  guint response;
+  GVariant *options;
+  GVariantBuilder ruris;
+  GVariantBuilder results;
+  g_autofree char *ruri = NULL;
+  gboolean writable = TRUE;
+  g_autoptr(GError) error = NULL;
+  int i;
+  const char **uris;
+  GVariant *choices;
+
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
+
+  if (!xdp_impl_file_chooser_call_open_files_finish (XDP_IMPL_FILE_CHOOSER (source),
+                                                     &response,
+                                                     &options,
+                                                     result,
+                                                     &error))
+    response = 2;
+
+  if (response != 0)
+    goto out;
+
+  if (!g_variant_lookup (options, "b", "writable", &writable))
+    writable = FALSE;
+
+  choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
+  if (choices)
+    g_variant_builder_add (&results, "{sv}", "choices", choices);
+
+  if (g_variant_lookup (options, "uris", "^a&s", &uris))
+    {
+      for (i = 0; uris && uris[i]; i++)
+        {
+          ruri = register_document (uris[i], request->app_id, FALSE, writable, &error);
+          if (ruri == NULL)
+            {
+              g_warning ("Failed to register %s: %s\n", uris[i], error->message);
+              g_clear_error (&error);
+              continue;
+            }
+          g_debug ("convert uri %s -> %s\n", uris[i], ruri);
+          g_variant_builder_add (&ruris, "s", ruri);
+        }
+    }
+
+out:
+  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&ruris));
+
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 response,
+                                 g_variant_builder_end (&results));
+      request_unexport (request);
+    }
 }
 
 static gboolean
@@ -225,23 +296,18 @@ handle_open_files (XdpFileChooser *object,
       return TRUE;
     }
 
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_file_chooser_call_open_files_sync (impl,
-                                                   request->id,
-                                                   app_id,
-                                                   arg_parent_window,
-                                                   arg_title,
-                                                   g_variant_builder_end (&options),
-                                                   NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_impl_file_chooser_call_open_files (impl,
+                                         request->id,
+                                         app_id,
+                                         arg_parent_window,
+                                         arg_title,
+                                         g_variant_builder_end (&options),
+                                         NULL,
+                                         open_files_done,
+                                         request);
 
   xdp_file_chooser_complete_open_files (object, invocation, request->id);
 
@@ -256,6 +322,63 @@ static OptionKey save_file_options[] = {
   { "current_file", G_VARIANT_TYPE_BYTESTRING },
   { "choices", (const GVariantType *)"a(ssa(ss)s)" }
 };
+
+static void
+save_file_done (GObject *source,
+                GAsyncResult *result,
+                gpointer data)
+{
+  Request *request = data;
+  guint response;
+  GVariant *options;
+  GVariantBuilder results;
+  GVariantBuilder ruris;
+  g_autofree char *ruri = NULL;
+  g_autoptr(GError) error = NULL;
+  const char **uris;
+  GVariant *choices;
+
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
+
+  if (!xdp_impl_file_chooser_call_save_file_finish (XDP_IMPL_FILE_CHOOSER (source),
+                                                    &response,
+                                                    &options,
+                                                    result,
+                                                    &error))
+    response = 2;
+
+  if (response != 0)
+    goto out;
+
+  choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
+  if (choices)
+    g_variant_builder_add (&results, "{sv}", "choices", choices);
+
+  if (g_variant_lookup (options, "uris", "^a&s", &uris))
+    {
+      ruri = register_document (uris[0], request->app_id, TRUE, TRUE, &error);
+      if (ruri == NULL)
+        {
+          g_warning ("Failed to register %s: %s\n", uris[0], error->message);
+          g_clear_error (&error);
+          goto out;
+        }
+      g_debug ("convert uri %s -> %s\n", uris[0], ruri);
+      g_variant_builder_add (&ruris, "s", ruri);
+    }
+
+out:
+  g_variant_builder_add (&results, "{&sv}", "uris", g_variant_builder_end (&ruris));
+
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 response,
+                                 g_variant_builder_end (&results));
+      request_unexport (request);
+    }
+}
 
 static gboolean
 handle_save_file (XdpFileChooser *object,
@@ -286,27 +409,21 @@ handle_save_file (XdpFileChooser *object,
       return TRUE;
     }
 
-  g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (1));
-
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_file_chooser_call_save_file_sync (impl,
-                                                  request->id,
-                                                  app_id,
-                                                  arg_parent_window,
-                                                  arg_title,
-                                                  g_variant_builder_end (&options),
-                                                  NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
+  xdp_impl_file_chooser_call_save_file (impl,
+                                        request->id,
+                                        app_id,
+                                        arg_parent_window,
+                                        arg_title,
+                                        g_variant_builder_end (&options),
+                                        NULL,
+                                        save_file_done,
+                                        request);
+
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
+
   return TRUE;
 }
 

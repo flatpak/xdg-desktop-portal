@@ -182,21 +182,32 @@ update_permissions_store (const char *app_id,
 }
 
 static void
-handle_response (XdpImplRequest *object,
-                 guint arg_response,
-                 GVariant *arg_options,
-                 Request *request)
+app_chooser_done (GObject *source,
+                  GAsyncResult *result,
+                  gpointer data)
 {
+  Request *request = data;
+  guint response;
+  GVariant *options;
   g_autoptr(GError) error = NULL;
 
-  if (arg_response == 0)
+  if (!xdp_impl_app_chooser_call_choose_application_finish (XDP_IMPL_APP_CHOOSER (source),
+                                                            &response,
+                                                            &options,
+                                                            result,
+                                                            &error))
+    {
+      response = 2;
+    }
+
+  if (response == 0)
     {
       const char *uri;
       const char *parent_window;
       const char *content_type;
       const char *choice;
 
-      g_variant_lookup (arg_options, "&s", "choice", &choice);
+      g_variant_lookup (options, "&s", "choice", &choice);
 
       uri = g_object_get_data (G_OBJECT (request), "uri");
       parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
@@ -208,7 +219,7 @@ handle_response (XdpImplRequest *object,
 
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request), arg_response, arg_options);
+      xdp_request_emit_response (XDP_REQUEST (request), response, options);
       request_unexport (request);
     }
 }
@@ -317,23 +328,18 @@ handle_open_uri (XdpOpenURI *object,
       return TRUE;
     }
 
-  g_signal_connect (impl_request, "response", (GCallback)handle_response, request);
-
   request_set_impl_request (request, impl_request);
-
-  if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
-                                                          request->id,
-                                                          app_id,
-                                                          arg_parent_window,
-                                                          (const char * const *)choices,
-                                                          g_variant_builder_end (&opts_builder),
-                                                          NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_impl_app_chooser_call_choose_application (app_chooser_impl,
+                                                request->id,
+                                                app_id,
+                                                arg_parent_window,
+                                                (const char * const *)choices,
+                                                g_variant_builder_end (&opts_builder),
+                                                NULL,
+                                                app_chooser_done,
+                                                request);
 
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
 
