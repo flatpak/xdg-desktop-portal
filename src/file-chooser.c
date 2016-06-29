@@ -77,6 +77,8 @@ open_file_done (GObject *source,
   const char **uris;
   GVariant *choices;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
 
@@ -216,6 +218,8 @@ open_files_done (GObject *source,
   const char **uris;
   GVariant *choices;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
 
@@ -334,6 +338,8 @@ save_file_done (GObject *source,
   g_autoptr(GError) error = NULL;
   const char **uris;
   GVariant *choices;
+
+  REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);

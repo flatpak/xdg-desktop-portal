@@ -191,6 +191,8 @@ app_chooser_done (GObject *source,
   GVariant *options;
   g_autoptr(GError) error = NULL;
 
+  REQUEST_AUTOLOCK (request);
+
   if (!xdp_impl_app_chooser_call_choose_application_finish (XDP_IMPL_APP_CHOOSER (source),
                                                             &response,
                                                             &options,

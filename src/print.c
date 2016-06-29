@@ -69,6 +69,8 @@ print_file_done (GObject *source,
   GVariant *options;
   g_autoptr(GError) error = NULL;
 
+  REQUEST_AUTOLOCK (request);
+
   if (!xdp_impl_print_call_print_file_finish (XDP_IMPL_PRINT (source),
                                               &response, &options,
                                               result, &error))

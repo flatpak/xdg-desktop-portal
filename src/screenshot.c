@@ -72,6 +72,8 @@ screenshot_done (GObject *source,
   g_autofree char *ruri = NULL;
   g_autoptr(GError) error = NULL;
 
+  REQUEST_AUTOLOCK (request);
+
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_impl_screenshot_call_screenshot_finish (XDP_IMPL_SCREENSHOT (source),
