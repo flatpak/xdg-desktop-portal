@@ -54,6 +54,7 @@ Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);
+void close_requests_for_sender (const char *sender);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpImplRequest, g_object_unref)
 
