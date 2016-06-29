@@ -57,6 +57,8 @@ void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpImplRequest, g_object_unref)
+
 void request_set_impl_request (Request *request,
                                XdpImplRequest *impl_request);
 
