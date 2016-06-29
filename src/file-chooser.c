@@ -465,8 +465,6 @@ file_chooser_create (GDBusConnection *connection,
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (impl));
-
   file_chooser = g_object_new (file_chooser_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (file_chooser);

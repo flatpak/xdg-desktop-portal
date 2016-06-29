@@ -164,8 +164,6 @@ print_create (GDBusConnection *connection,
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (impl));
-
   print = g_object_new (print_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (print);

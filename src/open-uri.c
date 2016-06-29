@@ -392,8 +392,6 @@ open_uri_create (GDBusConnection *connection,
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (app_chooser_impl));
-
   open_uri = g_object_new (open_uri_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
