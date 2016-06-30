@@ -60,46 +60,38 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_TYPE_SCREENSHOT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_SCREENSHOT, screenshot_iface_init));
 
 static void
-screenshot_done (GObject *source,
-                 GAsyncResult *result,
-                 gpointer data)
+send_response_in_thread_func (GTask        *task,
+                              gpointer      source_object,
+                              gpointer      task_data,
+                              GCancellable *cancellable)
 {
-  g_autoptr(Request) request = data;
+  Request *request = task_data;
+  GVariantBuilder results;
   guint response;
   GVariant *options;
-  GVariantBuilder results;
+  g_autoptr(GError) error = NULL;
   const char *uri;
   g_autofree char *ruri = NULL;
-  g_autoptr(GError) error = NULL;
-
-  REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
-  if (!xdp_impl_screenshot_call_screenshot_finish (XDP_IMPL_SCREENSHOT (source),
-                                                   &response,
-                                                   &options,
-                                                   result,
-                                                   &error))
-    {
-      response = 2;
-      options = NULL;
-    }
+  REQUEST_AUTOLOCK (request);
+
+  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
+  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
+
+  if (response != 0)
+    goto out;
 
   g_variant_lookup (options, "uri", "&s", &uri);
 
-  if (strcmp (uri, "") != 0)
-    {
-      ruri = register_document (uri, request->app_id, FALSE, FALSE, &error);
-      if (ruri == NULL)
-        {
-          g_warning ("Failed to register %s: %s\n", uri, error->message);
-          g_clear_error (&error);
-        }
-      else
-        g_variant_builder_add (&results, "{&sv}", "uri", g_variant_new_string (ruri));
-    }
+  ruri = register_document (uri, request->app_id, FALSE, FALSE, &error);
+  if (ruri == NULL)
+    g_warning ("Failed to register %s: %s", uri, error->message);
+  else
+    g_variant_builder_add (&results, "{&sv}", "uri", g_variant_new_string (ruri));
 
+out:
   if (request->exported)
     {
       xdp_request_emit_response (XDP_REQUEST (request),
@@ -107,6 +99,35 @@ screenshot_done (GObject *source,
                                  g_variant_builder_end (&results));
       request_unexport (request);
     }
+}
+
+static void
+screenshot_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
+{
+  g_autoptr(Request) request = data;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+
+  if (!xdp_impl_screenshot_call_screenshot_finish (XDP_IMPL_SCREENSHOT (source),
+                                                   &response,
+                                                   &options,
+                                                   result,
+                                                   &error))
+    {
+      g_warning ("A backend call failed: %s", error->message);
+    }
+
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (options)
+    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
 static gboolean
