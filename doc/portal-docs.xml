@@ -2,20 +2,22 @@
 <!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
                "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
 <!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
-<!ENTITY version SYSTEM "version.xml">
 ]>
 <book xmlns:xi="http://www.w3.org/2003/XInclude">
   <bookinfo>
     <title>Portal Documentation</title>
-    <releaseinfo>Version &version;</releaseinfo>
+    <releaseinfo>Version <xi:include parse="text" href="version.xml"/></releaseinfo>
   </bookinfo>
   <reference>
     <title>Portal API Reference</title>
     <partintro>
     <para>
       Portal interfaces (named org.freedesktop.portal.*)
-      are available to sandboxed applications. Requests made via
-      portal interfaces generally involve user interaction.
+      are available to sandboxed applications with the default filtered
+      session bus access of Flatpak.
+    </para>
+    <para>
+      Requests made via portal interfaces generally involve user interaction.
     </para>
     </partintro>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
