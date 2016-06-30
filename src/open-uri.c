@@ -187,8 +187,8 @@ app_chooser_done (GObject *source,
                   gpointer data)
 {
   g_autoptr (Request) request = data;
-  guint response;
-  GVariant *options;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -199,7 +199,7 @@ app_chooser_done (GObject *source,
                                                             result,
                                                             &error))
     {
-      response = 2;
+      g_warning ("Backend call failed: %s", error->message);
     }
 
   if (response == 0)
@@ -226,14 +226,15 @@ app_chooser_done (GObject *source,
     }
 }
 
-static gboolean
-handle_open_uri (XdpOpenURI *object,
-                 GDBusMethodInvocation *invocation,
-                 const gchar *arg_parent_window,
-                 const gchar *arg_uri,
-                 GVariant *arg_options)
+static void
+handle_open_in_thread_func (GTask        *task,
+                            gpointer      source_object,
+                            gpointer      task_data,
+                            GCancellable *cancellable)
 {
-  Request *request = request_from_invocation (invocation);
+  Request *request = (Request *)task_data;
+  const char *parent_window;
+  const char *uri;
   const char *app_id = request->app_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
@@ -249,9 +250,12 @@ handle_open_uri (XdpOpenURI *object,
   gboolean use_first_choice = FALSE;
   int i;
 
+  parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+
   REQUEST_AUTOLOCK (request);
 
-  uri_scheme = g_uri_parse_scheme (arg_uri);
+  uri_scheme = g_uri_parse_scheme (uri);
   if (uri_scheme && uri_scheme[0] != '\0')
     scheme_down = g_ascii_strdown (uri_scheme, -1);
 
@@ -261,7 +265,7 @@ handle_open_uri (XdpOpenURI *object,
     }
   else
     {
-      g_autoptr(GFile) file = g_file_new_for_uri (arg_uri);
+      g_autoptr(GFile) file = g_file_new_for_uri (uri);
       g_autoptr(GFileInfo) info = g_file_query_info (file,
                                                      G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
                                                      0,
@@ -295,13 +299,16 @@ handle_open_uri (XdpOpenURI *object,
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
       launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
-                                   arg_uri,
-                                   arg_parent_window);
+                                   uri,
+                                   parent_window);
 
-      /* We need to close the request before completing, so do it here */
-      xdp_request_complete_close (XDP_REQUEST (request), invocation);
-      xdp_open_uri_complete_open_uri (object, invocation, request->id);
-      return TRUE;
+      if (request->exported)
+        {
+          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+          xdp_request_emit_response (XDP_REQUEST (request), 0, g_variant_builder_end (&opts_builder));
+          request_unexport (request);
+        }
+      return;
     }
 
   g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
@@ -315,35 +322,46 @@ handle_open_uri (XdpOpenURI *object,
                              g_variant_new_string (latest_chosen_id));
     }
 
-  g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (app_chooser_impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
                                                   g_dbus_proxy_get_name (G_DBUS_PROXY (app_chooser_impl)),
                                                   request->id,
-                                                  NULL, &error);
-  if (!impl_request)
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
+                                                  NULL, NULL);
 
   request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_impl_app_chooser_call_choose_application (app_chooser_impl,
                                                 request->id,
                                                 app_id,
-                                                arg_parent_window,
+                                                parent_window,
                                                 (const char * const *)choices,
                                                 g_variant_builder_end (&opts_builder),
                                                 NULL,
                                                 app_chooser_done,
                                                 g_object_ref (request));
+}
 
+static gboolean
+handle_open_uri (XdpOpenURI *object,
+                 GDBusMethodInvocation *invocation,
+                 const gchar *arg_parent_window,
+                 const gchar *arg_uri,
+                 GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  g_autoptr(GTask) task = NULL;
+
+  g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
+  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
+
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, handle_open_in_thread_func);
 
   return TRUE;
 }
