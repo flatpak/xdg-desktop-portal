@@ -1,6 +1,6 @@
 NULL =
 
-PORTAL_INTERFACES = 							\
+portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Request.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.OpenURI.xml 		\
@@ -23,11 +23,11 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Screenshot.xml 			\
 	portal-org.freedesktop.portal.NetworkMonitor.xml		\
 	portal-org.freedesktop.portal.ProxyResolver.xml			\
-	portal-org.freedesktop.portal.impl.Request.xml 			\
-	portal-org.freedesktop.portal.impl.FileChooser.xml		\
-	portal-org.freedesktop.portal.impl.AppChooser.xml 		\
-	portal-org.freedesktop.portal.impl.Print.xml 			\
-	portal-org.freedesktop.portal.impl.Screenshot.xml 			\
+	portal-org.freedesktop.impl.portal.Request.xml 			\
+	portal-org.freedesktop.impl.portal.FileChooser.xml		\
+	portal-org.freedesktop.impl.portal.AppChooser.xml 		\
+	portal-org.freedesktop.impl.portal.Print.xml 			\
+	portal-org.freedesktop.impl.portal.Screenshot.xml 		\
 	$(NULL)
 
 EXTRA_DIST = \
@@ -36,7 +36,7 @@ EXTRA_DIST = \
 	xmlto-config.xsl	\
 	$(NULL)
 
-$(xml_files) : $(PORTAL_INTERFACES)
+$(xml_files) : $(portal_files)
 	$(AM_V_GEN) $(GDBUS_CODEGEN) --generate-docbook portal $^
 
 CLEANFILES =			\
