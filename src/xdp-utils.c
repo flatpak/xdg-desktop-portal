@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include "xdp-utils.h"
+#include "request.h"
 
 G_LOCK_DEFINE (app_ids);
 static GHashTable *app_ids;
@@ -171,6 +172,8 @@ name_owner_changed (GDBusConnection *connection,
       if (app_ids)
         g_hash_table_remove (app_ids, name);
       G_UNLOCK (app_ids);
+
+      close_requests_for_sender (name);
     }
 }
 
