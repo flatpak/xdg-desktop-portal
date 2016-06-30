@@ -1,7 +1,4 @@
-<!DOCTYPE node PUBLIC
-"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-
+<?xml version="1.0"?>
 <!--
  Copyright (C) 2016 Red Hat, Inc.
 
@@ -22,25 +19,43 @@
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.Screenshot:
+      @short_description: screenshot portal backend interface
+
+      This screenshot portal lets sandboxed applications request a screenshot.
+  -->
   <interface name="org.freedesktop.impl.portal.Screenshot">
+    <!--
+        Screenshot:
+        @handle: the object path for te #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: the app id of the application
+        @parent_window: identifier for the application window
+        @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
+
+        Takes a screenshot.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+
+        The following results get returned via the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>uri s</term>
+            <listitem><para>A string containing the uri of the screenshot.</para></listitem>
+          </varlistentry>
+        </variablelist>
+
+    -->
     <method name="Screenshot">
-      <arg type="s" name="sender" direction="in"/>
+      <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
-    </method>
-    <signal name="ScreenshotResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="s" name="uri"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-    <method name="Close">
-      <arg type="s" name="sender" direction="in"/>
-      <arg type="s" name="app_id" direction="in"/>
-      <arg type="o" name="handle" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>
 </node>

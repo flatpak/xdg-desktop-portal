@@ -17,27 +17,40 @@
 
  Author: Matthias Clasen <mclasen@redhat.com>
 -->
-<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.Print:
+      @short_description: print portal backend interface
+
+      The Print portal allows sandboxed applications to print
+      a file.
+  -->
   <interface name="org.freedesktop.impl.portal.Print">
+    <!--
+        PrintFile:
+        @handle: the object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: the app id of the application
+        @parent_window: identifier for the application window
+        @title: title for the print dialog
+        @filename: the pdf file to print
+        @options: a vardict with optional further information
+        @response: numeric response
+        @results: a vardict with the results of the call
+
+        Presents a print dialog to print a pdf file.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+    -->
     <method name="PrintFile">
-      <arg type="s" name="sender" direction="in"/>
+      <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="ay" name="filename" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
-    </method>
-    <signal name="PrintFileResponse">
-      <arg type="s" name="destination"/>
-      <arg type="o" name="handle"/>
-      <arg type="u" name="response"/>
-      <arg type="a{sv}" name="options"/>
-    </signal>
-    <method name="Close">
-      <arg type="s" name="sender" direction="in"/>
-      <arg type="s" name="app_id" direction="in"/>
-      <arg type="o" name="handle" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>
 </node>

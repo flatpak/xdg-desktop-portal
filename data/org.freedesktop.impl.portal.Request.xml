@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Alexander Larsson <alexl@redhat.com>
+         Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.Request:
+      @short_description: shared request interface
+
+      The Request interface is shared by all portal backend interfaces.
+      When a backend method is called, the backend exports a Request object
+      on the object path that was sent with the method call. The Request
+      will stay alive for the duration of the user interaction related to
+      the method call.
+
+      The portal can abort the interaction calling
+      org.freedesktop.impl.portal.Request.Close() on the Request object.
+  -->
+  <interface name="org.freedesktop.impl.portal.Request">
+
+    <!--
+        Close:
+
+        Ends the user interaction (dialogs, etc) to which this object refers.
+    -->
+    <method name="Close">
+    </method>
+  </interface>
+</node>

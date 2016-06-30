@@ -66,70 +66,6 @@ static void open_uri_iface_init (XdpOpenURIIface *iface);
 G_DEFINE_TYPE_WITH_CODE (OpenURI, open_uri, XDP_TYPE_OPEN_URI_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_OPEN_URI, open_uri_iface_init));
 
-G_LOCK_DEFINE (request_by_handle);
-static GHashTable *request_by_handle;
-
-static void
-register_handle (const char *handle, Request *request)
-{
-  G_LOCK (request_by_handle);
-  g_hash_table_insert (request_by_handle, g_strdup (handle), g_object_ref (request));
-  G_UNLOCK (request_by_handle);
-}
-
-static void
-unregister_handle (const char *handle)
-{
-  G_LOCK (request_by_handle);
-  g_hash_table_remove (request_by_handle, handle);
-  G_UNLOCK (request_by_handle);
-}
-
-static Request *
-lookup_request_by_handle (const char *handle)
-{
-  Request *request;
-
-  G_LOCK (request_by_handle);
-  request = g_hash_table_lookup (request_by_handle, handle);
-  if (request)
-    g_object_ref (request);
-  G_UNLOCK (request_by_handle);
-
-  return request;
-}
-
-
-static gboolean
-handle_close (XdpRequest *object,
-              GDBusMethodInvocation *invocation,
-              Request *request)
-{
-  g_autoptr(GError) error = NULL;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (request->exported)
-    {
-      const char *handle = g_object_get_data (G_OBJECT (request), "app-chooser-impl-handle");
-
-      if (!xdp_impl_app_chooser_call_close_sync (app_chooser_impl,
-                                                 request->sender, request->app_id, handle,
-                                                 NULL, &error))
-        {
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-
-      unregister_handle (handle);
-      request_unexport (request);
-    }
-
-  xdp_request_complete_close (XDP_REQUEST (request), invocation);
-
-  return TRUE;
-}
-
 static gboolean
 get_latest_choice_info (const char *app_id,
                         const char *content_type,
@@ -202,125 +138,10 @@ launch_application_with_uri (const char *choice_id,
   g_app_info_launch_uris (info, &uris, context, NULL);
 }
 
-static gboolean
-handle_open_uri (XdpOpenURI *object,
-                 GDBusMethodInvocation *invocation,
-                 const gchar *arg_parent_window,
-                 const gchar *arg_uri,
-                 GVariant *arg_options)
-{
-  Request *request = request_from_invocation (invocation);
-  const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autoptr(GError) error = NULL;
-  g_autofree char *app_chooser_impl_handle = NULL;
-  g_auto(GStrv) choices = NULL;
-  guint n_choices = 0;
-  GList *infos, *l;
-  g_autofree char *uri_scheme = NULL;
-  g_autofree char *scheme_down = NULL;
-  g_autofree char *content_type = NULL;
-  g_autofree char *latest_chosen_id = NULL;
-  gint latest_chosen_count = 0;
-  GVariantBuilder opts_builder;
-  gboolean use_first_choice = FALSE;
-  int i;
-
-  uri_scheme = g_uri_parse_scheme (arg_uri);
-  if (uri_scheme && uri_scheme[0] != '\0')
-    scheme_down = g_ascii_strdown (uri_scheme, -1);
-
-  if ((scheme_down != NULL) && (strcmp (scheme_down, "file") != 0))
-    {
-      content_type = g_strconcat ("x-scheme-handler/", scheme_down, NULL);
-    }
-  else
-    {
-      g_autoptr(GFile) file = g_file_new_for_uri (arg_uri);
-      g_autoptr(GFileInfo) info = g_file_query_info (file,
-                                                     G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-                                                     0,
-                                                     NULL,
-                                                     NULL);
-      content_type = g_strdup (g_file_info_get_content_type (info));
-    }
-
-  infos = g_app_info_get_recommended_for_type (content_type);
-  n_choices = g_list_length (infos);
-  choices = g_new (char *, n_choices + 1);
-  for (l = infos, i = 0; l; l = l->next)
-    {
-      GAppInfo *info = l->data;
-      choices[i++] = g_strdup (g_app_info_get_id (info));
-    }
-  choices[i] = NULL;
-  g_list_free_full (infos, g_object_unref);
-
-  /* We normally want a dialog to show up at least a few times, but for http[s] we can
-     make an exception in case there's only one candidate application to handle it */
-  if ((n_choices == 1) &&
-      ((g_strcmp0 (scheme_down, "http") == 0) || (g_strcmp0 (scheme_down, "https") == 0)))
-    {
-      use_first_choice = TRUE;
-    }
-
-  if (use_first_choice ||
-      (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
-       (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)))
-    {
-      /* If a recommended choice is found, just use it and skip the chooser dialog */
-      launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
-                                   arg_uri,
-                                   arg_parent_window);
-
-      /* We need to close the request before completing, so do it here */
-      xdp_request_complete_close (XDP_REQUEST (request), invocation);
-      xdp_open_uri_complete_open_uri (object, invocation, request->id);
-      return TRUE;
-    }
-
-  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-
-  if (latest_chosen_id != NULL)
-    {
-      /* Add extra options to the request for the backend */
-      g_variant_builder_add (&opts_builder,
-                             "{sv}",
-                             "latest-choice",
-                             g_variant_new_string (latest_chosen_id));
-    }
-
-  g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
-  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
-
-  if (!xdp_impl_app_chooser_call_choose_application_sync (app_chooser_impl,
-                                                          sender, app_id,
-                                                          arg_parent_window,
-                                                          (const char * const *)choices,
-                                                          g_variant_builder_end (&opts_builder),
-                                                          &app_chooser_impl_handle,
-                                                          NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
-
-  g_object_set_data_full (G_OBJECT (request), "app-chooser-impl-handle", g_strdup (app_chooser_impl_handle), g_free);
-  register_handle (app_chooser_impl_handle, request);
-
-  g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
-
-  REQUEST_AUTOLOCK (request);
-
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
-
-  xdp_open_uri_complete_open_uri (object, invocation, request->id);
-  return TRUE;
-}
-
 static void
-update_permissions_store (const char *app_id,const char *content_type, const char *chosen_id)
+update_permissions_store (const char *app_id,
+                          const char *content_type,
+                          const char *chosen_id)
 {
   g_autoptr(GError) error = NULL;
   g_autofree char *latest_chosen_id = NULL;
@@ -361,43 +182,212 @@ update_permissions_store (const char *app_id,const char *content_type, const cha
 }
 
 static void
-handle_choose_application_response (XdpImplAppChooser *object,
-                                    const gchar *arg_destination,
-                                    const gchar *arg_handle,
-                                    guint arg_response,
-                                    const gchar *arg_choice,
-                                    GVariant *arg_options)
+send_response_in_thread_func (GTask        *task,
+                              gpointer      source_object,
+                              gpointer      task_data,
+                              GCancellable *cancellable)
 {
-  g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-  g_autoptr(GError) error = NULL;
+  Request *request = (Request *)task_data;
+  guint response;
+  GVariant *options;
+  const char *uri;
+  const char *parent_window;
+  const char *content_type;
+  const char *choice;
 
-  if (request == NULL)
-    return;
 
   REQUEST_AUTOLOCK (request);
 
-  if (arg_response == 0)
-    {
-      const char *uri;
-      const char *parent_window;
-      const char *content_type;
+  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
+  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
-      uri = g_object_get_data (G_OBJECT (request), "uri");
-      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
-      content_type = g_object_get_data (G_OBJECT (request), "content-type");
+  if (response != 0)
+    goto out;
 
-      launch_application_with_uri (arg_choice, uri, parent_window);
-      update_permissions_store (request->app_id, content_type, arg_choice);
-    }
+  g_variant_lookup (options, "&s", "choice", &choice);
 
+  uri = g_object_get_data (G_OBJECT (request), "uri");
+  parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
+  content_type = g_object_get_data (G_OBJECT (request), "content-type");
+
+  launch_application_with_uri (choice, uri, parent_window);
+  update_permissions_store (request->app_id, content_type, choice);
+
+out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
-                                 arg_options);
-      unregister_handle (arg_handle);
+      xdp_request_emit_response (XDP_REQUEST (request), response, options);
       request_unexport (request);
     }
+}
+
+static void
+app_chooser_done (GObject *source,
+                  GAsyncResult *result,
+                  gpointer data)
+{
+  g_autoptr (Request) request = data;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+
+  if (!xdp_impl_app_chooser_call_choose_application_finish (XDP_IMPL_APP_CHOOSER (source),
+                                                            &response,
+                                                            &options,
+                                                            result,
+                                                            &error))
+    {
+      g_warning ("Backend call failed: %s", error->message);
+    }
+
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (options)
+    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
+}
+
+static void
+handle_open_in_thread_func (GTask        *task,
+                            gpointer      source_object,
+                            gpointer      task_data,
+                            GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  const char *parent_window;
+  const char *uri;
+  const char *app_id = request->app_id;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_auto(GStrv) choices = NULL;
+  guint n_choices = 0;
+  GList *infos, *l;
+  g_autofree char *uri_scheme = NULL;
+  g_autofree char *scheme_down = NULL;
+  g_autofree char *content_type = NULL;
+  g_autofree char *latest_chosen_id = NULL;
+  gint latest_chosen_count = 0;
+  GVariantBuilder opts_builder;
+  gboolean use_first_choice = FALSE;
+  int i;
+
+  parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+
+  REQUEST_AUTOLOCK (request);
+
+  uri_scheme = g_uri_parse_scheme (uri);
+  if (uri_scheme && uri_scheme[0] != '\0')
+    scheme_down = g_ascii_strdown (uri_scheme, -1);
+
+  if ((scheme_down != NULL) && (strcmp (scheme_down, "file") != 0))
+    {
+      content_type = g_strconcat ("x-scheme-handler/", scheme_down, NULL);
+    }
+  else
+    {
+      g_autoptr(GFile) file = g_file_new_for_uri (uri);
+      g_autoptr(GFileInfo) info = g_file_query_info (file,
+                                                     G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
+                                                     0,
+                                                     NULL,
+                                                     NULL);
+      content_type = g_strdup (g_file_info_get_content_type (info));
+    }
+
+  infos = g_app_info_get_recommended_for_type (content_type);
+  n_choices = g_list_length (infos);
+  choices = g_new (char *, n_choices + 1);
+  for (l = infos, i = 0; l; l = l->next)
+    {
+      GAppInfo *info = l->data;
+      choices[i++] = g_strdup (g_app_info_get_id (info));
+    }
+  choices[i] = NULL;
+  g_list_free_full (infos, g_object_unref);
+
+  /* We normally want a dialog to show up at least a few times, but for http[s] we can
+     make an exception in case there's only one candidate application to handle it */
+  if ((n_choices == 1) &&
+      ((g_strcmp0 (scheme_down, "http") == 0) || (g_strcmp0 (scheme_down, "https") == 0)))
+    {
+      use_first_choice = TRUE;
+    }
+
+  if (use_first_choice ||
+      (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
+       (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)))
+    {
+      /* If a recommended choice is found, just use it and skip the chooser dialog */
+      launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
+                                   uri,
+                                   parent_window);
+
+      if (request->exported)
+        {
+          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+          xdp_request_emit_response (XDP_REQUEST (request), 0, g_variant_builder_end (&opts_builder));
+          request_unexport (request);
+        }
+      return;
+    }
+
+  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+
+  if (latest_chosen_id != NULL)
+    {
+      /* Add extra options to the request for the backend */
+      g_variant_builder_add (&opts_builder,
+                             "{sv}",
+                             "latest-choice",
+                             g_variant_new_string (latest_chosen_id));
+    }
+
+  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
+
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (app_chooser_impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (app_chooser_impl)),
+                                                  request->id,
+                                                  NULL, NULL);
+
+  request_set_impl_request (request, impl_request);
+
+  xdp_impl_app_chooser_call_choose_application (app_chooser_impl,
+                                                request->id,
+                                                app_id,
+                                                parent_window,
+                                                (const char * const *)choices,
+                                                g_variant_builder_end (&opts_builder),
+                                                NULL,
+                                                app_chooser_done,
+                                                g_object_ref (request));
+}
+
+static gboolean
+handle_open_uri (XdpOpenURI *object,
+                 GDBusMethodInvocation *invocation,
+                 const gchar *arg_parent_window,
+                 const gchar *arg_uri,
+                 GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  g_autoptr(GTask) task = NULL;
+
+  g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
+  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_open_uri_complete_open_uri (object, invocation, request->id);
+
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, handle_open_in_thread_func);
+
+  return TRUE;
 }
 
 static void
@@ -422,9 +412,6 @@ open_uri_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  request_by_handle = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                             g_free, g_object_unref);
-
   app_chooser_impl = xdp_impl_app_chooser_proxy_new_sync (connection,
                                                           G_DBUS_PROXY_FLAGS_NONE,
                                                           dbus_name,
@@ -447,11 +434,7 @@ open_uri_create (GDBusConnection *connection,
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (app_chooser_impl));
-
   open_uri = g_object_new (open_uri_get_type (), NULL);
-
-  g_signal_connect (app_chooser_impl, "choose-application-response", (GCallback)handle_choose_application_response, NULL);
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
 }

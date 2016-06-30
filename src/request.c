@@ -58,9 +58,36 @@ request_on_signal_response (XdpRequest *object,
   g_list_free_full (connections, g_object_unref);
 }
 
+static gboolean
+handle_close (XdpRequest *object,
+              GDBusMethodInvocation *invocation)
+{
+  Request *request = (Request *)object;
+  g_autoptr(GError) error = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  if (request->exported)
+    {
+      if (request->impl_request &&
+          !xdp_impl_request_call_close_sync (request->impl_request, NULL, &error))
+        {
+          g_dbus_method_invocation_return_gerror (invocation, error);
+          return TRUE;
+        }
+
+      request_unexport (request);
+    }
+
+  xdp_request_complete_close (XDP_REQUEST (request), invocation);
+
+  return TRUE;
+}
+
 static void
 request_skeleton_iface_init (XdpRequestIface *iface)
 {
+  iface->handle_close = handle_close;
   iface->response = request_on_signal_response;
 }
 
@@ -82,10 +109,13 @@ request_finalize (GObject *object)
   g_hash_table_remove (requests, request->id);
   G_UNLOCK (requests);
 
+  g_clear_object (&request->impl_request);
+
   g_free (request->app_id);
   g_free (request->sender);
   g_free (request->id);
   g_mutex_clear (&request->mutex);
+
   G_OBJECT_CLASS (request_parent_class)->finalize (object);
 }
 
@@ -190,60 +220,9 @@ request_unexport (Request *request)
   g_object_unref (request);
 }
 
-typedef struct {
-  gchar *sender_name;
-  gchar *signal_name;
-  GVariant *parameters;
-} SignalData;
-
-static void
-signal_data_free (SignalData *data)
-{
-  g_free (data->sender_name);
-  g_free (data->signal_name);
-  g_variant_unref (data->parameters);
-  g_free (data);
-}
-
-static void
-dispatch_in_thread_func (GTask        *task,
-                         gpointer      source_object,
-                         gpointer      task_data,
-                         GCancellable *cancellable)
-{
-  SignalData *data = task_data;
-  GDBusProxy *proxy = source_object;
-
-  (G_DBUS_PROXY_GET_CLASS(proxy)->g_signal) (proxy,
-                                             data->sender_name,
-                                             data->signal_name,
-                                             data->parameters);
-}
-
-static void
-proxy_g_signal_cb (GDBusProxy *proxy,
-                   const gchar *sender_name,
-                   const gchar *signal_name,
-                   GVariant *parameters)
-{
-  GTask *task;
-  SignalData *data;
-
-  data = g_new0 (SignalData, 1);
-  data->sender_name = g_strdup (sender_name);
-  data->signal_name = g_strdup (signal_name);
-  data->parameters = g_variant_ref (parameters);
-
-  task = g_task_new (proxy, NULL, NULL, NULL);
-  g_task_set_task_data (task, data, (GDestroyNotify) signal_data_free);
-  g_task_run_in_thread (task, dispatch_in_thread_func);
-  g_object_unref (task);
-
-  g_signal_stop_emission_by_name (proxy, "g-signal");
-}
-
 void
-set_proxy_use_threads (GDBusProxy *proxy)
+request_set_impl_request (Request *request,
+                          XdpImplRequest *impl_request)
 {
-  g_signal_connect (proxy, "g-signal", (GCallback)proxy_g_signal_cb, NULL);
+  g_set_object (&request->impl_request, impl_request);
 }

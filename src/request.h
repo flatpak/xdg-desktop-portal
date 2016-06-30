@@ -22,6 +22,7 @@
 #pragma once
 
 #include "xdp-dbus.h"
+#include "xdp-impl-dbus.h"
 
 typedef struct _Request Request;
 typedef struct _RequestClass RequestClass;
@@ -35,6 +36,8 @@ struct _Request
   char *id;
   char *sender;
   GMutex mutex;
+
+  XdpImplRequest *impl_request;
 };
 
 struct _RequestClass
@@ -46,13 +49,16 @@ GType request_get_type (void) G_GNUC_CONST;
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Request, g_object_unref)
 
-void set_proxy_use_threads (GDBusProxy *proxy);
-
 void request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id);
 Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
                      GDBusConnection *connection);
 void request_unexport (Request *request);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpImplRequest, g_object_unref)
+
+void request_set_impl_request (Request *request,
+                               XdpImplRequest *impl_request);
 
 static inline void
 auto_unlock_helper (GMutex **mutex)

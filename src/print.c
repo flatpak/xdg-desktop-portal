@@ -59,67 +59,31 @@ static void print_iface_init (XdpPrintIface *iface);
 G_DEFINE_TYPE_WITH_CODE (Print, print, XDP_TYPE_PRINT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_PRINT, print_iface_init));
 
-G_LOCK_DEFINE (request_by_handle);
-static GHashTable *request_by_handle;
-
 static void
-register_handle (const char *handle, Request *request)
+print_file_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
 {
-  G_LOCK (request_by_handle);
-  g_hash_table_insert (request_by_handle, g_strdup (handle), g_object_ref (request));
-  G_UNLOCK (request_by_handle);
-}
-
-static void
-unregister_handle (const char *handle)
-{
-  G_LOCK (request_by_handle);
-  g_hash_table_remove (request_by_handle, handle);
-  G_UNLOCK (request_by_handle);
-}
-
-static Request *
-lookup_request_by_handle (const char *handle)
-{
-  Request *request;
-
-  G_LOCK (request_by_handle);
-  request = g_hash_table_lookup (request_by_handle, handle);
-  if (request)
-    g_object_ref (request);
-  G_UNLOCK (request_by_handle);
-
-  return request;
-}
-
-static gboolean
-handle_close (XdpRequest *object,
-              GDBusMethodInvocation *invocation,
-              Request *request)
-{
+  g_autoptr(Request) request = data;
+  guint response;
+  GVariant *options;
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
 
-  if (request->exported)
+  if (!xdp_impl_print_call_print_file_finish (XDP_IMPL_PRINT (source),
+                                              &response, &options,
+                                              result, &error))
     {
-      const char *handle = g_object_get_data (G_OBJECT (request), "impl-handle");
-
-      if (!xdp_impl_print_call_close_sync (impl,
-                                           request->sender, request->app_id, handle,
-                                           NULL, &error))
-        {
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-
-      unregister_handle (handle);
-      request_unexport (request);
+      response = 2;
+      options = NULL;
     }
 
-  xdp_request_complete_close (XDP_REQUEST (request), invocation);
-
-  return TRUE;
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request), response, options);
+      request_unexport (request);
+    }
 }
 
 static gboolean
@@ -132,58 +96,39 @@ handle_print_file (XdpPrint *object,
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(GError) error = NULL;
-  g_autofree char *impl_handle = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
 
-  if (!xdp_impl_print_call_print_file_sync (impl,
-                                            sender, app_id,
-                                            arg_parent_window,
-                                            arg_title,
-                                            arg_filename,
-                                            arg_options,
-                                            &impl_handle,
-                                            NULL, &error))
+  REQUEST_AUTOLOCK (request);
+
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "impl-handle", g_strdup (impl_handle), g_free);
-  register_handle (impl_handle, request);
-
-  g_signal_connect (request, "handle-close", (GCallback)handle_close, request);
-
-  REQUEST_AUTOLOCK (request);
-
+  request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
+  xdp_impl_print_call_print_file (impl,
+                                  request->id,
+                                  app_id,
+                                  arg_parent_window,
+                                  arg_title,
+                                  arg_filename,
+                                  arg_options,
+                                  NULL,
+                                  print_file_done,
+                                  g_object_ref (request));
+
   xdp_print_complete_print_file (object, invocation, request->id);
+
   return TRUE;
-}
-
-static void
-handle_print_file_response (XdpImplPrint *object,
-                            const gchar *arg_destination,
-                            const gchar *arg_handle,
-                            guint arg_response,
-                            GVariant *arg_options)
-{
-  g_autoptr(Request) request = lookup_request_by_handle (arg_handle);
-
-  if (request == NULL)
-    return;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (request->exported)
-    {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 arg_response,
-                                 arg_options);
-      unregister_handle (arg_handle);
-      request_unexport (request);
-    }
 }
 
 static void
@@ -208,9 +153,6 @@ print_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  request_by_handle = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                             g_free, g_object_unref);
-
   impl = xdp_impl_print_proxy_new_sync (connection,
                                          G_DBUS_PROXY_FLAGS_NONE,
                                          dbus_name,
@@ -222,11 +164,7 @@ print_create (GDBusConnection *connection,
       return NULL;
     }
 
-  set_proxy_use_threads (G_DBUS_PROXY (impl));
-
   print = g_object_new (print_get_type (), NULL);
-
-  g_signal_connect (impl, "print-file-response", (GCallback)handle_print_file_response, NULL);
 
   return G_DBUS_INTERFACE_SKELETON (print);
 }

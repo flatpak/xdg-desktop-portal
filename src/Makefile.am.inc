@@ -29,6 +29,7 @@ PORTAL_IFACE_FILES =\
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
+	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
