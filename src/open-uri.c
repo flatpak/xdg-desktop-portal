@@ -182,6 +182,46 @@ update_permissions_store (const char *app_id,
 }
 
 static void
+send_response_in_thread_func (GTask        *task,
+                              gpointer      source_object,
+                              gpointer      task_data,
+                              GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  guint response;
+  GVariant *options;
+  const char *uri;
+  const char *parent_window;
+  const char *content_type;
+  const char *choice;
+
+
+  REQUEST_AUTOLOCK (request);
+
+  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
+  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
+
+  if (response != 0)
+    goto out;
+
+  g_variant_lookup (options, "&s", "choice", &choice);
+
+  uri = g_object_get_data (G_OBJECT (request), "uri");
+  parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
+  content_type = g_object_get_data (G_OBJECT (request), "content-type");
+
+  launch_application_with_uri (choice, uri, parent_window);
+  update_permissions_store (request->app_id, content_type, choice);
+
+out:
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request), response, options);
+      request_unexport (request);
+    }
+}
+
+static void
 app_chooser_done (GObject *source,
                   GAsyncResult *result,
                   gpointer data)
@@ -190,8 +230,7 @@ app_chooser_done (GObject *source,
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
-
-  REQUEST_AUTOLOCK (request);
+  g_autoptr(GTask) task = NULL;
 
   if (!xdp_impl_app_chooser_call_choose_application_finish (XDP_IMPL_APP_CHOOSER (source),
                                                             &response,
@@ -202,28 +241,13 @@ app_chooser_done (GObject *source,
       g_warning ("Backend call failed: %s", error->message);
     }
 
-  if (response == 0)
-    {
-      const char *uri;
-      const char *parent_window;
-      const char *content_type;
-      const char *choice;
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (options)
+    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
-      g_variant_lookup (options, "&s", "choice", &choice);
-
-      uri = g_object_get_data (G_OBJECT (request), "uri");
-      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
-      content_type = g_object_get_data (G_OBJECT (request), "content-type");
-
-      launch_application_with_uri (choice, uri, parent_window);
-      update_permissions_store (request->app_id, content_type, choice);
-    }
-
-  if (request->exported)
-    {
-      xdp_request_emit_response (XDP_REQUEST (request), response, options);
-      request_unexport (request);
-    }
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
 static void
