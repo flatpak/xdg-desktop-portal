@@ -242,11 +242,14 @@ close_requests_in_thread_func (GTask        *task,
   Request *request;
 
   G_LOCK (requests);
-  g_hash_table_iter_init (&iter, requests);
-  while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&request))
+  if (requests)
     {
-      if (strcmp (sender, request->sender) == 0)
-        list = g_slist_prepend (list, g_object_ref (request));
+      g_hash_table_iter_init (&iter, requests);
+      while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&request))
+        {
+          if (strcmp (sender, request->sender) == 0)
+            list = g_slist_prepend (list, g_object_ref (request));
+        }
     }
   G_UNLOCK (requests);
 
