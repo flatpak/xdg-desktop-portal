@@ -257,6 +257,29 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 static void
+export_portal_implementation (GDBusConnection *connection,
+                              GDBusInterfaceSkeleton *skeleton)
+{
+  g_autoptr(GError) error = NULL;
+
+  g_dbus_interface_skeleton_set_flags (skeleton,
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+  g_signal_connect (skeleton, "g-authorize-method",
+                    G_CALLBACK (authorize_callback), NULL);
+
+  if (!g_dbus_interface_skeleton_export (skeleton,
+                                         connection,
+                                         "/org/freedesktop/portal/desktop",
+                                         &error))
+    {
+      g_warning ("error: %s\n", error->message);
+      return;
+    }
+
+  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+}
+
+static void
 on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
@@ -264,155 +287,31 @@ on_bus_acquired (GDBusConnection *connection,
   PortalImplementation *implementation;
   g_autoptr(GError) error = NULL;
 
+  xdp_connection_track_name_owners (connection);
+  init_document_proxy (connection);
+
+  export_portal_implementation (connection, network_monitor_create (connection));
+  export_portal_implementation (connection, proxy_resolver_create (connection));
+
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
-    {
-      GDBusInterfaceSkeleton *skeleton = file_chooser_create (connection, implementation->dbus_name);
-      if (skeleton != NULL)
-        {
-          g_dbus_interface_skeleton_set_flags (skeleton,
-                                               G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-          g_signal_connect (skeleton, "g-authorize-method",
-                            G_CALLBACK (authorize_callback),
-                            NULL);
-
-          if (!g_dbus_interface_skeleton_export (skeleton,
-                                                 connection,
-                                                 "/org/freedesktop/portal/desktop",
-                                                 &error))
-            {
-              g_warning ("error: %s\n", error->message);
-              g_clear_error (&error);
-            }
-        }
-
-      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-    }
-
-  xdp_connection_track_name_owners (connection);
-
-  init_document_proxy (connection);
+    export_portal_implementation (connection,
+                                  file_chooser_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.AppChooser");
   if (implementation != NULL)
-    {
-      GDBusInterfaceSkeleton *skeleton = open_uri_create (connection, implementation->dbus_name);
-      if (skeleton != NULL)
-        {
-          g_dbus_interface_skeleton_set_flags (skeleton,
-                                               G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-          g_signal_connect (skeleton, "g-authorize-method",
-                            G_CALLBACK (authorize_callback),
-                            NULL);
-
-          if (!g_dbus_interface_skeleton_export (skeleton,
-                                                 connection,
-                                                 "/org/freedesktop/portal/desktop",
-                                                 &error))
-            {
-              g_warning ("error: %s\n", error->message);
-              g_clear_error (&error);
-            }
-        }
-
-      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-    }
+    export_portal_implementation (connection,
+                                  open_uri_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Print");
   if (implementation != NULL)
-    {
-      GDBusInterfaceSkeleton *skeleton = print_create (connection, implementation->dbus_name);
-      if (skeleton != NULL)
-        {
-          g_dbus_interface_skeleton_set_flags (skeleton,
-                                               G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-          g_signal_connect (skeleton, "g-authorize-method",
-                            G_CALLBACK (authorize_callback),
-                            NULL);
-
-          if (!g_dbus_interface_skeleton_export (skeleton,
-                                                 connection,
-                                                 "/org/freedesktop/portal/desktop",
-                                                 &error))
-            {
-              g_warning ("error: %s\n", error->message);
-              g_clear_error (&error);
-            }
-        }
-
-      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-    }
-
-  {
-  GDBusInterfaceSkeleton *skeleton = network_monitor_create (connection);
-  if (skeleton != NULL)
-    {
-      g_dbus_interface_skeleton_set_flags (skeleton,
-                                           G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-      g_signal_connect (skeleton, "g-authorize-method",
-                        G_CALLBACK (authorize_callback),
-                        NULL);
-
-      if (!g_dbus_interface_skeleton_export (skeleton,
-                                             connection,
-                                             "/org/freedesktop/portal/desktop",
-                                             &error))
-        {
-          g_warning ("error: %s\n", error->message);
-          g_clear_error (&error);
-        }
-    }
-
-  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-  }
-
-  {
-  GDBusInterfaceSkeleton *skeleton = proxy_resolver_create (connection);
-  if (skeleton != NULL)
-    {
-      g_dbus_interface_skeleton_set_flags (skeleton,
-                                           G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-      g_signal_connect (skeleton, "g-authorize-method",
-                        G_CALLBACK (authorize_callback),
-                        NULL);
-
-      if (!g_dbus_interface_skeleton_export (skeleton,
-                                             connection,
-                                             "/org/freedesktop/portal/desktop",
-                                             &error))
-        {
-          g_warning ("error: %s\n", error->message);
-          g_clear_error (&error);
-        }
-    }
-
-  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-  }
+    export_portal_implementation (connection,
+                                  print_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
   if (implementation != NULL)
-    {
-      GDBusInterfaceSkeleton *skeleton = screenshot_create (connection, implementation->dbus_name);
-      if (skeleton != NULL)
-        {
-          g_dbus_interface_skeleton_set_flags (skeleton,
-                                               G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-          g_signal_connect (skeleton, "g-authorize-method",
-                            G_CALLBACK (authorize_callback),
-                            NULL);
-
-          if (!g_dbus_interface_skeleton_export (skeleton,
-                                                 connection,
-                                                 "/org/freedesktop/portal/desktop",
-                                                 &error))
-            {
-              g_warning ("error: %s\n", error->message);
-              g_clear_error (&error);
-            }
-        }
-
-      g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-    }
+    export_portal_implementation (connection,
+                                  screenshot_create (connection, implementation->dbus_name));
 }
 
 static void
