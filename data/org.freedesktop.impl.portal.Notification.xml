@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.Notification:
+      @short_description: Notification portal backend interface
+
+      This notification interface lets sandboxed applications
+      send and withdraw notifications.
+  -->
+  <interface name="org.freedesktop.impl.portal.Notification">
+    <!--
+        AddNotification:
+        @app_id: App id of the application
+        @id: Application-provided ID for this notification
+        @notification: Vardict with the serialized notification
+
+        Sends a notification.
+
+        The ID can be used to later withdraw the notification.
+        If the application reuses the same ID without withdrawing,
+        the notification is replaced by the new one.
+
+        The format of the @notification is the same as for
+        org.freedesktop.portal.Notification.AddNotification().
+    -->
+    <method name="AddNotification">
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="id" direction="in"/>
+      <arg type="a{sv}" name="notification" direction="in"/>
+    </method>
+    <!--
+        RemoveNotification:
+        @app_id: App id of the application
+        @id: Application-provided ID for this notification
+
+        Withdraws a notification.
+    -->
+    <method name="RemoveNotification">
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="id" direction="in"/>
+    </method>
+  </interface>
+</node>

@@ -8,11 +8,13 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.NetworkMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.ProxyResolver.xml 	\
+	$(top_srcdir)/data/org.freedesktop.portal.Notification.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.AppChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Print.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Screenshot.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Notification.xml	\
 	$(NULL)
 
 xml_files = 								\
@@ -23,11 +25,13 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Screenshot.xml 			\
 	portal-org.freedesktop.portal.NetworkMonitor.xml		\
 	portal-org.freedesktop.portal.ProxyResolver.xml			\
+	portal-org.freedesktop.portal.Notification.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\
 	portal-org.freedesktop.impl.portal.AppChooser.xml 		\
 	portal-org.freedesktop.impl.portal.Print.xml 			\
 	portal-org.freedesktop.impl.portal.Screenshot.xml 		\
+	portal-org.freedesktop.impl.portal.Notification.xml 		\
 	$(NULL)
 
 EXTRA_DIST = \
