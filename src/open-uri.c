@@ -38,6 +38,7 @@
 #include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "permissions.h"
 
 #define TABLE_NAME "desktop-used-apps"
 #define USE_DEFAULT_APP_THRESHOLD 5
@@ -57,7 +58,6 @@ struct _OpenURIClass
 };
 
 static XdpImplAppChooser *app_chooser_impl;
-static XdpImplPermissionStore *permission_store_impl;
 static OpenURI *open_uri;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
@@ -76,7 +76,7 @@ get_latest_choice_info (const char *app_id,
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
 
-  if (!xdp_impl_permission_store_call_lookup_sync (permission_store_impl,
+  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
                                                    TABLE_NAME,
                                                    content_type,
                                                    &out_perms,
@@ -84,7 +84,7 @@ get_latest_choice_info (const char *app_id,
                                                    NULL,
                                                    &error))
     {
-      g_warning ("Error updating permission store: %s\n", error->message);
+      g_warning ("Error updating permission store: %s", error->message);
       g_clear_error (&error);
     }
 
@@ -167,7 +167,7 @@ update_permissions_store (const char *app_id,
   in_permissions = (GStrv) g_new0 (char *, 2);
   in_permissions[0] = g_strdup_printf ("%s:%u", latest_chosen_id, latest_chosen_count);
 
-  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store_impl,
+  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            TABLE_NAME,
                                                            TRUE,
                                                            content_type,
@@ -420,17 +420,6 @@ open_uri_create (GDBusConnection *connection,
   if (app_chooser_impl == NULL)
     {
       g_warning ("Failed to create app chooser proxy: %s\n", error->message);
-      return NULL;
-    }
-
-  permission_store_impl = xdp_impl_permission_store_proxy_new_sync (connection,
-                                                                    G_DBUS_PROXY_FLAGS_NONE,
-                                                                    "org.freedesktop.impl.portal.PermissionStore",
-                                                                    "/org/freedesktop/impl/portal/PermissionStore",
-                                                                    NULL, &error);
-  if (permission_store_impl == NULL)
-    {
-      g_warning ("No permission store: %s", error->message);
       return NULL;
     }
 

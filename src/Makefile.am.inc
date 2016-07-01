@@ -91,6 +91,8 @@ xdg_desktop_portal_SOURCES = \
 	src/request.h			\
         src/documents.c                 \
         src/documents.h                 \
+        src/permissions.c               \
+        src/permissions.h               \
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	src/xdg-desktop-resources.c	\

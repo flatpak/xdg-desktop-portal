@@ -29,6 +29,7 @@
 #include "xdp-dbus.h"
 #include "request.h"
 #include "documents.h"
+#include "permissions.h"
 #include "file-chooser.h"
 #include "open-uri.h"
 #include "print.h"
@@ -289,6 +290,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   xdp_connection_track_name_owners (connection);
   init_document_proxy (connection);
+  init_permission_store (connection);
 
   export_portal_implementation (connection, network_monitor_create (connection));
   export_portal_implementation (connection, proxy_resolver_create (connection));
