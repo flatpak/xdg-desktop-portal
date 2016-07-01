@@ -27,6 +27,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.ProxyResolver.xml \
 	data/org.freedesktop.portal.Screenshot.xml \
 	data/org.freedesktop.portal.Notification.xml \
+	data/org.freedesktop.portal.Inhibit.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -36,6 +37,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Print.xml \
 	data/org.freedesktop.impl.portal.Screenshot.xml \
 	data/org.freedesktop.impl.portal.Notification.xml \
+	data/org.freedesktop.impl.portal.Inhibit.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
@@ -91,6 +93,8 @@ xdg_desktop_portal_SOURCES = \
 	src/screenshot.h		\
         src/notification.c              \
         src/notification.h              \
+        src/inhibit.c                   \
+        src/inhibit.h                   \
 	src/request.c			\
 	src/request.h			\
         src/documents.c                 \
