@@ -21,7 +21,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.Screenshot:
-      @short_description: portal for taking screenshots
+      @short_description: Portal for taking screenshots
 
       This simple portal lets sandboxed applications request a screenshot.
 
@@ -32,20 +32,20 @@
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
         Screenshot:
-        @parent_window: identifier for the application window
-        @options: a vardict with optional further information
-        @handle: the object path for te #org.freedesktop.portal.Request object representing this call
+        @parent_window: Identifier for the application window
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Takes a screenshot.
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
 
-        The following results get returned via the org.fredesktop.portal.Request::Response signal:
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>
             <term>uri s</term>
-            <listitem><para>A string containing the uri of the screenshot.</para></listitem>
+            <listitem><para>String containing the uri of the screenshot.</para></listitem>
           </varlistentry>
         </variablelist>
 

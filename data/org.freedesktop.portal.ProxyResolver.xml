@@ -20,7 +20,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.ProxyResolver:
-      @short_description: proxy information
+      @short_description: Proxy information
 
       The ProxyResolver interface provides network proxy information to sandboxed
       applications. It is not a portal in the strict sense, since it does not involve
@@ -30,8 +30,8 @@
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
         Lookup:
-        @uri: the destination to connect to
-        @proxies: a list of proxy uris
+        @uri: Destination to connect to
+        @proxies: List of proxy uris
 
         Looks up which proxy to use to connect to @uri. The returned
         proxy uri are of the form 'protocol://[user[:password]@host:port'.

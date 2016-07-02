@@ -21,19 +21,19 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
        org.freedesktop.portal.OpenURI:
-       @short_description: portal for opening URIs
+       @short_description: Portal for opening URIs
 
        The OpenURI portal allows sandboxed applications to open
-       URIs (e.g. opening a link to the applications homepage)
+       URIs (e.g. a http: link to the applications homepage)
        under the control of the user.
   -->
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
         OpenURI:
-        @parent_window: identifier for the application window
-        @uri: the uri to open
-        @options: a vardict with optional further onformation
-        @handle: the object path for the #org.freedesktop.portal.Request object representing this call
+        @parent_window: Identifier for the application window
+        @uri: The uri to open
+        @options: Vardict with optional further onformation
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Asks to open a uri.
 

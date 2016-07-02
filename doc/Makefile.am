@@ -55,7 +55,7 @@ doc_DATA = 			\
 	docbook.css		\
 	$(NULL)
 
-portal-docs.html: portal-docs.xml version.xml $(xml_files)
+portal-docs.html: portal-docs.xml version.xml $(xml_files) xmlto-config.xsl
 	$(AM_V_GEN) $(XMLTO) xhtml-nochunks -m xmlto-config.xsl portal-docs.xml
 
 endif # DOCBOOK_DOCS_ENABLED

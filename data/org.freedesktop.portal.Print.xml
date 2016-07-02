@@ -21,7 +21,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.Print:
-      @short_description: portal for printing
+      @short_description: Portal for printing
 
       The Print portal allows sandboxed applications to print
       a file.
@@ -29,11 +29,11 @@
   <interface name="org.freedesktop.portal.Print">
     <!--
         PrintFile:
-        @parent_window: identifier for the application window
-        @title: title for the print dialog
-        @filename: the pdf file to print
-        @options: a vardict with optional further information
-        @handle: the object path for the #org.freedesktop.portal.Request object representing this call
+        @parent_window: Identifier for the application window
+        @title: Title for the print dialog
+        @filename: The pdf file to print
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Asks to print a pdf file.
 

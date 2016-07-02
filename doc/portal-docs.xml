@@ -12,9 +12,10 @@
     <title>Portal API Reference</title>
     <partintro>
     <para>
-      Portal interfaces (named org.freedesktop.portal.*)
-      are available to sandboxed applications with the default filtered
-      session bus access of Flatpak.
+      Portal interfaces are available to sandboxed applications with the
+      default filtered session bus access of Flatpak. They appear under
+      the bus name org.freedesktop.portal.Desktop and the object path
+      /org/freedesktop/portal/desktop.
     </para>
     <para>
       Requests made via portal interfaces generally involve user interaction.
@@ -32,9 +33,16 @@
     <title>Portal Backend API Reference</title>
     <partintro>
     <para>
-      The portal backend interfaces (named org.freedesktop.impl.portal.*)
-      are not directly available to sandboxed applications. The portal
-      frontend is using them to carry out portal requests.
+      The backend interfaces are used by the portal frontend to
+      carry out portal requests. They are provided by a separate process
+      (or processes), and are not accessible to sandboxed applications.
+    </para>
+    <para>
+      The portal backends are focused on providing user interfaces and
+      accessing session- or host-specific APIs and resources. Details of
+      interacting with the containment infrastructure such as checking
+      access, registering files in the document portal, etc., are handled
+      by the portal frontend.
     </para>
     </partintro>
     <xi:include href="portal-org.freedesktop.impl.portal.Request.xml"/>

@@ -21,7 +21,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.Request:
-      @short_description: shared request interface
+      @short_description: Shared request interface
 
       The Request interface is shared by all portal interfaces. When a
       portal method is called, the reply includes a handle (i.e. object path)
@@ -40,17 +40,17 @@
     <!--
         Close:
 
-        Ends the portal request and its user interaction (dialogs, etc)
-        to which this object refers. A Response signal will not be emitted
-        in this case.
+        Closes the portal request to which this object refers and ends all
+        related user interaction (dialogs, etc).
+        A Response signal will not be emitted in this case.
     -->
     <method name="Close">
     </method>
 
     <!--
         Response:
-        @response: numeric response
-        @results: A vardict with results. The keys and values in the vardict depend on the request.
+        @response: Numeric response
+        @results: Vardict with results. The keys and values in the vardict depend on the request.
 
         Emitted when the user interaction for a portal request is over.
 

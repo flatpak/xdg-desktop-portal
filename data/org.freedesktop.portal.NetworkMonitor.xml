@@ -20,7 +20,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.NetworkMonitor:
-      @short_description: network monitoring
+      @short_description: Network monitoring portal
 
       The NetworkMonitor interface provides network status information
       to sandboxed applications. It is not a portal in the strict sense,
@@ -31,7 +31,7 @@
   <interface name="org.freedesktop.portal.NetworkMonitor">
     <!--
         changed:
-        @available: whether network is currently available
+        @available: Whether network is currently available
 
         Emitted when the network configuration changes.
     -->

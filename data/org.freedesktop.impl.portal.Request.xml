@@ -22,7 +22,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.impl.portal.Request:
-      @short_description: shared request interface
+      @short_description: Shared request interface
 
       The Request interface is shared by all portal backend interfaces.
       When a backend method is called, the backend exports a Request object
@@ -38,7 +38,8 @@
     <!--
         Close:
 
-        Ends the user interaction (dialogs, etc) to which this object refers.
+        Ends the user interaction to which this object refers.
+        Dialogs and other UIs related to the request should be closed.
     -->
     <method name="Close">
     </method>
