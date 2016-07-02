@@ -47,6 +47,7 @@ $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
 		--generate-c-code $(builddir)/src/xdp-dbus      \
 		--annotate "org.freedesktop.portal.Documents.Add()" "org.gtk.GDBus.C.UnixFD" "true" \
 		--annotate "org.freedesktop.portal.Documents.AddNamed()" "org.gtk.GDBus.C.UnixFD" "true" \
+		--annotate "org.freedesktop.portal.Print.Print()" "org.gtk.GDBus.C.UnixFD" "true" \
 		$(FLATPAK_IFACE_FILES) \
 		$(PORTAL_IFACE_FILES) \
 		$(NULL)
@@ -56,6 +57,7 @@ $(xdp_impl_dbus_built_sources) : $(FLATPAK_IMPL_IFACE_FILES) $(PORTAL_IMPL_IFACE
 		--interface-prefix org.freedesktop.impl.portal. \
 		--c-namespace XdpImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
+		--annotate "org.freedesktop.impl.portal.Print.Print()" "org.gtk.GDBus.C.UnixFD" "true" \
 		$(FLATPAK_IMPL_IFACE_FILES) \
 		$(PORTAL_IMPL_IFACE_FILES) \
 		$(NULL)
