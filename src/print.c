@@ -65,8 +65,8 @@ print_file_done (GObject *source,
                  gpointer data)
 {
   g_autoptr(Request) request = data;
-  guint response;
-  GVariant *options;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -75,13 +75,15 @@ print_file_done (GObject *source,
                                               &response, &options,
                                               result, &error))
     {
-      response = 2;
-      options = NULL;
+      g_warning ("Backend call failed: %s", error->message);
     }
 
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request), response, options);
+      GVariantBuilder opt_builder;
+
+      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      xdp_request_emit_response (XDP_REQUEST (request), response, g_variant_builder_end (&opt_builder));
       request_unexport (request);
     }
 }
@@ -98,6 +100,7 @@ handle_print_file (XdpPrint *object,
   const char *app_id = request->app_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
+  GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
@@ -115,13 +118,14 @@ handle_print_file (XdpPrint *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_impl_print_call_print_file (impl,
                                   request->id,
                                   app_id,
                                   arg_parent_window,
                                   arg_title,
                                   arg_filename,
-                                  arg_options,
+                                  g_variant_builder_end (&opt_builder),
                                   NULL,
                                   print_file_done,
                                   g_object_ref (request));

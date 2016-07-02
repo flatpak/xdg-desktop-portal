@@ -38,6 +38,7 @@
 #include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 #include "permissions.h"
 
 #define TABLE_NAME "desktop-used-apps"
@@ -181,6 +182,10 @@ update_permissions_store (const char *app_id,
     }
 }
 
+static XdpOptionKey response_options[] = {
+  { "choice", G_VARIANT_TYPE_STRING }
+};
+
 static void
 send_response_in_thread_func (GTask        *task,
                               gpointer      source_object,
@@ -194,15 +199,20 @@ send_response_in_thread_func (GTask        *task,
   const char *parent_window;
   const char *content_type;
   const char *choice;
-
+  GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+
   if (response != 0)
     goto out;
+
+  xdp_filter_options (options, &opt_builder,
+                      response_options, G_N_ELEMENTS (response_options));
 
   g_variant_lookup (options, "&s", "choice", &choice);
 
@@ -216,7 +226,7 @@ send_response_in_thread_func (GTask        *task,
 out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request), response, options);
+      xdp_request_emit_response (XDP_REQUEST (request), response, g_variant_builder_end (&opt_builder));
       request_unexport (request);
     }
 }

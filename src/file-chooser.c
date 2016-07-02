@@ -38,6 +38,7 @@
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _FileChooser FileChooser;
 typedef struct _FileChooserClass FileChooserClass;
@@ -157,35 +158,11 @@ open_file_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
-typedef struct {
-  const char *key;
-  const GVariantType *type;
-} OptionKey;
-
-static OptionKey open_file_options[] = {
+static XdpOptionKey open_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "choices", (const GVariantType *)"a(ssa(ss)s)" }
 };
-
-void
-copy_options (GVariant *arg_options,
-              GVariantBuilder *options,
-              OptionKey *supported_options,
-              int n_supported_options)
-{
-  GVariant *value;
-  int i;
-
-  for (i = 0; i < n_supported_options; i++)
-    {
-      value = g_variant_lookup_value (arg_options,
-                                      supported_options[i].key,
-                                      supported_options[i].type);
-      if (value)
-         g_variant_builder_add (options, "{sv}", supported_options[i].key, value);
-    }
-}
 
 static gboolean
 handle_open_file (XdpFileChooser *object,
@@ -203,7 +180,8 @@ handle_open_file (XdpFileChooser *object,
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
+  xdp_filter_options (arg_options, &options,
+                      open_file_options, G_N_ELEMENTS (open_file_options));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -279,7 +257,8 @@ handle_open_files (XdpFileChooser *object,
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  copy_options (arg_options, &options, open_file_options, G_N_ELEMENTS (open_file_options));
+  xdp_filter_options (arg_options, &options,
+                      open_file_options, G_N_ELEMENTS (open_file_options));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -310,7 +289,7 @@ handle_open_files (XdpFileChooser *object,
   return TRUE;
 }
 
-static OptionKey save_file_options[] = {
+static XdpOptionKey save_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "current_name", G_VARIANT_TYPE_STRING },
@@ -364,7 +343,8 @@ handle_save_file (XdpFileChooser *object,
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  copy_options (arg_options, &options, save_file_options, G_N_ELEMENTS (save_file_options));
+  xdp_filter_options (arg_options, &options,
+                      save_file_options, G_N_ELEMENTS (save_file_options));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,

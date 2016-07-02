@@ -190,3 +190,23 @@ xdp_connection_track_name_owners (GDBusConnection *connection)
                                       name_owner_changed,
                                       NULL, NULL);
 }
+
+void
+xdp_filter_options (GVariant *options,
+                    GVariantBuilder *filtered,
+                    XdpOptionKey *supported_options,
+                    int n_supported_options)
+{
+  GVariant *value;
+  int i;
+
+  for (i = 0; i < n_supported_options; i++)
+    {
+      value = g_variant_lookup_value (options,
+                                      supported_options[i].key,
+                                      supported_options[i].type);
+      if (value)
+         g_variant_builder_add (filtered, "{sv}", supported_options[i].key, value);
+    }
+}
+

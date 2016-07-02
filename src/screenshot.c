@@ -73,9 +73,9 @@ send_response_in_thread_func (GTask        *task,
   const char *uri;
   g_autofree char *ruri = NULL;
 
-  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
-
   REQUEST_AUTOLOCK (request);
+
+  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
@@ -140,6 +140,7 @@ handle_screenshot (XdpScreenshot *object,
   const char *app_id = request->app_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
+  GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
@@ -157,11 +158,12 @@ handle_screenshot (XdpScreenshot *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_impl_screenshot_call_screenshot (impl,
                                        request->id,
                                        app_id,
                                        arg_parent_window,
-                                       arg_options,
+                                       g_variant_builder_end (&opt_builder),
                                        NULL,
                                        screenshot_done,
                                        g_object_ref (request));

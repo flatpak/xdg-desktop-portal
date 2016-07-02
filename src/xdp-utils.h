@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 Red Hat, Inc
+ * Copyright © 2014, 2016 Red Hat, Inc
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +16,7 @@
  *
  * Authors:
  *       Alexander Larsson <alexl@redhat.com>
+ *       Matthias Clasen <mclasen@redhat.com>
  */
 
 #pragma once
@@ -26,3 +27,13 @@ char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
                                           GError               **error);
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
+
+typedef struct {
+  const char *key;
+  const GVariantType *type;
+} XdpOptionKey;
+
+void xdp_filter_options (GVariant *options_in,
+                         GVariantBuilder *options_out,
+                         XdpOptionKey *supported_options,
+                         int n_supported_options);
