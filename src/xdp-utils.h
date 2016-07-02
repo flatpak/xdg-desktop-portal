@@ -23,7 +23,7 @@
 
 #include <gio/gio.h>
 
-#define DESKTOP_PORTAL_OBJECT_PATH "/org/freedestkop/portal/desktop"
+#define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
