@@ -27,7 +27,8 @@
 #include "request.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
-#include "xdp-impl-dbus.h"
+#include "xdp-dbus.h"
+#include "xdp-utils.h"
 
 #define TABLE_NAME "notifications"
 
@@ -378,7 +379,7 @@ notification_create (GDBusConnection *connection,
   impl = xdp_impl_notification_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                dbus_name,
-                                               "/org/freedesktop/portal/desktop",
+                                               DESKTOP_PORTAL_OBJECT_PATH,
                                                NULL, &error);
   if (impl == NULL)
     {

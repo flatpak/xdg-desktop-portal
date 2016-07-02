@@ -404,8 +404,9 @@ file_chooser_create (GDBusConnection *connection,
   impl = xdp_impl_file_chooser_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                dbus_name,
-                                               "/org/freedesktop/portal/desktop",
-                                               NULL, &error);
+                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               NULL,
+                                               &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);

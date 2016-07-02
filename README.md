@@ -9,5 +9,3 @@ path (/org/freedesktop/portal/desktop).
 
 The portal interfaces include APIs for file access, opening URIs, printing
 and others.
-
-

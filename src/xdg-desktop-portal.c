@@ -271,7 +271,7 @@ export_portal_implementation (GDBusConnection *connection,
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          connection,
-                                         "/org/freedesktop/portal/desktop",
+                                         DESKTOP_PORTAL_OBJECT_PATH,
                                          &error))
     {
       g_warning ("Error: %s", error->message);

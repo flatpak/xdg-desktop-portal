@@ -36,6 +36,7 @@
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -198,8 +199,9 @@ screenshot_create (GDBusConnection *connection,
   impl = xdp_impl_screenshot_proxy_new_sync (connection,
                                              G_DBUS_PROXY_FLAGS_NONE,
                                              dbus_name,
-                                             "/org/freedesktop/portal/desktop",
-                                             NULL, &error);
+                                             DESKTOP_PORTAL_OBJECT_PATH,
+                                             NULL,
+                                             &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create screenshot proxy: %s", error->message);

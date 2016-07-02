@@ -36,6 +36,7 @@
 #include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _Print Print;
 typedef struct _PrintClass PrintClass;
@@ -158,10 +159,11 @@ print_create (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
 
   impl = xdp_impl_print_proxy_new_sync (connection,
-                                         G_DBUS_PROXY_FLAGS_NONE,
-                                         dbus_name,
-                                         "/org/freedesktop/portal/desktop",
-                                         NULL, &error);
+                                        G_DBUS_PROXY_FLAGS_NONE,
+                                        dbus_name,
+                                        DESKTOP_PORTAL_OBJECT_PATH,
+                                        NULL,
+                                        &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create print proxy: %s", error->message);

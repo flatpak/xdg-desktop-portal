@@ -425,7 +425,7 @@ open_uri_create (GDBusConnection *connection,
   app_chooser_impl = xdp_impl_app_chooser_proxy_new_sync (connection,
                                                           G_DBUS_PROXY_FLAGS_NONE,
                                                           dbus_name,
-                                                          "/org/freedesktop/portal/desktop",
+                                                          DESKTOP_PORTAL_OBJECT_PATH,
                                                           NULL, &error);
   if (app_chooser_impl == NULL)
     {
