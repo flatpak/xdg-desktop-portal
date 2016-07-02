@@ -160,7 +160,7 @@ print_create (GDBusConnection *connection,
                                          NULL, &error);
   if (impl == NULL)
     {
-      g_warning ("Failed to create print proxy: %s\n", error->message);
+      g_warning ("Failed to create print proxy: %s", error->message);
       return NULL;
     }
 

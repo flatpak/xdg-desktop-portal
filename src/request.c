@@ -206,7 +206,7 @@ request_export (Request *request,
                                          request->id,
                                          &error))
     {
-      g_warning ("error exporting request: %s\n", error->message);
+      g_warning ("Error exporting request: %s", error->message);
       g_clear_error (&error);
     }
 

@@ -108,7 +108,7 @@ send_response_in_thread_func (GTask        *task,
           ruri = register_document (uris[i], request->app_id, for_save, writable, &error);
           if (ruri == NULL)
             {
-              g_warning ("Failed to register %s: %s\n", uris[i], error->message);
+              g_warning ("Failed to register %s: %s", uris[i], error->message);
               continue;
             }
           g_debug ("convert uri %s -> %s\n", uris[i], ruri);
@@ -428,7 +428,7 @@ file_chooser_create (GDBusConnection *connection,
                                                NULL, &error);
   if (impl == NULL)
     {
-      g_warning ("Failed to create file chooser proxy: %s\n", error->message);
+      g_warning ("Failed to create file chooser proxy: %s", error->message);
       return NULL;
     }
 

@@ -186,7 +186,7 @@ load_installed_portals (void)
 
       if (!register_portal (path, &error))
         {
-          g_warning ("error loading %s: %s", path, error->message);
+          g_warning ("Error loading %s: %s", path, error->message);
           continue;
         }
     }
@@ -273,7 +273,7 @@ export_portal_implementation (GDBusConnection *connection,
                                          "/org/freedesktop/portal/desktop",
                                          &error))
     {
-      g_warning ("error: %s\n", error->message);
+      g_warning ("Error: %s", error->message);
       return;
     }
 

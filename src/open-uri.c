@@ -176,7 +176,7 @@ update_permissions_store (const char *app_id,
                                                            NULL,
                                                            &error))
     {
-      g_warning ("Error updating permission store: %s\n", error->message);
+      g_warning ("Error updating permission store: %s", error->message);
       g_clear_error (&error);
     }
 }
@@ -419,7 +419,7 @@ open_uri_create (GDBusConnection *connection,
                                                           NULL, &error);
   if (app_chooser_impl == NULL)
     {
-      g_warning ("Failed to create app chooser proxy: %s\n", error->message);
+      g_warning ("Failed to create app chooser proxy: %s", error->message);
       return NULL;
     }
 

@@ -200,7 +200,7 @@ screenshot_create (GDBusConnection *connection,
                                              NULL, &error);
   if (impl == NULL)
     {
-      g_warning ("Failed to create screenshot proxy: %s\n", error->message);
+      g_warning ("Failed to create screenshot proxy: %s", error->message);
       return NULL;
     }
 
