@@ -28,6 +28,7 @@
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Notification.xml"/>
   </reference>
   <reference>
     <title>Portal Backend API Reference</title>
@@ -50,5 +51,6 @@
     <xi:include href="portal-org.freedesktop.impl.portal.AppChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Screenshot.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Notification.xml"/>
   </reference>
 </book>

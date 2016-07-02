@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Notification:
+      @short_description: Portal for sending notifications
+
+      This simple interface lets sandboxed applications send and withdraw
+      notifications. It is not possible for the application to learn
+      if the notification was actually presented to the user. Not a
+      portal in the strict sense, since there is no user interaction.
+
+      Note that in contrast to most other portal requests, notifications
+      are expected to outlast the running application. If a user clicks
+      on a notification after the application has exited, it will get
+      activated again.
+  -->
+  <interface name="org.freedesktop.portal.Notification">
+    <!--
+        AddNotification:
+        @id: Application-provided ID for this notification
+        @notification: Vardict with the serialized notification
+
+        Sends a notification.
+
+        The ID can be used to later withdraw the notification.
+        If the application reuses the same ID without withdrawing,
+        the notification is replaced by the new one.
+
+        The format of the serialized notification is a vardict, with
+        the following supported keys, all of which are optional:
+        <variablelist>
+          <varlistentry>
+            <term>title s</term>
+            <listitem><para>
+              User-visible string to display as the title.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>body s</term>
+            <listitem><para>
+              User-visible string to display as the body.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>icon v</term>
+            <listitem><para>
+              Serialized icon (see g_icon_serialize()).
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>priority s</term>
+            <listitem><para>
+              The priority for the notification. Supported values: low, normal,
+              high, urgent.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>default-action s</term>
+            <listitem><para>
+              Name of an action that is exported by the application. This
+              action will be activated when the user clicks on the notification.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>default-action-target v</term>
+            <listitem><para>
+              Target parameter to send along when activating the default action.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>buttons aa{sv}</term>
+            <listitem><para>
+              Array of serialized buttons to add to the notification.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The format for serialized buttons is a vardict with the following supported keys:
+        <variablelist>
+          <varlistentry>
+            <term>label s</term>
+            <listitem><para>
+              User-visible label for the button. Mandatory.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>action s</term>
+            <listitem><para>
+              Name of an action that is exported by the application. The action
+              will be activated when the user clicks on the button. Mandatory.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>target v</term>
+            <listitem><para>
+              Target parameter to send along when activating the action.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="AddNotification">
+      <arg type="s" name="id" direction="in"/>
+      <arg type="a{sv}" name="notification" direction="in"/>
+    </method>
+    <!--
+        RemoveNotification:
+        @id: Application-provided ID for this notification
+
+        Withdraws a notification.
+    -->
+    <method name="RemoveNotification">
+      <arg type="s" name="id" direction="in"/>
+    </method>
+  </interface>
+</node>
