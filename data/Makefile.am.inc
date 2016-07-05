@@ -8,10 +8,12 @@ introspection_DATA = \
 	data/org.freedesktop.portal.ProxyResolver.xml \
 	data/org.freedesktop.portal.Screenshot.xml \
 	data/org.freedesktop.portal.Notification.xml \
+	data/org.freedesktop.portal.Inhibit.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
 	data/org.freedesktop.impl.portal.Screenshot.xml \
 	data/org.freedesktop.impl.portal.Notification.xml \
+	data/org.freedesktop.impl.portal.Inhibit.xml \
 	$(NULL)
