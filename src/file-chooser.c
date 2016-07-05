@@ -158,6 +158,216 @@ open_file_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static gboolean
+check_value_type (const char *key,
+                  GVariant *value,
+                  const GVariantType *type,
+                  GError **error)
+{
+  if (g_variant_is_of_type (value, type))
+    return TRUE;
+
+  g_set_error (error,
+               G_IO_ERROR, G_IO_ERROR_FAILED,
+               "expected type for key %s is %s, found %s",
+               key, (const char *)type, (const char *)g_variant_get_type (value));
+
+  return FALSE;
+}
+
+static gboolean
+check_filter (GVariant *filter,
+              GError **error)
+{
+  const char *name;
+  g_autoptr(GVariant) list = NULL;
+  int i;
+
+  g_variant_get (filter, "(&s@a(us))", &name, &list);
+
+  if (name[0] == 0)
+    {
+      g_set_error (error,
+                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "name is empty");
+      return FALSE;
+    }
+
+  if (g_variant_n_children (list) == 0)
+    {
+      g_set_error (error,
+                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "no filters");
+      return FALSE;
+    }
+
+  for (i = 0; i < g_variant_n_children (list); i++)
+    {
+      guint32 type;
+      const char *string;
+
+      g_variant_get_child (list, i, "(u&s)", &type, &string);
+      if (type == 0)
+        {
+          /* TODO: validate glob */
+          if (string[0] == 0)
+            {
+              g_set_error (error,
+                           G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "invalid glob pattern");
+              return FALSE;
+            }
+        }
+      else if (type == 1)
+        {
+        }
+          /* TODO: validate content type */
+          if (string[0] == 0)
+            {
+              g_set_error (error,
+                           G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "invalid content type");
+              return FALSE;
+            }
+      else
+        {
+          g_set_error (error,
+                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "invalid filter type: %u", type);
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
+static gboolean
+check_filters (GVariant *value,
+               GError **error)
+{
+  int i;
+
+  if (!check_value_type ("filters", value, G_VARIANT_TYPE ("a(sa(us))"), error))
+    return FALSE;
+
+  for (i = 0; i < g_variant_n_children (value); i++)
+    {
+      g_autoptr(GVariant) filter = g_variant_get_child_value (value, i);
+
+      if (!check_filter (filter, error))
+        {
+          g_prefix_error (error, "invalid filter: ");
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
+static gboolean
+check_choice (GVariant *choice,
+              GError **error)
+{
+  const char *id;
+  const char *label;
+  g_autoptr(GVariant) options = NULL;
+  const char *option;
+  int i;
+  gboolean seen_option;
+
+  g_variant_get (choice, "(&s&s@a(ss)&s)", &id, &label, &options, &option);
+
+  if (id[0] == 0)
+    {
+      g_set_error (error,
+                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "id is empty");
+      return FALSE;
+    }
+
+  if (label[0] == 0)
+    {
+      g_set_error (error,
+                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "label is empty");
+      return FALSE;
+    }
+
+  if (g_variant_n_children (options) == 0)
+    {
+      const char *values[] = { "", "true", "false", NULL };
+      if (!g_strv_contains (values, option))
+        {
+          g_set_error (error,
+                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "bad current option: %s", option);
+          return FALSE;
+        }
+
+      return TRUE;
+    }
+
+  seen_option = FALSE;
+  for (i = 0; i < g_variant_n_children (options); i++)
+    {
+      const char *o_id;
+      const char *o_label;
+
+      g_variant_get_child (options, i, "(&s&s)", &o_id, &o_label);
+
+      if (o_id[0] == 0)
+        {
+          g_set_error (error,
+                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                      "option id is empty");
+          return FALSE;
+        }
+      if (o_label[0] == 0)
+        {
+          g_set_error (error,
+                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                      "option label is empty");
+          return FALSE;
+        }
+
+      if (strcmp (o_id, option) == 0)
+        seen_option = TRUE;
+    }
+
+  if (!seen_option && option[0] != 0)
+    {
+      g_set_error (error,
+                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "bad current option: %s", option);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+check_choices (GVariant *value,
+               GError **error)
+{
+  int i;
+
+  if (!check_value_type ("choices", value, G_VARIANT_TYPE ("a(ssa(ss)s)"), error))
+    return FALSE;
+
+  for (i = 0; i < g_variant_n_children (value); i++)
+    {
+      g_autoptr(GVariant) choice = g_variant_get_child_value (value, i);
+
+      if (!check_choice (choice, error))
+        {
+          g_prefix_error (error, "invalid choice: ");
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey open_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
   { "filters", (const GVariantType *)"a(sa(us))" },
@@ -176,8 +386,34 @@ handle_open_file (XdpFileChooser *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
+  g_autoptr(GVariant) value = NULL;
 
   REQUEST_AUTOLOCK (request);
+
+  value = g_variant_lookup_value (arg_options, "filters", NULL);
+  if (value != NULL)
+    {
+      if (!check_filters (value, &error))
+        {
+          g_prefix_error (&error, "invalid filters: ");
+          g_dbus_method_invocation_return_gerror (invocation, error);
+          return TRUE;
+        }
+      g_variant_unref (value);
+      value = NULL;
+    }
+  value = g_variant_lookup_value (arg_options, "choices", NULL);
+  if (value != NULL)
+    {
+      if (!check_choices (value, &error))
+        {
+          g_prefix_error (&error, "invalid choices: ");
+          g_dbus_method_invocation_return_gerror (invocation, error);
+          return TRUE;
+        }
+      g_variant_unref (value);
+      value = NULL;
+    }
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options,
