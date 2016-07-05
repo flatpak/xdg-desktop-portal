@@ -182,10 +182,6 @@ update_permissions_store (const char *app_id,
     }
 }
 
-static XdpOptionKey response_options[] = {
-  { "choice", G_VARIANT_TYPE_STRING }
-};
-
 static void
 send_response_in_thread_func (GTask        *task,
                               gpointer      source_object,
@@ -211,17 +207,15 @@ send_response_in_thread_func (GTask        *task,
   if (response != 0)
     goto out;
 
-  xdp_filter_options (options, &opt_builder,
-                      response_options, G_N_ELEMENTS (response_options));
+  if (g_variant_lookup (options, "choice", "&s", &choice))
+    {
+      uri = g_object_get_data (G_OBJECT (request), "uri");
+      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
+      content_type = g_object_get_data (G_OBJECT (request), "content-type");
 
-  g_variant_lookup (options, "&s", "choice", &choice);
-
-  uri = g_object_get_data (G_OBJECT (request), "uri");
-  parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
-  content_type = g_object_get_data (G_OBJECT (request), "content-type");
-
-  launch_application_with_uri (choice, uri, parent_window);
-  update_permissions_store (request->app_id, content_type, choice);
+      launch_application_with_uri (choice, uri, parent_window);
+      update_permissions_store (request->app_id, content_type, choice);
+    }
 
 out:
   if (request->exported)
