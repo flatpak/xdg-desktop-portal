@@ -39,7 +39,7 @@
       @options: Vardict with optional further information
       @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-      Asks to open a single file.
+      Asks to open a one or more files.
 
       The @parent_window identifier must be of the form "x11:$XID" for an X11
       window. Support for other window systems may be added in the future.
@@ -50,6 +50,12 @@
           <term>accept_label s</term>
           <listitem><para>
             Label for the accept button. Mnemonic underlines are allowed.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>multiple b</term>
+          <listitem><para>
+            Whether multiple files can be selected or not. Default is single-selection.
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -100,7 +106,7 @@
         <varlistentry>
           <term>uris as</term>
           <listitem><para>
-            An array of strings containing the uri of the selected file.
+            An array of strings containing the uris of the selected files.
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -119,65 +125,6 @@
       </variablelist>
     -->
     <method name="OpenFile">
-      <arg type="s" name="parent_window" direction="in"/>
-      <arg type="s" name="title" direction="in"/>
-      <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="o" name="handle" direction="out"/>
-    </method>
-    <!--
-      OpenFiles:
-      @parent_window: Identifier for the application window
-      @title: Title for the file chooser dialog
-      @options: Vardict with optional further information
-      @handle: Object path for the #org.freedesktop.portal.Request object representing this call
-
-      Asks to open multiple files.
-
-      The @parent_window identifier must be of the form "x11:$XID" for an X11
-      window. Support for other window systems may be added in the future.
-
-      Supported keys in the @options vardict include:
-      <variablelist>
-        <varlistentry>
-          <term>accept_label s</term>
-          <listitem><para>
-            Label for the accept button. Mnemonic underlines are allowed.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>filters a(sa(us))</term>
-          <listitem><para>
-            List of serialized file filters.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ssa(ss)s)</term>
-          <listitem><para>
-            List of serialized combo boxes.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-      </variablelist>
-
-      The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-      <variablelist>
-        <varlistentry>
-          <term>uris as</term>
-          <listitem><para>
-            An array of strings containing the uris of the selected files.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ss)</term>
-          <listitem><para>
-            An array of pairs of strings, corresponding to the passed-in choices.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-      </variablelist>
-    -->
-    <method name="OpenFiles">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>

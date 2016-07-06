@@ -37,7 +37,7 @@
         @response: Numeric response
         @results: Vardict with the results of the call
 
-        Presents a file chooser dialog to the user to open a single file.
+        Presents a file chooser dialog to the user to open one or more files.
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
@@ -51,68 +51,9 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>filters a(sa(us))</term>
+            <term>multiple b</term>
             <listitem><para>
-              A list of serialized file filters.
-              See org.freedesktop.portal.FileChooser.OpenFile() for details.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>choices a(ssa(ss)s)</term>
-            <listitem><para>
-              A list of serialized combo boxes.
-              See org.freedesktop.portal.FileChooser.OpenFile() for details.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
-
-        The following results get returned via the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>uris as</term>
-            <listitem><para>
-              An array of strings containing the uri of the selected file.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>choices a(ss)</term>
-            <listitem><para>
-              An array of pairs of strings, corresponding to the passed-in choices.
-              See org.freedesktop.portal.FileChooser.OpenFile() for details.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
-    -->
-    <method name="OpenFile">
-      <arg type="o" name="handle" direction="in"/>
-      <arg type="s" name="app_id" direction="in"/>
-      <arg type="s" name="parent_window" direction="in"/>
-      <arg type="s" name="title" direction="in"/>
-      <arg type="a{sv}" name="options" direction="in"/>
-      <arg type="u" name="response" direction="out"/>
-      <arg type="a{sv}" name="results" direction="out"/>
-    </method>
-    <!--
-        OpenFiles:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
-        @app_id: App id of the application
-        @parent_window: Identifier for the application window
-        @title: Title for the file chooser dialog
-        @options: Vardict with optional further information
-        @response: Numeric response
-        @results: Vardict with the results of the call
-
-        Presents a file chooser dialog to the user to open multiple files.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
-
-        Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>accept_label s</term>
-            <listitem><para>
-              The label for the accept button. Mnemonic underlines are allowed.
+              Whether to allow selection of multiple files. Default is no.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -148,7 +89,7 @@
           </varlistentry>
         </variablelist>
     -->
-    <method name="OpenFiles">
+    <method name="OpenFile">
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
