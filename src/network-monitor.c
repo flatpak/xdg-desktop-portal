@@ -55,7 +55,9 @@ network_monitor_iface_init (XdpNetworkMonitorIface *iface)
 }
 
 static void
-notify (GObject *object, GParamSpec *pspec, NetworkMonitor *nm)
+notify (GObject *object,
+        GParamSpec *pspec,
+        NetworkMonitor *nm)
 {
   if (strcmp (pspec->name, "network-available") == 0)
     xdp_network_monitor_set_available (XDP_NETWORK_MONITOR (nm),
@@ -69,7 +71,9 @@ notify (GObject *object, GParamSpec *pspec, NetworkMonitor *nm)
 }
 
 static void
-changed (GNetworkMonitor *monitor, gboolean available, XdpNetworkMonitor *nm)
+changed (GNetworkMonitor *monitor,
+         gboolean available,
+         XdpNetworkMonitor *nm)
 {
   xdp_network_monitor_emit_changed (nm, available);
 }

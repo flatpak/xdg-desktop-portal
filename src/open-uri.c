@@ -183,9 +183,9 @@ update_permissions_store (const char *app_id,
 }
 
 static void
-send_response_in_thread_func (GTask        *task,
-                              gpointer      source_object,
-                              gpointer      task_data,
+send_response_in_thread_func (GTask *task,
+                              gpointer source_object,
+                              gpointer task_data,
                               GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
@@ -255,9 +255,9 @@ app_chooser_done (GObject *source,
 }
 
 static void
-handle_open_in_thread_func (GTask        *task,
-                            gpointer      source_object,
-                            gpointer      task_data,
+handle_open_in_thread_func (GTask *task,
+                            gpointer source_object,
+                            gpointer task_data,
                             GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
@@ -412,7 +412,7 @@ open_uri_class_init (OpenURIClass *klass)
 
 GDBusInterfaceSkeleton *
 open_uri_create (GDBusConnection *connection,
-                 const char      *dbus_name)
+                 const char *dbus_name)
 {
   g_autoptr(GError) error = NULL;
 

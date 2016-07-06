@@ -61,9 +61,9 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_TYPE_SCREENSHOT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_SCREENSHOT, screenshot_iface_init));
 
 static void
-send_response_in_thread_func (GTask        *task,
-                              gpointer      source_object,
-                              gpointer      task_data,
+send_response_in_thread_func (GTask *task,
+                              gpointer source_object,
+                              gpointer task_data,
                               GCancellable *cancellable)
 {
   Request *request = task_data;
@@ -192,7 +192,7 @@ screenshot_class_init (ScreenshotClass *klass)
 
 GDBusInterfaceSkeleton *
 screenshot_create (GDBusConnection *connection,
-                   const char      *dbus_name)
+                   const char *dbus_name)
 {
   g_autoptr(GError) error = NULL;
 
