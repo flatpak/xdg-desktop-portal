@@ -97,9 +97,9 @@ get_notification_allowed (const char *app_id)
 
 
 static void
-handle_add_in_thread_func (GTask        *task,
-                           gpointer      source_object,
-                           gpointer      task_data,
+handle_add_in_thread_func (GTask *task,
+                           gpointer source_object,
+                           gpointer task_data,
                            GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
@@ -133,7 +133,8 @@ check_value_type (const char *key,
     return TRUE;
 
   g_set_error (error,
-               G_IO_ERROR, G_IO_ERROR_FAILED,
+               XDG_DESKTOP_PORTAL_ERROR,
+               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                "expected type for key %s is %s, found %s",
                key, (const char *)type, (const char *)g_variant_get_type (value));
 
@@ -152,7 +153,8 @@ check_priority (GVariant *value,
   if (!g_strv_contains (priorities, g_variant_get_string (value, NULL)))
     {
       g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "%s not a priority", g_variant_get_string (value, NULL));
       return FALSE;
     }
@@ -183,7 +185,8 @@ check_button (GVariant *button,
       else
         {
           g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "%s not valid key", key);
           return FALSE;
         }
@@ -191,17 +194,19 @@ check_button (GVariant *button,
 
   if (!has_label)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "label key is missing");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "label key is missing");
       return FALSE;
     }
 
   if (!has_action)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "action key is missing");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "action key is missing");
       return FALSE;
     }
 
@@ -242,9 +247,10 @@ check_serialized_icon (GVariant *value,
 
   if (!icon)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "invalid icon");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "invalid icon");
       return FALSE;
     }
 
@@ -297,7 +303,8 @@ check_notification (GVariant *notification,
       else
         {
           g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "%s not valid key", key);
           return FALSE;
         }

@@ -168,7 +168,8 @@ check_value_type (const char *key,
     return TRUE;
 
   g_set_error (error,
-               G_IO_ERROR, G_IO_ERROR_FAILED,
+               XDG_DESKTOP_PORTAL_ERROR,
+               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                "expected type for key %s is %s, found %s",
                key, (const char *)type, (const char *)g_variant_get_type (value));
 
@@ -187,17 +188,19 @@ check_filter (GVariant *filter,
 
   if (name[0] == 0)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "name is empty");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "name is empty");
       return FALSE;
     }
 
   if (g_variant_n_children (list) == 0)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "no filters");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "no filters");
       return FALSE;
     }
 
@@ -212,9 +215,10 @@ check_filter (GVariant *filter,
           /* TODO: validate glob */
           if (string[0] == 0)
             {
-              g_set_error (error,
-                           G_IO_ERROR, G_IO_ERROR_FAILED,
-                           "invalid glob pattern");
+              g_set_error_literal (error,
+                                   XDG_DESKTOP_PORTAL_ERROR,
+                                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                   "invalid glob pattern");
               return FALSE;
             }
         }
@@ -224,15 +228,17 @@ check_filter (GVariant *filter,
           /* TODO: validate content type */
           if (string[0] == 0)
             {
-              g_set_error (error,
-                           G_IO_ERROR, G_IO_ERROR_FAILED,
-                           "invalid content type");
+              g_set_error_literal (error,
+                                   XDG_DESKTOP_PORTAL_ERROR,
+                                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                   "invalid content type");
               return FALSE;
             }
       else
         {
           g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "invalid filter type: %u", type);
           return FALSE;
         }
@@ -279,17 +285,19 @@ check_choice (GVariant *choice,
 
   if (id[0] == 0)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "id is empty");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "id is empty");
       return FALSE;
     }
 
   if (label[0] == 0)
     {
-      g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "label is empty");
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "label is empty");
       return FALSE;
     }
 
@@ -299,7 +307,8 @@ check_choice (GVariant *choice,
       if (!g_strv_contains (values, option))
         {
           g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "bad current option: %s", option);
           return FALSE;
         }
@@ -317,16 +326,18 @@ check_choice (GVariant *choice,
 
       if (o_id[0] == 0)
         {
-          g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
-                      "option id is empty");
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "option id is empty");
           return FALSE;
         }
       if (o_label[0] == 0)
         {
-          g_set_error (error,
-                       G_IO_ERROR, G_IO_ERROR_FAILED,
-                      "option label is empty");
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "option label is empty");
           return FALSE;
         }
 
@@ -337,7 +348,8 @@ check_choice (GVariant *choice,
   if (!seen_option && option[0] != 0)
     {
       g_set_error (error,
-                   G_IO_ERROR, G_IO_ERROR_FAILED,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "bad current option: %s", option);
       return FALSE;
     }

@@ -28,6 +28,7 @@
 #include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 
 #define TABLE_NAME "inhibit"
 
@@ -69,6 +70,7 @@ inhibit_done (GObject *source,
 {
   g_autoptr(Request) request = data;
   g_autoptr(GError) error = NULL;
+
   if (!xdp_impl_inhibit_call_inhibit_finish (impl, result, &error))
     g_warning ("Backend call failed: %s", error->message);
 }
@@ -111,7 +113,7 @@ get_allowed_inhibit (const char *app_id)
               else if (strcmp (perms[i], "idle") == 0)
                 ret |= INHIBIT_IDLE;
               else
-                g_warning ("unknown inhibit flag in permission store: %s", perms[i]);
+                g_warning ("Unknown inhibit flag in permission store: %s", perms[i]);
             }
             return ret;
         }
@@ -121,9 +123,9 @@ get_allowed_inhibit (const char *app_id)
 }
 
 static void
-handle_inhibit_in_thread_func (GTask        *task,
-                               gpointer      source_object,
-                               gpointer      task_data,
+handle_inhibit_in_thread_func (GTask *task,
+                               gpointer source_object,
+                               gpointer task_data,
                                GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
@@ -169,7 +171,8 @@ inhibit_handle_inhibit (XdpInhibit *object,
   if ((arg_flags & ~INHIBIT_ALL) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             G_IO_ERROR, G_IO_ERROR_FAILED,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid flags");
       return TRUE;
     }
@@ -219,7 +222,7 @@ inhibit_init (Inhibit *resolver)
 
 GDBusInterfaceSkeleton *
 inhibit_create (GDBusConnection *connection,
-                     const char *dbus_name)
+                const char *dbus_name)
 {
   g_autoptr(GError) error = NULL;
 
