@@ -9,3 +9,7 @@ path (/org/freedesktop/portal/desktop).
 
 The portal interfaces include APIs for file access, opening URIs, printing
 and others.
+
+
+Documentation for the D-Bus interfaces can be found
+[here](http://flatpak.org/xdg-desktop-portal/portal-docs.html).
