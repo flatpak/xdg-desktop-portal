@@ -96,7 +96,8 @@ print_done (GObject *source,
 }
 
 static XdpOptionKey print_options[] = {
-  { "token", G_VARIANT_TYPE_UINT32 }
+  { "token", G_VARIANT_TYPE_UINT32 },
+  { "modal", G_VARIANT_TYPE_BOOLEAN }
 };
 
 static gboolean
@@ -197,6 +198,10 @@ prepare_print_done (GObject *source,
     }
 }
 
+static XdpOptionKey prepare_print_options[] = {
+  { "modal", G_VARIANT_TYPE_BOOLEAN }
+};
+
 static gboolean
 handle_prepare_print (XdpPrint *object,
                       GDBusMethodInvocation *invocation,
@@ -229,6 +234,8 @@ handle_prepare_print (XdpPrint *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  xdp_filter_options (arg_options, &opt_builder,
+                      prepare_print_options, G_N_ELEMENTS (prepare_print_options));
   xdp_impl_print_call_prepare_print (impl,
                                      request->id,
                                      app_id,
