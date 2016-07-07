@@ -53,7 +53,7 @@
           <varlistentry>
             <term>modal b</term>
             <listitem><para>
-              Whether to make the dialog modal. Default is not.
+              Whether to make the dialog modal. Default is yes.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -130,7 +130,7 @@
           <varlistentry>
             <term>modal b</term>
             <listitem><para>
-              Whether to make the dialog modal. Default is not.
+              Whether to make the dialog modal. Default is yes.
             </para></listitem>
           </varlistentry>
           <varlistentry>

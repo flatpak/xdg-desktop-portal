@@ -45,7 +45,7 @@
           <varlistentry>
             <term>modal b</term>
             <listitem><para>
-              Whether the dialog should be modal. Default is not.
+              Whether the dialog should be modal. Defaults to yes.
             </para></listitem>
           </varlistentry>
         </variablelist>

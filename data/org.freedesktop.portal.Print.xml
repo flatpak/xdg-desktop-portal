@@ -60,6 +60,12 @@
         Supported keys in the @options vardict:
         <variablelist>
           <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Defaults to yes.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>token u</term>
             <listitem><para>
               Token that was returned by a previous #org.freedesktop.portal.PreparePrint() call.
@@ -88,6 +94,16 @@
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Defaults to yes.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>

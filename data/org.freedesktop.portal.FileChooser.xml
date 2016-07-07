@@ -55,7 +55,7 @@
         <varlistentry>
           <term>modal b</term>
           <listitem><para>
-            Whether the dialog should be modal. Default is not.
+            Whether the dialog should be modal. Default is yes.
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -154,6 +154,12 @@
           <term>accept_label s</term>
           <listitem><para>
             Label for the accept button. Mnemonic underlines are allowed.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>modal b</term>
+          <listitem><para>
+            Whether the dialog should be modal. Default is yes.
           </para></listitem>
         </varlistentry>
         <varlistentry>

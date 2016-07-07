@@ -53,6 +53,12 @@
         Supported keys in the @options vardict:
         <variablelist>
           <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Defaults to yes.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>token u</term>
             <listitem><para>
               Token that was returned by a previous #org.freedesktop.impl.portal.PreparePrint() call.
@@ -84,6 +90,16 @@
 
         Presents a print dialog to the user and returns print settings
         and page setup.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Defaults to yes.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
