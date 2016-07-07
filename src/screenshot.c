@@ -131,6 +131,10 @@ screenshot_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static XdpOptionKey screenshot_options[] = {
+  { "modal", G_VARIANT_TYPE_BOOLEAN }
+};
+
 static gboolean
 handle_screenshot (XdpScreenshot *object,
                    GDBusMethodInvocation *invocation,
@@ -160,6 +164,9 @@ handle_screenshot (XdpScreenshot *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  xdp_filter_options (arg_options, &opt_builder,
+                      screenshot_options, G_N_ELEMENTS (screenshot_options));
+
   xdp_impl_screenshot_call_screenshot (impl,
                                        request->id,
                                        app_id,

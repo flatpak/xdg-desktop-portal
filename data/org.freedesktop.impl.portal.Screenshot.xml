@@ -40,6 +40,16 @@
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
 
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether the dialog should be modal. Default is not.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
         The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
