@@ -53,6 +53,12 @@
           </para></listitem>
         </varlistentry>
         <varlistentry>
+          <term>modal b</term>
+          <listitem><para>
+            Whether the dialog should be modal. Default is not.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term>multiple b</term>
           <listitem><para>
             Whether multiple files can be selected or not. Default is single-selection.

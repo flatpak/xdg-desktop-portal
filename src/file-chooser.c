@@ -382,6 +382,7 @@ check_choices (GVariant *value,
 
 static XdpOptionKey open_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
+  { "modal", G_VARIANT_TYPE_BOOLEAN },
   { "multiple", G_VARIANT_TYPE_BOOLEAN },
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "choices", (const GVariantType *)"a(ssa(ss)s)" }
@@ -463,6 +464,7 @@ handle_open_file (XdpFileChooser *object,
 
 static XdpOptionKey save_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING },
+  { "modal", G_VARIANT_TYPE_BOOLEAN },
   { "filters", (const GVariantType *)"a(sa(us))" },
   { "current_name", G_VARIANT_TYPE_STRING },
   { "current_folder", G_VARIANT_TYPE_BYTESTRING },

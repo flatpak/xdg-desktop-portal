@@ -51,6 +51,12 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Default is not.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>multiple b</term>
             <listitem><para>
               Whether to allow selection of multiple files. Default is no.
@@ -119,6 +125,18 @@
             <term>accept_label s</term>
             <listitem><para>
               The label for the accept button. Mnemonic underlines are allowed.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Default is not.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>multiple b</term>
+            <listitem><para>
+              Whether to allow selection of multiple files. Default is no.
             </para></listitem>
           </varlistentry>
           <varlistentry>
