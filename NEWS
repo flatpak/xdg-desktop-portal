@@ -1,0 +1,12 @@
+Initial release 0.1
+===================
+
+Included portal APIs:
+ * org.freedesktop.portal.FileChooser
+ * org.freedesktop.portal.Print
+ * org.freedesktop.portal.OpenURI
+ * org.freedesktop.portal.Screenshot
+ * org.freedesktop.portal.Inhibit
+ * org.freedesktop.portal.Notification
+ * org.freedesktop.portal.NetworkMonitor
+ * org.freedesktop.portal.ProxyResolver
