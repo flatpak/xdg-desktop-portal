@@ -25,3 +25,7 @@ org.freedesktop.portal.\* prefix. One possible way to use the portal APIs
 is thus just to make D-Bus calls. For many of the portals, toolkits (e.g.
 GTK+) are expected to support portals transparently if you use suitable
 high-level APIs.
+
+To actually use most portals, xdg-desktop-portal relies on a backend
+that provides implementations of the org.freedesktop.impl.portal.\* interfaces.
+One such backend is provided by [xdg-desktop-portal-gtk](http://github.com/flatpak/xdg-desktop-portal-gtk).
