@@ -333,7 +333,7 @@ on_name_acquired (GDBusConnection *connection,
                   const gchar     *name,
                   gpointer         user_data)
 {
-  g_debug ("org.freedesktop.portal.desktop acquired");
+  g_debug ("%s acquired", name);
 
 
 }
