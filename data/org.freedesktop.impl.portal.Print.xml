@@ -61,7 +61,7 @@
           <varlistentry>
             <term>token u</term>
             <listitem><para>
-              Token that was returned by a previous #org.freedesktop.impl.portal.PreparePrint() call.
+              Token that was returned by a previous org.freedesktop.impl.portal.Print.PreparePrint() call.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -86,7 +86,6 @@
         @settings: Serialized print settings
         @page_setup: Serialized page setup
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Presents a print dialog to the user and returns print settings
         and page setup.
@@ -101,7 +100,7 @@
           </varlistentry>
         </variablelist>
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the @results vardict:
         <variablelist>
           <varlistentry>
             <term>settings a{sv}</term>
@@ -118,13 +117,13 @@
           <varlistentry>
             <term>token u</term>
             <listitem><para>
-              Token that can be passed to a subsequent #org.freedesktop.impl.portal.Print() call to
+              Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
               bypass the print dialog.
             </para></listitem>
           </varlistentry>
         </variablelist>
 
-        The #org.freedesktop.portal.Print() documentation has details about
+        The org.freedesktop.portal.Print.Print() documentation has details about
         the supported keys in settings and page-setup.
     -->
     <method name="PreparePrint">

@@ -68,7 +68,7 @@
           <varlistentry>
             <term>token u</term>
             <listitem><para>
-              Token that was returned by a previous #org.freedesktop.portal.PreparePrint() call.
+              Token that was returned by a previous org.freedesktop.portal.Print.PreparePrint() call.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -122,7 +122,7 @@
           <varlistentry>
             <term>token u</term>
             <listitem><para>
-              Token that can be passed to a subsequent #org.freedesktop.portal.Print() call to
+              Token that can be passed to a subsequent org.freedesktop.portal.Print.Print() call to
               bypass the print dialog.
             </para></listitem>
           </varlistentry>
