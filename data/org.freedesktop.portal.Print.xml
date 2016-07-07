@@ -23,27 +23,334 @@
       org.freedesktop.portal.Print:
       @short_description: Portal for printing
 
-      The Print portal allows sandboxed applications to print
-      a file.
+      The Print portal allows sandboxed applications to print.
+
+      Due to the way in which printing requires bi-directional communication
+      using this portal will often require applications to make multiple requests:
+      First use #org.freesktop.portal.Print.PreparePrint() to obtain print settings,
+      use them to format your output, then use #org.freedesktop.portal.Print.Print()
+      to print the formatted document. It is expected that high-level toolkit
+      APIS such as GtkPrintOperation will hide most of this complexity.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
-        PrintFile:
+        Print:
         @parent_window: Identifier for the application window
         @title: Title for the print dialog
-        @filename: The pdf file to print
+        @fd: File descriptor for reading the content to print
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Asks to print a pdf file.
+        Asks to print a file.
+
+        The file must be passed in the form of a file descriptor open for reading.
+        This ensures that sandboxed applications only print files that they have
+        access to.
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+
+        If a valid token is present in the @options, then this call will print
+        with the settings from the Print call that the token refers to. If
+        no token is present, then a print dialog will be presented to the user.
+
+        Note that it is up to the portal implementation to determine how long
+        it considers tokens valid.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>token u</term>
+            <listitem><para>
+              Token that was returned by a previous #org.freedesktop.portal.PreparePrint() call.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
-    <method name="PrintFile">
+    <method name="Print">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
-      <arg type="ay" name="filename" direction="in"/>
+      <arg type="h" name="fd" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+    <!--
+        PreparePrint:
+        @parent_window: Identifier for the application window
+        @title: Title for the print dialog
+        @settings: Serialized print settings
+        @page_setup: Serialized page setup
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Presents a print dialog to the user and returns print settings
+        and page setup.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>settings a{sv}</term>
+            <listitem><para>
+              Print settings as set up by the user in the print dialog.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>page-setup a{sv}</term>
+            <listitem><para>
+              Page setup as set up by the user in the print dialog.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>token u</term>
+            <listitem><para>
+              Token that can be passed to a subsequent #org.freedesktop.portal.Print() call to
+              bypass the print dialog.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+       The following keys are supported in the print settings vardict:
+       <variablelist>
+         <varlistentry>
+           <term>orientation s</term>
+           <listitem><para>
+             One of landscape, portrait, reverse_landscape or reverse_portrait.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>paper-format s</term>
+           <listitem><para>
+             A paper name according to <ulink url="ftp://ftp.pwg.org/pub/pwg/candidates/cs-pwgmsn10-20020226-5101.1.pdf">PWG 5101.1-2002</ulink>.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>paper-width s</term>
+           <listitem><para>
+             Paper width, in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>paper-height s</term>
+           <listitem><para>
+             Paper height, in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>n-copies s</term>
+           <listitem><para>
+             The number of copies to print.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>default-source s</term>
+           <listitem><para>
+              The default paper source.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>quality s</term>
+           <listitem><para>
+             Print quality, one of normal, high, low or draft.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>resolution s</term>
+           <listitem><para>
+             The resolution, sets both resolution-x and resolution-y.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>use-color s</term>
+           <listitem><para>
+             Whether to use color, one of true or false.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>duplex s</term>
+           <listitem><para>
+             Duplex printing mode, one of simplex, horizontal or vertical.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>collate s</term>
+           <listitem><para>
+             Whether to collate copies, one of true or false.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>reverse s</term>
+           <listitem><para>
+             Whether to reverse the order of printed pages, one of true or false.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>media-type s</term>
+           <listitem><para>
+             A media type according to <ulink url="ftp://ftp.pwg.org/pub/pwg/candidates/cs-pwgmsn10-20020226-5101.1.pdf">PWG 5101.1-2002</ulink>.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>dither s</term>
+           <listitem><para>
+             The dithering to use, one of fine, none, coarse, lineart, grayscale or error-diffusion.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>scale s</term>
+           <listitem><para>
+             The scale in percent.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>print-pages s</term>
+           <listitem><para>
+             What pages to print, one of all, selection, current or ranges.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>page-ranges s</term>
+           <listitem><para>
+             A list of page ranges, formatted like this: 1-3,5,9-11.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>page-set s</term>
+           <listitem><para>
+             What pages to print, one of all, even or odd.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>finishings s</term>
+           <listitem><para>
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>number-up s</term>
+           <listitem><para>
+             The number of pages per sheet.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>number-up-layout s</term>
+           <listitem><para>
+             One of lrtb, lrbt, rltb, rlbt, tblr, tbrl, btlr, btrl.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>output-bin s</term>
+           <listitem><para>
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>resolution-x s</term>
+           <listitem><para>
+             The horizontal resolution in dpi.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>resolution-y s</term>
+           <listitem><para>
+             The vertical resolution in dpi.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>printer-lpi s</term>
+           <listitem><para>
+             The resolution in lpi (lines per inch).
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>output-basename s</term>
+           <listitem><para>
+             Basename to use for print-to-file.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>output-file-format s</term>
+           <listitem><para>
+             Format to use for print-to-file, one of PDF, PS, SVG.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>output-uri s</term>
+           <listitem><para>
+             The uri used for print-to-file.
+           </para></listitem>
+         </varlistentry>
+       </variablelist>
+
+       The following keys are supported in the page setup vardict:
+       <variablelist>
+         <varlistentry>
+           <term>PPDName s</term>
+           <listitem><para>
+             The PPD name.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>Name s</term>
+           <listitem><para>
+             The name of the page setup.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>DisplayName s</term>
+           <listitem><para>
+             User-visible name for the page setup.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>Width d</term>
+           <listitem><para>
+             Paper width in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>Height d</term>
+           <listitem><para>
+             Paper height in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>MarginTop d</term>
+           <listitem><para>
+             Top margin in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>MarginBottom d</term>
+           <listitem><para>
+             Bottom margin in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>MarginLeft d</term>
+           <listitem><para>
+             Left margin in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>MarginRight d</term>
+           <listitem><para>
+             Right margin in millimeters.
+           </para></listitem>
+         </varlistentry>
+         <varlistentry>
+           <term>Orientation s</term>
+           <listitem><para>
+             Orientation, one of portrait, landscape, reverse-portrait or reverse-landscape.
+           </para></listitem>
+         </varlistentry>
+       </variablelist>
+    -->
+    <method name="PreparePrint">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="title" direction="in"/>
+      <arg type="a{sv}" name="settings" direction="in"/>
+      <arg type="a{sv}" name="page_setup" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
