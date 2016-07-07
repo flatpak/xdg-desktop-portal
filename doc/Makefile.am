@@ -39,8 +39,8 @@ xml_files = 								\
 	$(NULL)
 
 EXTRA_DIST = \
-	version.xml.in		\
 	docbook.css		\
+	portal-docs.xml.in	\
 	xmlto-config.xsl	\
 	$(NULL)
 
@@ -53,7 +53,7 @@ CLEANFILES =			\
 	$(NULL)
 
 DISTCLEANFILES =	\
-	version.xml	\
+	portal-docs.xml	\
 	$(NULL)
 
 if DOCBOOK_DOCS_ENABLED
@@ -63,7 +63,7 @@ doc_DATA = 			\
 	docbook.css		\
 	$(NULL)
 
-portal-docs.html: portal-docs.xml version.xml $(xml_files) xmlto-config.xsl
-	$(AM_V_GEN) $(XMLTO) xhtml-nochunks -m xmlto-config.xsl portal-docs.xml
+portal-docs.html: portal-docs.xml $(xml_files) xmlto-config.xsl
+	$(AM_V_GEN) $(XMLTO) xhtml-nochunks -m $(srcdir)/xmlto-config.xsl $<
 
 endif # DOCBOOK_DOCS_ENABLED

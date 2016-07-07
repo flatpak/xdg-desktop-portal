@@ -80,6 +80,6 @@ AC_CONFIG_FILES([
 Makefile
 xdg-desktop-portal.pc
 doc/Makefile
-doc/version.xml
+doc/portal-docs.xml
 ])
 AC_OUTPUT

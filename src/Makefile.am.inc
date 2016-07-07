@@ -48,8 +48,7 @@ $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
 		--annotate "org.freedesktop.portal.Documents.Add()" "org.gtk.GDBus.C.UnixFD" "true" \
 		--annotate "org.freedesktop.portal.Documents.AddNamed()" "org.gtk.GDBus.C.UnixFD" "true" \
 		--annotate "org.freedesktop.portal.Print.Print()" "org.gtk.GDBus.C.UnixFD" "true" \
-		$(FLATPAK_IFACE_FILES) \
-		$(PORTAL_IFACE_FILES) \
+		$^ \
 		$(NULL)
 
 $(xdp_impl_dbus_built_sources) : $(FLATPAK_IMPL_IFACE_FILES) $(PORTAL_IMPL_IFACE_FILES)
@@ -58,8 +57,7 @@ $(xdp_impl_dbus_built_sources) : $(FLATPAK_IMPL_IFACE_FILES) $(PORTAL_IMPL_IFACE
 		--c-namespace XdpImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
 		--annotate "org.freedesktop.impl.portal.Print.Print()" "org.gtk.GDBus.C.UnixFD" "true" \
-		$(FLATPAK_IMPL_IFACE_FILES) \
-		$(PORTAL_IMPL_IFACE_FILES) \
+		$^ \
 		$(NULL)
 
 xdg_desktop_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/src/xdg-desktop-portal.gresource.xml)
@@ -73,6 +71,11 @@ src/xdg-desktop-resources.c: src/xdg-desktop-portal.gresource.xml $(xdg_desktop_
 		--target=$@ --sourcedir=$(srcdir) --c-name _xdg_desktop --generate-source
 
 EXTRA_DIST += src/xdg-desktop-portal.gresource.xml
+
+DISTCLEANFILES += \
+	$(xdp_dbus_built_sources)		\
+	$(xdp_impl_dbus_built_sources)		\
+	$(NULL)
 
 nodist_xdg_desktop_portal_SOURCES = \
 	$(xdp_dbus_built_sources)		\

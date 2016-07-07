@@ -1,5 +1,5 @@
 introspectiondir = $(datadir)/dbus-1/interfaces
-introspection_DATA = \
+dist_introspection_DATA = \
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
