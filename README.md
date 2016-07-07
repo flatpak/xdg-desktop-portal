@@ -10,6 +10,18 @@ path (/org/freedesktop/portal/desktop).
 The portal interfaces include APIs for file access, opening URIs, printing
 and others.
 
-
-Documentation for the D-Bus interfaces can be found
+Documentation for the available D-Bus interfaces can be found
 [here](http://flatpak.org/xdg-desktop-portal/portal-docs.html).
+
+## Building xdg-desktop-portal
+
+xdg-desktop-portal depends on GLib and Flatpak.
+To build the documentation, you will need xmlto and the docbook stylesheets.
+
+## Using portals
+
+Flatpak grants sandboxed applications _talk_ access to names in the
+org.freedesktop.portal.\* prefix. One possible way to use the portal APIs
+is thus just to make D-Bus calls. For many of the portals, toolkits (e.g.
+GTK+) are expected to support portals transparently if you use suitable
+high-level APIs.
