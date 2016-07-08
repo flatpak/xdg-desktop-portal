@@ -45,7 +45,10 @@ PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0])
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 
-AC_SUBST([FLATPAK_INTERFACES_DIR], [`$PKG_CONFIG --variable=interfaces_dir flatpak`])
+PKG_CHECK_EXISTS([flatpak],
+                 [AC_SUBST([FLATPAK_INTERFACES_DIR],
+                           [`$PKG_CONFIG --variable=interfaces_dir flatpak`])],
+                 [AC_MSG_ERROR([flatpak.pc is required])])
 
 AC_ARG_ENABLE(docbook-docs,
         [AS_HELP_STRING([--enable-docbook-docs],[build documentation (requires xmlto)])],
