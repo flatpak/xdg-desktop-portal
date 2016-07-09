@@ -17,6 +17,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Notification.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Access.xml	\
 	$(NULL)
 
 xml_files = 								\
@@ -36,6 +37,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.Screenshot.xml 		\
 	portal-org.freedesktop.impl.portal.Notification.xml 		\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
+	portal-org.freedesktop.impl.portal.Access.xml	 		\
 	$(NULL)
 
 EXTRA_DIST = \

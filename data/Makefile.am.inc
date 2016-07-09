@@ -16,4 +16,5 @@ dist_introspection_DATA = \
 	data/org.freedesktop.impl.portal.Screenshot.xml \
 	data/org.freedesktop.impl.portal.Notification.xml \
 	data/org.freedesktop.impl.portal.Inhibit.xml \
+	data/org.freedesktop.impl.portal.Access.xml \
 	$(NULL)
