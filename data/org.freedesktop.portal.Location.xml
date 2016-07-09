@@ -1,0 +1,168 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2018 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Location:
+      @short_description: Portal for obtaining information about the location
+
+      This simple interface lets sandboxed applications query basic
+      information about the location.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.Location">
+    <!--
+        CreateSession:
+        @options: Vardict with optional further information
+        @handle: Object path for the created #org.freedesktop.portal.Session object
+
+        Create a location session. A successfully created session can at
+        any time be closed using org.freedesktop.portal.Session::Close, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via org.freedesktop.portal.Session::Closed.
+`
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>session_handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the session handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Session documentation for
+              more information about the session handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>distance-threshold u</term>
+            <listitem><para>
+              Distance threshold in meters. Default is 0.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>time-threshold u</term>
+            <listitem><para>
+              Time threshold in seconds. Default is 0.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>accuracy u</term>
+            <listitem><para>
+              Requested accuracy. Default is EXACT.
+              Values: NONE 0, COUNTRY 1, CITY 2, NEIGHBORHOOD 3, STREET 4, EXACT 5
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="CreateSession">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        Start:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Start the location session.
+        An application can only attempt start a session once.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="Start">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        LocationUpdated:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @location: Vardict with the current location data
+
+        The LocationUpdated signal is emitted when the location has changed, as well
+        as when the initial location has been determined.
+
+        The following results may get returned via the @location:
+        <variablelist>
+          <varlistentry>
+            <term>latitude d</term>
+            <listitem><para>
+              The latitude, in degrees.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>longitude d</term>
+            <listitem><para>
+              The longitude, in degrees.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>altitude d</term>
+            <listitem><para>
+              The altitude, in meters.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>accuracy d</term>
+            <listitem><para>
+              The accuracy, in meters.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>speed d</term>
+            <listitem><para>
+              The speed, in meters per second.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>heading d</term>
+            <listitem><para>
+              The heading, in degrees, going clockwise. North 0, East 90, South 180, West 270.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>timestamp (tt)</term>
+            <listitem><para>
+              The timestamp, as seconds and microsections since the Unix epoch.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+      -->
+    <signal name="LocationUpdated">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="location" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

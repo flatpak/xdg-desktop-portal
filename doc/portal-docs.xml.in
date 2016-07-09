@@ -98,6 +98,7 @@
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Email.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Location.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ScreenCast.xml"/>
     <xi:include href="portal-org.freedesktop.portal.RemoteDesktop.xml"/>

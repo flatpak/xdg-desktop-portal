@@ -1,0 +1,122 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+
+<!--
+    GeoClue 2.0 Interface Specification
+
+    Copyright 2013 Red Hat, Inc.
+-->
+
+<node>
+
+  <!--
+      org.freedesktop.GeoClue2.Client:
+      @short_description: The Application-specific client API
+
+      This is the interface you use to retrieve location information and receive
+      location update signals from GeoClue service. You get the client object to
+      use this interface on from org.freedesktop.GeoClue2.Manager.GetClient()
+      method.
+  -->
+  <interface name="org.freedesktop.GeoClue2.Client">
+    <!--
+        Location:
+
+        Current location as path to a #org.freedesktop.GeoClue2.Location object.
+        Please note that this property will be set to "/" (D-Bus equivalent of
+        null) initially, until Geoclue finds user's location. You want to delay
+        reading this property until your callback to
+        #org.freedesktop.GeoClue2.Client::LocationUpdated signal is called for
+        the first time after starting the client.
+    -->
+    <property name="Location" type="o" access="read"/>
+
+    <!--
+        DistanceThreshold:
+
+        Contains the current distance threshold in meters. This value is used
+        by the service when it gets new location info. If the distance moved is
+        below the threshold, it won't emit the LocationUpdated signal.
+        The default value is 0. When TimeThreshold is zero, it always emits
+        the signal.
+    -->
+    <property name="DistanceThreshold" type="u" access="readwrite">
+        <annotation name="org.freedesktop.Accounts.DefaultValue" value="0"/>
+    </property>
+
+    <!--
+        TimeThreshold:
+
+        Contains the current time threshold in seconds. This value is used
+        by the service when it gets new location info. If the time since the
+        last update is below the threshold, it won't emit the LocationUpdated
+        signal. The default value is 0. When TimeThreshold is zero, it always
+        emits the signal.
+    -->
+    <property name="TimeThreshold" type="u" access="readwrite">
+        <annotation name="org.freedesktop.Accounts.DefaultValue" value="0"/>
+    </property>
+
+    <!--
+        DesktopId:
+
+        The desktop file id (the basename of the desktop file). This property
+        must be set by applications for authorization to work.
+    -->
+    <property name="DesktopId" type="s" access="readwrite"/>
+
+    <!--
+        RequestedAccuracyLevel:
+
+        The level of accuracy requested by client, as
+        <link linkend="GClueAccuracyLevel">GClueAccuracyLevel</link>.
+
+        Please keep in mind that the actual accuracy of location information is
+        dependent on available hardware on your machine, external resources
+        and/or how much accuracy user agrees to be confortable with.
+    -->
+    <property name="RequestedAccuracyLevel" type="u" access="readwrite"/>
+
+    <!--
+        Active:
+
+        If client is active, i-e started successfully using
+        org.freedesktop.GeoClue2.Client.Start() and receiving location updates.
+
+        Please keep in mind that geoclue can at any time stop and start the
+        client on user (agent) request. Applications that are interested in
+        in these changes, should watch for changes in this property.
+    -->
+    <property name="Active" type="b" access="read"/>
+
+    <!--
+        Start:
+
+        Start receiving events about the current location. Applications should
+        hook-up to #org.freedesktop.GeoClue2.Client::LocationUpdated signal
+        before calling this method.
+    -->
+    <method name="Start"/>
+
+    <!--
+        Stop:
+
+        Stop receiving events about the current location.
+    -->
+    <method name="Stop"/>
+
+    <!--
+        LocationUpdated:
+        @old: old location as path to a #org.freedesktop.GeoClue2.Location object
+        @new: new location as path to a #org.freedesktop.GeoClue2.Location object
+
+        The signal is emitted every time the location changes.
+        The client should set the DistanceThreshold property to control how
+        often this signal is emitted.
+    -->
+    <signal name="LocationUpdated">
+      <arg name="old" type="o"/>
+      <arg name="new" type="o"/>
+    </signal>
+  </interface>
+</node>

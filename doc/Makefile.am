@@ -20,6 +20,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Notification.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.Inhibit.xml	 	\
 	$(top_srcdir)/data/org.freedesktop.portal.Device.xml	 	\
+	$(top_srcdir)/data/org.freedesktop.portal.Location.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Session.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
@@ -54,6 +55,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Inhibit.xml			\
 	portal-org.freedesktop.portal.Documents.xml			\
 	portal-org.freedesktop.portal.Device.xml			\
+	portal-org.freedesktop.portal.Location.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
 	portal-org.freedesktop.impl.portal.Session.xml 			\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\
