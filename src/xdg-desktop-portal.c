@@ -336,8 +336,6 @@ on_name_acquired (GDBusConnection *connection,
                   gpointer         user_data)
 {
   g_debug ("%s acquired", name);
-
-
 }
 
 static void
