@@ -116,3 +116,7 @@ xdg_desktop_portal_CFLAGS = \
 	-DPKGDATADIR=\"$(pkgdatadir)\" $(BASE_CFLAGS) \
 	-I$(srcdir)/src -I$(builddir)/src \
 	$(NULL)
+xdg_desktop_portal_CPPFLAGS = \
+	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\"        \
+	-DLOCALEDIR=\"$(localedir)\"			\
+	$(NULL)

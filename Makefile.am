@@ -9,7 +9,7 @@ DISTCLEANFILES= $(NULL)
 BUILT_SOURCES = $(NULL)
 EXTRA_DIST =
 
-SUBDIRS = doc
+SUBDIRS = doc po
 
 %.service: %.service.in config.log
 	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(libexecdir)|" -e "s|\@extraargs\@||" $< > $@

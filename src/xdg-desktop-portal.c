@@ -25,6 +25,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <glib/gi18n.h>
+
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "request.h"
@@ -355,6 +357,9 @@ main (int argc, char *argv[])
   GOptionContext *context;
 
   setlocale (LC_ALL, "");
+  bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
+  bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+  textdomain (GETTEXT_PACKAGE);
 
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
