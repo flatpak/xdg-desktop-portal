@@ -36,7 +36,6 @@
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Notification.xml"/>
-    <xi:include href="portal-org.freedesktop.portal.Geolocation.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Inhibit.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
