@@ -293,13 +293,31 @@ handle_open_in_thread_func (GTask *task,
     }
   else
     {
+      g_autoptr(GError) error = NULL;
       g_autoptr(GFile) file = g_file_new_for_uri (uri);
       g_autoptr(GFileInfo) info = g_file_query_info (file,
                                                      G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
                                                      0,
                                                      NULL,
-                                                     NULL);
-      content_type = g_strdup (g_file_info_get_content_type (info));
+                                                     &error);
+
+      if (info != NULL)
+        {
+          content_type = g_strdup (g_file_info_get_content_type (info));
+        }
+      else
+        {
+          g_debug ("failed to fetch content type for uri %s: %s", uri, error->message);
+
+          /* Reject the request */
+          if (request->exported)
+            {
+              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+              xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
+              request_unexport (request);
+            }
+          return;
+        }
     }
 
   infos = g_app_info_get_recommended_for_type (content_type);
