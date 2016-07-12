@@ -70,6 +70,6 @@ doc_DATA = 			\
 	$(NULL)
 
 portal-docs.html: portal-docs.xml $(xml_files) xmlto-config.xsl
-	$(AM_V_GEN) $(XMLTO) xhtml-nochunks -m $(srcdir)/xmlto-config.xsl $<
+	$(AM_V_GEN) $(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks -m $(srcdir)/xmlto-config.xsl $<
 
 endif # DOCBOOK_DOCS_ENABLED
