@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Portal Documentation</title><link rel="stylesheet" type="text/css" href="docbook.css" /><meta name="generator" content="DocBook XSL Stylesheets V1.78.1" /></head><body><div class="book"><div class="titlepage"><div><div><h1 class="title"><a id="idm139697472741824"></a>Portal Documentation</h1></div><div><p class="releaseinfo">Version 0.0.1
-</p></div></div><hr /></div><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="reference"><a href="#idm139697472738672">I. Portal API Reference</a></span></dt><dd><dl><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Request">org.freedesktop.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.FileChooser">org.freedesktop.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.OpenURI">org.freedesktop.portal.OpenURI</a></span><span class="refpurpose"> — Portal for opening URIs</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Print">org.freedesktop.portal.Print</a></span><span class="refpurpose"> — Portal for printing</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Screenshot">org.freedesktop.portal.Screenshot</a></span><span class="refpurpose"> — Portal for taking screenshots</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Notification">org.freedesktop.portal.Notification</a></span><span class="refpurpose"> — Portal for sending notifications</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Inhibit">org.freedesktop.portal.Inhibit</a></span><span class="refpurpose"> — Portal for inhibiting session transitions</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.NetworkMonitor">org.freedesktop.portal.NetworkMonitor</a></span><span class="refpurpose"> — Network monitoring portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.ProxyResolver">org.freedesktop.portal.ProxyResolver</a></span><span class="refpurpose"> — Proxy information</span></dt></dl></dd><dt><span class="reference"><a href="#idm139697470627424">II. Portal Backend API Reference</a></span></dt><dd><dl><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Request">org.freedesktop.impl.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.FileChooser">org.freedesktop.impl.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.AppChooser">org.freedesktop.impl.portal.AppChooser</a></span><span class="refpurpose"> — Interface for choosing an application</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Print">org.freedesktop.impl.portal.Print</a></span><span class="refpurpose"> — Print portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Screenshot">org.freedesktop.impl.portal.Screenshot</a></span><span class="refpurpose"> — Screenshot portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Notification">org.freedesktop.impl.portal.Notification</a></span><span class="refpurpose"> — Notification portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Inhibit">org.freedesktop.impl.portal.Inhibit</a></span><span class="refpurpose"> — Inhibit portal backend interface</span></dt></dl></dd></dl></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm139697472738672"></a>Portal API Reference</h1></div></div><hr /></div><div class="partintro"><div></div><p>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Portal Documentation</title><link rel="stylesheet" type="text/css" href="docbook.css" /><meta name="generator" content="DocBook XSL Stylesheets V1.78.1" /></head><body><div class="book"><div class="titlepage"><div><div><h1 class="title"><a id="idm140258862293840"></a>Portal Documentation</h1></div><div><p class="releaseinfo">Version 0.1</p></div></div><hr /></div><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="reference"><a href="#idm140258862289904">I. Portal API Reference</a></span></dt><dd><dl><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Request">org.freedesktop.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.FileChooser">org.freedesktop.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.OpenURI">org.freedesktop.portal.OpenURI</a></span><span class="refpurpose"> — Portal for opening URIs</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Print">org.freedesktop.portal.Print</a></span><span class="refpurpose"> — Portal for printing</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Screenshot">org.freedesktop.portal.Screenshot</a></span><span class="refpurpose"> — Portal for taking screenshots</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Notification">org.freedesktop.portal.Notification</a></span><span class="refpurpose"> — Portal for sending notifications</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Inhibit">org.freedesktop.portal.Inhibit</a></span><span class="refpurpose"> — Portal for inhibiting session transitions</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.NetworkMonitor">org.freedesktop.portal.NetworkMonitor</a></span><span class="refpurpose"> — Network monitoring portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.ProxyResolver">org.freedesktop.portal.ProxyResolver</a></span><span class="refpurpose"> — Proxy information</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Documents">org.freedesktop.portal.Documents</a></span><span class="refpurpose"> — Document portal</span></dt></dl></dd><dt><span class="reference"><a href="#idm140258860052032">II. Portal Backend API Reference</a></span></dt><dd><dl><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Request">org.freedesktop.impl.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.FileChooser">org.freedesktop.impl.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.AppChooser">org.freedesktop.impl.portal.AppChooser</a></span><span class="refpurpose"> — Interface for choosing an application</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Print">org.freedesktop.impl.portal.Print</a></span><span class="refpurpose"> — Print portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Screenshot">org.freedesktop.impl.portal.Screenshot</a></span><span class="refpurpose"> — Screenshot portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Notification">org.freedesktop.impl.portal.Notification</a></span><span class="refpurpose"> — Notification portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Inhibit">org.freedesktop.impl.portal.Inhibit</a></span><span class="refpurpose"> — Inhibit portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Access">org.freedesktop.impl.portal.Access</a></span><span class="refpurpose"> — Interface for presenting an access dialog</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.PermissionStore">org.freedesktop.impl.portal.PermissionStore</a></span><span class="refpurpose"> — Database to store permissions</span></dt></dl></dd></dl></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm140258862289904"></a>Portal API Reference</h1></div></div><hr /></div><div class="partintro"><div></div><p>
       Portal interfaces are available to sandboxed applications with the
       default filtered session bus access of Flatpak. They appear under
       the bus name org.freedesktop.portal.Desktop and the object path
@@ -15,9 +14,9 @@
       as the user interaction lasts. When the user interaction is over,
       the portal sends a Response signal back to the application with
       the results from the interaction, if any.
-    </p><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Request">org.freedesktop.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.FileChooser">org.freedesktop.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.OpenURI">org.freedesktop.portal.OpenURI</a></span><span class="refpurpose"> — Portal for opening URIs</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Print">org.freedesktop.portal.Print</a></span><span class="refpurpose"> — Portal for printing</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Screenshot">org.freedesktop.portal.Screenshot</a></span><span class="refpurpose"> — Portal for taking screenshots</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Notification">org.freedesktop.portal.Notification</a></span><span class="refpurpose"> — Portal for sending notifications</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Inhibit">org.freedesktop.portal.Inhibit</a></span><span class="refpurpose"> — Portal for inhibiting session transitions</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.NetworkMonitor">org.freedesktop.portal.NetworkMonitor</a></span><span class="refpurpose"> — Network monitoring portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.ProxyResolver">org.freedesktop.portal.ProxyResolver</a></span><span class="refpurpose"> — Proxy information</span></dt></dl></div></div><div class="refentry"><a id="gdbus-org.freedesktop.portal.Request"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.Request — Shared request interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+    </p><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Request">org.freedesktop.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.FileChooser">org.freedesktop.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.OpenURI">org.freedesktop.portal.OpenURI</a></span><span class="refpurpose"> — Portal for opening URIs</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Print">org.freedesktop.portal.Print</a></span><span class="refpurpose"> — Portal for printing</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Screenshot">org.freedesktop.portal.Screenshot</a></span><span class="refpurpose"> — Portal for taking screenshots</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Notification">org.freedesktop.portal.Notification</a></span><span class="refpurpose"> — Portal for sending notifications</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Inhibit">org.freedesktop.portal.Inhibit</a></span><span class="refpurpose"> — Portal for inhibiting session transitions</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.NetworkMonitor">org.freedesktop.portal.NetworkMonitor</a></span><span class="refpurpose"> — Network monitoring portal</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.ProxyResolver">org.freedesktop.portal.ProxyResolver</a></span><span class="refpurpose"> — Proxy information</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.portal.Documents">org.freedesktop.portal.Documents</a></span><span class="refpurpose"> — Document portal</span></dt></dl></div></div><div class="refentry"><a id="gdbus-org.freedesktop.portal.Request"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.Request — Shared request interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
 <a class="link" href="#gdbus-method-org-freedesktop-portal-Request.Close" title="The Close() method">Close</a> ();
-</pre></div><div class="refsect1"><a id="idm139697472972384"></a><h2>Signals</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm140258855029584"></a><h2>Signals</h2><pre class="synopsis">
 <a class="link" href="#gdbus-signal-org-freedesktop-portal-Request.Response" title="The &quot;Response&quot; signal">Response</a> (u     response,
           a{sv} results);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-portal-Request"></a><h2>Description</h2><p>      The Request interface is shared by all portal interfaces. When a
@@ -29,12 +28,12 @@
       Request object.
 </p><p>      The application can abort the interaction calling
       <a class="link" href="#gdbus-method-org-freedesktop-portal-Request.Close" title="The Close() method">Close()</a> on the Request object.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Request"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Request.Close"></a><h3>The Close() method</h3><a id="idm139697465216384" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Request"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Request.Close"></a><h3>The Close() method</h3><a id="idm140258855019584" class="indexterm"></a><pre class="programlisting">
 Close ();
 </pre><p>        Closes the portal request to which this object refers and ends all
         related user interaction (dialogs, etc).
         A Response signal will not be emitted in this case.
-</p></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.portal.Request"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-portal-Request.Response"></a><h3>The "Response" signal</h3><a id="idm139697465210560" class="indexterm"></a><pre class="programlisting">
+</p></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.portal.Request"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-portal-Request.Response"></a><h3>The "Response" signal</h3><a id="idm140258855013760" class="indexterm"></a><pre class="programlisting">
 Response (u     response,
           a{sv} results);
 </pre><p>        Emitted when the user interaction for a portal request is over.
@@ -55,7 +54,7 @@ Response (u     response,
 </p><p>      The selected files will be made accessible to the application
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.FileChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileChooser.OpenFile"></a><h3>The OpenFile() method</h3><a id="idm139697463685728" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.FileChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileChooser.OpenFile"></a><h3>The OpenFile() method</h3><a id="idm140258853513296" class="indexterm"></a><pre class="programlisting">
 OpenFile (IN  s     parent_window,
           IN  s     title,
           IN  a{sv} options,
@@ -66,6 +65,8 @@ OpenFile (IN  s     parent_window,
 </p><p>      Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
       </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">accept_label s</span></dt><dd><p>
             Label for the accept button. Mnemonic underlines are allowed.
+          </p></dd><dt><span class="term">modal b</span></dt><dd><p>
+            Whether the dialog should be modal. Default is yes.
           </p></dd><dt><span class="term">multiple b</span></dt><dd><p>
             Whether multiple files can be selected or not. Default is single-selection.
           </p></dd><dt><span class="term">filters a(sa(us))</span></dt><dd><p>
@@ -103,7 +104,7 @@ OpenFile (IN  s     parent_window,
             </p><p>
               Example: [('encoding', 'utf8'), ('reencode', 'true')]
             </p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the file chooser dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileChooser.SaveFile"></a><h3>The SaveFile() method</h3><a id="idm139697464078624" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the file chooser dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileChooser.SaveFile"></a><h3>The SaveFile() method</h3><a id="idm140258853945344" class="indexterm"></a><pre class="programlisting">
 SaveFile (IN  s     parent_window,
           IN  s     title,
           IN  a{sv} options,
@@ -114,6 +115,8 @@ SaveFile (IN  s     parent_window,
 </p><p>      Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
       </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">accept_label s</span></dt><dd><p>
             Label for the accept button. Mnemonic underlines are allowed.
+          </p></dd><dt><span class="term">modal b</span></dt><dd><p>
+            Whether the dialog should be modal. Default is yes.
           </p></dd><dt><span class="term">filters a(sa(us))</span></dt><dd><p>
             List of serialized file filters.
             See <a class="link" href="#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile" title="The OpenFile() method">OpenFile()</a> for details.
@@ -136,7 +139,7 @@ SaveFile (IN  s     parent_window,
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-portal-OpenURI"></a><h2>Description</h2><p>       The OpenURI portal allows sandboxed applications to open
        URIs (e.g. a http: link to the applications homepage)
        under the control of the user.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.OpenURI"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-OpenURI.OpenURI"></a><h3>The OpenURI() method</h3><a id="idm139697464884032" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.OpenURI"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-OpenURI.OpenURI"></a><h3>The OpenURI() method</h3><a id="idm140258853206176" class="indexterm"></a><pre class="programlisting">
 OpenURI (IN  s     parent_window,
          IN  s     uri,
          IN  a{sv} options,
@@ -159,11 +162,11 @@ OpenURI (IN  s     parent_window,
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-portal-Print"></a><h2>Description</h2><p>      The Print portal allows sandboxed applications to print.
 </p><p>      Due to the way in which printing requires bi-directional communication
       using this portal will often require applications to make multiple requests:
-      First use #org.freesktop.portal.Print.PreparePrint() to obtain print settings,
-      use them to format your output, then use #<a class="link" href="#gdbus-method-org-freedesktop-portal-Print.Print" title="The Print() method">Print()</a>
+      First use <a class="link" href="#gdbus-method-org-freedesktop-portal-Print.PreparePrint" title="The PreparePrint() method">PreparePrint()</a> to obtain print settings,
+      use them to format your output, then use <a class="link" href="#gdbus-method-org-freedesktop-portal-Print.Print" title="The Print() method">Print()</a>
       to print the formatted document. It is expected that high-level toolkit
       APIS such as GtkPrintOperation will hide most of this complexity.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Print"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Print.Print"></a><h3>The Print() method</h3><a id="idm139697464528560" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Print"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Print.Print"></a><h3>The Print() method</h3><a id="idm140258853463088" class="indexterm"></a><pre class="programlisting">
 Print (IN  s     parent_window,
        IN  s     title,
        IN  h     fd,
@@ -181,10 +184,12 @@ Print (IN  s     parent_window,
 </p><p>        Note that it is up to the portal implementation to determine how long
         it considers tokens valid.
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict:
-        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">token u</span></dt><dd><p>
-              Token that was returned by a previous #org.freedesktop.portal.PreparePrint() call.
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Defaults to yes.
+            </p></dd><dt><span class="term">token u</span></dt><dd><p>
+              Token that was returned by a previous <a class="link" href="#gdbus-method-org-freedesktop-portal-Print.PreparePrint" title="The PreparePrint() method">PreparePrint()</a> call.
             </p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>File descriptor for reading the content to print</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Print.PreparePrint"></a><h3>The PreparePrint() method</h3><a id="idm139697464601568" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>File descriptor for reading the content to print</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Print.PreparePrint"></a><h3>The PreparePrint() method</h3><a id="idm140258854596880" class="indexterm"></a><pre class="programlisting">
 PreparePrint (IN  s     parent_window,
               IN  s     title,
               IN  a{sv} settings,
@@ -195,13 +200,17 @@ PreparePrint (IN  s     parent_window,
         and page setup.
 </p><p>        The <em class="parameter"><code>parent_window</code></em> identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+</p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Defaults to yes.
+            </p></dd></dl></div><p>
 </p><p>        The following results get returned via the <a class="link" href="#gdbus-signal-org-freedesktop-portal-Request.Response" title="The &quot;Response&quot; signal">"Response"</a> signal:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">settings a{sv}</span></dt><dd><p>
               Print settings as set up by the user in the print dialog.
             </p></dd><dt><span class="term">page-setup a{sv}</span></dt><dd><p>
               Page setup as set up by the user in the print dialog.
             </p></dd><dt><span class="term">token u</span></dt><dd><p>
-              Token that can be passed to a subsequent <a class="link" href="#gdbus-interface-org-freedesktop-portal-Print.top_of_page">org.freedesktop.portal.Print</a>() call to
+              Token that can be passed to a subsequent <a class="link" href="#gdbus-method-org-freedesktop-portal-Print.Print" title="The Print() method">Print()</a> call to
               bypass the print dialog.
             </p></dd></dl></div><p>
 </p><p>       The following keys are supported in the print settings vardict:
@@ -290,13 +299,17 @@ PreparePrint (IN  s     parent_window,
 </p><p>      The screenshot will be made accessible to the application
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm139697463254368" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm140258852673248" class="indexterm"></a><pre class="programlisting">
 Screenshot (IN  s     parent_window,
             IN  a{sv} options,
             OUT o     handle);
 </pre><p>        Takes a screenshot.
 </p><p>        The <em class="parameter"><code>parent_window</code></em> identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+</p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether the dialog should be modal. Default is yes.
+            </p></dd></dl></div><p>
 </p><p>        The following results get returned via the <a class="link" href="#gdbus-signal-org-freedesktop-portal-Request.Response" title="The &quot;Response&quot; signal">"Response"</a> signal:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">uri s</span></dt><dd><p>String containing the uri of the screenshot.</p></dd></dl></div><p>
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.portal.Notification"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.Notification — Portal for sending notifications</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
@@ -311,7 +324,7 @@ Screenshot (IN  s     parent_window,
       are expected to outlast the running application. If a user clicks
       on a notification after the application has exited, it will get
       activated again.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Notification"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Notification.AddNotification"></a><h3>The AddNotification() method</h3><a id="idm139697464354416" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Notification"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Notification.AddNotification"></a><h3>The AddNotification() method</h3><a id="idm140258852949440" class="indexterm"></a><pre class="programlisting">
 AddNotification (IN  s     id,
                  IN  a{sv} notification);
 </pre><p>        Sends a notification.
@@ -346,7 +359,7 @@ AddNotification (IN  s     id,
             </p></dd><dt><span class="term">target v</span></dt><dd><p>
               Target parameter to send along when activating the action.
             </p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>Application-provided ID for this notification</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>notification</code></em></code>:</span></dt><dd><p>Vardict with the serialized notification</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Notification.RemoveNotification"></a><h3>The RemoveNotification() method</h3><a id="idm139697472958736" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>Application-provided ID for this notification</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>notification</code></em></code>:</span></dt><dd><p>Vardict with the serialized notification</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Notification.RemoveNotification"></a><h3>The RemoveNotification() method</h3><a id="idm140258854520624" class="indexterm"></a><pre class="programlisting">
 RemoveNotification (IN  s id);
 </pre><p>        Withdraws a notification.
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>Application-provided ID for this notification</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.portal.Inhibit"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.Inhibit — Portal for inhibiting session transitions</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
@@ -356,7 +369,7 @@ RemoveNotification (IN  s id);
          OUT o     handle);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-portal-Inhibit"></a><h2>Description</h2><p>      This simple interface lets sandboxed applications inhibit the user
       session from ending, suspending, idling or getting switched away.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Inhibit"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Inhibit.Inhibit"></a><h3>The Inhibit() method</h3><a id="idm139697465153872" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Inhibit"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Inhibit.Inhibit"></a><h3>The Inhibit() method</h3><a id="idm140258854066576" class="indexterm"></a><pre class="programlisting">
 Inhibit (IN  s     window,
          IN  u     flags,
          IN  a{sv} options,
@@ -368,9 +381,9 @@ Inhibit (IN  s     window,
         </p><table border="0" summary="Simple list" class="simplelist"><tr><td>1: Logout</td></tr><tr><td>2: User Switch</td></tr><tr><td>4: Suspend</td></tr><tr><td>8: Idle</td></tr></table><p>
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">reason s</span></dt><dd><p>User-visible reason for the inhibition.</p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>window</code></em></code>:</span></dt><dd><p>Identifier for the window</p></dd><dt><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></dt><dd><p>Flags identifying what is inhibited</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.portal.NetworkMonitor"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.NetworkMonitor — Network monitoring portal</p></div><div class="refsect1"><a id="idm139697465520000"></a><h2>Signals</h2><pre class="synopsis">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>window</code></em></code>:</span></dt><dd><p>Identifier for the window</p></dd><dt><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></dt><dd><p>Flags identifying what is inhibited</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.portal.NetworkMonitor"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.NetworkMonitor — Network monitoring portal</p></div><div class="refsect1"><a id="idm140258855645184"></a><h2>Signals</h2><pre class="synopsis">
 <a class="link" href="#gdbus-signal-org-freedesktop-portal-NetworkMonitor.changed" title="The &quot;changed&quot; signal">changed</a> (b available);
-</pre></div><div class="refsect1"><a id="idm139697464625440"></a><h2>Properties</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm140258855348624"></a><h2>Properties</h2><pre class="synopsis">
 <a class="link" href="#gdbus-property-org-freedesktop-portal-NetworkMonitor.available" title="The &quot;available&quot; property">available</a>     readable   b
 <a class="link" href="#gdbus-property-org-freedesktop-portal-NetworkMonitor.metered" title="The &quot;metered&quot; property">metered</a>       readable   b
 <a class="link" href="#gdbus-property-org-freedesktop-portal-NetworkMonitor.connectivity" title="The &quot;connectivity&quot; property">connectivity</a>  readable   u
@@ -379,20 +392,20 @@ Inhibit (IN  s     window,
       since it does not involve user interaction. Applications are
       expected to use this interface indirectly, via a library API
       such as the GLib GNetworkMonitor interface.
-</p></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.portal.NetworkMonitor"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-portal-NetworkMonitor.changed"></a><h3>The "changed" signal</h3><a id="idm139697466464272" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.portal.NetworkMonitor"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-portal-NetworkMonitor.changed"></a><h3>The "changed" signal</h3><a id="idm140258854741792" class="indexterm"></a><pre class="programlisting">
 changed (b available);
 </pre><p>        Emitted when the network configuration changes.
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">b <em class="parameter"><code>available</code></em></code>:</span></dt><dd><p>Whether network is currently available</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.portal.NetworkMonitor"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.available"></a><h3>The "available" property</h3><a id="idm139697466971280" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">b <em class="parameter"><code>available</code></em></code>:</span></dt><dd><p>Whether network is currently available</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.portal.NetworkMonitor"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.available"></a><h3>The "available" property</h3><a id="idm140258854034592" class="indexterm"></a><pre class="programlisting">
 available  readable   b
 </pre><p>        Whether the network is considereed available. That is,
         whether the system as a default route for at least one
         of IPv4 or IPv6.
-</p></div><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.metered"></a><h3>The "metered" property</h3><a id="idm139697463868736" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.metered"></a><h3>The "metered" property</h3><a id="idm140258854030336" class="indexterm"></a><pre class="programlisting">
 metered  readable   b
 </pre><p>        Whether the network is considered metered. That is, whether
         the system as traffic flowing through the default connection
         that is subject ot limitations by service providers.
-</p></div><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.connectivity"></a><h3>The "connectivity" property</h3><a id="idm139697463864432" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-NetworkMonitor.connectivity"></a><h3>The "connectivity" property</h3><a id="idm140258856978784" class="indexterm"></a><pre class="programlisting">
 connectivity  readable   u
 </pre><p>        More detailed information about the host's network
         connectivity. The meaning of the value is:
@@ -404,14 +417,112 @@ connectivity  readable   u
       applications. It is not a portal in the strict sense, since it does not involve
       user interaction. Applications are expected to use this interface indirectly,
       via a library API such as the GLib GProxyResolver interface.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.ProxyResolver"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-ProxyResolver.Lookup"></a><h3>The Lookup() method</h3><a id="idm139697467190576" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.ProxyResolver"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-ProxyResolver.Lookup"></a><h3>The Lookup() method</h3><a id="idm140258853788576" class="indexterm"></a><pre class="programlisting">
 Lookup (IN  s  uri,
         OUT as proxies);
 </pre><p>        Looks up which proxy to use to connect to <em class="parameter"><code>uri</code></em>. The returned
         proxy uri are of the form 'protocol://[user[:password]<em class="parameter"><code>host</code></em>:port'.
         The protocol can be http, rtsp, socks or another proxying protocol.
         'direct://' is used when no proxy is needed.
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>uri</code></em></code>:</span></dt><dd><p>Destination to connect to</p></dd><dt><span class="term"><code class="literal">OUT as <em class="parameter"><code>proxies</code></em></code>:</span></dt><dd><p>List of proxy uris</p></dd></dl></div></div></div></div></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm139697470627424"></a>Portal Backend API Reference</h1></div></div><hr /></div><div class="partintro"><div></div><p>
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>uri</code></em></code>:</span></dt><dd><p>Destination to connect to</p></dd><dt><span class="term"><code class="literal">OUT as <em class="parameter"><code>proxies</code></em></code>:</span></dt><dd><p>List of proxy uris</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.portal.Documents"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.portal.Documents — Document portal</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.GetMountPoint" title="The GetMountPoint() method">GetMountPoint</a>     (OUT ay     path);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.Add" title="The Add() method">Add</a>               (IN  h      o_path_fd,
+                   IN  b      reuse_existing,
+                   IN  b      persistent,
+                   OUT s      doc_id);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.AddNamed" title="The AddNamed() method">AddNamed</a>          (IN  h      o_path_parent_fd,
+                   IN  ay     filename,
+                   IN  b      reuse_existing,
+                   IN  b      persistent,
+                   OUT s      doc_id);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.GrantPermissions" title="The GrantPermissions() method">GrantPermissions</a>  (IN  s      doc_id,
+                   IN  s      app_id,
+                   IN  as     permissions);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.RevokePermissions" title="The RevokePermissions() method">RevokePermissions</a> (IN  s      doc_id,
+                   IN  s      app_id,
+                   IN  as     permissions);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.Delete" title="The Delete() method">Delete</a>            (IN  s      doc_id);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.Lookup" title="The Lookup() method">Lookup</a>            (IN  ay     filename,
+                   OUT s      doc_id);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.Info" title="The Info() method">Info</a>              (IN  s      doc_id,
+                   OUT ay     path,
+                   OUT a{sas} apps);
+<a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.List" title="The List() method">List</a>              (IN  s      app_id,
+                   OUT a{say} docs);
+</pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-portal-Documents"></a><h2>Description</h2><p>      The document portal allows to make files from the outside world
+      available to sandboxed applications in a controlled way.
+</p><p>      Exported files will be made accessible to the application via
+      a fuse filesystem that gets mounted at /run/user/$UID/doc/. The
+      filesystem gets mounted both outside and inside the sandbox, but
+      the view inside the sandbox is restricted to just those files
+      that the application is allowed to access.
+</p><p>      Individual files will appear at /run/user/$UID/doc/$DOC_ID/filename,
+      where $DOC_ID is the ID of the file in the document store. It is
+      returned by the <a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.Add" title="The Add() method">Add()</a> and
+      <a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.AddNamed" title="The AddNamed() method">AddNamed()</a> calls.
+</p><p>      The permissions that the application has for a document store entry
+      (see <a class="link" href="#gdbus-method-org-freedesktop-portal-Documents.GrantPermissions" title="The GrantPermissions() method">GrantPermissions()</a>) are reflected
+      in the POSIX mode bits in the fuse filesystem.
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.portal.Documents"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.GetMountPoint"></a><h3>The GetMountPoint() method</h3><a id="idm140258856219680" class="indexterm"></a><pre class="programlisting">
+GetMountPoint (OUT ay path);
+</pre><p>        Returns the path at which the document store fuse filesystem
+        is mounted. This will typically be /run/user/$UID/doc/.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">OUT ay <em class="parameter"><code>path</code></em></code>:</span></dt><dd><p>the path at which the fuse filesystem is mounted</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.Add"></a><h3>The Add() method</h3><a id="idm140258855448416" class="indexterm"></a><pre class="programlisting">
+Add (IN  h o_path_fd,
+     IN  b reuse_existing,
+     IN  b persistent,
+     OUT s doc_id);
+</pre><p>        Adds a file to the document store. The file is passed in the
+        form of an open file descriptor to prove that the caller has
+        access to the file.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>o_path_fd</code></em></code>:</span></dt><dd><p>open file descriptor for the file to add</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>reuse_existing</code></em></code>:</span></dt><dd><p>whether to reuse an existing document store entry for the file</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>persistent</code></em></code>:</span></dt><dd><p>whether to add the file only for this session or permanently</p></dd><dt><span class="term"><code class="literal">OUT s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.AddNamed"></a><h3>The AddNamed() method</h3><a id="idm140258852526640" class="indexterm"></a><pre class="programlisting">
+AddNamed (IN  h  o_path_parent_fd,
+          IN  ay filename,
+          IN  b  reuse_existing,
+          IN  b  persistent,
+          OUT s  doc_id);
+</pre><p>        Creates an entry in the document store for writing a new file.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>o_path_parent_fd</code></em></code>:</span></dt><dd><p>open file descriptor for the parent directory</p></dd><dt><span class="term"><code class="literal">IN ay <em class="parameter"><code>filename</code></em></code>:</span></dt><dd><p>the basename for the file</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>reuse_existing</code></em></code>:</span></dt><dd><p>whether to reuse an existing document store entry for the file</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>persistent</code></em></code>:</span></dt><dd><p>whether to add the file only for this session or permanently</p></dd><dt><span class="term"><code class="literal">OUT s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.GrantPermissions"></a><h3>The GrantPermissions() method</h3><a id="idm140258852238032" class="indexterm"></a><pre class="programlisting">
+GrantPermissions (IN  s  doc_id,
+                  IN  s  app_id,
+                  IN  as permissions);
+</pre><p>        Grants access permissions for a file in the document store
+        to an application.
+</p><p>        This call is available inside the sandbox if the application
+        has the 'grant-permissions' permission for the document.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>the ID of the application to which permissions are granted</p></dd><dt><span class="term"><code class="literal">IN as <em class="parameter"><code>permissions</code></em></code>:</span></dt><dd><p>the permissions to grant, possible values are 'read', 'write', 'grant-permissions' and 'delete'</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.RevokePermissions"></a><h3>The RevokePermissions() method</h3><a id="idm140258852224736" class="indexterm"></a><pre class="programlisting">
+RevokePermissions (IN  s  doc_id,
+                   IN  s  app_id,
+                   IN  as permissions);
+</pre><p>        Revokes access permissions for a file in the document store
+        from an application.
+</p><p>        This call is available inside the sandbox if the application
+        has the 'grant-permissions' permission for the document.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>the ID of the application to which permissions are granted</p></dd><dt><span class="term"><code class="literal">IN as <em class="parameter"><code>permissions</code></em></code>:</span></dt><dd><p>the permissions to grant, possible values are 'read', 'write', 'grant-permissions' and 'delete'</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.Delete"></a><h3>The Delete() method</h3><a id="idm140258852211696" class="indexterm"></a><pre class="programlisting">
+Delete (IN  s doc_id);
+</pre><p>        Removes an entry from the document store. The file itself is
+        not deleted.
+</p><p>        This call is available inside the sandbox if the application
+        has the 'delete' permission for the document.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.Lookup"></a><h3>The Lookup() method</h3><a id="idm140258852204000" class="indexterm"></a><pre class="programlisting">
+Lookup (IN  ay filename,
+        OUT s  doc_id);
+</pre><p>        Looks up the document ID for a file.
+</p><p>        This call is no not available inside the sandbox.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN ay <em class="parameter"><code>filename</code></em></code>:</span></dt><dd><p>a path in the host filesystem</p></dd><dt><span class="term"><code class="literal">OUT s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store, or '' if the file is not in the document store</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.Info"></a><h3>The Info() method</h3><a id="idm140258852193808" class="indexterm"></a><pre class="programlisting">
+Info (IN  s      doc_id,
+      OUT ay     path,
+      OUT a{sas} apps);
+</pre><p>        Gets the filesystem path and application permissions for a document store
+        entry.
+</p><p>        This call is not available inside the sandbox.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>doc_id</code></em></code>:</span></dt><dd><p>the ID of the file in the document store</p></dd><dt><span class="term"><code class="literal">OUT ay <em class="parameter"><code>path</code></em></code>:</span></dt><dd><p>the path for the file in the host filesystem</p></dd><dt><span class="term"><code class="literal">OUT a{sas} <em class="parameter"><code>apps</code></em></code>:</span></dt><dd><p>a dictionary mapping application IDs to the permissions for that application</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-Documents.List"></a><h3>The List() method</h3><a id="idm140258852181136" class="indexterm"></a><pre class="programlisting">
+List (IN  s      app_id,
+      OUT a{say} docs);
+</pre><p>        Lists documents in the document store for an application (or for
+        all applications).
+</p><p>        This call is not available inside the sandbox.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>an application ID, or '' to list all documents</p></dd><dt><span class="term"><code class="literal">OUT a{say} <em class="parameter"><code>docs</code></em></code>:</span></dt><dd><p>a dictonary mapping document IDs to their filesystem path</p></dd></dl></div></div></div></div></div><div class="reference"><div class="titlepage"><div><div><h1 class="title"><a id="idm140258860052032"></a>Portal Backend API Reference</h1></div></div><hr /></div><div class="partintro"><div></div><p>
       The backend interfaces are used by the portal frontend to
       carry out portal requests. They are provided by a separate process
       (or processes), and are not accessible to sandboxed applications.
@@ -425,7 +536,7 @@ Lookup (IN  s  uri,
       interacting with the containment infrastructure such as checking
       access, registering files in the document portal, etc., are handled
       by the portal frontend.
-    </p><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Request">org.freedesktop.impl.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.FileChooser">org.freedesktop.impl.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.AppChooser">org.freedesktop.impl.portal.AppChooser</a></span><span class="refpurpose"> — Interface for choosing an application</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Print">org.freedesktop.impl.portal.Print</a></span><span class="refpurpose"> — Print portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Screenshot">org.freedesktop.impl.portal.Screenshot</a></span><span class="refpurpose"> — Screenshot portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Notification">org.freedesktop.impl.portal.Notification</a></span><span class="refpurpose"> — Notification portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Inhibit">org.freedesktop.impl.portal.Inhibit</a></span><span class="refpurpose"> — Inhibit portal backend interface</span></dt></dl></div></div><div class="refentry"><a id="gdbus-org.freedesktop.impl.portal.Request"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Request — Shared request interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+    </p><div class="toc"><p><strong>Table of Contents</strong></p><dl class="toc"><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Request">org.freedesktop.impl.portal.Request</a></span><span class="refpurpose"> — Shared request interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.FileChooser">org.freedesktop.impl.portal.FileChooser</a></span><span class="refpurpose"> — File chooser portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.AppChooser">org.freedesktop.impl.portal.AppChooser</a></span><span class="refpurpose"> — Interface for choosing an application</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Print">org.freedesktop.impl.portal.Print</a></span><span class="refpurpose"> — Print portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Screenshot">org.freedesktop.impl.portal.Screenshot</a></span><span class="refpurpose"> — Screenshot portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Notification">org.freedesktop.impl.portal.Notification</a></span><span class="refpurpose"> — Notification portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Inhibit">org.freedesktop.impl.portal.Inhibit</a></span><span class="refpurpose"> — Inhibit portal backend interface</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.Access">org.freedesktop.impl.portal.Access</a></span><span class="refpurpose"> — Interface for presenting an access dialog</span></dt><dt><span class="refentrytitle"><a href="#gdbus-org.freedesktop.impl.portal.PermissionStore">org.freedesktop.impl.portal.PermissionStore</a></span><span class="refpurpose"> — Database to store permissions</span></dt></dl></div></div><div class="refentry"><a id="gdbus-org.freedesktop.impl.portal.Request"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Request — Shared request interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Request.Close" title="The Close() method">Close</a> ();
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Request"></a><h2>Description</h2><p>      The Request interface is shared by all portal backend interfaces.
       When a backend method is called, the backend exports a Request object
@@ -434,7 +545,7 @@ Lookup (IN  s  uri,
       the method call.
 </p><p>      The portal can abort the interaction calling
       <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Request.Close" title="The Close() method">Close()</a> on the Request object.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Request"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Request.Close"></a><h3>The Close() method</h3><a id="idm139697462797568" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Request"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Request.Close"></a><h3>The Close() method</h3><a id="idm140258854434512" class="indexterm"></a><pre class="programlisting">
 Close ();
 </pre><p>        Ends the user interaction to which this object refers.
         Dialogs and other UIs related to the request should be closed.
@@ -456,7 +567,7 @@ Close ();
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-FileChooser"></a><h2>Description</h2><p>      The FileChooser portal allows sandboxed applications to ask
       the user for access to files outside the sandbox. The portal
       backend will present the user with a file chooser dialog.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.FileChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-FileChooser.OpenFile"></a><h3>The OpenFile() method</h3><a id="idm139697464700528" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.FileChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-FileChooser.OpenFile"></a><h3>The OpenFile() method</h3><a id="idm140258856963456" class="indexterm"></a><pre class="programlisting">
 OpenFile (IN  o     handle,
           IN  s     app_id,
           IN  s     parent_window,
@@ -470,6 +581,8 @@ OpenFile (IN  o     handle,
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">accept_label s</span></dt><dd><p>
               The label for the accept button. Mnemonic underlines are allowed.
+            </p></dd><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Default is yes.
             </p></dd><dt><span class="term">multiple b</span></dt><dd><p>
               Whether to allow selection of multiple files. Default is no.
             </p></dd><dt><span class="term">filters a(sa(us))</span></dt><dd><p>
@@ -486,7 +599,7 @@ OpenFile (IN  o     handle,
               An array of pairs of strings, corresponding to the passed-in choices.
               See <a class="link" href="#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile" title="The OpenFile() method">OpenFile()</a> for details.
             </p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the file chooser dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-FileChooser.SaveFile"></a><h3>The SaveFile() method</h3><a id="idm139697464389904" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the file chooser dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-FileChooser.SaveFile"></a><h3>The SaveFile() method</h3><a id="idm140258853169712" class="indexterm"></a><pre class="programlisting">
 SaveFile (IN  o     handle,
           IN  s     app_id,
           IN  s     parent_window,
@@ -500,6 +613,10 @@ SaveFile (IN  o     handle,
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">accept_label s</span></dt><dd><p>
               The label for the accept button. Mnemonic underlines are allowed.
+            </p></dd><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Default is yes.
+            </p></dd><dt><span class="term">multiple b</span></dt><dd><p>
+              Whether to allow selection of multiple files. Default is no.
             </p></dd><dt><span class="term">filters a(sa(us))</span></dt><dd><p>
               A list of serialized file filters.
               See <a class="link" href="#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile" title="The OpenFile() method">OpenFile()</a> for details.
@@ -530,7 +647,7 @@ SaveFile (IN  o     handle,
                    OUT a{sv} results);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-AppChooser"></a><h2>Description</h2><p>      This backend can be used by portal implementations that
       need to choose an application from a list of applications.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.AppChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-AppChooser.ChooseApplication"></a><h3>The ChooseApplication() method</h3><a id="idm139697464408096" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.AppChooser"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-AppChooser.ChooseApplication"></a><h3>The ChooseApplication() method</h3><a id="idm140258852481200" class="indexterm"></a><pre class="programlisting">
 ChooseApplication (IN  o     handle,
                    IN  s     app_id,
                    IN  s     parent_window,
@@ -564,7 +681,7 @@ ChooseApplication (IN  o     handle,
               OUT u     response,
               OUT a{sv} results);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Print"></a><h2>Description</h2><p>      The Print portal allows sandboxed applications to print.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Print"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Print.Print"></a><h3>The Print() method</h3><a id="idm139697463280432" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Print"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Print.Print"></a><h3>The Print() method</h3><a id="idm140258854489792" class="indexterm"></a><pre class="programlisting">
 Print (IN  o     handle,
        IN  s     app_id,
        IN  s     parent_window,
@@ -583,10 +700,12 @@ Print (IN  o     handle,
 </p><p>        Note that it is up to the portal implementation to determine how long
         it considers tokens valid.
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict:
-        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">token u</span></dt><dd><p>
-              Token that was returned by a previous #org.freedesktop.impl.portal.PreparePrint() call.
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Defaults to yes.
+            </p></dd><dt><span class="term">token u</span></dt><dd><p>
+              Token that was returned by a previous <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Print.PreparePrint" title="The PreparePrint() method">PreparePrint()</a> call.
             </p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>File descriptor from which to read the content to print</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Print.PreparePrint"></a><h3>The PreparePrint() method</h3><a id="idm139697466570496" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>File descriptor from which to read the content to print</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Print.PreparePrint"></a><h3>The PreparePrint() method</h3><a id="idm140258856326128" class="indexterm"></a><pre class="programlisting">
 PreparePrint (IN  o     handle,
               IN  s     app_id,
               IN  s     parent_window,
@@ -598,18 +717,22 @@ PreparePrint (IN  o     handle,
               OUT a{sv} results);
 </pre><p>        Presents a print dialog to the user and returns print settings
         and page setup.
-</p><p>        The following results get returned via the <a class="link" href="#gdbus-signal-org-freedesktop-portal-Request.Response" title="The &quot;Response&quot; signal">"Response"</a> signal:
+</p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether to make the dialog modal. Defaults to yes.
+            </p></dd></dl></div><p>
+</p><p>        The following results get returned via the <em class="parameter"><code>results</code></em> vardict:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">settings a{sv}</span></dt><dd><p>
               Print settings as set up by the user in the print dialog.
             </p></dd><dt><span class="term">page-setup a{sv}</span></dt><dd><p>
               Page setup as set up by the user in the print dialog.
             </p></dd><dt><span class="term">token u</span></dt><dd><p>
-              Token that can be passed to a subsequent <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Print.top_of_page">org.freedesktop.impl.portal.Print</a>() call to
+              Token that can be passed to a subsequent <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Print.Print" title="The Print() method">Print()</a> call to
               bypass the print dialog.
             </p></dd></dl></div><p>
-</p><p>        The <a class="link" href="#gdbus-interface-org-freedesktop-portal-Print.top_of_page">org.freedesktop.portal.Print</a>() documentation has details about
+</p><p>        The <a class="link" href="#gdbus-method-org-freedesktop-portal-Print.Print" title="The Print() method">Print()</a> documentation has details about
         the supported keys in settings and page-setup.
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>settings</code></em></code>:</span></dt><dd><p>Serialized print settings</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>page_setup</code></em></code>:</span></dt><dd><p>Serialized page setup</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p></p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p></p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Screenshot"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Screenshot — Screenshot portal backend interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the print dialog</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>settings</code></em></code>:</span></dt><dd><p>Serialized print settings</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>page_setup</code></em></code>:</span></dt><dd><p>Serialized page setup</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p></p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p></p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Screenshot"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Screenshot — Screenshot portal backend interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Screenshot.Screenshot" title="The Screenshot() method">Screenshot</a> (IN  o     handle,
             IN  s     app_id,
             IN  s     parent_window,
@@ -617,7 +740,7 @@ PreparePrint (IN  o     handle,
             OUT u     response,
             OUT a{sv} results);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Screenshot"></a><h2>Description</h2><p>      This screenshot portal lets sandboxed applications request a screenshot.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm139697464190208" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm140258856029936" class="indexterm"></a><pre class="programlisting">
 Screenshot (IN  o     handle,
             IN  s     app_id,
             IN  s     parent_window,
@@ -627,6 +750,10 @@ Screenshot (IN  o     handle,
 </pre><p>        Takes a screenshot.
 </p><p>        The <em class="parameter"><code>parent_window</code></em> identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+</p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>
+              Whether the dialog should be modal. Defaults to yes.
+            </p></dd></dl></div><p>
 </p><p>        The following results get returned via the <em class="parameter"><code>results</code></em> vardict:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">uri s</span></dt><dd><p>A string containing the uri of the screenshot.</p></dd></dl></div><p>
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for te <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Notification"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Notification — Notification portal backend interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
@@ -637,7 +764,7 @@ Screenshot (IN  o     handle,
                     IN  s     id);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Notification"></a><h2>Description</h2><p>      This notification interface lets sandboxed applications
       send and withdraw notifications.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Notification"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Notification.AddNotification"></a><h3>The AddNotification() method</h3><a id="idm139697462397072" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Notification"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Notification.AddNotification"></a><h3>The AddNotification() method</h3><a id="idm140258856822944" class="indexterm"></a><pre class="programlisting">
 AddNotification (IN  s     app_id,
                  IN  s     id,
                  IN  a{sv} notification);
@@ -647,7 +774,7 @@ AddNotification (IN  s     app_id,
         the notification is replaced by the new one.
 </p><p>        The format of the <em class="parameter"><code>notification</code></em> is the same as for
         <a class="link" href="#gdbus-method-org-freedesktop-portal-Notification.AddNotification" title="The AddNotification() method">AddNotification()</a>.
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>Application-provided ID for this notification</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>notification</code></em></code>:</span></dt><dd><p>Vardict with the serialized notification</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Notification.RemoveNotification"></a><h3>The RemoveNotification() method</h3><a id="idm139697465102320" class="indexterm"></a><pre class="programlisting">
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>Application-provided ID for this notification</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>notification</code></em></code>:</span></dt><dd><p>Vardict with the serialized notification</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Notification.RemoveNotification"></a><h3>The RemoveNotification() method</h3><a id="idm140258853419280" class="indexterm"></a><pre class="programlisting">
 RemoveNotification (IN  s app_id,
                     IN  s id);
 </pre><p>        Withdraws a notification.
@@ -659,7 +786,7 @@ RemoveNotification (IN  s app_id,
          IN  a{sv} options);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Inhibit"></a><h2>Description</h2><p>      The inhibit portal lets sandboxed applications inhibit the user
       session from ending, suspending, idling or getting switched away.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Inhibit"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Inhibit.Inhibit"></a><h3>The Inhibit() method</h3><a id="idm139697462378624" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Inhibit"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Inhibit.Inhibit"></a><h3>The Inhibit() method</h3><a id="idm140258856118240" class="indexterm"></a><pre class="programlisting">
 Inhibit (IN  o     handle,
          IN  s     app_id,
          IN  s     window,
@@ -673,4 +800,123 @@ Inhibit (IN  o     handle,
         </p><table border="0" summary="Simple list" class="simplelist"><tr><td>1: Logout</td></tr><tr><td>2: User Switch</td></tr><tr><td>4: Suspend</td></tr><tr><td>8: Idle</td></tr></table><p>
 </p><p>        Supported keys in the <em class="parameter"><code>options</code></em> vardict include:
         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">reason s</span></dt><dd><p>User-visible reason for the inhibition.</p></dd></dl></div><p>
-</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>Application id</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>window</code></em></code>:</span></dt><dd><p>Identifier for the window</p></dd><dt><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></dt><dd><p>Flags identifying what is inhibited</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd></dl></div></div></div></div></div></div></body></html>
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-impl-portal-Request.top_of_page">org.freedesktop.impl.portal.Request</a> object representing this call</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>Application id</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>window</code></em></code>:</span></dt><dd><p>Identifier for the window</p></dd><dt><span class="term"><code class="literal">IN u <em class="parameter"><code>flags</code></em></code>:</span></dt><dd><p>Flags identifying what is inhibited</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Access"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Access — Interface for presenting an access dialog</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Access.AccessDialog" title="The AccessDialog() method">AccessDialog</a> (IN  o     handle,
+              IN  s     app_id,
+              IN  s     parent_window,
+              IN  s     title,
+              IN  s     subtitle,
+              IN  s     body,
+              IN  a{sv} options,
+              OUT u     response,
+              OUT a{sv} results);
+</pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Access"></a><h2>Description</h2><p>      This backend can be used by portal implementations that
+      need to ask a direct access question, such as "May xyz
+      use the microphone?"
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Access"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Access.AccessDialog"></a><h3>The AccessDialog() method</h3><a id="idm140258852558832" class="indexterm"></a><pre class="programlisting">
+AccessDialog (IN  o     handle,
+              IN  s     app_id,
+              IN  s     parent_window,
+              IN  s     title,
+              IN  s     subtitle,
+              IN  s     body,
+              IN  a{sv} options,
+              OUT u     response,
+              OUT a{sv} results);
+</pre><p>        Presents a "deny/grant" question to the user.
+</p><p>        Supported keys in the <em class="parameter"><code>options</code></em> include:
+        </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">modal b</span></dt><dd><p>Whether to make the dialog modal. Defaults to true.</p></dd><dt><span class="term">deny_label s</span></dt><dd><p>Label for the Deny button.</p></dd><dt><span class="term">grant_label s</span></dt><dd><p>Label for the Grant button.</p></dd><dt><span class="term">icon s</span></dt><dd><p>Icon name for an icon to show in the dialog. This should be a symbolic icon name.</p></dd><dt><span class="term">choices a(ssa(ss)s)</span></dt><dd><p>
+              List of serialized choices.
+              See <a class="link" href="#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile" title="The OpenFile() method">OpenFile()</a> for details.
+            </p></dd></dl></div><p>
+</p><p>        The following results get returned via the <em class="parameter"><code>results</code></em> vardict:
+         </p><div class="variablelist"><dl class="variablelist"><dt><span class="term">choices a(ss)</span></dt><dd><p>
+              An array of pairs of strings, corresponding to the passed-in choices.
+              See <a class="link" href="#gdbus-method-org-freedesktop-portal-FileChooser.OpenFile" title="The OpenFile() method">OpenFile()</a> for details.
+            </p></dd></dl></div><p>
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>Object path to export the Request object at</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>App id of the application</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>parent_window</code></em></code>:</span></dt><dd><p>Identifier for the application window</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>title</code></em></code>:</span></dt><dd><p>Title for the dialog</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>subtitle</code></em></code>:</span></dt><dd><p>Subtitle for the dialog</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>body</code></em></code>:</span></dt><dd><p>Body text, may be ""</p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>Vardict with optional further information</p></dd><dt><span class="term"><code class="literal">OUT u <em class="parameter"><code>response</code></em></code>:</span></dt><dd><p>Numeric response</p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>Vardict with the results of the call</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.PermissionStore"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.PermissionStore — Database to store permissions</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.Lookup" title="The Lookup() method">Lookup</a>        (IN  s      table,
+               IN  s      id,
+               OUT a{sas} permissions,
+               OUT v      data);
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.Set" title="The Set() method">Set</a>           (IN  s      table,
+               IN  b      create,
+               IN  s      id,
+               IN  a{sas} app_permissions,
+               IN  v      data);
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.Delete" title="The Delete() method">Delete</a>        (IN  s      table,
+               IN  s      id);
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.SetValue" title="The SetValue() method">SetValue</a>      (IN  s      table,
+               IN  b      create,
+               IN  s      id,
+               IN  v      data);
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.SetPermission" title="The SetPermission() method">SetPermission</a> (IN  s      table,
+               IN  b      create,
+               IN  s      id,
+               IN  s      app,
+               IN  as     permissions);
+<a class="link" href="#gdbus-method-org-freedesktop-impl-portal-PermissionStore.List" title="The List() method">List</a>          (IN  s      table,
+               OUT as     ids);
+</pre></div><div class="refsect1"><a id="idm140258856983872"></a><h2>Signals</h2><pre class="synopsis">
+<a class="link" href="#gdbus-signal-org-freedesktop-impl-portal-PermissionStore.Changed" title="The &quot;Changed&quot; signal">Changed</a> (s      table,
+         s      id,
+         b      deleted,
+         v      data,
+         a{sas} permissions);
+</pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-PermissionStore"></a><h2>Description</h2><p>      The permission store can be used by portals to store permissions
+      that sandboxed applications have to various resources, such as
+      files outside the sandbox.
+</p><p>      Since the resources managed by portals can be varied, the permission
+      store is fairly free-form: there can be multiple tables; resources are
+      identified by an ID, as are applications, and permissions are stored as
+      string arrays. None of these strings are interpreted by the permission
+      store in any way.
+</p><p>      In addition, the permission store allows to associate extra data
+      (in the form of a GVariant) with each resource.
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.PermissionStore"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.Lookup"></a><h3>The Lookup() method</h3><a id="idm140258852421856" class="indexterm"></a><pre class="programlisting">
+Lookup (IN  s      table,
+        IN  s      id,
+        OUT a{sas} permissions,
+        OUT v      data);
+</pre><p>        Looks up the entry for a resource in one of the tables and returns
+        all associated application permissions and data.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>the resource ID to look up</p></dd><dt><span class="term"><code class="literal">OUT a{sas} <em class="parameter"><code>permissions</code></em></code>:</span></dt><dd><p>map from application ID to permissions</p></dd><dt><span class="term"><code class="literal">OUT v <em class="parameter"><code>data</code></em></code>:</span></dt><dd><p>data that is associated with the resource</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.Set"></a><h3>The Set() method</h3><a id="idm140258852744240" class="indexterm"></a><pre class="programlisting">
+Set (IN  s      table,
+     IN  b      create,
+     IN  s      id,
+     IN  a{sas} app_permissions,
+     IN  v      data);
+</pre><p>        Writes the entry for a resource in the given table.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>create</code></em></code>:</span></dt><dd><p>whether to create the table if it does not exist</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>the resource ID to modify</p></dd><dt><span class="term"><code class="literal">IN a{sas} <em class="parameter"><code>app_permissions</code></em></code>:</span></dt><dd><p>map from application ID to permissions</p></dd><dt><span class="term"><code class="literal">IN v <em class="parameter"><code>data</code></em></code>:</span></dt><dd><p>data to associate with the resource</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.Delete"></a><h3>The Delete() method</h3><a id="idm140258856803184" class="indexterm"></a><pre class="programlisting">
+Delete (IN  s table,
+        IN  s id);
+</pre><p>        Removes the entry for a resource in the given table.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>the resource ID to delete</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.SetValue"></a><h3>The SetValue() method</h3><a id="idm140258855817568" class="indexterm"></a><pre class="programlisting">
+SetValue (IN  s table,
+          IN  b create,
+          IN  s id,
+          IN  v data);
+</pre><p>        Sets just the data for a resource in the given table.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>create</code></em></code>:</span></dt><dd><p>whether to create the table if it does not exist</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>the resource ID to modify</p></dd><dt><span class="term"><code class="literal">IN v <em class="parameter"><code>data</code></em></code>:</span></dt><dd><p>data to associate with the resource</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.SetPermission"></a><h3>The SetPermission() method</h3><a id="idm140258855802208" class="indexterm"></a><pre class="programlisting">
+SetPermission (IN  s  table,
+               IN  b  create,
+               IN  s  id,
+               IN  s  app,
+               IN  as permissions);
+</pre><p>        Sets the permissions for an application and a resource
+        in the given table.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">IN b <em class="parameter"><code>create</code></em></code>:</span></dt><dd><p>whether to create the table if it does not exist</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p>the resource ID to modify</p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app</code></em></code>:</span></dt><dd><p>the application ID to modify</p></dd><dt><span class="term"><code class="literal">IN as <em class="parameter"><code>permissions</code></em></code>:</span></dt><dd><p>permissions to set</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-PermissionStore.List"></a><h3>The List() method</h3><a id="idm140258855784032" class="indexterm"></a><pre class="programlisting">
+List (IN  s  table,
+      OUT as ids);
+</pre><p>        Returns all the resources that are present in the table.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table to use</p></dd><dt><span class="term"><code class="literal">OUT as <em class="parameter"><code>ids</code></em></code>:</span></dt><dd><p>IDs of all resources that are present in the table</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.impl.portal.PermissionStore"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-impl-portal-PermissionStore.Changed"></a><h3>The "Changed" signal</h3><a id="idm140258851582240" class="indexterm"></a><pre class="programlisting">
+Changed (s      table,
+         s      id,
+         b      deleted,
+         v      data,
+         a{sas} permissions);
+</pre><p>        The Changed signal is emitted when the entry for a resource
+        is modified or deleted. If the entry was deleted, then <em class="parameter"><code>data</code></em>
+        and <em class="parameter"><code>permissions</code></em> contain the last values that were found in the
+        database. If the entry was modified, they contain the new values.
+</p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">s <em class="parameter"><code>table</code></em></code>:</span></dt><dd><p>the name of the table</p></dd><dt><span class="term"><code class="literal">s <em class="parameter"><code>id</code></em></code>:</span></dt><dd><p></p></dd><dt><span class="term"><code class="literal">b <em class="parameter"><code>deleted</code></em></code>:</span></dt><dd><p>whether the resource was deleted</p></dd><dt><span class="term"><code class="literal">v <em class="parameter"><code>data</code></em></code>:</span></dt><dd><p>the data that is associated the resource</p></dd><dt><span class="term"><code class="literal">a{sas} <em class="parameter"><code>permissions</code></em></code>:</span></dt><dd><p>the permissions that are associated with the resource</p></dd></dl></div></div></div></div></div></div></body></html>
