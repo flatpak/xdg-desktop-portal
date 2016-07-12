@@ -80,6 +80,7 @@ printerr_handler (const gchar *string)
 }
 
 typedef struct {
+  char *source;
   char *dbus_name;
   char **interfaces;
   char **use_in;
@@ -88,6 +89,7 @@ typedef struct {
 static void
 portal_implementation_free (PortalImplementation *impl)
 {
+  g_free (impl->source);
   g_free (impl->dbus_name);
   g_strfreev (impl->interfaces);
   g_strfreev (impl->use_in);
@@ -110,6 +112,7 @@ register_portal (const char *path, GError **error)
   if (!g_key_file_load_from_file (keyfile, path, G_KEY_FILE_NONE, error))
     return FALSE;
 
+  impl->source = g_path_get_basename (path);
   impl->dbus_name = g_key_file_get_string (keyfile, "portal", "DBusName", error);
   if (impl->dbus_name == NULL)
     return FALSE;
@@ -219,7 +222,10 @@ find_portal_implementation (const char *interface)
             continue;
 
           if (!g_strv_contains ((const char **)impl->use_in, desktops[i]))
-            return impl;
+            {
+              g_debug ("Using %s in %s for %s", impl->source, desktops[i], interface);
+              return impl;
+            }
         }
     }
 
@@ -231,6 +237,7 @@ find_portal_implementation (const char *interface)
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
+      g_debug ("Falling back to %s for %s", impl->source, interface);
       return impl;
     }
 
