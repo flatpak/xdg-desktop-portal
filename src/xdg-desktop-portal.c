@@ -221,9 +221,9 @@ find_portal_implementation (const char *interface)
           if (!g_strv_contains ((const char **)impl->interfaces, interface))
             continue;
 
-          if (!g_strv_contains ((const char **)impl->use_in, desktops[i]))
+          if (g_strv_contains ((const char **)impl->use_in, desktops[i]))
             {
-              g_debug ("Using %s in %s for %s", impl->source, desktops[i], interface);
+              g_debug ("Using %s for %s in %s", impl->source, interface, desktops[i]);
               return impl;
             }
         }
