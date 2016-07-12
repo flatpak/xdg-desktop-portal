@@ -89,8 +89,8 @@ static void
 portal_implementation_free (PortalImplementation *impl)
 {
   g_free (impl->dbus_name);
-  g_free (impl->interfaces);
-  g_free (impl->use_in);
+  g_strfreev (impl->interfaces);
+  g_strfreev (impl->use_in);
   g_free (impl);
 }
 
@@ -336,8 +336,6 @@ on_name_acquired (GDBusConnection *connection,
                   gpointer         user_data)
 {
   g_debug ("%s acquired", name);
-
-
 }
 
 static void
@@ -353,8 +351,8 @@ main (int argc, char *argv[])
 {
   guint owner_id;
   g_autoptr(GError) error = NULL;
-  GDBusConnection  *session_bus;
-  GOptionContext *context;
+  g_autoptr(GDBusConnection) session_bus = NULL;
+  g_autoptr(GOptionContext) context;
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
@@ -402,6 +400,7 @@ main (int argc, char *argv[])
   g_main_loop_run (loop);
 
   g_bus_unown_name (owner_id);
+  g_main_loop_unref (loop);
 
   return 0;
 }
