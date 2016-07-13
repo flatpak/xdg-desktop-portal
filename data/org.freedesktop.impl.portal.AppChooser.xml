@@ -48,6 +48,10 @@
             <term>latest-choice s</term>
             <listitem><para>The app id that was selected the last time.</para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>Whether to make the dialog modal. Defaults to yes.</para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:
