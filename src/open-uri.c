@@ -364,7 +364,7 @@ handle_open_in_thread_func (GTask *task,
       /* Add extra options to the request for the backend */
       g_variant_builder_add (&opts_builder,
                              "{sv}",
-                             "latest-choice",
+                             "last_choice",
                              g_variant_new_string (latest_chosen_id));
     }
 

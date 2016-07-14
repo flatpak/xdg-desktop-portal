@@ -45,7 +45,7 @@
         Supported keys in the @options vardict include:
         <variablelist>
           <varlistentry>
-            <term>latest-choice s</term>
+            <term>last_choice s</term>
             <listitem><para>The app id that was selected the last time.</para></listitem>
           </varlistentry>
           <varlistentry>
