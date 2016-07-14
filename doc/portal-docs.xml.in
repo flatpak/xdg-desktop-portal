@@ -34,6 +34,7 @@
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.OpenURI.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Notification.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Inhibit.xml"/>
