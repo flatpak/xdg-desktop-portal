@@ -212,6 +212,19 @@ load_installed_portals (void)
   implementations = g_list_sort (implementations, sort_impl_by_name);
 }
 
+static gboolean
+g_strv_case_contains (const gchar * const *strv,
+                      const gchar         *str)
+{
+  for (; *strv != NULL; strv++)
+    {
+      if (g_ascii_strcasecmp (str, *strv) == 0)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 static PortalImplementation *
 find_portal_implementation (const char *interface)
 {
@@ -234,7 +247,7 @@ find_portal_implementation (const char *interface)
           if (!g_strv_contains ((const char **)impl->interfaces, interface))
             continue;
 
-          if (g_strv_contains ((const char **)impl->use_in, desktops[i]))
+          if (g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
             {
               g_debug ("Using %s for %s in %s", impl->source, interface, desktops[i]);
               return impl;
