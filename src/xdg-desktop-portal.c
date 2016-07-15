@@ -84,6 +84,7 @@ typedef struct {
   char *dbus_name;
   char **interfaces;
   char **use_in;
+  int priority;
 } PortalImplementation;
 
 static void
@@ -202,7 +203,7 @@ load_installed_portals (void)
 static PortalImplementation *
 find_portal_implementation (const char *interface)
 {
-  const char *desktops_str = g_getenv ("XDG_SESSION_DESKTOP");
+  const char *desktops_str = g_getenv ("XDG_CURRENT_DESKTOP");
   g_auto(GStrv) desktops = NULL;
   int i;
   GList *l;
