@@ -161,6 +161,16 @@ register_portal (const char *path, GError **error)
   return TRUE;
 }
 
+static gint
+sort_impl_by_name (gconstpointer a,
+                   gconstpointer b)
+{
+  const PortalImplementation *pa = a;
+  const PortalImplementation *pb = b;
+
+  return strcmp (pa->source, pb->source);
+}
+
 static void
 load_installed_portals (void)
 {
@@ -198,6 +208,8 @@ load_installed_portals (void)
           continue;
         }
     }
+
+  implementations = g_list_sort (implementations, sort_impl_by_name);
 }
 
 static PortalImplementation *
