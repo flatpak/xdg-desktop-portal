@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Device:
+      @short_description: Portal for device access
+
+      This interface lets services ask if an application should
+      get access to devices such as microphones, speakers or cameras.
+      Not a portal in the strict sense, since the API is not directly
+      accessible to applications inside the sandbox.
+    -->
+  <interface name="org.freedesktop.portal.Device">
+    <!--
+        AccessDevice:
+        @pid: the pid of the application on whose behalf the request is made
+        @devices: a list of devices to request access to. Supported values are 'microphone', 'speakers', 'camera'. Asking for multiple devices at the same time may or may not be supported
+        @options: vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Asks for access to a device.
+     -->
+    <method name="AccessDevice">
+      <arg type="u" name="pid" direction="in"/>
+      <arg type="as" name="devices" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+  </interface>
+</node>

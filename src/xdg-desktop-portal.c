@@ -40,6 +40,7 @@
 #include "screenshot.h"
 #include "notification.h"
 #include "inhibit.h"
+#include "device.h"
 
 static GMainLoop *loop = NULL;
 
@@ -361,6 +362,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   inhibit_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  device_create (connection, implementation->dbus_name));
 }
 
 static void

@@ -36,9 +36,9 @@ ensure_app_ids (void)
                                      g_free, g_free);
 }
 
-static char *
-get_app_id_from_pid (pid_t pid,
-                     GError **error)
+char *
+xdp_get_app_id_from_pid (pid_t pid,
+                         GError **error)
 {
   g_autofree char *path = NULL;
   g_autofree char *content = NULL;
@@ -128,7 +128,7 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 
   g_variant_get (body, "(u)", &pid);
 
-  app_id = get_app_id_from_pid (pid, error);
+  app_id = xdp_get_app_id_from_pid (pid, error);
   if (app_id)
     {
       G_LOCK (app_ids);

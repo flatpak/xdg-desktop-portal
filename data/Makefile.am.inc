@@ -9,6 +9,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Screenshot.xml \
 	data/org.freedesktop.portal.Notification.xml \
 	data/org.freedesktop.portal.Inhibit.xml \
+	data/org.freedesktop.portal.Device.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
