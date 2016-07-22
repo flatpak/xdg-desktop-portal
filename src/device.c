@@ -206,7 +206,7 @@ handle_access_microphone_in_thread (GTask *task,
                              "at any time from the privacy settings."));
 
           if (info == NULL)
-            subtitle = g_strdup (_("An application wants play sound."));
+            subtitle = g_strdup (_("An application wants to play sound."));
           else
             subtitle = g_strdup_printf (_("%s wants to play sound."), g_app_info_get_display_name (info));
         }
@@ -219,7 +219,7 @@ handle_access_microphone_in_thread (GTask *task,
                              "at any time from the privacy settings."));
 
           if (info == NULL)
-            subtitle = g_strdup (_("An application use your camera."));
+            subtitle = g_strdup (_("An application wants to use your camera."));
           else
             subtitle = g_strdup_printf (_("%s wants to use your camera."), g_app_info_get_display_name (info));
         }
