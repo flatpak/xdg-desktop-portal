@@ -1,0 +1,80 @@
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Aviary.pl
+# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
+# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
+# gnomepl@aviary.pl
+# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+# Piotr Drąg <piotrdrag@gmail.com>, 2016.
+# Aviary.pl <gnomepl@aviary.pl>, 2016.
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-22 02:09+0200\n"
+"PO-Revision-Date: 2016-07-22 02:10+0200\n"
+"Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
+"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+
+#: src/device.c:191
+msgid "Turn On Microphone?"
+msgstr "Włączyć mikrofon?"
+
+#: src/device.c:192
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Dostęp do mikrofonu można zmienić w każdej chwili w ustawieniach prywatności."
+
+#: src/device.c:196
+msgid "An application wants to use your microphone."
+msgstr "Program potrzebuje dostępu do mikrofonu."
+
+#: src/device.c:198
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "Program %s potrzebuje dostępu do mikrofonu."
+
+#: src/device.c:204
+msgid "Turn On Speakers?"
+msgstr "Włączyć głośniki?"
+
+#: src/device.c:205
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Dostęp do głośników można zmienić w każdej chwili w ustawieniach prywatności."
+
+#: src/device.c:209
+msgid "An application wants to play sound."
+msgstr "Program potrzebuje odtwarzać dźwięk."
+
+#: src/device.c:211
+#, c-format
+msgid "%s wants to play sound."
+msgstr "Program %s potrzebuje odtwarzać dźwięk."
+
+#: src/device.c:217
+msgid "Turn On Camera?"
+msgstr "Włączyć kamerę?"
+
+#: src/device.c:218
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"Dostęp do kamery można zmienić w każdej chwili w ustawieniach prywatności."
+
+#: src/device.c:222
+msgid "An application wants to use your camera."
+msgstr "Program potrzebuje dostępu do kamery."
+
+#: src/device.c:224
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "Program %s potrzebuje dostępu do kamery."
