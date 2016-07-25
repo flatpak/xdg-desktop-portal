@@ -40,6 +40,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 #include "permissions.h"
+#include "documents.h"
 
 #define TABLE_NAME "desktop-used-apps"
 #define USE_DEFAULT_APP_THRESHOLD 5
@@ -121,22 +122,42 @@ get_latest_choice_info (const char *app_id,
   return (*latest_chosen_id != NULL);
 }
 
+static gboolean
+is_sandboxed (GDesktopAppInfo *info)
+{
+  g_autofree char *exec;
+
+  exec = g_desktop_app_info_get_string (info, G_KEY_FILE_DESKTOP_KEY_EXEC);
+  return strstr (exec, "flatpak run ") != NULL;
+}
+
 static void
 launch_application_with_uri (const char *choice_id,
                              const char *uri,
-                             const char *parent_window)
+                             const char *parent_window,
+                             gboolean writable)
 {
-  g_autoptr(GAppInfo) info = G_APP_INFO (g_desktop_app_info_new (choice_id));
+  g_autofree char *desktop_id = g_strconcat (choice_id, ".desktop", NULL);
+  g_autoptr(GDesktopAppInfo) info = g_desktop_app_info_new (desktop_id);
   g_autoptr(GAppLaunchContext) context = g_app_launch_context_new ();
+  g_autofree char *ruri = NULL;
   GList uris;
+
+  if (is_sandboxed (info))
+    {
+      g_debug ("registering %s for %s", uri, choice_id);
+      ruri = register_document (uri, choice_id, FALSE, writable, NULL);
+    }
+  else
+    ruri = g_strdup (uri);
 
   g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
 
-  uris.data = (gpointer)uri;
+  uris.data = (gpointer)ruri;
   uris.next = NULL;
 
-  g_debug ("launching %s\n", choice_id);
-  g_app_info_launch_uris (info, &uris, context, NULL);
+  g_debug ("launching %s %s", choice_id, ruri);
+  g_app_info_launch_uris (G_APP_INFO (info), &uris, context, NULL);
 }
 
 static void
@@ -191,9 +212,6 @@ send_response_in_thread_func (GTask *task,
   Request *request = (Request *)task_data;
   guint response;
   GVariant *options;
-  const char *uri;
-  const char *parent_window;
-  const char *content_type;
   const char *choice;
   GVariantBuilder opt_builder;
 
@@ -209,11 +227,17 @@ send_response_in_thread_func (GTask *task,
 
   if (g_variant_lookup (options, "choice", "&s", &choice))
     {
-      uri = g_object_get_data (G_OBJECT (request), "uri");
-      parent_window = g_object_get_data (G_OBJECT (request), "parent-window");
-      content_type = g_object_get_data (G_OBJECT (request), "content-type");
+      const char *uri;
+      const char *parent_window;
+      gboolean writable;
+      const char *content_type;
 
-      launch_application_with_uri (choice, uri, parent_window);
+      uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+      parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
+      writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+      content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
+
+      launch_application_with_uri (choice, uri, parent_window, writable);
       update_permissions_store (request->app_id, content_type, choice);
     }
 
@@ -276,10 +300,12 @@ handle_open_in_thread_func (GTask *task,
   gint latest_chosen_count = 0;
   GVariantBuilder opts_builder;
   gboolean use_first_choice = FALSE;
+  gboolean writable = FALSE;
   int i;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+  writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
 
   REQUEST_AUTOLOCK (request);
 
@@ -304,10 +330,11 @@ handle_open_in_thread_func (GTask *task,
       if (info != NULL)
         {
           content_type = g_strdup (g_file_info_get_content_type (info));
+          g_debug ("Content type for uri %s: %s", uri, content_type);
         }
       else
         {
-          g_debug ("failed to fetch content type for uri %s: %s", uri, error->message);
+          g_debug ("Failed to fetch content type for uri %s: %s", uri, error->message);
 
           /* Reject the request */
           if (request->exported)
@@ -325,8 +352,11 @@ handle_open_in_thread_func (GTask *task,
   choices = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
     {
+      const char *desktop_id;
+
       GAppInfo *info = l->data;
-      choices[i++] = g_strdup (g_app_info_get_id (info));
+      desktop_id = g_app_info_get_id (info);
+      choices[i++] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
     }
   choices[i] = NULL;
   g_list_free_full (infos, g_object_unref);
@@ -346,7 +376,8 @@ handle_open_in_thread_func (GTask *task,
       /* If a recommended choice is found, just use it and skip the chooser dialog */
       launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
                                    uri,
-                                   parent_window);
+                                   parent_window,
+                                   writable);
 
       if (request->exported)
         {
@@ -398,9 +429,14 @@ handle_open_uri (XdpOpenURI *object,
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
+  gboolean writable;
+
+  if (!g_variant_lookup (arg_options, "writable", "b", &writable))
+    writable = FALSE;
 
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+  g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
