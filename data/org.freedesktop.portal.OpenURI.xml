@@ -39,6 +39,21 @@
 
         The @parent_window identifier must be of the form "x11:$XID" for an X11
         window. Support for other window systems may be added in the future.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>writable b</term>
+            <listitem><para>
+              Whether to allow the chosen application to write to the file.
+            </para><para>
+              This key only takes effect the uri points to a local file that
+              is exported in the document portal, and the chosen application
+              is sandboxed itself.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
     -->
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
