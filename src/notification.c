@@ -394,6 +394,8 @@ notification_create (GDBusConnection *connection,
       return NULL;
     }
 
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
+
   notification = g_object_new (notification_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (notification);

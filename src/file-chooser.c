@@ -580,11 +580,14 @@ file_chooser_create (GDBusConnection *connection,
                                                DESKTOP_PORTAL_OBJECT_PATH,
                                                NULL,
                                                &error);
+
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);
       return NULL;
     }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   file_chooser = g_object_new (file_chooser_get_type (), NULL);
 

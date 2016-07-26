@@ -59,7 +59,7 @@ struct _OpenURIClass
   XdpOpenURISkeletonClass parent_class;
 };
 
-static XdpImplAppChooser *app_chooser_impl;
+static XdpImplAppChooser *impl;
 static OpenURI *open_uri;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
@@ -401,15 +401,15 @@ handle_open_in_thread_func (GTask *task,
 
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (app_chooser_impl)),
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (app_chooser_impl)),
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                                   request->id,
                                                   NULL, NULL);
 
   request_set_impl_request (request, impl_request);
 
-  xdp_impl_app_chooser_call_choose_application (app_chooser_impl,
+  xdp_impl_app_chooser_call_choose_application (impl,
                                                 request->id,
                                                 app_id,
                                                 parent_window,
@@ -470,16 +470,18 @@ open_uri_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  app_chooser_impl = xdp_impl_app_chooser_proxy_new_sync (connection,
-                                                          G_DBUS_PROXY_FLAGS_NONE,
-                                                          dbus_name,
-                                                          DESKTOP_PORTAL_OBJECT_PATH,
-                                                          NULL, &error);
-  if (app_chooser_impl == NULL)
+  impl = xdp_impl_app_chooser_proxy_new_sync (connection,
+                                              G_DBUS_PROXY_FLAGS_NONE,
+                                              dbus_name,
+                                              DESKTOP_PORTAL_OBJECT_PATH,
+                                              NULL, &error);
+  if (impl == NULL)
     {
       g_warning ("Failed to create app chooser proxy: %s", error->message);
       return NULL;
     }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
 

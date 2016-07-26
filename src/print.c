@@ -288,6 +288,8 @@ print_create (GDBusConnection *connection,
       return NULL;
     }
 
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
+
   print = g_object_new (print_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (print);
