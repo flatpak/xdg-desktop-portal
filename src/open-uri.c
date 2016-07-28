@@ -43,7 +43,6 @@
 #include "documents.h"
 
 #define TABLE_NAME "desktop-used-apps"
-#define USE_DEFAULT_APP_THRESHOLD 5
 
 typedef struct _OpenURI OpenURI;
 
@@ -59,6 +58,13 @@ struct _OpenURIClass
   XdpOpenURISkeletonClass parent_class;
 };
 
+enum {
+  PERM_APP_ID,
+  PERM_APP_COUNT,
+  PERM_APP_THRESHOLD,
+  LAST_PERM
+};
+
 static XdpImplAppChooser *impl;
 static OpenURI *open_uri;
 
@@ -68,11 +74,48 @@ static void open_uri_iface_init (XdpOpenURIIface *iface);
 G_DEFINE_TYPE_WITH_CODE (OpenURI, open_uri, XDP_TYPE_OPEN_URI_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_OPEN_URI, open_uri_iface_init));
 
+static void
+parse_permissions (const char **permissions,
+                   char **app_id,
+                   gint *app_count,
+                   gint *app_threshold,
+                   gboolean *always_ask)
+{
+  char *perms_id = NULL;
+  gint perms_count = 0;
+  gint perms_threshold = G_MAXINT;
+  gboolean perms_always_ask = TRUE;
+
+  if ((permissions != NULL) &&
+      (permissions[PERM_APP_ID] != NULL) &&
+      (permissions[PERM_APP_COUNT] != NULL))
+    {
+      perms_id = g_strdup (permissions[PERM_APP_ID]);
+      perms_count = atoi (permissions[PERM_APP_COUNT]);
+      if (permissions[PERM_APP_THRESHOLD] != NULL)
+        {
+          g_autofree char *threshold = g_strdup (permissions[PERM_APP_THRESHOLD]);
+          if (g_strstrip(threshold)[0] != '\0')
+            {
+              perms_threshold = atoi (permissions[PERM_APP_THRESHOLD]);
+              perms_always_ask = FALSE;
+            }
+        }
+    }
+
+  *app_id = perms_id;
+  *app_count = perms_count;
+  *app_threshold = perms_threshold;
+  *always_ask = perms_always_ask;
+}
+
 static gboolean
 get_latest_choice_info (const char *app_id,
                         const char *content_type,
-                        gchar **latest_chosen_id,
-                        gint *latest_chosen_count)
+                        gchar **latest_id,
+                        gint *latest_count,
+                        gint *latest_threshold,
+                        gboolean *always_ask)
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
@@ -103,23 +146,16 @@ get_latest_choice_info (const char *app_id,
           g_autofree const char **permissions;
 
           g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
-          if (g_strcmp0 (child_app_id, app_id) == 0 &&
-              permissions != NULL &&
-              permissions[0] != NULL)
+          if (g_strcmp0 (child_app_id, app_id) == 0)
             {
-              g_auto(GStrv) permission_detail = g_strsplit (permissions[0], ":", 2);
-              if (g_strv_length (permission_detail) >= 2)
-                {
-                  *latest_chosen_id = g_strdup (permission_detail[0]);
-                  *latest_chosen_count = atoi(permission_detail[1]);
-                }
+              parse_permissions (permissions, latest_id, latest_count, latest_threshold, always_ask);
               app_found = TRUE;
             }
           g_variant_unref (child);
         }
     }
 
-  return (*latest_chosen_id != NULL);
+  return (*latest_id != NULL);
 }
 
 static gboolean
@@ -166,28 +202,32 @@ update_permissions_store (const char *app_id,
                           const char *chosen_id)
 {
   g_autoptr(GError) error = NULL;
-  g_autofree char *latest_chosen_id = NULL;
-  gint latest_chosen_count = 0;
+  g_autofree char *latest_id = NULL;
+  gint latest_count = 0;
+  gint latest_threshold = 0;
+  gboolean always_ask = FALSE;
   g_auto(GStrv) in_permissions = NULL;
 
-  if (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
-      (g_strcmp0 (chosen_id, latest_chosen_id) == 0))
+  if (get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask) &&
+      (g_strcmp0 (chosen_id, latest_id) == 0))
     {
       /* same app chosen once again: update the counter */
-      if (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)
-        latest_chosen_count = USE_DEFAULT_APP_THRESHOLD;
+      if (latest_count >= latest_threshold)
+        latest_count = latest_threshold;
       else
-        latest_chosen_count++;
+        latest_count++;
     }
   else
     {
-      /* latest_chosen_id is heap-allocated */
-      latest_chosen_id = g_strdup (chosen_id);
-      latest_chosen_count = 0;
+      /* latest_id is heap-allocated */
+      latest_id = g_strdup (chosen_id);
+      latest_count = 0;
     }
 
-  in_permissions = (GStrv) g_new0 (char *, 2);
-  in_permissions[0] = g_strdup_printf ("%s:%u", latest_chosen_id, latest_chosen_count);
+  in_permissions = (GStrv) g_new0 (char *, LAST_PERM + 1);
+  in_permissions[PERM_APP_ID] = g_strdup (latest_id);
+  in_permissions[PERM_APP_COUNT] = g_strdup_printf ("%u", latest_count);
+  in_permissions[PERM_APP_THRESHOLD] = always_ask ? g_strdup ("") : g_strdup_printf ("%u", latest_threshold);
 
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            TABLE_NAME,
@@ -296,8 +336,10 @@ handle_open_in_thread_func (GTask *task,
   g_autofree char *uri_scheme = NULL;
   g_autofree char *scheme_down = NULL;
   g_autofree char *content_type = NULL;
-  g_autofree char *latest_chosen_id = NULL;
-  gint latest_chosen_count = 0;
+  g_autofree char *latest_id = NULL;
+  gint latest_count = 0;
+  gint latest_threshold = 0;
+  gboolean always_ask = TRUE;
   GVariantBuilder opts_builder;
   gboolean use_first_choice = FALSE;
   gboolean writable = FALSE;
@@ -369,12 +411,12 @@ handle_open_in_thread_func (GTask *task,
       use_first_choice = TRUE;
     }
 
-  if (use_first_choice ||
-      (get_latest_choice_info (app_id, content_type, &latest_chosen_id, &latest_chosen_count) &&
-       (latest_chosen_count >= USE_DEFAULT_APP_THRESHOLD)))
+  get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
+
+  if (use_first_choice || (!always_ask && (latest_count >= latest_threshold)))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
-      launch_application_with_uri (use_first_choice ? choices[0] : latest_chosen_id,
+      launch_application_with_uri (use_first_choice ? choices[0] : latest_id,
                                    uri,
                                    parent_window,
                                    writable);
@@ -390,13 +432,13 @@ handle_open_in_thread_func (GTask *task,
 
   g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
 
-  if (latest_chosen_id != NULL)
+  if (latest_id != NULL)
     {
       /* Add extra options to the request for the backend */
       g_variant_builder_add (&opts_builder,
                              "{sv}",
                              "last_choice",
-                             g_variant_new_string (latest_chosen_id));
+                             g_variant_new_string (latest_id));
     }
 
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
