@@ -319,45 +319,19 @@ app_chooser_done (GObject *source,
 }
 
 static void
-handle_open_in_thread_func (GTask *task,
-                            gpointer source_object,
-                            gpointer task_data,
-                            GCancellable *cancellable)
+resolve_scheme_and_content_type (const char *uri,
+                                 char **scheme,
+                                 gchar **content_type)
 {
-  Request *request = (Request *)task_data;
-  const char *parent_window;
-  const char *uri;
-  const char *app_id = request->app_id;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
-  g_auto(GStrv) choices = NULL;
-  guint n_choices = 0;
-  GList *infos, *l;
   g_autofree char *uri_scheme = NULL;
-  g_autofree char *scheme_down = NULL;
-  g_autofree char *content_type = NULL;
-  g_autofree char *latest_id = NULL;
-  gint latest_count = 0;
-  gint latest_threshold = 0;
-  gboolean always_ask = TRUE;
-  GVariantBuilder opts_builder;
-  gboolean use_first_choice = FALSE;
-  gboolean writable = FALSE;
-  int i;
-
-  parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
-  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
-  writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
-
-  REQUEST_AUTOLOCK (request);
 
   uri_scheme = g_uri_parse_scheme (uri);
   if (uri_scheme && uri_scheme[0] != '\0')
-    scheme_down = g_ascii_strdown (uri_scheme, -1);
+    *scheme = g_ascii_strdown (uri_scheme, -1);
 
-  if ((scheme_down != NULL) && (strcmp (scheme_down, "file") != 0))
+  if ((*scheme != NULL) && (strcmp (*scheme, "file") != 0))
     {
-      content_type = g_strconcat ("x-scheme-handler/", scheme_down, NULL);
+      *content_type = g_strconcat ("x-scheme-handler/", *scheme, NULL);
     }
   else
     {
@@ -371,46 +345,95 @@ handle_open_in_thread_func (GTask *task,
 
       if (info != NULL)
         {
-          content_type = g_strdup (g_file_info_get_content_type (info));
-          g_debug ("Content type for uri %s: %s", uri, content_type);
+          *content_type = g_strdup (g_file_info_get_content_type (info));
+          g_debug ("Content type for uri %s: %s", uri, *content_type);
         }
       else
         {
           g_debug ("Failed to fetch content type for uri %s: %s", uri, error->message);
-
-          /* Reject the request */
-          if (request->exported)
-            {
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-              xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
-              request_unexport (request);
-            }
-          return;
         }
     }
+}
+
+static void
+find_recommended_choices (const char *scheme,
+                          const char *content_type,
+                          GStrv *choices,
+                          gboolean *use_first_choice)
+{
+  GList *infos, *l;
+  guint n_choices = 0;
+  GStrv result = NULL;
+  int i;
 
   infos = g_app_info_get_recommended_for_type (content_type);
   n_choices = g_list_length (infos);
-  choices = g_new (char *, n_choices + 1);
+  result = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
     {
       const char *desktop_id;
 
       GAppInfo *info = l->data;
       desktop_id = g_app_info_get_id (info);
-      choices[i++] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+      result[i++] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
     }
-  choices[i] = NULL;
+  result[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
   /* We normally want a dialog to show up at least a few times, but for http[s] we can
      make an exception in case there's only one candidate application to handle it */
   if ((n_choices == 1) &&
-      ((g_strcmp0 (scheme_down, "http") == 0) || (g_strcmp0 (scheme_down, "https") == 0)))
+      ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0)))
     {
-      use_first_choice = TRUE;
+      *use_first_choice = TRUE;
     }
 
+  *choices = result;
+}
+
+static void
+handle_open_in_thread_func (GTask *task,
+                            gpointer source_object,
+                            gpointer task_data,
+                            GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  const char *parent_window;
+  const char *uri;
+  const char *app_id = request->app_id;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_auto(GStrv) choices = NULL;
+  g_autofree char *scheme = NULL;
+  g_autofree char *content_type = NULL;
+  g_autofree char *latest_id = NULL;
+  gint latest_count = 0;
+  gint latest_threshold = 0;
+  gboolean always_ask = TRUE;
+  GVariantBuilder opts_builder;
+  gboolean use_first_choice = FALSE;
+  gboolean writable = FALSE;
+
+  parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+  writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+
+  REQUEST_AUTOLOCK (request);
+
+  resolve_scheme_and_content_type (uri, &scheme, &content_type);
+  if (content_type == NULL)
+    {
+      /* Reject the request */
+      if (request->exported)
+        {
+          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+          xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
+          request_unexport (request);
+        }
+      return;
+    }
+
+  find_recommended_choices (scheme, content_type, &choices, &use_first_choice);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
   if (use_first_choice || (!always_ask && (latest_count >= latest_threshold)))
