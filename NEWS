@@ -1,3 +1,17 @@
+Initial release 0.2
+===================
+
+* Add internationalization support
+
+* Add Qt annotations
+
+* New portal APIs:
+ - org.freedesktop.portal.Device
+
+* Translation updates:
+ Polish
+
+
 Initial release 0.1
 ===================
 
