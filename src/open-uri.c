@@ -117,6 +117,10 @@ get_latest_choice_info (const char *app_id,
                         gint *latest_threshold,
                         gboolean *always_ask)
 {
+  char *choice_id = NULL;
+  gint choice_count = 0;
+  gint choice_threshold = G_MAXINT;
+  gboolean choice_always_ask = TRUE;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
@@ -148,14 +152,19 @@ get_latest_choice_info (const char *app_id,
           g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
           if (g_strcmp0 (child_app_id, app_id) == 0)
             {
-              parse_permissions (permissions, latest_id, latest_count, latest_threshold, always_ask);
+              parse_permissions (permissions, &choice_id, &choice_count, &choice_threshold, &choice_always_ask);
               app_found = TRUE;
             }
           g_variant_unref (child);
         }
     }
 
-  return (*latest_id != NULL);
+  *latest_id = choice_id;
+  *latest_count = choice_count;
+  *latest_threshold = choice_threshold;
+  *always_ask = choice_always_ask;
+
+  return (choice_id != NULL);
 }
 
 static gboolean
@@ -202,10 +211,10 @@ update_permissions_store (const char *app_id,
                           const char *chosen_id)
 {
   g_autoptr(GError) error = NULL;
-  g_autofree char *latest_id = NULL;
-  gint latest_count = 0;
-  gint latest_threshold = 0;
-  gboolean always_ask = FALSE;
+  g_autofree char *latest_id;
+  gint latest_count;
+  gint latest_threshold;
+  gboolean always_ask;
   g_auto(GStrv) in_permissions = NULL;
 
   if (get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask) &&
@@ -406,10 +415,10 @@ handle_open_in_thread_func (GTask *task,
   g_auto(GStrv) choices = NULL;
   g_autofree char *scheme = NULL;
   g_autofree char *content_type = NULL;
-  g_autofree char *latest_id = NULL;
-  gint latest_count = 0;
-  gint latest_threshold = 0;
-  gboolean always_ask = TRUE;
+  g_autofree char *latest_id;
+  gint latest_count;
+  gint latest_threshold;
+  gboolean always_ask;
   GVariantBuilder opts_builder;
   gboolean use_first_choice = FALSE;
   gboolean writable = FALSE;
