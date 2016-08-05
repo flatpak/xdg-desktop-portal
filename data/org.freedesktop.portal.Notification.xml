@@ -32,6 +32,14 @@
       are expected to outlast the running application. If a user clicks
       on a notification after the application has exited, it will get
       activated again.
+
+      Notifications can specify actions that can be activated by the
+      user. Actions whose name starts with 'app.' are assumed to be
+      exported and will be activated via the ActivateAction()
+      method in the org.freedesktop.Application interface. Other
+      actions are activated by sending the
+      #org.freedeskop.portal.Notification::ActionInvoked signal
+      to the application.
   -->
   <interface name="org.freedesktop.portal.Notification">
     <!--
@@ -130,5 +138,21 @@
     <method name="RemoveNotification">
       <arg type="s" name="id" direction="in"/>
     </method>
+
+    <!--
+        ActionInvoked:
+        @id: the application-provided ID for the notification
+        @action: the name of the action
+        @parameter: array which will contain the target parameter
+          for the action, if one was specified
+
+        Send to the application when a non-exported action is
+        activated.
+    -->
+    <signal name="ActionInvoked">
+      <arg type="s" name="id"/>
+      <arg type="s" name="action"/>
+      <arg type="av" name="parameter"/>
+    </signal>
   </interface>
 </node>

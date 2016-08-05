@@ -47,6 +47,53 @@ struct _NotificationClass
 
 static XdpImplNotification *impl;
 static Notification *notification;
+G_LOCK_DEFINE (active);
+static GHashTable *active;
+
+typedef struct {
+  char *app_id;
+  char *id;
+} Pair;
+
+static guint
+pair_hash (gconstpointer v)
+{
+  const Pair *p = v;
+
+  return g_str_hash (p->app_id) + g_str_hash (p->id);
+}
+
+static gboolean
+pair_equal (gconstpointer v1,
+            gconstpointer v2)
+{
+  const Pair *p1 = v1;
+  const Pair *p2 = v2;
+
+  return g_str_equal (p1->app_id, p2->app_id) && g_str_equal (p1->id, p2->id);
+}
+
+static void
+pair_free (gpointer v)
+{
+  Pair *p = v;
+
+  g_free (p->app_id);
+  g_free (p->id);
+  g_free (p);
+}
+
+static Pair *
+pair_copy (Pair *o)
+{
+  Pair *p;
+
+  p = g_new (Pair, 1);
+  p->app_id = g_strdup (o->app_id);
+  p->id = g_strdup (o->id);
+
+  return p;
+}
 
 GType notification_get_type (void) G_GNUC_CONST;
 static void notification_iface_init (XdpNotificationIface *iface);
@@ -63,7 +110,20 @@ add_done (GObject *source,
   g_autoptr(GError) error = NULL;
 
   if (!xdp_impl_notification_call_add_notification_finish (impl, result, &error))
-    g_warning ("Backend call failed: %s", error->message);
+    {
+      g_warning ("Backend call failed: %s", error->message);
+    }
+  else
+    {
+      Pair p;
+
+      p.app_id = request->app_id;
+      p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
+
+      G_LOCK (active);
+      g_hash_table_insert (active, pair_copy (&p), g_strdup (request->sender));
+      G_UNLOCK (active);
+    }
 }
 
 static gboolean
@@ -108,7 +168,8 @@ handle_add_in_thread_func (GTask *task,
 
   REQUEST_AUTOLOCK (request);
 
-  if (!get_notification_allowed (request->app_id))
+  if (strcmp (request->app_id, "") != 0 &&
+      !get_notification_allowed (request->app_id))
     return;
 
   id = (const char *)g_object_get_data (G_OBJECT (request), "id");
@@ -342,6 +403,31 @@ notification_handle_add_notification (XdpNotification *object,
   return TRUE;
 }
 
+static void
+remove_done (GObject *source,
+             GAsyncResult *result,
+             gpointer data)
+{
+  g_autoptr(Request) request = data;
+  g_autoptr(GError) error = NULL;
+
+  if (!xdp_impl_notification_call_add_notification_finish (impl, result, &error))
+    {
+      g_warning ("Backend call failed: %s", error->message);
+    }
+  else
+    {
+      Pair p;
+
+      p.app_id = request->app_id;
+      p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
+
+      G_LOCK (active);
+      g_hash_table_remove (active, &p);
+      G_UNLOCK (active);
+    }
+}
+
 static gboolean
 notification_handle_remove_notification (XdpNotification *object,
                                          GDBusMethodInvocation *invocation,
@@ -353,12 +439,78 @@ notification_handle_remove_notification (XdpNotification *object,
                                                   request->app_id,
                                                   arg_id,
                                                   NULL,
-                                                  NULL, NULL);
+                                                  remove_done, g_object_ref (request));
 
   xdp_notification_complete_remove_notification (object, invocation);
 
   return TRUE;
 }
+
+static void
+action_invoked (GDBusConnection *connection,
+                const gchar     *sender_name,
+                const gchar     *object_path,
+                const gchar     *interface_name,
+                const gchar     *signal_name,
+                GVariant        *parameters,
+                gpointer         user_data)
+{
+   Pair p;
+   const char *action;
+   GVariant *param;
+   const char *sender;
+
+   g_variant_get (parameters, "(^s^s^s@av)", &p.app_id, &p.id, &action, &param);
+
+   sender = g_hash_table_lookup (active, &p);
+   if (sender == NULL)
+     return;
+
+   g_dbus_connection_emit_signal (connection,
+                                  sender,
+                                  "org/freedesktop/portal/desktop",
+                                  "org.freedesktop.portal.Notification",
+                                  "ActionInvoked",
+                                  g_variant_new ("(ssav)",
+                                                 p.id, action,
+                                                 param),
+                                  NULL);
+
+}
+
+static void
+name_owner_changed (GDBusConnection *connection,
+                    const gchar     *sender_name,
+                    const gchar     *object_path,
+                    const gchar     *interface_name,
+                    const gchar     *signal_name,
+                    GVariant        *parameters,
+                    gpointer         user_data)
+{
+  const char *name, *from, *to;
+
+  g_variant_get (parameters, "(sss)", &name, &from, &to);
+
+  if (name[0] == ':' &&
+      strcmp (name, from) == 0 &&
+      strcmp (to, "") == 0)
+    {
+      GHashTableIter iter;
+      Pair *p;
+
+      G_LOCK (active);
+
+      g_hash_table_iter_init (&iter, active);
+      while (g_hash_table_iter_next (&iter, (gpointer *)&p, NULL))
+        {
+          if (g_strcmp0 (p->app_id, name) == 0)
+            g_hash_table_iter_remove (&iter);
+        }
+
+      G_UNLOCK (active);
+    }
+}
+
 
 static void
 notification_class_init (NotificationClass *klass)
@@ -397,6 +549,27 @@ notification_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   notification = g_object_new (notification_get_type (), NULL);
+  active = g_hash_table_new_full (pair_hash, pair_equal, pair_free, g_free);
+
+  g_dbus_connection_signal_subscribe (connection,
+                                      dbus_name,
+                                      "org.freedesktop.portal.impl.Notification",
+                                      "ActionInvoked",
+                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                      NULL,
+                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                      action_invoked,
+                                      NULL, NULL);
+
+  g_dbus_connection_signal_subscribe (connection,
+                                      "org.freedesktop.DBus",
+                                      "org.freedesktop.DBus",
+                                      "NameOwnerChanged",
+                                      "/org/freedesktop/DBus",
+                                      NULL,
+                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                      name_owner_changed,
+                                      NULL, NULL);
 
   return G_DBUS_INTERFACE_SKELETON (notification);
 }

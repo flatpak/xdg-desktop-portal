@@ -59,5 +59,23 @@
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="id" direction="in"/>
     </method>
+
+    <!--
+        ActionInvoked:
+        @app_id: App id of the application
+        @id: the application-provided ID for the notification
+        @action: the name of the action
+        @parameter: array which will contain the target parameter
+          for the action, if one was specified
+
+        Send to the application when a non-exported action is
+        activated.
+    -->
+    <signal name="ActionInvoked">
+      <arg type="s" name="app_id"/>
+      <arg type="s" name="id"/>
+      <arg type="s" name="action"/>
+      <arg type="av" name="parameter"/>
+    </signal>
   </interface>
 </node>
