@@ -376,6 +376,10 @@ find_recommended_choices (const char *scheme,
   int i;
 
   infos = g_app_info_get_recommended_for_type (content_type);
+  /* Use fallbacks if we have no recommended application for this type */
+  if (!infos)
+    infos = g_app_info_get_all_for_type (content_type);
+
   n_choices = g_list_length (infos);
   result = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
