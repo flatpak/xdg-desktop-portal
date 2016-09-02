@@ -1,3 +1,17 @@
+xdg-desktop-portal 0.3
+======================
+
+* open-uri: Allow configuring threshold
+
+* open-uri: Use fallback applications when needed
+
+* Translation updates:
+ Brazilian Portuguese
+ Hungarian
+ Slovak
+ Ukrainian
+
+
 xdg-desktop-portal 0.2
 ======================
 
