@@ -21,6 +21,10 @@
 #include "config.h"
 
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
 
 #include "xdp-utils.h"
 #include "request.h"
@@ -36,51 +40,95 @@ ensure_app_ids (void)
                                      g_free, g_free);
 }
 
+/* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
+static GKeyFile *
+parse_app_info_from_fileinfo (int pid, GError **error)
+{
+  g_autofree char *root_path = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *content = NULL;
+  g_autofree char *app_id = NULL;
+  int root_fd = -1;
+  int info_fd = -1;
+  struct stat stat_buf;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GMappedFile) mapped = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+
+  root_path = g_strdup_printf ("/proc/%u/root", pid);
+  root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+  if (root_fd == -1)
+    {
+      /* Not able to open the root dir shouldn't happen. Probably the app died and
+         we're failing due to /proc/$pid not existing. In that case fail instead
+         of treating this as privileged. */
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unable to open %s", root_path);
+      return NULL;
+    }
+
+  metadata = g_key_file_new ();
+
+  info_fd = openat (root_fd, ".flatpak-info", O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  close (root_fd);
+  if (info_fd == -1)
+    {
+      if (errno == ENOENT)
+        {
+          /* No file => on the host */
+          g_key_file_set_string (metadata, "Application", "name", "");
+          return g_steal_pointer (&metadata);
+        }
+
+      /* Some weird error => failure */
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unable to open application info file");
+      return NULL;
+    }
+
+  if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
+    {
+      /* Some weird fd => failure */
+      close (info_fd);
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unable to open application info file");
+      return NULL;
+    }
+
+  mapped = g_mapped_file_new_from_fd  (info_fd, FALSE, &local_error);
+  if (mapped == NULL)
+    {
+      close (info_fd);
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't map .flatpak-info file: %s", local_error->message);
+      return NULL;
+    }
+
+  if (!g_key_file_load_from_data (metadata,
+                                  g_mapped_file_get_contents (mapped),
+                                  g_mapped_file_get_length (mapped),
+                                  G_KEY_FILE_NONE, &local_error))
+    {
+      close (info_fd);
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't load .flatpak-info file: %s", local_error->message);
+      return NULL;
+    }
+
+  return g_steal_pointer (&metadata);
+}
+
 char *
 xdp_get_app_id_from_pid (pid_t pid,
                          GError **error)
 {
-  g_autofree char *path = NULL;
-  g_autofree char *content = NULL;
-  g_auto(GStrv) lines = NULL;
-  int i;
+  g_autoptr(GKeyFile) app_info = NULL;
 
-  path = g_strdup_printf ("/proc/%u/cgroup", pid);
-  if (!g_file_get_contents (path, &content, NULL, error))
-    {
-      g_prefix_error (error, "Can't find peer app id: ");
-      return NULL;
-    }
+  app_info = parse_app_info_from_fileinfo (pid, error);
+  if (app_info == NULL)
+    return NULL;
 
-  lines =  g_strsplit (content, "\n", -1);
-  for (i = 0; lines[i] != NULL; i++)
-    {
-      if (g_str_has_prefix (lines[i], "1:name=systemd:"))
-        {
-          const char *unit = lines[i] + strlen ("1:name=systemd:");
-          g_autofree char *scope = g_path_get_basename (unit);
-
-          if (g_str_has_prefix (scope, "flatpak-") &&
-              g_str_has_suffix (scope, ".scope"))
-            {
-              const char *name = scope + strlen ("flatpak-");
-              char *dash = strchr (name, '-');
-              if (dash != NULL)
-                {
-                  *dash = 0;
-                  return g_strdup (name);
-                }
-            }
-          else
-            {
-              return g_strdup ("");
-            }
-        }
-    }
-
-  g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-               "Can't find peer app id: No name=systemd cgroup");
-  return NULL;
+  return g_key_file_get_string (app_info, "Application", "name", error);
 }
 
 static char *
