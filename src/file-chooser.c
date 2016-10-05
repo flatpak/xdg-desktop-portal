@@ -224,7 +224,6 @@ check_filter (GVariant *filter,
         }
       else if (type == 1)
         {
-        }
           /* TODO: validate content type */
           if (string[0] == 0)
             {
@@ -234,6 +233,7 @@ check_filter (GVariant *filter,
                                    "invalid content type");
               return FALSE;
             }
+        }
       else
         {
           g_set_error (error,
