@@ -1,0 +1,73 @@
+# Chinese (China) translation for xdg-desktop-portal.
+# Copyright (C) 2016 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Mingye Wang <arthur2e5@aosc.xyz>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2016-10-28 14:30+0000\n"
+"PO-Revision-Date: 2016-10-28 17:59-0400\n"
+"Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Mingye Wang (Arthur2e5) <arthur200126@gmail.com>\n"
+"X-Generator: Poedit 1.8.7\n"
+
+#: src/device.c:191
+msgid "Turn On Microphone?"
+msgstr "要打开麦克风吗？"
+
+#: src/device.c:192
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr "您可随时在隐私设置中调整麦克风的访问权限。"
+
+#: src/device.c:196
+msgid "An application wants to use your microphone."
+msgstr "有应用程序想要使用您的麦克风。"
+
+#: src/device.c:198
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s 想使用您的麦克风。"
+
+#: src/device.c:204
+msgid "Turn On Speakers?"
+msgstr "要打开扬声器吗？"
+
+#: src/device.c:205
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr "您可随时在隐私设置中调整扬声器的访问权限。"
+
+#: src/device.c:209
+msgid "An application wants to play sound."
+msgstr "有应用程序想要播放声音。"
+
+#: src/device.c:211
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s 想播放声音。"
+
+#: src/device.c:217
+msgid "Turn On Camera?"
+msgstr "要打开摄像头吗？"
+
+#: src/device.c:218
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr "您可随时在隐私设置中调整摄像头的访问权限。"
+
+#: src/device.c:222
+msgid "An application wants to use your camera."
+msgstr "有应用程序想要使用您的摄像头。"
+
+#: src/device.c:224
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s 想使用您的摄像头。"
