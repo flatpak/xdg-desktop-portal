@@ -39,7 +39,7 @@
       @options: Vardict with optional further information
       @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-      Asks to open a one or more files.
+      Asks to open one or more files.
 
       The @parent_window identifier must be of the form "x11:$XID" for an X11
       window. Support for other window systems may be added in the future.
