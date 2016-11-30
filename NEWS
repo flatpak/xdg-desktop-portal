@@ -1,3 +1,17 @@
+xdg-desktop-portal 0.4
+======================
+
+* No longer rely on cgroups to find the app id
+
+* Fix handling of mime type filters in the file chooser portal
+
+* Translation updates:
+ Chinese
+ Czech
+ German
+ Serbian
+
+
 xdg-desktop-portal 0.3
 ======================
 
