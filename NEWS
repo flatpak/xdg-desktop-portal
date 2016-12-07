@@ -1,3 +1,10 @@
+xdg-desktop-portal 0.5
+======================
+
+* The notification portal now supports non-exported actions
+
+* An Account portal for basic user information has been added
+
 xdg-desktop-portal 0.4
 ======================
 
