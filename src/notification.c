@@ -435,6 +435,8 @@ notification_handle_remove_notification (XdpNotification *object,
 {
   g_autoptr(Request) request = request_from_invocation (invocation);
 
+  g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
+
   xdp_impl_notification_call_remove_notification (impl,
                                                   request->app_id,
                                                   arg_id,
