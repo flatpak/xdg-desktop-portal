@@ -460,7 +460,7 @@ action_invoked (GDBusConnection *connection,
    GVariant *param;
    const char *sender;
 
-   g_variant_get (parameters, "(^s^s^s@av)", &p.app_id, &p.id, &action, &param);
+   g_variant_get (parameters, "(&s&s&s@av)", &p.app_id, &p.id, &action, &param);
 
    sender = g_hash_table_lookup (active, &p);
    if (sender == NULL)
@@ -468,10 +468,10 @@ action_invoked (GDBusConnection *connection,
 
    g_dbus_connection_emit_signal (connection,
                                   sender,
-                                  "org/freedesktop/portal/desktop",
+                                  "/org/freedesktop/portal/desktop",
                                   "org.freedesktop.portal.Notification",
                                   "ActionInvoked",
-                                  g_variant_new ("(ssav)",
+                                  g_variant_new ("(ss@av)",
                                                  p.id, action,
                                                  param),
                                   NULL);
