@@ -147,15 +147,21 @@ get_user_information_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static XdpOptionKey open_file_options[] = {
+  { "reason", G_VARIANT_TYPE_STRING },
+};
+
 static gboolean
 handle_get_user_information (XdpAccount *object,
                              GDBusMethodInvocation *invocation,
-                             const gchar *arg_parent_window)
+                             const gchar *arg_parent_window,
+                             GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = request->app_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
+  GVariantBuilder options;
 
   REQUEST_AUTOLOCK (request);
 
@@ -173,10 +179,15 @@ handle_get_user_information (XdpAccount *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
+  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  xdp_filter_options (arg_options, &options,
+                      open_file_options, G_N_ELEMENTS (open_file_options));
+
   xdp_impl_account_call_get_user_information (impl,
                                               request->id,
                                               app_id,
                                               arg_parent_window,
+                                              g_variant_builder_end (&options),
                                               NULL,
                                               get_user_information_done,
                                               g_object_ref (request));
