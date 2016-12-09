@@ -1,0 +1,80 @@
+# Swedish translation for xdg-desktop-portal.
+# Copyright © 2016 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Sebastian Rasmussen <sebras@gmail.com>, 2016.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2016-08-14 02:29+0000\n"
+"PO-Revision-Date: 2016-08-14 13:43+0800\n"
+"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.8\n"
+
+#: src/device.c:191
+msgid "Turn On Microphone?"
+msgstr "Aktivera mikrofon?"
+
+#: src/device.c:192
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Tillgång till din mikrofon kan ändras när som helst från "
+"sekretessinställningarna."
+
+#: src/device.c:196
+msgid "An application wants to use your microphone."
+msgstr "Ett program vill använda din mikrofon."
+
+#: src/device.c:198
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s vill använda din mikrofon."
+
+#: src/device.c:204
+msgid "Turn On Speakers?"
+msgstr "Aktivera högtalarna?"
+
+#: src/device.c:205
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Tillgång till dina högtalare kan ändras när som helst från "
+"sekretessinställningarna."
+
+#: src/device.c:209
+msgid "An application wants to play sound."
+msgstr "Ett program vill spela upp ljud."
+
+#: src/device.c:211
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s vill spela ett ljud."
+
+#: src/device.c:217
+msgid "Turn On Camera?"
+msgstr "Aktivera kamera?"
+
+#: src/device.c:218
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"Tillgång till din kamera kan ändras när som helst från "
+"sekretessinställningarna."
+
+#: src/device.c:222
+msgid "An application wants to use your camera."
+msgstr "Ett program vill använda din kamera."
+
+#: src/device.c:224
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s vill använda din kamera."
