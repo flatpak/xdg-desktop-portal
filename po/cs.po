@@ -21,23 +21,23 @@ msgstr ""
 
 #: src/device.c:191
 msgid "Turn On Microphone?"
-msgstr "Zapnout mikrofón?"
+msgstr "Zapnout mikrofon?"
 
 #: src/device.c:192
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Přístup ke svému mikrofónu můžete kdykoliv změnit v nastavení soukromí."
+"Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
 
 #: src/device.c:196
 msgid "An application wants to use your microphone."
-msgstr "Nějaká aplikace chce používat váš mikrofón."
+msgstr "Nějaká aplikace chce používat váš mikrofon."
 
 #: src/device.c:198
 #, c-format
 msgid "%s wants to use your microphone."
-msgstr "Aplikace %s chce používat váš mikrofón."
+msgstr "Aplikace %s chce používat váš mikrofon."
 
 #: src/device.c:204
 msgid "Turn On Speakers?"
