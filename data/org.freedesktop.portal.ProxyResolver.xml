@@ -42,5 +42,6 @@
       <arg type="s" name="uri" direction="in"/>
       <arg type="as" name="proxies" direction="out"/>
     </method>
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>

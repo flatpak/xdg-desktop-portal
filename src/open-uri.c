@@ -434,6 +434,7 @@ handle_open_in_thread_func (GTask *task,
   REQUEST_AUTOLOCK (request);
 
   resolve_scheme_and_content_type (uri, &scheme, &content_type);
+g_print ("content type: %s scheme: %s\n", content_type, scheme);
   if (content_type == NULL)
     {
       /* Reject the request */
@@ -449,6 +450,8 @@ handle_open_in_thread_func (GTask *task,
   find_recommended_choices (scheme, content_type, &choices, &use_first_choice);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
+g_print ("use first: %d always ask %d, first choice: %s, latest count %d threshold: %d\n",
+         use_first_choice, always_ask, choices[0], latest_count, latest_threshold);
   if (use_first_choice || (!always_ask && (latest_count >= latest_threshold)))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
@@ -516,6 +519,8 @@ handle_open_uri (XdpOpenURI *object,
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
 
+g_print ("handle open uri: %s %s %d\n", arg_uri, arg_parent_window, writable);
+
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
 
@@ -532,6 +537,36 @@ open_uri_iface_init (XdpOpenURIIface *iface)
   iface->handle_open_uri = handle_open_uri;
 }
 
+enum {
+  PROP_0,
+  PROP_VERSION
+};
+
+static void
+open_uri_set_property (GObject *object,
+                       guint prop_id,
+                       const GValue *value,
+                       GParamSpec *pspec)
+{
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+open_uri_get_property (GObject *object,
+                       guint prop_id,
+                       GValue *value,
+                       GParamSpec *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_VERSION:
+      g_value_set_uint (value, 1);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 open_uri_init (OpenURI *fc)
 {
@@ -540,6 +575,12 @@ open_uri_init (OpenURI *fc)
 static void
 open_uri_class_init (OpenURIClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = open_uri_set_property;
+  object_class->get_property = open_uri_get_property;
+
+  xdp_open_uri_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

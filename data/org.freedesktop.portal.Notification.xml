@@ -154,5 +154,6 @@
       <arg type="s" name="action"/>
       <arg type="av" name="parameter"/>
     </signal>
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>
