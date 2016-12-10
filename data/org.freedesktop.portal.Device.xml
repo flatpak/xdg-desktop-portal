@@ -44,5 +44,6 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>

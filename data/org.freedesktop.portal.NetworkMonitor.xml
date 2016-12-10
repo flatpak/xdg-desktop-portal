@@ -67,5 +67,6 @@
         </simplelist>
     -->
     <property name="connectivity" type="u" access="read"/>
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>

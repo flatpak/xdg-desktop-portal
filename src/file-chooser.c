@@ -558,6 +558,36 @@ file_chooser_iface_init (XdpFileChooserIface *iface)
   iface->handle_save_file = handle_save_file;
 }
 
+enum {
+  PROP_0,
+  PROP_VERSION
+};
+
+static void
+file_chooser_set_property (GObject *object,
+                           guint prop_id,
+                           const GValue *value,
+                           GParamSpec *pspec)
+{
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+file_chooser_get_property (GObject *object,
+                           guint prop_id,
+                           GValue *value,
+                           GParamSpec *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_VERSION:
+      g_value_set_uint (value, 1);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 file_chooser_init (FileChooser *fc)
 {
@@ -566,6 +596,12 @@ file_chooser_init (FileChooser *fc)
 static void
 file_chooser_class_init (FileChooserClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = file_chooser_set_property;
+  object_class->get_property = file_chooser_get_property;
+
+  xdp_file_chooser_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *
