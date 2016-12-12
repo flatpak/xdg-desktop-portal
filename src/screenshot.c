@@ -187,6 +187,36 @@ screenshot_iface_init (XdpScreenshotIface *iface)
   iface->handle_screenshot = handle_screenshot;
 }
 
+enum {
+  PROP_0,
+  PROP_VERSION
+};
+
+static void
+screenshot_set_property (GObject *object,
+                         guint prop_id,
+                         const GValue *value,
+                         GParamSpec *pspec)
+{
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+screenshot_get_property (GObject *object,
+                         guint prop_id,
+                         GValue *value,
+                         GParamSpec *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_VERSION:
+      g_value_set_uint (value, 1);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 screenshot_init (Screenshot *fc)
 {
@@ -195,6 +225,12 @@ screenshot_init (Screenshot *fc)
 static void
 screenshot_class_init (ScreenshotClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = screenshot_set_property;
+  object_class->get_property = screenshot_get_property;
+
+  xdp_screenshot_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

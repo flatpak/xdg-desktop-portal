@@ -67,9 +67,45 @@ proxy_resolver_handle_lookup (XdpProxyResolver *object,
   return TRUE;
 }
 
+enum {
+  PROP_0,
+  PROP_VERSION
+};
+
+static void
+proxy_resolver_set_property (GObject *object,
+                             guint prop_id,
+                             const GValue *value,
+                             GParamSpec *pspec)
+{
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+proxy_resolver_get_property (GObject *object,
+                             guint prop_id,
+                             GValue *value,
+                             GParamSpec *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_VERSION:
+      g_value_set_uint (value, 1);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 proxy_resolver_class_init (ProxyResolverClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = proxy_resolver_set_property;
+  object_class->get_property = proxy_resolver_get_property;
+
+  xdp_proxy_resolver_override_properties (object_class, PROP_VERSION);
 }
 
 static void

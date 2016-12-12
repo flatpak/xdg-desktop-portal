@@ -204,9 +204,45 @@ inhibit_handle_inhibit (XdpInhibit *object,
   return TRUE;
 }
 
+enum {
+  PROP_0,
+  PROP_VERSION
+};
+
+static void
+inhibit_set_property (GObject *object,
+                      guint prop_id,
+                      const GValue *value,
+                      GParamSpec *pspec)
+{
+  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+}
+
+static void
+inhibit_get_property (GObject *object,
+                      guint prop_id,
+                      GValue *value,
+                      GParamSpec *pspec)
+{
+  switch (prop_id)
+    {
+    case PROP_VERSION:
+      g_value_set_uint (value, 1);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 inhibit_class_init (InhibitClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->set_property = inhibit_set_property;
+  object_class->get_property = inhibit_get_property;
+
+  xdp_inhibit_override_properties (object_class, PROP_VERSION);
 }
 
 static void
