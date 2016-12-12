@@ -433,7 +433,7 @@ notification_handle_remove_notification (XdpNotification *object,
                                          GDBusMethodInvocation *invocation,
                                          const char *arg_id)
 {
-  g_autoptr(Request) request = request_from_invocation (invocation);
+  Request *request = request_from_invocation (invocation);
 
   g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
 
