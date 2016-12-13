@@ -520,50 +520,15 @@ notification_iface_init (XdpNotificationIface *iface)
   iface->handle_remove_notification = notification_handle_remove_notification;
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
 static void
-notification_set_property (GObject *object,
-                           guint prop_id,
-                           const GValue *value,
-                           GParamSpec *pspec)
+notification_init (Notification *notification)
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-notification_get_property (GObject *object,
-                           guint prop_id,
-                           GValue *value,
-                           GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-notification_init (Notification *resolver)
-{
+  xdp_notification_set_version (XDP_NOTIFICATION (notification), 1);
 }
 
 static void
 notification_class_init (NotificationClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = notification_set_property;
-  object_class->get_property = notification_get_property;
-
-  xdp_notification_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

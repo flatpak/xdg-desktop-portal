@@ -78,37 +78,6 @@ changed (GNetworkMonitor *monitor,
   xdp_network_monitor_emit_changed (nm, available);
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
-static void
-network_monitor_set_property (GObject *object,
-                              guint prop_id,
-                              const GValue *value,
-                              GParamSpec *pspec)
-{
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-network_monitor_get_property (GObject *object,
-                              guint prop_id,
-                              GValue *value,
-                              GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-
 static void
 network_monitor_init (NetworkMonitor *nm)
 {
@@ -123,17 +92,12 @@ network_monitor_init (NetworkMonitor *nm)
                                    g_network_monitor_get_network_metered (nm->monitor));
   xdp_network_monitor_set_connectivity (XDP_NETWORK_MONITOR (nm),
                                         g_network_monitor_get_connectivity (nm->monitor));
+  xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 1);
 }
 
 static void
 network_monitor_class_init (NetworkMonitorClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = network_monitor_set_property;
-  object_class->get_property = network_monitor_get_property;
-
-  xdp_network_monitor_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

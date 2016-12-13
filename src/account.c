@@ -203,51 +203,15 @@ account_iface_init (XdpAccountIface *iface)
   iface->handle_get_user_information = handle_get_user_information;
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
 static void
-account_set_property (GObject *object,
-                      guint prop_id,
-                      const GValue *value,
-                      GParamSpec *pspec)
+account_init (Account *account)
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-account_get_property (GObject *object,
-                      guint prop_id,
-                      GValue *value,
-                      GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-
-static void
-account_init (Account *fc)
-{
+  xdp_account_set_version (XDP_ACCOUNT (account), 1);
 }
 
 static void
 account_class_init (AccountClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = account_set_property;
-  object_class->get_property = account_get_property;
-
-  xdp_account_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *
