@@ -537,50 +537,15 @@ open_uri_iface_init (XdpOpenURIIface *iface)
   iface->handle_open_uri = handle_open_uri;
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
-static void
-open_uri_set_property (GObject *object,
-                       guint prop_id,
-                       const GValue *value,
-                       GParamSpec *pspec)
-{
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-open_uri_get_property (GObject *object,
-                       guint prop_id,
-                       GValue *value,
-                       GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
 static void
 open_uri_init (OpenURI *fc)
 {
+  xdp_open_uri_set_version (XDP_OPEN_URI (fc), 1);
 }
 
 static void
 open_uri_class_init (OpenURIClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = open_uri_set_property;
-  object_class->get_property = open_uri_get_property;
-
-  xdp_open_uri_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

@@ -327,50 +327,15 @@ device_iface_init (XdpDeviceIface *iface)
   iface->handle_access_device = handle_access_device;
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
 static void
-device_set_property (GObject *object,
-                     guint prop_id,
-                     const GValue *value,
-                     GParamSpec *pspec)
+device_init (Device *device)
 {
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-device_get_property (GObject *object,
-                     guint prop_id,
-                     GValue *value,
-                     GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-device_init (Device *fc)
-{
+  xdp_device_set_version (XDP_DEVICE (device), 1);
 }
 
 static void
 device_class_init (DeviceClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = device_set_property;
-  object_class->get_property = device_get_property;
-
-  xdp_device_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *

@@ -260,50 +260,15 @@ print_iface_init (XdpPrintIface *iface)
   iface->handle_prepare_print = handle_prepare_print;
 }
 
-enum {
-  PROP_0,
-  PROP_VERSION
-};
-
-static void
-print_set_property (GObject *object,
-                    guint prop_id,
-                    const GValue *value,
-                    GParamSpec *pspec)
-{
-  G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-}
-
-static void
-print_get_property (GObject *object,
-                    guint prop_id,
-                    GValue *value,
-                    GParamSpec *pspec)
-{
-  switch (prop_id)
-    {
-    case PROP_VERSION:
-      g_value_set_uint (value, 1);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
 static void
 print_init (Print *fc)
 {
+  xdp_print_set_version (XDP_PRINT (fc), 1);
 }
 
 static void
 print_class_init (PrintClass *klass)
 {
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  object_class->set_property = print_set_property;
-  object_class->get_property = print_get_property;
-
-  xdp_print_override_properties (object_class, PROP_VERSION);
 }
 
 GDBusInterfaceSkeleton *
