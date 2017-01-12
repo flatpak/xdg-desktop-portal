@@ -333,19 +333,53 @@ resolve_scheme_and_content_type (const char *uri,
                                  gchar **content_type)
 {
   g_autofree char *uri_scheme = NULL;
+  g_autofree char *normalized_uri = NULL;
+
+  if (uri == NULL)
+    return;
 
   uri_scheme = g_uri_parse_scheme (uri);
   if (uri_scheme && uri_scheme[0] != '\0')
     *scheme = g_ascii_strdown (uri_scheme, -1);
 
-  if ((*scheme != NULL) && (strcmp (*scheme, "file") != 0))
+  if (*scheme != NULL)
+    {
+      /* Nothing to normalize */
+      normalized_uri = g_strdup (uri);
+    }
+  else if (g_path_is_absolute (uri))
+    {
+      /* The scheme would be NULL for invalid URIs pointing to absolute paths in
+       * the local machine, in which case we could convert to the file:// protocol. */
+      g_autoptr(GError) error = NULL;
+      g_autofree char *uri_path = NULL;
+
+      normalized_uri = g_strdup_printf ("file://%s", uri);
+      uri_path = g_filename_from_uri (normalized_uri, NULL, &error);
+      if (uri_path != NULL)
+        {
+          /* The URI could be converted to a local absolute path */
+          *scheme = g_strdup ("file");
+        }
+      else
+        {
+          g_warning ("Can't convert URI to local path: %s", error->message);
+          return;
+        }
+    }
+
+  /* We can't really continue if the scheme is still unknown */
+  if (*scheme == NULL)
+    return;
+
+  if (strcmp (*scheme, "file") != 0)
     {
       *content_type = g_strconcat ("x-scheme-handler/", *scheme, NULL);
     }
   else
     {
       g_autoptr(GError) error = NULL;
-      g_autoptr(GFile) file = g_file_new_for_uri (uri);
+      g_autoptr(GFile) file = g_file_new_for_uri (normalized_uri);
       g_autoptr(GFileInfo) info = g_file_query_info (file,
                                                      G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
                                                      0,
