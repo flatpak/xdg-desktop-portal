@@ -1,19 +1,17 @@
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Aviary.pl
-# Jeśli masz jakiekolwiek uwagi odnoszące się do tłumaczenia lub chcesz
-# pomóc w jego rozwijaniu i pielęgnowaniu, napisz do nas:
-# gnomepl@aviary.pl
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-# Piotr Drąg <piotrdrag@gmail.com>, 2016.
-# Aviary.pl <gnomepl@aviary.pl>, 2016.
+# Polish translation for xdg-desktop-portal.
+# Copyright © 2016-2017 the xdg-desktop-portal authors.
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Piotr Drąg <piotrdrag@gmail.com>, 2016-2017.
+# Aviary.pl <community-poland@mozilla.org>, 2016-2017.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-22 02:09+0200\n"
-"PO-Revision-Date: 2016-07-22 02:10+0200\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2016-12-09 19:59+0000\n"
+"PO-Revision-Date: 2017-01-16 14:01+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
-"Language-Team: Polish <gnomepl@aviary.pl>\n"
+"Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -30,7 +28,7 @@ msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Dostęp do mikrofonu można zmienić w każdej chwili w ustawieniach prywatności."
+"Dostęp do mikrofonu można zmienić w każdej chwili w ustawieniach prywatności."
 
 #: src/device.c:196
 msgid "An application wants to use your microphone."
@@ -39,7 +37,7 @@ msgstr "Program potrzebuje dostępu do mikrofonu."
 #: src/device.c:198
 #, c-format
 msgid "%s wants to use your microphone."
-msgstr "Program %s potrzebuje dostępu do mikrofonu."
+msgstr "Program „%s” potrzebuje dostępu do mikrofonu."
 
 #: src/device.c:204
 msgid "Turn On Speakers?"
@@ -49,7 +47,7 @@ msgstr "Włączyć głośniki?"
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"Dostęp do głośników można zmienić w każdej chwili w ustawieniach prywatności."
+"Dostęp do głośników można zmienić w każdej chwili w ustawieniach prywatności."
 
 #: src/device.c:209
 msgid "An application wants to play sound."
@@ -58,7 +56,7 @@ msgstr "Program potrzebuje odtwarzać dźwięk."
 #: src/device.c:211
 #, c-format
 msgid "%s wants to play sound."
-msgstr "Program %s potrzebuje odtwarzać dźwięk."
+msgstr "Program „%s” potrzebuje odtwarzać dźwięk."
 
 #: src/device.c:217
 msgid "Turn On Camera?"
@@ -68,7 +66,7 @@ msgstr "Włączyć kamerę?"
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Dostęp do kamery można zmienić w każdej chwili w ustawieniach prywatności."
+"Dostęp do kamery można zmienić w każdej chwili w ustawieniach prywatności."
 
 #: src/device.c:222
 msgid "An application wants to use your camera."
@@ -77,4 +75,4 @@ msgstr "Program potrzebuje dostępu do kamery."
 #: src/device.c:224
 #, c-format
 msgid "%s wants to use your camera."
-msgstr "Program %s potrzebuje dostępu do kamery."
+msgstr "Program „%s” potrzebuje dostępu do kamery."
