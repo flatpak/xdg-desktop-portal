@@ -90,7 +90,7 @@ send_response_in_thread_func (GTask        *task,
   if (response != 0)
     goto out;
 
-  if (!g_variant_lookup (options, "b", "writable", &writable))
+  if (!g_variant_lookup (options, "writable", "b",  &writable))
     writable = FALSE;
 
   choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
