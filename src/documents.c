@@ -95,7 +95,7 @@ register_document (const char *uri,
 
   i = 0;
   permissions[i++] = "read";
-  if (writable)
+  if (writable || for_save)
     permissions[i++] = "write";
   permissions[i++] = "grant-permissions";
   permissions[i++] = NULL;
