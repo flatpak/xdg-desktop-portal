@@ -5,6 +5,9 @@ xdg-desktop-portal 0.5
 
 * An Account portal for basic user information has been added
 
+* All portal interface now have a version property. Currently,
+  all interfaces are at version 1.
+
 xdg-desktop-portal 0.4
 ======================
 
