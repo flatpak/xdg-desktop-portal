@@ -419,7 +419,7 @@ handle_open_in_thread_func (GTask *task,
   g_auto(GStrv) choices = NULL;
   g_autofree char *scheme = NULL;
   g_autofree char *content_type = NULL;
-  g_autofree char *latest_id;
+  g_autofree char *latest_id = NULL;
   gint latest_count;
   gint latest_threshold;
   gboolean always_ask;
