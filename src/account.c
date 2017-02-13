@@ -91,9 +91,6 @@ send_response_in_thread_func (GTask        *task,
   g_variant_builder_add (&new_results, "{sv}", "id", idv);
   g_variant_builder_add (&new_results, "{sv}", "name", namev);
 
-  g_print ("got id: %s\n", g_variant_get_string (idv, NULL));
-  g_print ("got name: %s\n", g_variant_get_string (namev, NULL));
-
   if (g_variant_lookup (results, "image", "&s", &image))
     {
       g_autofree char *ruri = NULL;
