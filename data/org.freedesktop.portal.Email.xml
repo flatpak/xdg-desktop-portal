@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2017 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Email:
+      @short_description: Portal for sending email
+
+      This simple portal lets sandboxed applications request to send an email,
+      optionally providing an address, subject, body and attachments.
+  -->
+  <interface name="org.freedesktop.portal.Email">
+    <!--
+        ComposeEmail:
+        @parent_window: Identifier for the application window
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Presents a window that lets the user compose an email.
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>address s</term>
+            <listitem><para>
+              The email address to send to.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>subject s</term>
+            <listitem><para>
+              The subject for the email.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>body s</term>
+            <listitem><para>
+              The body for the email.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>attachments as</term>
+            <listitem><para>
+              The uris for files to attach.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        All the keys in the options are are optional.
+    -->
+    <method name="ComposeEmail">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
