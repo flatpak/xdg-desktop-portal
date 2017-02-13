@@ -30,6 +30,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Inhibit.xml \
 	data/org.freedesktop.portal.Device.xml \
 	data/org.freedesktop.portal.Account.xml \
+	data/org.freedesktop.portal.Email.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -42,6 +43,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Inhibit.xml \
 	data/org.freedesktop.impl.portal.Access.xml \
 	data/org.freedesktop.impl.portal.Account.xml \
+	data/org.freedesktop.impl.portal.Email.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
@@ -114,6 +116,8 @@ xdg_desktop_portal_SOURCES = \
         src/documents.h                 \
         src/permissions.c               \
         src/permissions.h               \
+        src/email.c                     \
+        src/email.h                     \
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	src/xdg-desktop-resources.c	\
