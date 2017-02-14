@@ -29,4 +29,4 @@ high-level APIs.
 To actually use most portals, xdg-desktop-portal relies on a backend
 that provides implementations of the org.freedesktop.impl.portal.\* interfaces.
 One such backend is provided by [xdg-desktop-portal-gtk](http://github.com/flatpak/xdg-desktop-portal-gtk).
-Another one is in development here: [xdg-desktop-portal-kde](https://github.com/grulja/xdg-desktop-portal-kde).
+Another one is in development here: [xdg-desktop-portal-kde](https://github.com/KDE/xdg-desktop-portal-kde).
