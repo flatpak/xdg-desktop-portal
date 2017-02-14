@@ -5,6 +5,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.OpenURI.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Print.xml 		\
+	$(top_srcdir)/data/org.freedesktop.portal.Email.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.NetworkMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.ProxyResolver.xml 	\
@@ -15,6 +16,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.AppChooser.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Print.xml 	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Email.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Screenshot.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Notification.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml	\
@@ -28,6 +30,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.FileChooser.xml 			\
 	portal-org.freedesktop.portal.OpenURI.xml 			\
 	portal-org.freedesktop.portal.Print.xml 			\
+	portal-org.freedesktop.portal.Email.xml 			\
 	portal-org.freedesktop.portal.Screenshot.xml 			\
 	portal-org.freedesktop.portal.NetworkMonitor.xml		\
 	portal-org.freedesktop.portal.ProxyResolver.xml			\
@@ -39,6 +42,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\
 	portal-org.freedesktop.impl.portal.AppChooser.xml 		\
 	portal-org.freedesktop.impl.portal.Print.xml 			\
+	portal-org.freedesktop.impl.portal.Email.xml 			\
 	portal-org.freedesktop.impl.portal.Screenshot.xml 		\
 	portal-org.freedesktop.impl.portal.Notification.xml 		\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
