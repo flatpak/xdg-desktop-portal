@@ -42,6 +42,7 @@
 #include "inhibit.h"
 #include "device.h"
 #include "account.h"
+#include "email.h"
 
 static GMainLoop *loop = NULL;
 
@@ -373,6 +374,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   account_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Email");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  email_create (connection, implementation->dbus_name));
 }
 
 static void
