@@ -1,3 +1,4 @@
 [D-BUS Service]
 Name=org.freedesktop.portal.Desktop
 Exec=@libexecdir@/xdg-desktop-portal
+SystemdService=xdg-desktop-portal.service

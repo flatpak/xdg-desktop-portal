@@ -1,0 +1,7 @@
+[Unit]
+Description=Portal service
+
+[Service]
+Type=dbus
+BusName=org.freedesktop.portal.Desktop
+ExecStart=@libexecdir@/xdg-desktop-portal

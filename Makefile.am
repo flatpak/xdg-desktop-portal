@@ -17,7 +17,9 @@ SUBDIRS = doc po
 dbus_servicedir = $(DBUS_SERVICE_DIR)
 service_in_files = $(NULL)
 dbus_service_DATA = $(NULL)
+systemduserunit_DATA = $(NULL)
 CLEANFILES += $(dbus_service_DATA)
+CLEANFILES += $(systemduserunit_DATA)
 EXTRA_DIST += $(service_in_files)
 
 AM_CPPFLAGS =							\
