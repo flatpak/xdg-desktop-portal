@@ -4,7 +4,6 @@ libexec_PROGRAMS += \
 
 service_in_files += src/org.freedesktop.portal.Desktop.service.in
 dbus_service_DATA += src/org.freedesktop.portal.Desktop.service
-DISTCLEANFILES += src/org.freedesktop.portal.Desktop.service
 
 xdp_dbus_built_sources = src/xdp-dbus.c src/xdp-dbus.h
 xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
