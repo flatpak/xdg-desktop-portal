@@ -149,8 +149,16 @@ get_notification_allowed (const char *app_id)
     {
       const char **perms;
       if (g_variant_lookup (out_perms, app_id, "^a&s", &perms))
-        return !g_strv_contains (perms, "no");
+        {
+          g_autofree char *a = g_strjoinv (" ", (char **)perms);
+
+          g_debug ("Notification permissions for %s: %s", app_id, a);
+
+          return !g_strv_contains (perms, "no");
+        }
     }
+
+  g_debug ("No notification permissions stored for %s: allowing", app_id);
 
   return TRUE;
 }
