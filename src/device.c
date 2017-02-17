@@ -86,8 +86,13 @@ get_permission (const char *app_id,
       return UNSET;
     }
 
-  g_variant_lookup (out_perms, app_id, "^a&s", &permissions);
-  if (g_strv_length ((char **)permissions) != 1)
+  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
+    {
+      g_debug ("No permissions stored for: device %s, app %s", device, app_id);
+
+      return UNSET;
+    }
+  else if (g_strv_length ((char **)permissions) != 1)
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
