@@ -89,9 +89,12 @@ get_permission (const char *app_id,
   g_variant_lookup (out_perms, app_id, "^a&s", &permissions);
   if (g_strv_length ((char **)permissions) != 1)
     {
-      g_warning ("Wrong permission format, ignoring");
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong permission format, ignoring (%s)", a);
       return UNSET;
     }
+
+  g_debug ("permission store: device %s, app %s -> %s", device, app_id, permissions[0]);
 
   if (strcmp (permissions[0], "yes") == 0)
     return YES;
@@ -100,7 +103,10 @@ get_permission (const char *app_id,
   else if (strcmp (permissions[0], "ask") == 0)
     return ASK;
   else
-    g_warning ("Wrong permission format, ignoring");
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong permission format, ignoring (%s)", a);
+    }
 
   return UNSET;
 }
@@ -223,6 +229,8 @@ handle_access_microphone_in_thread (GTask *task,
           else
             subtitle = g_strdup_printf (_("%s wants to use your camera."), g_app_info_get_display_name (info));
         }
+
+      g_debug ("Calling backend for device access to: %s", device);
 
       if (!xdp_impl_access_call_access_dialog_sync (impl,
                                                     request->id,
