@@ -211,7 +211,7 @@ update_permissions_store (const char *app_id,
                           const char *chosen_id)
 {
   g_autoptr(GError) error = NULL;
-  g_autofree char *latest_id;
+  g_autofree char *latest_id = NULL;
   gint latest_count;
   gint latest_threshold;
   gboolean always_ask;
