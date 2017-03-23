@@ -211,7 +211,7 @@ update_permissions_store (const char *app_id,
                           const char *chosen_id)
 {
   g_autoptr(GError) error = NULL;
-  g_autofree char *latest_id;
+  g_autofree char *latest_id = NULL;
   gint latest_count;
   gint latest_threshold;
   gboolean always_ask;
@@ -364,16 +364,49 @@ resolve_scheme_and_content_type (const char *uri,
     }
 }
 
+static gboolean
+can_skip_app_chooser (const char *scheme, const char *content_type)
+{
+  /* We skip the app chooser for Internet URIs, to be open in the browser */
+  if ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0))
+    return TRUE;
+
+  /* Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
+  if (g_strcmp0 (content_type, "inode/directory") == 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+
 static void
 find_recommended_choices (const char *scheme,
                           const char *content_type,
                           GStrv *choices,
-                          gboolean *use_first_choice)
+                          gboolean *skip_app_chooser)
 {
+  GAppInfo *default_app = NULL;
   GList *infos, *l;
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
+
+  default_app = g_app_info_get_default_for_type (content_type, FALSE);
+  if (default_app != NULL && can_skip_app_chooser (scheme, content_type))
+    {
+      /* Use the default application if it's set */
+      const char *desktop_id = g_app_info_get_id (default_app);
+
+      result = g_new (char *, 2);
+      result[0] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+      result[1] = NULL;
+
+      *skip_app_chooser = TRUE;
+      *choices = result;
+
+      g_object_unref (default_app);
+      return;
+    }
 
   infos = g_app_info_get_recommended_for_type (content_type);
   /* Use fallbacks if we have no recommended application for this type */
@@ -393,13 +426,9 @@ find_recommended_choices (const char *scheme,
   result[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
-  /* We normally want a dialog to show up at least a few times, but for http[s] we can
-     make an exception in case there's only one candidate application to handle it */
-  if ((n_choices == 1) &&
-      ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0)))
-    {
-      *use_first_choice = TRUE;
-    }
+  /* We might skip the dialog too if there's only one possible option to handle the URI */
+  if ((n_choices == 1) && can_skip_app_chooser (scheme, content_type))
+    *skip_app_chooser = TRUE;
 
   *choices = result;
 }
@@ -424,7 +453,7 @@ handle_open_in_thread_func (GTask *task,
   gint latest_threshold;
   gboolean always_ask;
   GVariantBuilder opts_builder;
-  gboolean use_first_choice = FALSE;
+  gboolean skip_app_chooser = FALSE;
   gboolean writable = FALSE;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
@@ -446,13 +475,13 @@ handle_open_in_thread_func (GTask *task,
       return;
     }
 
-  find_recommended_choices (scheme, content_type, &choices, &use_first_choice);
+  find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
-  if (use_first_choice || (!always_ask && (latest_count >= latest_threshold)))
+  if (skip_app_chooser || (!always_ask && (latest_count >= latest_threshold)))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
-      launch_application_with_uri (use_first_choice ? choices[0] : latest_id,
+      launch_application_with_uri (skip_app_chooser ? choices[0] : latest_id,
                                    uri,
                                    parent_window,
                                    writable);
