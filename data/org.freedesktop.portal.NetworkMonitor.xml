@@ -41,7 +41,7 @@
     <!--
         available:
 
-        Whether the network is considereed available. That is,
+        Whether the network is considered available. That is,
         whether the system as a default route for at least one
         of IPv4 or IPv6.
     -->
