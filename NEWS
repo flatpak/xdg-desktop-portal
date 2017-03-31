@@ -3,6 +3,13 @@ xdg-desktop-portal 0.6
 
 * A portal for sending email has been added
 
+* The OpenURI portal has be made a bit more permissive.
+  It will now directly use the system default for "safe"
+  schemes such as http, and local directories.
+
+* Translation updates:
+ French
+
 xdg-desktop-portal 0.5
 ======================
 
