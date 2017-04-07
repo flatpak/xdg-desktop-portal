@@ -563,7 +563,7 @@ notification_create (GDBusConnection *connection,
 
   g_dbus_connection_signal_subscribe (connection,
                                       dbus_name,
-                                      "org.freedesktop.portal.impl.Notification",
+                                      "org.freedesktop.impl.portal.Notification",
                                       "ActionInvoked",
                                       DESKTOP_PORTAL_OBJECT_PATH,
                                       NULL,
