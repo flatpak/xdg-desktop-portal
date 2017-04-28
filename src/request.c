@@ -166,9 +166,9 @@ request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id)
 
   G_LOCK (requests);
 
-  r = g_random_int ();
   do
     {
+      r = g_random_int ();
       g_free (id);
       id = g_strdup_printf ("/org/freedesktop/portal/desktop/request/%u", r);
     }
