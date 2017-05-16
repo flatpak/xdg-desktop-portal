@@ -54,3 +54,7 @@ pattern was chosen over a simple method call with return, since portal apis are 
 show dialogs and interact with the user, which may well take longer than the maximum method
 call timeout of D-Bus. Another advantage is that the caller can cancel an ongoing interaction
 by calling the _Cancel_ method on the request object.
+
+One consideration for deciding the shape of portal APIs is that we want them to 'hide' behind existing
+library APIs where possible, to make it as easy as possible to have apps use them _transparently_. For
+example, the OpenFile portal is working well as a backend for the GtkFileChooserNative API.
