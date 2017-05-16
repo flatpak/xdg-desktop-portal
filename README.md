@@ -40,7 +40,7 @@ code:
 - One of the limitations of the D-Bus proxying in flatpak is that allowing a sandboxed app
   to talk to a name implicitly also allows it to talk to any other name owned by the same
   unique name. Therefore, sandbox-facing D-Bus apis should generally be hosted on a
-  decidated bus connection. For portals, the frontend takes care of this for us.
+  dedicated bus connection. For portals, the frontend takes care of this for us.
 - The frontend can handle all the interaction with _portal infrastructure_, such as the
   permission store and the document store, freeing the backends to focus on just providing
   a user interface.
