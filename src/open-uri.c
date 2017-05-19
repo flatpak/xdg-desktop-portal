@@ -330,7 +330,7 @@ app_chooser_done (GObject *source,
 static void
 resolve_scheme_and_content_type (const char *uri,
                                  char **scheme,
-                                 gchar **content_type)
+                                 char **content_type)
 {
   g_autofree char *uri_scheme = NULL;
 
@@ -338,34 +338,22 @@ resolve_scheme_and_content_type (const char *uri,
   if (uri_scheme && uri_scheme[0] != '\0')
     *scheme = g_ascii_strdown (uri_scheme, -1);
 
-  if ((*scheme != NULL) && (strcmp (*scheme, "file") != 0))
-    {
-      *content_type = g_strconcat ("x-scheme-handler/", *scheme, NULL);
-    }
-  else
-    {
-      g_autoptr(GError) error = NULL;
-      g_autoptr(GFile) file = g_file_new_for_uri (uri);
-      g_autoptr(GFileInfo) info = g_file_query_info (file,
-                                                     G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-                                                     0,
-                                                     NULL,
-                                                     &error);
+  if (*scheme == NULL)
+    return;
 
-      if (info != NULL)
-        {
-          *content_type = g_strdup (g_file_info_get_content_type (info));
-          g_debug ("Content type for uri %s: %s", uri, *content_type);
-        }
-      else
-        {
-          g_debug ("Failed to fetch content type for uri %s: %s", uri, error->message);
-        }
+  if (strcmp (*scheme, "file") == 0)
+    {
+      g_debug ("Not handling file uri %s", uri);
+      return;
     }
+
+  *content_type = g_strconcat ("x-scheme-handler/", *scheme, NULL);
+  g_debug ("Content type for %s uri %s: %s", uri, *scheme, *content_type);
 }
 
 static gboolean
-can_skip_app_chooser (const char *scheme, const char *content_type)
+can_skip_app_chooser (const char *scheme,
+                      const char *content_type)
 {
   /* We skip the app chooser for Internet URIs, to be open in the browser */
   if ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0))
@@ -377,7 +365,6 @@ can_skip_app_chooser (const char *scheme, const char *content_type)
 
   return FALSE;
 }
-
 
 static void
 find_recommended_choices (const char *scheme,
