@@ -58,3 +58,9 @@ by calling the _Cancel_ method on the request object.
 One consideration for deciding the shape of portal APIs is that we want them to 'hide' behind existing
 library APIs where possible, to make it as easy as possible to have apps use them _transparently_. For
 example, the OpenFile portal is working well as a backend for the GtkFileChooserNative API.
+
+When it comes to files, we need to be careful to not let portal apis subvert the limited filesystem view that
+apps have in their sandbox. Therefore, files should only be passed into portal APIs in one of two forms:
+- As a document ID referring to a file that has been exported in the document portal
+- As an open fd. The portal can work its way back to a file path from the fd, and passing an fd proves that
+  the app inside the sandbox has access to the file to open it.
