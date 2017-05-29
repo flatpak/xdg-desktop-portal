@@ -460,6 +460,7 @@ handle_open_in_thread_func (GTask *task,
   g_autofree char *scheme = NULL;
   g_autofree char *content_type = NULL;
   g_autofree char *latest_id = NULL;
+  g_autofree char *basename = NULL;
   gint latest_count;
   gint latest_threshold;
   gboolean always_ask;
@@ -569,6 +570,7 @@ handle_open_in_thread_func (GTask *task,
         }
 
       get_content_type_for_file (path, &content_type);
+      basename = g_path_get_basename (path);
 
       scheme = g_strdup ("file");
       uri = g_filename_to_uri (path, NULL, NULL);
@@ -607,6 +609,10 @@ handle_open_in_thread_func (GTask *task,
     }
 
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
+
+  g_variant_builder_add (&opts_builder, "{sv}", "content_type", g_variant_new_string (content_type));
+  if (basename)
+    g_variant_builder_add (&opts_builder, "{sv}", "filename", g_variant_new_string (basename));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,

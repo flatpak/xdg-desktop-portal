@@ -52,6 +52,15 @@
             <term>modal b</term>
             <listitem><para>Whether to make the dialog modal. Defaults to yes.</para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>content_type s</term>
+            <listitem><para>The content type to choose an application for.</para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>filename s</term>
+            <listitem><para>The filename to choose an application for. Note that this
+               is just a basename, without a path.</para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:
