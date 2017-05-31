@@ -495,6 +495,8 @@ handle_open_in_thread_func (GTask *task,
       g_autofree char *proc_path = NULL;
       int fd_flags;
       char path_buffer[PATH_MAX + 1];
+      g_autofree char *rewritten_path = NULL;
+      char *path;
       ssize_t symlink_size;
       struct stat st_buf;
 
@@ -520,7 +522,37 @@ handle_open_in_thread_func (GTask *task,
 
       path_buffer[symlink_size] = 0;
 
-      get_content_type_for_file (path_buffer, &content_type);
+      path = path_buffer;
+
+      if (request->app_info != NULL)
+        {
+          if (g_str_has_prefix (path, "/newroot/usr/"))
+            {
+              g_autofree char * usr_root =
+                g_key_file_get_string (request->app_info,
+                                       "Instance", "runtime-path", NULL);
+              if (usr_root)
+                {
+                  rewritten_path = g_build_filename (usr_root, path + strlen ("/newroot/usr/"), NULL);
+                  path = rewritten_path;
+                }
+            }
+          else if (g_str_has_prefix (path, "/newroot/app/"))
+            {
+              g_autofree char * app_root =
+                g_key_file_get_string (request->app_info,
+                                       "Instance", "app-path", NULL);
+              if (app_root)
+                {
+                  rewritten_path = g_build_filename (app_root, path + strlen ("/newroot/app/"), NULL);
+                  path = rewritten_path;
+                }
+            }
+          else if (g_str_has_prefix (path, "/newroot/"))
+            path = path + strlen ("/newroot");
+        }
+
+      get_content_type_for_file (path, &content_type);
 
       scheme = g_strdup ("file");
       uri = g_filename_to_uri (path, NULL, NULL);
