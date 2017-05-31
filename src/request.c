@@ -20,6 +20,7 @@
  */
 
 #include "request.h"
+#include "xdp-utils.h"
 
 #include <string.h>
 
@@ -117,6 +118,8 @@ request_finalize (GObject *object)
   g_free (request->sender);
   g_free (request->id);
   g_mutex_clear (&request->mutex);
+  if (request->app_info)
+    g_key_file_unref (request->app_info);
 
   G_OBJECT_CLASS (request_parent_class)->finalize (object);
 }
@@ -163,6 +166,7 @@ request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id)
   request = g_object_new (request_get_type (), NULL);
   request->app_id = g_strdup (app_id);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
+  request->app_info = xdp_invocation_lookup_cached_app_info (invocation);
 
   G_LOCK (requests);
 

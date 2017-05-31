@@ -218,6 +218,13 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   return app_id;
 }
 
+GKeyFile *
+xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation)
+{
+  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  return lookup_cached_app_info_by_sender (sender);
+}
+
 char *
 xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                    GCancellable          *cancellable,
