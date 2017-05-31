@@ -33,6 +33,8 @@ char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GError               **error);
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
 
+GKeyFile *xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation);
+
 typedef struct {
   const char *key;
   const GVariantType *type;

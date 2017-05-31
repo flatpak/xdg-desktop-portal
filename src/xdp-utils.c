@@ -29,15 +29,15 @@
 #include "xdp-utils.h"
 #include "request.h"
 
-G_LOCK_DEFINE (app_ids);
-static GHashTable *app_ids;
+G_LOCK_DEFINE (app_infos);
+static GHashTable *app_infos;
 
 static void
-ensure_app_ids (void)
+ensure_app_infos (void)
 {
-  if (app_ids == NULL)
-    app_ids = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                     g_free, g_free);
+  if (app_infos == NULL)
+    app_infos = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                       g_free, (GDestroyNotify)g_key_file_unref);
 }
 
 /* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
@@ -118,6 +118,17 @@ parse_app_info_from_fileinfo (int pid, GError **error)
   return g_steal_pointer (&metadata);
 }
 
+static char *
+xdp_get_app_id_from_info (GKeyFile *app_info,
+                          GError **error)
+{
+  const char *group = "Application";
+  if (g_key_file_has_group (app_info, "Runtime"))
+    group = "Runtime";
+
+  return g_key_file_get_string (app_info, group, "name", error);
+}
+
 char *
 xdp_get_app_id_from_pid (pid_t pid,
                          GError **error)
@@ -128,8 +139,26 @@ xdp_get_app_id_from_pid (pid_t pid,
   if (app_info == NULL)
     return NULL;
 
-  return g_key_file_get_string (app_info, "Application", "name", error);
+  return xdp_get_app_id_from_info (app_info, error);
 }
+
+static GKeyFile *
+lookup_cached_app_info_by_sender (const char *sender)
+{
+  GKeyFile *app_info = NULL;
+
+  G_LOCK (app_infos);
+  if (app_infos)
+    {
+      app_info = g_hash_table_lookup (app_infos, sender);
+      if (app_info)
+        g_key_file_ref (app_info);
+    }
+  G_UNLOCK (app_infos);
+
+  return app_info;
+}
+
 
 static char *
 xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
@@ -139,17 +168,14 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 {
   g_autoptr(GDBusMessage) msg = NULL;
   g_autoptr(GDBusMessage) reply = NULL;
+  g_autoptr(GKeyFile) app_info = NULL;
   char *app_id = NULL;
   GVariant *body;
   guint32 pid;
 
-  G_LOCK (app_ids);
-  if (app_ids)
-    app_id = g_strdup (g_hash_table_lookup (app_ids, sender));
-  G_UNLOCK (app_ids);
-
-  if (app_id != NULL)
-    return app_id;
+  app_info = lookup_cached_app_info_by_sender (sender);
+  if (app_info)
+    return xdp_get_app_id_from_info (app_info, error);
 
   msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
                                         "/org/freedesktop/DBus",
@@ -176,16 +202,27 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 
   g_variant_get (body, "(u)", &pid);
 
-  app_id = xdp_get_app_id_from_pid (pid, error);
+  app_info = parse_app_info_from_fileinfo (pid, error);
+  if (app_info == NULL)
+    return NULL;
+
+  app_id = xdp_get_app_id_from_info (app_info, error);
   if (app_id)
     {
-      G_LOCK (app_ids);
-      ensure_app_ids ();
-      g_hash_table_insert (app_ids, g_strdup (sender), g_strdup (app_id));
-      G_UNLOCK (app_ids);
+      G_LOCK (app_infos);
+      ensure_app_infos ();
+      g_hash_table_insert (app_infos, g_strdup (sender), g_key_file_ref (app_info));
+      G_UNLOCK (app_infos);
     }
 
   return app_id;
+}
+
+GKeyFile *
+xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation)
+{
+  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  return lookup_cached_app_info_by_sender (sender);
 }
 
 char *
@@ -216,10 +253,10 @@ name_owner_changed (GDBusConnection *connection,
       strcmp (name, from) == 0 &&
       strcmp (to, "") == 0)
     {
-      G_LOCK (app_ids);
-      if (app_ids)
-        g_hash_table_remove (app_ids, name);
-      G_UNLOCK (app_ids);
+      G_LOCK (app_infos);
+      if (app_infos)
+        g_hash_table_remove (app_infos, name);
+      G_UNLOCK (app_infos);
 
       close_requests_for_sender (name);
     }

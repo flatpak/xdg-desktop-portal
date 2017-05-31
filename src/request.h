@@ -36,6 +36,7 @@ struct _Request
   char *id;
   char *sender;
   GMutex mutex;
+  GKeyFile *app_info;
 
   XdpImplRequest *impl_request;
 };
