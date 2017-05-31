@@ -499,6 +499,7 @@ handle_open_in_thread_func (GTask *task,
       char *path;
       ssize_t symlink_size;
       struct stat st_buf;
+      struct stat real_st_buf;
 
       proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
 
@@ -550,6 +551,21 @@ handle_open_in_thread_func (GTask *task,
             }
           else if (g_str_has_prefix (path, "/newroot/"))
             path = path + strlen ("/newroot");
+
+          /* Verify that this is the same file as the app opened */
+          if (stat (path, &real_st_buf) < 0 ||
+              st_buf.st_dev != real_st_buf.st_dev ||
+              st_buf.st_ino != real_st_buf.st_ino)
+            {
+              /* Different files on the inside and the outside, reject the request */
+              if (request->exported)
+                {
+                  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+                  xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
+                  request_unexport (request);
+                }
+              return;
+            }
         }
 
       get_content_type_for_file (path, &content_type);
