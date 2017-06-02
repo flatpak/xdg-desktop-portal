@@ -1,0 +1,80 @@
+# Italian translation for xdg-desktop-portal.
+# Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Milo Casagrande <milo@milo.name>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2017-06-02 03:27+0000\n"
+"PO-Revision-Date: 2017-06-02 11:21+0200\n"
+"Language-Team: Italian <gnome-it-list@gnome.org>\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Last-Translator: Milo Casagrande <milo@milo.name>\n"
+"X-Generator: Poedit 1.8.12\n"
+
+#: src/device.c:202
+msgid "Turn On Microphone?"
+msgstr "Accendere il microfono?"
+
+#: src/device.c:203
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"L'accesso al microfono può essere modificato in qualsiasi momento attraverso "
+"le impostazioni della privacy."
+
+#: src/device.c:207
+msgid "An application wants to use your microphone."
+msgstr "Un'applicazione vuole utilizzare il microfono."
+
+#: src/device.c:209
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s vuole utilizzare il microfono."
+
+#: src/device.c:215
+msgid "Turn On Speakers?"
+msgstr "Accendere gli altoparlanti?"
+
+#: src/device.c:216
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"L'accesso al microfono può essere modificato in qualsiasi momento attraverso "
+"le impostazioni della privacy."
+
+#: src/device.c:220
+msgid "An application wants to play sound."
+msgstr "Un'applicazione vuole riprodurre un suono."
+
+#: src/device.c:222
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s vuole riprodurre un suono."
+
+#: src/device.c:228
+msgid "Turn On Camera?"
+msgstr "Accendere la videocamera?"
+
+#: src/device.c:229
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"L'accesso alla videocamera può essere modificato in qualsiasi momento "
+"attraverso le impostazioni della privacy."
+
+#: src/device.c:233
+msgid "An application wants to use your camera."
+msgstr "Un'applicazione vuole utilizzare la videocamera."
+
+#: src/device.c:235
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s vuole utilizzare la videocamera."
