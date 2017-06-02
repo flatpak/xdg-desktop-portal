@@ -64,3 +64,7 @@ apps have in their sandbox. Therefore, files should only be passed into portal A
 - As a document ID referring to a file that has been exported in the document portal
 - As an open fd. The portal can work its way back to a file path from the fd, and passing an fd proves that
   the app inside the sandbox has access to the file to open it.
+
+When it comes to processes, passing pids around is not useful in a sandboxed  world where apps are likely
+in their own pid namespace. And passing pids from inside the sandbox is problematic, since the app can just
+lie.
