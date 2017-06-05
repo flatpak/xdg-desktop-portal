@@ -1,3 +1,18 @@
+xdg-desktop-portal 0.7
+======================
+
+* In the OpenURI portal, send the content-type and filename to the appchooser
+
+* Stop handling file: uris in the OpenURI method of the OpenURI portal
+
+* Add an OpenFile method for local files to the OpenURI portal
+
+* Bug fixes in the notification portal
+
+* Translation updates:
+ Czech
+ Italian
+
 xdg-desktop-portal 0.6
 ======================
 
