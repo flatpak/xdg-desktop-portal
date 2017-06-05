@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-22 02:09+0200\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2017-06-05 18:01-0400\n"
 "PO-Revision-Date: 2016-07-30 15:55+0100\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -18,11 +18,11 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: src/device.c:191
+#: src/device.c:202
 msgid "Turn On Microphone?"
 msgstr "Mikrofon bekapcsolása?"
 
-#: src/device.c:192
+#: src/device.c:203
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -30,52 +30,51 @@ msgstr ""
 "A mikrofonhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:196
+#: src/device.c:207
 msgid "An application wants to use your microphone."
 msgstr "Egy alkalmazás használni szeretné a mikrofonját."
 
-#: src/device.c:198
+#: src/device.c:209
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s használni szeretné a mikrofonját."
 
-#: src/device.c:204
+#: src/device.c:215
 msgid "Turn On Speakers?"
 msgstr "Hangszórók bekapcsolása?"
 
-#: src/device.c:205
+#: src/device.c:216
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:209
+#: src/device.c:220
 msgid "An application wants to play sound."
 msgstr "Egy alkalmazás hangot szeretne lejátszani."
 
-#: src/device.c:211
+#: src/device.c:222
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s hangot szeretne lejátszani."
 
-#: src/device.c:217
+#: src/device.c:228
 msgid "Turn On Camera?"
 msgstr "Kamera bekapcsolása?"
 
-#: src/device.c:218
+#: src/device.c:229
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "A kamerához való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:222
+#: src/device.c:233
 msgid "An application wants to use your camera."
 msgstr "Egy alkalmazás használni szeretné a kameráját."
 
-#: src/device.c:224
+#: src/device.c:235
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s használni szeretné a kameráját."
-
