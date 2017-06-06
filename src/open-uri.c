@@ -573,8 +573,7 @@ handle_open_in_thread_func (GTask *task,
       basename = g_path_get_basename (path);
 
       scheme = g_strdup ("file");
-      uri = g_filename_to_uri (path, NULL, NULL);
-      g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
+      g_object_set_data_full (G_OBJECT (request), "uri", g_filename_to_uri (path, NULL, NULL), g_free);
     }
 
   find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
@@ -613,6 +612,8 @@ handle_open_in_thread_func (GTask *task,
   g_variant_builder_add (&opts_builder, "{sv}", "content_type", g_variant_new_string (content_type));
   if (basename)
     g_variant_builder_add (&opts_builder, "{sv}", "filename", g_variant_new_string (basename));
+  if (uri)
+    g_variant_builder_add (&opts_builder, "{sv}", "uri", g_variant_new_string (uri));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
