@@ -57,6 +57,10 @@
             <listitem><para>The content type to choose an application for.</para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>uri s</term>
+            <listitem><para>The uri to choose an application for.</para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>filename s</term>
             <listitem><para>The filename to choose an application for. Note that this
                is just a basename, without a path.</para></listitem>
