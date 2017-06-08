@@ -1,8 +1,5 @@
 prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
 datarootdir=@datarootdir@
-includedir=@includedir@
 datadir=@datadir@
 
 interfaces_dir=${datadir}/dbus-1/interfaces/
