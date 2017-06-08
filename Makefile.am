@@ -31,7 +31,7 @@ lib_LTLIBRARIES =
 include data/Makefile.am.inc
 include src/Makefile.am.inc
 
-pkgconfigdir = $(libdir)/pkgconfig
+pkgconfigdir = $(datadir)/pkgconfig
 pkgconfig_DATA = xdg-desktop-portal.pc
 EXTRA_DIST += xdg-desktop-portal.pc.in
 
