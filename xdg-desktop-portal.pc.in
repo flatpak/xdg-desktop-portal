@@ -1,8 +1,5 @@
 prefix=@prefix@
-exec_prefix=@exec_prefix@
-libdir=@libdir@
 datarootdir=@datarootdir@
-includedir=@includedir@
 datadir=@datadir@
 
 interfaces_dir=${datadir}/dbus-1/interfaces/
@@ -10,5 +7,3 @@ interfaces_dir=${datadir}/dbus-1/interfaces/
 Name: xdg-desktop-portal
 Description: Desktop integration portal
 Version: @VERSION@
-Requires: glib-2.0 gio-2.0 flatpak
-Requires.private: gio-unix-2.0
