@@ -83,7 +83,7 @@ src/xdg-desktop-resources.c: src/xdg-desktop-portal.gresource.xml $(xdg_desktop_
 
 EXTRA_DIST += src/xdg-desktop-portal.gresource.xml
 
-DISTCLEANFILES += \
+CLEANFILES += \
 	$(nodist_xdg_desktop_portal_SOURCES) \
 	$(NULL)
 
