@@ -84,13 +84,13 @@ src/xdg-desktop-resources.c: src/xdg-desktop-portal.gresource.xml $(xdg_desktop_
 EXTRA_DIST += src/xdg-desktop-portal.gresource.xml
 
 DISTCLEANFILES += \
-	$(xdp_dbus_built_sources)		\
-	$(xdp_impl_dbus_built_sources)		\
+	$(nodist_xdg_desktop_portal_SOURCES) \
 	$(NULL)
 
 nodist_xdg_desktop_portal_SOURCES = \
 	$(xdp_dbus_built_sources)		\
 	$(xdp_impl_dbus_built_sources)		\
+	src/xdg-desktop-resources.c		\
 	$(NULL)
 
 xdg_desktop_portal_SOURCES = \
@@ -125,7 +125,6 @@ xdg_desktop_portal_SOURCES = \
         src/email.h                     \
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
-	src/xdg-desktop-resources.c	\
 	$(NULL)
 
 xdg_desktop_portal_LDADD = $(BASE_LIBS)
