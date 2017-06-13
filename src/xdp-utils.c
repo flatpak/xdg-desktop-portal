@@ -25,6 +25,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/apparmor.h>
 
 #include "xdp-utils.h"
 #include "request.h"
@@ -118,6 +119,49 @@ parse_app_info_from_fileinfo (int pid, GError **error)
   return g_steal_pointer (&metadata);
 }
 
+static GKeyFile *
+parse_app_info_from_security_label (const char *security_label)
+{
+  static int apparmor_enabled = -1;
+  g_autofree char *security_label_copy = NULL;
+  char *label, *dot;
+  g_autofree char *snap_name = NULL;
+  g_autofree char *app_id = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+
+  if (apparmor_enabled < 0)
+    apparmor_enabled = aa_is_enabled();
+
+  /* Snap confinement requires AppArmor */
+  if (!apparmor_enabled)
+    return NULL;
+
+  /* Parse the security label as an AppArmor context.  We take a copy
+   * of the string because aa_splitcon modifies its argument. */
+  security_label_copy = g_strdup (security_label);
+  label = aa_splitcon (security_label_copy, NULL);
+  if (!label)
+    return NULL;
+
+  /* If the label belongs to a snap, it will be of the form
+   * snap.$PACKAGE.$APPLICATION.  We want to extract the package
+   * name */
+  if (!g_str_has_prefix (label, "snap."))
+    return NULL;
+
+  label += 5;
+  dot = strchr (label, '.');
+  if (!dot)
+    return NULL;
+  snap_name = g_strndup (label, dot - label);
+  app_id = g_strconcat ("snap.pkg.", snap_name, NULL);
+
+  metadata = g_key_file_new ();
+  g_key_file_set_value (metadata, "Application", "name", app_id);
+
+  return g_steal_pointer (&metadata);
+}
+
 static char *
 xdp_get_app_id_from_info (GKeyFile *app_info,
                           GError **error)
@@ -171,7 +215,11 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   g_autoptr(GKeyFile) app_info = NULL;
   char *app_id = NULL;
   GVariant *body;
-  guint32 pid;
+  g_autoptr(GVariantIter) iter = NULL;
+  const char *key;
+  GVariant *value;
+  g_autofree char *security_label = NULL;
+  guint32 pid = 0;
 
   app_info = lookup_cached_app_info_by_sender (sender);
   if (app_info)
@@ -180,7 +228,7 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
                                         "/org/freedesktop/DBus",
                                         "org.freedesktop.DBus",
-                                        "GetConnectionUnixProcessID");
+                                        "GetConnectionCredentials");
   g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
 
   reply = g_dbus_connection_send_message_with_reply_sync (connection, msg,
@@ -200,9 +248,24 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 
   body = g_dbus_message_get_body (reply);
 
-  g_variant_get (body, "(u)", &pid);
+  g_variant_get (body, "(a{sv})", &iter);
+  while (g_variant_iter_loop (iter, "{&sv}", &key, &value))
+    {
+      if (strcmp (key, "ProcessID") == 0)
+        pid = g_variant_get_uint32 (value);
+      else if (strcmp (key, "LinuxSecurityLabel") == 0)
+        {
+          g_clear_pointer (&security_label, g_free);
+          security_label = g_variant_dup_bytestring (value, NULL);
+        }
+    }
 
-  app_info = parse_app_info_from_fileinfo (pid, error);
+  if (security_label != NULL)
+    app_info = parse_app_info_from_security_label (security_label);
+
+  if (app_info == NULL)
+    app_info = parse_app_info_from_fileinfo (pid, error);
+
   if (app_info == NULL)
     return NULL;
 
