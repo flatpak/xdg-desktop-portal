@@ -153,6 +153,8 @@ handle_compose_email (XdpEmail *object,
   xdp_filter_options (arg_options, &options,
                       compose_email_options, G_N_ELEMENTS (compose_email_options));
 
+  xdp_email_complete_compose_email (object, invocation, request->id);
+
   xdp_impl_email_call_compose_email (impl,
                                      request->id,
                                      app_id,
@@ -161,8 +163,6 @@ handle_compose_email (XdpEmail *object,
                                      NULL,
                                      compose_email_done,
                                      g_object_ref (request));
-
-  xdp_email_complete_compose_email (object, invocation, request->id);
 
   return TRUE;
 }
