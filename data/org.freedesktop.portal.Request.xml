@@ -34,6 +34,21 @@
 
       The application can abort the interaction calling
       org.freedesktop.portal.Request.Close() on the Request object.
+
+      Since version 0.9 of xdg-desktop-portal, the handle will be of the form
+       /org/freedesktop/portal/desktop/request/SENDER/TOKEN,
+      where SENDER is the callers unique name, with the initial ':' removed and
+      all '.' replaced by '_', and TOKEN is a unique token that the caller provided.
+
+      This change was made to let applications subscribe to the Response signal before
+      making the initial portal call, thereby avoiding a race condition. It is recommended
+      that the caller should verify that the returned handle is what it expected, and update
+      its signal subscription if it isn't. This ensures that applications will work with both
+      old and new versions of xdg-desktop-portal.
+
+      The token that the caller provides should be unique and not guessable. To avoid clashes
+      with calls made from unrelated libraries, it is a good idea to use a per-library prefix
+      combined with a random number.
   -->
   <interface name="org.freedesktop.portal.Request">
 

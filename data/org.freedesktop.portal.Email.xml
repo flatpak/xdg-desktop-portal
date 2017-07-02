@@ -25,6 +25,8 @@
 
       This simple portal lets sandboxed applications request to send an email,
       optionally providing an address, subject, body and attachments.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Email">
     <!--
@@ -40,6 +42,14 @@
 
         Supported keys in the @options vardict include:
         <variablelist>
+          <varlistentry>
+            <term>token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
           <varlistentry>
             <term>address s</term>
             <listitem><para>

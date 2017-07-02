@@ -40,6 +40,8 @@
       actions are activated by sending the
       #org.freedeskop.portal.Notification::ActionInvoked signal
       to the application.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Notification">
     <!--

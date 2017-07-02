@@ -25,6 +25,8 @@
 
       This simple interface lets sandboxed applications query basic
       information about the user, like his name and avatar photo.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Account">
     <!--
@@ -36,6 +38,14 @@
 
         Supported keys in the @options vardict include:
         <variablelist>
+          <varlistentry>
+            <term>token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
           <varlistentry>
             <term>reason s</term>
             <listitem><para>
