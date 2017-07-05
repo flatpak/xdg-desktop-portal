@@ -223,7 +223,7 @@ get_token (GDBusMethodInvocation *invocation)
     }
   else
     {
-      g_print ("Support for %s missing in " __FILE__ ", get_tokens()", interface);
+      g_print ("Support for %s missing in " G_STRLOC, interface);
     }
 
   if (options)
