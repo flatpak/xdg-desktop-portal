@@ -62,14 +62,6 @@
         Supported keys in the @options vardict:
         <variablelist>
           <varlistentry>
-            <term>token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
             <term>modal b</term>
             <listitem><para>
               Whether to make the dialog modal. Defaults to yes.

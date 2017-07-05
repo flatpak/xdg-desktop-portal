@@ -208,9 +208,7 @@ get_token (GDBusMethodInvocation *invocation)
     }
   else if (strcmp (interface, "org.freedesktop.portal.Print") == 0)
     {
-      if (strcmp (method, "Print") == 0)
-        options = g_variant_get_child_value (parameters, 3);
-      else if (strcmp (method, "PreparePrint") == 0)
+      if (strcmp (method, "PreparePrint") == 0)
         options = g_variant_get_child_value (parameters, 4);
     }
   else if (strcmp (interface, "org.freedesktop.portal.ProxyResolver") == 0)
