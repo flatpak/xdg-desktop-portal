@@ -160,6 +160,10 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
  * in the parameters for each request. Instead of inventing some
  * complicated mechanism for each implementation to provide that
  * information, just hardcode it here for now.
+ *
+ * Note that the pointer returned by this function is good to use
+ * as long as the invocation object exists, since it points at data
+ * in the parameters variant.
  */
 static const char *
 get_token (GDBusMethodInvocation *invocation)
