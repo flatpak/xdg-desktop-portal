@@ -26,6 +26,8 @@
        The OpenURI portal allows sandboxed applications to open
        URIs (e.g. a http: link to the applications homepage)
        under the control of the user.
+
+       This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
@@ -45,6 +47,14 @@
 
         Supported keys in the @options vardict include:
         <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
           <varlistentry>
             <term>writable b</term>
             <listitem><para>
@@ -79,6 +89,14 @@
 
         Supported keys in the @options vardict include:
         <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
           <varlistentry>
             <term>writable b</term>
             <listitem><para>

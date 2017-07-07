@@ -26,6 +26,8 @@
       applications. It is not a portal in the strict sense, since it does not involve
       user interaction. Applications are expected to use this interface indirectly,
       via a library API such as the GLib GProxyResolver interface.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
