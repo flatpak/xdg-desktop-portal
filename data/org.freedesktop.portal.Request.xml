@@ -38,7 +38,8 @@
       Since version 0.9 of xdg-desktop-portal, the handle will be of the form
        /org/freedesktop/portal/desktop/request/SENDER/TOKEN,
       where SENDER is the callers unique name, with the initial ':' removed and
-      all '.' replaced by '_', and TOKEN is a unique token that the caller provided.
+      all '.' replaced by '_', and TOKEN is a unique token that the caller provided
+      with the handle_token key in the options vardict.
 
       This change was made to let applications subscribe to the Response signal before
       making the initial portal call, thereby avoiding a race condition. It is recommended
