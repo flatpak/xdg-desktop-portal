@@ -32,6 +32,7 @@
     <!--
         GetUserInformation:
         @window: Identifier for the window
+        @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Gets information about the user.
