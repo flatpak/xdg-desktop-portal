@@ -317,3 +317,71 @@ xdg_desktop_portal_error_quark (void)
   return (GQuark) quark_volatile;
 }
 
+char *
+xdp_get_path_for_fd (GKeyFile *app_info,
+                     int fd)
+{
+  g_autofree char *proc_path = NULL;
+  int fd_flags;
+  char path_buffer[PATH_MAX + 1];
+  g_autofree char *rewritten_path = NULL;
+  char *path;
+  ssize_t symlink_size;
+  struct stat st_buf;
+  struct stat real_st_buf;
+
+  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
+
+  if (fd == -1 ||
+      (fd_flags = fcntl (fd, F_GETFL)) == 0 ||
+      ((fd_flags & O_PATH) != O_PATH) ||
+      ((fd_flags & O_NOFOLLOW) == O_NOFOLLOW) ||
+      fstat (fd, &st_buf) < 0 ||
+      (st_buf.st_mode & S_IFMT) != S_IFREG ||
+      (symlink_size = readlink (proc_path, path_buffer, PATH_MAX)) < 0)
+    {
+      return NULL;
+    }
+
+  path_buffer[symlink_size] = 0;
+  path = path_buffer;
+
+  if (app_info != NULL)
+    {
+      if (g_str_has_prefix (path, "/newroot/usr/"))
+        {
+          g_autofree char *usr_root = NULL;
+
+          usr_root = g_key_file_get_string (app_info, "Instance", "runtime-path", NULL);
+          if (usr_root)
+            {
+              rewritten_path = g_build_filename (usr_root, path + strlen ("/newroot/usr/"), NULL);
+              path = rewritten_path;
+            }
+        }
+      else if (g_str_has_prefix (path, "/newroot/app/"))
+        {
+          g_autofree char *app_root = NULL;
+
+          app_root = g_key_file_get_string (app_info, "Instance", "app-path", NULL);
+          if (app_root)
+            {
+              rewritten_path = g_build_filename (app_root, path + strlen ("/newroot/app/"), NULL);
+              path = rewritten_path;
+            }
+        }
+      else if (g_str_has_prefix (path, "/newroot/"))
+        path = path + strlen ("/newroot");
+
+      /* Verify that this is the same file as the app opened */
+      if (stat (path, &real_st_buf) < 0 ||
+          st_buf.st_dev != real_st_buf.st_dev ||
+          st_buf.st_ino != real_st_buf.st_ino)
+        {
+          /* Different files on the inside and the outside, reject the request */
+          return NULL;
+        }
+    }
+
+  return g_strdup (path);
+}
