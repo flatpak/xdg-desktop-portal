@@ -117,13 +117,13 @@ compose_email_done (GObject *source,
 static XdpOptionKey compose_email_options[] = {
   { "address", G_VARIANT_TYPE_STRING },
   { "subject", G_VARIANT_TYPE_STRING },
-  { "body", G_VARIANT_TYPE_STRING },
-  { "attachments", G_VARIANT_TYPE_STRING_ARRAY },
+  { "body", G_VARIANT_TYPE_STRING }
 };
 
 static gboolean
 handle_compose_email (XdpEmail *object,
                       GDBusMethodInvocation *invocation,
+                      GUnixFDList *fd_list,
                       const gchar *arg_parent_window,
                       GVariant *arg_options)
 {
@@ -132,6 +132,7 @@ handle_compose_email (XdpEmail *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
+  g_autoptr(GVariant) attachment_fds = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -146,14 +147,43 @@ handle_compose_email (XdpEmail *object,
       return TRUE;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
-
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+
+  attachment_fds = g_variant_lookup_value (arg_options, "attachment_fds", G_VARIANT_TYPE ("ah"));
+  if (attachment_fds)
+    {
+      GVariantBuilder attachments;
+      int i;
+
+      g_variant_builder_init (&attachments, G_VARIANT_TYPE_STRING_ARRAY);
+      for (i = 0; i < g_variant_n_children (attachment_fds); i++)
+        {
+          g_autofree char *path = NULL;
+          int fd_id;
+          int fd;
+
+          g_variant_get_child (attachment_fds, i, "h", &fd_id);
+          fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+          if (fd == -1)
+            {
+              g_dbus_method_invocation_return_gerror (invocation, error);
+              return TRUE;
+            }
+
+          path = xdp_get_path_for_fd (request->app_info, fd);
+          g_variant_builder_add (&attachments, "s", path);
+        }
+
+      g_variant_builder_add (&options, "{sv}", "attachments", g_variant_builder_end (&attachments));
+    }
+
   xdp_filter_options (arg_options, &options,
                       compose_email_options, G_N_ELEMENTS (compose_email_options));
 
-  xdp_email_complete_compose_email (object, invocation, request->id);
+  request_set_impl_request (request, impl_request);
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_email_complete_compose_email (object, invocation, NULL, request->id);
 
   xdp_impl_email_call_compose_email (impl,
                                      request->id,
@@ -176,7 +206,7 @@ email_iface_init (XdpEmailIface *iface)
 static void
 email_init (Email *email)
 {
-  xdp_email_set_version (XDP_EMAIL (email), 1);
+  xdp_email_set_version (XDP_EMAIL (email), 2);
 }
 
 static void
