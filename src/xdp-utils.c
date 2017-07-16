@@ -326,7 +326,7 @@ xdp_get_path_for_fd (GKeyFile *app_info,
   char path_buffer[PATH_MAX + 1];
   g_autofree char *rewritten_path = NULL;
   char *path;
-  ssize_t symlink_size;
+  ssize_t symlink_size = 0;
   struct stat st_buf;
   struct stat real_st_buf;
 
