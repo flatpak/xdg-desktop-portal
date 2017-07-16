@@ -58,3 +58,6 @@ typedef enum {
 #define XDG_DESKTOP_PORTAL_ERROR xdg_desktop_portal_error_quark ()
 
 GQuark  xdg_desktop_portal_error_quark (void);
+
+char *xdp_get_path_for_fd (GKeyFile *app_info,
+                           int fd);

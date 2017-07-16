@@ -26,7 +26,7 @@
       This simple portal lets sandboxed applications request to send an email,
       optionally providing an address, subject, body and attachments.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Email">
     <!--
@@ -69,9 +69,9 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>attachments as</term>
+            <term>attachment_fds ah</term>
             <listitem><para>
-              The uris for files to attach.
+              File descriptors for files to attach.
             </para></listitem>
           </varlistentry>
         </variablelist>
