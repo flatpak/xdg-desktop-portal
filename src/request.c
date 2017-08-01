@@ -172,7 +172,7 @@ get_token (GDBusMethodInvocation *invocation)
   const char *method;
   GVariant *parameters;
   g_autoptr(GVariant) options = NULL;
-  const char *token;
+  const char *token = NULL;
 
   interface = g_dbus_method_invocation_get_interface_name (invocation);
   method = g_dbus_method_invocation_get_method_name (invocation);
