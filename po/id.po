@@ -1,0 +1,76 @@
+# Indonesian translation for xdg-desktop-portal.
+# Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Kukuh Syafaat <syafaatkukuh@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2017-08-18 03:27+0000\n"
+"PO-Revision-Date: 2017-08-18 19:48+0700\n"
+"Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
+"Language: id\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Last-Translator: Kukuh Syafaat <syafaatkukuh@gmail.com>\n"
+"X-Generator: Poedit 2.0.3\n"
+
+#: src/device.c:202
+msgid "Turn On Microphone?"
+msgstr "Menyalakan Mikrofon?"
+
+#: src/device.c:203
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Akses ke mikrofon Anda dapat diubah sewaktu-waktu dari pengaturan privasi."
+
+#: src/device.c:207
+msgid "An application wants to use your microphone."
+msgstr "Aplikasi ingin menggunakan mikrofon Anda."
+
+#: src/device.c:209
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s ingin menggunakan mikrofon Anda."
+
+#: src/device.c:215
+msgid "Turn On Speakers?"
+msgstr "Menyalakan Speaker?"
+
+#: src/device.c:216
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Akses ke speaker Anda dapat berubah sewaktu-waktu dari pengaturan privasi."
+
+#: src/device.c:220
+msgid "An application wants to play sound."
+msgstr "Aplikasi ingin memutar suara."
+
+#: src/device.c:222
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s ingin memutar suara"
+
+#: src/device.c:228
+msgid "Turn On Camera?"
+msgstr "Menyalakan Kamera?"
+
+#: src/device.c:229
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"Akses ke kamera Anda dapat diubah sewaktu-waktu dari pengaturan privasi."
+
+#: src/device.c:233
+msgid "An application wants to use your camera."
+msgstr "Aplikasi ingin menggunakan kamera Anda."
+
+#: src/device.c:235
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s ingin menggunakan kamera Anda."
