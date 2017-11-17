@@ -1,3 +1,18 @@
+xdg-desktop-portal 0.9
+======================
+
+* Install pkg-config files into datadir
+
+* Avoid a race in the portal APIs
+
+* Change the email portal to take fds
+
+* Translation updates
+ Galicican
+ Indonesian
+ Turkish
+
+
 xdg-desktop-portal 0.8
 ======================
 
