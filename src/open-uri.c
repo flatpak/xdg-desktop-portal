@@ -512,7 +512,8 @@ handle_open_in_thread_func (GTask *task,
       basename = g_path_get_basename (path);
 
       scheme = g_strdup ("file");
-      g_object_set_data_full (G_OBJECT (request), "uri", g_filename_to_uri (path, NULL, NULL), g_free);
+      uri = g_filename_to_uri (path, NULL, NULL);
+      g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
     }
 
   find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
