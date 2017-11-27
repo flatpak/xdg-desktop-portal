@@ -24,6 +24,7 @@ FLATPAK_IMPL_IFACE_FILES =\
 
 PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Request.xml \
+	data/org.freedesktop.portal.Session.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
@@ -39,6 +40,7 @@ PORTAL_IFACE_FILES =\
 
 PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Request.xml \
+	data/org.freedesktop.impl.portal.Session.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \
 	data/org.freedesktop.impl.portal.AppChooser.xml \
 	data/org.freedesktop.impl.portal.Print.xml \
@@ -120,6 +122,8 @@ xdg_desktop_portal_SOURCES = \
         src/permissions.h               \
         src/email.c                     \
         src/email.h                     \
+	src/session.c			\
+	src/session.h			\
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	$(NULL)

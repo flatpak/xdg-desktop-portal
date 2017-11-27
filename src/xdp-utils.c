@@ -28,6 +28,7 @@
 
 #include "xdp-utils.h"
 #include "request.h"
+#include "session.h"
 
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_infos;
@@ -259,6 +260,7 @@ name_owner_changed (GDBusConnection *connection,
       G_UNLOCK (app_infos);
 
       close_requests_for_sender (name);
+      close_sessions_for_sender (name);
     }
 }
 
