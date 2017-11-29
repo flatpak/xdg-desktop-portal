@@ -63,6 +63,15 @@ PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0])
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 
+AC_ARG_ENABLE(pipewire,
+	      [AS_HELP_STRING([--enable-pipewire],[Enable PipeWire support. Needed for screen cast portal])],
+	      enable_pipewire=$enableval, enable_pipewire=yes)
+if test x$enable_pipewire = xyes ; then
+	PKG_CHECK_MODULES(PIPEWIRE, [libpipewire-0.1 >= 0.1.8])
+	AC_DEFINE([HAVE_PIPEWIRE],[1], [Define to enable PipeWire support])
+fi
+AM_CONDITIONAL([HAVE_PIPEWIRE],[test "$enable_pipewire" = "yes"])
+
 PKG_CHECK_EXISTS([flatpak],
                  [AC_SUBST([FLATPAK_INTERFACES_DIR],
                            [`$PKG_CONFIG --variable=interfaces_dir flatpak`])],

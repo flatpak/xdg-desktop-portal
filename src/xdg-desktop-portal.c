@@ -44,6 +44,7 @@
 #include "device.h"
 #include "account.h"
 #include "email.h"
+#include "screen-cast.h"
 
 static GMainLoop *loop = NULL;
 
@@ -277,7 +278,23 @@ find_portal_implementation (const char *interface)
 static gboolean
 method_needs_request (GDBusMethodInvocation *invocation)
 {
-  return TRUE;
+  const char *interface;
+  const char *method;
+
+  interface = g_dbus_method_invocation_get_interface_name (invocation);
+  method = g_dbus_method_invocation_get_method_name (invocation);
+
+  if (strcmp (interface, "org.freedesktop.portal.ScreenCast") == 0)
+    {
+      if (strcmp (method, "OpenPipeWireRemote") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
+  else
+    {
+      return TRUE;
+    }
 }
 
 static gboolean
@@ -389,6 +406,13 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   email_create (connection, implementation->dbus_name));
+
+#if HAVE_PIPEWIRE
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  screen_cast_create (connection, implementation->dbus_name));
+#endif
 }
 
 static void
