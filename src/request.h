@@ -24,6 +24,12 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 
+typedef enum {
+  XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS = 0,
+  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED,
+  XDG_DESKTOP_PORTAL_RESPONSE_OTHER
+} XdgDesktopPortalResponseEnum;
+
 typedef struct _Request Request;
 typedef struct _RequestClass RequestClass;
 
