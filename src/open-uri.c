@@ -485,7 +485,9 @@ handle_open_in_thread_func (GTask *task,
           if (request->exported)
             {
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-              xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
+              xdp_request_emit_response (XDP_REQUEST (request),
+                                         XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                         g_variant_builder_end (&opts_builder));
               request_unexport (request);
             }
           return;
@@ -502,7 +504,9 @@ handle_open_in_thread_func (GTask *task,
           if (request->exported)
             {
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-              xdp_request_emit_response (XDP_REQUEST (request), 2, g_variant_builder_end (&opts_builder));
+              xdp_request_emit_response (XDP_REQUEST (request),
+                                         XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                         g_variant_builder_end (&opts_builder));
               request_unexport (request);
             }
           return;

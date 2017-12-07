@@ -267,7 +267,7 @@ handle_access_microphone_in_thread (GTask *task,
 
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       xdp_request_emit_response (XDP_REQUEST (request),
-                                 allowed ? 0 : 1,
+                                 allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED,
                                  g_variant_builder_end (&results));
       request_unexport (request);
     }
