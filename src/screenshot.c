@@ -136,7 +136,8 @@ screenshot_done (GObject *source,
 }
 
 static XdpOptionKey screenshot_options[] = {
-  { "modal", G_VARIANT_TYPE_BOOLEAN }
+  { "modal", G_VARIANT_TYPE_BOOLEAN },
+  { "interactive", G_VARIANT_TYPE_BOOLEAN }
 };
 
 static gboolean

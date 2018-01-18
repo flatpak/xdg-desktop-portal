@@ -48,6 +48,13 @@
               Whether the dialog should be modal. Defaults to yes.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>interactive b</term>
+            <listitem><para>
+              Hint whether the dialog should offer customization before taking a screenshot.
+              Defaults to no.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:

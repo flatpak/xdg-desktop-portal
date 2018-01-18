@@ -29,7 +29,7 @@
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
@@ -57,6 +57,13 @@
             <term>modal b</term>
             <listitem><para>
               Whether the dialog should be modal. Default is yes.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>interactive b</term>
+            <listitem><para>
+              Hint shether the dialog should offer customization before taking a screenshot.
+              Default is no. Since version 2.
             </para></listitem>
           </varlistentry>
         </variablelist>
