@@ -18,6 +18,7 @@
 
 #include "session.h"
 #include "request.h"
+#include "call.h"
 
 #include <string.h>
 
@@ -81,6 +82,30 @@ acquire_session (const char *session_handle,
     return NULL;
 
   if (g_strcmp0 (session->app_id, request->app_id) != 0)
+    return NULL;
+
+  return g_steal_pointer (&session);
+}
+
+Session *
+acquire_session_from_call (const char *session_handle,
+                           Call *call)
+{
+  g_autoptr(Session) session = NULL;
+
+  G_LOCK (sessions);
+  session = g_hash_table_lookup (sessions, session_handle);
+  if (session)
+    g_object_ref (session);
+  G_UNLOCK (sessions);
+
+  if (!session)
+    return NULL;
+
+  if (g_strcmp0 (session->sender, call->sender) != 0)
+    return NULL;
+
+  if (g_strcmp0 (session->app_id, call->app_id) != 0)
     return NULL;
 
   return g_steal_pointer (&session);

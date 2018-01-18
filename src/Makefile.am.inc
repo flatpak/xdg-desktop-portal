@@ -116,6 +116,8 @@ xdg_desktop_portal_SOURCES = \
         src/account.h                   \
 	src/request.c			\
 	src/request.h			\
+	src/call.c			\
+	src/call.h			\
         src/documents.c                 \
         src/documents.h                 \
         src/permissions.c               \

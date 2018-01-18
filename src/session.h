@@ -19,6 +19,7 @@
 #pragma once
 
 #include "request.h"
+#include "call.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 
@@ -62,6 +63,9 @@ const char * lookup_session_token (GVariant *options);
 
 Session * acquire_session (const char *session_handle,
                            Request *request);
+
+Session * acquire_session_from_call (const char *session_handle,
+                                     Call *call);
 
 void session_register (Session *session);
 

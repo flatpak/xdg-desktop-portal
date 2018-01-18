@@ -30,6 +30,7 @@
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "request.h"
+#include "call.h"
 #include "documents.h"
 #include "permissions.h"
 #include "file-chooser.h"
@@ -274,6 +275,12 @@ find_portal_implementation (const char *interface)
 }
 
 static gboolean
+method_needs_request (GDBusMethodInvocation *invocation)
+{
+  return TRUE;
+}
+
+static gboolean
 authorize_callback (GDBusInterfaceSkeleton *interface,
                     GDBusMethodInvocation  *invocation,
                     gpointer                user_data)
@@ -292,7 +299,10 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
       return FALSE;
     }
 
-  request_init_invocation (invocation, app_id);
+  if (method_needs_request (invocation))
+    request_init_invocation (invocation, app_id);
+  else
+    call_init_invocation (invocation, app_id);
 
   return TRUE;
 }
