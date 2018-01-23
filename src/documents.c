@@ -55,6 +55,7 @@ register_document (const char *uri,
                    GError **error)
 {
   g_autofree char *doc_id = NULL;
+  g_auto(GStrv) doc_ids = NULL;
   g_autofree char *path = NULL;
   g_autofree char *basename = NULL;
   g_autofree char *dirname = NULL;
@@ -66,6 +67,8 @@ register_document (const char *uri,
   g_autofree char *fuse_path = NULL;
   g_autofree char *doc_path = NULL;
   int i;
+  int version;
+  gboolean handled_permissions = FALSE;
 
   if (app_id == NULL || *app_id == 0)
     return g_strdup (uri);
@@ -86,7 +89,7 @@ register_document (const char *uri,
                    "Failed to open %s", uri);
       return NULL;
     }
- fd_list = g_unix_fd_list_new ();
+  fd_list = g_unix_fd_list_new ();
   fd_in = g_unix_fd_list_append (fd_list, fd, error);
   close (fd);
 
@@ -100,6 +103,8 @@ register_document (const char *uri,
   permissions[i++] = "grant-permissions";
   permissions[i++] = NULL;
 
+  version = xdp_documents_get_version (documents);
+
   if (for_save)
     ret = xdp_documents_call_add_named_sync (documents,
                                              g_variant_new_handle (fd_in),
@@ -112,27 +117,59 @@ register_document (const char *uri,
                                              NULL,
                                              error);
   else
-    ret = xdp_documents_call_add_sync (documents,
-                                       g_variant_new_handle (fd_in),
-                                       TRUE,
-                                       TRUE,
-                                       fd_list,
-                                       &doc_id,
-                                       NULL,
-                                       NULL,
-                                       error);
+    {
+      if (version >= 2)
+        {
+          ret = xdp_documents_call_add_full_sync (documents,
+                                                  g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),
+                                                  7,
+                                                  app_id,
+                                                  permissions,
+                                                  fd_list,
+                                                  &doc_ids,
+                                                  NULL,
+                                                  NULL,
+                                                  NULL,
+                                                  error);
+          handled_permissions = TRUE;
+        }
+      else
+        ret = xdp_documents_call_add_sync (documents,
+                                           g_variant_new_handle (fd_in),
+                                           TRUE,
+                                           TRUE,
+                                           fd_list,
+                                           &doc_id,
+                                           NULL,
+                                           NULL,
+                                           error);
+    }
+
   g_object_unref (fd_list);
 
   if (!ret)
     return NULL;
 
-  if (!xdp_documents_call_grant_permissions_sync (documents,
-                                                  doc_id,
-                                                  app_id,
-                                                  permissions,
-                                                  NULL,
-                                                  error))
-    return NULL;
+  if (doc_ids && doc_ids[0]) {
+      doc_id = g_strdup (doc_ids[0]);
+  }
+
+  if (!handled_permissions)
+    {
+      if (!xdp_documents_call_grant_permissions_sync (documents,
+                                                      doc_id,
+                                                      app_id,
+                                                      permissions,
+                                                      NULL,
+                                                      error))
+        return NULL;
+    }
+
+  if (!g_strcmp0 (doc_id, ""))
+    {
+      doc_path = g_build_filename (path, NULL);
+      return g_filename_to_uri (doc_path, NULL, NULL);
+    }
 
   doc_path = g_build_filename (documents_mountpoint, doc_id, basename, NULL);
   return g_filename_to_uri (doc_path, NULL, NULL);
