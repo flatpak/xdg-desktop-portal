@@ -84,6 +84,7 @@
         </variablelist>
     -->
     <method name="Print">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
       <arg type="h" name="fd" direction="in"/>
