@@ -1,0 +1,323 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2017-2018 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.RemoteDesktop:
+      @short_description: Remote desktop portal
+  -->
+  <interface name="org.freedesktop.impl.portal.RemoteDesktop">
+    <!--
+        CreateSession:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Create a remote desktop session.
+
+        A remote desktop session is used to allow remote controlling a desktop
+        session. It can also be used together with a screen cast session (see
+        org.freedesktop.portal.ScreenCast), but may only be started and stopped
+        with this interface.
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>session s</term>
+            <listitem><para>
+              The session id. A string representing the created screen cast session.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="CreateSession">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <method name="SelectDevices">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <!--
+        Start:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: App id of the application
+        @parent_window: Identifier for the application window
+        @session: Identifier for the remote desktop session
+        @parent_window: Identifier for the application window
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        The @parent_window identifier must be of the form "x11:$XID" for an X11
+        window. Support for other window systems may be added in the future.
+
+        Start the remote desktop session.
+    -->
+    <method name="Start">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <!--
+        NotifyPointerMotion:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @dx: Relative movement on the x axis
+        @dy: Relative movement on the y axis
+
+        Notify about a new relative pointer motion event. The (dx, dy) vector
+        represents the new pointer position in the streams logical coordinate
+        space.
+    -->
+    <method name="NotifyPointerMotion">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="d" name="dx" direction="in"/>
+      <arg type="d" name="dy" direction="in"/>
+    </method>
+    <!--
+        NotifyPointerMotionAbsolute:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @stream: The PipeWire stream node the coordinate is relative to
+        @x: Pointer motion x coordinate
+        @y: Pointer motion y coordinate
+
+        Notify about a new absolute pointer motion event. The (x, y) position
+        represents the new pointer position in the streams logical coordinate
+        space (see the logical_size stream property in
+        #org.freedesktop.portal.ScreenCast).
+    -->
+    <method name="NotifyPointerMotionAbsolute">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="stream" direction="in"/>
+      <arg type="d" name="x" direction="in"/>
+      <arg type="d" name="y" direction="in"/>
+    </method>
+    <!--
+        NotifyPointerButton:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @button: The pointer button was pressed or released
+        @state: The new state of the button
+
+        The pointer button is encoded according to Linux Evdev button codes.
+
+        May only be called if POINTER access was provided after starting the
+        session.
+
+        Available button states:
+        <simplelist>
+          <member>0: Released</member>
+          <member>1: Pressed</member>
+        </simplelist>
+    -->
+    <method name="NotifyPointerButton">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="i" name="button" direction="in"/>
+      <arg type="u" name="state" direction="in"/>
+    </method>
+    <!--
+        NotifyPointerAxis:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @dx: Relative axis movement on the x axis
+        @dy: Relative axis movement on the y axis
+
+        The axis movement from a 'smooth scroll' device, such as a touchpad.
+        When applicable, the size of the motion delta should be equivalent to
+        the motion vector of a pointer motion done using the same advice.
+
+        May only be called if POINTER access was provided after starting the
+        session.
+    -->
+    <method name="NotifyPointerAxis">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="d" name="dx" direction="in"/>
+      <arg type="d" name="dy" direction="in"/>
+    </method>
+    <!--
+        NotifyPointerAxisDiscrete:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @axis: The axis that was scrolled
+        @steps: The number of steps scrolled
+
+        May only be called if POINTER access was provided after starting the
+        session.
+
+        Available axes:
+        <simplelist>
+          <member>0: Vertical scroll</member>
+          <member>1: Horizontal scroll</member>
+        </simplelist>
+    -->
+    <method name="NotifyPointerAxisDiscrete">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="axis" direction="in"/>
+      <arg type="i" name="steps" direction="in"/>
+    </method>
+    <!--
+        NotifyKeyboardKeycode:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @keycode: Keyboard code that was pressed or released
+        @state: New state of keyboard keysym
+
+        May only be called if KEYBOARD access was provided after starting the
+        session.
+
+        Available keyboard keysym states:
+        <simplelist>
+          <member>0: Released</member>
+          <member>1: Pressed</member>
+        </simplelist>
+    -->
+    <method name="NotifyKeyboardKeycode">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="i" name="keycode" direction="in"/>
+      <arg type="u" name="state" direction="in"/>
+    </method>
+    <!--
+        NotifyKeyboardKeysym:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @keysym: Keyboard symbol that was pressed or released
+        @state: New state of keyboard keysym
+
+        May only be called if KEYBOARD access was provided after starting the
+        session.
+
+        Available keyboard keysym states:
+        <simplelist>
+          <member>0: Released</member>
+          <member>1: Pressed</member>
+        </simplelist>
+    -->
+    <method name="NotifyKeyboardKeysym">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="i" name="keysym" direction="in"/>
+      <arg type="u" name="state" direction="in"/>
+    </method>
+    <!--
+        NotifyTouchDown:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @stream: The PipeWire stream node the coordinate is relative to
+        @slot: Touch slot where touch point appeared
+        @x: Touch down x coordinate
+        @y: Touch down y coordinate
+
+        May only be called if TOUCHSCREEN access was provided after starting the
+        session.
+
+        Notify about a new touch down event. The (x, y) position
+        represents the new touch point position in the streams logical
+        coordinate space (see the logical_size stream property in
+        #org.freedesktop.portal.ScreenCast).
+    -->
+    <method name="NotifyTouchDown">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="stream" direction="in"/>
+      <arg type="u" name="slot" direction="in"/>
+      <arg type="d" name="x" direction="in"/>
+      <arg type="d" name="y" direction="in"/>
+    </method>
+    <!--
+        NotifyTouchMotion:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @stream: The PipeWire stream node the coordinate is relative to
+        @slot: Touch slot where touch point appeared
+        @x: Touch motion x coordinate
+        @y: Touch motion y coordinate
+
+        May only be called if TOUCHSCREEN access was provided after starting the
+        session.
+
+        Notify about a new touch motion event. The (x, y) position
+        represents where the touch point position in the streams logical
+        coordinate space moved (see the logical_size stream property in
+        #org.freedesktop.portal.ScreenCast).
+    -->
+    <method name="NotifyTouchMotion">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="stream" direction="in"/>
+      <arg type="u" name="slot" direction="in"/>
+      <arg type="d" name="x" direction="in"/>
+      <arg type="d" name="y" direction="in"/>
+    </method>
+    <!--
+        NotifyTouchUp:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @slot: Touch slot where touch point appeared
+
+        May only be called if TOUCHSCREEN access was provided after starting the
+        session.
+
+        Notify about a new touch up event.
+    -->
+    <method name="NotifyTouchUp">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="slot" direction="in"/>
+    </method>
+    <!--
+        AvailableDeviceTypes:
+
+        A bitmask of available source types. Currently defined types are:
+
+        <simplelist>
+          <member>1: KEYBOARD</member>
+          <member>2: POINTER</member>
+          <member>3: TOUCHSCREEN</member>
+        </simplelist>
+    -->
+    <property name="AvailableDeviceTypes" type="u" access="read"/>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

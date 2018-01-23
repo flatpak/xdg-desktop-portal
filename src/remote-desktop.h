@@ -19,23 +19,21 @@
 #pragma once
 
 #include <gio/gio.h>
-#include <stdint.h>
 
-typedef struct _ScreenCastStream ScreenCastStream;
+#include "session.h"
+#include "screen-cast.h"
 
-uint32_t screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream);
+typedef struct _RemoteDesktopSession RemoteDesktopSession;
 
-void screen_cast_stream_get_size (ScreenCastStream *stream,
-                                  int32_t *width,
-                                  int32_t *height);
+gboolean is_remote_desktop_session (Session *session);
 
-void screen_cast_stream_free (ScreenCastStream *stream);
+GList * remote_desktop_session_get_streams (RemoteDesktopSession *session);
 
-void screen_cast_stream_get_size (ScreenCastStream *stream,
-                                  int32_t *width,
-                                  int32_t *height);
+gboolean remote_desktop_session_can_select_sources (RemoteDesktopSession *session);
 
-GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
+void remote_desktop_session_selecting_sources (RemoteDesktopSession *session);
 
-GDBusInterfaceSkeleton * screen_cast_create (GDBusConnection *connection,
-                                             const char      *dbus_name);
+void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
+
+GDBusInterfaceSkeleton * remote_desktop_create (GDBusConnection *connection,
+                                                const char      *dbus_name);
