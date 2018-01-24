@@ -37,6 +37,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Account.xml \
 	data/org.freedesktop.portal.Email.xml \
 	data/org.freedesktop.portal.ScreenCast.xml \
+	data/org.freedesktop.portal.RemoteDesktop.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -52,6 +53,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Account.xml \
 	data/org.freedesktop.impl.portal.Email.xml \
 	data/org.freedesktop.impl.portal.ScreenCast.xml \
+	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(FLATPAK_IFACE_FILES) $(PORTAL_IFACE_FILES)
@@ -136,6 +138,8 @@ if HAVE_PIPEWIRE
 xdg_desktop_portal_SOURCES += \
 	src/screen-cast.c		\
 	src/screen-cast.h		\
+	src/remote-desktop.c		\
+	src/remote-desktop.h		\
 	$(NULL)
 endif
 

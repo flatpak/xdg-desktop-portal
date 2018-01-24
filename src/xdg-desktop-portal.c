@@ -45,6 +45,7 @@
 #include "account.h"
 #include "email.h"
 #include "screen-cast.h"
+#include "remote-desktop.h"
 
 static GMainLoop *loop = NULL;
 
@@ -291,6 +292,13 @@ method_needs_request (GDBusMethodInvocation *invocation)
       else
         return TRUE;
     }
+  else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
+    {
+      if (strstr (method, "Notify") == method)
+        return FALSE;
+      else
+        return TRUE;
+    }
   else
     {
       return TRUE;
@@ -412,6 +420,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   screen_cast_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.RemoteDesktop");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  remote_desktop_create (connection, implementation->dbus_name));
 #endif
 }
 

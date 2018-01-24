@@ -24,6 +24,7 @@
 
 #include "session.h"
 #include "screen-cast.h"
+#include "remote-desktop.h"
 #include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -64,10 +65,12 @@ static void screen_cast_iface_init (XdpScreenCastIface *iface);
 
 static GQuark quark_request_session;
 
-typedef struct _ScreenCastStream
+struct _ScreenCastStream
 {
   uint32_t id;
-} ScreenCastStream;
+  int32_t width;
+  int32_t height;
+};
 
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast, XDP_TYPE_SCREEN_CAST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_SCREEN_CAST,
@@ -313,12 +316,22 @@ select_sources_done (GObject *source_object,
     }
   else if (!session->closed)
     {
-      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+      if (is_screen_cast_session (session))
+        {
+          ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
 
-      g_assert_cmpint (screen_cast_session->state,
-                       ==,
-                       SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES);
-      screen_cast_session->state = SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED;
+          g_assert_cmpint (screen_cast_session->state,
+                           ==,
+                           SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES);
+          screen_cast_session->state = SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED;
+        }
+      else if (is_remote_desktop_session (session))
+        {
+          RemoteDesktopSession *remote_desktop_session =
+            (RemoteDesktopSession *)session;
+
+          remote_desktop_session_sources_selected (remote_desktop_session);
+        }
     }
 }
 
@@ -335,7 +348,6 @@ handle_select_sources (XdpScreenCast *object,
 {
   Request *request = request_from_invocation (invocation);
   Session *session;
-  ScreenCastSession *screen_cast_session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
@@ -356,33 +368,50 @@ handle_select_sources (XdpScreenCast *object,
 
   if (is_screen_cast_session (session))
     {
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_FAILED,
-                                             "Invalid session");
-      return TRUE;
-    }
+      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
 
-  screen_cast_session = (ScreenCastSession *)session;
-  switch (screen_cast_session->state)
+      switch (screen_cast_session->state)
+        {
+        case SCREEN_CAST_SESSION_STATE_INIT:
+          break;
+        case SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES:
+        case SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED:
+          g_dbus_method_invocation_return_error (invocation,
+                                                 G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_FAILED,
+                                                 "Sources already selected");
+          return TRUE;
+        case SCREEN_CAST_SESSION_STATE_STARTING:
+        case SCREEN_CAST_SESSION_STATE_STARTED:
+          g_dbus_method_invocation_return_error (invocation,
+                                                 G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_FAILED,
+                                                 "Can only select sources before starting");
+          return TRUE;
+        case SCREEN_CAST_SESSION_STATE_CLOSED:
+          g_dbus_method_invocation_return_error (invocation,
+                                                 G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_FAILED,
+                                                 "Invalid session");
+          return TRUE;
+        }
+    }
+  else if (is_remote_desktop_session (session))
     {
-    case SCREEN_CAST_SESSION_STATE_INIT:
-      break;
-    case SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES:
-    case SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED:
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_FAILED,
-                                             "Sources already selected");
-      return TRUE;
-    case SCREEN_CAST_SESSION_STATE_STARTING:
-    case SCREEN_CAST_SESSION_STATE_STARTED:
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_FAILED,
-                                             "Can only select sources before starting");
-      return TRUE;
-    case SCREEN_CAST_SESSION_STATE_CLOSED:
+      RemoteDesktopSession *remote_desktop_session =
+        (RemoteDesktopSession *)session;
+
+      if (!remote_desktop_session_can_select_sources (remote_desktop_session))
+        {
+          g_dbus_method_invocation_return_error (invocation,
+                                                 G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_FAILED,
+                                                 "Invalid state");
+          return TRUE;
+        }
+    }
+  else
+    {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
@@ -414,7 +443,15 @@ handle_select_sources (XdpScreenCast *object,
                            quark_request_session,
                            g_object_ref (session),
                            g_object_unref);
-  screen_cast_session->state = SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES;
+  if (is_screen_cast_session (session))
+    {
+      ((ScreenCastSession *)session)->state =
+        SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES;
+    }
+  else
+    {
+      remote_desktop_session_selecting_sources ((RemoteDesktopSession *)session);
+    }
 
   xdp_impl_screen_cast_call_select_sources (impl,
                                             request->id,
@@ -549,7 +586,7 @@ static const struct pw_remote_events remote_events = {
   .state_changed = on_state_changed,
 };
 
-static void
+void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
   g_clear_pointer (&remote->remote, (GDestroyNotify)pw_remote_destroy);
@@ -644,7 +681,7 @@ connect_pipewire_sync (GError **error)
     }
 }
 
-static uint32_t
+uint32_t
 screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
 {
   return stream->id;
@@ -725,13 +762,22 @@ open_pipewire_screen_cast_remote (GList *streams,
   return remote;
 }
 
-static void
+void
+screen_cast_stream_get_size (ScreenCastStream *stream,
+                             int32_t *width,
+                             int32_t *height)
+{
+  *width = stream->width;
+  *height = stream->height;
+}
+
+void
 screen_cast_stream_free (ScreenCastStream *stream)
 {
   g_free (stream);
 }
 
-static GList *
+GList *
 collect_screen_cast_stream_data (GVariantIter *streams_iter)
 {
   GList *streams = NULL;
@@ -745,6 +791,8 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
 
       stream = g_new0 (ScreenCastStream, 1);
       stream->id = stream_id;
+      g_variant_lookup (stream_options, "size", "(ii)",
+                        &stream->width, &stream->height);
 
       streams = g_list_prepend (streams, stream);
     }
@@ -777,7 +825,6 @@ start_done (GObject *source_object,
   g_autoptr(Request) request = data;
   Session *session;
   ScreenCastSession *screen_cast_session;
-
   guint response = 2;
   gboolean should_close_session;
   GVariant *results = NULL;
@@ -946,7 +993,6 @@ handle_open_pipewire_remote (XdpScreenCast *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  ScreenCastSession *screen_cast_session;
   GList *streams;
   PipeWireRemote *remote;
   GUnixFDList *out_fd_list;
@@ -966,8 +1012,28 @@ handle_open_pipewire_remote (XdpScreenCast *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  screen_cast_session = (ScreenCastSession *)session;
-  streams = screen_cast_session->streams;
+  if (is_screen_cast_session (session))
+    {
+      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+
+      streams = screen_cast_session->streams;
+    }
+  else if (is_remote_desktop_session (session))
+    {
+      RemoteDesktopSession *remote_desktop_session =
+        (RemoteDesktopSession *)session;
+
+      streams = remote_desktop_session_get_streams (remote_desktop_session);
+    }
+  else
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return TRUE;
+    }
+
   if (!streams)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -1050,6 +1116,8 @@ screen_cast_init (ScreenCast *screen_cast)
 static void
 screen_cast_class_init (ScreenCastClass *klass)
 {
+  quark_request_session =
+    g_quark_from_static_string ("-xdp-request-screen-cast-session");
 }
 
 GDBusInterfaceSkeleton *
@@ -1114,7 +1182,4 @@ screen_cast_session_class_init (ScreenCastSessionClass *klass)
 
   session_class = (SessionClass *)klass;
   session_class->close = screen_cast_session_close;
-
-  quark_request_session =
-    g_quark_from_static_string ("-xdp-request-screen-cast-session");
 }
