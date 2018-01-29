@@ -866,6 +866,10 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
   return TRUE;
 }
 
+static XdpOptionKey remote_desktop_notify_pointer_axis_options[] = {
+  { "finish", G_VARIANT_TYPE_BOOLEAN },
+};
+
 static gboolean
 handle_notify_pointer_axis (XdpRemoteDesktop *object,
                             GDBusMethodInvocation *invocation,
@@ -902,8 +906,8 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options_builder,
-                      remote_desktop_notify_options,
-                      G_N_ELEMENTS (remote_desktop_notify_options));
+                      remote_desktop_notify_pointer_axis_options,
+                      G_N_ELEMENTS (remote_desktop_notify_pointer_axis_options));
   options = g_variant_builder_end (&options_builder);
 
   xdp_impl_remote_desktop_call_notify_pointer_axis (impl,

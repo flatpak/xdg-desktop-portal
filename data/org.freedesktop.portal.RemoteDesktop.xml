@@ -190,6 +190,18 @@
 
         May only be called if POINTER access was provided after starting the
         session.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>finish b</term>
+            <listitem><para>
+              If set to true, this is the last axis event in a series, for
+              example as a result of the fingers being lifted from a touchpad
+              after a two-finger scroll.  Default is false.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="NotifyPointerAxis">
       <arg type="o" name="session_handle" direction="in"/>
