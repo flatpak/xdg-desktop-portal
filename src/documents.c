@@ -106,16 +106,35 @@ register_document (const char *uri,
   version = xdp_documents_get_version (documents);
 
   if (for_save)
-    ret = xdp_documents_call_add_named_sync (documents,
-                                             g_variant_new_handle (fd_in),
-                                             basename,
-                                             TRUE,
-                                             TRUE,
-                                             fd_list,
-                                             &doc_id,
-                                             NULL,
-                                             NULL,
-                                             error);
+    {
+      if (version >= 3)
+        {
+          ret = xdp_documents_call_add_named_full_sync (documents,
+                                                        g_variant_new_handle (fd_in),
+                                                        basename,
+                                                        7,
+                                                        app_id,
+                                                        permissions,
+                                                        fd_list,
+                                                        &doc_id,
+                                                        NULL,
+                                                        NULL,
+                                                        NULL,
+                                                        error);
+          handled_permissions = TRUE;
+        }
+      else
+        ret = xdp_documents_call_add_named_sync (documents,
+                                                 g_variant_new_handle (fd_in),
+                                                 basename,
+                                                 TRUE,
+                                                 TRUE,
+                                                 fd_list,
+                                                 &doc_id,
+                                                 NULL,
+                                                 NULL,
+                                                 error);
+    }
   else
     {
       if (version >= 2)
