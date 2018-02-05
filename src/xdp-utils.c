@@ -348,16 +348,27 @@ xdp_get_path_for_fd (GKeyFile *app_info,
   path_buffer[symlink_size] = 0;
   path = path_buffer;
 
+  /* This code is very similar to that in flatpak/document-portal/xdp-main.c;
+     if changing this code, please update there first.
+     Copied comment follows:
+     For apps we translate /app and /usr to the installed locations.
+     Also, we need to rewrite to drop the /newroot prefix added by
+     bubblewrap for other files to work.  See
+     https://github.com/projectatomic/bubblewrap/pull/172
+     for a bit more information on the /newroot issue.
+  */
   if (app_info != NULL)
     {
-      if (g_str_has_prefix (path, "/newroot/usr/"))
+      if (g_str_has_prefix (path, "/newroot/"))
+        path += strlen ("/newroot");
+      if (g_str_has_prefix (path, "/usr/"))
         {
           g_autofree char *usr_root = NULL;
 
           usr_root = g_key_file_get_string (app_info, "Instance", "runtime-path", NULL);
           if (usr_root)
             {
-              rewritten_path = g_build_filename (usr_root, path + strlen ("/newroot/usr/"), NULL);
+              rewritten_path = g_build_filename (usr_root, path + strlen ("/usr/"), NULL);
               path = rewritten_path;
             }
         }
@@ -368,12 +379,10 @@ xdp_get_path_for_fd (GKeyFile *app_info,
           app_root = g_key_file_get_string (app_info, "Instance", "app-path", NULL);
           if (app_root)
             {
-              rewritten_path = g_build_filename (app_root, path + strlen ("/newroot/app/"), NULL);
+              rewritten_path = g_build_filename (app_root, path + strlen ("/app/"), NULL);
               path = rewritten_path;
             }
         }
-      else if (g_str_has_prefix (path, "/newroot/"))
-        path = path + strlen ("/newroot");
 
       /* Verify that this is the same file as the app opened */
       if (stat (path, &real_st_buf) < 0 ||
