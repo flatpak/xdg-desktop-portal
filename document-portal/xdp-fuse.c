@@ -158,7 +158,7 @@ get_dir_inode_nr_unlocked (const char *app_id, const char *doc_id)
 static fuse_ino_t
 get_dir_inode_nr (const char *app_id, const char *doc_id)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return get_dir_inode_nr_unlocked (app_id, doc_id);
 }
 
@@ -167,7 +167,7 @@ allocate_app_dir_inode_nr (char **app_ids)
 {
   int i;
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   for (i = 0; app_ids[i] != NULL; i++)
     get_dir_inode_nr_unlocked (app_ids[i], NULL);
 }
@@ -179,7 +179,7 @@ get_allocated_app_dirs (void)
   gpointer key, value;
   GPtrArray *array = g_ptr_array_new ();
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   g_hash_table_iter_init (&iter, dir_to_inode_nr);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
@@ -313,7 +313,7 @@ xdp_inode_new (fuse_ino_t   ino,
                const char  *app_id,
                const char  *doc_id)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return xdp_inode_new_unlocked (ino, type, parent, filename, app_id, doc_id);
 }
 
@@ -333,7 +333,7 @@ xdp_inode_list_children (XdpInode *inode)
 {
   GList *list = NULL, *l;
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   for (l = inode->children; l != NULL; l = l->next)
     {
       XdpInode *child = l->data;
@@ -362,7 +362,7 @@ xdp_inode_lookup_child_unlocked (XdpInode *inode, const char *filename)
 static XdpInode *
 xdp_inode_lookup_child (XdpInode *inode, const char *filename)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return xdp_inode_lookup_child_unlocked (inode, filename);
 }
 
@@ -441,7 +441,7 @@ xdp_inode_unlink_child (XdpInode *dir, const char *filename)
   XdpInode *child_inode;
   glnx_autofd int dir_fd = -1;
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   child_inode = xdp_inode_lookup_child_unlocked (dir, filename);
   if (child_inode == NULL)
     return NULL;
@@ -475,7 +475,7 @@ xdp_inode_rename_child (XdpInode   *dir,
   glnx_autofd int dir_fd = -1;
   int res;
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   src_inode = xdp_inode_lookup_child_unlocked (dir, src_filename);
   if (src_inode == NULL)
     {
@@ -576,7 +576,7 @@ xdp_inode_rename_child (XdpInode   *dir,
 static char *
 xdp_inode_get_filename (XdpInode *inode)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return g_strdup (inode->filename);
 }
 
@@ -587,7 +587,7 @@ xdp_inode_ensure_document_file (XdpInode *dir)
 
   g_assert (dir->type == XDP_INODE_APP_DOC_DIR || dir->type == XDP_INODE_DOC_DIR);
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
 
   inode = xdp_inode_lookup_child_unlocked (dir, dir->basename);
   if (inode == NULL)
@@ -638,7 +638,7 @@ xdp_inode_create_file (XdpInode   *dir,
 
   g_assert (dir->type == XDP_INODE_APP_DOC_DIR || dir->type == XDP_INODE_DOC_DIR);
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
 
   inode = xdp_inode_lookup_child_unlocked (dir, filename);
   if (inode != NULL)
@@ -719,7 +719,7 @@ xdp_inode_create_file (XdpInode   *dir,
 static XdpInode *
 xdp_inode_lookup (fuse_ino_t inode_nr)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return xdp_inode_lookup_unlocked (inode_nr);
 }
 
@@ -778,7 +778,7 @@ xdp_inode_get_dir_unlocked (const char *app_id, const char *doc_id, FlatpakDbEnt
 static XdpInode *
 xdp_inode_get_dir (const char *app_id, const char *doc_id, FlatpakDbEntry *entry)
 {
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   return xdp_inode_get_dir_unlocked (app_id, doc_id, entry);
 }
 
@@ -2234,7 +2234,7 @@ xdp_fuse_invalidate_doc_app (const char *doc_id,
 
   g_debug ("invalidate %s/%s", doc_id, opt_app_id ? opt_app_id : "*");
 
-  AUTOLOCK (inodes);
+  XDP_AUTOLOCK (inodes);
   ino = get_dir_inode_nr_unlocked (opt_app_id, doc_id);
   inode = xdp_inode_lookup_unlocked (ino);
   if (inode != NULL)

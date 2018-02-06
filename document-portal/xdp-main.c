@@ -53,21 +53,21 @@ G_LOCK_DEFINE (db);
 char **
 xdp_list_apps (void)
 {
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
   return flatpak_db_list_apps (db);
 }
 
 char **
 xdp_list_docs (void)
 {
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
   return flatpak_db_list_ids (db);
 }
 
 FlatpakDbEntry *
 xdp_lookup_doc (const char *doc_id)
 {
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
   return flatpak_db_lookup (db, doc_id);
 }
 
@@ -123,7 +123,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
   g_variant_get (parameters, "(&s&s^a&s)", &id, &target_app_id, &permissions);
 
   {
-    AUTOLOCK (db);
+    XDP_AUTOLOCK (db);
 
     entry = flatpak_db_lookup (db, id);
     if (entry == NULL)
@@ -180,7 +180,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   g_variant_get (parameters, "(&s&s^a&s)", &id, &target_app_id, &permissions);
 
   {
-    AUTOLOCK (db);
+    XDP_AUTOLOCK (db);
 
     entry = flatpak_db_lookup (db, id);
     if (entry == NULL)
@@ -236,7 +236,7 @@ portal_delete (GDBusMethodInvocation *invocation,
   g_variant_get (parameters, "(s)", &id);
 
   {
-    AUTOLOCK (db);
+    XDP_AUTOLOCK (db);
 
     entry = flatpak_db_lookup (db, id);
     if (entry == NULL)
@@ -497,7 +497,7 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
 
   /* Don't lock the db before doing the fuse call above, because it takes takes a lock
      that can block something calling back, causing a deadlock on the db lock */
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
 
   /* If the entry doesn't exist anymore, fail.  Also fail if not
    * reuse_existing, because otherwise the user could use this to
@@ -561,7 +561,7 @@ portal_add (GDBusMethodInvocation *invocation,
   else
     {
       {
-        AUTOLOCK (db);
+        XDP_AUTOLOCK (db);
 
         id = do_create_doc (&real_parent_st_buf, path_buffer, reuse_existing, persistent);
 
@@ -720,7 +720,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
     if (!reuse_existing)
       caller_perms |= XDP_PERMISSION_FLAGS_DELETE;
 
-    AUTOLOCK (db); /* Lock once for all ops */
+    XDP_AUTOLOCK (db); /* Lock once for all ops */
 
     for (i = 0; i < n_args; i++)
       {
@@ -878,7 +878,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
     if (!reuse_existing)
       caller_perms |= XDP_PERMISSION_FLAGS_DELETE;
 
-    AUTOLOCK (db);
+    XDP_AUTOLOCK (db);
 
     if (as_needed_by_app &&
         app_has_file_access (target_app_id, target_perms, path))
@@ -993,7 +993,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
 
   g_debug ("portal_add_named %s", path);
 
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
 
   id = do_create_doc (&parent_st_buf, path, reuse_existing, persistent);
 
@@ -1169,7 +1169,7 @@ portal_info (GDBusMethodInvocation *invocation,
 
   g_variant_get (parameters, "(&s)", &id);
 
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
 
   entry = flatpak_db_lookup (db, id);
 
@@ -1208,7 +1208,7 @@ portal_list (GDBusMethodInvocation *invocation,
 
   g_variant_get (parameters, "(&s)", &app_id);
 
-  AUTOLOCK (db);
+  XDP_AUTOLOCK (db);
 
   if (strcmp (app_id, "") == 0)
     ids = flatpak_db_list_ids (db);
