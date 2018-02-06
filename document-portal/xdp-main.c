@@ -604,30 +604,7 @@ app_has_file_access (const char *target_app_id,
                      XdpPermissionFlags target_perms,
                      const char *path)
 {
-  g_autoptr(FlatpakContext) app_context = NULL;
-  g_autoptr(FlatpakExports) app_exports = NULL;
-  FlatpakFilesystemMode mode = 0;
-
-  if (target_app_id == NULL || target_app_id[0] == '\0')
-    return FALSE;
-
-  app_context = flatpak_context_load_for_app (target_app_id, NULL);
-  if (app_context == NULL)
-    return FALSE;
-
-  app_exports = flatpak_context_get_exports (app_context, target_app_id);
-  if (app_exports == NULL)
-    return FALSE;
-
-  mode = flatpak_exports_path_get_mode (app_exports, path);
-
-  if (mode == FLATPAK_FILESYSTEM_MODE_READ_WRITE)
-    return TRUE;
-
-  if ((mode == FLATPAK_FILESYSTEM_MODE_READ_ONLY) &&
-      ((target_perms & XDP_PERMISSION_FLAGS_WRITE) == 0))
-    return TRUE;
-
+  /* TODO: Reimplement */
   return FALSE;
 }
 
