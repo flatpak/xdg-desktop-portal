@@ -79,14 +79,7 @@ message_handler (const gchar   *log_domain,
 static void
 printerr_handler (const gchar *string)
 {
-  const char *prefix = "";
-  const char *suffix = "";
-  if (flatpak_fancy_output ())
-    {
-      prefix = FLATPAK_ANSI_RED FLATPAK_ANSI_BOLD_ON;
-      suffix = FLATPAK_ANSI_BOLD_OFF FLATPAK_ANSI_COLOR_RESET;
-    }
-  fprintf (stderr, "%serror: %s%s\n", prefix, suffix, string);
+  fprintf (stderr, "error: %s\n", string);
 }
 
 int
