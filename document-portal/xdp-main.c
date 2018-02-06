@@ -12,15 +12,11 @@
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
-#include "xdp-dbus.h"
+#include "document-portal-dbus.h"
 #include "xdp-util.h"
+#include "src/xdp-utils.h"
 #include "flatpak-db.h"
-#include "flatpak-dbus.h"
-#include "flatpak-utils.h"
-#include "flatpak-dir.h"
-#include "flatpak-run.h"
-#include "flatpak-portal-error.h"
-#include "permission-store/permission-store-dbus.h"
+#include "permission-store-dbus.h"
 #include "xdp-fuse.h"
 
 #include <sys/eventfd.h>

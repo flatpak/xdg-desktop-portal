@@ -27,7 +27,6 @@
 #include <gio/gio.h>
 #include "permission-store-dbus.h"
 #include "xdg-permission-store.h"
-#include "flatpak-utils.h"
 
 static void
 on_bus_acquired (GDBusConnection *connection,

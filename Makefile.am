@@ -29,6 +29,7 @@ AM_CPPFLAGS =							\
 lib_LTLIBRARIES =
 
 include data/Makefile.am.inc
+include document-portal/Makefile.am.inc
 include src/Makefile.am.inc
 
 pkgconfigdir = $(datadir)/pkgconfig

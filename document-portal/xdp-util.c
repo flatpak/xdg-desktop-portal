@@ -2,7 +2,6 @@
 #include <string.h>
 #include <errno.h>
 #include <gio/gio.h>
-#include "flatpak-portal-error.h"
 #include "xdp-util.h"
 
 const char **

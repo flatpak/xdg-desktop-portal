@@ -48,8 +48,14 @@ autom4te.cache
 compile
 *.service
 xdg-desktop-portal
+xdg-document-portal
+xdg-permission-store
 xdp-dbus.[ch]
 xdp-impl-dbus.[ch]
 xdg-desktop-portal.pc
 .dirstamp
 xdg-desktop-resources.c
+document-portal-dbus.c
+document-portal-dbus.h
+permission-store-dbus.c
+permission-store-dbus.h

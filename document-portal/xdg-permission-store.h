@@ -21,8 +21,6 @@
 #ifndef __FLATPAK_PERMISSION_STORE_H__
 #define __FLATPAK_PERMISSION_STORE_H__
 
-#include "flatpak-dbus.h"
-
 void xdg_permission_store_start (GDBusConnection *connection);
 
 #endif /* __FLATPAK_PERMISSION_STORE_H__ */

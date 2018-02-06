@@ -16,10 +16,9 @@
 #include <pthread.h>
 #include <sys/statfs.h>
 
-#include "flatpak-portal-error.h"
 #include "xdp-fuse.h"
 #include "xdp-util.h"
-#include "flatpak-utils.h"
+#include "src/xdp-utils.h"
 
 #define NON_DOC_DIR_PERMS 0500
 #define DOC_DIR_PERMS 0700
