@@ -2341,7 +2341,7 @@ xdp_fuse_init (GError **error)
 
   if (g_mkdir_with_parents (path, 0700))
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_FAILED,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
                    "Unable to create dir %s", path);
       return FALSE;
     }
@@ -2349,7 +2349,7 @@ xdp_fuse_init (GError **error)
   main_ch = fuse_mount (path, &args);
   if (main_ch == NULL)
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_FAILED, "Can't mount fuse fs");
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED, "Can't mount fuse fs");
       return FALSE;
     }
 
@@ -2357,7 +2357,7 @@ xdp_fuse_init (GError **error)
                                sizeof (xdp_fuse_oper), NULL);
   if (session == NULL)
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_FAILED,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
                    "Can't create fuse session");
       return FALSE;
     }

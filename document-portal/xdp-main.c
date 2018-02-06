@@ -129,7 +129,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                "No such document: %s", id);
         return;
       }
@@ -137,8 +137,8 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
     if (!flatpak_is_valid_name (target_app_id, &my_error))
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
-                                               "'%s' is not a valid app name: %s", target_app_id, my_error->message);
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                               "'%s' is not a valid app name", target_app_id);
         return;
       }
 
@@ -149,7 +149,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
                                     XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS | perms))
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                                "Not enough permissions");
         return;
       }
@@ -186,7 +186,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                "No such document: %s", id);
         return;
       }
@@ -194,8 +194,8 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     if (!flatpak_is_valid_name (target_app_id, &my_error))
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
-                                               "'%s' is not a valid app name: %s", target_app_id, my_error->message);
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                               "'%s' is not a valid app name", target_app_id);
         return;
       }
 
@@ -207,7 +207,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         strcmp (app_id, target_app_id) == 0)
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                                "Not enough permissions");
         return;
       }
@@ -242,7 +242,7 @@ portal_delete (GDBusMethodInvocation *invocation,
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                "No such document: %s", id);
         return;
       }
@@ -250,7 +250,7 @@ portal_delete (GDBusMethodInvocation *invocation,
     if (!xdp_entry_has_permissions (entry, app_id, XDP_PERMISSION_FLAGS_DELETE))
       {
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                                "Not enough permissions");
         return;
       }
@@ -361,7 +361,7 @@ validate_fd_common (int fd,
       (symlink_size = readlink (proc_path, path_buffer, PATH_MAX)) < 0)
     {
       g_set_error (error,
-                   FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Invalid fd passed");
       return FALSE;
     }
@@ -397,7 +397,7 @@ validate_parent_dir (const char *path,
     {
       /* Don't leak any info about real file path existence, etc */
       g_set_error (error,
-                   FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Invalid fd passed");
       return FALSE;
     }
@@ -553,7 +553,7 @@ portal_add (GDBusMethodInvocation *invocation,
       if (id == NULL)
         {
           g_dbus_method_invocation_return_error (invocation,
-                                                 FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                                  "Invalid fd passed");
           return;
         }
@@ -657,7 +657,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   if ((flags & ~XDP_ADD_FLAGS_FLAGS_ALL) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid flags");
       return;
     }
@@ -701,7 +701,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
           if (id == NULL)
             {
               g_dbus_method_invocation_return_error (invocation,
-                                                     FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                     XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                                      "Invalid fd passed");
               return;
             }
@@ -811,7 +811,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   if (*app_id != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not enough permissions");
       return;
     }
@@ -819,7 +819,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   if ((flags & ~XDP_ADD_FLAGS_FLAGS_ALL) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid flags");
       return;
     }
@@ -844,7 +844,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   if (strchr (filename, '/') != NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid filename passed");
       return;
     }
@@ -858,7 +858,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   if (parent_st_buf.st_dev == fuse_dev)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
       return;
     }
@@ -951,7 +951,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   if (*app_id != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not enough permissions");
       return;
     }
@@ -970,7 +970,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   if (strchr (filename, '/') != NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid filename passed");
       return;
     }
@@ -984,7 +984,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   if (parent_st_buf.st_dev == fuse_dev)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
       return;
     }
@@ -1074,7 +1074,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
   if (strcmp (app_id, "") != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not allowed in sandbox");
       return TRUE;
     }
@@ -1162,7 +1162,7 @@ portal_info (GDBusMethodInvocation *invocation,
   if (strcmp (app_id, "") != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not allowed in sandbox");
       return TRUE;
     }
@@ -1176,7 +1176,7 @@ portal_info (GDBusMethodInvocation *invocation,
   if (!entry)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid ID passed");
       return TRUE;
     }
@@ -1201,7 +1201,7 @@ portal_list (GDBusMethodInvocation *invocation,
   if (strcmp (app_id, "") != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_ALLOWED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not allowed in sandbox");
       return TRUE;
     }

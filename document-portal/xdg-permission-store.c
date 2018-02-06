@@ -73,7 +73,7 @@ lookup_table (const char            *name,
   if (db == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_FAILED,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "Unable to load db file: %s", error->message);
       return NULL;
     }
@@ -109,7 +109,7 @@ writeout_done (GObject      *source_object,
                                                g_variant_new ("()"));
       else
         g_dbus_method_invocation_return_error (invocation,
-                                               FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_FAILED,
+                                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                                "Unable to write db: %s", error->message);
     }
 
@@ -206,7 +206,7 @@ handle_lookup (XdgPermissionStore     *object,
   if (entry == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                              "No entry for %s", id);
       return TRUE;
     }
@@ -278,7 +278,7 @@ handle_delete (XdgPermissionStore     *object,
   if (entry == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                              "No entry for %s", id);
       return TRUE;
     }
@@ -316,7 +316,7 @@ handle_set (XdgPermissionStore     *object,
   if (old_entry == NULL && !create)
     {
       g_dbus_method_invocation_return_error (invocation,
-                                             FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                              "Id %s not found", id);
       return TRUE;
     }
@@ -377,7 +377,7 @@ handle_set_permission (XdgPermissionStore     *object,
       else
         {
           g_dbus_method_invocation_return_error (invocation,
-                                                 FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                  "Id %s not found", id);
           return TRUE;
         }
@@ -419,7 +419,7 @@ handle_set_value (XdgPermissionStore     *object,
       else
         {
           g_dbus_method_invocation_return_error (invocation,
-                                                 FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND,
+                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                  "Id %s not found", id);
           return TRUE;
         }
