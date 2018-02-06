@@ -28,10 +28,13 @@
 char * xdp_get_app_id_from_pid (pid_t pid,
                                 GError **error);
 
+typedef void (*XdpPeerDiedCallback) (const char *name);
+
 char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
                                           GCancellable          *cancellable,
                                           GError               **error);
-void   xdp_connection_track_name_owners  (GDBusConnection       *connection);
+void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
+                                          XdpPeerDiedCallback    peer_died_cb);
 
 GKeyFile *xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation);
 

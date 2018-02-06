@@ -247,6 +247,7 @@ name_owner_changed (GDBusConnection *connection,
                     gpointer         user_data)
 {
   const char *name, *from, *to;
+  XdpPeerDiedCallback peer_died_cb = user_data;
 
   g_variant_get (parameters, "(sss)", &name, &from, &to);
 
@@ -259,13 +260,14 @@ name_owner_changed (GDBusConnection *connection,
         g_hash_table_remove (app_infos, name);
       G_UNLOCK (app_infos);
 
-      close_requests_for_sender (name);
-      close_sessions_for_sender (name);
+      if (peer_died_cb)
+        peer_died_cb (name);
     }
 }
 
 void
-xdp_connection_track_name_owners (GDBusConnection *connection)
+xdp_connection_track_name_owners (GDBusConnection *connection,
+                                  XdpPeerDiedCallback peer_died_cb)
 {
   g_dbus_connection_signal_subscribe (connection,
                                       "org.freedesktop.DBus",
@@ -275,7 +277,7 @@ xdp_connection_track_name_owners (GDBusConnection *connection)
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
-                                      NULL, NULL);
+                                      peer_died_cb, NULL);
 }
 
 void
