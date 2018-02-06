@@ -88,9 +88,9 @@ xdg_document_portal_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
 	document-portal/xdp-main.c		\
-	document-portal/xdp-enums.h		\
-	document-portal/xdp-util.h		\
-	document-portal/xdp-util.c		\
+	document-portal/document-enums.h		\
+	document-portal/document-store.h		\
+	document-portal/document-store.c		\
 	document-portal/xdp-fuse.h		\
 	document-portal/xdp-fuse.c		\
 	$(DB_SOURCES) \

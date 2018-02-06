@@ -17,7 +17,7 @@
 #include <sys/statfs.h>
 
 #include "xdp-fuse.h"
-#include "xdp-util.h"
+#include "document-store.h"
 #include "src/xdp-utils.h"
 
 #define NON_DOC_DIR_PERMS 0500
@@ -765,10 +765,10 @@ xdp_inode_get_dir_unlocked (const char *app_id, const char *doc_id, PermissionDb
 
   if (entry)
     {
-      inode->basename = xdp_entry_dup_basename (entry);
-      inode->dirname = xdp_entry_dup_dirname (entry);
-      inode->dir_ino = xdp_entry_get_inode (entry);
-      inode->dir_dev = xdp_entry_get_device (entry);
+      inode->basename = document_entry_dup_basename (entry);
+      inode->dirname = document_entry_dup_dirname (entry);
+      inode->dir_ino = document_entry_get_inode (entry);
+      inode->dir_dev = document_entry_get_device (entry);
     }
 
   return inode;
@@ -798,7 +798,7 @@ app_can_write_doc (PermissionDbEntry *entry, const char *app_id)
   if (app_id == NULL)
     return TRUE;
 
-  if (xdp_entry_has_permissions (entry, app_id, XDP_PERMISSION_FLAGS_WRITE))
+  if (document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_WRITE))
     return TRUE;
 
   return FALSE;
@@ -810,7 +810,7 @@ app_can_see_doc (PermissionDbEntry *entry, const char *app_id)
   if (app_id == NULL)
     return TRUE;
 
-  if (xdp_entry_has_permissions (entry, app_id, XDP_PERMISSION_FLAGS_READ))
+  if (document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_READ))
     return TRUE;
 
   return FALSE;
@@ -1314,7 +1314,7 @@ xdp_fuse_fsyncdir (fuse_req_t             req,
       g_autoptr(PermissionDbEntry) entry =  xdp_lookup_doc (inode->doc_id);
       if (entry != NULL)
         {
-          g_autofree char *dirname = xdp_entry_dup_dirname (entry);
+          g_autofree char *dirname = document_entry_dup_dirname (entry);
           int fd = open (dirname, O_DIRECTORY | O_RDONLY);
           if (fd >= 0)
             {

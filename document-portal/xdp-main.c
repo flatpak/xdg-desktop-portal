@@ -13,7 +13,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include "document-portal-dbus.h"
-#include "xdp-util.h"
+#include "document-store.h"
 #include "src/xdp-utils.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"
@@ -70,16 +70,16 @@ xdp_lookup_doc (const char *doc_id)
 static gboolean
 persist_entry (PermissionDbEntry *entry)
 {
-  guint32 flags = xdp_entry_get_flags (entry);
+  guint32 flags = document_entry_get_flags (entry);
 
-  return (flags & XDP_ENTRY_FLAG_TRANSIENT) == 0;
+  return (flags & DOCUMENT_ENTRY_FLAG_TRANSIENT) == 0;
 }
 
 static void
 do_set_permissions (PermissionDbEntry    *entry,
                     const char        *doc_id,
                     const char        *app_id,
-                    XdpPermissionFlags perms)
+                    DocumentPermissionFlags perms)
 {
   g_autofree const char **perms_s = xdg_unparse_permissions (perms);
 
@@ -111,7 +111,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
-  XdpPermissionFlags perms;
+  DocumentPermissionFlags perms;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
 
@@ -140,8 +140,8 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
     perms = xdp_parse_permissions (permissions);
 
     /* Must have grant-permissions and all the newly granted permissions */
-    if (!xdp_entry_has_permissions (entry, app_id,
-                                    XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS | perms))
+    if (!document_entry_has_permissions (entry, app_id,
+                                    DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS | perms))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -150,7 +150,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
       }
 
     do_set_permissions (entry, id, target_app_id,
-                        perms | xdp_entry_get_permissions (entry, target_app_id));
+                        perms | document_entry_get_permissions (entry, target_app_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
@@ -169,7 +169,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   g_autofree const char **permissions = NULL;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
-  XdpPermissionFlags perms;
+  DocumentPermissionFlags perms;
 
   g_variant_get (parameters, "(&s&s^a&s)", &id, &target_app_id, &permissions);
 
@@ -196,8 +196,8 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     perms = xdp_parse_permissions (permissions);
 
     /* Must have grant-permissions, or be itself */
-    if (!xdp_entry_has_permissions (entry, app_id,
-                                    XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS) ||
+    if (!document_entry_has_permissions (entry, app_id,
+                                    DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS) ||
         strcmp (app_id, target_app_id) == 0)
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -207,7 +207,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
       }
 
     do_set_permissions (entry, id, target_app_id,
-                        ~perms & xdp_entry_get_permissions (entry, target_app_id));
+                        ~perms & document_entry_get_permissions (entry, target_app_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
@@ -241,7 +241,7 @@ portal_delete (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!xdp_entry_has_permissions (entry, app_id, XDP_PERMISSION_FLAGS_DELETE))
+    if (!document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_DELETE))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -278,9 +278,9 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
   guint32 flags = 0;
 
   if (!reuse_existing)
-    flags |= XDP_ENTRY_FLAG_UNIQUE;
+    flags |= DOCUMENT_ENTRY_FLAG_UNIQUE;
   if (!persistent)
-    flags |= XDP_ENTRY_FLAG_TRANSIENT;
+    flags |= DOCUMENT_ENTRY_FLAG_TRANSIENT;
   data =
     g_variant_ref_sink (g_variant_new ("(^ayttu)",
                                        path,
@@ -571,15 +571,15 @@ portal_add (GDBusMethodInvocation *invocation,
         if (app_id[0] != '\0')
           {
             g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
-            XdpPermissionFlags perms =
-              XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-              XDP_PERMISSION_FLAGS_READ |
-              XDP_PERMISSION_FLAGS_WRITE;
+            DocumentPermissionFlags perms =
+              DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
+              DOCUMENT_PERMISSION_FLAGS_READ |
+              DOCUMENT_PERMISSION_FLAGS_WRITE;
 
             /* If its a unique one its safe for the creator to
                delete it at will */
             if (!reuse_existing)
-              perms |= XDP_PERMISSION_FLAGS_DELETE;
+              perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
             do_set_permissions (entry, id, app_id, perms);
           }
@@ -597,7 +597,7 @@ portal_add (GDBusMethodInvocation *invocation,
 
 static gboolean
 app_has_file_access (const char *target_app_id,
-                     XdpPermissionFlags target_perms,
+                     DocumentPermissionFlags target_perms,
                      const char *path)
 {
   /* TODO: Reimplement */
@@ -628,13 +628,13 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autofree struct stat *real_parent_st_bufs = NULL;
   int i;
   gsize n_args;
-  XdpPermissionFlags target_perms;
+  DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
 
   g_variant_get (parameters, "(@ahus^a&s)",
                  &array, &flags, &target_app_id, &permissions);
 
-  if ((flags & ~XDP_ADD_FLAGS_FLAGS_ALL) != 0)
+  if ((flags & ~DOCUMENT_ADD_FLAGS_FLAGS_ALL) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -642,9 +642,9 @@ portal_add_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  reuse_existing = (flags & XDP_ADD_FLAGS_REUSE_EXISTING) != 0;
-  persistent = (flags & XDP_ADD_FLAGS_PERSISTENT) != 0;
-  as_needed_by_app = (flags & XDP_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
+  reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
+  persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
+  as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
 
   target_perms = xdp_parse_permissions (permissions);
 
@@ -699,15 +699,15 @@ portal_add_full (GDBusMethodInvocation *invocation,
     }
 
   {
-    XdpPermissionFlags caller_perms =
-      XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-      XDP_PERMISSION_FLAGS_READ |
-      XDP_PERMISSION_FLAGS_WRITE;
+    DocumentPermissionFlags caller_perms =
+      DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
+      DOCUMENT_PERMISSION_FLAGS_READ |
+      DOCUMENT_PERMISSION_FLAGS_WRITE;
 
     /* If its a unique one its safe for the creator to
        delete it at will */
     if (!reuse_existing)
-      caller_perms |= XDP_PERMISSION_FLAGS_DELETE;
+      caller_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
     XDP_AUTOLOCK (db); /* Lock once for all ops */
 
@@ -789,7 +789,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   g_autofree const char **permissions = NULL;
   g_autofree char *id = NULL;
   g_autofree char *path = NULL;
-  XdpPermissionFlags target_perms;
+  DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
   g_autoptr(GVariant) filename_v = NULL;
 
@@ -805,7 +805,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  if ((flags & ~XDP_ADD_FLAGS_FLAGS_ALL) != 0)
+  if ((flags & ~DOCUMENT_ADD_FLAGS_FLAGS_ALL) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -813,9 +813,9 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  reuse_existing = (flags & XDP_ADD_FLAGS_REUSE_EXISTING) != 0;
-  persistent = (flags & XDP_ADD_FLAGS_PERSISTENT) != 0;
-  as_needed_by_app = (flags & XDP_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
+  reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
+  persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
+  as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
 
   target_perms = xdp_parse_permissions (permissions);
 
@@ -857,15 +857,15 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   g_debug ("portal_add_named_full %s", path);
 
   {
-    XdpPermissionFlags caller_perms =
-      XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-      XDP_PERMISSION_FLAGS_READ |
-      XDP_PERMISSION_FLAGS_WRITE;
+    DocumentPermissionFlags caller_perms =
+      DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
+      DOCUMENT_PERMISSION_FLAGS_READ |
+      DOCUMENT_PERMISSION_FLAGS_WRITE;
 
     /* If its a unique one its safe for the creator to
        delete it at will */
     if (!reuse_existing)
-      caller_perms |= XDP_PERMISSION_FLAGS_DELETE;
+      caller_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
     XDP_AUTOLOCK (db);
 
