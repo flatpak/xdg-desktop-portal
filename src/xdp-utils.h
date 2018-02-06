@@ -25,6 +25,11 @@
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
+gint xdp_mkstempat (int    dir_fd,
+                    gchar *tmpl,
+                    int    flags,
+                    int    mode);
+
 char * xdp_get_app_id_from_pid (pid_t pid,
                                 GError **error);
 
