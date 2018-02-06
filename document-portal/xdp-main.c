@@ -523,7 +523,7 @@ portal_add (GDBusMethodInvocation *invocation,
   struct stat st_buf, real_parent_st_buf;
   gboolean reuse_existing, persistent;
   GError *error = NULL;
-  GKeyFile *app_info = g_object_get_data (G_OBJECT (invocation), "app-info");
+  g_autoptr(GKeyFile) app_info = NULL;
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
 
@@ -536,6 +536,15 @@ portal_add (GDBusMethodInvocation *invocation,
       fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
       if (fd_id < fds_len)
         fd = fds[fd_id];
+    }
+
+  app_info = xdp_invocation_lookup_cached_app_info (invocation);
+  if (app_info == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Internal error, no cached app_info");
+      return;
     }
 
   if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, path_buffer, &error))
@@ -637,7 +646,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   gboolean reuse_existing, persistent, as_needed_by_app;
   GError *error = NULL;
   guint32 flags = 0;
-  GKeyFile *app_info = g_object_get_data (G_OBJECT (invocation), "app-info");
+  g_autoptr(GKeyFile) app_info = NULL;
   g_autoptr(GVariant) array = NULL;
   const char *target_app_id;
   g_autofree const char **permissions = NULL;
@@ -675,6 +684,15 @@ portal_add_full (GDBusMethodInvocation *invocation,
   fd_list = g_dbus_message_get_unix_fd_list (message);
   if (fd_list != NULL)
     fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+
+  app_info = xdp_invocation_lookup_cached_app_info (invocation);
+  if (app_info == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Internal error, no cached app_info");
+      return;
+    }
 
   for (i = 0; i < n_args; i++)
     {
@@ -1004,38 +1022,19 @@ typedef void (*PortalMethod) (GDBusMethodInvocation *invocation,
                               GVariant              *parameters,
                               const char            *app_id);
 
-static void
-got_app_id_cb (GObject      *source_object,
-               GAsyncResult *res,
-               gpointer      user_data)
-{
-  GDBusMethodInvocation *invocation = G_DBUS_METHOD_INVOCATION (source_object);
-
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GKeyFile) app_info = NULL;
-  g_autofree char *app_id = NULL;
-  PortalMethod portal_method = user_data;
-
-  app_info = flatpak_invocation_lookup_app_info_finish (invocation, res, &error);
-  if (app_info != NULL)
-    app_id = g_key_file_get_string (app_info,
-                                    FLATPAK_METADATA_GROUP_APPLICATION,
-                                    FLATPAK_METADATA_KEY_NAME, &error);
-
-  if (app_id == NULL)
-    g_dbus_method_invocation_return_gerror (invocation, error);
-  else
-    {
-      g_object_set_data_full (G_OBJECT (invocation), "app-info", g_steal_pointer (&app_info), (GDestroyNotify)g_key_file_unref);
-      portal_method (invocation, g_dbus_method_invocation_get_parameters (invocation), app_id);
-    }
-}
-
 static gboolean
 handle_method (GCallback              method_callback,
                GDBusMethodInvocation *invocation)
 {
-  flatpak_invocation_lookup_app_info (invocation, NULL, got_app_id_cb, method_callback);
+  g_autoptr(GError) error = NULL;
+  g_autofree char *app_id = NULL;
+  PortalMethod portal_method = (PortalMethod)method_callback;
+
+  app_id = xdp_invocation_lookup_app_id_sync (invocation, NULL, &error);
+  if (app_id == NULL)
+    g_dbus_method_invocation_return_gerror (invocation, error);
+  else
+    portal_method (invocation, g_dbus_method_invocation_get_parameters (invocation), app_id);
 
   return TRUE;
 }
@@ -1256,7 +1255,7 @@ on_bus_acquired (GDBusConnection *connection,
   g_signal_connect_swapped (dbus_api, "handle-info", G_CALLBACK (handle_method), portal_info);
   g_signal_connect_swapped (dbus_api, "handle-list", G_CALLBACK (handle_method), portal_list);
 
-  flatpak_connection_track_name_owners (connection);
+  xdp_connection_track_name_owners (connection, NULL);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (dbus_api),
                                          connection,
