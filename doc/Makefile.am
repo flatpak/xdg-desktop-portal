@@ -21,8 +21,8 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Notification.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Access.xml	\
-	$(FLATPAK_INTERFACES_DIR)/org.freedesktop.portal.Documents.xml			\
-	$(FLATPAK_INTERFACES_DIR)/org.freedesktop.impl.portal.PermissionStore.xml	\
+	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml		\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
 	$(NULL)
 
 xml_files = 								\
