@@ -22,6 +22,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include <errno.h>
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
@@ -66,6 +67,33 @@ typedef enum {
 #define XDG_DESKTOP_PORTAL_ERROR xdg_desktop_portal_error_quark ()
 
 GQuark  xdg_desktop_portal_error_quark (void);
+
+static inline int
+xdp_steal_fd (int *fdp)
+{
+  int fd = *fdp;
+  *fdp = -1;
+  return fd;
+}
+
+static inline void
+xdp_close_fd (int *fdp)
+{
+  int errsv;
+
+  g_assert (fdp);
+
+  int fd = xdp_steal_fd (fdp);
+  if (fd >= 0)
+    {
+      errsv = errno;
+      if (close (fd) < 0)
+        g_assert (errno != EBADF);
+      errno = errsv;
+    }
+}
+
+#define xdp_autofd __attribute__((cleanup(xdp_close_fd)))
 
 char *xdp_get_path_for_fd (GKeyFile *app_info,
                            int fd);
