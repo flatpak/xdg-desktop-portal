@@ -24,8 +24,7 @@
 
 #include <string.h>
 
-#include "libglnx/libglnx.h"
-#include <glib-object.h>
+#include <gio/gio.h>
 
 G_BEGIN_DECLS
 

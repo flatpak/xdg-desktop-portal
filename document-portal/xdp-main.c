@@ -378,7 +378,7 @@ validate_parent_dir (const char *path,
 {
   g_autofree char *dirname = NULL;
   g_autofree char *name = NULL;
-  glnx_autofd int dir_fd = -1;
+  xdp_autofd int dir_fd = -1;
   struct stat real_st_buf;
 
   /* We open the parent directory and do the stat in that, so that we have
@@ -1064,7 +1064,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
 {
   const char *filename;
   char path_buffer[PATH_MAX + 1];
-  glnx_autofd int fd = -1;
+  xdp_autofd int fd = -1;
   struct stat st_buf, real_parent_st_buf;
   g_auto(GStrv) ids = NULL;
   g_autofree char *id = NULL;
@@ -1084,7 +1084,10 @@ portal_lookup (GDBusMethodInvocation *invocation,
   fd = open (filename, O_PATH | O_CLOEXEC);
   if (fd == -1)
     {
-      glnx_set_error_from_errno (&error);
+      int errsv = errno;
+      g_set_error_literal (&error, G_IO_ERROR,
+                           g_io_error_from_errno (errsv),
+                           g_strerror (errsv));
       g_dbus_method_invocation_take_error (invocation, error);
       return TRUE;
     }
