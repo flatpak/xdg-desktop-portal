@@ -16,7 +16,7 @@
 #include <pthread.h>
 #include <sys/statfs.h>
 
-#include "xdp-fuse.h"
+#include "document-portal-fuse.h"
 #include "document-store.h"
 #include "src/xdp-utils.h"
 

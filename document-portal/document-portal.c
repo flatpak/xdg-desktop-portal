@@ -17,7 +17,7 @@
 #include "src/xdp-utils.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"
-#include "xdp-fuse.h"
+#include "document-portal-fuse.h"
 
 #include <sys/eventfd.h>
 

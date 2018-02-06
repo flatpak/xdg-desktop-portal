@@ -87,12 +87,12 @@ CLEANFILES += $(nodist_xdg_document_portal_SOURCES)
 xdg_document_portal_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
-	document-portal/xdp-main.c		\
+	document-portal/document-portal.c		\
 	document-portal/document-enums.h		\
 	document-portal/document-store.h		\
 	document-portal/document-store.c		\
-	document-portal/xdp-fuse.h		\
-	document-portal/xdp-fuse.c		\
+	document-portal/document-portal-fuse.h		\
+	document-portal/document-portal-fuse.c		\
 	$(DB_SOURCES) \
 	$(NULL)
 
