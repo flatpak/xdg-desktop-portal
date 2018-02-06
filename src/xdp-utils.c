@@ -463,3 +463,76 @@ xdp_get_path_for_fd (GKeyFile *app_info,
 
   return g_strdup (path);
 }
+
+static gboolean
+is_valid_initial_name_character (gint c, gboolean allow_dash)
+{
+  return
+    (c >= 'A' && c <= 'Z') ||
+    (c >= 'a' && c <= 'z') ||
+    (c == '_') || (allow_dash && c == '-');
+}
+
+static gboolean
+is_valid_name_character (gint c, gboolean allow_dash)
+{
+  return
+    is_valid_initial_name_character (c, allow_dash) ||
+    (c >= '0' && c <= '9');
+}
+
+gboolean
+xdp_is_valid_flatpak_name (const char *string)
+{
+  guint len;
+  const gchar *s;
+  const gchar *end;
+  const gchar *last_dot;
+  int dot_count;
+  gboolean last_element;
+
+  g_return_val_if_fail (string != NULL, FALSE);
+
+  len = strlen (string);
+  if (G_UNLIKELY (len == 0))
+    return FALSE;
+
+  if (G_UNLIKELY (len > 255))
+    return FALSE;
+
+  end = string + len;
+
+  last_dot = strrchr (string, '.');
+  last_element = FALSE;
+
+  s = string;
+  if (G_UNLIKELY (*s == '.'))
+    return FALSE; /* Name can't start with a period */
+  else if (G_UNLIKELY (!is_valid_initial_name_character (*s, last_element)))
+    return FALSE;
+
+  s += 1;
+  dot_count = 0;
+  while (s != end)
+    {
+      if (*s == '.')
+        {
+          if (s == last_dot)
+            last_element = TRUE;
+          s += 1;
+          if (G_UNLIKELY (s == end))
+            return FALSE;
+          if (!is_valid_initial_name_character (*s, last_element))
+            return FALSE;
+          dot_count++;
+        }
+      else if (G_UNLIKELY (!is_valid_name_character (*s, last_element)))
+        return FALSE;
+      s += 1;
+    }
+
+  if (G_UNLIKELY (dot_count < 2))
+    return FALSE;
+
+  return TRUE;
+}

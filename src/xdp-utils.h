@@ -39,6 +39,7 @@ gint xdp_mkstempat (int    dir_fd,
 
 char * xdp_get_app_id_from_pid (pid_t pid,
                                 GError **error);
+gboolean xdp_is_valid_flatpak_name (const char *string);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
