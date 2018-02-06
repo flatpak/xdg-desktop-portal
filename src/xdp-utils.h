@@ -26,6 +26,12 @@
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
+#define FLATPAK_METADATA_GROUP_APPLICATION "Application"
+#define FLATPAK_METADATA_KEY_NAME "name"
+#define FLATPAK_METADATA_GROUP_INSTANCE "Instance"
+#define FLATPAK_METADATA_KEY_APP_PATH "app-path"
+#define FLATPAK_METADATA_KEY_RUNTIME_PATH "runtime-path"
+
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
                     int    flags,
