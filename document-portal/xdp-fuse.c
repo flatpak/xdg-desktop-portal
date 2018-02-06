@@ -611,7 +611,7 @@ create_tmp_for_doc (XdpInode *dir, int dir_fd, int flags, mode_t mode, int *fd_o
   g_autofree char *template = g_strconcat (".xdp_", dir->basename, ".XXXXXX", NULL);
   int fd;
 
-  fd = flatpak_mkstempat (dir_fd, template, flags | O_CLOEXEC, mode);
+  fd = xdp_mkstempat (dir_fd, template, flags | O_CLOEXEC, mode);
   if (fd == -1)
     return NULL;
 
