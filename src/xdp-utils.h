@@ -64,3 +64,20 @@ GQuark  xdg_desktop_portal_error_quark (void);
 
 char *xdp_get_path_for_fd (GKeyFile *app_info,
                            int fd);
+
+static inline void
+xdp_auto_unlock_helper (GMutex **mutex)
+{
+  if (*mutex)
+    g_mutex_unlock (*mutex);
+}
+
+static inline GMutex *
+xdp_auto_lock_helper (GMutex *mutex)
+{
+  if (mutex)
+    g_mutex_lock (mutex);
+  return mutex;
+}
+
+#define XDP_AUTOLOCK(name) G_GNUC_UNUSED __attribute__((cleanup (xdp_auto_unlock_helper))) GMutex * G_PASTE (auto_unlock, __LINE__) = xdp_auto_lock_helper (&G_LOCK_NAME (name))
