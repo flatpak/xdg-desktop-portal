@@ -15,7 +15,7 @@
 #include "document-portal-dbus.h"
 #include "xdp-util.h"
 #include "src/xdp-utils.h"
-#include "flatpak-db.h"
+#include "permission-db.h"
 #include "permission-store-dbus.h"
 #include "xdp-fuse.h"
 
@@ -35,7 +35,7 @@ typedef struct
 
 
 static GMainLoop *loop = NULL;
-static FlatpakDb *db = NULL;
+static PermissionDb *db = NULL;
 static XdgPermissionStore *permission_store;
 static int daemon_event_fd = -1;
 static int final_exit_status = 0;
@@ -50,25 +50,25 @@ char **
 xdp_list_apps (void)
 {
   XDP_AUTOLOCK (db);
-  return flatpak_db_list_apps (db);
+  return permission_db_list_apps (db);
 }
 
 char **
 xdp_list_docs (void)
 {
   XDP_AUTOLOCK (db);
-  return flatpak_db_list_ids (db);
+  return permission_db_list_ids (db);
 }
 
-FlatpakDbEntry *
+PermissionDbEntry *
 xdp_lookup_doc (const char *doc_id)
 {
   XDP_AUTOLOCK (db);
-  return flatpak_db_lookup (db, doc_id);
+  return permission_db_lookup (db, doc_id);
 }
 
 static gboolean
-persist_entry (FlatpakDbEntry *entry)
+persist_entry (PermissionDbEntry *entry)
 {
   guint32 flags = xdp_entry_get_flags (entry);
 
@@ -76,19 +76,19 @@ persist_entry (FlatpakDbEntry *entry)
 }
 
 static void
-do_set_permissions (FlatpakDbEntry    *entry,
+do_set_permissions (PermissionDbEntry    *entry,
                     const char        *doc_id,
                     const char        *app_id,
                     XdpPermissionFlags perms)
 {
   g_autofree const char **perms_s = xdg_unparse_permissions (perms);
 
-  g_autoptr(FlatpakDbEntry) new_entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
 
   g_debug ("set_permissions %s %s %x", doc_id, app_id, perms);
 
-  new_entry = flatpak_db_entry_set_app_permissions (entry, app_id, perms_s);
-  flatpak_db_set_entry (db, doc_id, new_entry);
+  new_entry = permission_db_entry_set_app_permissions (entry, app_id, perms_s);
+  permission_db_set_entry (db, doc_id, new_entry);
 
   if (persist_entry (new_entry))
     {
@@ -113,14 +113,14 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
   g_autofree const char **permissions = NULL;
   XdpPermissionFlags perms;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   g_variant_get (parameters, "(&s&s^a&s)", &id, &target_app_id, &permissions);
 
   {
     XDP_AUTOLOCK (db);
 
-    entry = flatpak_db_lookup (db, id);
+    entry = permission_db_lookup (db, id);
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -168,7 +168,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   const char *id;
   g_autofree const char **permissions = NULL;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   XdpPermissionFlags perms;
 
   g_variant_get (parameters, "(&s&s^a&s)", &id, &target_app_id, &permissions);
@@ -176,7 +176,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   {
     XDP_AUTOLOCK (db);
 
-    entry = flatpak_db_lookup (db, id);
+    entry = permission_db_lookup (db, id);
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -223,7 +223,7 @@ portal_delete (GDBusMethodInvocation *invocation,
 {
   const char *id;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree const char **old_apps = NULL;
   int i;
 
@@ -232,7 +232,7 @@ portal_delete (GDBusMethodInvocation *invocation,
   {
     XDP_AUTOLOCK (db);
 
-    entry = flatpak_db_lookup (db, id);
+    entry = permission_db_lookup (db, id);
     if (entry == NULL)
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -251,7 +251,7 @@ portal_delete (GDBusMethodInvocation *invocation,
 
     g_debug ("delete %s", id);
 
-    flatpak_db_set_entry (db, id, NULL);
+    permission_db_set_entry (db, id, NULL);
 
     if (persist_entry (entry))
       xdg_permission_store_call_delete (permission_store, TABLE_NAME,
@@ -259,7 +259,7 @@ portal_delete (GDBusMethodInvocation *invocation,
   }
 
   /* All i/o is done now, so drop the lock so we can invalidate the fuse caches */
-  old_apps = flatpak_db_entry_list_apps (entry);
+  old_apps = permission_db_entry_list_apps (entry);
   for (i = 0; old_apps[i] != NULL; i++)
     xdp_fuse_invalidate_doc_app (id, old_apps[i]);
   xdp_fuse_invalidate_doc_app (id, NULL);
@@ -272,7 +272,7 @@ static char *
 do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_existing, gboolean persistent)
 {
   g_autoptr(GVariant) data = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   g_auto(GStrv) ids = NULL;
   char *id = NULL;
   guint32 flags = 0;
@@ -290,7 +290,7 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
 
   if (reuse_existing)
     {
-      ids = flatpak_db_list_ids_by_value (db, data);
+      ids = permission_db_list_ids_by_value (db, data);
 
       if (ids[0] != NULL)
         return g_strdup (ids[0]);  /* Reuse pre-existing entry with same path */
@@ -298,19 +298,19 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
 
   while (TRUE)
     {
-      g_autoptr(FlatpakDbEntry) existing = NULL;
+      g_autoptr(PermissionDbEntry) existing = NULL;
 
       g_clear_pointer (&id, g_free);
       id = xdp_name_from_id ((guint32) g_random_int ());
-      existing = flatpak_db_lookup (db, id);
+      existing = permission_db_lookup (db, id);
       if (existing == NULL)
         break;
     }
 
   g_debug ("create_doc %s", id);
 
-  entry = flatpak_db_entry_new (data);
-  flatpak_db_set_entry (db, id, entry);
+  entry = permission_db_entry_new (data);
+  permission_db_set_entry (db, id, entry);
 
   if (persistent)
     {
@@ -478,7 +478,7 @@ validate_fd (int fd,
 static char *
 verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
 {
-  g_autoptr(FlatpakDbEntry) old_entry = NULL;
+  g_autoptr(PermissionDbEntry) old_entry = NULL;
   g_autofree char *id = NULL;
 
   g_assert (st_buf->st_dev == fuse_dev);
@@ -498,7 +498,7 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
    * get a copy with permissions and thus escape later permission
    * revocations
    */
-  old_entry = flatpak_db_lookup (db, id);
+  old_entry = permission_db_lookup (db, id);
   if (old_entry == NULL || !reuse_existing)
     return NULL;
 
@@ -570,7 +570,7 @@ portal_add (GDBusMethodInvocation *invocation,
 
         if (app_id[0] != '\0')
           {
-            g_autoptr(FlatpakDbEntry) entry = flatpak_db_lookup (db, id);
+            g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
             XdpPermissionFlags perms =
               XDP_PERMISSION_FLAGS_GRANT_PERMISSIONS |
               XDP_PERMISSION_FLAGS_READ |
@@ -731,13 +731,13 @@ portal_add_full (GDBusMethodInvocation *invocation,
 
             if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
               {
-                g_autoptr(FlatpakDbEntry) entry = flatpak_db_lookup (db, id);;
+                g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
                 do_set_permissions (entry, id, app_id, caller_perms);
               }
 
             if (target_app_id[0] != '\0' && target_perms != 0)
               {
-                g_autoptr(FlatpakDbEntry) entry = flatpak_db_lookup (db, id);
+                g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
                 do_set_permissions (entry, id, target_app_id, target_perms);
               }
           }
@@ -880,13 +880,13 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
 
         if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
           {
-            g_autoptr(FlatpakDbEntry) entry = flatpak_db_lookup (db, id);;
+            g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
             do_set_permissions (entry, id, app_id, caller_perms);
           }
 
         if (target_app_id[0] != '\0' && target_perms != 0)
           {
-            g_autoptr(FlatpakDbEntry) entry = flatpak_db_lookup (db, id);
+            g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
             do_set_permissions (entry, id, target_app_id, target_perms);
           }
       }
@@ -1083,7 +1083,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
                                                 (guint64)real_parent_st_buf.st_dev,
                                                 (guint64)real_parent_st_buf.st_ino,
                                                 0));
-      ids = flatpak_db_list_ids_by_value (db, data);
+      ids = permission_db_list_ids_by_value (db, data);
       if (ids[0] != NULL)
         id = g_strdup (ids[0]);
     }
@@ -1095,18 +1095,18 @@ portal_lookup (GDBusMethodInvocation *invocation,
 }
 
 static GVariant *
-get_app_permissions (FlatpakDbEntry *entry)
+get_app_permissions (PermissionDbEntry *entry)
 {
   g_autofree const char **apps = NULL;
   GVariantBuilder builder;
   int i;
 
-  apps = flatpak_db_entry_list_apps (entry);
+  apps = permission_db_entry_list_apps (entry);
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sas}"));
 
   for (i = 0; apps[i] != NULL; i++)
     {
-      g_autofree const char **permissions = flatpak_db_entry_list_permissions (entry, apps[i]);
+      g_autofree const char **permissions = permission_db_entry_list_permissions (entry, apps[i]);
       g_variant_builder_add_value (&builder,
                                    g_variant_new ("{s^as}", apps[i], permissions));
     }
@@ -1115,9 +1115,9 @@ get_app_permissions (FlatpakDbEntry *entry)
 }
 
 static GVariant *
-get_path (FlatpakDbEntry *entry)
+get_path (PermissionDbEntry *entry)
 {
-  g_autoptr (GVariant) data = flatpak_db_entry_get_data (entry);
+  g_autoptr (GVariant) data = permission_db_entry_get_data (entry);
   const char *path;
 
   g_variant_get (data, "(^ayttu)", &path, NULL, NULL, NULL);
@@ -1130,7 +1130,7 @@ portal_info (GDBusMethodInvocation *invocation,
              const char *app_id)
 {
   const char *id = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   if (strcmp (app_id, "") != 0)
     {
@@ -1144,7 +1144,7 @@ portal_info (GDBusMethodInvocation *invocation,
 
   XDP_AUTOLOCK (db);
 
-  entry = flatpak_db_lookup (db, id);
+  entry = permission_db_lookup (db, id);
 
   if (!entry)
     {
@@ -1184,16 +1184,16 @@ portal_list (GDBusMethodInvocation *invocation,
   XDP_AUTOLOCK (db);
 
   if (strcmp (app_id, "") == 0)
-    ids = flatpak_db_list_ids (db);
+    ids = permission_db_list_ids (db);
   else
-    ids = flatpak_db_list_ids_by_app (db, app_id);
+    ids = permission_db_list_ids_by_app (db, app_id);
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{say}"));
   for (i = 0; ids[i]; i++)
     {
-      g_autoptr(FlatpakDbEntry) entry = NULL;
+      g_autoptr(PermissionDbEntry) entry = NULL;
 
-      entry = flatpak_db_lookup (db, ids[i]);
+      entry = permission_db_lookup (db, ids[i]);
 
       g_variant_builder_add (&builder, "{s@ay}", ids[i], get_path (entry));
     }
@@ -1456,7 +1456,7 @@ main (int    argc,
   loop = g_main_loop_new (NULL, FALSE);
 
   path = g_build_filename (g_get_user_data_dir (), "flatpak/db", TABLE_NAME, NULL);
-  db = flatpak_db_new (path, FALSE, &error);
+  db = permission_db_new (path, FALSE, &error);
   if (db == NULL)
     {
       g_printerr ("Failed to load db: %s", error->message);

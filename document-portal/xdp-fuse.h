@@ -2,13 +2,13 @@
 #define XDP_FUSE_H
 
 #include <glib.h>
-#include "flatpak-db.h"
+#include "permission-db.h"
 
 G_BEGIN_DECLS
 
 char **        xdp_list_apps (void);
 char **        xdp_list_docs (void);
-FlatpakDbEntry *xdp_lookup_doc (const char *doc_id);
+PermissionDbEntry *xdp_lookup_doc (const char *doc_id);
 
 gboolean    xdp_fuse_init (GError **error);
 void        xdp_fuse_exit (void);

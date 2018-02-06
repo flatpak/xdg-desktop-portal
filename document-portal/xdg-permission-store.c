@@ -26,7 +26,7 @@
 #include <gio/gio.h>
 #include "permission-store-dbus.h"
 #include "xdg-permission-store.h"
-#include "flatpak-db.h"
+#include "permission-db.h"
 #include "src/xdp-utils.h"
 
 GHashTable *tables = NULL;
@@ -34,7 +34,7 @@ GHashTable *tables = NULL;
 typedef struct
 {
   char      *name;
-  FlatpakDb *db;
+  PermissionDb *db;
   GList     *outstanding_writes;
   GList     *current_writes;
   gboolean   writing;
@@ -55,7 +55,7 @@ lookup_table (const char            *name,
               GDBusMethodInvocation *invocation)
 {
   Table *table;
-  FlatpakDb *db;
+  PermissionDb *db;
   g_autofree char *dir = NULL;
   g_autofree char *path = NULL;
 
@@ -69,7 +69,7 @@ lookup_table (const char            *name,
   g_mkdir_with_parents (dir, 0755);
 
   path = g_build_filename (dir, name, NULL);
-  db = flatpak_db_new (path, FALSE, &error);
+  db = permission_db_new (path, FALSE, &error);
   if (db == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -98,7 +98,7 @@ writeout_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   gboolean ok;
 
-  ok = flatpak_db_save_content_finish (table->db, res, &error);
+  ok = permission_db_save_content_finish (table->db, res, &error);
 
   for (l = table->current_writes; l != NULL; l = l->next)
     {
@@ -129,9 +129,9 @@ start_writeout (Table *table)
   table->outstanding_writes = NULL;
   table->writing = TRUE;
 
-  flatpak_db_update (table->db);
+  permission_db_update (table->db);
 
-  flatpak_db_save_content_async (table->db, NULL, writeout_done, table);
+  permission_db_save_content_async (table->db, NULL, writeout_done, table);
 }
 
 static void
@@ -157,7 +157,7 @@ handle_list (XdgPermissionStore     *object,
   if (table == NULL)
     return TRUE;
 
-  ids = flatpak_db_list_ids (table->db);
+  ids = permission_db_list_ids (table->db);
 
   xdg_permission_store_complete_list (object, invocation, (const char * const *) ids);
 
@@ -165,18 +165,18 @@ handle_list (XdgPermissionStore     *object,
 }
 
 static GVariant *
-get_app_permissions (FlatpakDbEntry *entry)
+get_app_permissions (PermissionDbEntry *entry)
 {
   g_autofree const char **apps = NULL;
   GVariantBuilder builder;
   int i;
 
-  apps = flatpak_db_entry_list_apps (entry);
+  apps = permission_db_entry_list_apps (entry);
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sas}"));
 
   for (i = 0; apps[i] != NULL; i++)
     {
-      g_autofree const char **permissions = flatpak_db_entry_list_permissions (entry, apps[i]);
+      g_autofree const char **permissions = permission_db_entry_list_permissions (entry, apps[i]);
       g_variant_builder_add_value (&builder,
                                    g_variant_new ("{s@as}",
                                                   apps[i],
@@ -196,13 +196,13 @@ handle_lookup (XdgPermissionStore     *object,
 
   g_autoptr(GVariant) data = NULL;
   g_autoptr(GVariant) permissions = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
     return TRUE;
 
-  entry = flatpak_db_lookup (table->db, id);
+  entry = permission_db_lookup (table->db, id);
   if (entry == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -211,7 +211,7 @@ handle_lookup (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  data = flatpak_db_entry_get_data (entry);
+  data = permission_db_entry_get_data (entry);
   permissions = get_app_permissions (entry);
 
   xdg_permission_store_complete_lookup (object, invocation,
@@ -225,12 +225,12 @@ static void
 emit_deleted (XdgPermissionStore     *object,
               const gchar            *table_name,
               const gchar            *id,
-              FlatpakDbEntry         *entry)
+              PermissionDbEntry         *entry)
 {
   g_autoptr(GVariant) data = NULL;
   g_autoptr(GVariant) permissions = NULL;
 
-  data = flatpak_db_entry_get_data (entry);
+  data = permission_db_entry_get_data (entry);
   permissions = g_variant_ref_sink (g_variant_new_array (G_VARIANT_TYPE ("{sas}"), NULL, 0));
 
   xdg_permission_store_emit_changed (object,
@@ -245,12 +245,12 @@ static void
 emit_changed (XdgPermissionStore     *object,
               const gchar            *table_name,
               const gchar            *id,
-              FlatpakDbEntry         *entry)
+              PermissionDbEntry         *entry)
 {
   g_autoptr(GVariant) data = NULL;
   g_autoptr(GVariant) permissions = NULL;
 
-  data = flatpak_db_entry_get_data (entry);
+  data = permission_db_entry_get_data (entry);
   permissions = get_app_permissions (entry);
 
   xdg_permission_store_emit_changed (object,
@@ -268,13 +268,13 @@ handle_delete (XdgPermissionStore     *object,
 {
   Table *table;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
     return TRUE;
 
-  entry = flatpak_db_lookup (table->db, id);
+  entry = permission_db_lookup (table->db, id);
   if (entry == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -283,7 +283,7 @@ handle_delete (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  flatpak_db_set_entry (table->db, id, NULL);
+  permission_db_set_entry (table->db, id, NULL);
   emit_deleted (object, table_name, id, entry);
 
   ensure_writeout (table, invocation);
@@ -305,14 +305,14 @@ handle_set (XdgPermissionStore     *object,
   GVariant *child;
 
   g_autoptr(GVariant) data_child = NULL;
-  g_autoptr(FlatpakDbEntry) old_entry = NULL;
-  g_autoptr(FlatpakDbEntry) new_entry = NULL;
+  g_autoptr(PermissionDbEntry) old_entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
     return TRUE;
 
-  old_entry = flatpak_db_lookup (table->db, id);
+  old_entry = permission_db_lookup (table->db, id);
   if (old_entry == NULL && !create)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -322,26 +322,26 @@ handle_set (XdgPermissionStore     *object,
     }
 
   data_child = g_variant_get_child_value (data, 0);
-  new_entry = flatpak_db_entry_new (data_child);
+  new_entry = permission_db_entry_new (data_child);
 
   /* Add all the given app permissions */
 
   g_variant_iter_init (&iter, app_permissions);
   while ((child = g_variant_iter_next_value (&iter)))
     {
-      g_autoptr(FlatpakDbEntry) old_entry = NULL;
+      g_autoptr(PermissionDbEntry) old_entry = NULL;
       const char *child_app_id;
       g_autofree const char **permissions;
 
       g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
 
       old_entry = new_entry;
-      new_entry = flatpak_db_entry_set_app_permissions (new_entry, child_app_id, (const char **) permissions);
+      new_entry = permission_db_entry_set_app_permissions (new_entry, child_app_id, (const char **) permissions);
 
       g_variant_unref (child);
     }
 
-  flatpak_db_set_entry (table->db, id, new_entry);
+  permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
 
   ensure_writeout (table, invocation);
@@ -360,19 +360,19 @@ handle_set_permission (XdgPermissionStore     *object,
 {
   Table *table;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
-  g_autoptr(FlatpakDbEntry) new_entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
     return TRUE;
 
-  entry = flatpak_db_lookup (table->db, id);
+  entry = permission_db_lookup (table->db, id);
   if (entry == NULL)
     {
       if (create)
         {
-          entry = flatpak_db_entry_new (NULL);
+          entry = permission_db_entry_new (NULL);
         }
       else
         {
@@ -383,8 +383,8 @@ handle_set_permission (XdgPermissionStore     *object,
         }
     }
 
-  new_entry = flatpak_db_entry_set_app_permissions (entry, app, (const char **) permissions);
-  flatpak_db_set_entry (table->db, id, new_entry);
+  new_entry = permission_db_entry_set_app_permissions (entry, app, (const char **) permissions);
+  permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
 
   ensure_writeout (table, invocation);
@@ -402,19 +402,19 @@ handle_set_value (XdgPermissionStore     *object,
 {
   Table *table;
 
-  g_autoptr(FlatpakDbEntry) entry = NULL;
-  g_autoptr(FlatpakDbEntry) new_entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
     return TRUE;
 
-  entry = flatpak_db_lookup (table->db, id);
+  entry = permission_db_lookup (table->db, id);
   if (entry == NULL)
     {
       if (create)
         {
-          new_entry = flatpak_db_entry_new (data);
+          new_entry = permission_db_entry_new (data);
         }
       else
         {
@@ -426,10 +426,10 @@ handle_set_value (XdgPermissionStore     *object,
     }
   else
     {
-      new_entry = flatpak_db_entry_modify_data (entry, data);
+      new_entry = permission_db_entry_modify_data (entry, data);
     }
 
-  flatpak_db_set_entry (table->db, id, new_entry);
+  permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
 
   ensure_writeout (table, invocation);

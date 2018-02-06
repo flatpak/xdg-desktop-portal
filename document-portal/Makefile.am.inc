@@ -53,8 +53,8 @@ document-portal/%-dbus.h: document-portal/%-dbus.c
 	@true # Built as a side-effect of the rules for the .c
 
 DB_SOURCES = \
-	document-portal/flatpak-db.c	\
-	document-portal/flatpak-db.h	\
+	document-portal/permission-db.c	\
+	document-portal/permission-db.h	\
 	document-portal/gvdb/gvdb-reader.h	\
 	document-portal/gvdb/gvdb-format.h	\
 	document-portal/gvdb/gvdb-reader.c	\

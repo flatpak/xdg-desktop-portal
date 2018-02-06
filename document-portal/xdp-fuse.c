@@ -723,7 +723,7 @@ xdp_inode_lookup (fuse_ino_t inode_nr)
 }
 
 static XdpInode *
-xdp_inode_get_dir_unlocked (const char *app_id, const char *doc_id, FlatpakDbEntry *entry)
+xdp_inode_get_dir_unlocked (const char *app_id, const char *doc_id, PermissionDbEntry *entry)
 {
   fuse_ino_t ino;
   XdpInode *inode;
@@ -775,7 +775,7 @@ xdp_inode_get_dir_unlocked (const char *app_id, const char *doc_id, FlatpakDbEnt
 }
 
 static XdpInode *
-xdp_inode_get_dir (const char *app_id, const char *doc_id, FlatpakDbEntry *entry)
+xdp_inode_get_dir (const char *app_id, const char *doc_id, PermissionDbEntry *entry)
 {
   XDP_AUTOLOCK (inodes);
   return xdp_inode_get_dir_unlocked (app_id, doc_id, entry);
@@ -793,7 +793,7 @@ get_user_perms (const struct stat *stbuf)
 }
 
 static gboolean
-app_can_write_doc (FlatpakDbEntry *entry, const char *app_id)
+app_can_write_doc (PermissionDbEntry *entry, const char *app_id)
 {
   if (app_id == NULL)
     return TRUE;
@@ -805,7 +805,7 @@ app_can_write_doc (FlatpakDbEntry *entry, const char *app_id)
 }
 
 static gboolean
-app_can_see_doc (FlatpakDbEntry *entry, const char *app_id)
+app_can_see_doc (PermissionDbEntry *entry, const char *app_id)
 {
   if (app_id == NULL)
     return TRUE;
@@ -868,7 +868,7 @@ xdp_inode_stat (XdpInode    *inode,
 
     case XDP_INODE_DOC_FILE:
       {
-        g_autoptr(FlatpakDbEntry) entry = NULL;
+        g_autoptr(PermissionDbEntry) entry = NULL;
         struct stat tmp_stbuf;
         gboolean can_see, can_write;
         int fd, res, errsv;
@@ -945,7 +945,7 @@ xdp_fuse_lookup (fuse_req_t  req,
   g_autoptr(XdpInode) parent_inode = NULL;
   struct fuse_entry_param e = {0};
   g_autoptr(XdpInode) child_inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   g_debug ("xdp_fuse_lookup %lx/%s -> ", parent, name);
 
@@ -1107,7 +1107,7 @@ dirbuf_add_docs (fuse_req_t     req,
     {
       if (app_id)
         {
-          g_autoptr(FlatpakDbEntry) entry = xdp_lookup_doc (docs[i]);
+          g_autoptr(PermissionDbEntry) entry = xdp_lookup_doc (docs[i]);
           if (entry == NULL ||
               !app_can_see_doc (entry, app_id))
             continue;
@@ -1204,7 +1204,7 @@ xdp_fuse_opendir (fuse_req_t             req,
       {
         GList *children, *l;
         g_autoptr(XdpInode) doc_inode = NULL;
-        g_autoptr(FlatpakDbEntry) entry = NULL;
+        g_autoptr(PermissionDbEntry) entry = NULL;
 
         entry = xdp_lookup_doc (inode->doc_id);
         if (entry == NULL)
@@ -1311,7 +1311,7 @@ xdp_fuse_fsyncdir (fuse_req_t             req,
   if (inode->type == XDP_INODE_APP_DOC_DIR ||
       inode->type == XDP_INODE_DOC_DIR)
     {
-      g_autoptr(FlatpakDbEntry) entry =  xdp_lookup_doc (inode->doc_id);
+      g_autoptr(PermissionDbEntry) entry =  xdp_lookup_doc (inode->doc_id);
       if (entry != NULL)
         {
           g_autofree char *dirname = xdp_entry_dup_dirname (entry);
@@ -1434,7 +1434,7 @@ xdp_file_free (XdpFile *file)
 /* sets errno */
 static int
 xdp_inode_locked_ensure_fd_open (XdpInode       *inode,
-                                 FlatpakDbEntry *entry,
+                                 PermissionDbEntry *entry,
                                  gboolean        for_write)
 {
   /* Ensure all fds are open */
@@ -1489,7 +1489,7 @@ xdp_fuse_open (fuse_req_t             req,
                struct fuse_file_info *fi)
 {
   g_autoptr(XdpInode) inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   gboolean can_write;
   int open_mode;
   XdpFile *file = NULL;
@@ -1570,7 +1570,7 @@ xdp_fuse_create (fuse_req_t             req,
                  struct fuse_file_info *fi)
 {
   g_autoptr(XdpInode) parent_inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   struct fuse_entry_param e = {0};
   gboolean can_see, can_write;
   int open_mode;
@@ -1766,7 +1766,7 @@ xdp_fuse_setattr (fuse_req_t             req,
                   struct fuse_file_info *fi)
 {
   g_autoptr(XdpInode) inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   double attr_cache_time = ATTR_CACHE_TIME;
   struct stat newattr = {0};
   gboolean can_write;
@@ -2045,7 +2045,7 @@ xdp_fuse_rename (fuse_req_t  req,
                  const char *newname)
 {
   g_autoptr(XdpInode) parent_inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
   gboolean can_see, can_write;
 
   g_debug ("xdp_fuse_rename %lx/%s -> %lx/%s", parent, name, newparent, newname);
@@ -2116,7 +2116,7 @@ static void
 xdp_fuse_access (fuse_req_t req, fuse_ino_t ino, int mask)
 {
   g_autoptr(XdpInode) inode = NULL;
-  g_autoptr(FlatpakDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
 
   g_debug ("xdp_fuse_access %lx %d", ino, mask);
 
