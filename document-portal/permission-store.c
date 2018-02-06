@@ -97,8 +97,6 @@ main (int    argc,
 
   g_set_prgname (argv[0]);
 
-  flatpak_migrate_from_xdg_app ();
-
   g_set_printerr_handler (printerr_handler);
 
   context = g_option_context_new ("- permission store");

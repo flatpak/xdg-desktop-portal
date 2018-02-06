@@ -1441,8 +1441,6 @@ main (int    argc,
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
 
-  flatpak_migrate_from_xdg_app ();
-
   g_set_printerr_handler (printerr_handler);
 
   context = g_option_context_new ("- document portal");
