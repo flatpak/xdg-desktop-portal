@@ -536,3 +536,229 @@ xdp_is_valid_flatpak_name (const char *string)
 
   return TRUE;
 }
+
+
+static gboolean
+needs_quoting (const char *arg)
+{
+  while (*arg != 0)
+    {
+      char c = *arg;
+      if (!g_ascii_isalnum (c) &&
+          !(c == '-' || c == '/' || c == '~' ||
+            c == ':' || c == '.' || c == '_' ||
+            c == '='))
+        return TRUE;
+      arg++;
+    }
+  return FALSE;
+}
+
+char *
+xdp_quote_argv (const char *argv[])
+{
+  GString *res = g_string_new ("");
+  int i;
+
+  for (i = 0; argv[i] != NULL; i++)
+    {
+      if (i != 0)
+        g_string_append_c (res, ' ');
+
+      if (needs_quoting (argv[i]))
+        {
+          g_autofree char *quoted = g_shell_quote (argv[i]);
+          g_string_append (res, quoted);
+        }
+      else
+        g_string_append (res, argv[i]);
+    }
+
+  return g_string_free (res, FALSE);
+}
+
+typedef struct
+{
+  GError    *error;
+  GError    *splice_error;
+  GMainLoop *loop;
+  int        refs;
+} SpawnData;
+
+static void
+spawn_data_exit (SpawnData *data)
+{
+  data->refs--;
+  if (data->refs == 0)
+    g_main_loop_quit (data->loop);
+}
+
+static void
+spawn_output_spliced_cb (GObject      *obj,
+                         GAsyncResult *result,
+                         gpointer      user_data)
+{
+  SpawnData *data = user_data;
+
+  g_output_stream_splice_finish (G_OUTPUT_STREAM (obj), result, &data->splice_error);
+  spawn_data_exit (data);
+}
+
+static void
+spawn_exit_cb (GObject      *obj,
+               GAsyncResult *result,
+               gpointer      user_data)
+{
+  SpawnData *data = user_data;
+
+  g_subprocess_wait_check_finish (G_SUBPROCESS (obj), result, &data->error);
+  spawn_data_exit (data);
+}
+
+gboolean
+xdp_spawn (GFile       *dir,
+           char       **output,
+           GSubprocessFlags flags,
+           GError     **error,
+           const gchar *argv0,
+           va_list      ap)
+{
+  GPtrArray *args;
+  const gchar *arg;
+  gboolean res;
+
+  args = g_ptr_array_new ();
+  g_ptr_array_add (args, (gchar *) argv0);
+  while ((arg = va_arg (ap, const gchar *)))
+    g_ptr_array_add (args, (gchar *) arg);
+  g_ptr_array_add (args, NULL);
+
+  res = xdp_spawnv (dir, output, flags, error, (const gchar * const *) args->pdata);
+
+  g_ptr_array_free (args, TRUE);
+
+  return res;
+}
+
+gboolean
+xdp_spawnv (GFile                *dir,
+            char                **output,
+            GSubprocessFlags      flags,
+            GError              **error,
+            const gchar * const  *argv)
+{
+  g_autoptr(GSubprocessLauncher) launcher = NULL;
+  g_autoptr(GSubprocess) subp = NULL;
+  GInputStream *in;
+  g_autoptr(GOutputStream) out = NULL;
+  g_autoptr(GMainLoop) loop = NULL;
+  SpawnData data = {0};
+  g_autofree gchar *commandline = NULL;
+
+  launcher = g_subprocess_launcher_new (0);
+
+  if (output)
+    flags |= G_SUBPROCESS_FLAGS_STDOUT_PIPE;
+
+  g_subprocess_launcher_set_flags (launcher, flags);
+
+  if (dir)
+    {
+      g_autofree char *path = g_file_get_path (dir);
+      g_subprocess_launcher_set_cwd (launcher, path);
+    }
+
+  commandline = xdp_quote_argv ((const char **)argv);
+  g_debug ("Running: %s", commandline);
+
+  subp = g_subprocess_launcher_spawnv (launcher, argv, error);
+
+  if (subp == NULL)
+    return FALSE;
+
+  loop = g_main_loop_new (NULL, FALSE);
+
+  data.loop = loop;
+  data.refs = 1;
+
+  if (output)
+    {
+      data.refs++;
+      in = g_subprocess_get_stdout_pipe (subp);
+      out = g_memory_output_stream_new_resizable ();
+      g_output_stream_splice_async (out,
+                                    in,
+                                    G_OUTPUT_STREAM_SPLICE_NONE,
+                                    0,
+                                    NULL,
+                                    spawn_output_spliced_cb,
+                                    &data);
+    }
+
+  g_subprocess_wait_async (subp, NULL, spawn_exit_cb, &data);
+
+  g_main_loop_run (loop);
+
+  if (data.error)
+    {
+      g_propagate_error (error, data.error);
+      g_clear_error (&data.splice_error);
+      return FALSE;
+    }
+
+  if (out)
+    {
+      if (data.splice_error)
+        {
+          g_propagate_error (error, data.splice_error);
+          return FALSE;
+        }
+
+      /* Null terminate */
+      g_output_stream_write (out, "\0", 1, NULL, NULL);
+      g_output_stream_close (out, NULL, NULL);
+      *output = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
+    }
+
+  return TRUE;
+}
+
+char *
+xdp_canonicalize_filename (const char *path)
+{
+  g_autoptr(GFile) file = g_file_new_for_path (path);
+  return g_file_get_path (file);
+}
+
+gboolean
+xdp_has_path_prefix (const char *str,
+                     const char *prefix)
+{
+  while (TRUE)
+    {
+      /* Skip consecutive slashes to reach next path
+         element */
+      while (*str == '/')
+        str++;
+      while (*prefix == '/')
+        prefix++;
+
+      /* No more prefix path elements? Done! */
+      if (*prefix == 0)
+        return TRUE;
+
+      /* Compare path element */
+      while (*prefix != 0 && *prefix != '/')
+        {
+          if (*str != *prefix)
+            return FALSE;
+          str++;
+          prefix++;
+        }
+
+      /* Matched prefix path element,
+         must be entire str path element */
+      if (*str != '/' && *str != 0)
+        return FALSE;
+    }
+}

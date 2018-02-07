@@ -121,3 +121,21 @@ xdp_auto_lock_helper (GMutex *mutex)
 }
 
 #define XDP_AUTOLOCK(name) G_GNUC_UNUSED __attribute__((cleanup (xdp_auto_unlock_helper))) GMutex * G_PASTE (auto_unlock, __LINE__) = xdp_auto_lock_helper (&G_LOCK_NAME (name))
+
+
+char *   xdp_quote_argv (const char           *argv[]);
+gboolean xdp_spawn      (GFile                *dir,
+                         char                **output,
+                         GSubprocessFlags      flags,
+                         GError              **error,
+                         const gchar          *argv0,
+                         va_list               ap);
+gboolean xdp_spawnv     (GFile                *dir,
+                         char                **output,
+                         GSubprocessFlags      flags,
+                         GError              **error,
+                         const gchar * const  *argv);
+
+char * xdp_canonicalize_filename (const char *path);
+gboolean  xdp_has_path_prefix (const char *str,
+                               const char *prefix);
