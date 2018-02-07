@@ -595,13 +595,160 @@ portal_add (GDBusMethodInvocation *invocation,
                                          g_variant_new ("(s)", id));
 }
 
+static char *
+flatpak (GError **error,
+         ...)
+{
+  gboolean res;
+  g_autofree char *output = NULL;
+  va_list ap;
+
+  va_start (ap, error);
+  res = xdp_spawn (NULL, &output, 0, error, "flatpak", ap);
+  va_end (ap);
+
+  if (res)
+    {
+      g_strchomp (output);
+      return g_steal_pointer (&output);
+    }
+  return NULL;
+}
+
+/* out =>
+     0 == hidden
+     1 == read-only
+     2 == read-write
+*/
+static void
+metadata_check_file_access (const char *keyfile_path,
+                            int *allow_host_out,
+                            int *allow_home_out)
+{
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_auto(GStrv) fss = NULL;
+
+  keyfile = g_key_file_new ();
+  if (!g_key_file_load_from_file (keyfile, keyfile_path, G_KEY_FILE_NONE, NULL))
+    return;
+
+  fss = g_key_file_get_string_list (keyfile, "Context",  "filesystems", NULL, NULL);
+  if (fss)
+    {
+      int i;
+      for (i = 0; fss[i] != NULL; i++)
+        {
+          const char *fs = fss[i];
+
+          if (strcmp (fs, "!host") == 0)
+            *allow_host_out = 0;
+          if (strcmp (fs, "host:ro") == 0)
+            *allow_host_out = 1;
+          if (strcmp (fs, "host") == 0)
+            *allow_host_out = 2;
+
+          if (strcmp (fs, "!home") == 0)
+            *allow_home_out = 0;
+          if (strcmp (fs, "home:ro") == 0)
+            *allow_home_out = 1;
+          if (strcmp (fs, "home") == 0)
+            *allow_home_out = 2;
+        }
+    }
+}
+
+/* This is a simplified version that only looks at filesystem=host and
+ * filesystem=home, as such it should not cause false positives, but
+ * be may create a document for files that the app should have access
+ * to (e.g. when the app has a more strict access but the file is
+ * still accessible) */
+static gboolean
+app_has_file_access_fallback (const char *target_app_id,
+                              DocumentPermissionFlags target_perms,
+                              const char *path)
+{
+  g_autofree char *user_metadata = NULL;
+  g_autofree char *system_metadata = NULL;
+  g_autofree char *user_override = NULL;
+  g_autofree char *system_override = NULL;
+  g_autofree char *user_global_override = NULL;
+  g_autofree char *system_global_override = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autofree char *homedir = NULL;
+  g_autofree char *canonical_path = NULL;
+  gboolean is_in_home = FALSE;
+  g_autofree char *user_installation = g_build_filename (g_get_user_data_dir (), "flatpak", NULL);
+  const char *system_installation = "/var/lib/flatpak";
+  int allow_host = 0;
+  int allow_home = 0;
+
+  if (g_str_has_prefix (path, "/usr") || g_str_has_prefix (path, "/app") || g_str_has_prefix (path, "/tmp"))
+    return FALSE;
+
+  user_metadata = g_build_filename (user_installation, "app", target_app_id, "current/active/metadata", NULL);
+  system_metadata = g_build_filename (system_installation, "app", target_app_id, "current/active/metadata", NULL);
+  user_override = g_build_filename (user_installation, "overrides", target_app_id, NULL);
+  system_override = g_build_filename (system_installation, "overrides", target_app_id, NULL);
+  user_global_override = g_build_filename (user_installation, "overrides", "global", NULL);
+  system_global_override = g_build_filename (system_installation, "overrides", "global", NULL);
+
+  metadata_check_file_access (system_metadata, &allow_host, &allow_home);
+  metadata_check_file_access (user_metadata, &allow_host, &allow_home);
+  metadata_check_file_access (system_global_override, &allow_host, &allow_home);
+  metadata_check_file_access (system_override, &allow_host, &allow_home);
+  metadata_check_file_access (user_global_override, &allow_host, &allow_home);
+  metadata_check_file_access (user_override, &allow_host, &allow_home);
+
+  if (allow_host == 2 ||
+      ((allow_host == 1) &&
+       (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) == 0))
+    return TRUE;
+
+  homedir = xdp_canonicalize_filename (g_get_home_dir ());
+  canonical_path = xdp_canonicalize_filename (path);
+
+  is_in_home = xdp_has_path_prefix (canonical_path, homedir);
+
+  if (is_in_home &&
+      ((allow_home == 2) ||
+       (allow_home == 1 && (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) == 0)))
+    return TRUE;
+
+  return FALSE;
+}
+
+
 static gboolean
 app_has_file_access (const char *target_app_id,
                      DocumentPermissionFlags target_perms,
                      const char *path)
 {
-  /* TODO: Reimplement */
-  return FALSE;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *res = NULL;
+  g_autofree char *arg = NULL;
+
+  if (target_app_id == NULL || target_app_id[0] == '\0')
+    return FALSE;
+
+  /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
+  arg = g_strdup_printf ("--file-access=%s", path);
+  res = flatpak (&error, "info", arg, target_app_id, NULL);
+
+  if (res)
+    {
+      if (strcmp (res, "read-write") == 0)
+        return TRUE;
+
+      if (strcmp (res, "read-only") == 0 &&
+          ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) == 0))
+        return TRUE;
+
+      return FALSE;
+    }
+
+  /* Secondly we fall back to a simple check that will not be perfect but should not
+     cause false positives. */
+  return app_has_file_access_fallback (target_app_id, target_perms, path);
 }
 
 static void
