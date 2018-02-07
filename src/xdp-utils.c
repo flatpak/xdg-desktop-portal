@@ -33,6 +33,71 @@
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_infos;
 
+/* Based on g_mkstemp from glib */
+
+gint
+xdp_mkstempat (int    dir_fd,
+               gchar *tmpl,
+               int    flags,
+               int    mode)
+{
+  char *XXXXXX;
+  int count, fd;
+  static const char letters[] =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  static const int NLETTERS = sizeof (letters) - 1;
+  glong value;
+  GTimeVal tv;
+  static int counter = 0;
+
+  g_return_val_if_fail (tmpl != NULL, -1);
+
+  /* find the last occurrence of "XXXXXX" */
+  XXXXXX = g_strrstr (tmpl, "XXXXXX");
+
+  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6))
+    {
+      errno = EINVAL;
+      return -1;
+    }
+
+  /* Get some more or less random data.  */
+  g_get_current_time (&tv);
+  value = (tv.tv_usec ^ tv.tv_sec) + counter++;
+
+  for (count = 0; count < 100; value += 7777, ++count)
+    {
+      glong v = value;
+
+      /* Fill in the random bits.  */
+      XXXXXX[0] = letters[v % NLETTERS];
+      v /= NLETTERS;
+      XXXXXX[1] = letters[v % NLETTERS];
+      v /= NLETTERS;
+      XXXXXX[2] = letters[v % NLETTERS];
+      v /= NLETTERS;
+      XXXXXX[3] = letters[v % NLETTERS];
+      v /= NLETTERS;
+      XXXXXX[4] = letters[v % NLETTERS];
+      v /= NLETTERS;
+      XXXXXX[5] = letters[v % NLETTERS];
+
+      fd = openat (dir_fd, tmpl, flags | O_CREAT | O_EXCL, mode);
+
+      if (fd >= 0)
+        return fd;
+      else if (errno != EEXIST)
+        /* Any other error will apply also to other names we might
+         *  try, and there are 2^32 or so of them, so give up now.
+         */
+        return -1;
+    }
+
+  /* We got out of the loop because we ran out of combinations to try.  */
+  errno = EEXIST;
+  return -1;
+}
+
 static void
 ensure_app_infos (void)
 {
@@ -247,6 +312,7 @@ name_owner_changed (GDBusConnection *connection,
                     gpointer         user_data)
 {
   const char *name, *from, *to;
+  XdpPeerDiedCallback peer_died_cb = user_data;
 
   g_variant_get (parameters, "(sss)", &name, &from, &to);
 
@@ -259,13 +325,14 @@ name_owner_changed (GDBusConnection *connection,
         g_hash_table_remove (app_infos, name);
       G_UNLOCK (app_infos);
 
-      close_requests_for_sender (name);
-      close_sessions_for_sender (name);
+      if (peer_died_cb)
+        peer_died_cb (name);
     }
 }
 
 void
-xdp_connection_track_name_owners (GDBusConnection *connection)
+xdp_connection_track_name_owners (GDBusConnection *connection,
+                                  XdpPeerDiedCallback peer_died_cb)
 {
   g_dbus_connection_signal_subscribe (connection,
                                       "org.freedesktop.DBus",
@@ -275,7 +342,7 @@ xdp_connection_track_name_owners (GDBusConnection *connection)
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
-                                      NULL, NULL);
+                                      peer_died_cb, NULL);
 }
 
 void
@@ -395,4 +462,303 @@ xdp_get_path_for_fd (GKeyFile *app_info,
     }
 
   return g_strdup (path);
+}
+
+static gboolean
+is_valid_initial_name_character (gint c, gboolean allow_dash)
+{
+  return
+    (c >= 'A' && c <= 'Z') ||
+    (c >= 'a' && c <= 'z') ||
+    (c == '_') || (allow_dash && c == '-');
+}
+
+static gboolean
+is_valid_name_character (gint c, gboolean allow_dash)
+{
+  return
+    is_valid_initial_name_character (c, allow_dash) ||
+    (c >= '0' && c <= '9');
+}
+
+gboolean
+xdp_is_valid_flatpak_name (const char *string)
+{
+  guint len;
+  const gchar *s;
+  const gchar *end;
+  const gchar *last_dot;
+  int dot_count;
+  gboolean last_element;
+
+  g_return_val_if_fail (string != NULL, FALSE);
+
+  len = strlen (string);
+  if (G_UNLIKELY (len == 0))
+    return FALSE;
+
+  if (G_UNLIKELY (len > 255))
+    return FALSE;
+
+  end = string + len;
+
+  last_dot = strrchr (string, '.');
+  last_element = FALSE;
+
+  s = string;
+  if (G_UNLIKELY (*s == '.'))
+    return FALSE; /* Name can't start with a period */
+  else if (G_UNLIKELY (!is_valid_initial_name_character (*s, last_element)))
+    return FALSE;
+
+  s += 1;
+  dot_count = 0;
+  while (s != end)
+    {
+      if (*s == '.')
+        {
+          if (s == last_dot)
+            last_element = TRUE;
+          s += 1;
+          if (G_UNLIKELY (s == end))
+            return FALSE;
+          if (!is_valid_initial_name_character (*s, last_element))
+            return FALSE;
+          dot_count++;
+        }
+      else if (G_UNLIKELY (!is_valid_name_character (*s, last_element)))
+        return FALSE;
+      s += 1;
+    }
+
+  if (G_UNLIKELY (dot_count < 2))
+    return FALSE;
+
+  return TRUE;
+}
+
+
+static gboolean
+needs_quoting (const char *arg)
+{
+  while (*arg != 0)
+    {
+      char c = *arg;
+      if (!g_ascii_isalnum (c) &&
+          !(c == '-' || c == '/' || c == '~' ||
+            c == ':' || c == '.' || c == '_' ||
+            c == '='))
+        return TRUE;
+      arg++;
+    }
+  return FALSE;
+}
+
+char *
+xdp_quote_argv (const char *argv[])
+{
+  GString *res = g_string_new ("");
+  int i;
+
+  for (i = 0; argv[i] != NULL; i++)
+    {
+      if (i != 0)
+        g_string_append_c (res, ' ');
+
+      if (needs_quoting (argv[i]))
+        {
+          g_autofree char *quoted = g_shell_quote (argv[i]);
+          g_string_append (res, quoted);
+        }
+      else
+        g_string_append (res, argv[i]);
+    }
+
+  return g_string_free (res, FALSE);
+}
+
+typedef struct
+{
+  GError    *error;
+  GError    *splice_error;
+  GMainLoop *loop;
+  int        refs;
+} SpawnData;
+
+static void
+spawn_data_exit (SpawnData *data)
+{
+  data->refs--;
+  if (data->refs == 0)
+    g_main_loop_quit (data->loop);
+}
+
+static void
+spawn_output_spliced_cb (GObject      *obj,
+                         GAsyncResult *result,
+                         gpointer      user_data)
+{
+  SpawnData *data = user_data;
+
+  g_output_stream_splice_finish (G_OUTPUT_STREAM (obj), result, &data->splice_error);
+  spawn_data_exit (data);
+}
+
+static void
+spawn_exit_cb (GObject      *obj,
+               GAsyncResult *result,
+               gpointer      user_data)
+{
+  SpawnData *data = user_data;
+
+  g_subprocess_wait_check_finish (G_SUBPROCESS (obj), result, &data->error);
+  spawn_data_exit (data);
+}
+
+gboolean
+xdp_spawn (GFile       *dir,
+           char       **output,
+           GSubprocessFlags flags,
+           GError     **error,
+           const gchar *argv0,
+           va_list      ap)
+{
+  GPtrArray *args;
+  const gchar *arg;
+  gboolean res;
+
+  args = g_ptr_array_new ();
+  g_ptr_array_add (args, (gchar *) argv0);
+  while ((arg = va_arg (ap, const gchar *)))
+    g_ptr_array_add (args, (gchar *) arg);
+  g_ptr_array_add (args, NULL);
+
+  res = xdp_spawnv (dir, output, flags, error, (const gchar * const *) args->pdata);
+
+  g_ptr_array_free (args, TRUE);
+
+  return res;
+}
+
+gboolean
+xdp_spawnv (GFile                *dir,
+            char                **output,
+            GSubprocessFlags      flags,
+            GError              **error,
+            const gchar * const  *argv)
+{
+  g_autoptr(GSubprocessLauncher) launcher = NULL;
+  g_autoptr(GSubprocess) subp = NULL;
+  GInputStream *in;
+  g_autoptr(GOutputStream) out = NULL;
+  g_autoptr(GMainLoop) loop = NULL;
+  SpawnData data = {0};
+  g_autofree gchar *commandline = NULL;
+
+  launcher = g_subprocess_launcher_new (0);
+
+  if (output)
+    flags |= G_SUBPROCESS_FLAGS_STDOUT_PIPE;
+
+  g_subprocess_launcher_set_flags (launcher, flags);
+
+  if (dir)
+    {
+      g_autofree char *path = g_file_get_path (dir);
+      g_subprocess_launcher_set_cwd (launcher, path);
+    }
+
+  commandline = xdp_quote_argv ((const char **)argv);
+  g_debug ("Running: %s", commandline);
+
+  subp = g_subprocess_launcher_spawnv (launcher, argv, error);
+
+  if (subp == NULL)
+    return FALSE;
+
+  loop = g_main_loop_new (NULL, FALSE);
+
+  data.loop = loop;
+  data.refs = 1;
+
+  if (output)
+    {
+      data.refs++;
+      in = g_subprocess_get_stdout_pipe (subp);
+      out = g_memory_output_stream_new_resizable ();
+      g_output_stream_splice_async (out,
+                                    in,
+                                    G_OUTPUT_STREAM_SPLICE_NONE,
+                                    0,
+                                    NULL,
+                                    spawn_output_spliced_cb,
+                                    &data);
+    }
+
+  g_subprocess_wait_async (subp, NULL, spawn_exit_cb, &data);
+
+  g_main_loop_run (loop);
+
+  if (data.error)
+    {
+      g_propagate_error (error, data.error);
+      g_clear_error (&data.splice_error);
+      return FALSE;
+    }
+
+  if (out)
+    {
+      if (data.splice_error)
+        {
+          g_propagate_error (error, data.splice_error);
+          return FALSE;
+        }
+
+      /* Null terminate */
+      g_output_stream_write (out, "\0", 1, NULL, NULL);
+      g_output_stream_close (out, NULL, NULL);
+      *output = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
+    }
+
+  return TRUE;
+}
+
+char *
+xdp_canonicalize_filename (const char *path)
+{
+  g_autoptr(GFile) file = g_file_new_for_path (path);
+  return g_file_get_path (file);
+}
+
+gboolean
+xdp_has_path_prefix (const char *str,
+                     const char *prefix)
+{
+  while (TRUE)
+    {
+      /* Skip consecutive slashes to reach next path
+         element */
+      while (*str == '/')
+        str++;
+      while (*prefix == '/')
+        prefix++;
+
+      /* No more prefix path elements? Done! */
+      if (*prefix == 0)
+        return TRUE;
+
+      /* Compare path element */
+      while (*prefix != 0 && *prefix != '/')
+        {
+          if (*str != *prefix)
+            return FALSE;
+          str++;
+          prefix++;
+        }
+
+      /* Matched prefix path element,
+         must be entire str path element */
+      if (*str != '/' && *str != 0)
+        return FALSE;
+    }
 }

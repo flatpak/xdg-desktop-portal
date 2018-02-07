@@ -1,5 +1,6 @@
 introspectiondir = $(datadir)/dbus-1/interfaces
 dist_introspection_DATA = \
+	data/org.freedesktop.portal.Documents.xml \
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.Session.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
@@ -15,6 +16,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Email.xml \
 	data/org.freedesktop.portal.ScreenCast.xml \
 	data/org.freedesktop.portal.RemoteDesktop.xml \
+	data/org.freedesktop.impl.portal.PermissionStore.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.Session.xml \
 	data/org.freedesktop.impl.portal.FileChooser.xml \

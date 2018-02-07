@@ -72,11 +72,6 @@ if test x$enable_pipewire = xyes ; then
 fi
 AM_CONDITIONAL([HAVE_PIPEWIRE],[test "$enable_pipewire" = "yes"])
 
-PKG_CHECK_EXISTS([flatpak],
-                 [AC_SUBST([FLATPAK_INTERFACES_DIR],
-                           [`$PKG_CONFIG --variable=interfaces_dir flatpak`])],
-                 [AC_MSG_ERROR([flatpak.pc is required])])
-
 AC_ARG_ENABLE(docbook-docs,
         [AS_HELP_STRING([--enable-docbook-docs],[build documentation (requires xmlto)])],
         enable_docbook_docs=$enableval, enable_docbook_docs=auto)
@@ -105,6 +100,8 @@ fi
 AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_ARG_VAR([XMLTO],[Define/override the 'xmlto' location.])
 AC_ARG_VAR([XMLTO_FLAGS],[Define/override 'xmlto' options, like '--skip-validation'.])
+
+PKG_CHECK_MODULES(FUSE, [fuse])
 
 AC_CONFIG_FILES([
 Makefile

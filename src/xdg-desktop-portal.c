@@ -356,6 +356,13 @@ export_portal_implementation (GDBusConnection *connection,
 }
 
 static void
+peer_died_cb (const char *name)
+{
+  close_requests_for_sender (name);
+  close_sessions_for_sender (name);
+}
+
+static void
 on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
@@ -363,7 +370,7 @@ on_bus_acquired (GDBusConnection *connection,
   PortalImplementation *implementation;
   g_autoptr(GError) error = NULL;
 
-  xdp_connection_track_name_owners (connection);
+  xdp_connection_track_name_owners (connection, peer_died_cb);
   init_document_proxy (connection);
   init_permission_store (connection);
 
