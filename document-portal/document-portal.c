@@ -130,7 +130,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!xdp_is_valid_flatpak_name (target_app_id))
+    if (!xdp_is_valid_app_id (target_app_id))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -187,7 +187,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!xdp_is_valid_flatpak_name (target_app_id))
+    if (!xdp_is_valid_app_id (target_app_id))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,

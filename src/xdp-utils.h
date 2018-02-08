@@ -37,7 +37,7 @@ gint xdp_mkstempat (int    dir_fd,
                     int    flags,
                     int    mode);
 
-gboolean xdp_is_valid_flatpak_name (const char *string);
+gboolean xdp_is_valid_app_id (const char *string);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
