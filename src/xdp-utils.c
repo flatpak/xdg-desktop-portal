@@ -235,7 +235,10 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   g_autoptr(GKeyFile) app_info = NULL;
   char *app_id = NULL;
   GVariant *body;
-  guint32 pid;
+  g_autoptr(GVariantIter) iter = NULL;
+  const char *key;
+  GVariant *value;
+  guint32 pid = 0;
 
   app_info = lookup_cached_app_info_by_sender (sender);
   if (app_info)
@@ -244,7 +247,7 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
   msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
                                         "/org/freedesktop/DBus",
                                         "org.freedesktop.DBus",
-                                        "GetConnectionUnixProcessID");
+                                        "GetConnectionCredentials");
   g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
 
   reply = g_dbus_connection_send_message_with_reply_sync (connection, msg,
@@ -264,7 +267,12 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 
   body = g_dbus_message_get_body (reply);
 
-  g_variant_get (body, "(u)", &pid);
+  g_variant_get (body, "(a{sv})", &iter);
+  while (g_variant_iter_loop (iter, "{&sv}", &key, &value))
+    {
+      if (strcmp (key, "ProcessID") == 0)
+        pid = g_variant_get_uint32 (value);
+    }
 
   app_info = parse_app_info_from_fileinfo (pid, error);
   if (app_info == NULL)
