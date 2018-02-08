@@ -978,7 +978,7 @@ xdp_fuse_lookup (fuse_req_t  req,
 
     case XDP_INODE_BY_APP:
       /* This lazily creates the app dir */
-      if (xdp_is_valid_flatpak_name (name))
+      if (xdp_is_valid_app_id (name))
         child_inode = xdp_inode_get_dir (name, NULL, NULL);
       break;
 

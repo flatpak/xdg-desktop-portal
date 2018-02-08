@@ -556,24 +556,20 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
 }
 
 static gboolean
-is_valid_initial_name_character (gint c, gboolean allow_dash)
+is_valid_name_character (gint c, gboolean allow_dash)
 {
   return
     (c >= 'A' && c <= 'Z') ||
     (c >= 'a' && c <= 'z') ||
+    (c >= '0' && c <= '9') ||
     (c == '_') || (allow_dash && c == '-');
 }
 
-static gboolean
-is_valid_name_character (gint c, gboolean allow_dash)
-{
-  return
-    is_valid_initial_name_character (c, allow_dash) ||
-    (c >= '0' && c <= '9');
-}
-
+/* This is the same as flatpak apps, except we also allow
+   names to start with digits, and two-element names so that ids of the form
+   snap.$snapname is allowed for all snap names. */
 gboolean
-xdp_is_valid_flatpak_name (const char *string)
+xdp_is_valid_app_id (const char *string)
 {
   guint len;
   const gchar *s;
@@ -599,10 +595,7 @@ xdp_is_valid_flatpak_name (const char *string)
   s = string;
   if (G_UNLIKELY (*s == '.'))
     return FALSE; /* Name can't start with a period */
-  else if (G_UNLIKELY (!is_valid_initial_name_character (*s, last_element)))
-    return FALSE;
 
-  s += 1;
   dot_count = 0;
   while (s != end)
     {
@@ -613,16 +606,15 @@ xdp_is_valid_flatpak_name (const char *string)
           s += 1;
           if (G_UNLIKELY (s == end))
             return FALSE;
-          if (!is_valid_initial_name_character (*s, last_element))
-            return FALSE;
           dot_count++;
         }
-      else if (G_UNLIKELY (!is_valid_name_character (*s, last_element)))
+
+      if (G_UNLIKELY (!is_valid_name_character (*s, last_element)))
         return FALSE;
       s += 1;
     }
 
-  if (G_UNLIKELY (dot_count < 2))
+  if (G_UNLIKELY (dot_count < 1))
     return FALSE;
 
   return TRUE;
