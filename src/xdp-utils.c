@@ -25,6 +25,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdio.h>
+#include <mntent.h>
+
 
 #include "xdp-utils.h"
 
@@ -104,6 +107,7 @@ typedef enum
 {
   XDP_APP_INFO_KIND_UNKNOWN = 0,
   XDP_APP_INFO_KIND_FLATPAK = 1,
+  XDP_APP_INFO_KIND_SNAP    = 2,
 } XdpAppInfoKind;
 
 struct _XdpAppInfo {
@@ -117,6 +121,10 @@ struct _XdpAppInfo {
         {
           GKeyFile *keyfile;
         } flatpak;
+      struct
+        {
+          int dummy;
+        } snap;
     } u;
 };
 
@@ -143,13 +151,16 @@ xdp_app_info_free (XdpAppInfo *app_info)
 
   switch (app_info->kind)
     {
-      case XDP_APP_INFO_KIND_FLATPAK:
-        g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
-        break;
+    case XDP_APP_INFO_KIND_FLATPAK:
+      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+      break;
 
-      case XDP_APP_INFO_KIND_UNKNOWN:
-      default:
-        break;
+    case XDP_APP_INFO_KIND_SNAP:
+      break;
+
+    case XDP_APP_INFO_KIND_UNKNOWN:
+    default:
+      break;
     }
 
   g_free (app_info);
@@ -327,12 +338,145 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   return g_steal_pointer (&app_info);
 }
 
+static gboolean
+aa_is_enabled (void)
+{
+  static int apparmor_enabled = -1;
+  struct stat statbuf;
+  struct mntent *mntpt;
+  FILE *mntfile;
+
+  if (apparmor_enabled >= 0)
+    return apparmor_enabled;
+
+  apparmor_enabled = FALSE;
+
+  mntfile = setmntent ("/proc/mounts", "r");
+  if (!mntfile)
+    return FALSE;
+
+  while ((mntpt = getmntent (mntfile)))
+    {
+      g_autofree char *proposed = NULL;
+
+      if (strcmp (mntpt->mnt_type, "securityfs") != 0)
+        continue;
+
+      proposed = g_strdup_printf ("%s/apparmor", mntpt->mnt_dir);
+      if (stat (proposed, &statbuf) == 0)
+        {
+          apparmor_enabled = TRUE;
+          break;
+        }
+    }
+
+  endmntent (mntfile);
+
+  return apparmor_enabled;
+}
+
+#define UNCONFINED		"unconfined"
+#define UNCONFINED_SIZE		strlen(UNCONFINED)
+
+static gboolean
+parse_unconfined (char *con, int size)
+{
+  return size == UNCONFINED_SIZE && strncmp (con, UNCONFINED, UNCONFINED_SIZE) == 0;
+}
+
+static char *
+aa_splitcon (char *con, char **mode)
+{
+  char *label = NULL;
+  char *mode_str = NULL;
+  char *newline = NULL;
+  int size = strlen (con);
+
+  if (size == 0)
+    return NULL;
+
+  /* Strip newline */
+  if (con[size - 1] == '\n')
+    {
+      newline = &con[size - 1];
+      size--;
+    }
+
+  if (parse_unconfined (con, size))
+    {
+      label = con;
+    }
+  else if (size > 3 && con[size - 1] == ')')
+    {
+      int pos = size - 2;
+
+      while (pos > 0 && !(con[pos] == ' ' && con[pos + 1] == '('))
+        pos--;
+
+      if (pos > 0)
+        {
+          con[pos] = 0; /* overwrite ' ' */
+          con[size - 1] = 0; /* overwrite trailing ) */
+          mode_str = &con[pos + 2]; /* skip '(' */
+          label = con;
+        }
+    }
+
+  if (label && newline)
+    *newline = 0; /* overwrite '\n', if requested, on success */
+  if (mode)
+    *mode = mode_str;
+
+  return label;
+}
+
+static XdpAppInfo *
+parse_app_info_from_security_label (const char *security_label)
+{
+  char *label, *dot;
+  g_autofree char *snap_name = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
+
+  /* Snap confinement requires AppArmor */
+  if (aa_is_enabled ())
+    {
+      /* Parse the security label as an AppArmor context.  We take a copy
+       * of the string because aa_splitcon modifies its argument. */
+      g_autofree char *security_label_copy = g_strdup (security_label);
+
+      label = aa_splitcon (security_label_copy, NULL);
+      if (label && g_str_has_prefix (label, "snap."))
+        {
+          /* If the label belongs to a snap, it will be of the form
+           * snap.$PACKAGE.$APPLICATION.  We want to extract the package
+           * name */
+
+          label += 5;
+          dot = strchr (label, '.');
+          if (!dot)
+            return NULL;
+          snap_name = g_strndup (label, dot - label);
+
+          app_info = xdp_app_info_new ();
+          app_info->id = g_strconcat ("snap.", snap_name, NULL);
+          app_info->kind = XDP_APP_INFO_KIND_SNAP;
+
+          return g_steal_pointer (&app_info);
+        }
+    }
+
+  return NULL;
+}
+
+
 XdpAppInfo *
 xdp_get_app_info_from_pid (pid_t pid,
                            GError **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
+
+  /* TODO: Handle snap support via apparmor here */
 
   app_info = parse_app_info_from_flatpak_info (pid, &local_error);
   if (app_info == NULL && local_error)
@@ -377,6 +521,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   g_autoptr(GVariantIter) iter = NULL;
   const char *key;
   GVariant *value;
+  g_autofree char *security_label = NULL;
   guint32 pid = 0;
 
   app_info = lookup_cached_app_info_by_sender (sender);
@@ -411,6 +556,16 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     {
       if (strcmp (key, "ProcessID") == 0)
         pid = g_variant_get_uint32 (value);
+      else if (strcmp (key, "LinuxSecurityLabel") == 0)
+        {
+          g_clear_pointer (&security_label, g_free);
+          security_label = g_variant_dup_bytestring (value, NULL);
+        }
+    }
+
+  if (app_info == NULL && security_label != NULL)
+    {
+      app_info = parse_app_info_from_security_label (security_label);
     }
 
   if (app_info == NULL)
