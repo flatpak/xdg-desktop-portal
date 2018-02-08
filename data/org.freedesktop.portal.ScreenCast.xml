@@ -64,7 +64,7 @@
         Supported keys in the @options vardict include:
         <variablelist>
           <varlistentry>
-            <term>type u</term>
+            <term>types u</term>
             <listitem><para>
               Bitmask of what types of content to record. Default is MONITOR.
             </para></listitem>
