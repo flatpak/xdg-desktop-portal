@@ -235,7 +235,7 @@ ensure_app_info_by_unique_name (void)
                                                      (GDestroyNotify)xdp_app_info_unref);
 }
 
-/* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
+/* Returns NULL with error set on failure, NULL with no error set if not a flatpak, and app-info otherwise */
 static XdpAppInfo *
 parse_app_info_from_flatpak_info (int pid, GError **error)
 {
@@ -272,8 +272,8 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
     {
       if (errno == ENOENT)
         {
-          /* No file => on the host */
-          return xdp_app_info_new_host ();
+          /* No file => on the host, return NULL with no error */
+          return NULL;
         }
 
       /* Some weird error => failure */
@@ -332,10 +332,17 @@ xdp_get_app_info_from_pid (pid_t pid,
                            GError **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) local_error = NULL;
 
-  app_info = parse_app_info_from_flatpak_info (pid, error);
+  app_info = parse_app_info_from_flatpak_info (pid, &local_error);
+  if (app_info == NULL && local_error)
+    {
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return NULL;
+    }
+
   if (app_info == NULL)
-    return NULL;
+    app_info = xdp_app_info_new_host ();
 
   return app_info;
 }
@@ -406,9 +413,19 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
         pid = g_variant_get_uint32 (value);
     }
 
-  app_info = parse_app_info_from_flatpak_info (pid, error);
   if (app_info == NULL)
-    return NULL;
+    {
+      g_autoptr(GError) local_error = NULL;
+      app_info = parse_app_info_from_flatpak_info (pid, &local_error);
+      if (app_info == NULL && local_error)
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
+    }
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_new_host ();
 
   G_LOCK (app_infos);
   ensure_app_info_by_unique_name ();
