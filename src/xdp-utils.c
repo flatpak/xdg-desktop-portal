@@ -27,8 +27,6 @@
 #include <errno.h>
 
 #include "xdp-utils.h"
-#include "request.h"
-#include "session.h"
 
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_infos;
