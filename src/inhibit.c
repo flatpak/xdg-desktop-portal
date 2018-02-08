@@ -139,13 +139,13 @@ handle_inhibit_in_thread_func (GTask *task,
   flags = GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (request), "flags"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
-  flags = flags & get_allowed_inhibit (request->app_id);
+  flags = flags & get_allowed_inhibit (xdp_app_info_get_id (request->app_info));
   if (flags == 0)
     return;
 
   xdp_impl_inhibit_call_inhibit (impl,
                                  request->id,
-                                 request->app_id,
+                                 xdp_app_info_get_id (request->app_info),
                                  window,
                                  flags,
                                  options,

@@ -117,7 +117,7 @@ add_done (GObject *source,
     {
       Pair p;
 
-      p.app_id = request->app_id;
+      p.app_id = (char *)xdp_app_info_get_id (request->app_info);
       p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
 
       G_LOCK (active);
@@ -176,15 +176,15 @@ handle_add_in_thread_func (GTask *task,
 
   REQUEST_AUTOLOCK (request);
 
-  if (strcmp (request->app_id, "") != 0 &&
-      !get_notification_allowed (request->app_id))
+  if (!xdp_app_info_is_host (request->app_info) &&
+      !get_notification_allowed (xdp_app_info_get_id (request->app_info)))
     return;
 
   id = (const char *)g_object_get_data (G_OBJECT (request), "id");
   notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
 
   xdp_impl_notification_call_add_notification (impl,
-                                               request->app_id,
+                                               xdp_app_info_get_id (request->app_info),
                                                id,
                                                notification,
                                                NULL,
@@ -427,7 +427,7 @@ remove_done (GObject *source,
     {
       Pair p;
 
-      p.app_id = request->app_id;
+      p.app_id = (char *)xdp_app_info_get_id (request->app_info);
       p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
 
       G_LOCK (active);
@@ -446,7 +446,7 @@ notification_handle_remove_notification (XdpNotification *object,
   g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
 
   xdp_impl_notification_call_remove_notification (impl,
-                                                  request->app_id,
+                                                  xdp_app_info_get_id (request->app_info),
                                                   arg_id,
                                                   NULL,
                                                   remove_done, g_object_ref (request));

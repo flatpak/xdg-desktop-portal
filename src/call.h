@@ -19,15 +19,15 @@
 #pragma once
 
 #include <gio/gio.h>
+#include "xdp-utils.h"
 
 typedef struct _Call
 {
-  char *app_id;
+  XdpAppInfo *app_info;
   char *sender;
-  GKeyFile *app_info;
 } Call;
 
 void call_init_invocation (GDBusMethodInvocation *invocation,
-                           const char *app_id);
+                           XdpAppInfo *app_info);
 
 Call *call_from_invocation (GDBusMethodInvocation *invocation);

@@ -128,7 +128,7 @@ handle_compose_email (XdpEmail *object,
                       GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
-  const char *app_id = request->app_id;
+  const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
@@ -170,7 +170,7 @@ handle_compose_email (XdpEmail *object,
               return TRUE;
             }
 
-          path = xdp_get_path_for_fd (request->app_info, fd);
+          path = xdp_app_info_get_path_for_fd (request->app_info, fd);
           g_variant_builder_add (&attachments, "s", path);
         }
 

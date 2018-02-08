@@ -106,8 +106,9 @@ do_set_permissions (PermissionDbEntry    *entry,
 static void
 portal_grant_permissions (GDBusMethodInvocation *invocation,
                           GVariant              *parameters,
-                          const char            *app_id)
+                          XdpAppInfo            *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
@@ -162,8 +163,9 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
 static void
 portal_revoke_permissions (GDBusMethodInvocation *invocation,
                            GVariant              *parameters,
-                           const char            *app_id)
+                           XdpAppInfo            *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
@@ -219,10 +221,10 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
 static void
 portal_delete (GDBusMethodInvocation *invocation,
                GVariant              *parameters,
-               const char            *app_id)
+               XdpAppInfo            *app_info)
 {
   const char *id;
-
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree const char **old_apps = NULL;
   int i;
@@ -401,75 +403,20 @@ validate_parent_dir (const char *path,
 
 static gboolean
 validate_fd (int fd,
-             GKeyFile *app_info,
+             XdpAppInfo *app_info,
              struct stat *st_buf,
              struct stat *real_parent_st_buf,
              char *path_buffer,
              GError **error)
 {
-  g_autofree char *app_path = NULL;
-  g_autofree char *runtime_path = NULL;
+  g_autofree char *remapped_path = NULL;
 
   if (!validate_fd_common (fd, st_buf, S_IFREG, path_buffer, error))
     return FALSE;
 
-  /* For apps we translate /app and /usr to the installed locations.
-     Also, we need to rewrite to drop the /newroot prefix added by
-     bubblewrap for other files to work.  See
-     https://github.com/projectatomic/bubblewrap/pull/172
-     for a bit more information on the /newroot issue.
-  */
-  app_path = g_key_file_get_string (app_info, FLATPAK_METADATA_GROUP_INSTANCE,
-                                    FLATPAK_METADATA_KEY_APP_PATH, NULL);
-  runtime_path = g_key_file_get_string (app_info,
-                                        FLATPAK_METADATA_GROUP_INSTANCE,
-                                        FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                        NULL);
-  if (app_path != NULL || runtime_path != NULL)
-    {
-      gboolean had_newroot_prefix = g_str_has_prefix (path_buffer, "/newroot/");
-      const char *tmp_path_buf;
-      if (had_newroot_prefix)
-        tmp_path_buf = path_buffer + strlen ("/newroot");
-      else
-        tmp_path_buf = path_buffer;
-      if (app_path != NULL &&
-          g_str_has_prefix (tmp_path_buf, "/app/"))
-        {
-          const char *rel_path = tmp_path_buf + strlen ("/app/");
-          g_autofree char *real_path = g_build_filename (app_path, rel_path, NULL);
-          strncpy (path_buffer, real_path, PATH_MAX);
-        }
-      else if (runtime_path != NULL &&
-               g_str_has_prefix (tmp_path_buf, "/usr/"))
-        {
-          const char *rel_path = tmp_path_buf + strlen ("/usr/");
-          g_autofree char *real_path = g_build_filename (runtime_path, rel_path, NULL);
-          strncpy (path_buffer, real_path, PATH_MAX);
-        }
-      else if (g_str_has_prefix (tmp_path_buf, "/run/host/usr/"))
-        {
-          const char *rel_path = tmp_path_buf + strlen ("/run/host/usr/");
-          g_autofree char *real_path = g_build_filename ("/usr", rel_path, NULL);
-          strncpy (path_buffer, real_path, PATH_MAX);
-        }
-      else if (g_str_has_prefix (tmp_path_buf, "/run/host/etc/"))
-        {
-          const char *rel_path = tmp_path_buf + strlen ("/run/host/etc/");
-          g_autofree char *real_path = g_build_filename ("/etc", rel_path, NULL);
-          strncpy (path_buffer, real_path, PATH_MAX);
-        }
-      else if (had_newroot_prefix)
-        {
-          /* Create a separate copy to avoid memcpy-type issues where
-           * source and destination overlap.
-           */
-          const char *rel_path = strdupa (tmp_path_buf);
-          g_strlcpy (path_buffer, rel_path, PATH_MAX);
-        }
-    }
+  remapped_path = xdp_app_info_remap_path (app_info, path_buffer);
 
-  if (!validate_parent_dir (path_buffer, st_buf, real_parent_st_buf, error))
+  if (!validate_parent_dir (remapped_path, st_buf, real_parent_st_buf, error))
     return FALSE;
 
   return TRUE;
@@ -508,7 +455,7 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
 static void
 portal_add (GDBusMethodInvocation *invocation,
             GVariant              *parameters,
-            const char            *app_id)
+            XdpAppInfo            *app_info)
 {
   GDBusMessage *message;
   GUnixFDList *fd_list;
@@ -519,7 +466,7 @@ portal_add (GDBusMethodInvocation *invocation,
   struct stat st_buf, real_parent_st_buf;
   gboolean reuse_existing, persistent;
   GError *error = NULL;
-  g_autoptr(GKeyFile) app_info = NULL;
+  const char *app_id = xdp_app_info_get_id (app_info);
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
 
@@ -532,15 +479,6 @@ portal_add (GDBusMethodInvocation *invocation,
       fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
       if (fd_id < fds_len)
         fd = fds[fd_id];
-    }
-
-  app_info = xdp_invocation_lookup_cached_app_info (invocation);
-  if (app_info == NULL)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                             "Internal error, no cached app_info");
-      return;
     }
 
   if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, path_buffer, &error))
@@ -754,8 +692,9 @@ app_has_file_access (const char *target_app_id,
 static void
 portal_add_full (GDBusMethodInvocation *invocation,
                  GVariant              *parameters,
-                 const char            *app_id)
+                 XdpAppInfo            *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
   char *id;
@@ -766,7 +705,6 @@ portal_add_full (GDBusMethodInvocation *invocation,
   gboolean reuse_existing, persistent, as_needed_by_app;
   GError *error = NULL;
   guint32 flags = 0;
-  g_autoptr(GKeyFile) app_info = NULL;
   g_autoptr(GVariant) array = NULL;
   const char *target_app_id;
   g_autofree const char **permissions = NULL;
@@ -804,15 +742,6 @@ portal_add_full (GDBusMethodInvocation *invocation,
   fd_list = g_dbus_message_get_unix_fd_list (message);
   if (fd_list != NULL)
     fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-
-  app_info = xdp_invocation_lookup_cached_app_info (invocation);
-  if (app_info == NULL)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                             "Internal error, no cached app_info");
-      return;
-    }
 
   for (i = 0; i < n_args; i++)
     {
@@ -920,8 +849,9 @@ portal_add_full (GDBusMethodInvocation *invocation,
 static void
 portal_add_named_full (GDBusMethodInvocation *invocation,
                        GVariant              *parameters,
-                       const char            *app_id)
+                       XdpAppInfo            *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
   int parent_fd_id, parent_fd, fds_len;
@@ -1064,8 +994,9 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
 static void
 portal_add_named (GDBusMethodInvocation *invocation,
                   GVariant              *parameters,
-                  const char            *app_id)
+                  XdpAppInfo            *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
   g_autofree char *id = NULL;
@@ -1137,24 +1068,23 @@ portal_add_named (GDBusMethodInvocation *invocation,
                                          g_variant_new ("(s)", id));
 }
 
-
 typedef void (*PortalMethod) (GDBusMethodInvocation *invocation,
                               GVariant              *parameters,
-                              const char            *app_id);
+                              XdpAppInfo            *app_info);
 
 static gboolean
 handle_method (GCallback              method_callback,
                GDBusMethodInvocation *invocation)
 {
   g_autoptr(GError) error = NULL;
-  g_autofree char *app_id = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
   PortalMethod portal_method = (PortalMethod)method_callback;
 
-  app_id = xdp_invocation_lookup_app_id_sync (invocation, NULL, &error);
-  if (app_id == NULL)
+  app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
+  if (app_info == NULL)
     g_dbus_method_invocation_return_gerror (invocation, error);
   else
-    portal_method (invocation, g_dbus_method_invocation_get_parameters (invocation), app_id);
+    portal_method (invocation, g_dbus_method_invocation_get_parameters (invocation), app_info);
 
   return TRUE;
 }
@@ -1177,7 +1107,7 @@ handle_get_mount_point (XdpDbusDocuments *object, GDBusMethodInvocation *invocat
 static gboolean
 portal_lookup (GDBusMethodInvocation *invocation,
                GVariant *parameters,
-               const char *app_id)
+               XdpAppInfo *app_info)
 {
   const char *filename;
   char path_buffer[PATH_MAX + 1];
@@ -1186,9 +1116,8 @@ portal_lookup (GDBusMethodInvocation *invocation,
   g_auto(GStrv) ids = NULL;
   g_autofree char *id = NULL;
   GError *error = NULL;
-  GKeyFile *app_info = g_object_get_data (G_OBJECT (invocation), "app-info");
 
-  if (strcmp (app_id, "") != 0)
+  if (!xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -1274,12 +1203,12 @@ get_path (PermissionDbEntry *entry)
 static gboolean
 portal_info (GDBusMethodInvocation *invocation,
              GVariant *parameters,
-             const char *app_id)
+             XdpAppInfo *app_info)
 {
   const char *id = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
 
-  if (strcmp (app_id, "") != 0)
+  if (!xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -1312,13 +1241,14 @@ portal_info (GDBusMethodInvocation *invocation,
 static gboolean
 portal_list (GDBusMethodInvocation *invocation,
              GVariant *parameters,
-             const char *app_id)
+             XdpAppInfo *app_info)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_auto(GStrv) ids = NULL;
   GVariantBuilder builder;
   int i;
 
-  if (strcmp (app_id, "") != 0)
+  if (!xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,

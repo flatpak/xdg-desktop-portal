@@ -37,19 +37,31 @@ gint xdp_mkstempat (int    dir_fd,
                     int    flags,
                     int    mode);
 
-char * xdp_get_app_id_from_pid (pid_t pid,
-                                GError **error);
 gboolean xdp_is_valid_flatpak_name (const char *string);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
-char * xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
-                                          GCancellable          *cancellable,
-                                          GError               **error);
+typedef struct _XdpAppInfo XdpAppInfo;
+
+XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
+void        xdp_app_info_unref           (XdpAppInfo  *app_info);
+const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
+gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
+char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,
+                                          const char  *path);
+char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
+                                          int          fd);
+XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
+                                          GError     **error);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
+
+XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
+                                                 GCancellable          *cancellable,
+                                                 GError               **error);
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
                                           XdpPeerDiedCallback    peer_died_cb);
 
-GKeyFile *xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation);
 
 typedef struct {
   const char *key;
@@ -101,9 +113,6 @@ xdp_close_fd (int *fdp)
 }
 
 #define xdp_autofd __attribute__((cleanup(xdp_close_fd)))
-
-char *xdp_get_path_for_fd (GKeyFile *app_info,
-                           int fd);
 
 static inline void
 xdp_auto_unlock_helper (GMutex **mutex)

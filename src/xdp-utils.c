@@ -96,28 +96,131 @@ xdp_mkstempat (int    dir_fd,
   return -1;
 }
 
+struct _XdpAppInfo {
+  volatile gint ref_count;
+  char *id;
+  GKeyFile *flatpak_metadata;
+};
+
+static XdpAppInfo *
+xdp_app_info_new (void)
+{
+  XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
+  app_info->ref_count = 1;
+  return app_info;
+}
+
+static XdpAppInfo *
+xdp_app_info_new_host (void)
+{
+  XdpAppInfo *app_info = xdp_app_info_new ();
+  app_info->id = g_strdup ("");
+  return app_info;
+}
+
+static void
+xdp_app_info_free (XdpAppInfo *app_info)
+{
+  g_free (app_info->id);
+  g_clear_pointer (&app_info->flatpak_metadata, g_key_file_free);
+  g_free (app_info);
+}
+
+XdpAppInfo *
+xdp_app_info_ref (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  g_atomic_int_inc (&app_info->ref_count);
+  return app_info;
+}
+
+void
+xdp_app_info_unref (XdpAppInfo *app_info)
+{
+  g_return_if_fail (app_info != NULL);
+
+  if (g_atomic_int_dec_and_test (&app_info->ref_count))
+    xdp_app_info_free (app_info);
+}
+
+const char *
+xdp_app_info_get_id (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  return app_info->id;
+}
+
+gboolean
+xdp_app_info_is_host (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, FALSE);
+
+  return strcmp (app_info->id, "") == 0;
+}
+
+char *
+xdp_app_info_remap_path (XdpAppInfo *app_info,
+                         const char *path)
+{
+  if (app_info->flatpak_metadata)
+    {
+      g_autofree char *app_path = g_key_file_get_string (app_info->flatpak_metadata,
+                                                         FLATPAK_METADATA_GROUP_INSTANCE,
+                                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
+      g_autofree char *runtime_path = g_key_file_get_string (app_info->flatpak_metadata,
+                                                             FLATPAK_METADATA_GROUP_INSTANCE,
+                                                             FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                                             NULL);
+
+      /* For apps we translate /app and /usr to the installed locations.
+         Also, we need to rewrite to drop the /newroot prefix added by
+         bubblewrap for other files to work.  See
+         https://github.com/projectatomic/bubblewrap/pull/172
+         for a bit more information on the /newroot issue.
+      */
+
+      if (g_str_has_prefix (path, "/newroot/"))
+        path = path + strlen ("/newroot");
+
+      if (app_path != NULL && g_str_has_prefix (path, "/app/"))
+        return g_build_filename (app_path, path + strlen ("/app/"), NULL);
+      else if (runtime_path != NULL && g_str_has_prefix (path, "/usr/"))
+        return g_build_filename (runtime_path, path + strlen ("/usr/"), NULL);
+      else if (g_str_has_prefix (path, "/run/host/usr/"))
+        return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
+      else if (g_str_has_prefix (path, "/run/host/etc/"))
+        return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
+    }
+
+  return g_strdup (path);
+}
+
 static void
 ensure_app_infos (void)
 {
   if (app_infos == NULL)
     app_infos = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                       g_free, (GDestroyNotify)g_key_file_unref);
+                                       g_free, (GDestroyNotify)xdp_app_info_unref);
 }
 
 /* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
-static GKeyFile *
-parse_app_info_from_fileinfo (int pid, GError **error)
+static XdpAppInfo *
+parse_app_info_from_flatpak_info (int pid, GError **error)
 {
   g_autofree char *root_path = NULL;
   g_autofree char *path = NULL;
   g_autofree char *content = NULL;
-  g_autofree char *app_id = NULL;
   int root_fd = -1;
   int info_fd = -1;
   struct stat stat_buf;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(GMappedFile) mapped = NULL;
   g_autoptr(GKeyFile) metadata = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  const char *group;
+  g_autofree char *id = NULL;
 
   root_path = g_strdup_printf ("/proc/%u/root", pid);
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
@@ -140,8 +243,7 @@ parse_app_info_from_fileinfo (int pid, GError **error)
       if (errno == ENOENT)
         {
           /* No file => on the host */
-          g_key_file_set_string (metadata, "Application", "name", "");
-          return g_steal_pointer (&metadata);
+          return xdp_app_info_new_host ();
         }
 
       /* Some weird error => failure */
@@ -179,61 +281,60 @@ parse_app_info_from_fileinfo (int pid, GError **error)
       return NULL;
     }
 
-  return g_steal_pointer (&metadata);
-}
-
-static char *
-xdp_get_app_id_from_info (GKeyFile *app_info,
-                          GError **error)
-{
-  const char *group = "Application";
-  if (g_key_file_has_group (app_info, "Runtime"))
+  group = "Application";
+  if (g_key_file_has_group (metadata, "Runtime"))
     group = "Runtime";
 
-  return g_key_file_get_string (app_info, group, "name", error);
+  id = g_key_file_get_string (metadata, group, "name", error);
+  if (id == NULL)
+    return NULL;
+
+  app_info = xdp_app_info_new ();
+  app_info->id = g_steal_pointer (&id);
+  app_info->flatpak_metadata = g_steal_pointer (&metadata);
+
+  return g_steal_pointer (&app_info);
 }
 
-char *
-xdp_get_app_id_from_pid (pid_t pid,
-                         GError **error)
+XdpAppInfo *
+xdp_get_app_info_from_pid (pid_t pid,
+                           GError **error)
 {
-  g_autoptr(GKeyFile) app_info = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
 
-  app_info = parse_app_info_from_fileinfo (pid, error);
+  app_info = parse_app_info_from_flatpak_info (pid, error);
   if (app_info == NULL)
     return NULL;
 
-  return xdp_get_app_id_from_info (app_info, error);
+  return app_info;
 }
 
-static GKeyFile *
+static XdpAppInfo *
 lookup_cached_app_info_by_sender (const char *sender)
 {
-  GKeyFile *app_info = NULL;
+  XdpAppInfo *app_info = NULL;
 
   G_LOCK (app_infos);
   if (app_infos)
     {
       app_info = g_hash_table_lookup (app_infos, sender);
       if (app_info)
-        g_key_file_ref (app_info);
+        xdp_app_info_ref (app_info);
     }
   G_UNLOCK (app_infos);
 
   return app_info;
 }
 
-
-static char *
-xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
-                                   const char            *sender,
-                                   GCancellable          *cancellable,
-                                   GError               **error)
+static XdpAppInfo *
+xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
+                                     const char            *sender,
+                                     GCancellable          *cancellable,
+                                     GError               **error)
 {
   g_autoptr(GDBusMessage) msg = NULL;
   g_autoptr(GDBusMessage) reply = NULL;
-  g_autoptr(GKeyFile) app_info = NULL;
-  char *app_id = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
   GVariant *body;
   g_autoptr(GVariantIter) iter = NULL;
   const char *key;
@@ -242,7 +343,7 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
 
   app_info = lookup_cached_app_info_by_sender (sender);
   if (app_info)
-    return xdp_get_app_id_from_info (app_info, error);
+    return g_steal_pointer (&app_info);
 
   msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
                                         "/org/freedesktop/DBus",
@@ -274,38 +375,27 @@ xdp_connection_lookup_app_id_sync (GDBusConnection       *connection,
         pid = g_variant_get_uint32 (value);
     }
 
-  app_info = parse_app_info_from_fileinfo (pid, error);
+  app_info = parse_app_info_from_flatpak_info (pid, error);
   if (app_info == NULL)
     return NULL;
 
-  app_id = xdp_get_app_id_from_info (app_info, error);
-  if (app_id)
-    {
-      G_LOCK (app_infos);
-      ensure_app_infos ();
-      g_hash_table_insert (app_infos, g_strdup (sender), g_key_file_ref (app_info));
-      G_UNLOCK (app_infos);
-    }
+  G_LOCK (app_infos);
+  ensure_app_infos ();
+  g_hash_table_insert (app_infos, g_strdup (sender), xdp_app_info_ref (app_info));
+  G_UNLOCK (app_infos);
 
-  return app_id;
+  return g_steal_pointer (&app_info);
 }
 
-GKeyFile *
-xdp_invocation_lookup_cached_app_info (GDBusMethodInvocation *invocation)
-{
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
-  return lookup_cached_app_info_by_sender (sender);
-}
-
-char *
-xdp_invocation_lookup_app_id_sync (GDBusMethodInvocation *invocation,
-                                   GCancellable          *cancellable,
-                                   GError               **error)
+XdpAppInfo *
+xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
+                                     GCancellable          *cancellable,
+                                     GError               **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  return xdp_connection_lookup_app_id_sync (connection, sender, cancellable, error);
+  return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
 
 static void
@@ -393,14 +483,13 @@ xdg_desktop_portal_error_quark (void)
 }
 
 char *
-xdp_get_path_for_fd (GKeyFile *app_info,
-                     int fd)
+xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
+                              int fd)
 {
   g_autofree char *proc_path = NULL;
   int fd_flags;
   char path_buffer[PATH_MAX + 1];
-  g_autofree char *rewritten_path = NULL;
-  char *path;
+  g_autofree char *path = NULL;
   ssize_t symlink_size = 0;
   struct stat st_buf;
   struct stat real_st_buf;
@@ -419,55 +508,19 @@ xdp_get_path_for_fd (GKeyFile *app_info,
     }
 
   path_buffer[symlink_size] = 0;
-  path = path_buffer;
 
-  /* This code is very similar to that in flatpak/document-portal/xdp-main.c;
-     if changing this code, please update there first.
-     Copied comment follows:
-     For apps we translate /app and /usr to the installed locations.
-     Also, we need to rewrite to drop the /newroot prefix added by
-     bubblewrap for other files to work.  See
-     https://github.com/projectatomic/bubblewrap/pull/172
-     for a bit more information on the /newroot issue.
-  */
-  if (app_info != NULL)
+  path = xdp_app_info_remap_path (app_info, path_buffer);
+
+  /* Verify that this is the same file as the app opened */
+  if (stat (path, &real_st_buf) < 0 ||
+      st_buf.st_dev != real_st_buf.st_dev ||
+      st_buf.st_ino != real_st_buf.st_ino)
     {
-      if (g_str_has_prefix (path, "/newroot/"))
-        path += strlen ("/newroot");
-      if (g_str_has_prefix (path, "/usr/"))
-        {
-          g_autofree char *usr_root = NULL;
-
-          usr_root = g_key_file_get_string (app_info, "Instance", "runtime-path", NULL);
-          if (usr_root)
-            {
-              rewritten_path = g_build_filename (usr_root, path + strlen ("/usr/"), NULL);
-              path = rewritten_path;
-            }
-        }
-      else if (g_str_has_prefix (path, "/newroot/app/"))
-        {
-          g_autofree char *app_root = NULL;
-
-          app_root = g_key_file_get_string (app_info, "Instance", "app-path", NULL);
-          if (app_root)
-            {
-              rewritten_path = g_build_filename (app_root, path + strlen ("/app/"), NULL);
-              path = rewritten_path;
-            }
-        }
-
-      /* Verify that this is the same file as the app opened */
-      if (stat (path, &real_st_buf) < 0 ||
-          st_buf.st_dev != real_st_buf.st_dev ||
-          st_buf.st_ino != real_st_buf.st_ino)
-        {
-          /* Different files on the inside and the outside, reject the request */
-          return NULL;
-        }
+      /* Different files on the inside and the outside, reject the request */
+      return NULL;
     }
 
-  return g_strdup (path);
+  return g_steal_pointer (&path);
 }
 
 static gboolean
