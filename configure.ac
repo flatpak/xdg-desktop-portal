@@ -101,6 +101,8 @@ AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_ARG_VAR([XMLTO],[Define/override the 'xmlto' location.])
 AC_ARG_VAR([XMLTO_FLAGS],[Define/override 'xmlto' options, like '--skip-validation'.])
 
+GLIB_TESTS
+
 PKG_CHECK_MODULES(FUSE, [fuse])
 
 AC_CONFIG_FILES([
