@@ -39,6 +39,7 @@ install-sh
 libtool
 ltmain.sh
 m4
+!m4/glibtests.m4
 missing
 stamp-h1
 .deps
@@ -59,3 +60,11 @@ document-portal-dbus.c
 document-portal-dbus.h
 permission-store-dbus.c
 permission-store-dbus.h
+testdb
+/testdb.log
+/testdb.trs
+test-suite*.log
+/test-doc-portal
+/test-doc-portal.log
+/test-doc-portal.trs
+test-driver
