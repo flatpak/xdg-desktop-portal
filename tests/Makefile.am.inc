@@ -10,9 +10,8 @@ testdb_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) -I$(srcdir)/document-portal -I$(buil
 testdb_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
-	$(DB_SOURCES) \
 	$(NULL)
-testdb_SOURCES = tests/testdb.c
+testdb_SOURCES = tests/testdb.c	$(DB_SOURCES)
 
 test_doc_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
 test_doc_portal_LDADD = \
