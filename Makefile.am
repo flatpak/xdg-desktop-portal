@@ -9,7 +9,7 @@ libexec_PROGRAMS = $(NULL)
 CLEANFILES = $(NULL)
 DISTCLEANFILES= $(NULL)
 BUILT_SOURCES = $(NULL)
-EXTRA_DIST =
+EXTRA_DIST = tap-driver.sh tap-test
 
 include $(top_srcdir)/glib-tap.mk
 
