@@ -310,12 +310,12 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     GDBusMethodInvocation  *invocation,
                     gpointer                user_data)
 {
-  g_autofree char *app_id;
+  g_autoptr(XdpAppInfo) app_info = NULL;
 
   g_autoptr(GError) error = NULL;
 
-  app_id = xdp_invocation_lookup_app_id_sync (invocation, NULL, &error);
-  if (app_id == NULL)
+  app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
+  if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -325,9 +325,9 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   if (method_needs_request (invocation))
-    request_init_invocation (invocation, app_id);
+    request_init_invocation (invocation, app_info);
   else
-    call_init_invocation (invocation, app_id);
+    call_init_invocation (invocation, app_info);
 
   return TRUE;
 }

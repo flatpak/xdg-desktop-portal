@@ -96,7 +96,7 @@ send_response_in_thread_func (GTask        *task,
       g_autofree char *ruri = NULL;
       g_autoptr(GError) error = NULL;
 
-      ruri = register_document (image, request->app_id, FALSE, FALSE, &error);
+      ruri = register_document (image, xdp_app_info_get_id (request->app_info), FALSE, FALSE, &error);
       if (ruri == NULL)
         g_warning ("Failed to register %s: %s", image, error->message);
       else
@@ -155,7 +155,7 @@ handle_get_user_information (XdpAccount *object,
                              GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
-  const char *app_id = request->app_id;
+  const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;

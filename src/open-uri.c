@@ -297,7 +297,7 @@ send_response_in_thread_func (GTask *task,
       content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
 
       if (launch_application_with_uri (choice, uri, parent_window, writable))
-        update_permissions_store (request->app_id, content_type, choice);
+        update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
     }
 
 out:
@@ -461,7 +461,7 @@ handle_open_in_thread_func (GTask *task,
 {
   Request *request = (Request *)task_data;
   const char *parent_window;
-  const char *app_id = request->app_id;
+  const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autofree char *uri = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
@@ -506,7 +506,7 @@ handle_open_in_thread_func (GTask *task,
     {
       g_autofree char *path = NULL;
 
-      path = xdp_get_path_for_fd (request->app_info, fd);
+      path = xdp_app_info_get_path_for_fd (request->app_info, fd);
       if (path == NULL)
         {
           /* Reject the request */

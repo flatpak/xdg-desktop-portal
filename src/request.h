@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 
@@ -38,11 +39,10 @@ struct _Request
   XdpRequestSkeleton parent_instance;
 
   gboolean exported;
-  char *app_id;
   char *id;
   char *sender;
   GMutex mutex;
-  GKeyFile *app_info;
+  XdpAppInfo *app_info;
 
   XdpImplRequest *impl_request;
 };
@@ -56,7 +56,7 @@ GType request_get_type (void) G_GNUC_CONST;
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Request, g_object_unref)
 
-void request_init_invocation (GDBusMethodInvocation  *invocation, const char *app_id);
+void request_init_invocation (GDBusMethodInvocation  *invocation, XdpAppInfo *app_info);
 Request *request_from_invocation (GDBusMethodInvocation *invocation);
 void request_export (Request *request,
                      GDBusConnection *connection);

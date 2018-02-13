@@ -81,7 +81,7 @@ acquire_session (const char *session_handle,
   if (g_strcmp0 (session->sender, request->sender) != 0)
     return NULL;
 
-  if (g_strcmp0 (session->app_id, request->app_id) != 0)
+  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (request->app_info)) != 0)
     return NULL;
 
   return g_steal_pointer (&session);
@@ -105,7 +105,7 @@ acquire_session_from_call (const char *session_handle,
   if (g_strcmp0 (session->sender, call->sender) != 0)
     return NULL;
 
-  if (g_strcmp0 (session->app_id, call->app_id) != 0)
+  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (call->app_info)) != 0)
     return NULL;
 
   return g_steal_pointer (&session);

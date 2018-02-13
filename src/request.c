@@ -114,12 +114,10 @@ request_finalize (GObject *object)
 
   g_clear_object (&request->impl_request);
 
-  g_free (request->app_id);
   g_free (request->sender);
   g_free (request->id);
   g_mutex_clear (&request->mutex);
-  if (request->app_info)
-    g_key_file_unref (request->app_info);
+  xdp_app_info_unref (request->app_info);
 
   G_OBJECT_CLASS (request_parent_class)->finalize (object);
 }
@@ -277,7 +275,7 @@ get_token (GDBusMethodInvocation *invocation)
 }
 
 void
-request_init_invocation (GDBusMethodInvocation *invocation, const char *app_id)
+request_init_invocation (GDBusMethodInvocation *invocation, XdpAppInfo *app_info)
 {
   Request *request;
   guint32 r;
@@ -287,9 +285,8 @@ request_init_invocation (GDBusMethodInvocation *invocation, const char *app_id)
   int i;
 
   request = g_object_new (request_get_type (), NULL);
-  request->app_id = g_strdup (app_id);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
-  request->app_info = xdp_invocation_lookup_cached_app_info (invocation);
+  request->app_info = xdp_app_info_ref (app_info);
 
   token = get_token (invocation);
   sender = g_strdup (request->sender + 1);

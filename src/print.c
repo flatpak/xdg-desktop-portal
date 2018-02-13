@@ -110,7 +110,7 @@ handle_print (XdpPrint *object,
               GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
-  const char *app_id = request->app_id;
+  const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
@@ -212,7 +212,7 @@ handle_prepare_print (XdpPrint *object,
                       GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
-  const char *app_id = request->app_id;
+  const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
