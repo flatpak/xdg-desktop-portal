@@ -1,3 +1,35 @@
+xdg-desktop-portal 0.10
+=======================
+
+This version of xdg-desktop-portal contains the xdg-document-portal
+that used to be shipped by flatpak. The code was moved to
+xdg-desktop-portal as a first step towards being used by
+snappy. Additionally having the two related portals delivered together
+makes it easier to implement new features that rely on changes to
+both portals.
+
+The two versions of the document portal are fully compatible, but the
+package files will conflict with older versions of flatpak, so
+packagers will have to pick one version. Following this there will be
+a new release of unstable flatpak with the document portal removed,
+and a release of the stable branch (0.10) that has a configure
+option to disable the document portal.
+
+Additionally, this release contains a new screencast and remote
+desktop portal based on PipeWire.
+
+Major changes in this versions:
+
+ * Import permission store from flatpak
+ * Import document portal from flatpak
+ * Add remote desktop portal
+ * Add screencast portal
+ * Add "interactive" mode to screenshot portal
+ * file-chooser: Don't return document paths for paths the application has direct access to
+ * Handle newer version of bubblewrap
+ * New abstraction for application info, supporting multiple sandbox technologies
+ * Add basic test suite
+
 xdg-desktop-portal 0.9
 ======================
 
