@@ -101,7 +101,7 @@
     <!--
         AddFull:
         @o_path_fds: open file descriptors for the files to export
-        @flags: flags, 1 == reuse_existing, 2 == persistent, 3 == as-needed-by-app
+        @flags: flags, 1 == reuse_existing, 2 == persistent, 4 == as-needed-by-app
         @app_id: an application ID, or empty string
         @permissions: the permissions to grant, possible values are 'read', 'write', 'grant-permissions' and 'delete'
         @doc_ids: the IDs of the files in the document store
@@ -139,7 +139,7 @@
         AddNamedFull:
         @o_path_fds: open file descriptor for the parent directory
         @filename: the basename for the file
-        @flags: flags, 1 == reuse_existing, 2 == persistent, 3 == as-needed-by-app
+        @flags: flags, 1 == reuse_existing, 2 == persistent, 4 == as-needed-by-app
         @app_id: an application ID, or empty string
         @permissions: the permissions to grant, possible values are 'read', 'write', 'grant-permissions' and 'delete'
         @doc_id: the ID of the file in the document store
