@@ -44,4 +44,7 @@ EXTRA_DIST += xdg-desktop-portal.pc.in
 
 EXTRA_DIST += README.md
 
+install-data-hook:
+	$(MAKE) $(AM_MAKEFLAGS) install-test-data-hook
+
 AM_DISTCHECK_CONFIGURE_FLAGS =
