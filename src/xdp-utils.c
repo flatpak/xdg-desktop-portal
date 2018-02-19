@@ -100,10 +100,24 @@ xdp_mkstempat (int    dir_fd,
   return -1;
 }
 
+typedef enum
+{
+  XDP_APP_INFO_KIND_UNKNOWN = 0,
+  XDP_APP_INFO_KIND_FLATPAK = 1,
+} XdpAppInfoKind;
+
 struct _XdpAppInfo {
   volatile gint ref_count;
   char *id;
-  GKeyFile *flatpak_metadata;
+  XdpAppInfoKind kind;
+
+  union
+    {
+      struct
+        {
+          GKeyFile *keyfile;
+        } flatpak;
+    } u;
 };
 
 static XdpAppInfo *
@@ -126,7 +140,18 @@ static void
 xdp_app_info_free (XdpAppInfo *app_info)
 {
   g_free (app_info->id);
-  g_clear_pointer (&app_info->flatpak_metadata, g_key_file_free);
+
+  switch (app_info->kind)
+    {
+      case XDP_APP_INFO_KIND_FLATPAK:
+        g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+        break;
+
+      case XDP_APP_INFO_KIND_UNKNOWN:
+      default:
+        break;
+    }
+
   g_free (app_info);
 }
 
@@ -168,12 +193,12 @@ char *
 xdp_app_info_remap_path (XdpAppInfo *app_info,
                          const char *path)
 {
-  if (app_info->flatpak_metadata)
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
-      g_autofree char *app_path = g_key_file_get_string (app_info->flatpak_metadata,
+      g_autofree char *app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
                                                          FLATPAK_METADATA_GROUP_INSTANCE,
                                                          FLATPAK_METADATA_KEY_APP_PATH, NULL);
-      g_autofree char *runtime_path = g_key_file_get_string (app_info->flatpak_metadata,
+      g_autofree char *runtime_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
                                                              FLATPAK_METADATA_GROUP_INSTANCE,
                                                              FLATPAK_METADATA_KEY_RUNTIME_PATH,
                                                              NULL);
@@ -296,7 +321,8 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
 
   app_info = xdp_app_info_new ();
   app_info->id = g_steal_pointer (&id);
-  app_info->flatpak_metadata = g_steal_pointer (&metadata);
+  app_info->kind = XDP_APP_INFO_KIND_FLATPAK;
+  app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
   return g_steal_pointer (&app_info);
 }
