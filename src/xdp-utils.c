@@ -31,8 +31,10 @@
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+#define DBUS_INTERFACE_CONTAINERS1 DBUS_NAME_DBUS ".Containers1"
 
 G_LOCK_DEFINE (app_infos);
+static GHashTable *app_info_by_container_instance;
 static GHashTable *app_info_by_unique_name;
 
 /* Based on g_mkstemp from glib */
@@ -116,6 +118,7 @@ struct _XdpAppInfo {
       struct
         {
           GKeyFile *keyfile;
+          GVariantDict *instance_dict;
         } flatpak;
     } u;
 };
@@ -145,6 +148,7 @@ xdp_app_info_free (XdpAppInfo *app_info)
     {
       case XDP_APP_INFO_KIND_FLATPAK:
         g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+        g_clear_pointer (&app_info->u.flatpak.instance_dict, g_variant_dict_unref);
         break;
 
       case XDP_APP_INFO_KIND_UNKNOWN:
@@ -195,13 +199,28 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
 {
   if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
-      g_autofree char *app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
-                                                         FLATPAK_METADATA_GROUP_INSTANCE,
-                                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
-      g_autofree char *runtime_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
-                                                             FLATPAK_METADATA_GROUP_INSTANCE,
-                                                             FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                                             NULL);
+      g_autofree char *app_path = NULL;
+      g_autofree char *runtime_path = NULL;
+
+      if (app_info->u.flatpak.instance_dict)
+        {
+          g_variant_dict_lookup (app_info->u.flatpak.instance_dict,
+                                 FLATPAK_METADATA_KEY_APP_PATH,
+                                 "s", &app_path);
+          g_variant_dict_lookup (app_info->u.flatpak.instance_dict,
+                                 FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                 "s", &runtime_path);
+        }
+      else if (app_info->u.flatpak.keyfile)
+        {
+          app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                            FLATPAK_METADATA_GROUP_INSTANCE,
+                                            FLATPAK_METADATA_KEY_APP_PATH, NULL);
+          runtime_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                                FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                                NULL);
+        }
 
       /* For apps we translate /app and /usr to the installed locations.
          Also, we need to rewrite to drop the /newroot prefix added by
@@ -233,6 +252,15 @@ ensure_app_info_by_unique_name (void)
     app_info_by_unique_name = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
                                                      (GDestroyNotify)xdp_app_info_unref);
+}
+
+static void
+ensure_app_info_by_container_instance (void)
+{
+  if (app_info_by_container_instance == NULL)
+    app_info_by_container_instance = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                            g_free,
+                                                            (GDestroyNotify)xdp_app_info_unref);
 }
 
 /* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
@@ -358,6 +386,115 @@ lookup_cached_app_info_by_sender (const char *sender)
 }
 
 static XdpAppInfo *
+lookup_cached_app_info_by_container_instance (const char *container_instance)
+{
+  XdpAppInfo *app_info = NULL;
+
+  G_LOCK (app_infos);
+  if (app_info_by_container_instance)
+    {
+      app_info = g_hash_table_lookup (app_info_by_container_instance,
+                                      container_instance);
+      if (app_info)
+        xdp_app_info_ref (app_info);
+    }
+  G_UNLOCK (app_infos);
+
+  return app_info;
+}
+
+static XdpAppInfo *
+get_app_info_from_container_instance_sync (GDBusConnection *connection,
+                                           const gchar *container_instance,
+                                           GCancellable *cancellable,
+                                           GError **error)
+{
+  g_autoptr(GVariant) tuple = NULL;
+  const gchar *type;
+  const gchar *name;
+  g_autoptr(GVariant) metadata = NULL;
+  g_autoptr(XdpAppInfo) ret = NULL;
+  XdpAppInfo *already;
+
+  ret = lookup_cached_app_info_by_container_instance (container_instance);
+
+  if (ret != NULL)
+    return g_steal_pointer (&ret);
+
+  tuple = g_dbus_connection_call_sync (connection, DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_CONTAINERS1,
+                                       "GetInstanceInfo",
+                                       g_variant_new ("(o)",
+                                                      container_instance),
+                                       G_VARIANT_TYPE ("(a{sv}ssa{sv})"),
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1, cancellable, error);
+
+  if (tuple == NULL)
+    return NULL;
+
+  /* Ignore the initiator credentials (0th argument): we operate on the
+   * session bus, where all processes that are capable of creating a
+   * container are equally trusted anyway. */
+  g_variant_get (tuple, "(@a{sv}&s&s@a{sv})",
+                 NULL, &type, &name, &metadata);
+
+  G_LOCK (app_infos);
+
+  ensure_app_info_by_container_instance ();
+
+  /* Because we weren't holding the lock, we need to check whether
+   * another thread raced with us to get the container instance details,
+   * and won. */
+  already = g_hash_table_lookup (app_info_by_container_instance,
+                                 container_instance);
+
+  if (already)
+    {
+      /* We've wasted a bit of time by re-querying the app's
+       * information, but that isn't really a problem. We don't need
+       * to compare with type/name/metadata because dbus-daemon
+       * guarantees that the metadata of a container instance is
+       * constant. */
+      ret = xdp_app_info_ref (already);
+    }
+  else if (strcmp (type, "org.flatpak") == 0)
+    {
+      GVariantIter iter;
+      gchar *key;
+      GVariant *value;
+
+      ret = xdp_app_info_new ();
+      ret->id = g_strdup (name);
+      ret->kind = XDP_APP_INFO_KIND_FLATPAK;
+
+      g_variant_iter_init (&iter, metadata);
+
+      while (g_variant_iter_loop (&iter, "{sv}", &key, &value))
+        {
+          /* The Instance part is the only one we need right now. */
+          if (strcmp (key, FLATPAK_METADATA_GROUP_INSTANCE) == 0)
+            ret->u.flatpak.instance_dict = g_variant_dict_new (value);
+        }
+    }
+  else
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unsupported container type '%s'", type);
+      g_assert (ret == NULL);
+    }
+
+  if (ret != NULL && already == NULL)
+    g_hash_table_insert (app_info_by_container_instance,
+                         g_strdup (container_instance),
+                         xdp_app_info_ref (ret));
+
+  G_UNLOCK (app_infos);
+  return g_steal_pointer (&ret);
+}
+
+static XdpAppInfo *
 xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      const char            *sender,
                                      GCancellable          *cancellable,
@@ -368,6 +505,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   g_autoptr(XdpAppInfo) app_info = NULL;
   GVariant *body;
   g_autoptr(GVariantIter) iter = NULL;
+  const char *container_instance = NULL;
   const char *key;
   GVariant *value;
   guint32 pid = 0;
@@ -404,11 +542,28 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     {
       if (strcmp (key, "ProcessID") == 0)
         pid = g_variant_get_uint32 (value);
+      else if (strcmp (key, DBUS_INTERFACE_CONTAINERS1 ".Instance") == 0)
+        container_instance = g_variant_get_string (value, NULL);
     }
 
-  app_info = parse_app_info_from_flatpak_info (pid, error);
+  if (container_instance != NULL)
+    {
+      app_info = get_app_info_from_container_instance_sync (connection,
+                                                            container_instance,
+                                                            cancellable,
+                                                            error);
+
+      if (app_info == NULL)
+        return NULL;
+    }
+
   if (app_info == NULL)
-    return NULL;
+    {
+      app_info = parse_app_info_from_flatpak_info (pid, error);
+
+      if (app_info == NULL)
+        return NULL;
+    }
 
   G_LOCK (app_infos);
   ensure_app_info_by_unique_name ();
@@ -458,6 +613,25 @@ name_owner_changed (GDBusConnection *connection,
     }
 }
 
+static void
+container_instance_removed (GDBusConnection *connection,
+                            const gchar     *sender_name,
+                            const gchar     *object_path,
+                            const gchar     *interface_name,
+                            const gchar     *signal_name,
+                            GVariant        *parameters,
+                            gpointer         user_data)
+{
+  const char *container_instance;
+
+  g_variant_get (parameters, "(&o)", &container_instance);
+
+  G_LOCK (app_infos);
+  if (app_info_by_container_instance)
+    g_hash_table_remove (app_info_by_container_instance, container_instance);
+  G_UNLOCK (app_infos);
+}
+
 void
 xdp_connection_track_name_owners (GDBusConnection *connection,
                                   XdpPeerDiedCallback peer_died_cb)
@@ -471,6 +645,16 @@ xdp_connection_track_name_owners (GDBusConnection *connection,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
                                       peer_died_cb, NULL);
+
+  g_dbus_connection_signal_subscribe (connection,
+                                      DBUS_NAME_DBUS,
+                                      DBUS_INTERFACE_CONTAINERS1,
+                                      "InstanceRemoved",
+                                      DBUS_PATH_DBUS,
+                                      NULL,
+                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                      container_instance_removed,
+                                      NULL, NULL);
 }
 
 void
