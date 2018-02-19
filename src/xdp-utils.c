@@ -28,6 +28,10 @@
 
 #include "xdp-utils.h"
 
+#define DBUS_NAME_DBUS "org.freedesktop.DBus"
+#define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
+#define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_infos;
 
@@ -345,9 +349,9 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (app_info)
     return g_steal_pointer (&app_info);
 
-  msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
-                                        "/org/freedesktop/DBus",
-                                        "org.freedesktop.DBus",
+  msg = g_dbus_message_new_method_call (DBUS_NAME_DBUS,
+                                        DBUS_PATH_DBUS,
+                                        DBUS_INTERFACE_DBUS,
                                         "GetConnectionCredentials");
   g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
 
@@ -431,10 +435,10 @@ xdp_connection_track_name_owners (GDBusConnection *connection,
                                   XdpPeerDiedCallback peer_died_cb)
 {
   g_dbus_connection_signal_subscribe (connection,
-                                      "org.freedesktop.DBus",
-                                      "org.freedesktop.DBus",
+                                      DBUS_NAME_DBUS,
+                                      DBUS_INTERFACE_DBUS,
                                       "NameOwnerChanged",
-                                      "/org/freedesktop/DBus",
+                                      DBUS_PATH_DBUS,
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
