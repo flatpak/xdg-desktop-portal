@@ -33,7 +33,7 @@
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
 
 G_LOCK_DEFINE (app_infos);
-static GHashTable *app_infos;
+static GHashTable *app_info_by_unique_name;
 
 /* Based on g_mkstemp from glib */
 
@@ -202,11 +202,12 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
 }
 
 static void
-ensure_app_infos (void)
+ensure_app_info_by_unique_name (void)
 {
-  if (app_infos == NULL)
-    app_infos = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                       g_free, (GDestroyNotify)xdp_app_info_unref);
+  if (app_info_by_unique_name == NULL)
+    app_info_by_unique_name = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                     g_free,
+                                                     (GDestroyNotify)xdp_app_info_unref);
 }
 
 /* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
@@ -319,9 +320,9 @@ lookup_cached_app_info_by_sender (const char *sender)
   XdpAppInfo *app_info = NULL;
 
   G_LOCK (app_infos);
-  if (app_infos)
+  if (app_info_by_unique_name)
     {
-      app_info = g_hash_table_lookup (app_infos, sender);
+      app_info = g_hash_table_lookup (app_info_by_unique_name, sender);
       if (app_info)
         xdp_app_info_ref (app_info);
     }
@@ -384,8 +385,9 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     return NULL;
 
   G_LOCK (app_infos);
-  ensure_app_infos ();
-  g_hash_table_insert (app_infos, g_strdup (sender), xdp_app_info_ref (app_info));
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       xdp_app_info_ref (app_info));
   G_UNLOCK (app_infos);
 
   return g_steal_pointer (&app_info);
@@ -421,8 +423,8 @@ name_owner_changed (GDBusConnection *connection,
       strcmp (to, "") == 0)
     {
       G_LOCK (app_infos);
-      if (app_infos)
-        g_hash_table_remove (app_infos, name);
+      if (app_info_by_unique_name)
+        g_hash_table_remove (app_info_by_unique_name, name);
       G_UNLOCK (app_infos);
 
       if (peer_died_cb)
