@@ -32,10 +32,30 @@
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
 #define DBUS_INTERFACE_CONTAINERS1 DBUS_NAME_DBUS ".Containers1"
+#define DBUS_HEADER_FIELD_CONTAINER_INSTANCE 10
 
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_info_by_container_instance;
 static GHashTable *app_info_by_unique_name;
+
+/*
+ * A quark attached to GDBusConnection instances indicating that the
+ * Containers1.RequestHeader() method has succeeded on that connection.
+ */
+static GQuark
+dbus_connection_container_header_quark (void)
+{
+  static gsize ret = 0;
+
+  if (g_once_init_enter (&ret))
+    {
+      GQuark q = g_quark_from_static_string ("xdp-container-header");
+
+      g_once_init_leave (&ret, q);
+    }
+
+  return (GQuark) ret;
+}
 
 /* Based on g_mkstemp from glib */
 
@@ -347,6 +367,9 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   if (id == NULL)
     return NULL;
 
+  g_debug ("Creating new app info for Flatpak app %s (process %d)",
+           id, pid);
+
   app_info = xdp_app_info_new ();
   app_info->id = g_steal_pointer (&id);
   app_info->kind = XDP_APP_INFO_KIND_FLATPAK;
@@ -465,6 +488,9 @@ get_app_info_from_container_instance_sync (GDBusConnection *connection,
       gchar *key;
       GVariant *value;
 
+      g_debug ("Creating new app info for Flatpak app %s (container instance %s)",
+               name, container_instance);
+
       ret = xdp_app_info_new ();
       ret->id = g_strdup (name);
       ret->kind = XDP_APP_INFO_KIND_FLATPAK;
@@ -582,6 +608,48 @@ xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
+  if (g_object_get_qdata (G_OBJECT (connection),
+                          dbus_connection_container_header_quark ()) != NULL)
+    {
+#ifdef RELY_ON_GLIB_IMPLEMENTATION_DETAILS
+      GDBusMessage *message;
+      GVariant *header;
+
+      /* This dbus-daemon has agreed to send us the Containers1 message
+       * header, which implies that it is also going to filter out that
+       * header from messages that should not have had it; so we can trust
+       * the contents of the header. */
+      message = g_dbus_method_invocation_get_message (invocation);
+
+      /* This is not really how you're meant to use the GDBusMessage API,
+       * because this is not (yet) a member of the GDBusMessageHeaderField
+       * enum, but as of 2.54 it does work.
+       * TODO: Get the new header field into GLib properly */
+      header = g_dbus_message_get_header (message,
+                                          DBUS_HEADER_FIELD_CONTAINER_INSTANCE);
+
+      if (header != NULL &&
+          g_variant_classify (header) == G_VARIANT_CLASS_OBJECT_PATH)
+        {
+          const gchar *container_instance = g_variant_get_string (header, NULL);
+
+          /* If the header says the container instance is "/" that means
+           * this is not a Containers1 server, but for now we fall
+           * through to xdp_connection_lookup_app_info_sync() anyway,
+           * because versions of Flatpak that do not use Containers1
+           * will need to go through that code path. The slow path can
+           * eventually be removed if Containers1 becomes ubiquitous. */
+          if (strcmp (container_instance, "/") != 0)
+            {
+              return get_app_info_from_container_instance_sync (connection,
+                                                                container_instance,
+                                                                cancellable,
+                                                                error);
+            }
+        }
+#endif
+    }
+
   return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
 
@@ -636,6 +704,8 @@ void
 xdp_connection_track_name_owners (GDBusConnection *connection,
                                   XdpPeerDiedCallback peer_died_cb)
 {
+  g_autoptr(GVariant) tuple = NULL;
+
   g_dbus_connection_signal_subscribe (connection,
                                       DBUS_NAME_DBUS,
                                       DBUS_INTERFACE_DBUS,
@@ -655,6 +725,22 @@ xdp_connection_track_name_owners (GDBusConnection *connection,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       container_instance_removed,
                                       NULL, NULL);
+
+  tuple = g_dbus_connection_call_sync (connection, DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_CONTAINERS1,
+                                       "RequestHeader", NULL,
+                                       G_VARIANT_TYPE_UNIT,
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1, NULL, NULL);
+
+  if (tuple != NULL)
+    {
+      g_debug ("DBus.Containers1 supported");
+      g_object_set_qdata (G_OBJECT (connection),
+                          dbus_connection_container_header_quark (),
+                          GUINT_TO_POINTER (1));
+    }
 }
 
 void
