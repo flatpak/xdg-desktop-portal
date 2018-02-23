@@ -680,8 +680,6 @@ app_has_file_access (const char *target_app_id,
       if (strcmp (res, "read-only") == 0 &&
           ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) == 0))
         return TRUE;
-
-      return FALSE;
     }
 
   /* Secondly we fall back to a simple check that will not be perfect but should not
