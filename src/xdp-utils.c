@@ -28,8 +28,34 @@
 
 #include "xdp-utils.h"
 
+#define DBUS_NAME_DBUS "org.freedesktop.DBus"
+#define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
+#define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+#define DBUS_INTERFACE_CONTAINERS1 DBUS_NAME_DBUS ".Containers1"
+#define DBUS_HEADER_FIELD_CONTAINER_INSTANCE 10
+
 G_LOCK_DEFINE (app_infos);
-static GHashTable *app_infos;
+static GHashTable *app_info_by_container_instance;
+static GHashTable *app_info_by_unique_name;
+
+/*
+ * A quark attached to GDBusConnection instances indicating that the
+ * Containers1.RequestHeader() method has succeeded on that connection.
+ */
+static GQuark
+dbus_connection_container_header_quark (void)
+{
+  static gsize ret = 0;
+
+  if (g_once_init_enter (&ret))
+    {
+      GQuark q = g_quark_from_static_string ("xdp-container-header");
+
+      g_once_init_leave (&ret, q);
+    }
+
+  return (GQuark) ret;
+}
 
 /* Based on g_mkstemp from glib */
 
@@ -96,10 +122,25 @@ xdp_mkstempat (int    dir_fd,
   return -1;
 }
 
+typedef enum
+{
+  XDP_APP_INFO_KIND_UNKNOWN = 0,
+  XDP_APP_INFO_KIND_FLATPAK = 1,
+} XdpAppInfoKind;
+
 struct _XdpAppInfo {
   volatile gint ref_count;
   char *id;
-  GKeyFile *flatpak_metadata;
+  XdpAppInfoKind kind;
+
+  union
+    {
+      struct
+        {
+          GKeyFile *keyfile;
+          GVariantDict *instance_dict;
+        } flatpak;
+    } u;
 };
 
 static XdpAppInfo *
@@ -122,7 +163,19 @@ static void
 xdp_app_info_free (XdpAppInfo *app_info)
 {
   g_free (app_info->id);
-  g_clear_pointer (&app_info->flatpak_metadata, g_key_file_free);
+
+  switch (app_info->kind)
+    {
+      case XDP_APP_INFO_KIND_FLATPAK:
+        g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+        g_clear_pointer (&app_info->u.flatpak.instance_dict, g_variant_dict_unref);
+        break;
+
+      case XDP_APP_INFO_KIND_UNKNOWN:
+      default:
+        break;
+    }
+
   g_free (app_info);
 }
 
@@ -164,15 +217,30 @@ char *
 xdp_app_info_remap_path (XdpAppInfo *app_info,
                          const char *path)
 {
-  if (app_info->flatpak_metadata)
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
-      g_autofree char *app_path = g_key_file_get_string (app_info->flatpak_metadata,
-                                                         FLATPAK_METADATA_GROUP_INSTANCE,
-                                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
-      g_autofree char *runtime_path = g_key_file_get_string (app_info->flatpak_metadata,
-                                                             FLATPAK_METADATA_GROUP_INSTANCE,
-                                                             FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                                             NULL);
+      g_autofree char *app_path = NULL;
+      g_autofree char *runtime_path = NULL;
+
+      if (app_info->u.flatpak.instance_dict)
+        {
+          g_variant_dict_lookup (app_info->u.flatpak.instance_dict,
+                                 FLATPAK_METADATA_KEY_APP_PATH,
+                                 "s", &app_path);
+          g_variant_dict_lookup (app_info->u.flatpak.instance_dict,
+                                 FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                 "s", &runtime_path);
+        }
+      else if (app_info->u.flatpak.keyfile)
+        {
+          app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                            FLATPAK_METADATA_GROUP_INSTANCE,
+                                            FLATPAK_METADATA_KEY_APP_PATH, NULL);
+          runtime_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                                FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                                NULL);
+        }
 
       /* For apps we translate /app and /usr to the installed locations.
          Also, we need to rewrite to drop the /newroot prefix added by
@@ -198,11 +266,21 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
 }
 
 static void
-ensure_app_infos (void)
+ensure_app_info_by_unique_name (void)
 {
-  if (app_infos == NULL)
-    app_infos = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                       g_free, (GDestroyNotify)xdp_app_info_unref);
+  if (app_info_by_unique_name == NULL)
+    app_info_by_unique_name = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                     g_free,
+                                                     (GDestroyNotify)xdp_app_info_unref);
+}
+
+static void
+ensure_app_info_by_container_instance (void)
+{
+  if (app_info_by_container_instance == NULL)
+    app_info_by_container_instance = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                            g_free,
+                                                            (GDestroyNotify)xdp_app_info_unref);
 }
 
 /* Returns NULL on failure, keyfile with name "" if not sandboxed, and full app-info otherwise */
@@ -289,9 +367,13 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   if (id == NULL)
     return NULL;
 
+  g_debug ("Creating new app info for Flatpak app %s (process %d)",
+           id, pid);
+
   app_info = xdp_app_info_new ();
   app_info->id = g_steal_pointer (&id);
-  app_info->flatpak_metadata = g_steal_pointer (&metadata);
+  app_info->kind = XDP_APP_INFO_KIND_FLATPAK;
+  app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
   return g_steal_pointer (&app_info);
 }
@@ -315,15 +397,127 @@ lookup_cached_app_info_by_sender (const char *sender)
   XdpAppInfo *app_info = NULL;
 
   G_LOCK (app_infos);
-  if (app_infos)
+  if (app_info_by_unique_name)
     {
-      app_info = g_hash_table_lookup (app_infos, sender);
+      app_info = g_hash_table_lookup (app_info_by_unique_name, sender);
       if (app_info)
         xdp_app_info_ref (app_info);
     }
   G_UNLOCK (app_infos);
 
   return app_info;
+}
+
+static XdpAppInfo *
+lookup_cached_app_info_by_container_instance (const char *container_instance)
+{
+  XdpAppInfo *app_info = NULL;
+
+  G_LOCK (app_infos);
+  if (app_info_by_container_instance)
+    {
+      app_info = g_hash_table_lookup (app_info_by_container_instance,
+                                      container_instance);
+      if (app_info)
+        xdp_app_info_ref (app_info);
+    }
+  G_UNLOCK (app_infos);
+
+  return app_info;
+}
+
+static XdpAppInfo *
+get_app_info_from_container_instance_sync (GDBusConnection *connection,
+                                           const gchar *container_instance,
+                                           GCancellable *cancellable,
+                                           GError **error)
+{
+  g_autoptr(GVariant) tuple = NULL;
+  const gchar *type;
+  const gchar *name;
+  g_autoptr(GVariant) metadata = NULL;
+  g_autoptr(XdpAppInfo) ret = NULL;
+  XdpAppInfo *already;
+
+  ret = lookup_cached_app_info_by_container_instance (container_instance);
+
+  if (ret != NULL)
+    return g_steal_pointer (&ret);
+
+  tuple = g_dbus_connection_call_sync (connection, DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_CONTAINERS1,
+                                       "GetInstanceInfo",
+                                       g_variant_new ("(o)",
+                                                      container_instance),
+                                       G_VARIANT_TYPE ("(a{sv}ssa{sv})"),
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1, cancellable, error);
+
+  if (tuple == NULL)
+    return NULL;
+
+  /* Ignore the initiator credentials (0th argument): we operate on the
+   * session bus, where all processes that are capable of creating a
+   * container are equally trusted anyway. */
+  g_variant_get (tuple, "(@a{sv}&s&s@a{sv})",
+                 NULL, &type, &name, &metadata);
+
+  G_LOCK (app_infos);
+
+  ensure_app_info_by_container_instance ();
+
+  /* Because we weren't holding the lock, we need to check whether
+   * another thread raced with us to get the container instance details,
+   * and won. */
+  already = g_hash_table_lookup (app_info_by_container_instance,
+                                 container_instance);
+
+  if (already)
+    {
+      /* We've wasted a bit of time by re-querying the app's
+       * information, but that isn't really a problem. We don't need
+       * to compare with type/name/metadata because dbus-daemon
+       * guarantees that the metadata of a container instance is
+       * constant. */
+      ret = xdp_app_info_ref (already);
+    }
+  else if (strcmp (type, "org.flatpak") == 0)
+    {
+      GVariantIter iter;
+      gchar *key;
+      GVariant *value;
+
+      g_debug ("Creating new app info for Flatpak app %s (container instance %s)",
+               name, container_instance);
+
+      ret = xdp_app_info_new ();
+      ret->id = g_strdup (name);
+      ret->kind = XDP_APP_INFO_KIND_FLATPAK;
+
+      g_variant_iter_init (&iter, metadata);
+
+      while (g_variant_iter_loop (&iter, "{sv}", &key, &value))
+        {
+          /* The Instance part is the only one we need right now. */
+          if (strcmp (key, FLATPAK_METADATA_GROUP_INSTANCE) == 0)
+            ret->u.flatpak.instance_dict = g_variant_dict_new (value);
+        }
+    }
+  else
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unsupported container type '%s'", type);
+      g_assert (ret == NULL);
+    }
+
+  if (ret != NULL && already == NULL)
+    g_hash_table_insert (app_info_by_container_instance,
+                         g_strdup (container_instance),
+                         xdp_app_info_ref (ret));
+
+  G_UNLOCK (app_infos);
+  return g_steal_pointer (&ret);
 }
 
 static XdpAppInfo *
@@ -337,6 +531,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   g_autoptr(XdpAppInfo) app_info = NULL;
   GVariant *body;
   g_autoptr(GVariantIter) iter = NULL;
+  const char *container_instance = NULL;
   const char *key;
   GVariant *value;
   guint32 pid = 0;
@@ -345,9 +540,9 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (app_info)
     return g_steal_pointer (&app_info);
 
-  msg = g_dbus_message_new_method_call ("org.freedesktop.DBus",
-                                        "/org/freedesktop/DBus",
-                                        "org.freedesktop.DBus",
+  msg = g_dbus_message_new_method_call (DBUS_NAME_DBUS,
+                                        DBUS_PATH_DBUS,
+                                        DBUS_INTERFACE_DBUS,
                                         "GetConnectionCredentials");
   g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
 
@@ -373,15 +568,33 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     {
       if (strcmp (key, "ProcessID") == 0)
         pid = g_variant_get_uint32 (value);
+      else if (strcmp (key, DBUS_INTERFACE_CONTAINERS1 ".Instance") == 0)
+        container_instance = g_variant_get_string (value, NULL);
     }
 
-  app_info = parse_app_info_from_flatpak_info (pid, error);
+  if (container_instance != NULL)
+    {
+      app_info = get_app_info_from_container_instance_sync (connection,
+                                                            container_instance,
+                                                            cancellable,
+                                                            error);
+
+      if (app_info == NULL)
+        return NULL;
+    }
+
   if (app_info == NULL)
-    return NULL;
+    {
+      app_info = parse_app_info_from_flatpak_info (pid, error);
+
+      if (app_info == NULL)
+        return NULL;
+    }
 
   G_LOCK (app_infos);
-  ensure_app_infos ();
-  g_hash_table_insert (app_infos, g_strdup (sender), xdp_app_info_ref (app_info));
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       xdp_app_info_ref (app_info));
   G_UNLOCK (app_infos);
 
   return g_steal_pointer (&app_info);
@@ -394,6 +607,48 @@ xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+
+  if (g_object_get_qdata (G_OBJECT (connection),
+                          dbus_connection_container_header_quark ()) != NULL)
+    {
+#ifdef RELY_ON_GLIB_IMPLEMENTATION_DETAILS
+      GDBusMessage *message;
+      GVariant *header;
+
+      /* This dbus-daemon has agreed to send us the Containers1 message
+       * header, which implies that it is also going to filter out that
+       * header from messages that should not have had it; so we can trust
+       * the contents of the header. */
+      message = g_dbus_method_invocation_get_message (invocation);
+
+      /* This is not really how you're meant to use the GDBusMessage API,
+       * because this is not (yet) a member of the GDBusMessageHeaderField
+       * enum, but as of 2.54 it does work.
+       * TODO: Get the new header field into GLib properly */
+      header = g_dbus_message_get_header (message,
+                                          DBUS_HEADER_FIELD_CONTAINER_INSTANCE);
+
+      if (header != NULL &&
+          g_variant_classify (header) == G_VARIANT_CLASS_OBJECT_PATH)
+        {
+          const gchar *container_instance = g_variant_get_string (header, NULL);
+
+          /* If the header says the container instance is "/" that means
+           * this is not a Containers1 server, but for now we fall
+           * through to xdp_connection_lookup_app_info_sync() anyway,
+           * because versions of Flatpak that do not use Containers1
+           * will need to go through that code path. The slow path can
+           * eventually be removed if Containers1 becomes ubiquitous. */
+          if (strcmp (container_instance, "/") != 0)
+            {
+              return get_app_info_from_container_instance_sync (connection,
+                                                                container_instance,
+                                                                cancellable,
+                                                                error);
+            }
+        }
+#endif
+    }
 
   return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
@@ -417,8 +672,8 @@ name_owner_changed (GDBusConnection *connection,
       strcmp (to, "") == 0)
     {
       G_LOCK (app_infos);
-      if (app_infos)
-        g_hash_table_remove (app_infos, name);
+      if (app_info_by_unique_name)
+        g_hash_table_remove (app_info_by_unique_name, name);
       G_UNLOCK (app_infos);
 
       if (peer_died_cb)
@@ -426,19 +681,66 @@ name_owner_changed (GDBusConnection *connection,
     }
 }
 
+static void
+container_instance_removed (GDBusConnection *connection,
+                            const gchar     *sender_name,
+                            const gchar     *object_path,
+                            const gchar     *interface_name,
+                            const gchar     *signal_name,
+                            GVariant        *parameters,
+                            gpointer         user_data)
+{
+  const char *container_instance;
+
+  g_variant_get (parameters, "(&o)", &container_instance);
+
+  G_LOCK (app_infos);
+  if (app_info_by_container_instance)
+    g_hash_table_remove (app_info_by_container_instance, container_instance);
+  G_UNLOCK (app_infos);
+}
+
 void
 xdp_connection_track_name_owners (GDBusConnection *connection,
                                   XdpPeerDiedCallback peer_died_cb)
 {
+  g_autoptr(GVariant) tuple = NULL;
+
   g_dbus_connection_signal_subscribe (connection,
-                                      "org.freedesktop.DBus",
-                                      "org.freedesktop.DBus",
+                                      DBUS_NAME_DBUS,
+                                      DBUS_INTERFACE_DBUS,
                                       "NameOwnerChanged",
-                                      "/org/freedesktop/DBus",
+                                      DBUS_PATH_DBUS,
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       name_owner_changed,
                                       peer_died_cb, NULL);
+
+  g_dbus_connection_signal_subscribe (connection,
+                                      DBUS_NAME_DBUS,
+                                      DBUS_INTERFACE_CONTAINERS1,
+                                      "InstanceRemoved",
+                                      DBUS_PATH_DBUS,
+                                      NULL,
+                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                      container_instance_removed,
+                                      NULL, NULL);
+
+  tuple = g_dbus_connection_call_sync (connection, DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_CONTAINERS1,
+                                       "RequestHeader", NULL,
+                                       G_VARIANT_TYPE_UNIT,
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       -1, NULL, NULL);
+
+  if (tuple != NULL)
+    {
+      g_debug ("DBus.Containers1 supported");
+      g_object_set_qdata (G_OBJECT (connection),
+                          dbus_connection_container_header_quark (),
+                          GUINT_TO_POINTER (1));
+    }
 }
 
 void

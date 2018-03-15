@@ -50,7 +50,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	$(NULL)
 
-$(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
+src/xdp-dbus.c: $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.portal.      \
 		--c-namespace Xdp                               \
@@ -58,13 +58,16 @@ $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
 		$^ \
 		$(NULL)
 
-$(xdp_impl_dbus_built_sources) : $(PORTAL_IMPL_IFACE_FILES)
+src/xdp-impl-dbus.c: $(PORTAL_IMPL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.impl.portal. \
 		--c-namespace XdpImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
 		$^ \
 		$(NULL)
+
+src/%-dbus.h: src/%-dbus.c
+	@true # Built as a side-effect of the rules for the .c
 
 xdg_desktop_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/src/xdg-desktop-portal.gresource.xml)
 
