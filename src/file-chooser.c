@@ -478,8 +478,8 @@ save_file_done (GObject *source,
                 gpointer data)
 {
   g_autoptr(Request) request = data;
-  guint response;
-  GVariant *options;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
