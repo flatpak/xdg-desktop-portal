@@ -538,6 +538,8 @@ discover_node_factory_sync (PipeWireRemote *remote,
                                   &registry_events,
                                   remote);
 
+  pw_core_proxy_sync(core_proxy, ++remote->registry_sync_seq);
+
   pw_main_loop_run (remote->loop);
 
   if (remote->node_factory_id == 0)
