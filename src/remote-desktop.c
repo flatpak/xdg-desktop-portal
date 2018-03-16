@@ -69,9 +69,9 @@ typedef enum _RemoteDesktopSessionState
 typedef enum _DeviceType
 {
   DEVICE_TYPE_NONE = 0,
-  DEVICE_TYPE_POINTER,
-  DEVICE_TYPE_KEYBOARD,
-  DEVICE_TYPE_TOUCHSCREEN,
+  DEVICE_TYPE_KEYBOARD = 1 << 0,
+  DEVICE_TYPE_POINTER = 1 << 1,
+  DEVICE_TYPE_TOUCHSCREEN = 1 << 2,
 } DeviceType;
 
 typedef struct _RemoteDesktopSession

@@ -326,7 +326,7 @@
         <simplelist>
           <member>1: KEYBOARD</member>
           <member>2: POINTER</member>
-          <member>3: TOUCHSCREEN</member>
+          <member>4: TOUCHSCREEN</member>
         </simplelist>
     -->
     <property name="AvailableDeviceTypes" type="u" access="read"/>
