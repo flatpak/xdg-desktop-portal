@@ -178,6 +178,19 @@ is_sandboxed (GDesktopAppInfo *info)
 }
 
 static gboolean
+is_file_uri (const char *uri)
+{
+  g_autofree char *scheme = NULL;
+
+  scheme = g_uri_parse_scheme (uri);
+
+  if (g_strcmp0 (scheme, "file") == 0)
+    return TRUE;
+
+  return FALSE;
+}
+
+static gboolean
 launch_application_with_uri (const char *choice_id,
                              const char *uri,
                              const char *parent_window,
@@ -189,7 +202,7 @@ launch_application_with_uri (const char *choice_id,
   g_autofree char *ruri = NULL;
   GList uris;
 
-  if (is_sandboxed (info))
+  if (is_sandboxed (info) && is_file_uri (uri))
     {
       g_autoptr(GError) error = NULL;
 
