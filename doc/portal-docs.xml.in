@@ -31,12 +31,15 @@
     </para>
     </partintro>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.OpenURI.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Email.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.ScreenCast.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.RemoteDesktop.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Notification.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Inhibit.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
@@ -65,11 +68,14 @@
     </para>
     </partintro>
     <xi:include href="portal-org.freedesktop.impl.portal.Request.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.AppChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Email.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Screenshot.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.ScreenCast.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.RemoteDesktop.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Notification.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Inhibit.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Access.xml"/>
