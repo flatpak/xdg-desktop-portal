@@ -231,6 +231,8 @@ portal_delete (GDBusMethodInvocation *invocation,
 
   g_variant_get (parameters, "(s)", &id);
 
+  g_debug ("portal_delete %s", id);
+
   {
     XDP_AUTOLOCK (db);
 
@@ -278,6 +280,8 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
   g_auto(GStrv) ids = NULL;
   char *id = NULL;
   guint32 flags = 0;
+
+  g_debug ("Creating document at path '%s', resuse_existing: %d, persistent: %d", path, reuse_existing, persistent);
 
   if (!reuse_existing)
     flags |= DOCUMENT_ENTRY_FLAG_UNIQUE;
