@@ -364,9 +364,10 @@ get_fd_access (int fd)
 
 static gboolean
 validate_fd_common (int fd,
+                    XdpAppInfo *app_info,
                     struct stat *st_buf,
                     mode_t st_mode,
-                    char *path_buffer,
+                    char **path_out,
                     int *access_mode_out,
                     GError **error)
 {
@@ -375,6 +376,7 @@ validate_fd_common (int fd,
   int fd_flags;
   int access_mode;
   int required_mode;
+  char path_buffer[PATH_MAX + 1];
 
   proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
 
@@ -415,6 +417,9 @@ validate_fd_common (int fd,
                    "Invalid fd passed");
       return FALSE;
     }
+
+  if (path_out)
+    *path_out = xdp_app_info_remap_path (app_info, path_buffer);
 
   if (access_mode_out)
     *access_mode_out = access_mode;
@@ -462,19 +467,20 @@ validate_fd (int fd,
              XdpAppInfo *app_info,
              struct stat *st_buf,
              struct stat *real_parent_st_buf,
-             char *path_buffer,
+             char **path_out,
              int *access_mode_out,
              GError **error)
 {
   g_autofree char *remapped_path = NULL;
 
-  if (!validate_fd_common (fd, st_buf, S_IFREG, path_buffer, access_mode_out, error))
+  if (!validate_fd_common (fd, app_info, st_buf, S_IFREG, &remapped_path, access_mode_out, error))
     return FALSE;
-
-  remapped_path = xdp_app_info_remap_path (app_info, path_buffer);
 
   if (!validate_parent_dir (remapped_path, st_buf, real_parent_st_buf, error))
     return FALSE;
+
+  if (path_out)
+    *path_out = g_steal_pointer (&remapped_path);
 
   return TRUE;
 }
@@ -518,7 +524,7 @@ portal_add (GDBusMethodInvocation *invocation,
   GUnixFDList *fd_list;
   g_autofree char *id = NULL;
   int fd_id, fd, fds_len;
-  char path_buffer[PATH_MAX + 1];
+  g_autofree char *path = NULL;
   const int *fds;
   struct stat st_buf, real_parent_st_buf;
   gboolean reuse_existing, persistent;
@@ -539,7 +545,7 @@ portal_add (GDBusMethodInvocation *invocation,
         fd = fds[fd_id];
     }
 
-  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, path_buffer, &access_mode, &error))
+  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, &path, &access_mode, &error))
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return;
@@ -562,7 +568,7 @@ portal_add (GDBusMethodInvocation *invocation,
       {
         XDP_AUTOLOCK (db);
 
-        id = do_create_doc (&real_parent_st_buf, path_buffer, reuse_existing, persistent);
+        id = do_create_doc (&real_parent_st_buf, path, reuse_existing, persistent);
 
         if (app_id[0] != '\0')
           {
@@ -759,7 +765,6 @@ portal_add_full (GDBusMethodInvocation *invocation,
   GUnixFDList *fd_list;
   char *id;
   int fd_id, fd, fds_len;
-  char path_buffer[PATH_MAX + 1];
   const int *fds = NULL;
   struct stat st_buf;
   gboolean reuse_existing, persistent, as_needed_by_app;
@@ -807,13 +812,15 @@ portal_add_full (GDBusMethodInvocation *invocation,
 
   for (i = 0; i < n_args; i++)
     {
+      g_autofree char *path = NULL;
+
       g_variant_get_child (array, i, "h", &fd_id);
 
       fd = -1;
       if (fds != NULL && fd_id < fds_len)
         fd = fds[fd_id];
 
-      if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_bufs[i], path_buffer, &access_modes[i], &error))
+      if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_bufs[i], &path, &access_modes[i], &error))
         {
           g_dbus_method_invocation_take_error (invocation, error);
           return;
@@ -827,7 +834,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
           return;
         }
 
-      g_ptr_array_index(paths,i) = g_strdup (path_buffer);
+      g_ptr_array_index(paths,i) = g_steal_pointer (&path);
 
       if (st_buf.st_dev == fuse_dev)
         {
@@ -929,7 +936,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   GDBusMessage *message;
   GUnixFDList *fd_list;
   int parent_fd_id, parent_fd, fds_len;
-  char parent_path_buffer[PATH_MAX + 1];
+  g_autofree char *parent_path = NULL;
   const int *fds = NULL;
   struct stat parent_st_buf;
   gboolean reuse_existing, persistent, as_needed_by_app;
@@ -990,7 +997,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  if (!validate_fd_common (parent_fd, &parent_st_buf, S_IFDIR, parent_path_buffer, &access_mode, &error))
+  if (!validate_fd_common (parent_fd, app_info, &parent_st_buf, S_IFDIR, &parent_path, &access_mode, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return;
@@ -1012,7 +1019,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  path = g_build_filename (parent_path_buffer, filename, NULL);
+  path = g_build_filename (parent_path, filename, NULL);
 
   g_debug ("portal_add_named_full %s", path);
 
@@ -1085,7 +1092,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   g_autofree char *id = NULL;
   int parent_fd_id, parent_fd, fds_len;
   const int *fds;
-  char parent_path_buffer[PATH_MAX + 1];
+  g_autofree char *parent_path = NULL;
   g_autofree char *path = NULL;
   struct stat parent_st_buf;
   const char *filename;
@@ -1126,7 +1133,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
       return;
     }
 
-  if (!validate_fd_common (parent_fd, &parent_st_buf, S_IFDIR, parent_path_buffer, &access_mode, &error))
+  if (!validate_fd_common (parent_fd, app_info, &parent_st_buf, S_IFDIR, &parent_path, &access_mode, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return;
@@ -1148,7 +1155,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
       return;
     }
 
-  path = g_build_filename (parent_path_buffer, filename, NULL);
+  path = g_build_filename (parent_path, filename, NULL);
 
   g_debug ("portal_add_named %s", path);
 
@@ -1202,7 +1209,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
                XdpAppInfo *app_info)
 {
   const char *filename;
-  char path_buffer[PATH_MAX + 1];
+  g_autofree char *path = NULL;
   xdp_autofd int fd = -1;
   struct stat st_buf, real_parent_st_buf;
   g_auto(GStrv) ids = NULL;
@@ -1230,7 +1237,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
       return TRUE;
     }
 
-  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, path_buffer, NULL, &error))
+  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, &path, NULL, &error))
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return TRUE;
@@ -1247,7 +1254,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
       g_autoptr(GVariant) data = NULL;
 
       data = g_variant_ref_sink (g_variant_new ("(^ayttu)",
-                                                path_buffer,
+                                                path,
                                                 (guint64)real_parent_st_buf.st_dev,
                                                 (guint64)real_parent_st_buf.st_ino,
                                                 0));
