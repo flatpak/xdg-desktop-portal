@@ -363,6 +363,39 @@ get_fd_access (int fd)
 }
 
 static gboolean
+verify_proc_self_fd (int fd,
+                     char *path_buffer)
+{
+  g_autofree char *proc_path = NULL;
+  ssize_t symlink_size;
+
+  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
+
+  symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
+  if (symlink_size < 0)
+    return FALSE;
+
+  path_buffer[symlink_size] = 0;
+
+  /* All normal paths start with /, but some weird things
+     don't, such as socket:[27345] or anon_inode:[eventfd].
+     We don't support any of these */
+  if (path_buffer[0] != '/')
+    return FALSE;
+
+  /* File descriptors to actually deleted files have " (deleted)"
+     appended to them. This also happens to some fake fd types
+     like shmem which are "/<name> (deleted)". All such
+     files are considered invalid. Unfortunatelly this also
+     matches files with filenames that actually end in " (deleted)",
+     but there is not much to do about this. */
+  if (g_str_has_suffix (path_buffer, " (deleted)"))
+    return FALSE;
+
+  return TRUE;
+}
+
+static gboolean
 validate_fd_common (int fd,
                     XdpAppInfo *app_info,
                     struct stat *st_buf,
@@ -371,14 +404,10 @@ validate_fd_common (int fd,
                     int *access_mode_out,
                     GError **error)
 {
-  g_autofree char *proc_path = NULL;
-  ssize_t symlink_size;
   int fd_flags;
   int access_mode;
   int required_mode;
   char path_buffer[PATH_MAX + 1];
-
-  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
 
   if (fd == -1 ||
       /* Must be able to get fd flags */
@@ -393,15 +422,13 @@ validate_fd_common (int fd,
       (st_buf->st_mode & S_IFMT) != st_mode ||
       /* Must be able to read path from /proc/self/fd */
       /* This is an absolute and (at least at open time) symlink-expanded path */
-      (symlink_size = readlink (proc_path, path_buffer, PATH_MAX)) < 0)
+      (verify_proc_self_fd (fd, path_buffer)) < 0)
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Invalid fd passed");
       return FALSE;
     }
-
-  path_buffer[symlink_size] = 0;
 
   /* we need at least read access, but also execute for dirs */
   required_mode = R_OK;
