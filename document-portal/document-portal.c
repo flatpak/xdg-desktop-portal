@@ -332,111 +332,23 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
   return id;
 }
 
-static int
-get_fd_access (int fd)
-{
-  g_autofree char *p = g_strdup_printf ("/proc/self/fd/%d", fd);
-  int mode;
-  int res;
-
-  mode = 0;
-
-  res = access (p, R_OK);
-  if (res == 0)
-    mode |= R_OK;
-  else if (errno != EACCES && errno != EROFS)
-    return -1;
-
-  res = access (p, W_OK);
-  if (res == 0)
-    mode |= W_OK;
-  else if (errno != EACCES && errno != EROFS)
-    return -1;
-
-  res = access (p, X_OK);
-  if (res == 0)
-    mode |= X_OK;
-  else if (errno != EACCES && errno != EROFS)
-    return -1;
-
-  return mode;
-}
-
 static gboolean
-verify_proc_self_fd (int fd,
-                     char *path_buffer)
+validate_fd (int fd,
+             XdpAppInfo *app_info,
+             struct stat *st_buf,
+             struct stat *real_parent_st_buf,
+             char **path_out,
+             gboolean *writable_out,
+             GError **error)
 {
-  g_autofree char *proc_path = NULL;
-  ssize_t symlink_size;
+  g_autofree char *path = NULL;
+  g_autofree char *dirname = NULL;
+  g_autofree char *name = NULL;
+  xdp_autofd int dir_fd = -1;
+  struct stat real_st_buf;
 
-  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
-
-  symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
-  if (symlink_size < 0)
-    return FALSE;
-
-  path_buffer[symlink_size] = 0;
-
-  /* All normal paths start with /, but some weird things
-     don't, such as socket:[27345] or anon_inode:[eventfd].
-     We don't support any of these */
-  if (path_buffer[0] != '/')
-    return FALSE;
-
-  /* File descriptors to actually deleted files have " (deleted)"
-     appended to them. This also happens to some fake fd types
-     like shmem which are "/<name> (deleted)". All such
-     files are considered invalid. Unfortunatelly this also
-     matches files with filenames that actually end in " (deleted)",
-     but there is not much to do about this. */
-  if (g_str_has_suffix (path_buffer, " (deleted)"))
-    return FALSE;
-
-  return TRUE;
-}
-
-static gboolean
-validate_fd_common (int fd,
-                    XdpAppInfo *app_info,
-                    struct stat *st_buf,
-                    mode_t st_mode,
-                    char **path_out,
-                    int *access_mode_out,
-                    GError **error)
-{
-  int fd_flags;
-  int access_mode;
-  int required_mode;
-  char path_buffer[PATH_MAX + 1];
-
-  if (fd == -1 ||
-      /* Must be able to get fd flags */
-      (fd_flags = fcntl (fd, F_GETFL)) == -1 ||
-      /* Must be O_PATH */
-      ((fd_flags & O_PATH) != O_PATH) ||
-      /* Must not be O_NOFOLLOW (because we want the target file) */
-      ((fd_flags & O_NOFOLLOW) == O_NOFOLLOW) ||
-      /* Must be able to fstat */
-      fstat (fd, st_buf) < 0 ||
-      /* Must be a regular file or directory (depending on use) */
-      (st_buf->st_mode & S_IFMT) != st_mode ||
-      /* Must be able to read path from /proc/self/fd */
-      /* This is an absolute and (at least at open time) symlink-expanded path */
-      (verify_proc_self_fd (fd, path_buffer)) < 0)
-    {
-      g_set_error (error,
-                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Invalid fd passed");
-      return FALSE;
-    }
-
-  /* we need at least read access, but also execute for dirs */
-  required_mode = R_OK;
-  if (st_mode == S_IFDIR)
-    required_mode |= X_OK;
-
-  access_mode = get_fd_access (fd);
-  if (access_mode < 0 || (access_mode & required_mode) != required_mode)
+  path = xdp_app_info_get_path_for_fd (app_info, fd, S_IFREG, st_buf, writable_out);
+  if (path == NULL)
     {
       /* Don't leak any info about real file path existence, etc */
       g_set_error (error,
@@ -445,29 +357,9 @@ validate_fd_common (int fd,
       return FALSE;
     }
 
-  if (path_out)
-    *path_out = xdp_app_info_remap_path (app_info, path_buffer);
-
-  if (access_mode_out)
-    *access_mode_out = access_mode;
-
-  return TRUE;
-}
-
-static gboolean
-validate_parent_dir (const char *path,
-                     struct stat *st_buf,
-                     struct stat *real_parent_st_buf,
-                     GError **error)
-{
-  g_autofree char *dirname = NULL;
-  g_autofree char *name = NULL;
-  xdp_autofd int dir_fd = -1;
-  struct stat real_st_buf;
-
   /* We open the parent directory and do the stat in that, so that we have
-   * trustworthy parent dev/ino for later verification. Otherwise the caller
-   * could later replace a parent with a symlink and make us read some other file
+   * trustworthy parent dev/ino + filename for later verification. Otherwise the caller
+   * could later replace a parent with a symlink and make us read some other file.
    */
   dirname = g_path_get_dirname (path);
   name = g_path_get_basename (path);
@@ -486,28 +378,8 @@ validate_parent_dir (const char *path,
       return FALSE;
     }
 
-  return TRUE;
-}
-
-static gboolean
-validate_fd (int fd,
-             XdpAppInfo *app_info,
-             struct stat *st_buf,
-             struct stat *real_parent_st_buf,
-             char **path_out,
-             int *access_mode_out,
-             GError **error)
-{
-  g_autofree char *remapped_path = NULL;
-
-  if (!validate_fd_common (fd, app_info, st_buf, S_IFREG, &remapped_path, access_mode_out, error))
-    return FALSE;
-
-  if (!validate_parent_dir (remapped_path, st_buf, real_parent_st_buf, error))
-    return FALSE;
-
   if (path_out)
-    *path_out = g_steal_pointer (&remapped_path);
+    *path_out = g_steal_pointer (&path);
 
   return TRUE;
 }
@@ -552,12 +424,12 @@ portal_add (GDBusMethodInvocation *invocation,
   g_autofree char *id = NULL;
   int fd_id, fd, fds_len;
   g_autofree char *path = NULL;
+  gboolean writable;
   const int *fds;
   struct stat st_buf, real_parent_st_buf;
   gboolean reuse_existing, persistent;
   GError *error = NULL;
   const char *app_id = xdp_app_info_get_id (app_info);
-  int access_mode;
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
 
@@ -572,7 +444,7 @@ portal_add (GDBusMethodInvocation *invocation,
         fd = fds[fd_id];
     }
 
-  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, &path, &access_mode, &error))
+  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, &path, &writable, &error))
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return;
@@ -604,7 +476,7 @@ portal_add (GDBusMethodInvocation *invocation,
               DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
               DOCUMENT_PERMISSION_FLAGS_READ;
 
-            if (access_mode & W_OK)
+            if (writable)
               {
                 perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
 
@@ -804,7 +676,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autofree const char **permissions = NULL;
   g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
   g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
-  g_autofree int *access_modes = NULL;
+  g_autofree gboolean *writable = NULL;
   g_autofree struct stat *real_parent_st_bufs = NULL;
   int i;
   gsize n_args;
@@ -832,7 +704,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_ptr_array_set_size (ids, n_args + 1);
   g_ptr_array_set_size (paths, n_args + 1);
   real_parent_st_bufs = g_new0 (struct stat, n_args);
-  access_modes = g_new0 (int, n_args);
+  writable = g_new0 (gboolean, n_args);
 
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
@@ -849,13 +721,13 @@ portal_add_full (GDBusMethodInvocation *invocation,
       if (fds != NULL && fd_id < fds_len)
         fd = fds[fd_id];
 
-      if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_bufs[i], &path, &access_modes[i], &error))
+      if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_bufs[i], &path, &writable[i], &error))
         {
           g_dbus_method_invocation_take_error (invocation, error);
           return;
         }
 
-      if ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) && (access_modes[i] & W_OK) == 0)
+      if ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) && !writable[i])
         {
           g_dbus_method_invocation_return_error (invocation,
                                                  XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -916,7 +788,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
               {
                 DocumentPermissionFlags caller_perms = caller_base_perms;
 
-                if (access_modes[i] & W_OK)
+                if (writable[i])
                   caller_perms |= caller_write_perms;
 
                 g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
@@ -971,7 +843,6 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   const int *fds = NULL;
   struct stat parent_st_buf;
   gboolean reuse_existing, persistent, as_needed_by_app;
-  GError *error = NULL;
   guint32 flags = 0;
   const char *filename;
   const char *target_app_id;
@@ -980,7 +851,6 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   g_autofree char *path = NULL;
   DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
-  int access_mode;
   g_autoptr(GVariant) filename_v = NULL;
 
   g_variant_get (parameters, "(h@ayus^a&s)", &parent_fd_id, &filename_v, &flags, &target_app_id, &permissions);
@@ -1028,25 +898,12 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  if (!validate_fd_common (parent_fd, app_info, &parent_st_buf, S_IFDIR, &parent_path, &access_mode, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return;
-    }
-
-  if (parent_st_buf.st_dev == fuse_dev)
+  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL);
+  if (parent_path == NULL || parent_st_buf.st_dev == fuse_dev)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
-      return;
-    }
-
-  if ((access_mode & W_OK) == 0)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                                             "Not enough permissions");
       return;
     }
 
@@ -1129,7 +986,6 @@ portal_add_named (GDBusMethodInvocation *invocation,
   const char *filename;
   gboolean reuse_existing, persistent;
   g_autoptr(GError) error = NULL;
-  int access_mode;
 
   g_autoptr(GVariant) filename_v = NULL;
 
@@ -1164,25 +1020,12 @@ portal_add_named (GDBusMethodInvocation *invocation,
       return;
     }
 
-  if (!validate_fd_common (parent_fd, app_info, &parent_st_buf, S_IFDIR, &parent_path, &access_mode, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return;
-    }
-
-  if (parent_st_buf.st_dev == fuse_dev)
+  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL);
+  if (parent_path == NULL || parent_st_buf.st_dev == fuse_dev)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
-      return;
-    }
-
-  if ((access_mode & W_OK) == 0)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                                             "Not enough permissions");
       return;
     }
 
