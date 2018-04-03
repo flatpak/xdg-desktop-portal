@@ -170,7 +170,7 @@ handle_compose_email (XdpEmail *object,
               return TRUE;
             }
 
-          path = xdp_app_info_get_path_for_fd (request->app_info, fd);
+          path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL);
           g_variant_builder_add (&attachments, "s", path);
         }
 

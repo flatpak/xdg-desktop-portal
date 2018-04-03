@@ -201,6 +201,14 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
   return app_info->kind == XDP_APP_INFO_KIND_HOST;
 }
 
+gboolean
+xdp_app_info_supports_opath (XdpAppInfo  *app_info)
+{
+  return
+    app_info->kind == XDP_APP_INFO_KIND_FLATPAK ||
+    app_info->kind == XDP_APP_INFO_KIND_HOST;
+}
+
 char *
 xdp_app_info_remap_path (XdpAppInfo *app_info,
                          const char *path)
@@ -685,43 +693,141 @@ xdg_desktop_portal_error_quark (void)
   return (GQuark) quark_volatile;
 }
 
-char *
-xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
-                              int fd)
+static char *
+verify_proc_self_fd (XdpAppInfo *app_info,
+                     const char *proc_path)
 {
-  g_autofree char *proc_path = NULL;
-  int fd_flags;
   char path_buffer[PATH_MAX + 1];
-  g_autofree char *path = NULL;
-  ssize_t symlink_size = 0;
-  struct stat st_buf;
-  struct stat real_st_buf;
+  ssize_t symlink_size;
 
-  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
-
-  if (fd == -1 ||
-      (fd_flags = fcntl (fd, F_GETFL)) == 0 ||
-      ((fd_flags & O_PATH) != O_PATH) ||
-      ((fd_flags & O_NOFOLLOW) == O_NOFOLLOW) ||
-      fstat (fd, &st_buf) < 0 ||
-      ((st_buf.st_mode & S_IFMT) != S_IFREG && (st_buf.st_mode & S_IFMT) != S_IFDIR) ||
-      (symlink_size = readlink (proc_path, path_buffer, PATH_MAX)) < 0)
-    {
-      return NULL;
-    }
+  symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
+  if (symlink_size < 0)
+    return NULL;
 
   path_buffer[symlink_size] = 0;
 
-  path = xdp_app_info_remap_path (app_info, path_buffer);
+  /* All normal paths start with /, but some weird things
+     don't, such as socket:[27345] or anon_inode:[eventfd].
+     We don't support any of these */
+  if (path_buffer[0] != '/')
+    return NULL;
+
+  /* File descriptors to actually deleted files have " (deleted)"
+     appended to them. This also happens to some fake fd types
+     like shmem which are "/<name> (deleted)". All such
+     files are considered invalid. Unfortunatelly this also
+     matches files with filenames that actually end in " (deleted)",
+     but there is not much to do about this. */
+  if (g_str_has_suffix (path_buffer, " (deleted)"))
+    return NULL;
+
+  /* remap from sandbox to host if needed */
+  return xdp_app_info_remap_path (app_info, path_buffer);
+}
+
+char *
+xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
+                              int fd,
+                              int require_st_mode,
+                              struct stat *st_buf,
+                              gboolean *writable_out)
+{
+  g_autofree char *proc_path = NULL;
+  int fd_flags;
+  struct stat st_buf_store;
+  struct stat real_st_buf;
+  gboolean writable = FALSE;
+  g_autofree char *path = NULL;
+
+  if (st_buf == NULL)
+    st_buf = &st_buf_store;
+
+  if (fd == -1)
+    return NULL;
+
+  /* Must be able to get fd flags */
+  fd_flags = fcntl (fd, F_GETFL);
+  if (fd_flags == -1)
+    return NULL;
+
+  /* Must be able to fstat */
+  if (fstat (fd, st_buf) < 0)
+    return NULL;
+
+  /* Verify mode */
+  if (require_st_mode != 0 &&
+      (st_buf->st_mode & S_IFMT) != require_st_mode)
+    return NULL;
+
+  proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
+
+  /* Must be able to read valid path from /proc/self/fd */
+  /* This is an absolute and (at least at open time) symlink-expanded path */
+  path = verify_proc_self_fd (app_info, proc_path);
+  if (path == NULL)
+    return NULL;
+
+  if ((fd_flags & O_PATH) == O_PATH)
+    {
+      int read_access_mode;
+
+      /* Earlier versions of the portal supported only O_PATH fds, as
+       * these are safer to handle on the portal side. But we now
+       * prefer regular FDs because these ensure that the sandbox
+       * actually has full access to the file in its security context.
+       *
+       * However, we still support O_PATH fds when possible because
+       * existing code uses it.
+       *
+       * See issues #167 for details.
+       */
+
+      /* Must not be O_NOFOLLOW (because we want the target file) */
+      if ((fd_flags & O_NOFOLLOW) == O_NOFOLLOW)
+        return NULL;
+
+      if (!xdp_app_info_supports_opath (app_info))
+        return NULL;
+
+      read_access_mode = R_OK;
+      if (S_ISDIR (st_buf->st_mode))
+        read_access_mode |= X_OK;
+
+      /* Must be able to access the path via the sandbox supplied O_PATH fd,
+         which applies the sandbox side mount options (like readonly). */
+      if (access (proc_path, read_access_mode) != 0)
+        return NULL;
+
+      if (xdp_app_info_is_host (app_info) || access (proc_path, W_OK) == 0)
+        writable = TRUE;
+    }
+  else /* Regular file with no O_PATH */
+    {
+      int accmode = fd_flags & O_ACCMODE;
+
+      /* Note that this only gives valid results for writable for regular files,
+         as there is no way to get a writable fd for a directory. */
+
+      /* Don't allow WRONLY (or weird) open modes */
+      if (accmode != O_RDONLY &&
+          accmode != O_RDWR)
+        return NULL;
+
+      if (xdp_app_info_is_host (app_info) || accmode == O_RDWR)
+        writable = TRUE;
+    }
 
   /* Verify that this is the same file as the app opened */
   if (stat (path, &real_st_buf) < 0 ||
-      st_buf.st_dev != real_st_buf.st_dev ||
-      st_buf.st_ino != real_st_buf.st_ino)
+      st_buf->st_dev != real_st_buf.st_dev ||
+      st_buf->st_ino != real_st_buf.st_ino)
     {
       /* Different files on the inside and the outside, reject the request */
       return NULL;
     }
+
+  if (writable_out)
+    *writable_out = writable;
 
   return g_steal_pointer (&path);
 }
