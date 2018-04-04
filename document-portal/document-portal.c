@@ -605,12 +605,14 @@ portal_add (GDBusMethodInvocation *invocation,
               DOCUMENT_PERMISSION_FLAGS_READ;
 
             if (access_mode & W_OK)
-              perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
+              {
+                perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
 
-            /* If its a unique one its safe for the creator to
-               delete it at will */
-            if (!reuse_existing)
-              perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
+                /* If its a unique one its safe for the creator to
+                   delete it at will */
+                if (!reuse_existing)
+                  perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
+              }
 
             do_set_permissions (entry, id, app_id, perms);
           }
@@ -882,11 +884,13 @@ portal_add_full (GDBusMethodInvocation *invocation,
     DocumentPermissionFlags caller_base_perms =
       DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
       DOCUMENT_PERMISSION_FLAGS_READ;
+    DocumentPermissionFlags caller_write_perms =
+      DOCUMENT_PERMISSION_FLAGS_WRITE;
 
     /* If its a unique one its safe for the creator to
        delete it at will */
     if (!reuse_existing)
-      caller_base_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
+      caller_write_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
     XDP_AUTOLOCK (db); /* Lock once for all ops */
 
@@ -913,7 +917,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
                 DocumentPermissionFlags caller_perms = caller_base_perms;
 
                 if (access_modes[i] & W_OK)
-                  caller_perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
+                  caller_perms |= caller_write_perms;
 
                 g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
                 do_set_permissions (entry, id, app_id, caller_perms);
