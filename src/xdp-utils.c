@@ -105,7 +105,7 @@ xdp_mkstempat (int    dir_fd,
 
 typedef enum
 {
-  XDP_APP_INFO_KIND_UNKNOWN = 0,
+  XDP_APP_INFO_KIND_HOST = 0,
   XDP_APP_INFO_KIND_FLATPAK = 1,
   XDP_APP_INFO_KIND_SNAP    = 2,
 } XdpAppInfoKind;
@@ -129,17 +129,18 @@ struct _XdpAppInfo {
 };
 
 static XdpAppInfo *
-xdp_app_info_new (void)
+xdp_app_info_new (XdpAppInfoKind kind)
 {
   XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
   app_info->ref_count = 1;
+  app_info->kind = kind;
   return app_info;
 }
 
 static XdpAppInfo *
 xdp_app_info_new_host (void)
 {
-  XdpAppInfo *app_info = xdp_app_info_new ();
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   app_info->id = g_strdup ("");
   return app_info;
 }
@@ -158,7 +159,7 @@ xdp_app_info_free (XdpAppInfo *app_info)
     case XDP_APP_INFO_KIND_SNAP:
       break;
 
-    case XDP_APP_INFO_KIND_UNKNOWN:
+    case XDP_APP_INFO_KIND_HOST:
     default:
       break;
     }
@@ -197,7 +198,7 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, FALSE);
 
-  return strcmp (app_info->id, "") == 0;
+  return app_info->kind == XDP_APP_INFO_KIND_HOST;
 }
 
 char *
@@ -330,9 +331,8 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   if (id == NULL)
     return NULL;
 
-  app_info = xdp_app_info_new ();
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_FLATPAK);
   app_info->id = g_steal_pointer (&id);
-  app_info->kind = XDP_APP_INFO_KIND_FLATPAK;
   app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
   return g_steal_pointer (&app_info);
@@ -457,9 +457,8 @@ parse_app_info_from_security_label (const char *security_label)
             return NULL;
           snap_name = g_strndup (label, dot - label);
 
-          app_info = xdp_app_info_new ();
+          app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
           app_info->id = g_strconcat ("snap.", snap_name, NULL);
-          app_info->kind = XDP_APP_INFO_KIND_SNAP;
 
           return g_steal_pointer (&app_info);
         }
