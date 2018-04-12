@@ -551,7 +551,7 @@ handle_open_in_thread_func (GTask *task,
   find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
-  if (skip_app_chooser || (!always_ask && (latest_count >= latest_threshold)))
+  if ((always_ask && skip_app_chooser) || (!always_ask && (latest_count >= latest_threshold)))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
       gboolean result = launch_application_with_uri (skip_app_chooser ? choices[0] : latest_id,
