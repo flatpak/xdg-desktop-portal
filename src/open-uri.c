@@ -134,7 +134,11 @@ get_latest_choice_info (const char *app_id,
                                                    NULL,
                                                    &error))
     {
-      g_warning ("Error updating permission store: %s", error->message);
+      /* Not finding an entry for the content type in the permission store is perfectly ok */
+      if (!g_error_matches (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND))
+        g_warning ("Unable to retrieve info for '%s' in the %s table of the permission store: %s",
+                   content_type, TABLE_NAME, error->message);
+
       g_clear_error (&error);
     }
 
