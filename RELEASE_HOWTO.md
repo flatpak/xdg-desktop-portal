@@ -1,6 +1,10 @@
 # Steps for doing a xdg-desktop-portal release
 
  - git clean -fxd
+ - ./autogen.sh && make -C po/ update-po
+ - git add po/*po &&  git commit -m "Update po files"
+
+ - git clean -fxd
  - bump version in configure.ac
  - add content to NEWS
  - git commit -m <version>
