@@ -1,3 +1,21 @@
+xdg-desktop-portal 0.11
+=======================
+
+* Add initial support for Snap packages.
+* Fix memory leaks when ownership of bus names changes.
+* Include docs for the session, remote desktop and screencast portals.
+* document-portal: Be more flexible validating apps' IDs.
+* document-portal: Be more strict when checking & granting file access.
+* file-chooser: Fix crash with unitialized data in the save dialog.
+* open-uri: Don't ever skip showing the dialog if a threshold is set.
+* open-uri: Don't register http: URIs for sandboxed handlers.
+* remote-desktop: Use the correct device type values.
+* screencast: Fix synchronization issue with PipeWire.
+
+* Translation updates
+ Chinese (Taiwan)
+ Spanish
+
 xdg-desktop-portal 0.10
 =======================
 
