@@ -45,6 +45,7 @@
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Flatpak.xml"/>
   </reference>
   <reference>
     <title>Portal Backend API Reference</title>
