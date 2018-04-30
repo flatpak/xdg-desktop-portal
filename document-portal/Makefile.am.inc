@@ -1,6 +1,6 @@
 libexec_PROGRAMS += \
 	xdg-permission-store \
-	xdg-document-portal
+	xdg-document-portal \
 	$(NULL)
 
 service_in_files += \
