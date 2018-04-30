@@ -15,7 +15,7 @@ include $(top_srcdir)/glib-tap.mk
 
 SUBDIRS = doc po
 
-%.service: %.service.in config.log
+%.service: %.service.in
 	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(libexecdir)|" -e "s|\@extraargs\@||" $< > $@
 
 dbus_servicedir = $(DBUS_SERVICE_DIR)
