@@ -22,6 +22,31 @@ check_PROGRAMS =
 check_SCRIPTS =
 check_DATA =
 
+# test-nonrecursive: run tests only in cwd
+test-nonrecursive: ${TEST_PROGS}
+	@test -z "${TEST_PROGS}" || G_TEST_SRCDIR="$(abs_srcdir)" G_TEST_BUILDDIR="$(abs_builddir)" G_DEBUG=gc-friendly MALLOC_CHECK_=2 MALLOC_PERTURB_=$$(($${RANDOM:-256} % 256)) ${GTESTER} --verbose ${TEST_PROGS}
+
+.PHONY: test-nonrecursive
+
+.PHONY: lcov genlcov lcov-clean
+# use recursive makes in order to ignore errors during check
+lcov:
+	-$(MAKE) $(AM_MAKEFLAGS) -k check
+	$(MAKE) $(AM_MAKEFLAGS) genlcov
+
+genlcov:
+	$(AM_V_GEN) $(LTP) --quiet --directory $(top_builddir) --capture --output-file xdg-desktop-portal-lcov.info --test-name GLIB_PERF --no-checksum --compat-libtool --ignore-errors source; \
+	  LANG=C $(LTP_GENHTML) --quiet --prefix $(top_builddir) --output-directory xdg-desktop-portal-lcov --title "xdg-desktop-portal Code Coverage" --legend --frames --show-details xdg-desktop-portal-lcov.info --ignore-errors source
+	@echo "file://$(abs_top_builddir)/xdg-desktop-portal-lcov/index.html"
+
+lcov-clean:
+	if test -n "$(LTP)"; then \
+	  $(LTP) --quiet --directory $(top_builddir) -z; \
+	fi
+
+# run tests in cwd as part of make check
+check-local: test-nonrecursive
+
 # We support a fairly large range of possible variables.  It is expected that all types of files in a test suite
 # will belong in exactly one of the following variables.
 #
