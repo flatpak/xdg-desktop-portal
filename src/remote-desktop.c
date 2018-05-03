@@ -155,7 +155,6 @@ remote_desktop_session_new (GVariant *options,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
 
-
   session_token = lookup_session_token (options);
   session = g_initable_new (remote_desktop_session_get_type (), NULL, error,
                             "sender", request->sender,
