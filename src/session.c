@@ -426,7 +426,7 @@ session_finalize (GObject *object)
 {
   Session *session = (Session *)object;
 
-  g_assert (!g_hash_table_lookup (sessions, session->id));
+  g_assert (!session->id || !g_hash_table_lookup (sessions, session->id));
 
   g_free (session->sender);
   g_clear_object (&session->connection);
