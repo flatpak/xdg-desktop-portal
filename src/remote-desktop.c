@@ -165,8 +165,8 @@ remote_desktop_session_new (GVariant *options,
                             "impl-dbus-name", impl_dbus_name,
                             NULL);
 
-  g_debug ("remote desktop session owned by '%s' created",
-           session->sender);
+  if (session)
+    g_debug ("remote desktop session owned by '%s' created", session->sender);
 
   return (RemoteDesktopSession *)session;
 }
