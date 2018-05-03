@@ -155,7 +155,6 @@ remote_desktop_session_new (GVariant *options,
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
 
-
   session_token = lookup_session_token (options);
   session = g_initable_new (remote_desktop_session_get_type (), NULL, error,
                             "sender", request->sender,
@@ -166,8 +165,8 @@ remote_desktop_session_new (GVariant *options,
                             "impl-dbus-name", impl_dbus_name,
                             NULL);
 
-  g_debug ("remote desktop session owned by '%s' created",
-           session->sender);
+  if (session)
+    g_debug ("remote desktop session owned by '%s' created", session->sender);
 
   return (RemoteDesktopSession *)session;
 }
