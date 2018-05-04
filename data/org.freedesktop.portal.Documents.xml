@@ -229,7 +229,7 @@
 
         Looks up the document ID for a file.
 
-        This call is no not available inside the sandbox.
+        This call is not available inside the sandbox.
     -->
     <method name="Lookup">
       <arg type='ay' name='filename' direction='in'/>
