@@ -24,7 +24,9 @@
 #include <gio/gio.h>
 
 #include "network-monitor.h"
+#include "request.h"
 #include "xdp-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _NetworkMonitor NetworkMonitor;
 typedef struct _NetworkMonitorClass NetworkMonitorClass;
@@ -53,10 +55,22 @@ static gboolean
 handle_get_available (XdpNetworkMonitor     *object,
                       GDBusMethodInvocation *invocation)
 {
-  NetworkMonitor *nm = (NetworkMonitor *)object;
-  gboolean available = g_network_monitor_get_network_available (nm->monitor);
+  Request *request = request_from_invocation (invocation);
 
-  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", available));
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      gboolean available = g_network_monitor_get_network_available (nm->monitor);
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", available));
+    }
 
   return TRUE;
 }
@@ -65,10 +79,22 @@ static gboolean
 handle_get_metered (XdpNetworkMonitor     *object,
                     GDBusMethodInvocation *invocation)
 {
-  NetworkMonitor *nm = (NetworkMonitor *)object;
-  gboolean metered = g_network_monitor_get_network_metered (nm->monitor);
+  Request *request = request_from_invocation (invocation);
 
-  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", metered));
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      gboolean metered = g_network_monitor_get_network_metered (nm->monitor);
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", metered));
+    }
 
   return TRUE;
 }
@@ -77,10 +103,22 @@ static gboolean
 handle_get_connectivity (XdpNetworkMonitor     *object,
                          GDBusMethodInvocation *invocation)
 {
-  NetworkMonitor *nm = (NetworkMonitor *)object;
-  guint connectivity = g_network_monitor_get_connectivity (nm->monitor); 
+  Request *request = request_from_invocation (invocation);
 
-  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(u)", connectivity));
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      guint connectivity = g_network_monitor_get_connectivity (nm->monitor); 
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(u)", connectivity));
+    }
 
   return TRUE;
 }
