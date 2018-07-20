@@ -59,6 +59,7 @@ char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           int          require_st_mode,
                                           struct stat *st_buf,
                                           gboolean    *writable_out);
+gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
 
