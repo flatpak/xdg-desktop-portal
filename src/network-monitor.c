@@ -115,7 +115,7 @@ handle_get_connectivity (XdpNetworkMonitor     *object,
   else
     {
       NetworkMonitor *nm = (NetworkMonitor *)object;
-      guint connectivity = g_network_monitor_get_connectivity (nm->monitor); 
+      GNetworkConnectivity connectivity = g_network_monitor_get_connectivity (nm->monitor);
 
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(u)", connectivity));
     }
