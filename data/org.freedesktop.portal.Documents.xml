@@ -45,6 +45,8 @@
       The permissions that the application has for a document store entry
       (see org.freedesktop.portal.Documents.GrantPermissions()) are reflected
       in the POSIX mode bits in the fuse filesystem.
+
+      This documentation describes version 3 of this interface.
   -->
   <interface name='org.freedesktop.portal.Documents'>
     <property name="version" type="u" access="read"/>

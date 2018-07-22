@@ -22,6 +22,8 @@
       @short_description: Remote desktop portal
 
       The Remote desktop portal allows to create remote desktop sessions.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--

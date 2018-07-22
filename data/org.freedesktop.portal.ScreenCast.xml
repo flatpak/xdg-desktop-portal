@@ -22,6 +22,8 @@
       @short_description: Screen cast portal
 
       The Screen cast portal allows to create screen cast sessions.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
