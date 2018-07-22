@@ -37,7 +37,7 @@
   <interface name="org.freedesktop.portal.Print">
     <!--
         Print:
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @title: Title for the print dialog
         @fd: File descriptor for reading the content to print
         @options: Vardict with optional further information
@@ -48,9 +48,6 @@
         The file must be passed in the form of a file descriptor open for reading.
         This ensures that sandboxed applications only print files that they have
         access to.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         If a valid token is present in the @options, then this call will print
         with the settings from the Print call that the token refers to. If
@@ -93,7 +90,7 @@
     </method>
     <!--
         PreparePrint:
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @title: Title for the print dialog
         @settings: Serialized print settings
         @page_setup: Serialized page setup
@@ -102,9 +99,6 @@
 
         Presents a print dialog to the user and returns print settings
         and page setup.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         Supported keys in the @options vardict:
         <variablelist>

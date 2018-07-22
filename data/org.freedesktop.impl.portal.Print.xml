@@ -29,7 +29,7 @@
         Print:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @app_id: App id of the application
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @title: Title for the print dialog
         @fd: File descriptor from which to read the content to print
         @options: Vardict with optional further information
@@ -37,9 +37,6 @@
         @results: Vardict with the results of the call
 
         Prints a file.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         The file is given in the form of a file descriptor open for reading.
 
@@ -84,7 +81,7 @@
         PreparePrint:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @app_id: App id of the application
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @title: Title for the print dialog
         @settings: Serialized print settings
         @page_setup: Serialized page setup

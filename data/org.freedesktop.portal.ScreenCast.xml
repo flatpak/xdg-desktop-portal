@@ -99,7 +99,7 @@
     <!--
         Start:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
@@ -109,9 +109,6 @@
 
         A screen cast session may only be started after having selected sources
         using org.freedesktop.portal.ScreenCast::SelectSources.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         The following results get returned via the
         #org.freedesktop.portal.Request::Response signal:
