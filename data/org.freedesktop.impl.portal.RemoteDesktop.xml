@@ -18,8 +18,10 @@
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.portal.RemoteDesktop:
-      @short_description: Remote desktop portal
+      org.freedesktop.impl.portal.RemoteDesktop:
+      @short_description: Remote desktop portal backend interface
+
+      The Remote desktop portal allows to create remote desktop sessions.
   -->
   <interface name="org.freedesktop.impl.portal.RemoteDesktop">
     <!--

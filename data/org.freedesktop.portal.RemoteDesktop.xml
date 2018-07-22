@@ -20,6 +20,8 @@
   <!--
       org.freedesktop.portal.RemoteDesktop:
       @short_description: Remote desktop portal
+
+      The Remote desktop portal allows to create remote desktop sessions.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--
