@@ -19,7 +19,9 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.impl.portal.ScreenCast:
-      @short_description: Screen cast portal
+      @short_description: Screen cast portal backend interface
+
+      The Screen cast portal allows to create screen cast sessions.
   -->
   <interface name="org.freedesktop.impl.portal.ScreenCast">
     <!--

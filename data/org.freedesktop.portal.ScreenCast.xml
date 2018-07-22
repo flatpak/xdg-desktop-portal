@@ -20,6 +20,8 @@
   <!--
       org.freedesktop.portal.ScreenCast:
       @short_description: Screen cast portal
+
+      The Screen cast portal allows to create screen cast sessions.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
