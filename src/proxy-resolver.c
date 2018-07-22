@@ -24,7 +24,9 @@
 #include <gio/gio.h>
 
 #include "proxy-resolver.h"
+#include "request.h"
 #include "xdp-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _ProxyResolver ProxyResolver;
 typedef struct _ProxyResolverClass ProxyResolverClass;
@@ -55,15 +57,28 @@ proxy_resolver_handle_lookup (XdpProxyResolver *object,
                               const char *arg_uri)
 {
   ProxyResolver *resolver = (ProxyResolver *)object;
-  GError *error = NULL;
-  g_auto (GStrv) proxies = NULL;
+  Request *request = request_from_invocation (invocation);
 
-  proxies = g_proxy_resolver_lookup (resolver->resolver, arg_uri, NULL, &error);
-  if (error)
-    g_dbus_method_invocation_take_error (invocation, error);
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
   else
-    g_dbus_method_invocation_return_value (invocation,
-                                           g_variant_new ("(^as)", proxies));
+    {
+      g_auto (GStrv) proxies = NULL;
+      GError *error = NULL;
+
+      proxies = g_proxy_resolver_lookup (resolver->resolver, arg_uri, NULL, &error);
+      if (error)
+        g_dbus_method_invocation_take_error (invocation, error);
+      else
+        g_dbus_method_invocation_return_value (invocation,
+                                               g_variant_new ("(^as)", proxies));
+    }
+
   return TRUE;
 }
 

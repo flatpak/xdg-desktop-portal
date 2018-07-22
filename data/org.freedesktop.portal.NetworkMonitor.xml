@@ -28,38 +28,49 @@
       expected to use this interface indirectly, via a library API
       such as the GLib GNetworkMonitor interface.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.NetworkMonitor">
     <!--
         changed:
-        @available: Whether network is currently available
 
         Emitted when the network configuration changes.
     -->
-    <signal name="changed">
-      <arg type="b" name="available"/>
-    </signal>
+    <signal name="changed"/>
     <!--
-        available:
+        GetAvailable:
+        @available: whether the network is available
 
-        Whether the network is considered available. That is,
-        whether the system as a default route for at least one
-        of IPv4 or IPv6.
+        Returns whether the network is considered available.
+        That is, whether the system as a default route for
+        at least one of IPv4 or IPv6.
+
+        This method was added in version 2 to replace
+        the available property.
     -->
-    <property name="available" type="b" access="read"/>
+    <method name="GetAvailable">
+      <arg type='b' name='available' direction='out'/>
+    </method>
     <!--
-        metered:
+        GetMetered:
+        @metered: whether the network is metered
 
-        Whether the network is considered metered. That is, whether
-        the system as traffic flowing through the default connection
-        that is subject ot limitations by service providers.
+        Returns whether the network is considered metered.
+        That is, whether the system as traffic flowing through
+        the default connection that is subject ot limitations
+        by service providers.
+
+        This method was added in version 2 to replace
+        the metered property.
     -->
-    <property name="metered" type="b" access="read"/>
+    <method name="GetMetered">
+      <arg type='b' name='metered' direction='out'/>
+    </method>
     <!--
-        connectivity:
+        GetConnectivity:
+        @connectivity: the level of connectivity
 
-        More detailed information about the host's network
+        Returs more detailed information about the host's network
         connectivity. The meaning of the value is:
         <simplelist>
           <member>1: Local only. The host is not configured with a route to the internet.</member>
@@ -67,8 +78,13 @@
           <member>3: Captive portal. The host is behind a captive portal and cannot reach the full internet.</member>
           <member>4: Full network. The host connected to a network, and can reach the full internet.</member>
         </simplelist>
+
+        This method was added in version 2 to replace
+        the connectivity property.
     -->
-    <property name="connectivity" type="u" access="read"/>
+    <method name="GetConnectivity">
+      <arg type='u' name='connectivity' direction='out'/>
+    </method>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>

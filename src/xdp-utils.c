@@ -246,6 +246,38 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
   return g_strdup (path);
 }
 
+gboolean
+xdp_app_info_has_network (XdpAppInfo *app_info)
+{
+  gboolean has_network;
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      {
+        g_auto(GStrv) shared = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+                                                           "Context", "shared",
+                                                           NULL, NULL);
+        if (shared)
+          has_network = g_strv_contains ((const char * const *)shared, "network");
+        else
+          has_network = FALSE;
+      }
+      break;
+
+    case XDP_APP_INFO_KIND_SNAP:
+      has_network = TRUE; /* FIXME */
+      break;
+
+    case XDP_APP_INFO_KIND_HOST:
+    default:
+      has_network = TRUE;
+      break;
+    }
+
+  return has_network;
+}
+
 static void
 ensure_app_info_by_unique_name (void)
 {

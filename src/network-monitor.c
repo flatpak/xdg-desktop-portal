@@ -24,7 +24,9 @@
 #include <gio/gio.h>
 
 #include "network-monitor.h"
+#include "request.h"
 #include "xdp-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _NetworkMonitor NetworkMonitor;
 typedef struct _NetworkMonitorClass NetworkMonitorClass;
@@ -49,9 +51,84 @@ static void network_monitor_iface_init (XdpNetworkMonitorIface *iface);
 G_DEFINE_TYPE_WITH_CODE (NetworkMonitor, network_monitor, XDP_TYPE_NETWORK_MONITOR_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_NETWORK_MONITOR, network_monitor_iface_init));
 
+static gboolean
+handle_get_available (XdpNetworkMonitor     *object,
+                      GDBusMethodInvocation *invocation)
+{
+  Request *request = request_from_invocation (invocation);
+
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      gboolean available = g_network_monitor_get_network_available (nm->monitor);
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", available));
+    }
+
+  return TRUE;
+}
+
+static gboolean
+handle_get_metered (XdpNetworkMonitor     *object,
+                    GDBusMethodInvocation *invocation)
+{
+  Request *request = request_from_invocation (invocation);
+
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      gboolean metered = g_network_monitor_get_network_metered (nm->monitor);
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", metered));
+    }
+
+  return TRUE;
+}
+
+static gboolean
+handle_get_connectivity (XdpNetworkMonitor     *object,
+                         GDBusMethodInvocation *invocation)
+{
+  Request *request = request_from_invocation (invocation);
+
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      GNetworkConnectivity connectivity = g_network_monitor_get_connectivity (nm->monitor);
+
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(u)", connectivity));
+    }
+
+  return TRUE;
+}
+
 static void
 network_monitor_iface_init (XdpNetworkMonitorIface *iface)
 {
+  iface->handle_get_available = handle_get_available;
+  iface->handle_get_metered = handle_get_metered;
+  iface->handle_get_connectivity = handle_get_connectivity;
 }
 
 static void
@@ -59,23 +136,7 @@ notify (GObject *object,
         GParamSpec *pspec,
         NetworkMonitor *nm)
 {
-  if (strcmp (pspec->name, "network-available") == 0)
-    xdp_network_monitor_set_available (XDP_NETWORK_MONITOR (nm),
-                                       g_network_monitor_get_network_available (nm->monitor));
-  else if (strcmp (pspec->name, "network-metered") == 0)
-    xdp_network_monitor_set_metered (XDP_NETWORK_MONITOR (nm),
-                                     g_network_monitor_get_network_metered (nm->monitor));
-  else if (strcmp (pspec->name, "connectivity") == 0)
-    xdp_network_monitor_set_connectivity (XDP_NETWORK_MONITOR (nm),
-                                          g_network_monitor_get_connectivity (nm->monitor));
-}
-
-static void
-changed (GNetworkMonitor *monitor,
-         gboolean available,
-         XdpNetworkMonitor *nm)
-{
-  xdp_network_monitor_emit_changed (nm, available);
+  xdp_network_monitor_emit_changed (XDP_NETWORK_MONITOR (nm));
 }
 
 static void
@@ -84,15 +145,8 @@ network_monitor_init (NetworkMonitor *nm)
   nm->monitor = g_network_monitor_get_default ();
 
   g_signal_connect (nm->monitor, "notify", G_CALLBACK (notify), nm);
-  g_signal_connect (nm->monitor, "network-changed", G_CALLBACK (changed), nm);
 
-  xdp_network_monitor_set_available (XDP_NETWORK_MONITOR (nm),
-                                     g_network_monitor_get_network_available (nm->monitor));
-  xdp_network_monitor_set_metered (XDP_NETWORK_MONITOR (nm),
-                                   g_network_monitor_get_network_metered (nm->monitor));
-  xdp_network_monitor_set_connectivity (XDP_NETWORK_MONITOR (nm),
-                                        g_network_monitor_get_connectivity (nm->monitor));
-  xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 1);
+  xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 2);
 }
 
 static void
