@@ -71,7 +71,6 @@ EXTRA_DIST = \
 	org.freedesktop.portal.Flatpak.xml \
 	docbook.css		\
 	portal-docs.xml.in	\
-	common.xml		\
 	xmlto-config.xsl	\
 	$(NULL)
 
@@ -94,7 +93,7 @@ doc_DATA = 			\
 	docbook.css		\
 	$(NULL)
 
-portal-docs.html: portal-docs.xml common.xml $(xml_files) xmlto-config.xsl
+portal-docs.html: portal-docs.xml $(xml_files) xmlto-config.xsl
 	$(AM_V_GEN) $(XMLTO) $(XMLTO_FLAGS) xhtml-nochunks -m $(srcdir)/xmlto-config.xsl $<
 
 endif # DOCBOOK_DOCS_ENABLED
