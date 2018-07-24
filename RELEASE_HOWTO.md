@@ -16,4 +16,4 @@
  - git push origin refs/tags/<version>
  - upload tarball to github as release
  - edit release, copy NEWS section in
- - update portal api docs online
+ - update portal api docs in the gh-pages branch
