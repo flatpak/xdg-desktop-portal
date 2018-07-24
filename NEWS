@@ -1,3 +1,11 @@
+xdg-desktop-portal 0.99
+=======================
+
+* The NetworkMonitor portal API has been changed to allow access control
+* The Proxy and NetworkMonitor portals only respond to requests from
+  sandboxes with network access
+* The flatpak portal is now documented
+
 xdg-desktop-portal 0.11
 =======================
 
