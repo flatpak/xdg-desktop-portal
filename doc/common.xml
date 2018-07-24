@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+               "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd" [
+]>
+<refentry id="common-conventions">
+  <refnamediv>
+    <refname>Common Conventions</refname>
+    <refpurpose>
+      Conventions and patterns that are shared by all interfaces
+    </refpurpose>
+  </refnamediv>
+
+  <refsect1 id="parent_window"> 
+    <title>Parent window identifiers</title>
+    <para>
+      Most portals interact with the user by showing dialogs. These dialogs
+      should generally be placed on top of the application window that triggered
+      them. To arrange this, the compositor needs to know about the application
+      window. Many portal requests expect a "parent_window" string argument for
+      this reason.
+    </para>
+    <para>
+      Under X11, the "parent_window" argument should have the form
+      "x11:<replaceable>XID</replaceable>", where <replaceable>XID</replaceable>
+      is the XID of the application window.
+    </para>
+    <para>
+      Under Wayland, it should have the form "wayland:<replaceable>HANDLE</replaceable>",
+      where <replaceable>HANDLE</replaceable> is a surface handle obtained with the
+      <ulink url="https://github.com/wayland-project/wayland-protocols/blob/master/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml">xdg_foreign</ulink> protocol.
+    </para>
+    <para>
+      For other windowing systems, or if you don't have a suitable handle, just
+      pass an empty string for "parent_window".
+    </para>
+  </refsect1>
+</refentry>

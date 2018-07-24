@@ -30,15 +30,12 @@
         ComposeEmail:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @app_id: App id of the application
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
 
         Lets the user compose an email.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         Supported keys in the @options vardict include:
         <variablelist>

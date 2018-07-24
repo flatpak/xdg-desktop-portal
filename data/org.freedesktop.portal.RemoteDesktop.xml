@@ -20,6 +20,10 @@
   <!--
       org.freedesktop.portal.RemoteDesktop:
       @short_description: Remote desktop portal
+
+      The Remote desktop portal allows to create remote desktop sessions.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--
@@ -83,7 +87,7 @@
     <!--
         Start:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
@@ -91,9 +95,6 @@
         presenting a dialog letting the user select what to share, including
         devices and optionally screen content if screen cast sources was
         selected.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         The following results get returned via the
         #org.freedesktop.portal.Request::Response signal:

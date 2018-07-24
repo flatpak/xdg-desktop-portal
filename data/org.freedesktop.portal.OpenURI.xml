@@ -32,15 +32,12 @@
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
         OpenURI:
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @uri: The uri to open
         @options: Vardict with optional further onformation
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Asks to open a uri.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         Note that file:// uris are explicitly not supported by this method.
         To request opening local files, use org.freedesktop.portal.OpenFile().
@@ -77,15 +74,12 @@
 
     <!--
         OpenFile:
-        @parent_window: Identifier for the application window
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @fd: File descriptor for the file to open
         @options: Vardict with optional further onformation
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Asks to open a local file.
-
-        The @parent_window identifier must be of the form "x11:$XID" for an X11
-        window. Support for other window systems may be added in the future.
 
         Supported keys in the @options vardict include:
         <variablelist>

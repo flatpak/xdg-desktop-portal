@@ -30,6 +30,7 @@
       the results from the interaction, if any.
     </para>
     </partintro>
+    <xi:include href="common.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
