@@ -1,6 +1,10 @@
 NULL =
 
+org.freedesktop.portal.Flatpak.xml :
+	cp $(datadir)/dbus-1/interfaces/org.freedesktop.portal.Flatpak.xml .
+
 portal_files = 								\
+	org.freedesktop.portal.Flatpak.xml		 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Request.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Session.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml 	\
@@ -32,6 +36,7 @@ portal_files = 								\
 	$(NULL)
 
 xml_files = 								\
+	portal-org.freedesktop.portal.Flatpak.xml 			\
 	portal-org.freedesktop.portal.Request.xml 			\
 	portal-org.freedesktop.portal.Session.xml 			\
 	portal-org.freedesktop.portal.FileChooser.xml 			\
@@ -63,6 +68,7 @@ xml_files = 								\
 	$(NULL)
 
 EXTRA_DIST = \
+	org.freedesktop.portal.Flatpak.xml \
 	docbook.css		\
 	portal-docs.xml.in	\
 	common.xml		\

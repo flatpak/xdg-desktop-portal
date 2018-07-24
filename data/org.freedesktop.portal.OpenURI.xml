@@ -40,7 +40,7 @@
         Asks to open a uri.
 
         Note that file:// uris are explicitly not supported by this method.
-        To request opening local files, use org.freedesktop.portal.OpenFile().
+        To request opening local files, use org.freedesktop.portal.OpenURI.OpenFile().
 
         Supported keys in the @options vardict include:
         <variablelist>
