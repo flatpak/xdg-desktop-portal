@@ -29,11 +29,12 @@
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
         Screenshot:
+        Supported keys in the @options vardict include:
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -75,6 +76,39 @@
 
     -->
     <method name="Screenshot">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+    <!--
+        ScreenshotPixel:
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+         
+        Obtains the color of a single pixel.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem> 	
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>color (ddd)</term>
+            <listitem><para>The color, rgb values in the range [0,1].</para></listitem>
+          </varlistentry>
+        </variablelist>
+      -->
+    <method name="ScreenshotPixel">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
