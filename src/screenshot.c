@@ -209,9 +209,9 @@ handle_screenshot (XdpScreenshot *object,
 }
 
 static void
-screenshot_pixel_done (GObject *source,
-                       GAsyncResult *result,
-                       gpointer data)
+pick_color_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
 {
   g_autoptr(Request) request = data;
   guint response = 2;
@@ -219,11 +219,11 @@ screenshot_pixel_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_screenshot_call_screenshot_pixel_finish (XDP_IMPL_SCREENSHOT (source),
-                                                         &response,
-                                                         &options,
-                                                         result,
-                                                         &error))
+  if (!xdp_impl_screenshot_call_pick_color_finish (XDP_IMPL_SCREENSHOT (source),
+                                                   &response,
+                                                   &options,
+                                                   result,
+                                                   &error))
     {
       g_warning ("A backend call failed: %s", error->message);
     }
@@ -238,14 +238,14 @@ screenshot_pixel_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
-static XdpOptionKey screenshot_pixel_options[] = {
+static XdpOptionKey pick_color_options[] = {
 };
 
 static gboolean
-handle_screenshot_pixel (XdpScreenshot *object,
-                         GDBusMethodInvocation *invocation,
-                         const gchar *arg_parent_window,
-                         GVariant *arg_options)
+handle_pick_color (XdpScreenshot *object,
+                   GDBusMethodInvocation *invocation,
+                   const gchar *arg_parent_window,
+                   GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
@@ -270,18 +270,18 @@ handle_screenshot_pixel (XdpScreenshot *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
-                      screenshot_pixel_options, G_N_ELEMENTS (screenshot_pixel_options));
+                      pick_color_options, G_N_ELEMENTS (pick_color_options));
 
-  xdp_impl_screenshot_call_screenshot_pixel (impl,
-                                             request->id,
-                                             xdp_app_info_get_id (request->app_info),
-                                             arg_parent_window,
-                                             g_variant_builder_end (&opt_builder),
-                                             NULL,
-                                             screenshot_pixel_done,
-                                             g_object_ref (request));
+  xdp_impl_screenshot_call_pick_color (impl,
+                                       request->id,
+                                       xdp_app_info_get_id (request->app_info),
+                                       arg_parent_window,
+                                       g_variant_builder_end (&opt_builder),
+                                       NULL,
+                                       pick_color_done,
+                                       g_object_ref (request));
 
-  xdp_screenshot_complete_screenshot_pixel (object, invocation, request->id);
+  xdp_screenshot_complete_pick_color (object, invocation, request->id);
 
   return TRUE;
 }
@@ -290,7 +290,7 @@ static void
 screenshot_iface_init (XdpScreenshotIface *iface)
 {
   iface->handle_screenshot = handle_screenshot;
-  iface->handle_screenshot_pixel = handle_screenshot_pixel;
+  iface->handle_pick_color = handle_pick_color;
 }
 
 static void

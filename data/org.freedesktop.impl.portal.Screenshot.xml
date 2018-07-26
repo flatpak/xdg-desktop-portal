@@ -75,7 +75,7 @@
     </method>
 
     <!--
-        ScreenshotPixel:
+        PickColor:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
@@ -93,7 +93,7 @@
           </varlistentry>
         </variablelist>
     -->
-    <method name="ScreenshotPixel">
+    <method name="PickColor">
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
