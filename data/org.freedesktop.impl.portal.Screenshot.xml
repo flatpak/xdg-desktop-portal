@@ -73,5 +73,35 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        PickColor:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: App id of the application
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Obtains the value of a pixel.
+
+        The following results get returned via the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>color (ddd)</term>
+            <listitem><para>The color, rgb values in the range [0,1].</para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="PickColor">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
   </interface>
 </node>
