@@ -54,7 +54,7 @@ static gboolean opt_replace;
 
 static GOptionEntry entries[] = {
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information during command processing", NULL },
-  { "replace", 'r', 0, G_OPTION_ARG_NONE, &opt_replace, "Replace", NULL },
+  { "replace", 'r', 0, G_OPTION_ARG_NONE, &opt_replace, "Replace a running instance", NULL },
   { NULL }
 };
 
@@ -470,6 +470,17 @@ main (int argc, char *argv[])
   g_set_printerr_handler (printerr_handler);
 
   context = g_option_context_new ("- desktop portal");
+  g_option_context_set_summary (context,
+      "A portal service for flatpak and other desktop containment frameworks.");
+  g_option_context_set_description (context,
+      "xdg-desktop-portal works by exposing D-Bus interfaces known as portals\n"
+      "under the well-known name org.freedesktop.portal.Desktop and object\n"
+      "path /org/freedesktop/portal/desktop.\n"
+      "\n"
+      "Documentation for the available D-Bus interfaces can be found at\n"
+      "https://flatpak.github.io/xdg-desktop-portal/portal-docs.html\n"
+      "\n"
+      "Please report issues at https://github.com/flatpak/xdg-desktop-portal/issues");
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))
     {
