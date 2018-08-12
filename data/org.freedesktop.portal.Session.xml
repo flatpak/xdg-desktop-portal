@@ -25,7 +25,7 @@
 
       The Session interface is shared by all portal interfaces that involve
       long lived sessions.  When a method that creates a session is called, if
-      succesful, the reply will include a session handle (i.e. object path) for
+      successful, the reply will include a session handle (i.e. object path) for
       a Session object, which will stay alive for the duration of the session.
 
       The duration of the session is defined by the interface that creates it.
