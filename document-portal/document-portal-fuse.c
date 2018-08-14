@@ -937,6 +937,46 @@ xdp_inode_stat (XdpInode    *inode,
   return 0;
 }
 
+static int
+xdp_inode_unlink_obsolete(XdpInode *parent_inode,
+                          const char *name) {
+    g_autoptr(XdpInode) inode = NULL;
+    g_autoptr(GMutexLocker) inode_locker = NULL;
+    int fd;
+    struct stat tmp_stbuf_1, tmp_stbuf_2;
+
+    inode = xdp_inode_lookup_child (parent_inode, name);
+    if (inode == NULL)
+        return 0;
+    g_assert(inode->type == XDP_INODE_DOC_FILE);
+
+    inode_locker = g_mutex_locker_new (&inode->mutex);
+    if (inode->filename == NULL)
+        return 0;
+    xdp_autofd int dir_fd = xdp_inode_open_dir_fd (inode->parent);
+    if (dir_fd == -1)
+        return -1;
+    if (fstatat (dir_fd, inode->backing_filename,
+                 &tmp_stbuf_1, AT_SYMLINK_NOFOLLOW) != 0)
+      {
+        if (errno == ENOENT)
+          {
+            xdp_inode_do_unlink(inode, -1, FALSE);
+            return 0;
+          }
+        return -1;
+      }
+    fd = xdp_inode_locked_get_fd (inode);
+    if (fd == -1)
+        return 0;
+    if (fstat(fd, &tmp_stbuf_2) != 0)
+        return -1;
+    if (tmp_stbuf_1.st_dev != tmp_stbuf_2.st_dev ||
+        tmp_stbuf_1.st_ino != tmp_stbuf_2.st_ino)
+        xdp_inode_do_unlink(inode, -1, FALSE);
+    return 0;
+}
+
 static void
 xdp_fuse_lookup (fuse_req_t  req,
                  fuse_ino_t  parent,
@@ -998,6 +1038,12 @@ xdp_fuse_lookup (fuse_req_t  req,
           {
             g_debug ("xdp_fuse_lookup <- error no parent entry ENOENT");
             fuse_reply_err (req, ENOENT);
+            return;
+          }
+
+        if (xdp_inode_unlink_obsolete(parent_inode, name) != 0)
+          {
+            fuse_reply_err (req, errno);
             return;
           }
 
