@@ -28,7 +28,7 @@
       expected to use this interface indirectly, via a library API
       such as the GLib GNetworkMonitor interface.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.NetworkMonitor">
     <!--
@@ -70,7 +70,7 @@
         GetConnectivity:
         @connectivity: the level of connectivity
 
-        Returs more detailed information about the host's network
+        Returns more detailed information about the host's network
         connectivity. The meaning of the value is:
         <simplelist>
           <member>1: Local only. The host is not configured with a route to the internet.</member>
@@ -85,6 +85,40 @@
     <method name="GetConnectivity">
       <arg type='u' name='connectivity' direction='out'/>
     </method>
+    <!--
+        GetStatus:
+        @status: a dictionary with the current values
+
+        Returns the three values all at once.
+
+        The following results get returned via @status:
+        <variablelist>
+          <varlistentry>
+            <term>available b</term>
+            <listitem><para>
+              Whether the network is available.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>metered b</term>
+            <listitem><para>
+              Whether the network is metered.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>connectivity u</term>
+            <listitem><para>
+              The level of connectivity.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        This method was added in version 3 to avoid multiple round-trips.
+    -->
+    <method name="GetStatus">
+      <arg type='a{sv}' name='status' direction='out'/>
+    </method>
+
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
