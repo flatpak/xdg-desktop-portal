@@ -1,3 +1,11 @@
+xdg-desktop-portal 1.0
+======================
+
+* screenshot: Add a color picker api
+* screencast: Bump the pipewire dependency to 0.2.1
+* Improve --help output
+* Small documentation improvements
+
 xdg-desktop-portal 0.99
 =======================
 
