@@ -329,18 +329,22 @@ session_initable_init (GInitable *initable,
   id = g_strdup_printf ("/org/freedesktop/portal/desktop/session/%s/%s",
                         sender_escaped, session->token);
 
-  impl_session = xdp_impl_session_proxy_new_sync (session->impl_connection,
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  session->impl_dbus_name,
-                                                  id,
-                                                  NULL, error);
-  if (!impl_session)
-    return FALSE;
+  if (session->impl_dbus_name)
+    {
+      impl_session = xdp_impl_session_proxy_new_sync (session->impl_connection,
+                                                      G_DBUS_PROXY_FLAGS_NONE,
+                                                      session->impl_dbus_name,
+                                                      id,
+                                                      NULL, error);
+      if (!impl_session)
+        return FALSE;
 
-  g_signal_connect (impl_session, "closed", G_CALLBACK (on_closed), NULL);
+      g_signal_connect (impl_session, "closed", G_CALLBACK (on_closed), NULL);
+
+      session->impl_session = g_steal_pointer (&impl_session);
+    }
 
   session->id = g_steal_pointer (&id);
-  session->impl_session = g_steal_pointer (&impl_session);
 
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (session),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
