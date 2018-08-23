@@ -19,6 +19,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.Session.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
+	data/org.freedesktop.portal.Trash.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
 	data/org.freedesktop.portal.NetworkMonitor.xml \
@@ -122,6 +123,8 @@ xdg_desktop_portal_SOURCES = \
         src/email.h                     \
 	src/session.c			\
 	src/session.h			\
+	src/trash.c			\
+	src/trash.h			\
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	$(NULL)

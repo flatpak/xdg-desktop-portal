@@ -92,6 +92,7 @@
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Trash.xml"/>
     <xi:include href="portal-org.freedesktop.portal.OpenURI.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Print.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Email.xml"/>
