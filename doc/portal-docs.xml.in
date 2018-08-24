@@ -10,11 +10,19 @@
   </bookinfo>
   <chapter id="common-conventions">
     <title>Common Conventions</title>
+    <para>
+       Requests made via portal interfaces generally involve user interaction,
+       and dialogs that can stay open for a long time. Therefore portal APIs
+       don't just use async method calls (which time out after at most 25 seconds),
+       but instead return results via a Response signal on Request objects.
+    </para>
+    <para>
+       Portal APIs don't use properties very much. This is partially because
+       we need to be careful about the flow of information, and partially because
+       it would be unexpected to have a dialog appear when you just set a property.
+    </para>
     <section>
       <title>Portal requests</title>
-      <para>
-        Requests made via portal interfaces generally involve user interaction.
-      </para>
       <para>
         The general flow of the portal API is that the application makes
         a portal request, the portal replies to that method call with a
@@ -23,6 +31,27 @@
         as the user interaction lasts. When the user interaction is over,
         the portal sends a Response signal back to the application with
         the results from the interaction, if any.
+      </para>
+      <para>
+        To avoid a race condition between the caller subscribing to the signal
+        after receiving the reply for the method call and the signal getting emitted,
+        a convention for Request object paths has been established that allows the
+        caller to subscribe to the signal before making the method call.
+      </para>
+    </section>
+    <section>
+      <title>Sessions</title>
+      <para>
+        Some portal requests are connected to each other and need to be used in
+        sequence. The pattern we use in such cases is a Session object. Just like
+        Requests, Sessions are represented by an object path, that is returned by
+        the initial CreateSession call. Subsequent calls take the object path of
+        the session they operate on as an argument.
+      </para>
+      <para>
+        Sessions can be ended from the application side by calling the Close()
+        method. They can also be closed from the service side, in which case the
+        ::Closed signal is emitted to inform the application.
       </para>
     </section>
     <section id="parent_window"> 
