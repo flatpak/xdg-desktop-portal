@@ -119,6 +119,21 @@
       <arg type='a{sv}' name='status' direction='out'/>
     </method>
 
+    <!--
+        CanReach:
+        @hostname: the hostname to reach
+        @port: the port to reach
+        @reachable: Whether the hostname:port was reachable
+
+        Returns whether the given hostname is believed to be reachable.
+        This method was added in version 3.
+    -->
+    <method name="CanReach">
+      <arg type='s' name='hostname' direction='in'/>
+      <arg type='u' name='port' direction='in'/>
+      <arg type='b' name='reachable' direction='out'/>
+    </method>
+
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
