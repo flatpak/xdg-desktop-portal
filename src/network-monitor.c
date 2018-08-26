@@ -123,12 +123,86 @@ handle_get_connectivity (XdpNetworkMonitor     *object,
   return TRUE;
 }
 
+static gboolean
+handle_get_status (XdpNetworkMonitor     *object,
+                   GDBusMethodInvocation *invocation)
+{
+  Request *request = request_from_invocation (invocation);
+
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      GVariantBuilder status;
+
+      g_variant_builder_init (&status, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&status, "{sv}",
+                             "available", g_network_monitor_get_network_available (nm->monitor));
+      g_variant_builder_add (&status, "{sv}",
+                             "metered", g_network_monitor_get_network_metered (nm->monitor));
+      g_variant_builder_add (&status, "{sv}",
+                             "connectivity", g_network_monitor_get_connectivity (nm->monitor));
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a{sv})", &status));
+    }
+
+  return TRUE;
+}
+
+static void
+can_reach_done (GObject      *source,
+                GAsyncResult *result,
+                gpointer      data)
+{
+  GNetworkMonitor *monitor = G_NETWORK_MONITOR (source);
+  g_autoptr(GDBusMethodInvocation) invocation = data;
+  gboolean reachable;
+
+  reachable = g_network_monitor_can_reach_finish (monitor, result, NULL);
+
+  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", reachable));
+}
+
+static gboolean
+handle_can_reach (XdpNetworkMonitor     *object,
+                  GDBusMethodInvocation *invocation,
+                  const char            *hostname,
+                  guint                  port)
+{
+  Request *request = request_from_invocation (invocation);
+
+  if (!xdp_app_info_has_network (request->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "This call is not available inside the sandbox");
+    }
+  else
+    {
+      NetworkMonitor *nm = (NetworkMonitor *)object;
+      g_autoptr(GSocketConnectable) address = NULL;
+
+      address = g_network_address_new (hostname, port);
+      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation)); 
+    }
+
+  return TRUE;
+}
+
 static void
 network_monitor_iface_init (XdpNetworkMonitorIface *iface)
 {
   iface->handle_get_available = handle_get_available;
   iface->handle_get_metered = handle_get_metered;
   iface->handle_get_connectivity = handle_get_connectivity;
+  iface->handle_get_status = handle_get_status;
+  iface->handle_can_reach = handle_can_reach;
 }
 
 static void
@@ -146,7 +220,7 @@ network_monitor_init (NetworkMonitor *nm)
 
   g_signal_connect (nm->monitor, "notify", G_CALLBACK (notify), nm);
 
-  xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 2);
+  xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 3);
 }
 
 static void
