@@ -4,6 +4,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.Session.xml \
 	data/org.freedesktop.portal.FileChooser.xml \
+	data/org.freedesktop.portal.Trash.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
 	data/org.freedesktop.portal.NetworkMonitor.xml \

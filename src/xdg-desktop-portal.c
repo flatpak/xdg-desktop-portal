@@ -46,6 +46,7 @@
 #include "email.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
+#include "trash.h"
 
 static GMainLoop *loop = NULL;
 
@@ -376,6 +377,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   export_portal_implementation (connection, network_monitor_create (connection));
   export_portal_implementation (connection, proxy_resolver_create (connection));
+  export_portal_implementation (connection, trash_create (connection));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)

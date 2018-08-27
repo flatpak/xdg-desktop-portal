@@ -8,6 +8,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Request.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Session.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml 	\
+	$(top_srcdir)/data/org.freedesktop.portal.Trash.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.OpenURI.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Print.xml 		\
 	$(top_srcdir)/data/org.freedesktop.portal.Email.xml 		\
@@ -40,6 +41,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Request.xml 			\
 	portal-org.freedesktop.portal.Session.xml 			\
 	portal-org.freedesktop.portal.FileChooser.xml 			\
+	portal-org.freedesktop.portal.Trash.xml 			\
 	portal-org.freedesktop.portal.OpenURI.xml 			\
 	portal-org.freedesktop.portal.Print.xml 			\
 	portal-org.freedesktop.portal.Email.xml 			\
