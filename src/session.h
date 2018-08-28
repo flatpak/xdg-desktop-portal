@@ -67,6 +67,8 @@ Session * acquire_session (const char *session_handle,
 Session * acquire_session_from_call (const char *session_handle,
                                      Call *call);
 
+Session * lookup_session (const char *session_handle);
+
 void session_register (Session *session);
 
 gboolean session_export (Session *session,

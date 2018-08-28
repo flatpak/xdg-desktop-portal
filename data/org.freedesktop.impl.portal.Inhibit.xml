@@ -64,5 +64,48 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
+
+    <!--
+        CreateMonitor:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: App id of the application
+        @window: the parent window
+
+        Creates a monitoring session. While this session is
+        active, the caller will receive StateChanged signals
+        with updates on the session state.
+    -->
+    <method name="CreateMonitor">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="window" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+    </method>
+
+    <!--
+        StateChanged:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @state: Vardict with information about the session state
+
+        The StateChanged signal is sent to active monitoring sessions when
+        the session state changes.
+
+        The following information may get returned in the @state vardict:
+        <variablelist>
+           <varlistentry>
+            <term>screensaver-active b</term>
+            <listitem><para>
+              Whether the screensaver is active.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <signal name="StateChanged">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="state" direction="out"/>
+    </signal>
+
   </interface>
 </node>

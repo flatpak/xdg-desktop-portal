@@ -111,6 +111,20 @@ acquire_session_from_call (const char *session_handle,
   return g_steal_pointer (&session);
 }
 
+Session *
+lookup_session (const char *session_handle)
+{
+  g_autoptr(Session) session = NULL;
+
+  G_LOCK (sessions);
+  session = g_hash_table_lookup (sessions, session_handle);
+  if (session)
+    g_object_ref (session);
+  G_UNLOCK (sessions);
+
+  return g_steal_pointer (&session);
+}
+
 gboolean
 session_export (Session *session,
                 GError **error)

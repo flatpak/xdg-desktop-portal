@@ -25,6 +25,7 @@
 
 #include "inhibit.h"
 #include "request.h"
+#include "session.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -155,11 +156,11 @@ handle_inhibit_in_thread_func (GTask *task,
 }
 
 static gboolean
-inhibit_handle_inhibit (XdpInhibit *object,
-                        GDBusMethodInvocation *invocation,
-                        const char *arg_window,
-                        guint32 arg_flags,
-                        GVariant *options)
+handle_inhibit (XdpInhibit *object,
+                GDBusMethodInvocation *invocation,
+                const char *arg_window,
+                guint32 arg_flags,
+                GVariant *options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
@@ -204,21 +205,241 @@ inhibit_handle_inhibit (XdpInhibit *object,
   return TRUE;
 }
 
+typedef struct _InhibitSession
+{
+  Session parent;
+
+  gboolean closed;
+} InhibitSession;
+
+typedef struct _InhibitSessionClass
+{
+  SessionClass parent_class;
+} InhibitSessionClass;
+
+GType inhibit_session_get_type (void);
+
+G_DEFINE_TYPE (InhibitSession, inhibit_session, session_get_type ())
+
+static void
+inhibit_session_close (Session *session)
+{
+  InhibitSession *inhibit_session = (InhibitSession *)session;
+
+  inhibit_session->closed = TRUE;
+
+  g_debug ("inhibit session owned by '%s' closed", session->sender);
+}
+
+static void
+inhibit_session_finalize (GObject *object)
+{
+  G_OBJECT_CLASS (inhibit_session_parent_class)->finalize (object);
+}
+
+static void
+inhibit_session_init (InhibitSession *inhibit_session)
+{
+}
+
+static void
+inhibit_session_class_init (InhibitSessionClass *klass)
+{
+  GObjectClass *object_class;
+  SessionClass *session_class;
+
+  object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize = inhibit_session_finalize;
+
+  session_class = (SessionClass *)klass;
+  session_class->close = inhibit_session_close;
+}
+
+static InhibitSession *
+inhibit_session_new (GVariant *options,
+                     Request *request,
+                     GError **error)
+{
+  Session *session;
+  const char *session_token;
+  GDBusInterfaceSkeleton *interface_skeleton = G_DBUS_INTERFACE_SKELETON (request);
+  GDBusConnection *connection = g_dbus_interface_skeleton_get_connection (interface_skeleton);
+  GDBusConnection *impl_connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
+  const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
+
+  session_token = lookup_session_token (options);
+  session = g_initable_new (inhibit_session_get_type (), NULL, error,
+                            "sender", request->sender,
+                            "app-id", xdp_app_info_get_id (request->app_info),
+                            "token", session_token,
+                            "connection", connection,
+                            "impl-connection", impl_connection,
+                            "impl-dbus-name", impl_dbus_name,
+                            NULL);
+
+  if (session)
+    g_debug ("inhibit session owned by '%s' created", session->sender);
+
+  return (InhibitSession*)session;
+}
+
+static void
+create_monitor_done (GObject *source_object,
+                     GAsyncResult *res,
+                     gpointer data)
+{
+  g_autoptr(Request) request = data;
+  Session *session;
+  guint response = 2;
+  gboolean should_close_session;
+  g_autofree char *session_id = NULL;
+  GVariantBuilder results_builder;
+  g_autoptr(GError) error = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  session = g_object_get_data (G_OBJECT (request), "session");
+  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+  g_object_set_data (G_OBJECT (request), "session", NULL);
+
+  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
+
+  if (!xdp_impl_inhibit_call_create_monitor_finish (impl, &response, res, &error))
+    {
+      g_warning ("A backend call failed: %s", error->message);
+      should_close_session = TRUE;
+      goto out;
+    }
+
+  if (request->exported && response == 0)
+    {
+      if (!session_export (session, &error))
+        {
+          g_warning ("Failed to export session: %s", error->message);
+          response = 2;
+          should_close_session = TRUE;
+          goto out;
+        }
+
+      should_close_session = FALSE;
+      session_register (session);
+    }
+  else
+    {
+      should_close_session = TRUE;
+    }
+
+  g_variant_builder_add (&results_builder, "{sv}",
+                         "session_handle", g_variant_new ("s", session->id));
+
+out:
+  if (request->exported)
+    {
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 response,
+                                 g_variant_builder_end (&results_builder));
+      request_unexport (request);
+    }
+  else
+    {
+      g_variant_builder_clear (&results_builder);
+    }
+
+  if (should_close_session)
+    session_close (session, FALSE);
+}
+
+static gboolean
+handle_create_monitor (XdpInhibit *object,
+                       GDBusMethodInvocation *invocation,
+                       const char *arg_window,
+                       GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpImplRequest) impl_request = NULL;
+  Session *session;
+
+  REQUEST_AUTOLOCK (request);
+
+  impl_request =
+    xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                     G_DBUS_PROXY_FLAGS_NONE,
+                                     g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                     request->id,
+                                     NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  request_set_impl_request (request, impl_request);
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  session = (Session *)inhibit_session_new (arg_options, request, &error);
+  if (!session)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_object_set_data_full (G_OBJECT (request), "session", g_object_ref (session), g_object_unref);
+
+  xdp_impl_inhibit_call_create_monitor (impl,
+                                        request->id,
+                                        session->id,
+                                        xdp_app_info_get_id (request->app_info),
+                                        arg_window,
+                                        NULL,
+                                        create_monitor_done,
+                                        g_object_ref (request));
+
+  xdp_inhibit_complete_create_monitor (object, invocation, request->id);
+
+  return TRUE;
+}
+
 static void
 inhibit_iface_init (XdpInhibitIface *iface)
 {
-  iface->handle_inhibit = inhibit_handle_inhibit;
+  iface->handle_inhibit = handle_inhibit;
+  iface->handle_create_monitor = handle_create_monitor;
 }
 
 static void
 inhibit_init (Inhibit *inhibit)
 {
-  xdp_inhibit_set_version (XDP_INHIBIT (inhibit), 1);
+  xdp_inhibit_set_version (XDP_INHIBIT (inhibit), 2);
 }
 
 static void
 inhibit_class_init (InhibitClass *klass)
 {
+}
+
+static void
+state_changed_cb (XdpImplInhibit *impl,
+                  const char *session_id,
+                  GVariant *state,
+                  gpointer data)
+{
+  GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
+  g_autoptr(Session) session = lookup_session (session_id);
+  InhibitSession *inhibit_session = (InhibitSession *)session;
+  gboolean active;
+
+  g_variant_lookup (state, "screensaver-active", "b", &active);
+  g_debug ("Received state-changed %s: %d", session_id, active);
+
+  if (inhibit_session && !inhibit_session->closed)
+    g_dbus_connection_emit_signal (connection,
+                                   session->sender,
+                                   "/org/freedesktop/portal/desktop",
+                                   "org.freedesktop.portal.Inhibit",
+                                   "StateChanged",
+                                   g_variant_new ("(o@a{sv})", session_id, state),
+                                   NULL);
 }
 
 GDBusInterfaceSkeleton *
@@ -241,6 +462,8 @@ inhibit_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   inhibit = g_object_new (inhibit_get_type (), NULL);
+
+  g_signal_connect (impl, "state-changed", G_CALLBACK (state_changed_cb), inhibit);
 
   return G_DBUS_INTERFACE_SKELETON (inhibit);
 }
