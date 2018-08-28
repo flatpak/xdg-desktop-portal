@@ -1,3 +1,11 @@
+xdg-desktop-portal 1.0.1
+========================
+
+* networkmonitor: Add GetStatus and CanReach methods
+* Unset GTK_USE_PORTAL
+* Add a portal for moving files to the trash
+* Fix an inode leak in the document portal
+
 xdg-desktop-portal 1.0
 ======================
 
