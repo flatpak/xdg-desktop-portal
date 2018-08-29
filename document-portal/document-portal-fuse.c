@@ -627,7 +627,7 @@ xdp_inode_create_file (XdpInode   *dir,
                        gboolean    truncate,
                        gboolean    exclusive)
 {
-  XdpInode *inode;
+  g_autoptr(XdpInode) inode = NULL;
   g_autofree char *backing_filename = NULL;
   g_autofree char *trunc_filename = NULL;
   gboolean is_doc;
@@ -1015,6 +1015,7 @@ xdp_fuse_lookup (fuse_req_t  req,
       break;
 
     case XDP_INODE_DOC_FILE:
+      g_debug ("xdp_fuse_lookup <- ENOTDIR");
       fuse_reply_err (req, ENOTDIR);
       return;
 
@@ -1031,7 +1032,9 @@ xdp_fuse_lookup (fuse_req_t  req,
 
   if (xdp_inode_stat (child_inode, &e.attr) != 0)
     {
-      fuse_reply_err (req, errno);
+      int errsv = errno;
+      g_debug ("xdp_fuse_lookup <- errno from stat %s", strerror (errsv));
+      fuse_reply_err (req, errsv);
       return;
     }
 
@@ -1552,7 +1555,7 @@ xdp_fuse_open (fuse_req_t             req,
   if (file != NULL)
     {
       fi->fh = (gsize) file;
-      if (fuse_reply_open (req, fi))
+      if (fuse_reply_open (req, fi) != 0)
         xdp_file_free (file);
     }
   else
@@ -1575,7 +1578,7 @@ xdp_fuse_create (fuse_req_t             req,
   gboolean can_see, can_write;
   int open_mode;
   XdpFile *file = NULL;
-  XdpInode *inode;
+  g_autoptr(XdpInode) inode = NULL;
   int errsv;
 
   g_debug ("xdp_fuse_create %lx/%s, flags %o", parent, filename, fi->flags);
@@ -1598,6 +1601,7 @@ xdp_fuse_create (fuse_req_t             req,
   if (parent_inode->type != XDP_INODE_APP_DOC_DIR &&
       parent_inode->type != XDP_INODE_DOC_DIR)
     {
+      g_debug ("xdp_fuse_create <- error parent EACCES");
       fuse_reply_err (req, EACCES);
       return;
     }
@@ -1605,6 +1609,7 @@ xdp_fuse_create (fuse_req_t             req,
   entry = xdp_lookup_doc (parent_inode->doc_id);
   if (entry == NULL)
     {
+      g_debug ("xdp_fuse_create <- error no document ENOENT");
       fuse_reply_err (req, ENOENT);
       return;
     }
@@ -1612,6 +1617,7 @@ xdp_fuse_create (fuse_req_t             req,
   can_see = app_can_see_doc (entry, parent_inode->app_id);
   if (!can_see)
     {
+      g_debug ("xdp_fuse_create <- error can't see ENOENT");
       fuse_reply_err (req, ENOENT);
       return;
     }
@@ -1619,6 +1625,7 @@ xdp_fuse_create (fuse_req_t             req,
   can_write = app_can_write_doc (entry, parent_inode->app_id);
   if (!can_write)
     {
+      g_debug ("xdp_fuse_create <- error can't write EACCESS");
       fuse_reply_err (req, EACCES);
       return;
     }
@@ -1629,7 +1636,9 @@ xdp_fuse_create (fuse_req_t             req,
                                  (fi->flags & O_EXCL) != 0);
   if (inode == NULL)
     {
-      fuse_reply_err (req, errno);
+      int errsv = errno;
+      g_debug ("xdp_fuse_create <- error create_file %s", strerror (errsv));
+      fuse_reply_err (req, errsv);
       return;
     }
 
@@ -1656,8 +1665,10 @@ xdp_fuse_create (fuse_req_t             req,
     {
       if (xdp_inode_stat (inode, &e.attr) != 0)
         {
+          int errsv = errno;
+          g_debug ("xdp_fuse_create <- error inode_stat %s", strerror (errsv));
           xdp_file_free (file);
-          fuse_reply_err (req, errno);
+          fuse_reply_err (req, errsv);
           return;
         }
 
@@ -1675,15 +1686,19 @@ xdp_fuse_create (fuse_req_t             req,
 
       xdp_inode_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
 
+      g_debug ("xdp_fuse_create <- OK inode %ld", e.ino);
+
       fi->fh = (gsize) file;
-      if (fuse_reply_create (req, &e, fi))
+      if (fuse_reply_create (req, &e, fi) != 0)
         {
+          g_debug ("xdp_fuse_create - failed to send reply");
           xdp_file_free (file);
           xdp_inode_unref (inode);
         }
     }
   else
     {
+      g_debug ("xdp_fuse_create <- error ensure_fd_open %s", strerror (errsv));
       fuse_reply_err (req, errsv);
     }
 }
@@ -1700,7 +1715,7 @@ xdp_fuse_read (fuse_req_t             req,
   struct fuse_bufvec bufv = FUSE_BUFVEC_INIT (size);
   int fd;
 
-  g_debug ("xdp_fuse_real %lx %ld %ld", ino, (long) size, (long) off);
+  g_debug ("xdp_fuse_read %lx %ld %ld", ino, (long) size, (long) off);
 
   g_mutex_lock (&inode->mutex);
 
