@@ -627,7 +627,7 @@ xdp_inode_create_file (XdpInode   *dir,
                        gboolean    truncate,
                        gboolean    exclusive)
 {
-  XdpInode *inode;
+  g_autoptr(XdpInode) inode = NULL;
   g_autofree char *backing_filename = NULL;
   g_autofree char *trunc_filename = NULL;
   gboolean is_doc;
@@ -1578,7 +1578,7 @@ xdp_fuse_create (fuse_req_t             req,
   gboolean can_see, can_write;
   int open_mode;
   XdpFile *file = NULL;
-  XdpInode *inode;
+  g_autoptr(XdpInode) inode = NULL;
   int errsv;
 
   g_debug ("xdp_fuse_create %lx/%s, flags %o", parent, filename, fi->flags);
