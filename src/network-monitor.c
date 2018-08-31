@@ -140,18 +140,19 @@ handle_get_status (XdpNetworkMonitor     *object,
     {
       NetworkMonitor *nm = (NetworkMonitor *)object;
       GVariantBuilder status;
-      gboolean v;
+      gboolean b;
+      guint c;
 
       g_variant_builder_init (&status, G_VARIANT_TYPE_VARDICT);
-      v = g_network_monitor_get_network_available (nm->monitor);
+      b = g_network_monitor_get_network_available (nm->monitor);
       g_variant_builder_add (&status, "{sv}",
-                             "available", g_variant_new_boolean (v));
-      v = g_network_monitor_get_network_metered (nm->monitor);
+                             "available", g_variant_new_boolean (b));
+      b = g_network_monitor_get_network_metered (nm->monitor);
       g_variant_builder_add (&status, "{sv}",
-                             "metered", g_variant_new_boolean (v));
-      v = g_network_monitor_get_connectivity (nm->monitor);
+                             "metered", g_variant_new_boolean (b));
+      c = g_network_monitor_get_connectivity (nm->monitor);
       g_variant_builder_add (&status, "{sv}",
-                             "connectivity", g_variant_new_boolean (v));
+                             "connectivity", g_variant_new_uint32 (c));
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a{sv})", &status));
     }
 
