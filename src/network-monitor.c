@@ -211,9 +211,9 @@ network_monitor_iface_init (XdpNetworkMonitorIface *iface)
 }
 
 static void
-notify (GObject *object,
-        GParamSpec *pspec,
-        NetworkMonitor *nm)
+network_changed (GObject *object,
+                 gboolean network_available,
+                 NetworkMonitor *nm)
 {
   xdp_network_monitor_emit_changed (XDP_NETWORK_MONITOR (nm));
 }
@@ -223,7 +223,7 @@ network_monitor_init (NetworkMonitor *nm)
 {
   nm->monitor = g_network_monitor_get_default ();
 
-  g_signal_connect (nm->monitor, "notify", G_CALLBACK (notify), nm);
+  g_signal_connect (nm->monitor, "network-changed", G_CALLBACK (network_changed), nm);
 
   xdp_network_monitor_set_version (XDP_NETWORK_MONITOR (nm), 3);
 }
