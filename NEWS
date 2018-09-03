@@ -1,3 +1,9 @@
+xdg-desktop-portal 1.0.2
+========================
+
+* networkmonitor: Fix several issues
+* inhibit: Add session state monitoring
+
 xdg-desktop-portal 1.0.1
 ========================
 
