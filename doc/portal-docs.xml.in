@@ -84,9 +84,10 @@
     <partintro>
       <para>
         Portal interfaces are available to sandboxed applications with the
-        default filtered session bus access of Flatpak. They appear under
-        the bus name org.freedesktop.portal.Desktop and the object path
-        /org/freedesktop/portal/desktop.
+        default filtered session bus access of Flatpak. Unless otherwise
+        specified, they appear under the bus name org.freedesktop.portal.Desktop
+        and the object path /org/freedesktop/portal/desktop on the session
+        bus.
       </para>
     </partintro>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
