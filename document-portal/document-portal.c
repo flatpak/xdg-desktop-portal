@@ -1104,10 +1104,9 @@ portal_lookup (GDBusMethodInvocation *invocation,
   if (fd == -1)
     {
       int errsv = errno;
-      g_set_error_literal (&error, G_IO_ERROR,
-                           g_io_error_from_errno (errsv),
-                           g_strerror (errsv));
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                             "%s", g_strerror (errsv));
       return TRUE;
     }
 
