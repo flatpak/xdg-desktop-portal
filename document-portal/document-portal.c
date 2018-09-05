@@ -18,6 +18,8 @@
 #include "permission-db.h"
 #include "permission-store-dbus.h"
 #include "document-portal-fuse.h"
+#include "file-transfer.h"
+#include "document-portal.h"
 
 #include <sys/eventfd.h>
 
@@ -430,85 +432,43 @@ portal_add (GDBusMethodInvocation *invocation,
             GVariant              *parameters,
             XdpAppInfo            *app_info)
 {
+  int fd_id;
+  gboolean reuse_existing, persistent;
+  DocumentAddFullFlags flags = 0;
   GDBusMessage *message;
   GUnixFDList *fd_list;
-  g_autofree char *id = NULL;
-  int fd_id, fd, fds_len;
-  g_autofree char *path = NULL;
-  gboolean writable;
-  const int *fds;
-  struct stat st_buf, real_parent_st_buf;
-  gboolean reuse_existing, persistent;
   GError *error = NULL;
-  const char *app_id = xdp_app_info_get_id (app_info);
+  g_auto(GStrv) ids = NULL;
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
 
+  if (reuse_existing)
+    flags |= DOCUMENT_ADD_FLAGS_REUSE_EXISTING;
+  if (persistent)
+    flags |= DOCUMENT_ADD_FLAGS_PERSISTENT;
+ 
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
-  fd = -1;
   if (fd_list != NULL)
     {
-      fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+      int fds_len;
+      const int *fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
       if (fd_id < fds_len)
-        fd = fds[fd_id];
+        {
+          int fd = fds[fd_id];
+
+          ids = document_add_full (&fd, 1, flags, app_info, "", 0, &error);
+        }
     }
 
-  if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_buf, &path, &writable, &error))
+  if (ids == NULL)
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return;
     }
 
-  if (st_buf.st_dev == fuse_dev)
-    {
-      /* The passed in fd is on the fuse filesystem itself */
-      id = verify_existing_document (&st_buf, reuse_existing);
-      if (id == NULL)
-        {
-          g_dbus_method_invocation_return_error (invocation,
-                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                                 "Invalid fd passed");
-          return;
-        }
-    }
-  else
-    {
-      {
-        XDP_AUTOLOCK (db);
-
-        id = do_create_doc (&real_parent_st_buf, path, reuse_existing, persistent);
-
-        if (app_id[0] != '\0')
-          {
-            g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
-            DocumentPermissionFlags perms =
-              DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-              DOCUMENT_PERMISSION_FLAGS_READ;
-
-            if (writable)
-              {
-                perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
-
-                /* If its a unique one its safe for the creator to
-                   delete it at will */
-                if (!reuse_existing)
-                  perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
-              }
-
-            do_set_permissions (entry, id, app_id, perms);
-          }
-      }
-
-      /* Invalidate with lock dropped to avoid deadlock */
-      xdp_fuse_invalidate_doc_app (id, NULL);
-      if (app_id[0] != '\0')
-        xdp_fuse_invalidate_doc_app (id, app_id);
-    }
-
-  g_dbus_method_invocation_return_value (invocation,
-                                         g_variant_new ("(s)", id));
+  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(s)", ids[0]));
 }
 
 static char *
@@ -671,29 +631,20 @@ portal_add_full (GDBusMethodInvocation *invocation,
                  GVariant              *parameters,
                  XdpAppInfo            *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  g_autoptr(GVariant) array = NULL;
+  guint32 flags;
+  const char *target_app_id;
+  const char **permissions = NULL;
+  DocumentPermissionFlags target_perms;
+  gsize n_args;
   GDBusMessage *message;
   GUnixFDList *fd_list;
-  char *id;
-  int fd_id, fd, fds_len;
-  const int *fds = NULL;
-  struct stat st_buf;
-  gboolean reuse_existing, persistent, as_needed_by_app;
+  g_autofree int *fd = NULL;
+  g_auto(GStrv) ids = NULL;
   GError *error = NULL;
-  guint32 flags = 0;
-  g_autoptr(GVariant) array = NULL;
-  const char *target_app_id;
-  g_autofree const char **permissions = NULL;
-  g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
-  g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
-  g_autofree gboolean *writable = NULL;
-  g_autofree struct stat *real_parent_st_bufs = NULL;
-  int i;
-  gsize n_args;
-  DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
 
-  g_variant_get (parameters, "(@ahus^a&s)",
+  g_variant_get (parameters, "(@ahu&s^a&s)",
                  &array, &flags, &target_app_id, &permissions);
 
   if ((flags & ~DOCUMENT_ADD_FLAGS_FLAGS_ALL) != 0)
@@ -704,10 +655,6 @@ portal_add_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
-  persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
-  as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
-
   target_perms = xdp_parse_permissions (permissions, &error);
   if (error)
     {
@@ -716,38 +663,86 @@ portal_add_full (GDBusMethodInvocation *invocation,
     }
 
   n_args = g_variant_n_children (array);
-  g_ptr_array_set_size (ids, n_args + 1);
-  g_ptr_array_set_size (paths, n_args + 1);
-  real_parent_st_bufs = g_new0 (struct stat, n_args);
-  writable = g_new0 (gboolean, n_args);
-
+  fd = g_new (int, n_args);
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
+
   if (fd_list != NULL)
-    fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+    {
+      int fds_len = 0;
+      int i;
+      const int *fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+      for (i = 0; i < n_args; i++)
+        {
+          int fd_id;
+          g_variant_get_child (array, i, "h", &fd_id);
+          if (fd_id < fds_len)
+            fd[i] = fds[fd_id];
+          else
+            fd[i] = -1;
+        }
+
+      ids = document_add_full (fd, n_args, flags, app_info, target_app_id, target_perms, &error);
+    } 
+
+  if (ids == NULL)
+    {
+      g_dbus_method_invocation_take_error (invocation, error);
+      return;
+    }
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&builder, "{sv}", "mountpoint",
+                         g_variant_new_bytestring (xdp_fuse_get_mountpoint ()));
+
+  g_dbus_method_invocation_return_value (invocation,
+                                         g_variant_new ("(^as@a{sv})",
+                                                        (char **)ids,
+                                                        g_variant_builder_end (&builder)));
+}
+
+char **
+document_add_full (int                      *fd,
+                   int                       n_args,
+                   DocumentAddFullFlags      flags,
+                   XdpAppInfo               *app_info,
+                   const char               *target_app_id,
+                   DocumentPermissionFlags   target_perms,
+                   GError                  **error)
+{
+  const char *app_id = xdp_app_info_get_id (app_info);
+  g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
+  g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
+  gboolean reuse_existing, persistent, as_needed_by_app, allow_write;
+  g_autofree struct stat *real_parent_st_bufs = NULL;
+  struct stat st_buf;
+  g_autofree gboolean *writable = NULL;
+  int i;
+  char *id;
+
+  reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
+  persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
+  as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
+  allow_write = (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) != 0;
+
+  g_ptr_array_set_size (paths, n_args + 1);
+  g_ptr_array_set_size (ids, n_args + 1);
+  real_parent_st_bufs = g_new0 (struct stat, n_args);
+  writable = g_new0 (gboolean, n_args);
 
   for (i = 0; i < n_args; i++)
     {
       g_autofree char *path = NULL;
 
-      g_variant_get_child (array, i, "h", &fd_id);
+      if (!validate_fd (fd[i], app_info, &st_buf, &real_parent_st_bufs[i], &path, &writable[i], error))
+        return NULL;
 
-      fd = -1;
-      if (fds != NULL && fd_id < fds_len)
-        fd = fds[fd_id];
-
-      if (!validate_fd (fd, app_info, &st_buf, &real_parent_st_bufs[i], &path, &writable[i], &error))
+      if (allow_write && !writable[i])
         {
-          g_dbus_method_invocation_take_error (invocation, error);
-          return;
-        }
-
-      if ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) && !writable[i])
-        {
-          g_dbus_method_invocation_return_error (invocation,
-                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                                                 "Not enough permissions");
-          return;
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                       "Not enough permissions");
+          return NULL;
         }
 
       g_ptr_array_index(paths,i) = g_steal_pointer (&path);
@@ -758,24 +753,21 @@ portal_add_full (GDBusMethodInvocation *invocation,
           id = verify_existing_document (&st_buf, reuse_existing);
           if (id == NULL)
             {
-              g_dbus_method_invocation_return_error (invocation,
-                                                     XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                                     "Invalid fd passed");
-              return;
+              g_set_error (error,
+                           XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "Invalid fd passed");
+              return NULL;
             }
           g_ptr_array_index(ids,i) = id;
         }
     }
 
   {
-    DocumentPermissionFlags caller_base_perms =
-      DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-      DOCUMENT_PERMISSION_FLAGS_READ;
-    DocumentPermissionFlags caller_write_perms =
-      DOCUMENT_PERMISSION_FLAGS_WRITE;
+    DocumentPermissionFlags caller_base_perms = DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
+                                                DOCUMENT_PERMISSION_FLAGS_READ;
+    DocumentPermissionFlags caller_write_perms = DOCUMENT_PERMISSION_FLAGS_WRITE;
 
-    /* If its a unique one its safe for the creator to
-       delete it at will */
+    /* If its a unique one its safe for the creator to delete it at will */
     if (!reuse_existing)
       caller_write_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
@@ -835,14 +827,9 @@ portal_add_full (GDBusMethodInvocation *invocation,
         xdp_fuse_invalidate_doc_app (id, target_app_id);
     }
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
-  g_variant_builder_add (&builder, "{sv}", "mountpoint",
-                         g_variant_new_bytestring (xdp_fuse_get_mountpoint ()));
+  g_ptr_array_index(ids,n_args) = NULL;
 
-  g_dbus_method_invocation_return_value (invocation,
-                                         g_variant_new ("(^as@a{sv})",
-                                                        (char **)ids->pdata,
-                                                        g_variant_builder_end (&builder)));
+  return g_strdupv ((char**)ids->pdata);
 }
 
 static void
