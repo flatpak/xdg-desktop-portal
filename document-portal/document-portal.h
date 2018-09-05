@@ -23,7 +23,17 @@
 #include <gio/gio.h>
 #include "document-enums.h"
 
+gboolean validate_fd (int           fd,
+                      XdpAppInfo   *app_info,
+                      struct stat  *st_buf,
+                      struct stat  *real_parent_st_buf,
+                      char        **path_out,
+                      gboolean     *writable_out,
+                      GError      **error);
+
 char ** document_add_full (int                      *fd,
+                           int                      *parent_dev,
+                           int                      *parent_ino,
                            int                       n_args,
                            DocumentAddFullFlags      flags,
                            XdpAppInfo               *app_info,

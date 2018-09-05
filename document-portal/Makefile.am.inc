@@ -40,13 +40,14 @@ document-portal/permission-store-dbus.c: data/org.freedesktop.impl.portal.Permis
 		$(srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
 		$(NULL)
 
-document-portal/document-portal-dbus.c: data/org.freedesktop.portal.Documents.xml Makefile
+document-portal/document-portal-dbus.c: data/org.freedesktop.portal.Documents.xml data/org.freedesktop.portal.FileTransfer.xml Makefile
 	mkdir -p $(builddir)/document-portal
 	$(AM_V_GEN) $(GDBUS_CODEGEN)				\
 		--interface-prefix org.freedesktop.portal.	\
 		--c-namespace XdpDbus				\
 		--generate-c-code $(builddir)/document-portal/document-portal-dbus	\
 		$(srcdir)/data/org.freedesktop.portal.Documents.xml	\
+		$(srcdir)/data/org.freedesktop.portal.FileTransfer.xml	\
 		$(NULL)
 
 document-portal/%-dbus.h: document-portal/%-dbus.c
@@ -88,6 +89,7 @@ xdg_document_portal_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
 	document-portal/document-portal.c		\
+	document-portal/file-transfer.c			\
 	document-portal/document-enums.h		\
 	document-portal/document-store.h		\
 	document-portal/document-store.c		\

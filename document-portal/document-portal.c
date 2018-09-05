@@ -345,7 +345,7 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
   return id;
 }
 
-static gboolean
+gboolean
 validate_fd (int fd,
              XdpAppInfo *app_info,
              struct stat *st_buf,
@@ -458,7 +458,7 @@ portal_add (GDBusMethodInvocation *invocation,
         {
           int fd = fds[fd_id];
 
-          ids = document_add_full (&fd, 1, flags, app_info, "", 0, &error);
+          ids = document_add_full (&fd, NULL, NULL, 1, flags, app_info, "", 0, &error);
         }
     }
 
@@ -643,6 +643,9 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_auto(GStrv) ids = NULL;
   GError *error = NULL;
   GVariantBuilder builder;
+  int fds_len;
+  int i;
+  const int *fds;
 
   g_variant_get (parameters, "(@ahu&s^a&s)",
                  &array, &flags, &target_app_id, &permissions);
@@ -667,23 +670,27 @@ portal_add_full (GDBusMethodInvocation *invocation,
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
-  if (fd_list != NULL)
+  if (fd_list == NULL)
     {
-      int fds_len = 0;
-      int i;
-      const int *fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-      for (i = 0; i < n_args; i++)
-        {
-          int fd_id;
-          g_variant_get_child (array, i, "h", &fd_id);
-          if (fd_id < fds_len)
-            fd[i] = fds[fd_id];
-          else
-            fd[i] = -1;
-        }
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "No fds passed");
+      return;
+    }
 
-      ids = document_add_full (fd, n_args, flags, app_info, target_app_id, target_perms, &error);
-    } 
+  fds_len = 0;
+  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+  for (i = 0; i < n_args; i++)
+    {
+      int fd_id;
+      g_variant_get_child (array, i, "h", &fd_id);
+      if (fd_id < fds_len)
+        fd[i] = fds[fd_id];
+      else
+        fd[i] = -1;
+    }
+
+  ids = document_add_full (fd, NULL, NULL, n_args, flags, app_info, target_app_id, target_perms, &error);
 
   if (ids == NULL)
     {
@@ -701,8 +708,15 @@ portal_add_full (GDBusMethodInvocation *invocation,
                                                         g_variant_builder_end (&builder)));
 }
 
+/*
+ * if the fd array contains fds that were not opened by the client itself,
+ * parent_dev and parent_ino must contain the st_dev/st_ino fields for the
+ * parent directory to check for, to prevent symlink attacks.
+ */
 char **
 document_add_full (int                      *fd,
+                   int                      *parent_dev,
+                   int                      *parent_ino,
                    int                       n_args,
                    DocumentAddFullFlags      flags,
                    XdpAppInfo               *app_info,
@@ -736,6 +750,18 @@ document_add_full (int                      *fd,
 
       if (!validate_fd (fd[i], app_info, &st_buf, &real_parent_st_bufs[i], &path, &writable[i], error))
         return NULL;
+
+      if (parent_dev != NULL && parent_ino != NULL)
+        {
+          if (real_parent_st_bufs[i].st_dev != parent_dev[i] ||
+              real_parent_st_bufs[i].st_ino != parent_ino[i])
+            {
+              g_set_error (error,
+                           XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                           "Invalid parent directory");
+              return NULL;
+            }
+        }
 
       if (allow_write && !writable[i])
         {
@@ -1262,11 +1288,18 @@ portal_list (GDBusMethodInvocation *invocation,
 }
 
 static void
+peer_died_cb (const char *name)
+{
+  stop_file_transfers_for_sender (name);
+}
+
+static void
 on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
   GError *error = NULL;
+  GDBusInterfaceSkeleton *file_transfer;
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
 
@@ -1284,9 +1317,22 @@ on_bus_acquired (GDBusConnection *connection,
   g_signal_connect_swapped (dbus_api, "handle-info", G_CALLBACK (handle_method), portal_info);
   g_signal_connect_swapped (dbus_api, "handle-list", G_CALLBACK (handle_method), portal_list);
 
-  xdp_connection_track_name_owners (connection, NULL);
+  file_transfer = file_transfer_create ();
+  g_dbus_interface_skeleton_set_flags (file_transfer,
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+
+  xdp_connection_track_name_owners (connection, peer_died_cb);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (dbus_api),
+                                         connection,
+                                         "/org/freedesktop/portal/documents",
+                                         &error))
+    {
+      g_warning ("error: %s", error->message);
+      g_error_free (error);
+    }
+
+  if (!g_dbus_interface_skeleton_export (file_transfer,
                                          connection,
                                          "/org/freedesktop/portal/documents",
                                          &error))
