@@ -113,6 +113,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
   const char *id;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags perms;
+  GError *error = NULL;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
 
@@ -138,7 +139,12 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    perms = xdp_parse_permissions (permissions);
+    perms = xdp_parse_permissions (permissions, &error);
+    if (error)
+      {
+        g_dbus_method_invocation_take_error (invocation, error);
+        return;
+      }
 
     /* Must have grant-permissions and all the newly granted permissions */
     if (!document_entry_has_permissions (entry, app_id,
@@ -169,6 +175,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
+  GError *error = NULL;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
   DocumentPermissionFlags perms;
@@ -195,7 +202,12 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    perms = xdp_parse_permissions (permissions);
+    perms = xdp_parse_permissions (permissions, &error);
+    if (error)
+      {
+        g_dbus_method_invocation_take_error (invocation, error);
+        return;
+      }
 
     /* Must have grant-permissions, or be itself */
     if (!document_entry_has_permissions (entry, app_id,
@@ -698,7 +710,12 @@ portal_add_full (GDBusMethodInvocation *invocation,
   persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
   as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
 
-  target_perms = xdp_parse_permissions (permissions);
+  target_perms = xdp_parse_permissions (permissions, &error);
+  if (error)
+    {
+      g_dbus_method_invocation_take_error (invocation, error);
+      return;
+    }
 
   n_args = g_variant_n_children (array);
   g_ptr_array_set_size (ids, n_args + 1);
@@ -852,6 +869,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
   g_autoptr(GVariant) filename_v = NULL;
+  GError *error = NULL;
 
   g_variant_get (parameters, "(h@ayus^a&s)", &parent_fd_id, &filename_v, &flags, &target_app_id, &permissions);
   filename = g_variant_get_bytestring (filename_v);
@@ -877,7 +895,12 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
   as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
 
-  target_perms = xdp_parse_permissions (permissions);
+  target_perms = xdp_parse_permissions (permissions, &error);
+  if (error)
+    {
+      g_dbus_method_invocation_take_error (invocation, error);
+      return;
+    }
 
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);

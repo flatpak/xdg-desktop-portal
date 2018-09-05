@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <gio/gio.h>
 #include "document-store.h"
+#include "src/xdp-utils.h"
 
 const char **
 xdg_unparse_permissions (DocumentPermissionFlags permissions)
@@ -25,7 +26,8 @@ xdg_unparse_permissions (DocumentPermissionFlags permissions)
 }
 
 DocumentPermissionFlags
-xdp_parse_permissions (const char **permissions)
+xdp_parse_permissions (const char **permissions,
+                       GError     **error)
 {
   DocumentPermissionFlags perms;
   int i;
@@ -42,7 +44,12 @@ xdp_parse_permissions (const char **permissions)
       else if (strcmp (permissions[i], "delete") == 0)
         perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
       else
-        g_warning ("No such permission: %s", permissions[i]);
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "No such permission");
+          return 0;
+        }
     }
 
   return perms;
@@ -58,7 +65,7 @@ document_entry_get_permissions (PermissionDbEntry *entry,
     return DOCUMENT_PERMISSION_FLAGS_ALL;
 
   permissions = permission_db_entry_list_permissions (entry, app_id);
-  return xdp_parse_permissions (permissions);
+  return xdp_parse_permissions (permissions, NULL);
 }
 
 gboolean

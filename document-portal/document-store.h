@@ -11,7 +11,8 @@ G_BEGIN_DECLS
 #define DOCUMENT_ENTRY_FLAG_TRANSIENT (1 << 1)
 
 const char **      xdg_unparse_permissions (DocumentPermissionFlags permissions);
-DocumentPermissionFlags xdp_parse_permissions (const char **permissions);
+DocumentPermissionFlags xdp_parse_permissions (const char **permissions,
+                                               GError     **error);
 
 DocumentPermissionFlags document_entry_get_permissions (PermissionDbEntry *entry,
                                                    const char     *app_id);
