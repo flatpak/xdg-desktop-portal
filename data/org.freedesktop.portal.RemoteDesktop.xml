@@ -97,7 +97,7 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>type u</term>
+            <term>types u</term>
             <listitem><para>
               Bitmask of what device types to request remote controlling of.
               Default is all.
