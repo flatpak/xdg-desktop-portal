@@ -60,8 +60,15 @@
               more information about the session handle.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>app_id s</term>
+            <listitem><para>
+              A name of an application requesting remote desktop session. The name of the application
+              will be used only when the application is not running in sandbox.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
-        
+
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>
@@ -94,6 +101,13 @@
               A string that will be used as the last element of the @handle. Must be a valid
               object path element. See the #org.freedesktop.portal.Request documentation for
               more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>app_id s</term>
+            <listitem><para>
+              A name of an application requesting to select devices on a session. The name of the application
+              will be used only when the application is not running in sandbox.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -132,6 +146,13 @@
               A string that will be used as the last element of the @handle. Must be a valid
               object path element. See the #org.freedesktop.portal.Request documentation for
               more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>app_id s</term>
+            <listitem><para>
+              A name of an application requesting to start remote desktop session. The name of the application
+              will be used only when the application is not running in sandbox.
             </para></listitem>
           </varlistentry>
         </variablelist>

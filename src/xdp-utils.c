@@ -193,6 +193,22 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   return app_info->id;
 }
 
+const char *
+xdp_app_info_get_id_fallback (XdpAppInfo *app_info, GVariant *options)
+{
+  const char *app_id = xdp_app_info_get_id (app_info);
+
+  if ((!app_id || !(*app_id)) && xdp_app_info_is_host (app_info))
+    {
+      const char *fallback_id = NULL;
+
+      if (g_variant_lookup (options, "app_id", "&s", &fallback_id))
+        return fallback_id;
+    }
+
+  return app_id;
+}
+
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
