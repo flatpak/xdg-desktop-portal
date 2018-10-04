@@ -112,7 +112,7 @@ register_document (const char *uri,
           ret = xdp_documents_call_add_named_full_sync (documents,
                                                         g_variant_new_handle (fd_in),
                                                         basename,
-                                                        7,
+                                                        7, /* reuse+persistent+as-needed */
                                                         app_id,
                                                         permissions,
                                                         fd_list,
@@ -141,7 +141,7 @@ register_document (const char *uri,
         {
           ret = xdp_documents_call_add_full_sync (documents,
                                                   g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),
-                                                  7,
+                                                  7, /* reuse+persistent+as-needed */
                                                   app_id,
                                                   permissions,
                                                   fd_list,
