@@ -455,13 +455,77 @@ global_setup (void)
   g_assert (mountpoint != NULL);
 }
 
+static gboolean
+rm_rf_dir (GFile         *dir,
+           GError       **error)
+{
+  GFileEnumerator *enumerator = NULL;
+  g_autoptr(GFileInfo) child_info = NULL;
+  GError *temp_error = NULL;
+
+  enumerator = g_file_enumerate_children (dir, "standard::type,standard::name",
+                                          G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                          NULL, error);
+  if (!enumerator)
+    return FALSE;
+
+  while ((child_info = g_file_enumerator_next_file (enumerator, NULL, &temp_error)))
+    {
+      const char *name = g_file_info_get_name (child_info);
+      g_autoptr(GFile) child = g_file_get_child (dir, name);
+
+      if (g_file_info_get_file_type (child_info) == G_FILE_TYPE_DIRECTORY)
+        {
+          if (!rm_rf_dir (child, error))
+            return FALSE;
+        }
+      else
+        {
+          if (!g_file_delete (child, NULL, error))
+            return FALSE;
+        }
+
+      g_clear_object (&child_info);
+    }
+
+  if (temp_error != NULL)
+    {
+      g_propagate_error (error, temp_error);
+      return FALSE;
+    }
+
+  if (!g_file_delete (dir, NULL, error))
+    return FALSE;
+
+  return TRUE;
+}
+
+
 static void
 global_teardown (void)
 {
   GError *error = NULL;
+  char *argv[] = { "fusermount", "-u", NULL, NULL };
+  g_autofree char *by_app_dir = g_build_filename (mountpoint, "by-app", NULL);
+  struct stat buf;
+  g_autoptr(GFile) outdir_file = g_file_new_for_path (outdir);
+  int res;
 
   if (!have_fuse)
     return;
+
+  res = stat (by_app_dir, &buf);
+  g_assert_cmpint (res, ==, 0);
+
+  argv[2] = mountpoint;
+
+  g_spawn_sync (NULL, argv, NULL, G_SPAWN_SEARCH_PATH,
+                NULL, NULL, NULL, NULL, NULL, &error);
+  g_assert_no_error (error);
+
+  res = stat (by_app_dir, &buf);
+  g_assert_cmpint (res, ==, -1);
+  g_assert_cmpint (errno, ==, ENOENT);
 
   g_free (mountpoint);
 
@@ -476,11 +540,8 @@ global_teardown (void)
 
   g_object_unref (dbus);
 
-  /* We race on the unmount of the fuse fs, which causes the rm -rf to stop at the doc dir.
-     This makes the chance of completely removing the directory higher */
-  sleep (1);
-
-  //glnx_shutil_rm_rf_at (-1, outdir, NULL, NULL);
+  res = rm_rf_dir (outdir_file, &error);
+  g_assert_no_error (error);
 }
 
 int
