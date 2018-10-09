@@ -228,16 +228,17 @@ test_create_doc (void)
   g_clear_error (&error);
   assert_doc_not_exist (id, "tmp2", "com.test.App1");
 
-  /* Update the document contents, ensure this is propagater */
+  /* Update the document contents, ensure this is propagated */
   update_doc (id, basename, NULL, "content2", &error);
   g_assert_no_error (error);
+
   assert_host_has_contents (basename, "content2");
   assert_doc_has_contents (id, basename, NULL, "content2");
   assert_doc_has_contents (id, basename, "com.test.App1", "content2");
   assert_doc_not_exist (id, basename, "com.test.App2");
   assert_doc_not_exist (id, "tmp1", "com.test.App2");
 
-  /* Update the document contents outside fuse fd, ensure this is propagater */
+  /* Update the document contents outside fuse fd, ensure this is propagated */
   update_from_host (basename, "content3", &error);
   g_assert_no_error (error);
   assert_host_has_contents (basename, "content3");
