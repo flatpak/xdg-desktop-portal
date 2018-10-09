@@ -24,6 +24,56 @@ XdpDbusDocuments *documents;
 char *mountpoint;
 static gboolean have_fuse;
 
+static gboolean
+set_contents_trunc (const gchar  *filename,
+                    const gchar  *contents,
+                    gssize	   length,
+                    GError	 **error)
+{
+  int fd;
+
+  if (length == -1)
+    length = strlen (contents);
+
+  fd = open (filename, O_RDWR | O_TRUNC | O_CREAT, 0644);
+  if (fd == -1)
+    {
+      int errsv = errno;
+      g_set_error (error,
+                   G_FILE_ERROR,
+                   g_file_error_from_errno (errsv),
+                   "Can't open %s", filename);
+      return FALSE;
+    }
+
+  while (length > 0)
+    {
+      gssize s;
+
+      s = write (fd, contents, length);
+
+      if (s < 0)
+        {
+          int errsv = errno;
+          if (errsv == EINTR)
+            continue;
+
+          g_set_error (error,
+                       G_FILE_ERROR,
+                       g_file_error_from_errno (errsv),
+                       "Can't write to %s", filename);
+          close (fd);
+          return FALSE;
+        }
+
+      contents += s;
+      length -= s;
+    }
+
+  close (fd);
+  return TRUE;
+}
+
 static char *
 make_doc_dir (const char *id, const char *app)
 {
@@ -85,6 +135,76 @@ assert_doc_not_exist (const char *id, const char *basename, const char *app)
   g_assert_cmpint (errno, ==, ENOENT);
 }
 
+static void
+assert_doc_dir_not_exist (const char *id, const char *app)
+{
+  g_autofree char *path = make_doc_dir (id, app);
+  struct stat buf;
+  int res, fd;
+
+  res = stat (path, &buf);
+  g_assert_cmpint (res, ==, -1);
+  g_assert_cmpint (errno, ==, ENOENT);
+
+  fd = open (path, O_RDONLY);
+  g_assert_cmpint (fd, ==, -1);
+  g_assert_cmpint (errno, ==, ENOENT);
+}
+
+static void
+assert_doc_dir_exist (const char *id, const char *app)
+{
+  g_autofree char *path = make_doc_dir (id, app);
+  struct stat buf;
+  int res, fd;
+
+  res = stat (path, &buf);
+  g_assert_cmpint (res, ==, 0);
+
+  fd = open (path, O_RDONLY);
+  g_assert_cmpint (fd, !=, -1);
+  close (fd);
+}
+
+static char *
+export_named_file (const char *dir, const char *name, gboolean unique)
+{
+  int fd, fd_id;
+  GUnixFDList *fd_list = NULL;
+
+  g_autoptr(GVariant) reply = NULL;
+  GError *error = NULL;
+  char *doc_id;
+
+  fd = open (dir, O_PATH | O_CLOEXEC);
+  g_assert (fd >= 0);
+
+  fd_list = g_unix_fd_list_new ();
+  fd_id = g_unix_fd_list_append (fd_list, fd, &error);
+  g_assert_no_error (error);
+  close (fd);
+
+  reply = g_dbus_connection_call_with_unix_fd_list_sync (session_bus,
+                                                         "org.freedesktop.portal.Documents",
+                                                         "/org/freedesktop/portal/documents",
+                                                         "org.freedesktop.portal.Documents",
+                                                         "AddNamed",
+                                                         g_variant_new ("(h^aybb)", fd_id, name, !unique, FALSE),
+                                                         G_VARIANT_TYPE ("(s)"),
+                                                         G_DBUS_CALL_FLAGS_NONE,
+                                                         30000,
+                                                         fd_list, NULL,
+                                                         NULL,
+                                                         &error);
+  g_object_unref (fd_list);
+  g_assert_no_error (error);
+  g_assert (reply != NULL);
+
+  g_variant_get (reply, "(s)", &doc_id);
+  g_assert (doc_id != NULL);
+  return doc_id;
+}
+
 static char *
 export_file (const char *path, gboolean unique)
 {
@@ -139,6 +259,14 @@ export_new_file (const char *basename, const char *contents, gboolean unique)
 }
 
 static gboolean
+update_doc_trunc (const char *id, const char *basename, const char *app, const char *contents, GError **error)
+{
+  g_autofree char *path = make_doc_path (id, basename, app);
+
+  return set_contents_trunc (path, contents, -1, error);
+}
+
+static gboolean
 update_doc (const char *id, const char *basename, const char *app, const char *contents, GError **error)
 {
   g_autofree char *path = make_doc_path (id, basename, app);
@@ -154,6 +282,41 @@ update_from_host (const char *basename, const char *contents, GError **error)
   return g_file_set_contents (path, contents, -1, error);
 }
 
+static gboolean
+unlink_doc (const char *id, const char *basename, const char *app, GError **error)
+{
+  g_autofree char *path = make_doc_path (id, basename, app);
+
+  if (unlink (path) != 0)
+    {
+      int errsv = errno;
+      g_set_error (error,
+                   G_FILE_ERROR,
+                   g_file_error_from_errno (errsv),
+                   "Can't unlink %s", path);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+unlink_doc_from_host (const char *basename, GError **error)
+{
+  g_autofree char *path = g_build_filename (outdir, basename, NULL);
+
+  if (unlink (path) != 0)
+    {
+      int errsv = errno;
+      g_set_error (error,
+                   G_FILE_ERROR,
+                   g_file_error_from_errno (errsv),
+                   "Can't unlink %s", path);
+      return FALSE;
+    }
+
+  return TRUE;
+}
 
 static void
 grant_permissions (const char *id, const char *app, gboolean write)
@@ -411,6 +574,129 @@ test_create_docs (void)
 
 
 static void
+test_add_named (void)
+{
+  g_autofree char *id1 = NULL;
+  g_autofree char *doc_path1 = NULL;
+  const char *basename1 = "add-named-1";
+  GError *error = NULL;
+  gboolean res;
+
+  if (!have_fuse)
+    {
+      g_test_skip ("this test requires FUSE");
+      return;
+    }
+
+  id1 = export_named_file (outdir, basename1, FALSE);
+
+  assert_doc_dir_exist (id1, NULL);
+  assert_doc_dir_not_exist (id1, "com.test.App1");
+  assert_doc_not_exist (id1, basename1, NULL);
+  assert_doc_not_exist (id1, basename1,  "com.test.App1");
+
+  grant_permissions (id1, "com.test.App1", TRUE);
+
+  assert_doc_dir_exist (id1, NULL);
+  assert_doc_dir_exist (id1, "com.test.App1");
+  assert_doc_not_exist (id1, basename1, NULL);
+  assert_doc_not_exist (id1, basename1,  "com.test.App1");
+
+  /* Update truncating with no previous file */
+  res = update_doc_trunc (id1, basename1, NULL, "foobar", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Update truncating with previous file */
+  res = update_doc_trunc (id1, basename1, NULL, "foobar2", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar2");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar2");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Update atomic with previous file */
+  res = update_doc (id1, basename1, NULL, "foobar3", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar3");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar3");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Update from host */
+  res = update_from_host (basename1, "foobar4", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar4");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar4");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Unlink doc */
+  res = unlink_doc (id1, basename1, NULL, &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_dir_exist (id1, NULL);
+  assert_doc_dir_exist (id1, "com.test.App1");
+  assert_doc_not_exist (id1, basename1, NULL);
+  assert_doc_not_exist (id1, basename1,  "com.test.App1");
+
+  /* Update atomic with no previous file */
+  res = update_doc (id1, basename1, NULL, "foobar5", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar5");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar5");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Unlink doc on host */
+  res = unlink_doc_from_host (basename1, &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_dir_exist (id1, NULL);
+  assert_doc_dir_exist (id1, "com.test.App1");
+  assert_doc_not_exist (id1, basename1, NULL);
+  assert_doc_not_exist (id1, basename1,  "com.test.App1");
+
+  /* Update atomic with unexpected no previous file */
+  res = update_doc (id1, basename1, NULL, "foobar6", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar6");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar6");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+
+  /* Unlink doc on host again */
+  res = unlink_doc_from_host (basename1, &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_dir_exist (id1, NULL);
+  assert_doc_dir_exist (id1, "com.test.App1");
+  assert_doc_not_exist (id1, basename1, NULL);
+  assert_doc_not_exist (id1, basename1,  "com.test.App1");
+
+  /* Update truncating with unexpected no previous file */
+  res = update_doc_trunc (id1, basename1, NULL, "foobar7", &error);
+  g_assert_no_error (error);
+  g_assert (res == TRUE);
+
+  assert_doc_has_contents (id1, basename1, NULL, "foobar7");
+  assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar7");
+  assert_doc_not_exist (id1, basename1, "com.test.App2");
+}
+
+static void
 global_setup (void)
 {
   gboolean inited;
@@ -579,6 +865,7 @@ main (int argc, char **argv)
   g_test_add_func ("/db/create_doc", test_create_doc);
   g_test_add_func ("/db/recursive_doc", test_recursive_doc);
   g_test_add_func ("/db/create_docs", test_create_docs);
+  g_test_add_func ("/db/add_named", test_add_named);
 
   global_setup ();
 
