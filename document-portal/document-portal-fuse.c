@@ -1354,17 +1354,20 @@ xdp_fuse_getattr (fuse_req_t             req,
   inode = xdp_inode_lookup (ino);
   if (inode == NULL)
     {
-      g_debug ("xdp_fuse_getattr <- error ENOENT");
+      g_debug ("xdp_fuse_getattr <- lookup error ENOENT");
       fuse_reply_err (req, ENOENT);
       return;
     }
 
   if (xdp_inode_stat (inode,  &stbuf) != 0)
     {
-      fuse_reply_err (req, errno);
+      int errsv = errno;
+      g_debug ("xdp_fuse_getattr <- stat error %s", g_strerror (errsv));
+      fuse_reply_err (req, errsv);
       return;
     }
 
+  g_debug ("xdp_fuse_getattr <- OK");
   fuse_reply_attr (req, &stbuf, ATTR_CACHE_TIME);
 }
 
@@ -1630,11 +1633,13 @@ xdp_fuse_open (fuse_req_t             req,
   if (file != NULL)
     {
       fi->fh = (gsize) file;
+      g_debug ("xdp_fuse_open <- OK");
       if (fuse_reply_open (req, fi) != 0)
         xdp_file_free (file);
     }
   else
     {
+      g_debug ("xdp_fuse_open <- errno %s", strerror (errsv));
       fuse_reply_err (req, errsv);
     }
 }
@@ -1761,7 +1766,7 @@ xdp_fuse_create (fuse_req_t             req,
 
       xdp_inode_kernel_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
 
-      g_debug ("xdp_fuse_create <- OK inode %ld", e.ino);
+      g_debug ("xdp_fuse_create <- OK inode %lx", e.ino);
 
       fi->fh = (gsize) file;
       if (fuse_reply_create (req, &e, fi) != 0)
