@@ -1753,16 +1753,8 @@ xdp_fuse_create (fuse_req_t             req,
         }
 
       e.ino = inode->ino;
-      if (inode->is_doc)
-        {
-          e.attr_timeout = 0;
-          e.entry_timeout = 0;
-        }
-      else
-        {
-          e.attr_timeout = ATTR_CACHE_TIME;
-          e.entry_timeout = ENTRY_CACHE_TIME;
-        }
+      e.attr_timeout = 0;
+      e.entry_timeout = 0;
 
       xdp_inode_kernel_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
 
