@@ -43,6 +43,39 @@ typedef enum {
 
 typedef struct _XdpInode XdpInode;
 
+/*
+ * Inode Ownership model:
+ *
+ * XdpInodes are refcounted to track ownership. Anywhere in the code where we keep
+ * an inode alive for use we take a ref. These refs are atomic because inodes are
+ * threadsafe.
+ *
+ * In addition to the standard ref-while-using, Some refs are longer-running:
+ *  * A single ref is kept on / by root_inode
+ *  * A single ref is kept on /by-app by by_app_inode
+ *  * Each Inode refs its parent
+ *  * Each open file (XdpFile) keeps a ref to the inode, as we need to be able
+ *    to read it even if its unlinked.
+ *  * Every time we return an inode nr to the kernel in a fuse request (currently only in
+ *    lookup() and create()) we take a ref to ensure that the inode is alive while as the kernel
+ *    expects it to be. This is freed when the kernel no longer needs it, by the kernel calling
+ *    out to xdp_fuse_forget(), or implicitly for all outstanding ones on unmount.
+ *  * Inodes for temp files in document dirs have an extra ref to keep them alive until
+ *    the corresponding filename is unlinked. See below for details.
+ *
+ *  Child inode keep their parent alive, so the entire tree from the top to an outstanding inode
+ *  is always alive. However, inodes only keep track of the set of children that have a live inode,
+ *  using essentially a weak ref. This lazy tracking of the entire fs tree is possible because we
+ *  can at any time reconstruct inodes from persistant info we have (i.e. from the document db and
+ *  on-disk file info).
+ *
+ *  However, there are some information that doesn't persist. If you create a file in a document directory
+ *  that has a different name than the basename of the document, then that is considered to be a "temp file"
+ *  (typically used for a tmpfile which is to be renamed on top of the basename for atomic replace). This file
+ *  is backed by a mkstemp file that we keep the fd around for writing. Neither the fd or the backing filename
+ *  is persistent, so to avoid forgetting these (which are stored in the inode) we take an extra ref on the
+ *  inode that is released when the tmpfile is unlinked.
+ */
 struct _XdpInode
 {
   gint ref_count; /* atomic */
