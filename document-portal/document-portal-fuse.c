@@ -617,6 +617,9 @@ xdp_inode_rename_child (XdpInode   *dir,
             }
 
           src_inode->is_doc = TRUE;
+          /* Drop keep-alive-until-unlink ref, since we're now is_doc */
+          xdp_inode_unref (src_inode);
+
           g_free (src_inode->filename);
           src_inode->filename = g_strdup (dst_filename);
           g_free (src_inode->backing_filename);
