@@ -46,6 +46,7 @@ typedef struct _XdpInode XdpInode;
 struct _XdpInode
 {
   gint ref_count; /* atomic */
+  gint kernel_ref_count; /* atomic */
 
   /* These are all immutable */
   fuse_ino_t   ino;
@@ -273,6 +274,22 @@ static void
 xdp_inode_unref (XdpInode *inode)
 {
   return xdp_inode_unref_internal (inode, FALSE);
+}
+
+static XdpInode *
+xdp_inode_kernel_ref (XdpInode *inode)
+{
+  if (inode)
+    g_atomic_int_inc (&inode->kernel_ref_count);
+  return xdp_inode_ref (inode);
+}
+
+static void
+xdp_inode_kernel_unref (XdpInode *inode)
+{
+  if (inode)
+    g_atomic_int_dec_and_test (&inode->kernel_ref_count);
+  xdp_inode_unref (inode);
 }
 
 static XdpInode *
@@ -1041,7 +1058,7 @@ xdp_fuse_lookup (fuse_req_t  req,
   e.ino = child_inode->ino;
 
   g_debug ("xdp_fuse_lookup <- inode %lx", (long) e.ino);
-  xdp_inode_ref (child_inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
+  xdp_inode_kernel_ref (child_inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
   fuse_reply_entry (req, &e);
 }
 
@@ -1060,7 +1077,7 @@ xdp_fuse_forget (fuse_req_t req, fuse_ino_t ino, unsigned long nlookup)
     {
       while (nlookup > 0)
         {
-          xdp_inode_unref (inode);
+          xdp_inode_kernel_unref (inode);
           nlookup--;
         }
     }
@@ -1684,7 +1701,7 @@ xdp_fuse_create (fuse_req_t             req,
           e.entry_timeout = ENTRY_CACHE_TIME;
         }
 
-      xdp_inode_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
+      xdp_inode_kernel_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
 
       g_debug ("xdp_fuse_create <- OK inode %ld", e.ino);
 
