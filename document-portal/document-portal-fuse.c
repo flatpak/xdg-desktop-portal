@@ -43,9 +43,43 @@ typedef enum {
 
 typedef struct _XdpInode XdpInode;
 
+/*
+ * Inode Ownership model:
+ *
+ * XdpInodes are refcounted to track ownership. Anywhere in the code where we keep
+ * an inode alive for use we take a ref. These refs are atomic because inodes are
+ * threadsafe.
+ *
+ * In addition to the standard ref-while-using, Some refs are longer-running:
+ *  * A single ref is kept on / by root_inode
+ *  * A single ref is kept on /by-app by by_app_inode
+ *  * Each Inode refs its parent
+ *  * Each open file (XdpFile) keeps a ref to the inode, as we need to be able
+ *    to read it even if its unlinked.
+ *  * Every time we return an inode nr to the kernel in a fuse request (currently only in
+ *    lookup() and create()) we take a ref to ensure that the inode is alive while as the kernel
+ *    expects it to be. This is freed when the kernel no longer needs it, by the kernel calling
+ *    out to xdp_fuse_forget(), or implicitly for all outstanding ones on unmount.
+ *  * Inodes for temp files in document dirs have an extra ref to keep them alive until
+ *    the corresponding filename is unlinked. See below for details.
+ *
+ *  Child inode keep their parent alive, so the entire tree from the top to an outstanding inode
+ *  is always alive. However, inodes only keep track of the set of children that have a live inode,
+ *  using essentially a weak ref. This lazy tracking of the entire fs tree is possible because we
+ *  can at any time reconstruct inodes from persistant info we have (i.e. from the document db and
+ *  on-disk file info).
+ *
+ *  However, there are some information that doesn't persist. If you create a file in a document directory
+ *  that has a different name than the basename of the document, then that is considered to be a "temp file"
+ *  (typically used for a tmpfile which is to be renamed on top of the basename for atomic replace). This file
+ *  is backed by a mkstemp file that we keep the fd around for writing. Neither the fd or the backing filename
+ *  is persistent, so to avoid forgetting these (which are stored in the inode) we take an extra ref on the
+ *  inode that is released when the tmpfile is unlinked.
+ */
 struct _XdpInode
 {
   gint ref_count; /* atomic */
+  gint kernel_ref_count; /* atomic */
 
   /* These are all immutable */
   fuse_ino_t   ino;
@@ -276,6 +310,22 @@ xdp_inode_unref (XdpInode *inode)
 }
 
 static XdpInode *
+xdp_inode_kernel_ref (XdpInode *inode)
+{
+  if (inode)
+    g_atomic_int_inc (&inode->kernel_ref_count);
+  return xdp_inode_ref (inode);
+}
+
+static void
+xdp_inode_kernel_unref (XdpInode *inode)
+{
+  if (inode)
+    g_atomic_int_dec_and_test (&inode->kernel_ref_count);
+  xdp_inode_unref (inode);
+}
+
+static XdpInode *
 xdp_inode_new_unlocked (fuse_ino_t   ino,
                         XdpInodeType type,
                         XdpInode    *parent,
@@ -314,6 +364,29 @@ xdp_inode_new (fuse_ino_t   ino,
 {
   XDP_AUTOLOCK (inodes);
   return xdp_inode_new_unlocked (ino, type, parent, filename, app_id, doc_id);
+}
+
+static void
+xdp_inode_get_path_helper (XdpInode *inode, GString *s)
+{
+  if (inode->parent != NULL)
+    {
+      xdp_inode_get_path_helper (inode->parent, s);
+      if (inode->parent->parent != NULL)
+        g_string_append (s, "/");
+    }
+  if (inode->filename)
+    g_string_append (s, inode->filename);
+  else
+    g_string_append (s, "[deleted]");
+}
+
+static char *
+xdp_inode_get_path (XdpInode *inode)
+{
+  GString *s = g_string_new ("");
+  xdp_inode_get_path_helper (inode, s);
+  return g_string_free (s, FALSE);
 }
 
 static XdpInode *
@@ -544,6 +617,9 @@ xdp_inode_rename_child (XdpInode   *dir,
             }
 
           src_inode->is_doc = TRUE;
+          /* Drop keep-alive-until-unlink ref, since we're now is_doc */
+          xdp_inode_unref (src_inode);
+
           g_free (src_inode->filename);
           src_inode->filename = g_strdup (dst_filename);
           g_free (src_inode->backing_filename);
@@ -644,7 +720,6 @@ xdp_inode_create_file (XdpInode   *dir,
     {
       if (exclusive)
         {
-          xdp_inode_unref (inode);
           errno = EEXIST;
           return NULL;
         }
@@ -656,7 +731,7 @@ xdp_inode_create_file (XdpInode   *dir,
           return NULL;
         }
 
-      return inode;
+      return g_steal_pointer (&inode);
     }
 
   dir_fd = xdp_inode_open_dir_fd (dir);
@@ -712,7 +787,7 @@ xdp_inode_create_file (XdpInode   *dir,
   if (!is_doc)
     xdp_inode_ref (inode);
 
-  return inode;
+  return g_steal_pointer (&inode);
 }
 
 static XdpInode *
@@ -1041,7 +1116,7 @@ xdp_fuse_lookup (fuse_req_t  req,
   e.ino = child_inode->ino;
 
   g_debug ("xdp_fuse_lookup <- inode %lx", (long) e.ino);
-  xdp_inode_ref (child_inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
+  xdp_inode_kernel_ref (child_inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
   fuse_reply_entry (req, &e);
 }
 
@@ -1060,7 +1135,7 @@ xdp_fuse_forget (fuse_req_t req, fuse_ino_t ino, unsigned long nlookup)
     {
       while (nlookup > 0)
         {
-          xdp_inode_unref (inode);
+          xdp_inode_kernel_unref (inode);
           nlookup--;
         }
     }
@@ -1279,17 +1354,20 @@ xdp_fuse_getattr (fuse_req_t             req,
   inode = xdp_inode_lookup (ino);
   if (inode == NULL)
     {
-      g_debug ("xdp_fuse_getattr <- error ENOENT");
+      g_debug ("xdp_fuse_getattr <- lookup error ENOENT");
       fuse_reply_err (req, ENOENT);
       return;
     }
 
   if (xdp_inode_stat (inode,  &stbuf) != 0)
     {
-      fuse_reply_err (req, errno);
+      int errsv = errno;
+      g_debug ("xdp_fuse_getattr <- stat error %s", g_strerror (errsv));
+      fuse_reply_err (req, errsv);
       return;
     }
 
+  g_debug ("xdp_fuse_getattr <- OK");
   fuse_reply_attr (req, &stbuf, ATTR_CACHE_TIME);
 }
 
@@ -1555,11 +1633,13 @@ xdp_fuse_open (fuse_req_t             req,
   if (file != NULL)
     {
       fi->fh = (gsize) file;
+      g_debug ("xdp_fuse_open <- OK");
       if (fuse_reply_open (req, fi) != 0)
         xdp_file_free (file);
     }
   else
     {
+      g_debug ("xdp_fuse_open <- errno %s", strerror (errsv));
       fuse_reply_err (req, errsv);
     }
 }
@@ -1673,20 +1753,12 @@ xdp_fuse_create (fuse_req_t             req,
         }
 
       e.ino = inode->ino;
-      if (inode->is_doc)
-        {
-          e.attr_timeout = 0;
-          e.entry_timeout = 0;
-        }
-      else
-        {
-          e.attr_timeout = ATTR_CACHE_TIME;
-          e.entry_timeout = ENTRY_CACHE_TIME;
-        }
+      e.attr_timeout = 0;
+      e.entry_timeout = 0;
 
-      xdp_inode_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
+      xdp_inode_kernel_ref (inode); /* Ref given to the kernel, returned in xdp_fuse_forget() */
 
-      g_debug ("xdp_fuse_create <- OK inode %ld", e.ino);
+      g_debug ("xdp_fuse_create <- OK inode %lx", e.ino);
 
       fi->fh = (gsize) file;
       if (fuse_reply_create (req, &e, fi) != 0)
@@ -2306,16 +2378,105 @@ xdp_fuse_exit (void)
     g_thread_join (fuse_thread);
 }
 
+static void
+free_global_inodes (void)
+{
+  GHashTableIter iter;
+  gpointer key, value;
+  GList *l;
+  g_autoptr(GList) kernel_refs = NULL;
+  g_autoptr(GList) tmpfile_refs = NULL;
+
+  /* First iterate over all outstanding inodes to see if any
+   * needs unref:ing. We do this before unrefing them so that
+   * its safe to iterate over the table (i.e. no deletes to it)
+   */
+  g_hash_table_iter_init (&iter, inodes);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      XdpInode *inode = (XdpInode *)value;
+
+      /* The kernel didn't tell us what to forget before unmounting */
+      if (inode->kernel_ref_count > 0)
+        kernel_refs = g_list_prepend (kernel_refs, xdp_inode_ref (inode));
+
+      /* This tmpfile was never unlinked */
+      if (inode->type == XDP_INODE_DOC_FILE && !inode->is_doc)
+        tmpfile_refs = g_list_prepend (tmpfile_refs, xdp_inode_ref (inode));
+    }
+
+  for (l = kernel_refs; l != NULL; l = l->next)
+    {
+      g_autoptr(XdpInode) inode = l->data;
+      g_autofree char *path = xdp_inode_get_path (inode);
+
+      g_debug ("unreffing kernel inode %s", path);
+      while (inode->kernel_ref_count > 0)
+        xdp_inode_kernel_unref (inode);
+    }
+
+  for (l = tmpfile_refs; l != NULL; l = l->next)
+    {
+      g_autoptr(XdpInode) inode = l->data;
+      g_autofree char *path = xdp_inode_get_path (inode);
+      g_autoptr(XdpInode) unlinked = NULL;
+
+      g_debug ("unlinking remaining tmpfile %s", path);
+      unlinked = xdp_inode_unlink_child (inode->parent, inode->filename);
+    }
+
+  /* Free toplevel inodes */
+  xdp_inode_unref (root_inode);
+  xdp_inode_unref (by_app_inode);
+}
+
 static gpointer
 xdp_fuse_mainloop (gpointer data)
 {
+  const char *status;
+
   fuse_pthread = pthread_self ();
 
   fuse_session_loop_mt (session);
 
+  status = getenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS");
+  if (status)
+    {
+      GError *error = NULL;
+      g_autoptr(GString) s = g_string_new ("");
+      GHashTableIter iter;
+      gpointer key, value;
+      gboolean ok = TRUE;
+
+      free_global_inodes ();
+
+      g_hash_table_iter_init (&iter, inodes);
+      while (g_hash_table_iter_next (&iter, &key, &value))
+        {
+          XdpInode *inode = (XdpInode *)value;
+          g_autofree char *path = xdp_inode_get_path (inode);
+
+          if (ok)
+            {
+              ok = FALSE;
+              g_string_append (s, "Leaked inodes: ");
+            }
+          else
+            g_string_append (s, ", ");
+          g_string_append (s, path);
+        }
+
+      if (ok)
+        g_string_append (s, "ok");
+
+      g_file_set_contents (status, s->str, -1, &error);
+      g_assert_no_error (error);
+    }
+
   fuse_session_remove_chan (main_ch);
   fuse_session_destroy (session);
   fuse_unmount (mount_path, main_ch);
+
   return NULL;
 }
 
