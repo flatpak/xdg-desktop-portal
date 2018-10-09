@@ -16,6 +16,8 @@
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
+char fuse_status_file[] = "/tmp/test-xdp-fuse-XXXXXX";
+
 GTestDBus *dbus;
 GDBusConnection *session_bus;
 XdpDbusDocuments *documents;
@@ -414,6 +416,7 @@ global_setup (void)
   g_autofree gchar *fusermount = NULL;
   GError *error = NULL;
   g_autofree gchar *services = NULL;
+  int fd;
 
   fusermount = g_find_program_in_path ("fusermount");
   /* cache result so subsequent tests can be marked as skipped */
@@ -427,8 +430,12 @@ global_setup (void)
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
 
+  fd = g_mkstemp (fuse_status_file);
+  close (fd);
+
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
+  g_setenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS", fuse_status_file, TRUE);
 
   dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
   services = g_test_build_filename (G_TEST_BUILT, "services", NULL);
@@ -509,7 +516,7 @@ global_teardown (void)
   g_autofree char *by_app_dir = g_build_filename (mountpoint, "by-app", NULL);
   struct stat buf;
   g_autoptr(GFile) outdir_file = g_file_new_for_path (outdir);
-  int res;
+  int res, i;
 
   if (!have_fuse)
     return;
@@ -526,6 +533,23 @@ global_teardown (void)
   res = stat (by_app_dir, &buf);
   g_assert_cmpint (res, ==, -1);
   g_assert_cmpint (errno, ==, ENOENT);
+
+  for (i = 0; i < 1000; i++)
+    {
+      g_autofree char *fuse_unmount_status = NULL;
+
+      g_file_get_contents (fuse_status_file, &fuse_unmount_status, NULL, &error);
+      g_assert_no_error (error);
+      /* Loop until something is written to the status file */
+      if (strlen (fuse_unmount_status) > 0)
+        {
+          g_assert_cmpstr (fuse_unmount_status, ==, "ok");
+          break;
+        }
+      g_usleep (G_USEC_PER_SEC / 100);
+    }
+  g_assert (i != 1000); /* We timed out before writing to the status file */
+  (void) unlink (fuse_status_file);
 
   g_free (mountpoint);
 

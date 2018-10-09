@@ -366,6 +366,29 @@ xdp_inode_new (fuse_ino_t   ino,
   return xdp_inode_new_unlocked (ino, type, parent, filename, app_id, doc_id);
 }
 
+static void
+xdp_inode_get_path_helper (XdpInode *inode, GString *s)
+{
+  if (inode->parent != NULL)
+    {
+      xdp_inode_get_path_helper (inode->parent, s);
+      if (inode->parent->parent != NULL)
+        g_string_append (s, "/");
+    }
+  if (inode->filename)
+    g_string_append (s, inode->filename);
+  else
+    g_string_append (s, "[deleted]");
+}
+
+static char *
+xdp_inode_get_path (XdpInode *inode)
+{
+  GString *s = g_string_new ("");
+  xdp_inode_get_path_helper (inode, s);
+  return g_string_free (s, FALSE);
+}
+
 static XdpInode *
 xdp_inode_lookup_unlocked (fuse_ino_t inode_nr)
 {
@@ -2356,16 +2379,105 @@ xdp_fuse_exit (void)
     g_thread_join (fuse_thread);
 }
 
+static void
+free_global_inodes (void)
+{
+  GHashTableIter iter;
+  gpointer key, value;
+  GList *l;
+  g_autoptr(GList) kernel_refs = NULL;
+  g_autoptr(GList) tmpfile_refs = NULL;
+
+  /* First iterate over all outstanding inodes to see if any
+   * needs unref:ing. We do this before unrefing them so that
+   * its safe to iterate over the table (i.e. no deletes to it)
+   */
+  g_hash_table_iter_init (&iter, inodes);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+      XdpInode *inode = (XdpInode *)value;
+
+      /* The kernel didn't tell us what to forget before unmounting */
+      if (inode->kernel_ref_count > 0)
+        kernel_refs = g_list_prepend (kernel_refs, xdp_inode_ref (inode));
+
+      /* This tmpfile was never unlinked */
+      if (inode->type == XDP_INODE_DOC_FILE && !inode->is_doc)
+        tmpfile_refs = g_list_prepend (tmpfile_refs, xdp_inode_ref (inode));
+    }
+
+  for (l = kernel_refs; l != NULL; l = l->next)
+    {
+      g_autoptr(XdpInode) inode = l->data;
+      g_autofree char *path = xdp_inode_get_path (inode);
+
+      g_debug ("unreffing kernel inode %s", path);
+      while (inode->kernel_ref_count > 0)
+        xdp_inode_kernel_unref (inode);
+    }
+
+  for (l = tmpfile_refs; l != NULL; l = l->next)
+    {
+      g_autoptr(XdpInode) inode = l->data;
+      g_autofree char *path = xdp_inode_get_path (inode);
+      g_autoptr(XdpInode) unlinked = NULL;
+
+      g_debug ("unlinking remaining tmpfile %s", path);
+      unlinked = xdp_inode_unlink_child (inode->parent, inode->filename);
+    }
+
+  /* Free toplevel inodes */
+  xdp_inode_unref (root_inode);
+  xdp_inode_unref (by_app_inode);
+}
+
 static gpointer
 xdp_fuse_mainloop (gpointer data)
 {
+  const char *status;
+
   fuse_pthread = pthread_self ();
 
   fuse_session_loop_mt (session);
 
+  status = getenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS");
+  if (status)
+    {
+      GError *error = NULL;
+      g_autoptr(GString) s = g_string_new ("");
+      GHashTableIter iter;
+      gpointer key, value;
+      gboolean ok = TRUE;
+
+      free_global_inodes ();
+
+      g_hash_table_iter_init (&iter, inodes);
+      while (g_hash_table_iter_next (&iter, &key, &value))
+        {
+          XdpInode *inode = (XdpInode *)value;
+          g_autofree char *path = xdp_inode_get_path (inode);
+
+          if (ok)
+            {
+              ok = FALSE;
+              g_string_append (s, "Leaked inodes: ");
+            }
+          else
+            g_string_append (s, ", ");
+          g_string_append (s, path);
+        }
+
+      if (ok)
+        g_string_append (s, "ok");
+
+      g_file_set_contents (status, s->str, -1, &error);
+      g_assert_no_error (error);
+    }
+
   fuse_session_remove_chan (main_ch);
   fuse_session_destroy (session);
   fuse_unmount (mount_path, main_ch);
+
   return NULL;
 }
 
