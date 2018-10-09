@@ -101,69 +101,26 @@ AM_CONDITIONAL(DOCBOOK_DOCS_ENABLED, test x$enable_docbook_docs = xyes)
 AC_ARG_VAR([XMLTO],[Define/override the 'xmlto' location.])
 AC_ARG_VAR([XMLTO_FLAGS],[Define/override 'xmlto' options, like '--skip-validation'.])
 
-# Enable lcov coverage reports
+##########################################
+# Coverage testing
+##########################################
 AC_ARG_ENABLE(coverage,
   AS_HELP_STRING([--enable-coverage],
-		 [enable covergae testing with gcov]),
-  [use_gcov=$enableval], [use_gcov=no])
+                 [enable coverage testing with gcov]),
+  [use_lcov=$enableval], [use_lcov=no])
 
-AS_IF([ test "x$use_gcov" = "xyes"], [
-  dnl we need gcc:
-  if test "$GCC" != "yes"; then
-    AC_MSG_ERROR([GCC is required for --enable-coverage])
-  fi
+if test x$use_lcov = xyes; then
+  AC_PATH_PROG(LCOV, lcov)
+  AC_PATH_PROG(GENHTML, genhtml)
 
-  dnl Check if ccache is being used
-  AC_CHECK_PROG(SHTOOL, shtool, shtool)
-  case `$SHTOOL path $CC` in
-    *ccache*[)] gcc_ccache=yes;;
-    *[)] gcc_ccache=no;;
-  esac
-
-  if test "$gcc_ccache" = "yes" && (test -z "$CCACHE_DISABLE" || test "$CCACHE_DISABLE" != "1"); then
-    AC_MSG_ERROR([ccache must be disabled when --enable-coverage option is used. You can disable ccache by setting environment variable CCACHE_DISABLE=1.])
-  fi
-
-  ltp_version_list="1.6 1.7 1.8 1.9 1.10 1.12"
-  AC_CHECK_PROG(LTP, lcov, lcov)
-  AC_CHECK_PROG(LTP_GENHTML, genhtml, genhtml)
-
-  AS_IF([ test "$LTP" ], [
-    AC_CACHE_CHECK([for ltp version], glib_cv_ltp_version, [
-      glib_cv_ltp_version=invalid
-      ltp_version=`$LTP -v 2>/dev/null | $SED -e 's/^.* //'`
-      for ltp_check_version in $ltp_version_list; do
-        if test "$ltp_version" = "$ltp_check_version"; then
-          glib_cv_ltp_version="$ltp_check_version (ok)"
-        fi
-      done
-    ])
-  ], [
-    ltp_msg="To enable code coverage reporting you must have one of the following LTP versions installed: $ltp_version_list"
-    AC_MSG_ERROR([$ltp_msg])
-  ])
-
-  case $glib_cv_ltp_version in
-    ""|invalid[)]
-      ltp_msg="You must have one of the following versions of LTP: $ltp_version_list (found: $ltp_version)."
-      AC_MSG_ERROR([$ltp_msg])
-      LTP="exit 0;"
-      ;;
-  esac
-
-  if test -z "$LTP_GENHTML"; then
-    AC_MSG_ERROR([Could not find genhtml from the LTP package])
-  fi
-
-  dnl Remove all optimization flags from CFLAGS
+  # remove all optimization from CFLAGS
   changequote({,})
   CFLAGS=`echo "$CFLAGS" | $SED -e 's/-O[0-9]*//g'`
   changequote([,])
 
-  dnl Add the special gcc flags
   CFLAGS="$CFLAGS -O0 -fprofile-arcs -ftest-coverage"
   LDFLAGS="$LDFLAGS -lgcov"
-])
+fi
 
 GLIB_TESTS
 
