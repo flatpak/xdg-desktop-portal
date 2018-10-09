@@ -48,3 +48,20 @@ install-data-hook:
 	$(MAKE) $(AM_MAKEFLAGS) install-test-data-hook
 
 AM_DISTCHECK_CONFIGURE_FLAGS =
+
+
+.PHONY: coverage lcov-clean genlcov
+
+coverage:
+	$(AM_V_GEN) $(MAKE) $(AM_MAKEFLAGS) lcov-clean
+	$(AM_V_GEN) $(MAKE) -j $(getconf _NPROCESSORS_ONLN) check
+	$(AM_V_GEN) $(MAKE) $(AM_MAKEFLAGS) genlcov
+
+lcov-clean:
+	$(AM_V_GEN) $(LCOV) --directory $(top_builddir) --zerocounters
+
+genlcov:
+	$(AM_V_GEN) $(LCOV) --directory $(top_builddir) --capture --output-file coverage.info
+	$(AM_V_GEN) $(GENHTML) --prefix $(top_builddir) --output-directory coverage coverage.info
+	$(AM_V_GEN)
+
