@@ -1,3 +1,12 @@
+xdg-desktop-portal 1.0.3
+========================
+
+* Fix an option name in the remote desktop portal
+* document-portal: Validate permissions and report errors
+* Fix life-cycle issues with inodes in the document portal
+* Improve the test coverage of the documents portal
+* Add a 'coverage' make target
+
 xdg-desktop-portal 1.0.2
 ========================
 
