@@ -717,7 +717,6 @@ xdp_inode_create_file (XdpInode   *dir,
     {
       if (exclusive)
         {
-          xdp_inode_unref (inode);
           errno = EEXIST;
           return NULL;
         }
@@ -729,7 +728,7 @@ xdp_inode_create_file (XdpInode   *dir,
           return NULL;
         }
 
-      return inode;
+      return g_steal_pointer (&inode);
     }
 
   dir_fd = xdp_inode_open_dir_fd (dir);
@@ -785,7 +784,7 @@ xdp_inode_create_file (XdpInode   *dir,
   if (!is_doc)
     xdp_inode_ref (inode);
 
-  return inode;
+  return g_steal_pointer (&inode);
 }
 
 static XdpInode *
