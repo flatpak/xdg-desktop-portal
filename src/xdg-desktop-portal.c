@@ -339,6 +339,12 @@ export_portal_implementation (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
+  if (skeleton == NULL)
+    {
+      g_warning ("No skeleton to export");
+      return;
+    }
+
   g_dbus_interface_skeleton_set_flags (skeleton,
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
   g_signal_connect (skeleton, "g-authorize-method",
