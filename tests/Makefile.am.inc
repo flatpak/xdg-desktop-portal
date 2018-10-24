@@ -23,6 +23,16 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
+test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+test_permission_store_LDADD = \
+	$(AM_LDADD) \
+	$(BASE_LIBS) \
+	$(NULL)
+test_permission_store_SOURCES = tests/test-permission-store.c
+nodist_test_permission_store_SOURCES = document-portal/permission-store-dbus.c
+
+EXTRA_test_permission_store_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
+
 tests/services/org.freedesktop.portal.Documents.service: document-portal/org.freedesktop.portal.Documents.service.in
 	mkdir -p tests/services
 	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(abs_top_builddir)|" $< > $@
@@ -47,7 +57,11 @@ endif
 dist_test_scripts = \
 	$(NULL)
 
-test_programs = testdb test-doc-portal
+test_programs = \
+	testdb \
+	test-doc-portal \
+	test-permission-store \
+	$(NULL)
 
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \
