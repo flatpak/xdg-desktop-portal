@@ -855,6 +855,12 @@ global_teardown (void)
   g_assert_no_error (error);
 }
 
+static void
+test_version (void)
+{
+  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 3);  
+}
+
 int
 main (int argc, char **argv)
 {
@@ -862,6 +868,7 @@ main (int argc, char **argv)
 
   g_test_init (&argc, &argv, NULL);
 
+  g_test_add_func ("/db/version", test_version);
   g_test_add_func ("/db/create_doc", test_create_doc);
   g_test_add_func ("/db/recursive_doc", test_recursive_doc);
   g_test_add_func ("/db/create_docs", test_create_docs);

@@ -23,10 +23,11 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
-test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(FLATPAK_CFLAGS)
 test_permission_store_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
+	$(FLATPAK_LIBS) \
 	$(NULL)
 test_permission_store_SOURCES = tests/test-permission-store.c
 nodist_test_permission_store_SOURCES = document-portal/permission-store-dbus.c

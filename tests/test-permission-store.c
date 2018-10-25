@@ -13,12 +13,19 @@
 #include <gio/gunixfdlist.h>
 
 #include "document-portal/permission-store-dbus.h"
+#include <flatpak.h>
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
 GTestDBus *dbus;
 GDBusConnection *session_bus;
 XdgPermissionStore *permissions;
+
+static void
+test_version (void)
+{
+  g_assert_cmpint (xdg_permission_store_get_version (permissions), ==, 1);
+}
 
 static int change_count;
 
@@ -73,7 +80,7 @@ timeout_cb (gpointer data)
 }
 
 static void
-test_permissions_change (void)
+test_change (void)
 {
   gulong changed_handler;
   gboolean res;
@@ -126,10 +133,94 @@ test_permissions_change (void)
 }
 
 static void
+test_lookup (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "one", "two", NULL };
+  g_autoptr(GVariant) p = NULL;
+  g_autoptr(GVariant) d = NULL;
+  char **strv;
+  GVariantBuilder pb;
+
+  res = xdg_permission_store_call_lookup_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               &p,
+                                               &d,
+                                               NULL,
+                                               &error);
+  g_assert_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+  g_clear_error (&error);
+
+  g_variant_builder_init (&pb, G_VARIANT_TYPE ("a{sas}"));
+  g_variant_builder_add (&pb, "{s@as}", "one.two.three", g_variant_new_strv (perms, -1));
+  res = xdg_permission_store_call_set_sync (permissions,
+                                            "TEST", TRUE,
+                                            "test-resource",
+                                            g_variant_builder_end (&pb),
+                                            g_variant_new_variant (g_variant_new_boolean (TRUE)),
+                                            NULL,
+                                            &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  res = xdg_permission_store_call_lookup_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               &p,
+                                               &d,
+                                               NULL,
+                                               &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  g_assert_true (g_variant_is_of_type (p, G_VARIANT_TYPE ("a{sas}")));
+  res = g_variant_lookup (p, "one.two.three", "^a&s", &strv);
+  g_assert_true (res);
+  g_assert_cmpint (g_strv_length (strv), ==, 2);
+  g_assert (g_strv_contains ((const char *const *)strv, "one"));
+  g_assert (g_strv_contains ((const char *const *)strv, "two"));
+  g_assert_true (g_variant_is_of_type (d, G_VARIANT_TYPE_VARIANT));
+  g_assert_true (g_variant_is_of_type (g_variant_get_variant (d), G_VARIANT_TYPE_BOOLEAN));
+  g_assert_true (g_variant_get_boolean (g_variant_get_variant (d)));
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               NULL,
+                                               &error);
+  g_assert_no_error (error);
+}
+
+static void
+test_create (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "one", "two", NULL };
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "DOESNOTEXIST", FALSE,
+                                                       "test-resource",
+                                                       "one.two.three",
+                                                       perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+}
+
+static void
 global_setup (void)
 {
   GError *error = NULL;
   g_autofree gchar *services = NULL;
+  GQuark portal_errors G_GNUC_UNUSED;
+
+  /* make sure errors are registered */
+  portal_errors = FLATPAK_PORTAL_ERROR;
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
@@ -231,7 +322,10 @@ main (int argc, char **argv)
 
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/permissions/change", test_permissions_change);
+  g_test_add_func ("/permissions/version", test_version);
+  g_test_add_func ("/permissions/change", test_change);
+  g_test_add_func ("/permissions/lookup", test_lookup);
+  g_test_add_func ("/permissions/create", test_create);
 
   global_setup ();
 
