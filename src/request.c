@@ -286,6 +286,10 @@ get_token (GDBusMethodInvocation *invocation)
                      interface, method, G_STRLOC);
         }
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Settings") == 0)
+    {
+      // no request objects
+    }
   else
     {
       g_print ("Support for %s missing in " G_STRLOC, interface);

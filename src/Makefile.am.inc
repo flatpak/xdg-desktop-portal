@@ -34,6 +34,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.ScreenCast.xml \
 	data/org.freedesktop.portal.RemoteDesktop.xml \
 	data/org.freedesktop.portal.Location.xml \
+	data/org.freedesktop.portal.Settings.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -132,6 +133,8 @@ xdg_desktop_portal_SOURCES = \
         src/permissions.h               \
         src/email.c                     \
         src/email.h                     \
+	src/settings.c			\
+	src/settings.h			\
 	src/session.c			\
 	src/session.h			\
 	src/trash.c			\
