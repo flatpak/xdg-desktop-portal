@@ -421,8 +421,10 @@ on_bus_acquired (GDBusConnection *connection,
     {
       export_portal_implementation (connection,
                                     device_create (connection, implementation->dbus_name));
+#ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name));
+#endif
     }
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");

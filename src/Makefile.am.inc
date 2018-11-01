@@ -122,8 +122,6 @@ xdg_desktop_portal_SOURCES = \
         src/device.h                    \
         src/account.c                   \
         src/account.h                   \
-        src/location.c                  \
-        src/location.h                  \
 	src/request.c			\
 	src/request.h			\
 	src/call.c			\
@@ -151,9 +149,16 @@ xdg_desktop_portal_SOURCES += \
 	$(NULL)
 endif
 
-xdg_desktop_portal_LDADD = $(BASE_LIBS) $(PIPEWIRE_LIBS)
+if HAVE_GEOCLUE
+xdg_desktop_portal_SOURCES += \
+	src/location.c                  \
+	src/location.h                  \
+	$(NULL)
+endif
+
+xdg_desktop_portal_LDADD = $(BASE_LIBS) $(PIPEWIRE_LIBS) $(GEOCLUE_LIBS)
 xdg_desktop_portal_CFLAGS = \
-	-DPKGDATADIR=\"$(pkgdatadir)\" $(BASE_CFLAGS) $(PIPEWIRE_CFLAGS) \
+	-DPKGDATADIR=\"$(pkgdatadir)\" $(BASE_CFLAGS) $(PIPEWIRE_CFLAGS) $(GEOCLUE_CFLAGS) \
 	-I$(srcdir)/src -I$(builddir)/src \
 	$(NULL)
 xdg_desktop_portal_CPPFLAGS = \
