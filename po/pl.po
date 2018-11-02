@@ -1,15 +1,15 @@
 # Polish translation for xdg-desktop-portal.
-# Copyright © 2016-2017 the xdg-desktop-portal authors.
+# Copyright © 2016-2018 the xdg-desktop-portal authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2016-2017.
-# Aviary.pl <community-poland@mozilla.org>, 2016-2017.
+# Piotr Drąg <piotrdrag@gmail.com>, 2016-2018.
+# Aviary.pl <community-poland@mozilla.org>, 2016-2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-07-24 01:00+0000\n"
-"PO-Revision-Date: 2017-01-16 14:01+0100\n"
+"POT-Creation-Date: 2018-11-02 16:31+0000\n"
+"PO-Revision-Date: 2018-11-02 17:40+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -76,3 +76,34 @@ msgstr "Program potrzebuje dostępu do kamery."
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "Program „%s” potrzebuje dostępu do kamery."
+
+#: src/location.c:536
+msgid "Deny Access"
+msgstr "Odmów dostępu"
+
+#: src/location.c:538
+msgid "Grant Access"
+msgstr "Udziel dostępu"
+
+#: src/location.c:544
+msgid "Grant Access to Your Location?"
+msgstr "Udzielić dostęp do położenia?"
+
+#: src/location.c:545
+msgid "An application wants to use your location."
+msgstr "Program potrzebuje dostępu do położenia."
+
+#: src/location.c:557
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Udzielić dostęp do położenia programowi „%s”?"
+
+#: src/location.c:561
+#, c-format
+msgid "%s wants to use your location."
+msgstr "Program „%s” potrzebuje dostępu do położenia."
+
+#: src/location.c:564
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
