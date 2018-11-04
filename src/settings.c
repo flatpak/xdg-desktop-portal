@@ -39,7 +39,7 @@ struct _Settings
 
   GHashTable *settings;
   FcMonitor *fontconfig_monitor;
-  int fontconfig_timestamp;
+  int fontconfig_serial;
 };
 
 struct _SettingsClass
@@ -131,7 +131,7 @@ settings_handle_read_all (XdpSettings           *object,
       GVariantDict dict;
 
       g_variant_dict_init (&dict, NULL);
-      g_variant_dict_insert_value (&dict, "timestamp", g_variant_new_int32 (self->fontconfig_timestamp));
+      g_variant_dict_insert_value (&dict, "serial", g_variant_new_int32 (self->fontconfig_serial));
       
       g_variant_builder_add (&builder, "{s@a{sv}}", "org.gnome.fontconfig", g_variant_dict_end (&dict));
     }
@@ -155,10 +155,10 @@ settings_handle_read (XdpSettings           *object,
   // TODO: Handle kdeglobals via same interface
   if (strcmp (arg_namespace, "org.gnome.fontconfig") == 0)
     {
-      if (strcmp (arg_key, "timestamp") == 0)
+      if (strcmp (arg_key, "serial") == 0)
         {
           g_dbus_method_invocation_return_value (invocation,
-                                                 g_variant_new ("(v)", g_variant_new_int32 (self->fontconfig_timestamp)));
+                                                 g_variant_new ("(v)", g_variant_new_int32 (self->fontconfig_serial)));
           return TRUE;
         }
     }
@@ -259,15 +259,15 @@ fontconfig_changed (FcMonitor *monitor,
                     Settings *self)
 {
   const char *namespace = "org.gnome.fontconfig";
-  const char *key = "timestamp";
+  const char *key = "serial";
   
   g_debug ("Emitting changed for %s %s", namespace, key);
 
-  self->fontconfig_timestamp = time (NULL);
+  self->fontconfig_serial++;
 
   xdp_settings_emit_setting_changed (XDP_SETTINGS (self),
                                      namespace, key,
-                                     g_variant_new ("v", g_variant_new_int32 (self->fontconfig_timestamp)));
+                                     g_variant_new ("v", g_variant_new_int32 (self->fontconfig_serial)));
 }
 
 static void
