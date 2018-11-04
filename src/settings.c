@@ -20,6 +20,7 @@
 
 #include "config.h"
 
+#include <time.h>
 #include <string.h>
 #include <glib/gi18n.h>
 #include <gio/gio.h>
@@ -27,6 +28,7 @@
 #include "settings.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+#include "fc-monitor.h"
 
 typedef struct _Settings Settings;
 typedef struct _SettingsClass SettingsClass;
@@ -36,6 +38,8 @@ struct _Settings
   XdpSettingsSkeleton parent_instance;
 
   GHashTable *settings;
+  FcMonitor *fontconfig_monitor;
+  int fontconfig_serial;
 };
 
 struct _SettingsClass
@@ -121,6 +125,17 @@ settings_handle_read_all (XdpSettings           *object,
 
       g_variant_builder_add (&builder, "{s@a{sv}}", key, g_variant_dict_end (&dict));
     }
+
+  if (namespace_matches ("org.gnome.fontconfig", arg_namespace))
+    {
+      GVariantDict dict;
+
+      g_variant_dict_init (&dict, NULL);
+      g_variant_dict_insert_value (&dict, "serial", g_variant_new_int32 (self->fontconfig_serial));
+      
+      g_variant_builder_add (&builder, "{s@a{sv}}", "org.gnome.fontconfig", g_variant_dict_end (&dict));
+    }
+
   g_variant_builder_close (&builder);
 
   g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (&builder));
@@ -138,30 +153,31 @@ settings_handle_read (XdpSettings           *object,
   g_debug ("Read %s %s", arg_namespace, arg_key);
 
   // TODO: Handle kdeglobals via same interface
-  if (!g_hash_table_contains (self->settings, arg_namespace))
+  if (strcmp (arg_namespace, "org.gnome.fontconfig") == 0)
     {
-      g_debug ("Attempted to read from unknown namespace %s", arg_namespace);
-      g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
-                                                     XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
-                                                     _("Requested setting not found"));
+      if (strcmp (arg_key, "serial") == 0)
+        {
+          g_dbus_method_invocation_return_value (invocation,
+                                                 g_variant_new ("(v)", g_variant_new_int32 (self->fontconfig_serial)));
+          return TRUE;
+        }
     }
-  else
+  else if (g_hash_table_contains (self->settings, arg_namespace))
     {
       SettingsBundle *bundle = g_hash_table_lookup (self->settings, arg_namespace);
       if (g_settings_schema_has_key (bundle->schema, arg_key))
         {
           g_autoptr (GVariant) variant = NULL;
           variant = g_settings_get_value (bundle->settings, arg_key);
-          g_dbus_method_invocation_return_value (invocation, g_variant_new("(v)", variant));
-        }
-      else
-        {
-          g_debug ("Attempted to read unknown key %s", arg_key);
-          g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
-                                                         XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
-                                                         _("Requested setting not found"));
+          g_dbus_method_invocation_return_value (invocation, g_variant_new ("(v)", variant));
+          return TRUE;
         }
     }
+
+  g_debug ("Attempted to read unknown namespace/key pair: %s %s", arg_namespace, arg_key);
+  g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+                                                 XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                                 _("Requested setting not found"));
 
   return TRUE;
 }
@@ -239,6 +255,22 @@ init_settings_table (Settings   *self,
 }
 
 static void
+fontconfig_changed (FcMonitor *monitor,
+                    Settings *self)
+{
+  const char *namespace = "org.gnome.fontconfig";
+  const char *key = "serial";
+  
+  g_debug ("Emitting changed for %s %s", namespace, key);
+
+  self->fontconfig_serial++;
+
+  xdp_settings_emit_setting_changed (XDP_SETTINGS (self),
+                                     namespace, key,
+                                     g_variant_new ("v", g_variant_new_int32 (self->fontconfig_serial)));
+}
+
+static void
 settings_iface_init (XdpSettingsIface *iface)
 {
   iface->handle_read = settings_handle_read;
@@ -251,6 +283,10 @@ settings_init (Settings *self)
   self->settings = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, (GDestroyNotify)settings_bundle_free);
   init_settings_table (self, self->settings);
 
+  self->fontconfig_monitor = fc_monitor_new ();
+  g_signal_connect (self->fontconfig_monitor, "updated", G_CALLBACK (fontconfig_changed), self);
+  fc_monitor_start (self->fontconfig_monitor);
+
   xdp_settings_set_version (XDP_SETTINGS (self), 1);
 }
 
@@ -259,6 +295,10 @@ settings_finalize (GObject *object)
 {
   Settings *self = (Settings*)object;
   g_hash_table_destroy (self->settings);
+
+  g_signal_handlers_disconnect_by_data (self->fontconfig_monitor, self);
+  fc_monitor_stop (self->fontconfig_monitor);
+  g_object_unref (self->fontconfig_monitor);
 
   G_OBJECT_CLASS (settings_parent_class)->finalize (object);
 }
