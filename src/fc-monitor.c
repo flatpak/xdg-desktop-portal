@@ -19,6 +19,8 @@
  * Author:  Behdad Esfahbod, Red Hat, Inc.
  */
 
+/* NOTE: This file is copied from gnome-settings-daemon, please keep it in sync */
+
 #include "fc-monitor.h"
 
 #include <gio/gio.h>
