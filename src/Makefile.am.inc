@@ -141,6 +141,8 @@ xdg_desktop_portal_SOURCES = \
 	src/trash.h			\
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
+	src/fc-monitor.c		\
+	src/fc-monitor.h		\
 	$(NULL)
 
 if HAVE_PIPEWIRE
