@@ -591,9 +591,9 @@ static const struct pw_remote_events remote_events = {
 void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
-  g_clear_pointer (&remote->remote, (GDestroyNotify)pw_remote_destroy);
-  g_clear_pointer (&remote->core, (GDestroyNotify)pw_core_destroy);
-  g_clear_pointer (&remote->loop, (GDestroyNotify)pw_main_loop_destroy);
+  g_clear_pointer (&remote->remote, pw_remote_destroy);
+  g_clear_pointer (&remote->core, pw_core_destroy);
+  g_clear_pointer (&remote->loop, pw_main_loop_destroy);
   g_clear_error (&remote->error);
 
   g_free (remote);
@@ -857,7 +857,7 @@ start_done (GObject *source_object,
             {
               g_warning ("Failed to process results: %s", error->message);
               g_clear_error (&error);
-              g_clear_pointer (&results, (GDestroyNotify)g_variant_unref);
+              g_clear_pointer (&results, g_variant_unref);
               response = 2;
               should_close_session = TRUE;
             }

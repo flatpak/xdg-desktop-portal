@@ -512,7 +512,7 @@ start_done (GObject *source_object,
               g_warning ("Could not start remote desktop session: %s",
                          error->message);
               g_clear_error (&error);
-              g_clear_pointer (&results, (GDestroyNotify)g_variant_unref);
+              g_clear_pointer (&results, g_variant_unref);
               response = 2;
               should_close_session = TRUE;
             }
