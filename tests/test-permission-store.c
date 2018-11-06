@@ -86,7 +86,7 @@ test_change (void)
   gboolean res;
   g_autoptr(GError) error = NULL;
   const char * perms[] = { "one", "two", NULL };
-  gboolean timeout_reached;
+  gboolean timeout_reached = FALSE;
   guint timeout_id;
 
   changed_handler = g_signal_connect (permissions, "changed", G_CALLBACK (changed_cb), NULL);
