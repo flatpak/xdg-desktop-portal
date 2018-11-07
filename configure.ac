@@ -67,9 +67,9 @@ AC_ARG_ENABLE(pipewire,
 	      [AS_HELP_STRING([--enable-pipewire],[Enable PipeWire support. Needed for screen cast portal])],
 	      enable_pipewire=$enableval, enable_pipewire=yes)
 if test x$enable_pipewire = xyes ; then
-        PKG_CHECK_MODULES(PIPEWIRE, [libpipewire-0.2 >= 0.2.2],
+        PKG_CHECK_MODULES(PIPEWIRE, [libpipewire-0.3 >= 0.3.0],
         [AC_DEFINE([HAVE_PIPEWIRE],[1], [Define to enable PipeWire support])],
-        [PKG_CHECK_MODULES(PIPEWIRE, [libpipewire-0.3 >= 0.3.0],
+        [PKG_CHECK_MODULES(PIPEWIRE, [libpipewire-0.2 >= 0.2.2],
         [AC_DEFINE([HAVE_PIPEWIRE],[1], [Define to enable PipeWire support])])])
 fi
 AM_CONDITIONAL([HAVE_PIPEWIRE],[test "$enable_pipewire" = "yes"])
