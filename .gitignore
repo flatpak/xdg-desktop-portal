@@ -2,6 +2,7 @@
 /doc/portal-docs.html
 /doc/portal-docs.xml
 /doc/portal-org.freedesktop.*.xml
+/doc/org.freedesktop.portal.*.xml
 /po/*.gmo
 /po/*.header
 /po/*.pot
@@ -60,6 +61,8 @@ document-portal-dbus.c
 document-portal-dbus.h
 permission-store-dbus.c
 permission-store-dbus.h
+geoclue-dbus.c
+geoclue-dbus.h
 testdb
 /testdb.log
 /testdb.trs
