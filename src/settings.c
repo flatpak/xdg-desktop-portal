@@ -79,18 +79,27 @@ settings_bundle_free (SettingsBundle *bundle)
 }
 
 static gboolean
-namespace_matches (const char *namespace,
-                   const char *pattern)
+namespace_matches (const char         *namespace,
+                   const char * const *patterns)
 {
-  size_t pattern_len;
+  size_t i;
 
-  if (pattern[0] == '\0')
-    return TRUE;
-  if (strcmp (namespace, pattern) == 0)
-    return TRUE;
+  for (i = 0; patterns[i]; ++i)
+    {
+      size_t pattern_len;
+      const char *pattern = patterns[i];
 
-  pattern_len = strlen (pattern);
-  if (pattern[pattern_len - 1] == '*' && strncmp (namespace, pattern, pattern_len - 1) == 0)
+      if (pattern[0] == '\0')
+        return TRUE;
+      if (strcmp (namespace, pattern) == 0)
+        return TRUE;
+
+      pattern_len = strlen (pattern);
+      if (pattern[pattern_len - 1] == '*' && strncmp (namespace, pattern, pattern_len - 1) == 0)
+        return TRUE;
+    }
+
+  if (i == 0) /* Empty array */
     return TRUE;
 
   return FALSE;
@@ -99,7 +108,7 @@ namespace_matches (const char *namespace,
 static gboolean
 settings_handle_read_all (XdpSettings           *object,
                           GDBusMethodInvocation *invocation,
-                          const char            *arg_namespace)
+                          const char    * const *arg_namespaces)
 {
   Settings *self = (Settings *)object;
   GVariantBuilder builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("(a{sa{sv}})"));
@@ -115,7 +124,7 @@ settings_handle_read_all (XdpSettings           *object,
       GVariantDict dict;
       gsize i;
 
-      if (!namespace_matches (key, arg_namespace))
+      if (!namespace_matches (key, arg_namespaces))
         continue;
 
       keys = g_settings_schema_list_keys (value->schema);
@@ -126,7 +135,7 @@ settings_handle_read_all (XdpSettings           *object,
       g_variant_builder_add (&builder, "{s@a{sv}}", key, g_variant_dict_end (&dict));
     }
 
-  if (namespace_matches ("org.gnome.fontconfig", arg_namespace))
+  if (namespace_matches ("org.gnome.fontconfig", arg_namespaces))
     {
       GVariantDict dict;
 
