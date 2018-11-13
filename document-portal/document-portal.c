@@ -37,7 +37,6 @@ typedef struct
 static GMainLoop *loop = NULL;
 static PermissionDb *db = NULL;
 static XdgPermissionStore *permission_store;
-static int daemon_event_fd = -1;
 static int final_exit_status = 0;
 static GError *exit_error = NULL;
 static dev_t fuse_dev = 0;
@@ -1313,28 +1312,6 @@ on_bus_acquired (GDBusConnection *connection,
 }
 
 static void
-daemon_report_done (int status)
-{
-  if (daemon_event_fd != -1)
-    {
-      guint64 counter;
-
-      counter = status + 1;
-      if (write (daemon_event_fd, &counter, sizeof (counter)) < 0)
-          g_critical ("Unable to report exit status: %s", g_strerror (errno));
-
-      daemon_event_fd = -1;
-    }
-}
-
-static void
-do_exit (int status)
-{
-  daemon_report_done (status);
-  exit (status);
-}
-
-static void
 on_name_acquired (GDBusConnection *connection,
                   const gchar     *name,
                   gpointer         user_data)
@@ -1368,8 +1345,6 @@ on_name_acquired (GDBusConnection *connection,
       xdp_dbus_documents_complete_get_mount_point (dbus_api, invocation, xdp_fuse_get_mountpoint ());
       g_object_unref (invocation);
     }
-
-  daemon_report_done (0);
 }
 
 static void
@@ -1438,13 +1413,11 @@ set_one_signal_handler (int    sig,
 }
 
 static gboolean opt_verbose;
-static gboolean opt_daemon;
 static gboolean opt_replace;
 static gboolean opt_version;
 
 static GOptionEntry entries[] = {
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information", NULL },
-  { "daemon", 'd', 0, G_OPTION_ARG_NONE, &opt_daemon, "Run in background", NULL },
   { "replace", 'r', 0, G_OPTION_ARG_NONE, &opt_replace, "Replace", NULL },
   { "version", 0, 0, G_OPTION_ARG_NONE, &opt_version, "Print version and exit", NULL },
   { NULL }
@@ -1502,24 +1475,6 @@ main (int    argc,
       exit (EXIT_SUCCESS);
     }
 
-  if (opt_daemon)
-    {
-      pid_t pid;
-      ssize_t read_res;
-
-      daemon_event_fd = eventfd (0, EFD_CLOEXEC);
-      pid = fork ();
-      if (pid != 0)
-        {
-          guint64 counter;
-
-          read_res = read (daemon_event_fd, &counter, sizeof (counter));
-          if (read_res != 8)
-            exit (1);
-          exit (counter - 1);
-        }
-    }
-
   if (opt_verbose)
     g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, message_handler, NULL);
 
@@ -1532,14 +1487,14 @@ main (int    argc,
   if (db == NULL)
     {
       g_printerr ("Failed to load db: %s", error->message);
-      do_exit (2);
+      exit (2);
     }
 
   session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
   if (session_bus == NULL)
     {
       g_printerr ("No session bus: %s", error->message);
-      do_exit (3);
+      exit (3);
     }
 
   permission_store = xdg_permission_store_proxy_new_sync (session_bus, G_DBUS_PROXY_FLAGS_NONE,
@@ -1549,7 +1504,7 @@ main (int    argc,
   if (permission_store == NULL)
     {
       g_print ("No permission store: %s", error->message);
-      do_exit (4);
+      exit (4);
     }
 
   /* We want do do our custom post-mainloop exit */
@@ -1561,7 +1516,7 @@ main (int    argc,
       set_one_signal_handler (SIGINT, exit_handler, 0) == -1 ||
       set_one_signal_handler (SIGTERM, exit_handler, 0) == -1 ||
       set_one_signal_handler (SIGPIPE, SIG_IGN, 0) == -1)
-    do_exit (5);
+    exit (5);
 
   owner_id = g_bus_own_name (G_BUS_TYPE_SESSION,
                              "org.freedesktop.portal.Documents",
@@ -1588,7 +1543,7 @@ main (int    argc,
 
   g_bus_unown_name (owner_id);
 
-  do_exit (final_exit_status);
+  exit (final_exit_status);
 
   return 0;
 }
