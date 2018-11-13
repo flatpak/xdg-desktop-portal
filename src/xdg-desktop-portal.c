@@ -386,7 +386,9 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, network_monitor_create (connection));
   export_portal_implementation (connection, proxy_resolver_create (connection));
   export_portal_implementation (connection, trash_create (connection));
-  export_portal_implementation (connection, settings_create (connection));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Settings");
+  export_portal_implementation (connection, settings_create (connection, implementation ? implementation->dbus_name : NULL));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
