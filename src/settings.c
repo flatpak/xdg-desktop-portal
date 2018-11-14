@@ -129,12 +129,15 @@ settings_handle_read_all (XdpSettings           *object,
         {
           g_warning ("Failed to ReadAll() from Settings implementation: %s", error->message);
         }
-      else if (g_variant_n_children (impl_value) != 0)
+      else
         {
-          g_autoptr(GVariant) child = NULL;
+          size_t i;
 
-          child = g_variant_get_child_value (impl_value, 0);
-          g_variant_builder_add_value (&builder, child);
+          for (i = 0; i < g_variant_n_children (impl_value); ++i)
+            {
+              g_autoptr(GVariant) child = g_variant_get_child_value (impl_value, i);
+              g_variant_builder_add_value (&builder, child);
+            }
         }
     }
 
