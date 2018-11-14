@@ -115,6 +115,17 @@ handle_print (XdpPrint *object,
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
 
+  if (xdp_impl_print_get_disabled (impl))
+    {
+      g_debug ("Printing disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Printing disabled");
+      return TRUE;
+    }
+
+
   REQUEST_AUTOLOCK (request);
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -216,6 +227,16 @@ handle_prepare_print (XdpPrint *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
+
+  if (xdp_impl_print_get_disabled (impl))
+    {
+      g_debug ("Printing disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Printing disabled");
+      return TRUE;
+    }
 
   REQUEST_AUTOLOCK (request);
 
