@@ -618,6 +618,16 @@ handle_open_uri (XdpOpenURI *object,
   g_autoptr(GTask) task = NULL;
   gboolean writable;
 
+  if (xdp_impl_app_chooser_get_disabled (impl))
+    {
+      g_debug ("Application handlers disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Application handlers disabled");
+      return TRUE;
+    }
+
   if (!g_variant_lookup (arg_options, "writable", "b", &writable))
     writable = FALSE;
 
@@ -648,6 +658,16 @@ handle_open_file (XdpOpenURI *object,
   gboolean writable;
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
+
+  if (xdp_impl_app_chooser_get_disabled (impl))
+    {
+      g_debug ("Application handlers disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Application handlers disabled");
+      return TRUE;
+    }
 
   if (!g_variant_lookup (arg_options, "writable", "b", &writable))
     writable = FALSE;

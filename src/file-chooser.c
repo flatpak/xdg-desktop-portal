@@ -514,6 +514,17 @@ handle_save_file (XdpFileChooser *object,
   XdpImplRequest *impl_request;
   GVariantBuilder options;
 
+
+  if (xdp_impl_file_chooser_get_save_disabled (impl))
+    {
+      g_debug ("File saving disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "File saving disabled");
+      return TRUE;
+    }
+
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
