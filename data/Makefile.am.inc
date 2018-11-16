@@ -18,6 +18,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.ScreenCast.xml \
 	data/org.freedesktop.portal.RemoteDesktop.xml \
 	data/org.freedesktop.portal.Location.xml \
+	data/org.freedesktop.portal.Settings.xml \
 	data/org.freedesktop.impl.portal.PermissionStore.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.Session.xml \

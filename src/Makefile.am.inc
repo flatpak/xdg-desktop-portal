@@ -79,6 +79,8 @@ $(geoclue_built_sources) : src/org.freedesktop.GeoClue2.Client.xml
 		$^ \
 		$(NULL)
 
+EXTRA_DIST += src/org.freedesktop.GeoClue2.Client.xml
+
 xdg_desktop_resource_files = $(shell $(GLIB_COMPILE_RESOURCES) --sourcedir=$(srcdir) --generate-dependencies $(srcdir)/src/xdg-desktop-portal.gresource.xml)
 
 src/xdg-desktop-resources.h: src/xdg-desktop-portal.gresource.xml
