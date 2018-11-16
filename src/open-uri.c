@@ -68,6 +68,7 @@ enum {
 
 static XdpImplAppChooser *impl;
 static OpenURI *open_uri;
+static GAppInfoMonitor *monitor;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
 static void open_uri_iface_init (XdpOpenURIIface *iface);
@@ -471,6 +472,27 @@ find_recommended_choices (const char *scheme,
 }
 
 static void
+app_info_changed (GAppInfoMonitor *monitor,
+                  Request *request)
+{
+  const char *scheme;
+  const char *content_type;
+  g_auto(GStrv) choices = NULL;
+  gboolean skip_app_chooser = FALSE;
+
+  scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
+  content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
+  find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
+
+  xdp_impl_app_chooser_call_update_choices (impl,
+                                            request->id,
+                                            (const char * const *)choices,
+                                            NULL,
+                                            NULL,
+                                            NULL);
+}
+
+static void
 handle_open_in_thread_func (GTask *task,
                             gpointer source_object,
                             gpointer task_data,
@@ -548,6 +570,9 @@ handle_open_in_thread_func (GTask *task,
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
     }
 
+  g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
+  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
+
   find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
@@ -595,6 +620,8 @@ handle_open_in_thread_func (GTask *task,
                                                   NULL, NULL);
 
   request_set_impl_request (request, impl_request);
+
+  g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
 
   xdp_impl_app_chooser_call_choose_application (impl,
                                                 request->id,
@@ -732,6 +759,8 @@ open_uri_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
+
+  monitor = g_app_info_monitor_get ();
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
 }
