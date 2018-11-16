@@ -1,3 +1,15 @@
+Changes in 1.1.0
+================
+
+This is the first release in the new unstable 1.1.x series, leading up to 1.2
+which is expected around the end of the year.
+
+* Add a location portal, this requires geoclue 2.5.2
+* Add a settings portal, for desktop-wide settings like XSettings or kdeglobals
+* Allow locking down printing, save-to-disk and opening uris
+* Monitor application changes in the open uri portal
+* Add more tests
+
 xdg-desktop-portal 1.0.3
 ========================
 
