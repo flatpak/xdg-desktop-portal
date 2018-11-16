@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-07-24 01:00+0000\n"
+"POT-Creation-Date: 2018-11-16 14:10-0500\n"
 "PO-Revision-Date: 2018-11-09 15:34+0100\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
@@ -25,8 +25,11 @@ msgid "Turn On Microphone?"
 msgstr "Zapnout mikrofon?"
 
 #: src/device.c:203
-msgid "Access to your microphone can be changed at any time from the privacy settings."
-msgstr "Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
 
 #: src/device.c:207
 msgid "An application wants to use your microphone."
@@ -42,8 +45,10 @@ msgid "Turn On Speakers?"
 msgstr "Zapnout reproduktory?"
 
 #: src/device.c:216
-msgid "Access to your speakers can be changed at any time from the privacy settings."
-msgstr "Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
 
 #: src/device.c:220
 msgid "An application wants to play sound."
@@ -59,7 +64,8 @@ msgid "Turn On Camera?"
 msgstr "Zapnout kameru?"
 
 #: src/device.c:229
-msgid "Access to your camera can be changed at any time from the privacy settings."
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
 msgstr "Přístup ke své kameře můžete kdykoliv změnit v nastavení soukromí."
 
 #: src/device.c:233
@@ -99,8 +105,10 @@ msgstr "Aplikace %s chce přistupovat k vaší poloze."
 
 #: src/location.c:564
 msgid "Location access can be changed at any time from the privacy settings."
-msgstr "Přístup ke službám pro určování polohy lze kdykoliv změnit v nastavení soukromí."
+msgstr ""
+"Přístup ke službám pro určování polohy lze kdykoliv změnit v nastavení "
+"soukromí."
 
-#: src/settings.c:146 src/settings.c:162
+#: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"

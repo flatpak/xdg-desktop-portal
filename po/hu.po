@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-07-24 01:00+0000\n"
+"POT-Creation-Date: 2018-11-16 14:10-0500\n"
 "PO-Revision-Date: 2016-07-30 15:55+0100\n"
 "Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -78,3 +78,41 @@ msgstr "Egy alkalmazás használni szeretné a kameráját."
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s használni szeretné a kameráját."
+
+#: src/location.c:536
+msgid "Deny Access"
+msgstr ""
+
+#: src/location.c:538
+msgid "Grant Access"
+msgstr ""
+
+#: src/location.c:544
+msgid "Grant Access to Your Location?"
+msgstr ""
+
+#: src/location.c:545
+#, fuzzy
+msgid "An application wants to use your location."
+msgstr "Egy alkalmazás használni szeretné a kameráját."
+
+#: src/location.c:557
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr ""
+
+#: src/location.c:561
+#, fuzzy, c-format
+msgid "%s wants to use your location."
+msgstr "%s használni szeretné a kameráját."
+
+#: src/location.c:564
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
+"beállításokban."
+
+#: src/settings.c:229
+msgid "Requested setting not found"
+msgstr ""

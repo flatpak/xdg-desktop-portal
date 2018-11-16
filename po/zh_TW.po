@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-07-24 01:00+0000\n"
+"POT-Creation-Date: 2018-11-16 14:10-0500\n"
 "PO-Revision-Date: 2018-03-26 20:40+0800\n"
 "Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -71,3 +71,39 @@ msgstr "有個應用程式想要使用您的攝影機。"
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s 想要使用您的攝影機。"
+
+#: src/location.c:536
+msgid "Deny Access"
+msgstr ""
+
+#: src/location.c:538
+msgid "Grant Access"
+msgstr ""
+
+#: src/location.c:544
+msgid "Grant Access to Your Location?"
+msgstr ""
+
+#: src/location.c:545
+#, fuzzy
+msgid "An application wants to use your location."
+msgstr "有個應用程式想要使用您的攝影機。"
+
+#: src/location.c:557
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr ""
+
+#: src/location.c:561
+#, fuzzy, c-format
+msgid "%s wants to use your location."
+msgstr "%s 想要使用您的攝影機。"
+
+#: src/location.c:564
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
+
+#: src/settings.c:229
+msgid "Requested setting not found"
+msgstr ""

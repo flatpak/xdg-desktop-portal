@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-07-24 01:00+0000\n"
+"POT-Creation-Date: 2018-11-16 14:10-0500\n"
 "PO-Revision-Date: 2016-09-23 19:17+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -79,3 +79,41 @@ msgstr "Eine Anwendung möchte Ihre Kamera nutzen."
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s möchte Ihre Kamera nutzen."
+
+#: src/location.c:536
+msgid "Deny Access"
+msgstr ""
+
+#: src/location.c:538
+msgid "Grant Access"
+msgstr ""
+
+#: src/location.c:544
+msgid "Grant Access to Your Location?"
+msgstr ""
+
+#: src/location.c:545
+#, fuzzy
+msgid "An application wants to use your location."
+msgstr "Eine Anwendung möchte Ihre Kamera nutzen."
+
+#: src/location.c:557
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr ""
+
+#: src/location.c:561
+#, fuzzy, c-format
+msgid "%s wants to use your location."
+msgstr "%s möchte Ihre Kamera nutzen."
+
+#: src/location.c:564
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
+"jederzeit geändert werden."
+
+#: src/settings.c:229
+msgid "Requested setting not found"
+msgstr ""
