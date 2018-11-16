@@ -83,6 +83,21 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        UpdateChoices:
+        @handle: the request handle
+        @choices: App ids of applications to let the user choose from
+
+        This method can be called between the time of a ChooseApplication call
+        and receiving the Response signal, to update the list of applications
+        that are offered by the backend.
+    -->
+    <method name="UpdateChoices">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="as" name="choices" direction="in"/>
+    </method>
+
     <property name="disabled" type="b" access="read"/>
   </interface>
 </node>
