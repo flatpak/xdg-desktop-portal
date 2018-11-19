@@ -228,7 +228,7 @@ permission_db_init (PermissionDb *self)
 
   self->main_updates =
     g_hash_table_new_full (g_str_hash, g_str_equal,
-                           g_free, (GDestroyNotify) g_variant_unref);
+                           g_free, (GDestroyNotify) permission_db_entry_unref);
   self->app_additions =
     g_hash_table_new_full (g_str_hash, g_str_equal,
                            g_free, (GDestroyNotify) g_ptr_array_unref);
@@ -947,7 +947,8 @@ permission_db_entry_ref (PermissionDbEntry *entry)
 void
 permission_db_entry_unref (PermissionDbEntry *entry)
 {
-  g_variant_unref ((GVariant *) entry);
+  if (entry != NULL)
+    g_variant_unref ((GVariant *) entry);
 }
 
 /* Transfer: full */
