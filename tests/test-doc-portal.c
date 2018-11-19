@@ -858,6 +858,12 @@ global_teardown (void)
 static void
 test_version (void)
 {
+  if (!have_fuse)
+    {
+      g_test_skip ("this test requires FUSE");
+      return;
+    }
+
   g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 3);  
 }
 
