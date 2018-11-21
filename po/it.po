@@ -1,14 +1,14 @@
 # Italian translation for xdg-desktop-portal.
-# Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2017, 2018 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Milo Casagrande <milo@milo.name>, 2017.
+# Milo Casagrande <milo@milo.name>, 2017, 2018.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2017-06-02 11:21+0200\n"
+"PO-Revision-Date: 2018-11-21 14:54+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
 "Language: it\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.12\n"
+"X-Generator: Poedit 2.1.1\n"
 
 #: src/device.c:202
 msgid "Turn On Microphone?"
@@ -81,38 +81,36 @@ msgstr "%s vuole utilizzare la videocamera."
 
 #: src/location.c:536
 msgid "Deny Access"
-msgstr ""
+msgstr "Nega accesso"
 
 #: src/location.c:538
 msgid "Grant Access"
-msgstr ""
+msgstr "Consenti accesso"
 
 #: src/location.c:544
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "Consentire l'accesso alla propria posizione?"
 
 #: src/location.c:545
-#, fuzzy
 msgid "An application wants to use your location."
-msgstr "Un'applicazione vuole utilizzare la videocamera."
+msgstr "Un'applicazione vuole utilizzare la propria posizione."
 
 #: src/location.c:557
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "Consentire a %s di accedere alla propria posizione?"
 
 #: src/location.c:561
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s vuole utilizzare la videocamera."
+msgstr "%s vuole utilizzare la propria posizione."
 
 #: src/location.c:564
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"L'accesso al microfono può essere modificato in qualsiasi momento attraverso "
-"le impostazioni della privacy."
+"L'accesso alla posizione può essere modificato in qualsiasi momento "
+"attraverso le impostazioni della privacy."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "La risorsa richiesta non è stata trovata"
