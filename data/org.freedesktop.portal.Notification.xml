@@ -74,6 +74,17 @@
             <term>icon v</term>
             <listitem><para>
               Serialized icon (see g_icon_serialize()).
+            </para><para>
+              The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
+              these have the form (sv). For themed icons, the string is "themed",
+              and the value is an array of strings containing the icon names.
+              For bytes icons, the string is "bytes", and the value is a bytestring
+              containing the icon data in png, jpeg or svg form. For historical
+              reasons, it is also possible to send a simple string for themed
+              icons with a single icon name.
+            </para>
+            <para>
+              There may be further restrictions on the supported kinds of icons.
             </para></listitem>
           </varlistentry>
           <varlistentry>

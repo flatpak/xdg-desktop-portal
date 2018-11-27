@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <gio/gio.h>
+#include <gio/gunixoutputstream.h>
 
 #include "notification.h"
 #include "request.h"
@@ -163,35 +164,6 @@ get_notification_allowed (const char *app_id)
   return TRUE;
 }
 
-
-static void
-handle_add_in_thread_func (GTask *task,
-                           gpointer source_object,
-                           gpointer task_data,
-                           GCancellable *cancellable)
-{
-  Request *request = (Request *)task_data;
-  const char *id;
-  GVariant *notification;
-
-  REQUEST_AUTOLOCK (request);
-
-  if (!xdp_app_info_is_host (request->app_info) &&
-      !get_notification_allowed (xdp_app_info_get_id (request->app_info)))
-    return;
-
-  id = (const char *)g_object_get_data (G_OBJECT (request), "id");
-  notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
-
-  xdp_impl_notification_call_add_notification (impl,
-                                               xdp_app_info_get_id (request->app_info),
-                                               id,
-                                               notification,
-                                               NULL,
-                                               add_done,
-                                               g_object_ref (request));
-}
-
 static gboolean
 check_value_type (const char *key,
                   GVariant *value,
@@ -308,13 +280,18 @@ static gboolean
 check_serialized_icon (GVariant *value,
                        GError **error)
 {
-  g_autoptr(GIcon) icon = NULL;
-
-  if (g_variant_is_of_type (value, G_VARIANT_TYPE_STRING) ||
-      g_variant_is_of_type (value, G_VARIANT_TYPE("(sv)")))
-    icon = g_icon_deserialize (value);
+  g_autoptr(GIcon) icon = g_icon_deserialize (value);
 
   if (!icon)
+    {
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "invalid icon");
+      return FALSE;
+    }
+
+  if (!G_IS_BYTES_ICON (icon) && !G_IS_THEMED_ICON (icon))
     {
       g_set_error_literal (error,
                            XDG_DESKTOP_PORTAL_ERROR,
@@ -380,6 +357,185 @@ check_notification (GVariant *notification,
     }
 
   return TRUE;
+}
+
+/* From https://github.com/flatpak/flatpak/blob/master/common/flatpak-run.c */
+G_GNUC_NULL_TERMINATED
+static void
+add_args (GPtrArray *argv_array, ...)
+{
+  va_list args;
+  const char *arg;
+
+  va_start (args, argv_array);
+  while ((arg = va_arg (args, const gchar *)))
+    g_ptr_array_add (argv_array, g_strdup (arg));
+  va_end (args);
+}
+
+static void
+add_env (GPtrArray  *array,
+         const char *envvar)
+{
+  if (g_getenv (envvar) != NULL)
+    add_args (array,
+              "--setenv", envvar, g_getenv (envvar),
+              NULL);
+}
+
+static void
+add_bwrap (GPtrArray *array,
+           const char *input)
+{
+  add_args (array,
+            BWRAP,
+            "--ro-bind", "/usr", "/usr",
+            "--ro-bind", "/lib", "/lib",
+            "--ro-bind", "/lib64", "/lib64",
+            "--tmpfs", "/tmp",
+            "--proc", "/proc",
+            "--dev", "/dev",
+            "--symlink", "usr/bin", "/bin",
+            "--symlink", "usr/sbin", "/sbin",
+            "--chdir", "/",
+            "--setenv", "GIO_USE_VFS", "local",
+            "--unsetenv", "TMPDIR",
+            "--unshare-all",
+            "--die-with-parent",
+            NULL);
+
+  add_env (array, "G_MESSAGES_DEBUG");
+  add_env (array, "G_MESSAGES_PREFIXED");
+
+  g_ptr_array_add (array, g_strdup ("--ro-bind"));
+  g_ptr_array_add (array, g_strdup (input));
+  g_ptr_array_add (array, g_strdup (input));
+}
+
+static gboolean
+validate_icon_more (GVariant *v)
+{
+  g_autoptr(GIcon) icon = g_icon_deserialize (v);
+  GBytes *bytes;
+  g_autofree char *name = NULL;
+  g_autoptr(GPtrArray) array = NULL;
+  int fd = -1;
+  g_autoptr(GOutputStream) stream = NULL;
+  gssize written;
+  int status;
+  g_autofree char *err = NULL;
+  g_autoptr(GError) error = NULL;
+
+  if (G_IS_THEMED_ICON (icon))
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)g_themed_icon_get_names (G_THEMED_ICON (icon)));
+      g_debug ("Icon validation: themed icon (%s) is ok", a);
+      return TRUE;
+    }
+
+  if (!G_IS_BYTES_ICON (icon))
+    {
+      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
+      return FALSE;
+    }
+
+  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+  fd = g_file_open_tmp ("iconXXXXXX", &name, &error); 
+  if (fd == -1)
+    {
+      g_debug ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  stream = g_unix_output_stream_new (fd, TRUE);
+  written = g_output_stream_write_bytes (stream, bytes, NULL, &error);
+  if (written < g_bytes_get_size (bytes))
+    {
+      g_debug ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  if (!g_output_stream_close (stream, NULL, &error))
+    {
+      g_debug ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  array = g_ptr_array_new_with_free_func (g_free);
+
+  add_bwrap (array, name);
+  add_args (array,
+            LIBEXECDIR "/xdg-desktop-portal-validate-icon", name,
+            NULL);
+  g_ptr_array_add (array, NULL);
+  {
+    g_autofree char *a = g_strjoinv (" ", (char **)array->pdata);
+    g_debug ("Icon validation: %s", a);
+  }
+
+  if (!g_spawn_sync (NULL, (char **)array->pdata, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
+    {
+      g_debug ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  if (!g_spawn_check_exit_status (status, NULL))
+    {
+      g_debug ("Icon validation: %s", err);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static GVariant *
+maybe_remove_icon (GVariant *notification)
+{
+  GVariantBuilder n;
+  int i;
+
+  g_variant_builder_init (&n, G_VARIANT_TYPE_VARDICT);
+  for (i = 0; i < g_variant_n_children (notification); i++)
+    {
+      const char *key;
+      g_autoptr(GVariant) value = NULL;
+
+      g_variant_get_child (notification, i, "{&sv}", &key, &value);
+      if (strcmp (key, "icon") != 0 || validate_icon_more (value))
+        g_variant_builder_add (&n, "{sv}", key, value);
+    }
+
+  return g_variant_ref_sink (g_variant_builder_end (&n));
+}
+
+static void
+handle_add_in_thread_func (GTask *task,
+                           gpointer source_object,
+                           gpointer task_data,
+                           GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  const char *id;
+  GVariant *notification;
+  g_autoptr(GVariant) notification2 = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  if (!xdp_app_info_is_host (request->app_info) &&
+      !get_notification_allowed (xdp_app_info_get_id (request->app_info)))
+    return;
+
+  id = (const char *)g_object_get_data (G_OBJECT (request), "id");
+  notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
+
+  notification2 = maybe_remove_icon (notification);
+  xdp_impl_notification_call_add_notification (impl,
+                                               xdp_app_info_get_id (request->app_info),
+                                               id,
+                                               notification2,
+                                               NULL,
+                                               add_done,
+                                               g_object_ref (request));
 }
 
 static gboolean
