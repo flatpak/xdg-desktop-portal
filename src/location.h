@@ -24,4 +24,5 @@
 #include <gio/gio.h>
 
 GDBusInterfaceSkeleton * location_create (GDBusConnection *connection,
-                                          const char *dbus_name);
+                                          const char *dbus_name,
+                                          gpointer lockdown);

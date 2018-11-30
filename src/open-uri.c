@@ -69,6 +69,7 @@ enum {
 static XdpImplAppChooser *impl;
 static OpenURI *open_uri;
 static GAppInfoMonitor *monitor;
+static XdpImplLockdown *lockdown;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
 static void open_uri_iface_init (XdpOpenURIIface *iface);
@@ -645,7 +646,7 @@ handle_open_uri (XdpOpenURI *object,
   g_autoptr(GTask) task = NULL;
   gboolean writable;
 
-  if (xdp_impl_app_chooser_get_disabled (impl))
+  if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
     {
       g_debug ("Application handlers disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -686,7 +687,7 @@ handle_open_file (XdpOpenURI *object,
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
 
-  if (xdp_impl_app_chooser_get_disabled (impl))
+  if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
     {
       g_debug ("Application handlers disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -741,9 +742,12 @@ open_uri_class_init (OpenURIClass *klass)
 
 GDBusInterfaceSkeleton *
 open_uri_create (GDBusConnection *connection,
-                 const char *dbus_name)
+                 const char *dbus_name,
+                 gpointer lockdown_proxy)
 {
   g_autoptr(GError) error = NULL;
+
+  lockdown = lockdown_proxy;
 
   impl = xdp_impl_app_chooser_proxy_new_sync (connection,
                                               G_DBUS_PROXY_FLAGS_NONE,

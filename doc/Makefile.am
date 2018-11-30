@@ -35,6 +35,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Access.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Settings.xml	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Lockdown.xml	\
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
 	$(NULL)
@@ -72,6 +73,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
 	portal-org.freedesktop.impl.portal.Access.xml	 		\
 	portal-org.freedesktop.impl.portal.Settings.xml	 		\
+	portal-org.freedesktop.impl.portal.Lockdown.xml	 		\
 	portal-org.freedesktop.impl.portal.PermissionStore.xml		\
 	$(NULL)
 

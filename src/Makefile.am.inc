@@ -54,6 +54,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.ScreenCast.xml \
 	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	data/org.freedesktop.impl.portal.Settings.xml \
+	data/org.freedesktop.impl.portal.Lockdown.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)

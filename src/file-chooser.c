@@ -53,6 +53,7 @@ struct _FileChooserClass
   XdpFileChooserSkeletonClass parent_class;
 };
 
+static XdpImplLockdown *lockdown;
 static XdpImplFileChooser *impl;
 static FileChooser *file_chooser;
 
@@ -514,8 +515,7 @@ handle_save_file (XdpFileChooser *object,
   XdpImplRequest *impl_request;
   GVariantBuilder options;
 
-
-  if (xdp_impl_file_chooser_get_save_disabled (impl))
+  if (xdp_impl_lockdown_get_disable_save_to_disk (lockdown))
     {
       g_debug ("File saving disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -582,9 +582,12 @@ file_chooser_class_init (FileChooserClass *klass)
 
 GDBusInterfaceSkeleton *
 file_chooser_create (GDBusConnection *connection,
-                     const char      *dbus_name)
+                     const char      *dbus_name,
+                     gpointer         lockdown_proxy)
 {
   g_autoptr(GError) error = NULL;
+
+  lockdown = lockdown_proxy;
 
   impl = xdp_impl_file_chooser_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,

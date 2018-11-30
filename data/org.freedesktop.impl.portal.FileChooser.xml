@@ -197,6 +197,5 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
-    <property name="save-disabled" type="b" access="read"/>
   </interface>
 </node>

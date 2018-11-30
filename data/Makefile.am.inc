@@ -34,4 +34,5 @@ dist_introspection_DATA = \
 	data/org.freedesktop.impl.portal.ScreenCast.xml \
 	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	data/org.freedesktop.impl.portal.Settings.xml \
+	data/org.freedesktop.impl.portal.Lockdown.xml \
 	$(NULL)

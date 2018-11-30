@@ -53,6 +53,7 @@ struct _PrintClass
 
 static XdpImplPrint *impl;
 static Print *print;
+static XdpImplLockdown *lockdown;
 
 GType print_get_type (void) G_GNUC_CONST;
 static void print_iface_init (XdpPrintIface *iface);
@@ -115,7 +116,7 @@ handle_print (XdpPrint *object,
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
 
-  if (xdp_impl_print_get_disabled (impl))
+  if (xdp_impl_lockdown_get_disable_printing (lockdown))
     {
       g_debug ("Printing disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -228,7 +229,7 @@ handle_prepare_print (XdpPrint *object,
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
 
-  if (xdp_impl_print_get_disabled (impl))
+  if (xdp_impl_lockdown_get_disable_printing (lockdown))
     {
       g_debug ("Printing disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -294,9 +295,12 @@ print_class_init (PrintClass *klass)
 
 GDBusInterfaceSkeleton *
 print_create (GDBusConnection *connection,
-              const char *dbus_name)
+              const char *dbus_name,
+              gpointer lockdown_proxy)
 {
   g_autoptr(GError) error = NULL;
+
+  lockdown = lockdown_proxy;
 
   impl = xdp_impl_print_proxy_new_sync (connection,
                                         G_DBUS_PROXY_FLAGS_NONE,

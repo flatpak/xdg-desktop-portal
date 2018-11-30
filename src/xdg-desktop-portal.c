@@ -29,6 +29,7 @@
 
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
+#include "xdp-impl-dbus.h"
 #include "request.h"
 #include "call.h"
 #include "documents.h"
@@ -378,10 +379,21 @@ on_bus_acquired (GDBusConnection *connection,
 {
   PortalImplementation *implementation;
   g_autoptr(GError) error = NULL;
+  XdpImplLockdown *lockdown;
 
   xdp_connection_track_name_owners (connection, peer_died_cb);
   init_document_proxy (connection);
   init_permission_store (connection);
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Lockdown");
+  if (implementation != NULL)
+    lockdown = xdp_impl_lockdown_proxy_new_sync (connection,
+                                                 G_DBUS_PROXY_FLAGS_NONE,
+                                                 implementation->dbus_name,
+                                                 DESKTOP_PORTAL_OBJECT_PATH,
+                                                 NULL, &error);
+  else
+    lockdown = xdp_impl_lockdown_skeleton_new ();
 
   export_portal_implementation (connection, network_monitor_create (connection));
   export_portal_implementation (connection, proxy_resolver_create (connection));
@@ -393,17 +405,17 @@ on_bus_acquired (GDBusConnection *connection,
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
     export_portal_implementation (connection,
-                                  file_chooser_create (connection, implementation->dbus_name));
+                                  file_chooser_create (connection, implementation->dbus_name, lockdown));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.AppChooser");
   if (implementation != NULL)
     export_portal_implementation (connection,
-                                  open_uri_create (connection, implementation->dbus_name));
+                                  open_uri_create (connection, implementation->dbus_name, lockdown));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Print");
   if (implementation != NULL)
     export_portal_implementation (connection,
-                                  print_create (connection, implementation->dbus_name));
+                                  print_create (connection, implementation->dbus_name, lockdown));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
   if (implementation != NULL)
@@ -424,10 +436,10 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     {
       export_portal_implementation (connection,
-                                    device_create (connection, implementation->dbus_name));
+                                    device_create (connection, implementation->dbus_name, lockdown));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
-                                    location_create (connection, implementation->dbus_name));
+                                    location_create (connection, implementation->dbus_name, lockdown));
 #endif
     }
 
