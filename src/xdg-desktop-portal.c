@@ -436,7 +436,7 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     {
       export_portal_implementation (connection,
-                                    device_create (connection, implementation->dbus_name));
+                                    device_create (connection, implementation->dbus_name, lockdown));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
