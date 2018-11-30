@@ -143,6 +143,7 @@
     <xi:include href="portal-org.freedesktop.impl.portal.Notification.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Inhibit.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Access.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Settings.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.PermissionStore.xml"/>
   </reference>
 </book>

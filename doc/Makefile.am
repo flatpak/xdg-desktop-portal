@@ -71,6 +71,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.Notification.xml 		\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
 	portal-org.freedesktop.impl.portal.Access.xml	 		\
+	portal-org.freedesktop.impl.portal.Settings.xml	 		\
 	portal-org.freedesktop.impl.portal.PermissionStore.xml		\
 	$(NULL)
 

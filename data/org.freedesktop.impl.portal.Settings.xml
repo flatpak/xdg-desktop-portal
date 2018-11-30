@@ -20,8 +20,8 @@
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-    org.freedesktop.portal.Settings:
-    @short_description: Settings interface
+    org.freedesktop.impl.portal.Settings:
+    @short_description: Settings portal backend interface
 
     This interface provides read-only access to a small number
     of host settings required for toolkits similar to XSettings.
@@ -30,6 +30,9 @@
     Currently the valid keys are entirely implementation details
     that are undocumented. If you are a toolkit and want to use
     this please open an issue.
+
+    Note that the Settings portal can operate without this backend,
+    implementing it is optional.
   -->
   <interface name="org.freedesktop.impl.portal.Settings">
 
