@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2018-02-13 01:08+0200\n"
+"POT-Creation-Date: 2018-11-17 03:26+0000\n"
+"PO-Revision-Date: 2018-12-04 12:02+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.2\n"
 
 #: src/device.c:202
 msgid "Turn On Microphone?"
@@ -82,38 +82,36 @@ msgstr "%s nori naudoti jūsų kamerą."
 
 #: src/location.c:536
 msgid "Deny Access"
-msgstr ""
+msgstr "Drausti prieigą"
 
 #: src/location.c:538
 msgid "Grant Access"
-msgstr ""
+msgstr "Suteikti prieigą"
 
 #: src/location.c:544
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "Suteikti prieigą prie jūsų buvimo vietos?"
 
 #: src/location.c:545
-#, fuzzy
 msgid "An application wants to use your location."
-msgstr "Programa nori naudoti jūsų kamerą."
+msgstr "Programa nori naudoti jūsų buvimo vietą."
 
 #: src/location.c:557
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "Suteikti %s prieigą prie jūsų buvimo vietos?"
 
 #: src/location.c:561
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s nori naudoti jūsų kamerą."
+msgstr "%s nori naudoti jūsų buvimo vietą."
 
 #: src/location.c:564
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"Prieiga prie jūsų garsiakalbių bet kuriuo metu gali būti pakeista privatumo "
+"Prieiga prie jūsų buvimo vietos bet kuriuo metu gali būti pakeista privatumo "
 "nustatymuose."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "Užklaustas nustatymas nerastas"
