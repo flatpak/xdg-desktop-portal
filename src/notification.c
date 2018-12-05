@@ -133,6 +133,7 @@ get_notification_allowed (const char *app_id)
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
   g_autoptr(GError) error = NULL;
+  const char *permissions[2];
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
                                                    TABLE_NAME,
@@ -160,6 +161,22 @@ get_notification_allowed (const char *app_id)
     }
 
   g_debug ("No notification permissions stored for %s: allowing", app_id);
+
+  permissions[0] = "yes";
+  permissions[1] = NULL;
+
+  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
+                                                           TABLE_NAME,
+                                                           TRUE,
+                                                           "notification",
+                                                           app_id,
+                                                           (const char * const*)permissions,
+                                                           NULL,
+                                                           &error))
+    {
+      g_warning ("Error updating permission store: %s", error->message);
+    }
+
 
   return TRUE;
 }
