@@ -1,0 +1,114 @@
+# Danish translation for xdg-desktop-portal
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# scootergrisen, 2018.
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2018-12-05 03:29+0000\n"
+"PO-Revision-Date: 2018-12-06 03:17+0200\n"
+"Last-Translator: scootergrisen\n"
+"Language-Team: Danish\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/device.c:203
+msgid "Turn On Microphone?"
+msgstr "Tænd for mikrofonen?"
+
+#: src/device.c:204
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Adgang til din mikrofon kan når som helst ændres fra "
+"privatlivsindstillingerne."
+
+#: src/device.c:208
+msgid "An application wants to use your microphone."
+msgstr "Et program anmoder om at bruge din mikrofon."
+
+#: src/device.c:210
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s anmoder om at bruge din mikrofon."
+
+#: src/device.c:216
+msgid "Turn On Speakers?"
+msgstr "Tænd for højttalerne?"
+
+#: src/device.c:217
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Adgang til dine højttalere kan når som helst ændres fra "
+"privatlivsindstillingerne."
+
+#: src/device.c:221
+msgid "An application wants to play sound."
+msgstr "Et program anmoder om at afspille lyd."
+
+#: src/device.c:223
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s anmoder om at afspille lyd."
+
+#: src/device.c:229
+msgid "Turn On Camera?"
+msgstr "Tænd for kameraet?"
+
+#: src/device.c:230
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"Adgang til dit kamera kan når som helst ændres fra "
+"privatlivsindstillingerne."
+
+#: src/device.c:234
+msgid "An application wants to use your camera."
+msgstr "Et program anmoder om at bruge dit kamera."
+
+#: src/device.c:236
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s anmoder om at bruge dit kamera."
+
+#: src/location.c:547
+msgid "Deny Access"
+msgstr "Nægt adgang"
+
+#: src/location.c:549
+msgid "Grant Access"
+msgstr "Giv adgang"
+
+#: src/location.c:555
+msgid "Grant Access to Your Location?"
+msgstr "Giv adgang til din placering?"
+
+#: src/location.c:556
+msgid "An application wants to use your location."
+msgstr "Et program anmoder om at bruge din placering."
+
+#: src/location.c:568
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Giv %s adgang til din placering?"
+
+#: src/location.c:572
+#, c-format
+msgid "%s wants to use your location."
+msgstr "%s anmoder om at bruge din placering."
+
+#: src/location.c:575
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Adgang til din placering kan når som helst ændres fra "
+"privatlivsindstillingerne."
+
+#: src/settings.c:229
+msgid "Requested setting not found"
+msgstr "Den anmodede indstilling blev ikke fundet"
