@@ -31,7 +31,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define TABLE_NAME "inhibit"
+#define PERMISSION_TABLE "inhibit"
 
 enum {
   INHIBIT_LOGOUT  = 1,
@@ -85,7 +85,7 @@ get_allowed_inhibit (const char *app_id)
   guint32 ret = 0;
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   TABLE_NAME,
+                                                   PERMISSION_TABLE,
                                                    "inhibit",
                                                    &out_perms,
                                                    &out_data,
