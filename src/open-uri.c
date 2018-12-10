@@ -43,7 +43,7 @@
 #include "permissions.h"
 #include "documents.h"
 
-#define TABLE_NAME "desktop-used-apps"
+#define PERMISSION_TABLE "desktop-used-apps"
 
 typedef struct _OpenURI OpenURI;
 
@@ -129,18 +129,18 @@ get_latest_choice_info (const char *app_id,
   g_autoptr(GVariant) out_data = NULL;
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   TABLE_NAME,
+                                                   PERMISSION_TABLE,
                                                    content_type,
                                                    &out_perms,
                                                    &out_data,
                                                    NULL,
                                                    &error))
     {
+      g_dbus_error_strip_remote_error (error);
       /* Not finding an entry for the content type in the permission store is perfectly ok */
       if (!g_error_matches (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND))
         g_warning ("Unable to retrieve info for '%s' in the %s table of the permission store: %s",
-                   content_type, TABLE_NAME, error->message);
-
+                   content_type, PERMISSION_TABLE, error->message);
       g_clear_error (&error);
     }
 
@@ -268,7 +268,7 @@ update_permissions_store (const char *app_id,
   in_permissions[PERM_APP_THRESHOLD] = always_ask ? g_strdup ("") : g_strdup_printf ("%u", latest_threshold);
 
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           TABLE_NAME,
+                                                           PERMISSION_TABLE,
                                                            TRUE,
                                                            content_type,
                                                            app_id,
@@ -276,6 +276,7 @@ update_permissions_store (const char *app_id,
                                                            NULL,
                                                            &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Error updating permission store: %s", error->message);
       g_clear_error (&error);
     }
