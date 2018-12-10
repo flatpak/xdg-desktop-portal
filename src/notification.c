@@ -31,8 +31,8 @@
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 
-#define TABLE_NAME "notifications"
-#define OBJECT_NAME "notification"
+#define PERMISSION_TABLE "notifications"
+#define PERMISSION_ID "notification"
 
 typedef struct _Notification Notification;
 typedef struct _NotificationClass NotificationClass;
@@ -137,8 +137,8 @@ get_notification_allowed (const char *app_id)
   const char *permissions[2];
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   TABLE_NAME,
-                                                   OBJECT_NAME,
+                                                   PERMISSION_TABLE,
+                                                   PERMISSION_ID,
                                                    &out_perms,
                                                    &out_data,
                                                    NULL,
@@ -168,9 +168,9 @@ get_notification_allowed (const char *app_id)
   permissions[1] = NULL;
 
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           TABLE_NAME,
+                                                           PERMISSION_TABLE,
                                                            TRUE,
-                                                           OBJECT_NAME,
+                                                           PERMISSION_ID,
                                                            app_id,
                                                            (const char * const*)permissions,
                                                            NULL,
