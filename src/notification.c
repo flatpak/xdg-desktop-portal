@@ -32,6 +32,7 @@
 #include "xdp-utils.h"
 
 #define TABLE_NAME "notifications"
+#define OBJECT_NAME "notification"
 
 typedef struct _Notification Notification;
 typedef struct _NotificationClass NotificationClass;
@@ -137,14 +138,15 @@ get_notification_allowed (const char *app_id)
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
                                                    TABLE_NAME,
-                                                   "notification",
+                                                   OBJECT_NAME,
                                                    &out_perms,
                                                    &out_data,
                                                    NULL,
                                                    &error))
     {
-      g_warning ("Error getting permissions: %s", error->message);
-      return TRUE;
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("No notification permissions found: %s", error->message);
+      g_clear_error (&error);
     }
 
   if (out_perms != NULL)
@@ -168,15 +170,15 @@ get_notification_allowed (const char *app_id)
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            TABLE_NAME,
                                                            TRUE,
-                                                           "notification",
+                                                           OBJECT_NAME,
                                                            app_id,
                                                            (const char * const*)permissions,
                                                            NULL,
                                                            &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Error updating permission store: %s", error->message);
     }
-
 
   return TRUE;
 }
