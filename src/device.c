@@ -39,7 +39,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define TABLE_NAME "devices"
+#define PERMISSION_TABLE "devices"
 
 typedef struct _Device Device;
 typedef struct _DeviceClass DeviceClass;
@@ -76,14 +76,15 @@ get_permission (const char *app_id,
   const char **permissions;
 
   if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   TABLE_NAME,
+                                                   PERMISSION_TABLE,
                                                    device,
                                                    &out_perms,
                                                    &out_data,
                                                    NULL,
                                                    &error))
     {
-      g_warning ("Error updating permission store: %s", error->message);
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("No device permissions found: %s", error->message);
       return UNSET;
     }
 
@@ -139,7 +140,7 @@ set_permission (const char *app_id,
   permissions[1] = NULL;
 
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           TABLE_NAME,
+                                                           PERMISSION_TABLE,
                                                            TRUE,
                                                            device,
                                                            app_id,
@@ -147,6 +148,7 @@ set_permission (const char *app_id,
                                                            NULL,
                                                            &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Error updating permission store: %s", error->message);
     }
 }
