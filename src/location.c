@@ -348,7 +348,8 @@ get_location_permissions (const char *app_id,
                                                    NULL,
                                                    &error))
     {
-      g_warning ("Error getting permissions: %s", error->message);
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("Error getting permissions: %s", error->message);
       return FALSE;
     }
 
@@ -400,6 +401,7 @@ set_location_permissions (const char *app_id,
                                                            NULL,
                                                            &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Error setting permissions: %s", error->message);
     }
 }
