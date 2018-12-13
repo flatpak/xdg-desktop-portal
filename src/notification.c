@@ -432,6 +432,7 @@ add_bwrap (GPtrArray *array,
   add_args (array,
             BWRAP,
             "--ro-bind", "/usr", "/usr",
+            "--ro-bind", "/etc/ld.so.cache", "/etc/ld.so.cache",
             NULL);
 
   /* These directories might be symlinks into /usr/... */
