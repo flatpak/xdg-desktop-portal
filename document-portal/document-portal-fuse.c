@@ -1002,6 +1002,7 @@ xdp_inode_stat (XdpInode    *inode,
         stbuf->st_atim = tmp_stbuf.st_atim;
         stbuf->st_mtim = tmp_stbuf.st_mtim;
         stbuf->st_ctim = tmp_stbuf.st_ctim;
+        stbuf->st_nlink = 1;
       }
       break;
 
