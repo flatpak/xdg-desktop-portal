@@ -55,10 +55,12 @@ static GMainLoop *loop = NULL;
 
 gboolean opt_verbose;
 static gboolean opt_replace;
+static gboolean show_version;
 
 static GOptionEntry entries[] = {
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information during command processing", NULL },
   { "replace", 'r', 0, G_OPTION_ARG_NONE, &opt_replace, "Replace a running instance", NULL },
+  { "version", 0, 0, G_OPTION_ARG_NONE, &show_version, "Show program version.", NULL},
   { NULL }
 };
 
@@ -501,8 +503,6 @@ main (int argc, char *argv[])
   /* Avoid pointless and confusing recursion */
   g_unsetenv ("GTK_USE_PORTAL");
 
-  g_set_printerr_handler (printerr_handler);
-
   context = g_option_context_new ("- desktop portal");
   g_option_context_set_summary (context,
       "A portal service for flatpak and other desktop containment frameworks.");
@@ -518,9 +518,22 @@ main (int argc, char *argv[])
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))
     {
-      g_printerr ("Option parsing failed: %s", error->message);
+      g_printerr ("%s: %s", g_get_application_name (), error->message);
+      g_printerr ("\n");
+      g_printerr ("Try \"%s --help\" for more information.",
+                  g_get_prgname ());
+      g_printerr ("\n");
+      g_option_context_free (context);
       return 1;
     }
+
+  if (show_version)
+    {
+      g_print (PACKAGE_STRING "\n");
+      return 0;
+    }
+
+  g_set_printerr_handler (printerr_handler);
 
   if (opt_verbose)
     g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, message_handler, NULL);
