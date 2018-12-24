@@ -145,7 +145,7 @@ get_user_information_done (GObject *source,
 }
 
 static XdpOptionKey open_file_options[] = {
-  { "reason", G_VARIANT_TYPE_STRING },
+  { "reason", G_VARIANT_TYPE_STRING, NULL },
 };
 
 static gboolean
@@ -178,7 +178,8 @@ handle_get_user_information (XdpAccount *object,
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options,
-                      open_file_options, G_N_ELEMENTS (open_file_options));
+                      open_file_options, G_N_ELEMENTS (open_file_options),
+                      NULL);
 
   xdp_impl_account_call_get_user_information (impl,
                                               request->id,

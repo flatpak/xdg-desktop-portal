@@ -32,6 +32,8 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include <flatpak.h>
+
 #include "email.h"
 #include "request.h"
 #include "documents.h"
@@ -107,7 +109,6 @@ compose_email_done (GObject *source,
     }
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
@@ -115,9 +116,9 @@ compose_email_done (GObject *source,
 }
 
 static XdpOptionKey compose_email_options[] = {
-  { "address", G_VARIANT_TYPE_STRING },
-  { "subject", G_VARIANT_TYPE_STRING },
-  { "body", G_VARIANT_TYPE_STRING }
+  { "address", G_VARIANT_TYPE_STRING, NULL },
+  { "subject", G_VARIANT_TYPE_STRING, NULL },
+  { "body", G_VARIANT_TYPE_STRING, NULL }
 };
 
 static gboolean
@@ -177,8 +178,13 @@ handle_compose_email (XdpEmail *object,
       g_variant_builder_add (&options, "{sv}", "attachments", g_variant_builder_end (&attachments));
     }
 
-  xdp_filter_options (arg_options, &options,
-                      compose_email_options, G_N_ELEMENTS (compose_email_options));
+  if (!xdp_filter_options (arg_options, &options,
+                           compose_email_options, G_N_ELEMENTS (compose_email_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));

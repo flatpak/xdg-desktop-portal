@@ -75,12 +75,14 @@ void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
 typedef struct {
   const char *key;
   const GVariantType *type;
+  gboolean (* validate) (const char *key, GVariant *value, GError **error);
 } XdpOptionKey;
 
-void xdp_filter_options (GVariant *options_in,
-                         GVariantBuilder *options_out,
-                         XdpOptionKey *supported_options,
-                         int n_supported_options);
+gboolean xdp_filter_options (GVariant *options_in,
+                             GVariantBuilder *options_out,
+                             XdpOptionKey *supported_options,
+                             int n_supported_options,
+                             GError **error);
 
 typedef enum {
   XDG_DESKTOP_PORTAL_ERROR_FAILED     = 0,

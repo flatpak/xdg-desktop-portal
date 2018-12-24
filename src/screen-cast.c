@@ -22,6 +22,8 @@
 #include <pipewire/pipewire.h>
 #include <gio/gunixfdlist.h>
 
+#include <flatpak.h>
+
 #include "session.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
@@ -335,9 +337,26 @@ select_sources_done (GObject *source_object,
     }
 }
 
+static gboolean
+validate_device_types (const char *key,
+                       GVariant *value,
+                       GError **error)
+{
+  guint32 types = g_variant_get_uint32 (value);
+
+  if ((types & ~(1 | 2)) != 0)
+    {
+      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unsupported device type: %x", types & ~(1 | 2));
+      return FALSE;
+    } 
+
+  return TRUE;
+}
+
 static XdpOptionKey screen_cast_select_sources_options[] = {
-  { "types", G_VARIANT_TYPE_UINT32 },
-  { "multiple", G_VARIANT_TYPE_BOOLEAN },
+  { "types", G_VARIANT_TYPE_UINT32, validate_device_types },
+  { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
 
 static gboolean
@@ -435,9 +454,14 @@ handle_select_sources (XdpScreenCast *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
-  xdp_filter_options (arg_options, &options_builder,
-                      screen_cast_select_sources_options,
-                      G_N_ELEMENTS (screen_cast_select_sources_options));
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           screen_cast_select_sources_options,
+                           G_N_ELEMENTS (screen_cast_select_sources_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,

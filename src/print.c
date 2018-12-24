@@ -97,8 +97,8 @@ print_done (GObject *source,
 }
 
 static XdpOptionKey print_options[] = {
-  { "token", G_VARIANT_TYPE_UINT32 },
-  { "modal", G_VARIANT_TYPE_BOOLEAN }
+  { "token", G_VARIANT_TYPE_UINT32, NULL },
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
 static gboolean
@@ -145,7 +145,7 @@ handle_print (XdpPrint *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
-                      print_options, G_N_ELEMENTS (print_options));
+                      print_options, G_N_ELEMENTS (print_options), NULL);
   xdp_impl_print_call_print(impl,
                             request->id,
                             app_id,
@@ -164,9 +164,9 @@ handle_print (XdpPrint *object,
 }
 
 XdpOptionKey response_options[] = {
-  { "settings", G_VARIANT_TYPE_VARDICT },
-  { "page-setup", G_VARIANT_TYPE_VARDICT },
-  { "token", G_VARIANT_TYPE_UINT32 }
+  { "settings", G_VARIANT_TYPE_VARDICT, NULL },
+  { "page-setup", G_VARIANT_TYPE_VARDICT, NULL },
+  { "token", G_VARIANT_TYPE_UINT32, NULL }
 };
 
 static void
@@ -200,7 +200,8 @@ prepare_print_done (GObject *source,
 
       if (response == 0)
         xdp_filter_options (options, &opt_builder,
-                            response_options, G_N_ELEMENTS (response_options));
+                            response_options, G_N_ELEMENTS (response_options),
+                            NULL);
 
       xdp_request_emit_response (XDP_REQUEST (request),
                                  response,
@@ -257,7 +258,7 @@ handle_prepare_print (XdpPrint *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
-                      prepare_print_options, G_N_ELEMENTS (prepare_print_options));
+                      prepare_print_options, G_N_ELEMENTS (prepare_print_options), NULL);
   xdp_impl_print_call_prepare_print (impl,
                                      request->id,
                                      app_id,

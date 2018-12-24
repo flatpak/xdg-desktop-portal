@@ -249,8 +249,9 @@ check_filter (GVariant *filter,
 }
 
 static gboolean
-check_filters (GVariant *value,
-               GError **error)
+validate_filters (const char *key,
+                  GVariant *value,
+                  GError **error)
 {
   int i;
 
@@ -359,8 +360,9 @@ check_choice (GVariant *choice,
 }
 
 static gboolean
-check_choices (GVariant *value,
-               GError **error)
+validate_choices (const char *key,
+                  GVariant *value,
+                  GError **error)
 {
   int i;
 
@@ -382,11 +384,11 @@ check_choices (GVariant *value,
 }
 
 static XdpOptionKey open_file_options[] = {
-  { "accept_label", G_VARIANT_TYPE_STRING },
-  { "modal", G_VARIANT_TYPE_BOOLEAN },
-  { "multiple", G_VARIANT_TYPE_BOOLEAN },
-  { "filters", (const GVariantType *)"a(sa(us))" },
-  { "choices", (const GVariantType *)"a(ssa(ss)s)" }
+  { "accept_label", G_VARIANT_TYPE_STRING, NULL },
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
+  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices }
 };
 
 static gboolean
@@ -405,34 +407,14 @@ handle_open_file (XdpFileChooser *object,
 
   REQUEST_AUTOLOCK (request);
 
-  value = g_variant_lookup_value (arg_options, "filters", NULL);
-  if (value != NULL)
-    {
-      if (!check_filters (value, &error))
-        {
-          g_prefix_error (&error, "invalid filters: ");
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-      g_variant_unref (value);
-      value = NULL;
-    }
-  value = g_variant_lookup_value (arg_options, "choices", NULL);
-  if (value != NULL)
-    {
-      if (!check_choices (value, &error))
-        {
-          g_prefix_error (&error, "invalid choices: ");
-          g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
-        }
-      g_variant_unref (value);
-      value = NULL;
-    }
-
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  xdp_filter_options (arg_options, &options,
-                      open_file_options, G_N_ELEMENTS (open_file_options));
+  if (!xdp_filter_options (arg_options, &options,
+                           open_file_options, G_N_ELEMENTS (open_file_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -464,13 +446,13 @@ handle_open_file (XdpFileChooser *object,
 }
 
 static XdpOptionKey save_file_options[] = {
-  { "accept_label", G_VARIANT_TYPE_STRING },
-  { "modal", G_VARIANT_TYPE_BOOLEAN },
-  { "filters", (const GVariantType *)"a(sa(us))" },
-  { "current_name", G_VARIANT_TYPE_STRING },
-  { "current_folder", G_VARIANT_TYPE_BYTESTRING },
-  { "current_file", G_VARIANT_TYPE_BYTESTRING },
-  { "choices", (const GVariantType *)"a(ssa(ss)s)" }
+  { "accept_label", G_VARIANT_TYPE_STRING, NULL },
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
+  { "current_name", G_VARIANT_TYPE_STRING, NULL },
+  { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
+  { "current_file", G_VARIANT_TYPE_BYTESTRING, NULL },
+  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices  }
 };
 
 static void
@@ -528,8 +510,13 @@ handle_save_file (XdpFileChooser *object,
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
-  xdp_filter_options (arg_options, &options,
-                      save_file_options, G_N_ELEMENTS (save_file_options));
+  if (!xdp_filter_options (arg_options, &options,
+                           save_file_options, G_N_ELEMENTS (save_file_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,

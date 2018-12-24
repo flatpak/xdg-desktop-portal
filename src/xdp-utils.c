@@ -684,23 +684,47 @@ xdp_connection_track_name_owners (GDBusConnection *connection,
                                       peer_died_cb, NULL);
 }
 
-void
+gboolean
 xdp_filter_options (GVariant *options,
                     GVariantBuilder *filtered,
                     XdpOptionKey *supported_options,
-                    int n_supported_options)
+                    int n_supported_options,
+                    GError **error)
 {
-  GVariant *value;
   int i;
+  gboolean ret = TRUE;
 
   for (i = 0; i < n_supported_options; i++)
     {
+      g_autoptr(GVariant) value = NULL;
+
       value = g_variant_lookup_value (options,
                                       supported_options[i].key,
                                       supported_options[i].type);
-      if (value)
-         g_variant_builder_add (filtered, "{sv}", supported_options[i].key, value);
+      if (!value)
+        continue;
+         
+      if (supported_options[i].validate)
+        {
+          g_autoptr(GError) local_error = NULL;
+
+          if (!supported_options[i].validate (supported_options[i].key, value, &local_error))
+            {
+              if (ret)
+                {
+                  ret = FALSE;
+                  g_propagate_error (error, local_error);
+                  local_error = NULL;
+                }
+
+              continue;
+            }
+        }
+
+      g_variant_builder_add (filtered, "{sv}", supported_options[i].key, g_steal_pointer (&value));
     }
+
+  return ret;
 }
 
 static const GDBusErrorEntry xdg_desktop_portal_error_entries[] = {
