@@ -166,13 +166,22 @@ xdg_desktop_portal_SOURCES += \
 	$(NULL)
 endif
 
-xdg_desktop_portal_LDADD = $(BASE_LIBS) $(PIPEWIRE_LIBS) $(GEOCLUE_LIBS)
+xdg_desktop_portal_LDADD = \
+	$(BASE_LIBS) \
+	$(PIPEWIRE_LIBS) \
+	$(GEOCLUE_LIBS) \
+	$(FLATPAK_LIBS) \
+	$(NULL)
 xdg_desktop_portal_CFLAGS = \
 	-DPKGDATADIR=\"$(pkgdatadir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" \
 	-DBWRAP=\"$(BWRAP)\" \
-	$(BASE_CFLAGS) $(PIPEWIRE_CFLAGS) $(GEOCLUE_CFLAGS) \
-	-I$(srcdir)/src -I$(builddir)/src \
+	$(BASE_CFLAGS) \
+	$(PIPEWIRE_CFLAGS) \
+	$(GEOCLUE_CFLAGS) \
+	$(FLATPAK_CFLAGS) \
+	-I$(srcdir)/src \
+	-I$(builddir)/src \
 	$(NULL)
 xdg_desktop_portal_CPPFLAGS = \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\"        \

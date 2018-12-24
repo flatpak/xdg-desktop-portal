@@ -159,8 +159,8 @@ screenshot_done (GObject *source,
 }
 
 static XdpOptionKey screenshot_options[] = {
-  { "modal", G_VARIANT_TYPE_BOOLEAN },
-  { "interactive", G_VARIANT_TYPE_BOOLEAN }
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
 static gboolean
@@ -192,7 +192,8 @@ handle_screenshot (XdpScreenshot *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
-                      screenshot_options, G_N_ELEMENTS (screenshot_options));
+                      screenshot_options, G_N_ELEMENTS (screenshot_options),
+                      NULL);
 
   xdp_impl_screenshot_call_screenshot (impl,
                                        request->id,
@@ -270,7 +271,8 @@ handle_pick_color (XdpScreenshot *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
-                      pick_color_options, G_N_ELEMENTS (pick_color_options));
+                      pick_color_options, G_N_ELEMENTS (pick_color_options),
+                      NULL);
 
   xdp_impl_screenshot_call_pick_color (impl,
                                        request->id,
