@@ -115,9 +115,44 @@ compose_email_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static gboolean
+validate_email_address (const char *key,
+                        GVariant *value,
+                        GError **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (!g_regex_match_simple ("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$", string, 0, 0))
+    {
+      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "'%s' does not look like an email address", string);
+      return FALSE;
+    }
+
+g_print ("'%s' looks like an a-ok email\n", string);  
+  return TRUE;
+}
+
+static gboolean
+validate_email_subject (const char *key,
+                        GVariant *value,
+                        GError **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (strchr (string, '\n'))
+    {
+      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting multi-line subjects");
+      return FALSE;
+    } 
+
+  return TRUE;
+}
+
 static XdpOptionKey compose_email_options[] = {
-  { "address", G_VARIANT_TYPE_STRING, NULL },
-  { "subject", G_VARIANT_TYPE_STRING, NULL },
+  { "address", G_VARIANT_TYPE_STRING, validate_email_address },
+  { "subject", G_VARIANT_TYPE_STRING, validate_email_subject },
   { "body", G_VARIANT_TYPE_STRING, NULL }
 };
 
