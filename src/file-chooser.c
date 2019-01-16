@@ -254,7 +254,7 @@ validate_filters (const char *key,
                   GVariant *options,
                   GError **error)
 {
-  int i;
+  gsize i;
 
   if (!check_value_type ("filters", value, G_VARIANT_TYPE ("a(sa(us))"), error))
     return FALSE;
@@ -271,6 +271,56 @@ validate_filters (const char *key,
     }
 
   return TRUE;
+}
+
+static gboolean
+validate_current_filter (const char *key,
+                         GVariant *value,
+                         GVariant *options,
+                         GError **error)
+{
+  g_autoptr(GVariant) filters = NULL;
+  gsize i, n_children;
+
+  if (!check_value_type ("current_filter", value, G_VARIANT_TYPE ("(sa(us))"), error))
+    return FALSE;
+
+  if (!check_filter (value, error))
+    {
+      g_prefix_error (error, "invalid filter: ");
+      return FALSE;
+    }
+
+  /* If the filters list is nonempty and current_filter is specified,
+   * then the list must contain current_filter. But if the list is
+   * empty, current_filter may be anything.
+   */
+  filters = g_variant_lookup_value (options, "filters", G_VARIANT_TYPE ("a(sa(us))"));
+  if (!filters)
+    return TRUE;
+
+  if (!check_value_type ("filters", filters, G_VARIANT_TYPE ("a(sa(us))"), error))
+    {
+      g_prefix_error (error, "filters list is invalid: ");
+      return FALSE;
+    }
+
+  n_children = g_variant_n_children (filters);
+  if (n_children == 0)
+    return TRUE;
+
+  for (i = 0; i < n_children; i++)
+    {
+      g_autoptr(GVariant) filter = g_variant_get_child_value (filters, i);
+      if (g_variant_equal (filter, value))
+        return TRUE;
+    }
+
+  g_set_error_literal (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "current_filter, if specified, must be present in filters list if list is nonempty");
+  return FALSE;
 }
 
 static gboolean
@@ -390,6 +440,7 @@ static XdpOptionKey open_file_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
+  { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
   { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices }
 };
 
@@ -451,6 +502,7 @@ static XdpOptionKey save_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING, NULL },
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
+  { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
   { "current_name", G_VARIANT_TYPE_STRING, NULL },
   { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
   { "current_file", G_VARIANT_TYPE_BYTESTRING, NULL },

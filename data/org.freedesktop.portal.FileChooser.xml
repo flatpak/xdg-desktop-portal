@@ -89,6 +89,16 @@
           </listitem>
         </varlistentry>
         <varlistentry>
+          <term>current_filter (sa(us))</term>
+          <listitem><para>
+            Request that this filter be set by default at dialog creation. If
+            the filters list is nonempty, it should match a filter in the
+            list to set the default filter from the list. Alternatively, it
+            may be specified when the list is empty to apply the filter
+            unconditionally.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
           <term>choices a(ssa(ss)s)</term>
           <listitem>
             <para>
@@ -178,6 +188,13 @@
           <term>filters a(sa(us))</term>
           <listitem><para>
             List of serialized file filters.
+            See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>current_filter (sa(us))</term>
+          <listitem><para>
+            Request that this filter be set by default at dialog creation.
             See org.freedesktop.portal.FileChooser.OpenFile() for details.
           </para></listitem>
         </varlistentry>
