@@ -1,3 +1,14 @@
+Changes in 1.1.1
+================
+
+* Validate icons in notifications
+* Respect lockdown settings
+* Write back permissions for notifications to indicate portal use
+* Set st_nlink in the documents portal
+* Add infrastructure for validating options
+* Validate email addresses
+* Translation updates
+
 Changes in 1.1.0
 ================
 
