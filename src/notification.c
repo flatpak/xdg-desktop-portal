@@ -405,6 +405,7 @@ validate_icon_more (GVariant *v)
   int status;
   g_autofree char *err = NULL;
   g_autoptr(GError) error = NULL;
+  const char *icon_validator = LIBEXECDIR "/flatpak-validate-icon";
 
   if (G_IS_THEMED_ICON (icon))
     {
@@ -417,6 +418,12 @@ validate_icon_more (GVariant *v)
     {
       g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
       return FALSE;
+    }
+
+  if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
+    {
+      g_debug ("Icon validation: %s not found, accepting icon without further validation.", icon_validator);
+      return TRUE;
     }
 
   bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
@@ -463,18 +470,20 @@ validate_icon_more (GVariant *v)
   if (g_getenv ("G_MESSAGES_PREFIXED"))
     add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
-  add_args (args, LIBEXECDIR "/xdg-desktop-portal-validate-icon", "512", "512", name, NULL);
+  add_args (args, icon_validator, "512", "512", name, NULL);
   g_ptr_array_add (args, NULL);
 
   if (!g_spawn_sync (NULL, (char **)args->pdata, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
     {
       g_debug ("Icon validation: %s", error->message);
+
       return FALSE;
     }
 
-  if (!g_spawn_check_exit_status (status, NULL))
+  if (!g_spawn_check_exit_status (status, &error))
     {
-      g_debug ("Icon validation: %s", err);
+      g_debug ("Icon validation: %s", error->message);
+
       return FALSE;
     }
 
