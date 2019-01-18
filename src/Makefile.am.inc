@@ -1,6 +1,5 @@
 libexec_PROGRAMS += \
 	xdg-desktop-portal \
-	xdg-desktop-portal-validate-icon \
 	$(NULL)
 
 service_in_files += \
@@ -187,7 +186,3 @@ xdg_desktop_portal_CPPFLAGS = \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\"        \
 	-DLOCALEDIR=\"$(localedir)\"			\
 	$(NULL)
-
-xdg_desktop_portal_validate_icon_SOURCES = src/validate-icon.c
-xdg_desktop_portal_validate_icon_LDADD = $(GDK_PIXBUF_LIBS)
-xdg_desktop_portal_validate_icon_CFLAGS = $(GDK_PIXBUF_CFLAGS)
