@@ -392,58 +392,20 @@ add_args (GPtrArray *argv_array, ...)
   va_end (args);
 }
 
-static void
-add_env (GPtrArray  *array,
-         const char *envvar)
-{
-  if (g_getenv (envvar) != NULL)
-    add_args (array,
-              "--setenv", envvar, g_getenv (envvar),
-              NULL);
-}
-
-static void
-add_bwrap (GPtrArray *array,
-           const char *input)
-{
-  add_args (array,
-            BWRAP,
-            "--ro-bind", "/usr", "/usr",
-            "--ro-bind", "/lib", "/lib",
-            "--ro-bind", "/lib64", "/lib64",
-            "--tmpfs", "/tmp",
-            "--proc", "/proc",
-            "--dev", "/dev",
-            "--symlink", "usr/bin", "/bin",
-            "--symlink", "usr/sbin", "/sbin",
-            "--chdir", "/",
-            "--setenv", "GIO_USE_VFS", "local",
-            "--unsetenv", "TMPDIR",
-            "--unshare-all",
-            "--die-with-parent",
-            NULL);
-
-  add_env (array, "G_MESSAGES_DEBUG");
-  add_env (array, "G_MESSAGES_PREFIXED");
-
-  g_ptr_array_add (array, g_strdup ("--ro-bind"));
-  g_ptr_array_add (array, g_strdup (input));
-  g_ptr_array_add (array, g_strdup (input));
-}
-
 static gboolean
 validate_icon_more (GVariant *v)
 {
   g_autoptr(GIcon) icon = g_icon_deserialize (v);
   GBytes *bytes;
   g_autofree char *name = NULL;
-  g_autoptr(GPtrArray) array = NULL;
+  g_autoptr(GPtrArray) args = NULL;
   int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
   gssize written;
   int status;
   g_autofree char *err = NULL;
   g_autoptr(GError) error = NULL;
+  const char *icon_validator = LIBEXECDIR "/flatpak-validate-icon";
 
   if (G_IS_THEMED_ICON (icon))
     {
@@ -456,6 +418,12 @@ validate_icon_more (GVariant *v)
     {
       g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
       return FALSE;
+    }
+
+  if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
+    {
+      g_debug ("Icon validation: %s not found, accepting icon without further validation.", icon_validator);
+      return TRUE;
     }
 
   bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
@@ -480,27 +448,42 @@ validate_icon_more (GVariant *v)
       return FALSE;
     }
 
-  array = g_ptr_array_new_with_free_func (g_free);
+  args = g_ptr_array_new_with_free_func (g_free);
 
-  add_bwrap (array, name);
-  add_args (array,
-            LIBEXECDIR "/xdg-desktop-portal-validate-icon", name,
+  add_args (args,
+            BWRAP,
+            "--unshare-ipc",
+            "--unshare-net",
+            "--unshare-pid",
+            "--ro-bind", "/", "/",
+            "--tmpfs", "/tmp",
+            "--proc", "/proc",
+            "--dev", "/dev",
+            "--chdir", "/",
+            "--setenv", "GIO_USE_VFS", "local",
+            "--unsetenv", "TMPDIR",
+            "--die-with-parent",
+            "--ro-bind", name, name,
             NULL);
-  g_ptr_array_add (array, NULL);
-  {
-    g_autofree char *a = g_strjoinv (" ", (char **)array->pdata);
-    g_debug ("Icon validation: %s", a);
-  }
+  if (g_getenv ("G_MESSAGES_DEBUG"))
+    add_args (args, "--setenv", "G_MESSAGES_DEBUG", g_getenv ("G_MESSAGES_DEBUG"), NULL);
+  if (g_getenv ("G_MESSAGES_PREFIXED"))
+    add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
-  if (!g_spawn_sync (NULL, (char **)array->pdata, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
+  add_args (args, icon_validator, "512", "512", name, NULL);
+  g_ptr_array_add (args, NULL);
+
+  if (!g_spawn_sync (NULL, (char **)args->pdata, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
     {
       g_debug ("Icon validation: %s", error->message);
+
       return FALSE;
     }
 
-  if (!g_spawn_check_exit_status (status, NULL))
+  if (!g_spawn_check_exit_status (status, &error))
     {
-      g_debug ("Icon validation: %s", err);
+      g_debug ("Icon validation: %s", error->message);
+
       return FALSE;
     }
 
