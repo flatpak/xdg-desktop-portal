@@ -251,6 +251,7 @@ check_filter (GVariant *filter,
 static gboolean
 validate_filters (const char *key,
                   GVariant *value,
+                  GVariant *options,
                   GError **error)
 {
   int i;
@@ -362,6 +363,7 @@ check_choice (GVariant *choice,
 static gboolean
 validate_choices (const char *key,
                   GVariant *value,
+                  GVariant *options,
                   GError **error)
 {
   int i;
