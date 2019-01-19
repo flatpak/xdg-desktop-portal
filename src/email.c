@@ -130,7 +130,6 @@ validate_email_address (const char *key,
       return FALSE;
     }
 
-g_print ("'%s' looks like an a-ok email\n", string);  
   return TRUE;
 }
 
@@ -148,6 +147,13 @@ validate_email_subject (const char *key,
                    "Not accepting multi-line subjects");
       return FALSE;
     } 
+
+  if (g_utf8_strlen (string, -1) > 200)
+    {
+      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting extremely long subjects");
+      return FALSE;
+    }
 
   return TRUE;
 }
