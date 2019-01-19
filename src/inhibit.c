@@ -441,11 +441,35 @@ handle_create_monitor (XdpInhibit *object,
   return TRUE;
 }
 
+static gboolean
+handle_query_end_response (XdpInhibit            *object,
+                           GDBusMethodInvocation *invocation,
+                           const char            *session_id)
+{
+  g_autoptr(Session) session = lookup_session (session_id);
+
+  if (!session)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return TRUE;
+    }
+
+  xdp_impl_inhibit_call_query_end_response (impl, session->id, NULL, NULL, NULL);
+  xdp_inhibit_complete_query_end_response (object, invocation);
+
+  return TRUE;
+}
+
+
 static void
 inhibit_iface_init (XdpInhibitIface *iface)
 {
   iface->handle_inhibit = handle_inhibit;
   iface->handle_create_monitor = handle_create_monitor;
+  iface->handle_query_end_response = handle_query_end_response;
 }
 
 static void
@@ -468,10 +492,13 @@ state_changed_cb (XdpImplInhibit *impl,
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
   InhibitSession *inhibit_session = (InhibitSession *)session;
-  gboolean active;
+  gboolean active = FALSE;
+  guint32 session_state = 0;
 
   g_variant_lookup (state, "screensaver-active", "b", &active);
-  g_debug ("Received state-changed %s: %d", session_id, active);
+  g_variant_lookup (state, "session-state", "u", &session_state);
+  g_debug ("Received state-changed %s: screensaver-active: %d, session-state: %u",
+           session_id, active, session_state);
 
   if (inhibit_session && !inhibit_session->closed)
     g_dbus_connection_emit_signal (connection,
