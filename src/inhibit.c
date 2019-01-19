@@ -23,6 +23,8 @@
 #include <string.h>
 #include <gio/gio.h>
 
+#include <flatpak.h>
+
 #include "inhibit.h"
 #include "request.h"
 #include "session.h"
@@ -164,16 +166,40 @@ handle_inhibit_in_thread_func (GTask *task,
 }
 
 static gboolean
+validate_reason (const char *key,
+                 GVariant *value,
+                 GVariant *options,
+                 GError **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (g_utf8_strlen (string, -1) > 256)
+    {
+      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting overly long reasons");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static XdpOptionKey inhibit_options[] = {
+  { "reason", G_VARIANT_TYPE_STRING, validate_reason }
+};
+
+static gboolean
 handle_inhibit (XdpInhibit *object,
                 GDBusMethodInvocation *invocation,
                 const char *arg_window,
                 guint32 arg_flags,
-                GVariant *options)
+                GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   g_autoptr(GTask) task = NULL;
+  GVariantBuilder opt_builder;
+  g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -185,6 +211,13 @@ handle_inhibit (XdpInhibit *object,
                                              "Invalid flags");
       return TRUE;
     }
+
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  xdp_filter_options (arg_options, &opt_builder,
+                      inhibit_options, G_N_ELEMENTS (inhibit_options),
+                      NULL);
+
+  options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
 
   g_object_set_data_full (G_OBJECT (request), "window", g_strdup (arg_window), g_free);
   g_object_set_data (G_OBJECT (request), "flags", GUINT_TO_POINTER (arg_flags));
