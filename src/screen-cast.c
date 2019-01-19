@@ -340,6 +340,7 @@ select_sources_done (GObject *source_object,
 static gboolean
 validate_device_types (const char *key,
                        GVariant *value,
+                       GVariant *options,
                        GError **error)
 {
   guint32 types = g_variant_get_uint32 (value);

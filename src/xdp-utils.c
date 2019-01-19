@@ -708,7 +708,7 @@ xdp_filter_options (GVariant *options,
         {
           g_autoptr(GError) local_error = NULL;
 
-          if (!supported_options[i].validate (supported_options[i].key, value, &local_error))
+          if (!supported_options[i].validate (supported_options[i].key, value, options, &local_error))
             {
               if (ret)
                 {

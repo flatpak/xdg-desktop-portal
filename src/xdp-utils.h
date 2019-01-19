@@ -75,7 +75,7 @@ void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
 typedef struct {
   const char *key;
   const GVariantType *type;
-  gboolean (* validate) (const char *key, GVariant *value, GError **error);
+  gboolean (* validate) (const char *key, GVariant *value, GVariant *options, GError **error);
 } XdpOptionKey;
 
 gboolean xdp_filter_options (GVariant *options_in,

@@ -118,6 +118,7 @@ compose_email_done (GObject *source,
 static gboolean
 validate_email_address (const char *key,
                         GVariant *value,
+                        GVariant *options,
                         GError **error)
 {
   const char *string = g_variant_get_string (value, NULL);
@@ -136,6 +137,7 @@ g_print ("'%s' looks like an a-ok email\n", string);
 static gboolean
 validate_email_subject (const char *key,
                         GVariant *value,
+                        GVariant *options,
                         GError **error)
 {
   const char *string = g_variant_get_string (value, NULL);
