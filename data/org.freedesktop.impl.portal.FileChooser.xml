@@ -67,6 +67,13 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>current_filter (sa(us))</term>
+            <listitem><para>
+              Request that this filter be set by default at dialog creation.
+              See org.freedesktop.portal.FileChooser.OpenFile() for details.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>choices a(ssa(ss)s)</term>
             <listitem><para>
               A list of serialized combo boxes.
@@ -139,6 +146,13 @@
             <term>filters a(sa(us))</term>
             <listitem><para>
               A list of serialized file filters.
+              See org.freedesktop.portal.FileChooser.OpenFile() for details.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>current_filter (sa(us))</term>
+            <listitem><para>
+              Request that this filter be set by default at dialog creation.
               See org.freedesktop.portal.FileChooser.OpenFile() for details.
             </para></listitem>
           </varlistentry>
