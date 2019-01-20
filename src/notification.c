@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include <string.h>
+#include <stdio.h>
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
 
@@ -392,12 +393,22 @@ add_args (GPtrArray *argv_array, ...)
   va_end (args);
 }
 
+static void
+cleanup_temp_file (void *p)
+{
+  void **pp = (void **)p;
+
+  if (*pp)
+    remove (*pp);
+  g_free (*pp);
+}
+
 static gboolean
 validate_icon_more (GVariant *v)
 {
   g_autoptr(GIcon) icon = g_icon_deserialize (v);
   GBytes *bytes;
-  g_autofree char *name = NULL;
+  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
   g_autoptr(GPtrArray) args = NULL;
   int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
