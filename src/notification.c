@@ -379,20 +379,6 @@ check_notification (GVariant *notification,
   return TRUE;
 }
 
-/* From https://github.com/flatpak/flatpak/blob/master/common/flatpak-run.c */
-G_GNUC_NULL_TERMINATED
-static void
-add_args (GPtrArray *argv_array, ...)
-{
-  va_list args;
-  const char *arg;
-
-  va_start (args, argv_array);
-  while ((arg = va_arg (args, const gchar *)))
-    g_ptr_array_add (argv_array, g_strdup (arg));
-  va_end (args);
-}
-
 static void
 cleanup_temp_file (void *p)
 {
@@ -409,7 +395,6 @@ validate_icon_more (GVariant *v)
   g_autoptr(GIcon) icon = g_icon_deserialize (v);
   GBytes *bytes;
   __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
-  g_autoptr(GPtrArray) args = NULL;
   int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
   gssize written;
@@ -417,6 +402,7 @@ validate_icon_more (GVariant *v)
   g_autofree char *err = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/flatpak-validate-icon";
+  const char *args[6];
 
   if (G_IS_THEMED_ICON (icon))
     {
@@ -459,32 +445,14 @@ validate_icon_more (GVariant *v)
       return FALSE;
     }
 
-  args = g_ptr_array_new_with_free_func (g_free);
+  args[0] = icon_validator;
+  args[1] = "--sandbox";
+  args[2] = "512";
+  args[3] = "512";
+  args[4] = name;
+  args[5] = NULL;
 
-  add_args (args,
-            BWRAP,
-            "--unshare-ipc",
-            "--unshare-net",
-            "--unshare-pid",
-            "--ro-bind", "/", "/",
-            "--tmpfs", "/tmp",
-            "--proc", "/proc",
-            "--dev", "/dev",
-            "--chdir", "/",
-            "--setenv", "GIO_USE_VFS", "local",
-            "--unsetenv", "TMPDIR",
-            "--die-with-parent",
-            "--ro-bind", name, name,
-            NULL);
-  if (g_getenv ("G_MESSAGES_DEBUG"))
-    add_args (args, "--setenv", "G_MESSAGES_DEBUG", g_getenv ("G_MESSAGES_DEBUG"), NULL);
-  if (g_getenv ("G_MESSAGES_PREFIXED"))
-    add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
-
-  add_args (args, icon_validator, "512", "512", name, NULL);
-  g_ptr_array_add (args, NULL);
-
-  if (!g_spawn_sync (NULL, (char **)args->pdata, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
+  if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, NULL, &err, &status, &error))
     {
       g_debug ("Icon validation: %s", error->message);
 
