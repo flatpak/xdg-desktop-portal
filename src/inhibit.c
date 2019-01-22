@@ -475,7 +475,7 @@ inhibit_iface_init (XdpInhibitIface *iface)
 static void
 inhibit_init (Inhibit *inhibit)
 {
-  xdp_inhibit_set_version (XDP_INHIBIT (inhibit), 2);
+  xdp_inhibit_set_version (XDP_INHIBIT (inhibit), 3);
 }
 
 static void
