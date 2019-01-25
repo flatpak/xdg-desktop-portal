@@ -1,3 +1,13 @@
+Changes in 1.2.0
+================
+
+* notification: Use icon validator from flatpak
+* notification: Don't leave temp files around
+* email: Validate options better
+* inhibit: Validate options better
+* file chooser: Add support for setting the current filter
+* Translation updates
+
 Changes in 1.1.1
 ================
 
