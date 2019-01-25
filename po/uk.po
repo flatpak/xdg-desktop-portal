@@ -116,4 +116,4 @@ msgstr ""
 
 #: src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "Потрібного вам параметра не знайдено"
