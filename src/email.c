@@ -32,8 +32,6 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include <flatpak.h>
-
 #include "email.h"
 #include "request.h"
 #include "documents.h"
@@ -125,7 +123,7 @@ validate_email_address (const char *key,
 
   if (!g_regex_match_simple ("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$", string, 0, 0))
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "'%s' does not look like an email address", string);
       return FALSE;
     }
@@ -143,14 +141,14 @@ validate_email_subject (const char *key,
 
   if (strchr (string, '\n'))
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Not accepting multi-line subjects");
       return FALSE;
     } 
 
   if (g_utf8_strlen (string, -1) > 200)
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Not accepting extremely long subjects");
       return FALSE;
     }

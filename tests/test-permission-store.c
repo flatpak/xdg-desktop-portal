@@ -12,8 +12,8 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include "src/xdp-utils.h"
 #include "document-portal/permission-store-dbus.h"
-#include <flatpak.h>
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
@@ -150,7 +150,7 @@ test_lookup (void)
                                                &d,
                                                NULL,
                                                &error);
-  g_assert_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
   g_assert_false (res);
   g_clear_error (&error);
 
@@ -208,7 +208,7 @@ test_create (void)
                                                        perms,
                                                        NULL,
                                                        &error);
-  g_assert_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_NOT_FOUND);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
   g_assert_false (res);
 }
 
@@ -220,7 +220,7 @@ global_setup (void)
   GQuark portal_errors G_GNUC_UNUSED;
 
   /* make sure errors are registered */
-  portal_errors = FLATPAK_PORTAL_ERROR;
+  portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);

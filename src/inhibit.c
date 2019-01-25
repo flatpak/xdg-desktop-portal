@@ -23,8 +23,6 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include <flatpak.h>
-
 #include "inhibit.h"
 #include "request.h"
 #include "session.h"
@@ -175,7 +173,7 @@ validate_reason (const char *key,
 
   if (g_utf8_strlen (string, -1) > 256)
     {
-      g_set_error (error, FLATPAK_PORTAL_ERROR, FLATPAK_PORTAL_ERROR_INVALID_ARGUMENT,
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Not accepting overly long reasons");
       return FALSE;
     }
