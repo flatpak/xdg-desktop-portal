@@ -50,6 +50,7 @@
 #include "trash.h"
 #include "location.h"
 #include "settings.h"
+#include "background.h"
 
 static GMainLoop *loop = NULL;
 
@@ -443,6 +444,8 @@ on_bus_acquired (GDBusConnection *connection,
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
 #endif
+      export_portal_implementation (connection,
+                                    background_create (connection, implementation->dbus_name));
     }
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
