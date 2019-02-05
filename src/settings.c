@@ -113,12 +113,12 @@ settings_handle_read_all (XdpSettings           *object,
                           const char    * const *arg_namespaces)
 {
   Settings *self = (Settings *)object;
-  GVariantBuilder builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("(a{sa{sv}})"));
+  g_autoptr(GVariantBuilder) builder = g_variant_builder_new (G_VARIANT_TYPE ("(a{sa{sv}})"));
   GHashTableIter iter;
   char *key;
   SettingsBundle *value;
 
-  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a{sa{sv}}"));
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("a{sa{sv}}"));
 
   if (impl != NULL)
     {
@@ -136,7 +136,7 @@ settings_handle_read_all (XdpSettings           *object,
           for (i = 0; i < g_variant_n_children (impl_value); ++i)
             {
               g_autoptr(GVariant) child = g_variant_get_child_value (impl_value, i);
-              g_variant_builder_add_value (&builder, child);
+              g_variant_builder_add_value (builder, child);
             }
         }
     }
@@ -156,7 +156,7 @@ settings_handle_read_all (XdpSettings           *object,
       for (i = 0; keys[i]; ++i)
         g_variant_dict_insert_value (&dict, keys[i], g_settings_get_value (value->settings, keys[i]));
 
-      g_variant_builder_add (&builder, "{s@a{sv}}", key, g_variant_dict_end (&dict));
+      g_variant_builder_add (builder, "{s@a{sv}}", key, g_variant_dict_end (&dict));
     }
 
   if (namespace_matches ("org.gnome.fontconfig", arg_namespaces))
@@ -166,12 +166,12 @@ settings_handle_read_all (XdpSettings           *object,
       g_variant_dict_init (&dict, NULL);
       g_variant_dict_insert_value (&dict, "serial", g_variant_new_int32 (self->fontconfig_serial));
       
-      g_variant_builder_add (&builder, "{s@a{sv}}", "org.gnome.fontconfig", g_variant_dict_end (&dict));
+      g_variant_builder_add (builder, "{s@a{sv}}", "org.gnome.fontconfig", g_variant_dict_end (&dict));
     }
 
-  g_variant_builder_close (&builder);
+  g_variant_builder_close (builder);
 
-  g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (&builder));
+  g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (builder));
   return TRUE;
 }
 
