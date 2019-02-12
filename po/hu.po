@@ -1,15 +1,15 @@
 # Hungarian translation for xdg-sesktop-portal.
-# Copyright 2016. Free Software Foundation, Inc.
+# Copyright (C) 2016, 2019 Free Software Foundation, Inc.
 # This file is distributed under the same license as the xdg-sesktop-portal package.
 #
-# Balázs Úr <urbalazs at gmail dot com>, 2016.
+# Balázs Úr <ur.balazs at fsf dot hu>, 2016, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2016-07-30 15:55+0100\n"
-"Last-Translator: Balázs Úr <urbalazs@gmail.com>\n"
+"POT-Creation-Date: 2018-11-17 03:26+0000\n"
+"PO-Revision-Date: 2019-02-12 21:18+0100\n"
+"Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
 "Language: hu\n"
 "MIME-Version: 1.0\n"
@@ -81,38 +81,36 @@ msgstr "%s használni szeretné a kameráját."
 
 #: src/location.c:536
 msgid "Deny Access"
-msgstr ""
+msgstr "Hozzáférés megtagadása"
 
 #: src/location.c:538
 msgid "Grant Access"
-msgstr ""
+msgstr "Hozzáférés megadása"
 
 #: src/location.c:544
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "Hozzáférést ad a tartózkodási helyéhez?"
 
 #: src/location.c:545
-#, fuzzy
 msgid "An application wants to use your location."
-msgstr "Egy alkalmazás használni szeretné a kameráját."
+msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
 #: src/location.c:557
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
 #: src/location.c:561
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s használni szeretné a kameráját."
+msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
 #: src/location.c:564
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
-"beállításokban."
+"A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
+"adatvédelmi beállításokban."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "A kért beállítás nem található"
