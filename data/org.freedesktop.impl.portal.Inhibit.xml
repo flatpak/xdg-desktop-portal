@@ -68,9 +68,10 @@
     <!--
         CreateMonitor:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the created #org.freedesktop.impl.portal.Session object
         @app_id: App id of the application
         @window: the parent window
+        @response: the result of the operation (0 == success)
 
         Creates a monitoring session. While this session is
         active, the caller will receive StateChanged signals
@@ -92,6 +93,11 @@
         The StateChanged signal is sent to active monitoring sessions when
         the session state changes.
 
+        When the session state changes to 'Query End', clients with active monitoring
+        sessions are expected to respond by calling
+        org.freedesktop.impl.portal.Inhibit.QueryEndResponse() within a second
+        of receiving the StateChanged signal.
+
         The following information may get returned in the @state vardict:
         <variablelist>
            <varlistentry>
@@ -100,12 +106,36 @@
               Whether the screensaver is active.
             </para></listitem>
           </varlistentry>
+           <varlistentry>
+            <term>session-state u</term>
+            <listitem><para>
+              The state of the session.
+            </para>
+            <simplelist>
+              <member>1: Running</member>
+              <member>2: Query End</member>
+              <member>3: Ending</member>
+            </simplelist>
+            </listitem>
+          </varlistentry>
         </variablelist>
     -->
     <signal name="StateChanged">
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="a{sv}" name="state" direction="out"/>
     </signal>
+
+    <!--
+      QueryEndResponse:
+      @session_handle: Object path for the #org.freedesktop.impl.portal.Session object
+
+      Acknowledges that the caller received the #org.freedesktop.impl.portal.Inhibit::StateChanged
+      signal. This method should be called within one second or receiving a StateChanged
+      signal with the 'Query End' state.
+    -->
+    <method name="QueryEndResponse">
+      <arg type="o" name="session_handle" direction="in"/>
+    </method>
 
   </interface>
 </node>
