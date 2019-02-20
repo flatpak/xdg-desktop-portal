@@ -1,13 +1,13 @@
 # Galician translation for xdg-desktop-portal.
 # Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Fran Dieguez <frandieguez@gnome.org>, 2017.
+# Fran Dieguez <frandieguez@gnome.org>, 2017, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2017-09-26 12:24+0200\n"
+"POT-Creation-Date: 2019-02-20 01:42+0100\n"
+"PO-Revision-Date: 2019-02-20 01:44+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -17,11 +17,11 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Virtaal 0.7.1\n"
 
-#: src/device.c:202
+#: ../src/device.c:205
 msgid "Turn On Microphone?"
 msgstr "Acender micrófono?"
 
-#: src/device.c:203
+#: ../src/device.c:206
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -29,89 +29,87 @@ msgstr ""
 "O acceso ao seu micrófono pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: src/device.c:207
+#: ../src/device.c:210
 msgid "An application wants to use your microphone."
 msgstr "Un aplicativo quere usar o seu micrófono."
 
-#: src/device.c:209
+#: ../src/device.c:212
 #, c-format
 msgid "%s wants to use your microphone."
-msgstr "%s quere usar o seu micrófono."
+msgstr "%s quere uar o seu micrófono."
 
-#: src/device.c:215
+#: ../src/device.c:218
 msgid "Turn On Speakers?"
 msgstr "Acender os altofalantes?"
 
-#: src/device.c:216
+#: ../src/device.c:219
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso aos seus altofalantes pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: src/device.c:220
+#: ../src/device.c:223
 msgid "An application wants to play sound."
 msgstr "Un aplicativo quere reproducir son."
 
-#: src/device.c:222
+#: ../src/device.c:225
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s querer reproducir son."
 
-#: src/device.c:228
+#: ../src/device.c:231
 msgid "Turn On Camera?"
 msgstr "Acender a cámara?"
 
-#: src/device.c:229
+#: ../src/device.c:232
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso á súa cámara pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: src/device.c:233
+#: ../src/device.c:236
 msgid "An application wants to use your camera."
 msgstr "Un aplicativo quere usar a súa cámara."
 
-#: src/device.c:235
+#: ../src/device.c:238
 #, c-format
 msgid "%s wants to use your camera."
-msgstr "%s quere usar a súa cámara."
+msgstr "%s quere uar a súa cámara."
 
-#: src/location.c:536
+#: ../src/location.c:549
 msgid "Deny Access"
-msgstr ""
+msgstr "Denegar acceso"
 
-#: src/location.c:538
+#: ../src/location.c:551
 msgid "Grant Access"
-msgstr ""
+msgstr "Conceder acceso"
 
-#: src/location.c:544
+#: ../src/location.c:557
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "Desexa acceder acceso á súa localización?"
 
-#: src/location.c:545
-#, fuzzy
+#: ../src/location.c:558
 msgid "An application wants to use your location."
-msgstr "Un aplicativo quere usar a súa cámara."
+msgstr "Un aplicativo quere usar a súa localización."
 
-#: src/location.c:557
+#: ../src/location.c:570
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "Desexa darlle acceso a %s á súa localización?"
 
-#: src/location.c:561
-#, fuzzy, c-format
+#: ../src/location.c:574
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s quere usar a súa cámara."
+msgstr "%s quere usar a súa localización."
 
-#: src/location.c:564
-#, fuzzy
+#: ../src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"O acceso aos seus altofalantes pode cambiarse en calquera momento desde as "
+"O acceso á súa localización pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: src/settings.c:229
+#: ../src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "Non se atopou a configuración solicitada"
