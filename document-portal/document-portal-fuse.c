@@ -321,7 +321,19 @@ static void
 xdp_inode_kernel_unref (XdpInode *inode)
 {
   if (inode)
-    g_atomic_int_dec_and_test (&inode->kernel_ref_count);
+    {
+      gint old_ref;
+
+    retry_atomic_decrement1:
+      old_ref = g_atomic_int_get (&inode->kernel_ref_count);
+      if (old_ref <= 0)
+        {
+          g_warning ("Can't kernel_unref inode with no kernel refs");
+          return;
+        }
+      if (!g_atomic_int_compare_and_exchange (&inode->kernel_ref_count, old_ref, old_ref - 1))
+        goto retry_atomic_decrement1;
+    }
   xdp_inode_unref (inode);
 }
 
