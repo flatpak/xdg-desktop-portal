@@ -57,8 +57,11 @@ struct _ScreenCastClass
 };
 
 static XdpImplScreenCast *impl;
+static int impl_version;
 static ScreenCast *screen_cast;
 static gboolean is_pipewire_initialized = FALSE;
+
+static unsigned int available_cursor_modes = 0;
 
 GType screen_cast_get_type (void);
 static void screen_cast_iface_init (XdpScreenCastIface *iface);
@@ -353,9 +356,35 @@ validate_device_types (const char *key,
   return TRUE;
 }
 
+static gboolean
+validate_cursor_mode (const char *key,
+                      GVariant *value,
+                      GVariant *options,
+                      GError **error)
+{
+  uint32_t mode = g_variant_get_uint32 (value);
+
+  if (__builtin_popcount (mode) != 1)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid cursor mode %x", mode);
+      return FALSE;
+    }
+
+  if (!(available_cursor_modes & mode))
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unavailable cursor mode %x", mode);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey screen_cast_select_sources_options[] = {
   { "types", G_VARIANT_TYPE_UINT32, validate_device_types },
   { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "cursor_mode", G_VARIANT_TYPE_UINT32, validate_cursor_mode },
 };
 
 static gboolean
@@ -1128,14 +1157,38 @@ on_supported_source_types_changed (GObject *gobject,
 }
 
 static void
+sync_supported_cursor_modes (ScreenCast *screen_cast)
+{
+
+  available_cursor_modes = xdp_impl_screen_cast_get_available_cursor_modes (impl);
+  xdp_screen_cast_set_available_cursor_modes (XDP_SCREEN_CAST (screen_cast),
+                                              available_cursor_modes);
+}
+
+static void
+on_supported_cursor_modes_changed (GObject *gobject,
+                                   GParamSpec *pspec,
+                                   ScreenCast *screen_cast)
+{
+  sync_supported_cursor_modes (screen_cast);
+}
+
+static void
 screen_cast_init (ScreenCast *screen_cast)
 {
-  xdp_screen_cast_set_version (XDP_SCREEN_CAST (screen_cast), 1);
+  xdp_screen_cast_set_version (XDP_SCREEN_CAST (screen_cast), 2);
 
   g_signal_connect (impl, "notify::supported-source-types",
                     G_CALLBACK (on_supported_source_types_changed),
                     screen_cast);
+  if (impl_version >= 2)
+    {
+      g_signal_connect (impl, "notify::supported-cursor-modes",
+                        G_CALLBACK (on_supported_cursor_modes_changed),
+                        screen_cast);
+    }
   sync_supported_source_types (screen_cast);
+  sync_supported_cursor_modes (screen_cast);
 }
 
 static void
@@ -1162,6 +1215,8 @@ screen_cast_create (GDBusConnection *connection,
       g_warning ("Failed to create screen cast proxy: %s", error->message);
       return NULL;
     }
+
+  impl_version = xdp_impl_screen_cast_get_version (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

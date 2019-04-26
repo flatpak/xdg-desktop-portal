@@ -107,6 +107,18 @@
               Whether to allow selecting multiple sources. Default is no.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>cursor_mode u</term>
+            <listitem><para>
+              Determines how the cursor will be drawn in the screen cast stream. It must be
+              one of the curosr modes advertised in
+              #org.freedesktop.portal.ScreenCast.AvailableCursorModes. Setting a cursor mode
+              not advertised will cause the screen cast session to be closed. The default
+              cursor mode is 'Hidden'.
+
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         For available source types, see the AvailableSourceTypes property.
@@ -218,6 +230,21 @@
         </simplelist>
     -->
     <property name="AvailableSourceTypes" type="u" access="read"/>
+    <!--
+        AvailableCursorModes:
+
+        A bitmask of available cursor modes.
+
+        Available cursor mode values:
+        <simplelist>
+          <member>1: Hidden. The cursor is not part of the screen cast stream.</member>
+          <member>2: Embedded: The cursor is embedded as part of the stream buffers.</member>
+          <member>4: Metadata: The cursor is not part of the screen cast stream, but sent as PipeWire stream metadata.</member>
+        </simplelist>
+
+        This property was added in version 2 of this interface.
+    -->
+    <property name="AvailableCursorModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>

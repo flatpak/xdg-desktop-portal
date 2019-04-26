@@ -170,6 +170,17 @@
         </simplelist>
     -->
     <property name="AvailableSourceTypes" type="u" access="read"/>
+    <!--
+        AvailableCursorModes:
+
+        Available cursor mode values:
+        <simplelist>
+	  <member>1: Hidden. The cursor is not part of the screen cast stream.</member>
+	  <member>2: Embedded: The cursor is embedded as part of the stream buffers.</member>
+	  <member>4: Metadata: The cursor is not part of the screen cast stream, but sent as PipeWire stream metadata.</member>
+        </simplelist>
+    -->
+    <property name="AvailableCursorModes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
