@@ -519,7 +519,7 @@ open_pipewire_screen_cast_remote (GList *streams,
   PipeWireRemote *remote;
   GList *l;
   unsigned int n_streams, i;
-  struct spa_dict_item *permission_items;
+  g_autofree struct spa_dict_item *permission_items = NULL;
   unsigned int n_permission_items;
   g_autofree char *node_factory_permission_string = NULL;
   char **stream_permission_values;
