@@ -24,6 +24,115 @@
 
 static XdpImplPermissionStore *permission_store = NULL;
 
+char **
+get_permissions_sync (const char *app_id,
+                      const char *table,
+                      const char *id)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) out_perms = NULL;
+  g_autoptr(GVariant) out_data = NULL;
+  char **permissions;
+
+  if (!xdp_impl_permission_store_call_lookup_sync (permission_store,
+                                                   table,
+                                                   id,
+                                                   &out_perms,
+                                                   &out_data,
+                                                   NULL,
+                                                   &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("No '%s' permissions found: %s", table, error->message);
+      return NULL;
+    }
+
+  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
+    {
+      g_debug ("No permissions stored for: %s %s, app %s", table, id, app_id);
+
+      return NULL;
+    }
+
+  return g_strdupv (permissions);
+}
+
+Permission
+permissions_to_tristate (char **permissions)
+{
+  if (g_strv_length ((char **)permissions) != 1)
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong permission format, ignoring (%s)", a);
+      return PERMISSION_UNSET;
+    }
+
+  if (strcmp (permissions[0], "yes") == 0)
+    return PERMISSION_YES;
+  else if (strcmp (permissions[0], "no") == 0)
+    return PERMISSION_NO;
+  else if (strcmp (permissions[0], "ask") == 0)
+    return PERMISSION_ASK;
+  else
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong permission format, ignoring (%s)", a);
+    }
+
+  return PERMISSION_UNSET;
+}
+
+char **
+permissions_from_tristate (Permission permission)
+{
+  char *permission_str;
+  char **permissions;
+
+  switch (permission)
+    {
+    case PERMISSION_UNSET:
+      return NULL;
+    case PERMISSION_NO:
+      permission_str = g_strdup ("no");
+      break;
+    case PERMISSION_YES:
+      permission_str = g_strdup ("yes");
+      break;
+    case PERMISSION_ASK:
+      permission_str = g_strdup ("ask");
+      break;
+    }
+
+  g_assert (permission_str);
+
+  permissions = g_new0 (char *, 2);
+  permissions[0] = permission_str;
+
+  return permissions;
+}
+
+void
+set_permissions_sync (const char *app_id,
+                      const char *table,
+                      const char *id,
+                      const char * const *permissions)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           table,
+                                                           TRUE,
+                                                           id,
+                                                           app_id,
+                                                           permissions,
+                                                           NULL,
+                                                           &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Error updating permission store: %s", error->message);
+    }
+}
+
 void
 init_permission_store (GDBusConnection *connection)
 {

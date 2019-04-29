@@ -23,5 +23,26 @@
 #include <gio/gio.h>
 #include "xdp-impl-dbus.h"
 
+typedef enum _Permission
+{
+  PERMISSION_UNSET,
+  PERMISSION_NO,
+  PERMISSION_YES,
+  PERMISSION_ASK
+} Permission;
+
+char **get_permissions_sync (const char *app_id,
+                             const char *table,
+                             const char *id);
+
+void set_permissions_sync (const char *app_id,
+                           const char *table,
+                           const char *id,
+                           const char * const *permissions);
+
+char **permissions_from_tristate (Permission permission);
+
+Permission permissions_to_tristate (char **permissions);
+
 void init_permission_store (GDBusConnection *connection);
 XdpImplPermissionStore *get_permission_store (void);
