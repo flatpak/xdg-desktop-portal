@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2019 Red Hat, Inc.
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ Author: Christian J. Kellner <christian@kellner.me>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <!--
+      org.freedesktop.portal.GameMode:
+      @short_description: Portal for accessing GameMode
+
+      Interface for accessing GameMode from within the sandbox. It
+      is analogous to the com.feralinteractive.GameMode interface
+      and will proxy request there, but with additional permission
+      checking and pid mapping. The latter is necessary in the case
+      that sandbox has pid  namespace isolation enabled. See the man
+      page for pid_namespaces(7) for more details, but briefly, it
+      means that the sandbox has its own process id namespace which
+      is separated from the one on the host. Thus there will be two
+      separate process  ids (pids) within two different namespaces
+      that both identify same process. One id from the pid namespace
+      inside the sandbox and one id from the host pid namespace.
+      Since GameMode expects pids from the host pid namespace but
+      programs inside the sandbox can only know pids from the sandbox
+      namespace, process ids need to be translated from the portal to
+      the host namespace. The portal will do that transparently for
+      all calls where this is necessary.
+
+      Note: GameMode will monitor active clients, i.e. games and
+      other programs that have successfully called 'RegisterGame'.
+      In the event that a client terminates without a call to the
+      'UnregisterGame' method, GameMode will automatically un-register
+      the client. This might happen with a (small) delay.
+
+      This documentation describes version 1 of this interface.
+    -->
+    <interface name="org.freedesktop.portal.GameMode">
+      <!--
+          QueryStatus:
+          @pid: Process id to query the GameMode status of
+          @result: The GameMode status for @pid '
+
+          Query the GameMode status for a process. If the caller
+          is running inside a sandbox with pid namespace isolation,
+          the pid will be translated to the respective host pid. See
+          the general introduction for details. Will return:
+            0 if GameMode is inactive,
+            1 if GameMode is active,
+            2 if GameMode is active and @pid is registered,
+           -1 if the query failed inside GameMode
+      -->
+      <method name="QueryStatus">
+        <arg type="i" name="pid" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+      <!--
+          RegisterGame:
+          @pid: Process id of the game to register
+          @result: Status of the request: 0 for success, -1 indicates an error
+
+          Register a game with GameMode and thus request GameMode to
+          be activated. If the caller is running inside a sandbox with
+          pid namespace isolation, the pid will be translated to the
+          respective host pid. See the general introduction for details.
+          If the GameMode has already been requested for @pid before,
+          this call will fail, i.e. result will be -1.
+          Will return:
+            0 if the game with @pid was successfully registered,
+           -1 if the request was rejected by GameMode
+      -->
+      <method name="RegisterGame">
+        <arg type="i" name="pid" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+      <!--
+          UnregisterGame:
+          @pid: Process id of the game to un-register
+          @result: Status of the request: 0 for success, -1 indicates an error
+
+          Un-register a game from GameMode; if the call is successful
+          and there are no other games or clients registered, GameMode
+	  will be deactivated. If the caller is running inside a sandbox
+          with pid namespace isolation, the pid will be translated to
+          the respective host pid.
+          Will return:
+            0 if the game with @pid was successfully un-registered,
+           -1 if the request was rejected by GameMode
+      -->
+      <method name="UnregisterGame">
+        <arg type="i" name="pid" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+
+      <property name="version" type="u" access="read"/>
+    </interface>
+</node>

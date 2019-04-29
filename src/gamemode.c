@@ -1,0 +1,327 @@
+/*
+ * Copyright © 2019 Red Hat, Inc
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Christian J. Kellner <christian@kellner.me>
+ */
+
+#include "config.h"
+
+#include "request.h"
+#include "permissions.h"
+
+#include "xdp-dbus.h"
+#include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
+
+#include <gio/gunixfdlist.h>
+
+#define _GNU_SOURCE 1
+#include <errno.h>
+#include <locale.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/un.h>
+#include <sys/wait.h>
+#include <unistd.h> /* unlinkat, fork */
+
+/* well known names*/
+#define GAMEMODE_DBUS_NAME "com.feralinteractive.GameMode"
+#define GAMEMODE_DBUS_IFACE "com.feralinteractive.GameMode"
+#define GAMEMODE_DBUS_PATH "/com/feralinteractive/GameMode"
+
+#define PERMISSION_TABLE "gamemode"
+#define PERMISSION_ID "gamemode"
+
+/* */
+typedef struct _GameMode GameMode;
+typedef struct _GameModeClass GameModeClass;
+
+static gboolean handle_query_status (XdpGameMode *object,
+                                     GDBusMethodInvocation *invocation,
+                                     gint pid);
+
+static gboolean handle_register_game (XdpGameMode *object,
+                                      GDBusMethodInvocation *invocation,
+                                      gint pid);
+
+static  gboolean handle_unregister_game (XdpGameMode *object,
+                                         GDBusMethodInvocation *invocation,
+                                         gint pid);
+
+/* globals  */
+static GameMode *gamemode;
+
+/* gobject  */
+
+struct _GameMode
+{
+  XdpGameModeSkeleton parent_instance;
+
+  /*  */
+  GDBusProxy *client;
+};
+
+struct _GameModeClass
+{
+  XdpGameModeSkeletonClass parent_class;
+};
+
+GType game_mode_get_type (void) G_GNUC_CONST;
+static void game_mode_iface_init (XdpGameModeIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GameMode, game_mode, XDP_TYPE_GAME_MODE_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_TYPE_GAME_MODE, game_mode_iface_init));
+
+static void
+game_mode_iface_init (XdpGameModeIface *iface)
+{
+  iface->handle_query_status = handle_query_status;
+  iface->handle_register_game = handle_register_game;
+  iface->handle_unregister_game = handle_unregister_game;
+}
+
+static void
+game_mode_init (GameMode *gamemode)
+{
+  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 1);
+}
+
+static void
+game_mode_class_init (GameModeClass *klass)
+{
+}
+
+/* internal helpers */
+
+static gboolean
+game_mode_is_allowed_for_app (const char *app_id, GError **error)
+{
+  g_autoptr(GVariant) perms = NULL;
+  g_autoptr(GVariant) data = NULL;
+  g_autoptr(GError) err = NULL;
+  const char **stored;
+  gboolean ok;
+
+  ok = xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
+                                                   PERMISSION_TABLE,
+                                                   PERMISSION_ID,
+                                                   &perms,
+                                                   &data,
+                                                   NULL,
+                                                   &err);
+
+  if (!ok)
+    {
+      g_dbus_error_strip_remote_error (err);
+      g_debug ("No gamemode permissions found: %s", err->message);
+      g_clear_error (&err);
+    }
+  else if (perms != NULL && g_variant_lookup (perms, app_id, "^a&s", &stored))
+    {
+      g_autofree char *as_str = NULL;
+      gboolean allowed;
+
+      as_str = g_strjoinv (" ", (char **)stored);
+      g_debug ("GameMode permissions for %s: %s", app_id, as_str);
+
+      allowed = !g_strv_contains (stored, "no");
+
+      if (!allowed)
+        g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                     "GameMode is not allowed for %s", app_id);
+
+      return allowed;
+    }
+
+  g_debug ("No gamemode permissions stored for %s: allowing", app_id);
+
+  return TRUE;
+}
+
+/* generic dbus call handling */
+
+typedef struct CallData_ {
+  GDBusMethodInvocation *inv;
+  XdpAppInfo *app_info;
+
+  char *method;
+  gint  pid;
+
+} CallData;
+
+static CallData *
+call_data_new (GDBusMethodInvocation *inv,
+               XdpAppInfo            *app_info,
+               const char            *method)
+{
+  CallData *call;
+
+  call = g_slice_new0 (CallData);
+
+  call->inv = g_object_ref (inv);
+  call->app_info = xdp_app_info_ref (app_info);
+  call->method = g_strdup (method);
+
+  return call;
+}
+
+static void
+call_data_free (gpointer data)
+{
+  CallData *call = data;
+  if (call == NULL)
+    return;
+
+  g_object_unref (call->inv);
+  xdp_app_info_unref (call->app_info);
+  g_free (call->method);
+
+  g_slice_free (CallData, call);
+}
+
+static void
+handle_call_thread (GTask        *task,
+                    gpointer      source_object,
+                    gpointer      task_data,
+                    GCancellable *cancellable)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) res = NULL;
+  const char *app_id;
+  CallData *call;
+  pid_t mapped;
+  gboolean ok;
+  gint r;
+
+  call = (CallData *) task_data;
+  app_id = xdp_app_info_get_id (call->app_info);
+
+  if (!game_mode_is_allowed_for_app (app_id, &error))
+    {
+      g_dbus_method_invocation_return_gerror (call->inv, error);
+      return;
+    }
+
+  mapped = call->pid;
+  ok = xdg_app_info_map_pids (call->app_info, &mapped, 1, &error);
+
+  if (!ok)
+    {
+      g_prefix_error (&error, "Could not map pid '%i': ", call->pid);
+      g_warning ("Failed to map pid '%i': %s", call->pid, error->message);
+      g_dbus_method_invocation_return_gerror (call->inv, error);
+      return;
+    }
+
+  res = g_dbus_proxy_call_sync (G_DBUS_PROXY (gamemode->client),
+                                call->method,
+                                g_variant_new ("(i)", (gint32) mapped),
+                                G_DBUS_CALL_FLAGS_NONE,
+                                -1,
+                                NULL, /* cancel */
+                                &error);
+
+  r = -2; /* default to "call got rejected" */
+  if (res != NULL)
+    g_variant_get (res, "(i)", &r);
+  else
+    g_debug ("Call to GameMode failed: %s", error->message);
+
+  g_dbus_method_invocation_return_value (call->inv, g_variant_new ("(i)", r));
+}
+
+static void
+handle_call_in_thread (XdpGameMode           *object,
+                       const char            *method,
+                       GDBusMethodInvocation *invocation,
+                       gint                   pid)
+{
+  g_autoptr(GTask) task = NULL;
+  XdpAppInfo *app_info;
+  Request  *request;
+  CallData *call;
+
+  request = request_from_invocation (invocation);
+  app_info = request->app_info;
+
+  call = call_data_new (invocation, app_info, method);
+  call->pid = pid;
+
+  task = g_task_new (object, NULL, NULL, NULL);
+
+  g_task_set_task_data (task, call, call_data_free);
+  g_task_run_in_thread (task, handle_call_thread);
+}
+
+/* dbus */
+static gboolean
+handle_query_status (XdpGameMode           *object,
+                     GDBusMethodInvocation *invocation,
+                     gint                   pid)
+{
+  handle_call_in_thread (object, "QueryStatus", invocation, pid);
+  return TRUE;
+}
+
+static gboolean
+handle_register_game (XdpGameMode           *object,
+                      GDBusMethodInvocation *invocation,
+                      gint                   pid)
+{
+  handle_call_in_thread (object, "RegisterGame", invocation, pid);
+  return TRUE;
+}
+
+static  gboolean
+handle_unregister_game (XdpGameMode *object,
+                        GDBusMethodInvocation *invocation,
+                        gint pid)
+{
+  handle_call_in_thread (object, "UnregisterGame", invocation, pid);
+  return TRUE;
+}
+
+/* public API */
+GDBusInterfaceSkeleton *
+game_mode_create (GDBusConnection *connection)
+{
+  g_autoptr(GError) err = NULL;
+  GDBusProxy *client;
+  GDBusProxyFlags flags;
+
+  flags = G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START_AT_CONSTRUCTION;
+  client = g_dbus_proxy_new_sync (connection,
+                                  flags,
+                                  NULL,
+                                  GAMEMODE_DBUS_NAME,
+                                  GAMEMODE_DBUS_PATH,
+                                  GAMEMODE_DBUS_IFACE,
+                                  NULL,
+                                  &err);
+
+  if (client == NULL)
+    {
+      g_warning ("Failed to create GameMode proxy: %s", err->message);
+      return NULL;
+    }
+
+  gamemode = g_object_new (game_mode_get_type (), NULL);
+  gamemode->client = client;
+
+  return G_DBUS_INTERFACE_SKELETON (gamemode);;
+}
