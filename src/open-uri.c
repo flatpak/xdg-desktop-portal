@@ -518,11 +518,13 @@ handle_open_in_thread_func (GTask *task,
   gboolean skip_app_chooser = FALSE;
   int fd;
   gboolean writable = FALSE;
+  gboolean use_associated_app = FALSE;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+  use_associated_app = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "use-associated-app"));
 
   REQUEST_AUTOLOCK (request);
 
@@ -605,11 +607,43 @@ handle_open_in_thread_func (GTask *task,
                              "{sv}",
                              "last_choice",
                              g_variant_new_string (latest_id));
+
+      /* Add last choice to the list of choices if not present. This can happen when backends sends us back an app which was
+       * not in the list */
+      guint n_choices = 0;
+      GStrv result = NULL;
+      int i = 0;
+      gboolean latest_choice_found = FALSE;
+
+      n_choices = g_strv_length (choices);
+      result = g_new (char *, n_choices + 2);
+      for (i = 0; i < n_choices; ++i)
+        {
+            if (!g_strcmp0 (choices[i], latest_id))
+              {
+                latest_choice_found = TRUE;
+              }
+            result[i] = g_strdup (choices[i]);
+        }
+        result[i] = g_strdup (latest_id);
+        result[i+1] = NULL;
+
+        if (!latest_choice_found)
+          {
+            g_strfreev (choices);
+            choices = result;
+          }
+        else
+          {
+            g_strfreev (result);
+          }
     }
 
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   g_variant_builder_add (&opts_builder, "{sv}", "content_type", g_variant_new_string (content_type));
+  g_variant_builder_add (&opts_builder, "{sv}", "use_associated_app", g_variant_new_boolean (use_associated_app));
+
   if (basename)
     g_variant_builder_add (&opts_builder, "{sv}", "filename", g_variant_new_string (basename));
   if (uri)
@@ -685,6 +719,7 @@ handle_open_file (XdpOpenURI *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
+  gboolean use_associated_app;
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
 
@@ -701,6 +736,9 @@ handle_open_file (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "writable", "b", &writable))
     writable = FALSE;
 
+  if (!g_variant_lookup (arg_options, "use-associated-app", "b", &use_associated_app))
+    use_associated_app = FALSE; /* Use false as default value to keep behavior with previous versions */
+
   g_variant_get (arg_fd, "h", &fd_id);
   fd = g_unix_fd_list_get (fd_list, fd_id, &error);
   if (fd == -1)
@@ -712,6 +750,7 @@ handle_open_file (XdpOpenURI *object,
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
+  g_object_set_data (G_OBJECT (request), "use-associated-app", GINT_TO_POINTER (use_associated_app));
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_file (object, invocation, NULL, request->id);

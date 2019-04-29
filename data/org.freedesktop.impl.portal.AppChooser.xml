@@ -62,6 +62,14 @@
             <listitem><para>The filename to choose an application for. Note that this
                is just a basename, without a path.</para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>use_associated_app b</term>
+            <listitem><para>
+              Whether to automatically use default application associated with the mime type
+              of the file we want to open.
+            </para></listitem>
+          </varlistentry>
+
         </variablelist>
 
         The following results get returned via the @results vardict:

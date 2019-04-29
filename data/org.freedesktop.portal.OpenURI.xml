@@ -101,6 +101,13 @@
               is sandboxed itself.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>use-associated-app b</term>
+            <listitem><para>
+              Whether to automatically use default application associated with the mime type
+              of the file we want to open.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The OpenFile method was introduced in version 2 of the OpenURI portal API.
