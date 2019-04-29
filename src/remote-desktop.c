@@ -21,6 +21,7 @@
 #include "remote-desktop.h"
 #include "screen-cast.h"
 #include "request.h"
+#include "pipewire.h"
 #include "call.h"
 #include "session.h"
 #include "xdp-dbus.h"

@@ -155,6 +155,8 @@ xdg_desktop_portal_SOURCES += \
 	src/screen-cast.h		\
 	src/remote-desktop.c		\
 	src/remote-desktop.h		\
+	src/pipewire.c			\
+	src/pipewire.h			\
 	$(NULL)
 endif
 
