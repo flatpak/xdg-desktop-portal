@@ -56,6 +56,10 @@ gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_supports_opath  (XdpAppInfo  *app_info);
 char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,
                                           const char  *path);
+gboolean    xdg_app_info_map_pids        (XdpAppInfo  *app_info,
+					  pid_t       *pids,
+					  guint        n_pids,
+					  GError     **error);
 char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           int          fd,
                                           int          require_st_mode,
