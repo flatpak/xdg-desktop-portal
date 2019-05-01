@@ -35,6 +35,7 @@
 #define FLATPAK_METADATA_GROUP_INSTANCE "Instance"
 #define FLATPAK_METADATA_KEY_APP_PATH "app-path"
 #define FLATPAK_METADATA_KEY_RUNTIME_PATH "runtime-path"
+#define FLATPAK_METADATA_KEY_INSTANCE_ID "instance-id"
 
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
@@ -50,6 +51,7 @@ typedef struct _XdpAppInfo XdpAppInfo;
 XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
 void        xdp_app_info_unref           (XdpAppInfo  *app_info);
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
+char *      xdp_app_info_get_instance    (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_supports_opath  (XdpAppInfo  *app_info);
 char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,

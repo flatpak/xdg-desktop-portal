@@ -247,6 +247,20 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
     return NULL;
 }
 
+char *
+xdp_app_info_get_instance (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+    return NULL;
+
+  return g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                FLATPAK_METADATA_KEY_INSTANCE_ID,
+                                NULL);
+}
+
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
