@@ -57,38 +57,22 @@ static const struct pw_registry_proxy_events registry_events = {
   .global = registry_event_global,
 };
 
-static void
-core_event_done (void *user_data,
-                 uint32_t seq)
+void
+pipewire_remote_roundtrip (PipeWireRemote *remote)
 {
-  PipeWireRemote *remote = user_data;
-
-  if (remote->registry_sync_seq == seq)
-    pw_main_loop_quit (remote->loop);
+  pw_core_proxy_sync (remote->core_proxy, ++remote->sync_seq);
+  pw_main_loop_run (remote->loop);
 }
-
-static const struct pw_core_proxy_events core_events = {
-  PW_VERSION_CORE_PROXY_EVENTS,
-  .done = core_event_done,
-};
 
 static gboolean
 discover_node_factory_sync (PipeWireRemote *remote,
                             GError **error)
 {
   struct pw_type *core_type = pw_core_get_type (remote->core);
-  struct pw_core_proxy *core_proxy;
-  struct spa_hook core_listener;
   struct pw_registry_proxy *registry_proxy;
   struct spa_hook registry_listener;
 
-  core_proxy = pw_remote_get_core_proxy (remote->remote);
-  pw_core_proxy_add_listener (core_proxy,
-                              &core_listener,
-                              &core_events,
-                              remote);
-
-  registry_proxy = pw_core_proxy_get_registry (core_proxy,
+  registry_proxy = pw_core_proxy_get_registry (remote->core_proxy,
                                                core_type->registry,
                                                PW_VERSION_REGISTRY, 0);
   pw_registry_proxy_add_listener (registry_proxy,
@@ -96,9 +80,7 @@ discover_node_factory_sync (PipeWireRemote *remote,
                                   &registry_events,
                                   remote);
 
-  pw_core_proxy_sync(core_proxy, ++remote->registry_sync_seq);
-
-  pw_main_loop_run (remote->loop);
+  pipewire_remote_roundtrip (remote);
 
   if (remote->node_factory_id == 0)
     {
@@ -144,6 +126,21 @@ on_state_changed (void *user_data,
 static const struct pw_remote_events remote_events = {
   PW_VERSION_REMOTE_EVENTS,
   .state_changed = on_state_changed,
+};
+
+static void
+core_event_done (void *user_data,
+                 uint32_t seq)
+{
+  PipeWireRemote *remote = user_data;
+
+  if (remote->sync_seq == seq)
+    pw_main_loop_quit (remote->loop);
+}
+
+static const struct pw_core_proxy_events core_events = {
+  PW_VERSION_CORE_PROXY_EVENTS,
+  .done = core_event_done,
 };
 
 void
@@ -239,6 +236,12 @@ pipewire_remote_new_sync (GError **error)
       pipewire_remote_destroy (remote);
       return NULL;
     }
+
+  remote->core_proxy = pw_remote_get_core_proxy (remote->remote);
+  pw_core_proxy_add_listener (remote->core_proxy,
+                              &remote->core_listener,
+                              &core_events,
+                              remote);
 
   if (!discover_node_factory_sync (remote, error))
     {

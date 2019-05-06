@@ -29,7 +29,10 @@ typedef struct _PipeWireRemote
   struct pw_remote *remote;
   struct spa_hook remote_listener;
 
-  uint32_t registry_sync_seq;
+  struct pw_core_proxy *core_proxy;
+  struct spa_hook core_listener;
+  uint32_t sync_seq;
+
   uint32_t node_factory_id;
 
   GError *error;
@@ -38,3 +41,5 @@ typedef struct _PipeWireRemote
 PipeWireRemote * pipewire_remote_new_sync (GError **error);
 
 void pipewire_remote_destroy (PipeWireRemote *remote);
+
+void pipewire_remote_roundtrip (PipeWireRemote *remote);
