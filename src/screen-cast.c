@@ -578,6 +578,8 @@ open_pipewire_screen_cast_remote (GList *streams,
 
   g_strfreev (stream_permission_values);
 
+  pipewire_remote_roundtrip (remote);
+
   return remote;
 }
 
