@@ -26,22 +26,10 @@
 #include "screen-cast.h"
 #include "remote-desktop.h"
 #include "request.h"
+#include "pipewire.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
-
-typedef struct _PipeWireRemote
-{
-  struct pw_main_loop *loop;
-  struct pw_core *core;
-  struct pw_remote *remote;
-  struct spa_hook remote_listener;
-
-  uint32_t registry_sync_seq;
-  uint32_t node_factory_id;
-
-  GError *error;
-} PipeWireRemote;
 
 typedef struct _ScreenCast ScreenCast;
 typedef struct _ScreenCastClass ScreenCastClass;
@@ -59,7 +47,6 @@ struct _ScreenCastClass
 static XdpImplScreenCast *impl;
 static int impl_version;
 static ScreenCast *screen_cast;
-static gboolean is_pipewire_initialized = FALSE;
 
 static unsigned int available_cursor_modes = 0;
 
@@ -519,222 +506,6 @@ handle_select_sources (XdpScreenCast *object,
   return TRUE;
 }
 
-static void
-registry_event_global (void *user_data,
-                       uint32_t id,
-                       uint32_t parent_id,
-                       uint32_t permissions,
-                       uint32_t type,
-                       uint32_t version,
-                       const struct spa_dict *props)
-{
-  PipeWireRemote *remote = user_data;
-  struct pw_type *core_type = pw_core_get_type (remote->core);
-  const struct spa_dict_item *factory_object_type;
-
-  if (type != core_type->factory)
-    return;
-
-  factory_object_type = spa_dict_lookup_item (props, "factory.type.name");
-  if (!factory_object_type)
-    return;
-
-  if (strcmp (factory_object_type->value, "PipeWire:Interface:ClientNode") == 0)
-    {
-      remote->node_factory_id = id;
-      pw_main_loop_quit (remote->loop);
-    }
-}
-
-static const struct pw_registry_proxy_events registry_events = {
-  PW_VERSION_REGISTRY_PROXY_EVENTS,
-  .global = registry_event_global,
-};
-
-static void
-core_event_done (void *user_data,
-                 uint32_t seq)
-{
-  PipeWireRemote *remote = user_data;
-
-  if (remote->registry_sync_seq == seq)
-    pw_main_loop_quit (remote->loop);
-}
-
-static const struct pw_core_proxy_events core_events = {
-  PW_VERSION_CORE_PROXY_EVENTS,
-  .done = core_event_done,
-};
-
-static gboolean
-discover_node_factory_sync (PipeWireRemote *remote,
-                            GError **error)
-{
-  struct pw_type *core_type = pw_core_get_type (remote->core);
-  struct pw_core_proxy *core_proxy;
-  struct spa_hook core_listener;
-  struct pw_registry_proxy *registry_proxy;
-  struct spa_hook registry_listener;
-
-  core_proxy = pw_remote_get_core_proxy (remote->remote);
-  pw_core_proxy_add_listener (core_proxy,
-                              &core_listener,
-                              &core_events,
-                              remote);
-
-  registry_proxy = pw_core_proxy_get_registry (core_proxy,
-                                               core_type->registry,
-                                               PW_VERSION_REGISTRY, 0);
-  pw_registry_proxy_add_listener (registry_proxy,
-                                  &registry_listener,
-                                  &registry_events,
-                                  remote);
-
-  pw_core_proxy_sync(core_proxy, ++remote->registry_sync_seq);
-
-  pw_main_loop_run (remote->loop);
-
-  if (remote->node_factory_id == 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "No node factory discovered");
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
-static void
-on_state_changed (void *user_data,
-                  enum pw_remote_state old,
-                  enum pw_remote_state state,
-                  const char *error)
-{
-  PipeWireRemote *remote = user_data;
-
-  switch (state)
-    {
-    case PW_REMOTE_STATE_ERROR:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "%s", error);
-      pw_main_loop_quit (remote->loop);
-      break;
-    case PW_REMOTE_STATE_UNCONNECTED:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Disconnected");
-      pw_main_loop_quit (remote->loop);
-      break;
-    case PW_REMOTE_STATE_CONNECTING:
-      break;
-    case PW_REMOTE_STATE_CONNECTED:
-      pw_main_loop_quit (remote->loop);
-      break;
-    default:
-      g_warning ("Unknown PipeWire state");
-      break;
-    }
-}
-
-static const struct pw_remote_events remote_events = {
-  PW_VERSION_REMOTE_EVENTS,
-  .state_changed = on_state_changed,
-};
-
-void
-pipewire_remote_destroy (PipeWireRemote *remote)
-{
-  g_clear_pointer (&remote->remote, pw_remote_destroy);
-  g_clear_pointer (&remote->core, pw_core_destroy);
-  g_clear_pointer (&remote->loop, pw_main_loop_destroy);
-  g_clear_error (&remote->error);
-
-  g_free (remote);
-}
-
-static void
-ensure_pipewire_is_initialized (void)
-{
-  if (is_pipewire_initialized)
-    return;
-
-  pw_init (NULL, NULL);
-
-  is_pipewire_initialized = TRUE;
-}
-
-static PipeWireRemote *
-connect_pipewire_sync (GError **error)
-{
-  PipeWireRemote *remote;
-
-  ensure_pipewire_is_initialized ();
-
-  remote = g_new0 (PipeWireRemote, 1);
-
-  remote->loop = pw_main_loop_new (NULL);
-  if (!remote->loop)
-    {
-      pipewire_remote_destroy (remote);
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't create PipeWire main loop");
-      return NULL;
-    }
-
-  remote->core = pw_core_new (pw_main_loop_get_loop (remote->loop), NULL);
-  if (!remote->core)
-    {
-      pipewire_remote_destroy (remote);
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't create PipeWire core");
-      return NULL;
-    }
-
-  remote->remote = pw_remote_new (remote->core, NULL, 0);
-  if (!remote->remote)
-    {
-      pipewire_remote_destroy (remote);
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't create PipeWire remote");
-      return NULL;
-    }
-
-  pw_remote_add_listener (remote->remote,
-                          &remote->remote_listener,
-                          &remote_events,
-                          remote);
-
-  if (pw_remote_connect (remote->remote) != 0)
-    {
-      pipewire_remote_destroy (remote);
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't connect PipeWire remote");
-      return NULL;
-    }
-
-  pw_main_loop_run (remote->loop);
-
-  switch (pw_remote_get_state (remote->remote, NULL))
-    {
-    case PW_REMOTE_STATE_ERROR:
-    case PW_REMOTE_STATE_UNCONNECTED:
-      *error = g_steal_pointer (&remote->error);
-      pipewire_remote_destroy (remote);
-      return FALSE;
-    case PW_REMOTE_STATE_CONNECTING:
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "PipeWire loop stopped unexpectedly");
-      pipewire_remote_destroy (remote);
-      return FALSE;
-    case PW_REMOTE_STATE_CONNECTED:
-      return remote;
-    default:
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Unexpected PipeWire state");
-      pipewire_remote_destroy (remote);
-      return FALSE;
-    }
-}
-
 uint32_t
 screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
 {
@@ -748,20 +519,14 @@ open_pipewire_screen_cast_remote (GList *streams,
   PipeWireRemote *remote;
   GList *l;
   unsigned int n_streams, i;
-  struct spa_dict_item *permission_items;
+  g_autofree struct spa_dict_item *permission_items = NULL;
   unsigned int n_permission_items;
   g_autofree char *node_factory_permission_string = NULL;
   char **stream_permission_values;
 
-  remote = connect_pipewire_sync (error);
+  remote = pipewire_remote_new_sync (error);
   if (!remote)
     return FALSE;
-
-  if (!discover_node_factory_sync (remote, error))
-    {
-      pipewire_remote_destroy (remote);
-      return NULL;
-    }
 
   n_streams = g_list_length (streams);
   n_permission_items = n_streams + 4;
@@ -812,6 +577,8 @@ open_pipewire_screen_cast_remote (GList *streams,
                                             n_permission_items));
 
   g_strfreev (stream_permission_values);
+
+  pipewire_remote_roundtrip (remote);
 
   return remote;
 }
