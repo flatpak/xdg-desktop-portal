@@ -816,7 +816,7 @@ handle_open_pipewire_remote (XdpScreenCast *object,
   Session *session;
   GList *streams;
   PipeWireRemote *remote;
-  GUnixFDList *out_fd_list;
+  g_autoptr(GUnixFDList) out_fd_list = NULL;
   int fd;
   int fd_id;
   g_autoptr(GError) error = NULL;
