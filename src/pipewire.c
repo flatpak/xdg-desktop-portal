@@ -166,7 +166,8 @@ ensure_pipewire_is_initialized (void)
 }
 
 PipeWireRemote *
-pipewire_remote_new_sync (GError **error)
+pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
+                          GError **error)
 {
   PipeWireRemote *remote;
 
@@ -178,6 +179,7 @@ pipewire_remote_new_sync (GError **error)
   if (!remote->loop)
     {
       pipewire_remote_destroy (remote);
+      pw_properties_free (pipewire_properties);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Couldn't create PipeWire main loop");
       return NULL;
@@ -187,12 +189,13 @@ pipewire_remote_new_sync (GError **error)
   if (!remote->core)
     {
       pipewire_remote_destroy (remote);
+      pw_properties_free (pipewire_properties);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Couldn't create PipeWire core");
       return NULL;
     }
 
-  remote->remote = pw_remote_new (remote->core, NULL, 0);
+  remote->remote = pw_remote_new (remote->core, pipewire_properties, 0);
   if (!remote->remote)
     {
       pipewire_remote_destroy (remote);

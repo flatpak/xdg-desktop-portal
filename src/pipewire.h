@@ -38,7 +38,8 @@ typedef struct _PipeWireRemote
   GError *error;
 } PipeWireRemote;
 
-PipeWireRemote * pipewire_remote_new_sync (GError **error);
+PipeWireRemote * pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
+                                           GError **error);
 
 void pipewire_remote_destroy (PipeWireRemote *remote);
 

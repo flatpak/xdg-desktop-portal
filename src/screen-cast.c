@@ -513,9 +513,11 @@ screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
 }
 
 static PipeWireRemote *
-open_pipewire_screen_cast_remote (GList *streams,
+open_pipewire_screen_cast_remote (const char *app_id,
+                                  GList *streams,
                                   GError **error)
 {
+  struct pw_properties *pipewire_properties;
   PipeWireRemote *remote;
   GList *l;
   unsigned int n_streams, i;
@@ -524,7 +526,10 @@ open_pipewire_screen_cast_remote (GList *streams,
   g_autofree char *node_factory_permission_string = NULL;
   char **stream_permission_values;
 
-  remote = pipewire_remote_new_sync (error);
+  pipewire_properties = pw_properties_new ("pipewire.access.portal.app_id", app_id,
+                                           "pipewire.access.portal.media_types", "",
+                                           NULL);
+  remote = pipewire_remote_new_sync (pipewire_properties, error);
   if (!remote)
     return FALSE;
 
@@ -864,7 +869,7 @@ handle_open_pipewire_remote (XdpScreenCast *object,
       return TRUE;
     }
 
-  remote = open_pipewire_screen_cast_remote (streams, &error);
+  remote = open_pipewire_screen_cast_remote (session->app_id, streams, &error);
   if (!remote)
     {
       g_dbus_method_invocation_return_error (invocation,
