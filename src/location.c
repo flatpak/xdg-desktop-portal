@@ -385,7 +385,7 @@ set_location_permissions (const char *app_id,
   if (app_id == NULL)
     return;
 
-  date = g_strdup_printf ("%li", timestamp);
+  date = g_strdup_printf ("%" G_GINT64_FORMAT, timestamp);
   permissions[0] = gclue_accuracy_level_to_string (accuracy);
   permissions[1] = (const char *)date;
   permissions[2] = NULL;
