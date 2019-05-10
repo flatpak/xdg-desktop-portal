@@ -72,10 +72,10 @@ static const char *known_devices[] = {
 };
 
 static void
-handle_access_microphone_in_thread (GTask *task,
-                                    gpointer source_object,
-                                    gpointer task_data,
-                                    GCancellable *cancellable)
+handle_access_device_in_thread (GTask *task,
+                                gpointer source_object,
+                                gpointer task_data,
+                                GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
   const char *app_id;
@@ -302,7 +302,7 @@ handle_access_device (XdpDevice *object,
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_access_microphone_in_thread);
+  g_task_run_in_thread (task, handle_access_device_in_thread);
 
   return TRUE;
 }
