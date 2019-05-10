@@ -23,6 +23,10 @@
 #include <gio/gio.h>
 
 #include "request.h"
+#include "permissions.h"
+
+Permission device_get_permission_sync (const char *app_id,
+                                       const char *device);
 
 gboolean device_query_permission_sync (const char *app_id,
                                        const char *device,

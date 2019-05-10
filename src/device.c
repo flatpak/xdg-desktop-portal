@@ -71,27 +71,39 @@ static const char *known_devices[] = {
   NULL
 };
 
+Permission
+device_get_permission_sync (const char *app_id,
+                            const char *device)
+{
+  char **permissions;
+
+  permissions = get_permissions_sync (app_id, PERMISSION_TABLE, device);
+  if (!permissions)
+    {
+      return PERMISSION_UNSET;
+    }
+  else
+    {
+      Permission permission;
+
+      g_debug ("device: %s %s, app %s -> %s",
+               PERMISSION_TABLE, device, app_id, permissions[0]);
+
+      permission = permissions_to_tristate (permissions);
+      g_strfreev (permissions);
+      return permission;
+    }
+}
+
 gboolean
 device_query_permission_sync (const char *app_id,
                               const char *device,
                               const char *request_handle)
 {
-  char **permissions;
   Permission permission;
   gboolean allowed;
 
-  permissions = get_permissions_sync (app_id, PERMISSION_TABLE, device);
-  if (!permissions)
-    {
-      permission = PERMISSION_UNSET;
-    }
-  else
-    {
-      g_debug ("device: %s %s, app %s -> %s",
-               PERMISSION_TABLE, device, app_id, permissions[0]);
-      permission = permissions_to_tristate (permissions);
-    }
-
+  permission = device_get_permission_sync (app_id, device);
   if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
     {
       GVariantBuilder opt_builder;
