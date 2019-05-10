@@ -22,6 +22,12 @@
 
 #include <gio/gio.h>
 
+#include "request.h"
+
+gboolean device_query_permission_sync (const char *app_id,
+                                       const char *device,
+                                       const char *request_handle);
+
 GDBusInterfaceSkeleton * device_create (GDBusConnection *connection,
                                         const char      *dbus_name,
                                         gpointer         lockdown);

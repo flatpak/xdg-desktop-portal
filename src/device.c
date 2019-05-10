@@ -71,23 +71,14 @@ static const char *known_devices[] = {
   NULL
 };
 
-static void
-handle_access_device_in_thread (GTask *task,
-                                gpointer source_object,
-                                gpointer task_data,
-                                GCancellable *cancellable)
+gboolean
+device_query_permission_sync (const char *app_id,
+                              const char *device,
+                              const char *request_handle)
 {
-  Request *request = (Request *)task_data;
-  const char *app_id;
   char **permissions;
   Permission permission;
   gboolean allowed;
-  const char *device;
-
-  REQUEST_AUTOLOCK (request);
-
-  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
-  device = (const char *)g_object_get_data (G_OBJECT (request), "device");
 
   permissions = get_permissions_sync (app_id, PERMISSION_TABLE, device);
   if (!permissions)
@@ -164,7 +155,7 @@ handle_access_device_in_thread (GTask *task,
       g_debug ("Calling backend for device access to: %s", device);
 
       if (!xdp_impl_access_call_access_dialog_sync (impl,
-                                                    request->id,
+                                                    request_handle,
                                                     app_id,
                                                     "",
                                                     title,
@@ -194,6 +185,27 @@ handle_access_device_in_thread (GTask *task,
     }
   else
     allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+
+  return allowed;
+}
+
+static void
+handle_access_device_in_thread (GTask *task,
+                                gpointer source_object,
+                                gpointer task_data,
+                                GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  const char *app_id;
+  const char *device;
+  gboolean allowed;
+
+  REQUEST_AUTOLOCK (request);
+
+  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
+  device = (const char *)g_object_get_data (G_OBJECT (request), "device");
+
+  allowed = device_query_permission_sync (app_id, device, request->id);
 
   if (request->exported)
     {
