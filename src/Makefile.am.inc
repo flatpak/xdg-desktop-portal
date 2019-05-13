@@ -55,6 +55,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	data/org.freedesktop.impl.portal.Settings.xml \
 	data/org.freedesktop.impl.portal.Lockdown.xml \
+	data/org.freedesktop.impl.portal.Background.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
@@ -174,6 +175,7 @@ xdg_desktop_portal_LDADD = \
 	$(BASE_LIBS) \
 	$(PIPEWIRE_LIBS) \
 	$(GEOCLUE_LIBS) \
+        $(FLATPAK_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
 	-DPKGDATADIR=\"$(pkgdatadir)\" \
@@ -182,6 +184,7 @@ xdg_desktop_portal_CFLAGS = \
 	$(BASE_CFLAGS) \
 	$(PIPEWIRE_CFLAGS) \
 	$(GEOCLUE_CFLAGS) \
+        $(FLATPAK_CFLAGS) \
 	-I$(srcdir)/src \
 	-I$(builddir)/src \
 	$(NULL)

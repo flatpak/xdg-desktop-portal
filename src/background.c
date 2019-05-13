@@ -25,6 +25,7 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
+#include <flatpak.h>
 #include "background.h"
 #include "request.h"
 #include "permissions.h"
@@ -95,6 +96,70 @@ get_permission (const char *app_id)
       return UNSET;
     }
   g_debug ("permission store: app %s -> %s", app_id, permissions[0]);
+
+  if (strcmp (permissions[0], "yes") == 0)
+    return YES;
+  else if (strcmp (permissions[0], "no") == 0)
+    return NO;
+  else if (strcmp (permissions[0], "ask") == 0)
+    return ASK;
+  else
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong permission format, ignoring (%s)", a);
+    }
+
+  return UNSET;
+}
+
+static GVariant *
+get_all_permissions (void)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) out_perms = NULL;
+  g_autoptr(GVariant) out_data = NULL;
+
+  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
+                                                   PERMISSION_TABLE,
+                                                   PERMISSION_ID,
+                                                   &out_perms,
+                                                   &out_data,
+                                                   NULL,
+                                                   &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_debug ("No background permissions found: %s", error->message);
+      return NULL;
+    }
+
+  return g_steal_pointer (&out_perms);
+}
+
+static Permission
+get_one_permission (const char *app_id,
+                    GVariant   *perms)
+{
+  const char **permissions;
+
+  if (perms == NULL)
+    {
+      g_debug ("No background permissions found");
+
+      return UNSET;
+    }
+  else if (!g_variant_lookup (perms, app_id, "^a&s", &permissions))
+    {
+      g_debug ("No background permissions stored for: app %s", app_id);
+
+      return UNSET;
+    }
+  else if (g_strv_length ((char **)permissions) != 1)
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
+      g_warning ("Wrong background permission format, ignoring (%s)", a);
+      return UNSET;
+    }
+  g_debug ("permission store: background, app %s -> %s", app_id, permissions[0]);
 
   if (strcmp (permissions[0], "yes") == 0)
     return YES;
@@ -409,6 +474,372 @@ background_class_init (BackgroundClass *klass)
 {
 }
 
+/* background monitor */
+
+typedef enum { BACKGROUND, RUNNING, ACTIVE } AppState;
+
+static GHashTable *
+get_app_states (void)
+{
+  g_autoptr(GVariant) apps = NULL;
+  g_autoptr(GHashTable) app_states = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  const char *appid;
+  GVariant *value;
+  g_autoptr(GError) error = NULL;
+
+  if (!xdp_impl_background_call_get_app_state_sync (background_impl, &apps, NULL, &error))
+    {
+      g_warning ("Failed to get application states: %s", error->message);
+      return NULL;
+    }
+
+  g_autoptr(GVariantIter) iter = g_variant_iter_new (apps);
+  while (g_variant_iter_loop (iter, "{&sv}", &appid, &value))
+    {
+      AppState state = g_variant_get_uint32 (value);
+      g_hash_table_insert (app_states, g_strdup (appid), GINT_TO_POINTER (state));
+    }
+
+  return g_steal_pointer (&app_states);
+}
+
+static AppState
+get_one_app_state (const char *app_id,
+                   GHashTable *app_states)
+{
+  return (AppState)GPOINTER_TO_INT (g_hash_table_lookup (app_states, app_id));
+}
+
+static GHashTable *applications;
+G_LOCK_DEFINE_STATIC (applications);
+
+static void
+close_notification (const char *handle)
+{
+  g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (background)),
+                          g_dbus_proxy_get_name (G_DBUS_PROXY (background_impl)),
+                          handle,
+                          "org.freedesktop.impl.portal.Request",
+                          "Close",
+                          NULL,
+                          NULL,
+                          G_DBUS_CALL_FLAGS_NONE,
+                          -1,
+                          NULL, NULL, NULL);
+}
+
+static void
+remove_outdated_applications (GPtrArray *apps)
+{
+  int j;
+  GHashTableIter iter;
+  char *app_id;
+  char *handle;
+  g_autoptr(GPtrArray) handles = NULL;
+
+  handles = g_ptr_array_new_with_free_func (g_free);
+
+  G_LOCK (applications);
+  g_hash_table_iter_init (&iter, applications);
+  while (g_hash_table_iter_next (&iter, (gpointer *)&app_id, (gpointer *)&handle))
+    {
+      gboolean found = FALSE;
+      for (j = 0; j < apps->len && !found; j++)
+        {
+          FlatpakInstance *app = g_ptr_array_index (apps, j);
+          found = g_strcmp0 (app_id, flatpak_instance_get_app (app));
+        }
+      if (!found)
+        {
+          g_hash_table_iter_remove (&iter);
+          if (handle)
+            g_ptr_array_add (handles, g_strdup (handle));
+        }
+    }
+  G_UNLOCK (applications);
+
+  for (j = 0; j < handles->len; j++)
+    { 
+      const char *handle = g_ptr_array_index (handles, j);
+      close_notification (handle);
+    }
+}
+
+/*
+ * Returns whether the @app_id was found in the
+ * table of background apps, and if so, sets
+ * @value to the value found for it.
+ */
+static gboolean
+lookup_background_app (const char *app_id,
+                       char **value)
+{
+  gboolean res;
+  char *orig_key;
+  char *orig_val;
+
+  G_LOCK (applications);
+  res = g_hash_table_lookup_extended (applications, app_id, (gpointer *)&orig_key, (gpointer *)&orig_val);
+  if (res) 
+    *value = g_strdup (orig_val);
+  G_UNLOCK (applications);
+
+  return res;
+}
+
+static void
+add_background_app (const char *app_id,
+                    const char *handle)
+{
+  G_LOCK (applications);
+  g_hash_table_insert (applications, g_strdup (app_id), g_strdup (handle));
+  G_UNLOCK (applications);
+}
+
+static void
+remove_background_app (const char *app_id)
+{
+  g_autofree char *handle = NULL;
+
+  G_LOCK (applications);
+  handle = g_strdup (g_hash_table_lookup (applications, app_id));
+  g_hash_table_remove (applications, app_id);
+  G_UNLOCK (applications);
+
+  if (handle)
+    close_notification (handle);
+}
+
+static char *
+flatpak_instance_get_display_name (FlatpakInstance *instance)
+{
+  const char *app_id = flatpak_instance_get_app (instance);
+  if (app_id[0] != 0)
+    {
+      g_autofree char *desktop_id = NULL;
+      g_autoptr(GAppInfo) info = NULL;
+
+      desktop_id = g_strconcat (app_id, ".desktop", NULL);
+      info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
+
+      if (info)
+        return g_strdup (g_app_info_get_display_name (info));
+    }
+
+  return g_strdup (app_id);
+}
+
+static FlatpakInstance *
+find_instance (const char *app_id)
+{
+  g_autoptr(GPtrArray) instances = NULL;
+  int i;
+
+  instances = flatpak_instance_get_all ();
+  for (i = 0; i < instances->len; i++)
+    {
+      FlatpakInstance *inst = g_ptr_array_index (instances, i);
+
+      if (g_str_equal (flatpak_instance_get_app (inst), app_id))
+        return g_object_ref (inst);
+    }
+
+  return NULL;
+}
+
+static void
+kill_app (const char *app_id)
+{
+  g_autoptr(FlatpakInstance) instance = NULL;
+
+  g_debug ("Killing app %s", app_id);
+
+  instance = find_instance (app_id);
+
+  if (instance)
+    kill (flatpak_instance_get_child_pid (instance), SIGKILL);
+}
+
+typedef struct {
+  char *app_id;
+  Permission perm;
+} DoneData;
+
+static void
+done_data_free (gpointer data)
+{
+  DoneData *ddata = data;
+
+  g_free (ddata->app_id);
+  g_free (ddata);
+}
+
+static void
+notify_background_done (GObject *source,
+                        GAsyncResult *res,
+                        gpointer data)
+{
+  DoneData *ddata = (DoneData *)data;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) results = NULL;
+  guint response;
+  gboolean allow;
+
+  if (!xdp_impl_background_call_notify_background_finish (background_impl,
+                                                          &response,
+                                                          &results,
+                                                          res,
+                                                          &error))
+    {
+      g_warning ("Error from background backend: %s", error->message);
+      done_data_free (ddata);
+      return;
+    }
+
+  g_variant_lookup (results, "allow", "b", &allow);
+
+  if (allow)
+    {
+      g_debug ("Allowing app %s to run in background", ddata->app_id);
+      if (ddata->perm != ASK)
+        set_permission (ddata->app_id, YES);
+    }
+  else
+    {
+      g_debug ("Forbid app %s to run in background", ddata->app_id);
+
+      if (ddata->perm != ASK)
+        set_permission (ddata->app_id, ASK);
+      kill_app (ddata->app_id);
+    }
+
+  add_background_app (ddata->app_id, NULL);
+  done_data_free (ddata);
+}
+
+static void
+send_notification (FlatpakInstance *instance,
+                   Permission       permission)
+{
+  DoneData *ddata;
+  g_autofree char *name = flatpak_instance_get_display_name (instance);
+  g_autofree char *handle = NULL;
+  static int count;
+
+  ddata = g_new (DoneData, 1);
+  ddata->app_id = g_strdup (flatpak_instance_get_app (instance));
+  ddata->perm = permission;
+
+  g_debug ("Notify background for %s", ddata->app_id);
+
+  handle = g_strdup_printf ("/org/freedesktop/portal/desktop/notify/background%d", count++);
+
+  add_background_app (ddata->app_id, handle);
+
+  xdp_impl_background_call_notify_background (background_impl,
+                                              handle,
+                                              ddata->app_id,
+                                              name,
+                                              NULL,
+                                              notify_background_done,
+                                              ddata);
+}
+
+static void
+check_background_apps (void)
+{
+  g_autoptr(GVariant) perms = NULL;
+  g_autoptr(GHashTable) app_states = NULL;
+  g_autoptr(GPtrArray) apps = NULL;
+  int i;
+
+  app_states = get_app_states ();
+  if (app_states == NULL)
+    return;
+
+  g_debug ("Checking background permissions");
+
+  perms = get_all_permissions ();
+  apps = flatpak_instance_get_all ();
+
+  remove_outdated_applications (apps);
+
+  for (i = 0; i < apps->len; i++)
+    {
+      FlatpakInstance *instance = g_ptr_array_index (apps, i);
+      const char *app_id = flatpak_instance_get_app (instance);
+      Permission permission;
+      AppState state;
+      const char *state_names[] = { "background", "running", "active" };
+      g_autofree char *handle = NULL;
+
+      if (!flatpak_instance_is_running (instance))
+        continue;
+
+      state = get_one_app_state (app_id, app_states);
+      g_debug ("App %s is %s", app_id, state_names[state]);
+
+      if (state != BACKGROUND)
+        {
+          remove_background_app (app_id);
+          continue;
+        }
+
+      /* If the app is not in the list of background apps
+       * yet, add it, but don't notify yet - this gives
+       * apps some leeway to get their window app. If it
+       * is still in the background next time around,
+       * we'll proceed to the next step.
+       */
+      if (!lookup_background_app (app_id, &handle))
+        {
+          add_background_app (app_id, NULL);
+          continue;
+        }
+
+      if (handle)
+        continue; /* already notified */
+
+      permission = get_one_permission (app_id, perms);
+      if (permission == NO)
+        {
+          pid_t pid = flatpak_instance_get_child_pid (instance);
+          g_debug ("Killing app %s (child pid %u)", app_id, pid);
+          kill (pid, SIGKILL);
+        }
+      else if (permission == ASK || permission == UNSET)
+        {
+          send_notification (instance, permission);
+        }
+    }
+}
+
+static void
+background_monitor (GTask *task,
+                    gpointer source_object,
+                    gpointer task_data,
+                    GCancellable *cancellable)
+{
+  while (1)
+    {
+      check_background_apps ();
+      sleep (60);
+    }
+}
+
+static void
+start_background_monitor (void)
+{
+  g_autoptr(GTask) task = NULL;
+
+  applications = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+  g_debug ("Starting background app monitor");
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_run_in_thread (task, background_monitor);
+}
+
 GDBusInterfaceSkeleton *
 background_create (GDBusConnection *connection,
                    const char *dbus_name_access,
@@ -444,6 +875,8 @@ background_create (GDBusConnection *connection,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
   background = g_object_new (background_get_type (), NULL);
+
+  start_background_monitor ();
 
   return G_DBUS_INTERFACE_SKELETON (background);
 }
