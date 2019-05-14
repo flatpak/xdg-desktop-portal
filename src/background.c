@@ -49,6 +49,7 @@ struct _BackgroundClass
 };
 
 static XdpImplAccess *access_impl;
+static XdpImplBackground *background_impl;
 static Background *background;
 
 GType background_get_type (void) G_GNUC_CONST;
@@ -144,6 +145,60 @@ set_permission (const char *app_id,
     }
 }
 
+/* This is conservative, but lets us avoid escaping most
+   regular Exec= lines, which is nice as that can sometimes
+   cause problems for apps launching desktop files. */
+static gboolean
+need_quotes (const char *str)
+{
+  const char *p;
+
+  for (p = str; *p; p++)
+    {
+      if (!g_ascii_isalnum (*p) &&
+          strchr ("-_%.=:/@", *p) == NULL)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
+static char *
+maybe_quote (const char *str)
+{
+  if (need_quotes (str))
+    return g_shell_quote (str);
+  return g_strdup (str);
+}
+
+static char **
+rewrite_commandline (const char *app_id,
+                     const char * const *commandline)
+{
+  g_autoptr(GPtrArray) args = NULL;
+
+  args = g_ptr_array_new_with_free_func (g_free);
+
+  g_ptr_array_add (args, g_strdup ("flatpak"));
+  g_ptr_array_add (args, g_strdup ("run"));
+  if (commandline && commandline[0])
+    {
+      int i;
+      g_autofree char *cmd = NULL;
+
+      cmd = maybe_quote (commandline[0]);
+      g_ptr_array_add (args, g_strdup_printf ("--command=%s", cmd));
+      g_ptr_array_add (args, g_strdup (app_id));
+      for (i = 1; commandline[i]; i++)
+        g_ptr_array_add (args, g_strdup (commandline[i]));
+    }
+  else
+    g_ptr_array_add (args, g_strdup (app_id));
+  g_ptr_array_add (args, NULL);
+
+  return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
+}
+
 static void
 handle_request_background_in_thread_func (GTask *task,
                                           gpointer source_object,
@@ -154,13 +209,22 @@ handle_request_background_in_thread_func (GTask *task,
   GVariant *options;
   const char *app_id;
   Permission permission;
-  gboolean allowed;
   const char *reason = NULL;
+  gboolean autostart_requested = FALSE;
+  gboolean autostart_enabled;
+  gboolean allowed;
+  g_autoptr(GError) error = NULL;
+  const char * const *autostart_exec = { NULL };
+  gboolean autostart_activatable = FALSE;
+  g_auto(GStrv) commandline = NULL;
 
   REQUEST_AUTOLOCK (request);
 
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
-  g_variant_lookup (options, "reason", "s", &reason);
+  g_variant_lookup (options, "reason", "&s", &reason);
+  g_variant_lookup (options, "autostart", "b", &autostart_requested);
+  g_variant_lookup (options, "commandline", "^a&s", &autostart_exec);
+  g_variant_lookup (options, "dbus-activatable", "b", &autostart_activatable);
 
   app_id = xdp_app_info_get_id (request->app_info);
   permission = get_permission (app_id);
@@ -188,6 +252,8 @@ handle_request_background_in_thread_func (GTask *task,
       title = g_strdup_printf (_("Allow %s to run in the background?"), info ? g_app_info_get_display_name (info) : app_id);
       if (reason)
         subtitle = g_strdup (reason);
+      else if (autostart_requested)
+        subtitle = g_strdup_printf (_("%s requests to be started automatically and run in the background."), info ? g_app_info_get_display_name (info) : app_id);
       else
         subtitle = g_strdup_printf (_("%s requests to run in the background."), info ? g_app_info_get_display_name (info) : app_id);
       body = g_strdup (_("The ‘run in background’ permission can be changed at any time from the application settings."));
@@ -222,12 +288,30 @@ handle_request_background_in_thread_func (GTask *task,
   else
     allowed = permission == YES ? TRUE : FALSE;
 
+  g_debug ("Setting autostart for %s to %s", app_id,
+           allowed && autostart_requested ? "enabled" : "disabled");
+
+  commandline = rewrite_commandline (app_id, autostart_exec);
+  if (!xdp_impl_background_call_enable_autostart_sync (background_impl,
+                                                       app_id,
+                                                       allowed && autostart_requested,
+                                                       (const char * const *)commandline,
+                                                       autostart_activatable,
+                                                       &autostart_enabled,
+                                                       NULL,
+                                                       &error))
+    {
+      g_warning ("EnableAutostart call failed: %s", error->message);
+      g_clear_error (&error);
+    }
+
   if (request->exported)
     {
       GVariantBuilder results;
 
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
+      g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
       xdp_request_emit_response (XDP_REQUEST (request),
                                  allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED,
                                  g_variant_builder_end (&results));
@@ -254,7 +338,10 @@ validate_reason (const char *key,
 }
 
 static XdpOptionKey background_options[] = {
-  { "reason", G_VARIANT_TYPE_STRING, validate_reason }
+  { "reason", G_VARIANT_TYPE_STRING, validate_reason },
+  { "autostart", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "commandline", G_VARIANT_TYPE_STRING_ARRAY, NULL },
+  { "dbus-activatable", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
 
 static gboolean
@@ -324,13 +411,14 @@ background_class_init (BackgroundClass *klass)
 
 GDBusInterfaceSkeleton *
 background_create (GDBusConnection *connection,
-                   const char *dbus_name)
+                   const char *dbus_name_access,
+                   const char *dbus_name_background)
 {
   g_autoptr(GError) error = NULL;
 
   access_impl = xdp_impl_access_proxy_new_sync (connection,
                                                 G_DBUS_PROXY_FLAGS_NONE,
-                                                dbus_name,
+                                                dbus_name_access,
                                                 DESKTOP_PORTAL_OBJECT_PATH,
                                                 NULL,
                                                 &error);
@@ -342,6 +430,19 @@ background_create (GDBusConnection *connection,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
+  background_impl = xdp_impl_background_proxy_new_sync (connection,
+                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                        dbus_name_background,
+                                                        DESKTOP_PORTAL_OBJECT_PATH,
+                                                        NULL,
+                                                        &error);
+  if (background_impl == NULL)
+    {
+      g_warning ("Failed to create background proxy: %s", error->message);
+      return NULL;
+    }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
   background = g_object_new (background_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (background);

@@ -58,6 +58,27 @@ k linkend="parent_window">Common Conventions</link>
               User-visible reason for the request.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>autostart b</term>
+            <listitem><para>
+              TRUE if the app also wants to be started automatically
+              at login.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>commandline as</term>
+            <listitem><para>
+              Commandline to use add when autostarting at login.
+              If this is not specified, the Exec line from the
+              desktop file will be used.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>dbus-activatable b</term>
+            <listitem><para>
+              If TRUE, add DBusActivatable=true to the autostart file.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
        The following results get returned via the
@@ -70,6 +91,13 @@ k linkend="parent_window">Common Conventions</link>
             TRUE if the application is allowed to run in the background.
           </para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>autostart b</term>
+          <listitem><para>
+            TRUE if the application is will be autostarted.
+          </para></listitem>
+        </varlistentry>
+      </variablelist>
     -->
     <method name="RequestBackground">
       <arg type="s" name="parent_window" direction="in"/>

@@ -381,6 +381,7 @@ on_bus_acquired (GDBusConnection *connection,
                  gpointer         user_data)
 {
   PortalImplementation *implementation;
+  PortalImplementation *implementation2;
   g_autoptr(GError) error = NULL;
   XdpImplLockdown *lockdown;
 
@@ -436,6 +437,7 @@ on_bus_acquired (GDBusConnection *connection,
                                   inhibit_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
+  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
   if (implementation != NULL)
     {
       export_portal_implementation (connection,
@@ -444,9 +446,13 @@ on_bus_acquired (GDBusConnection *connection,
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
 #endif
-      export_portal_implementation (connection,
-                                    background_create (connection, implementation->dbus_name));
     }
+
+  if (implementation != NULL && implementation2 != NULL)
+    export_portal_implementation (connection,
+                                  background_create (connection,
+                                                     implementation->dbus_name,
+                                                     implementation2->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
   if (implementation != NULL)

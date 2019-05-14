@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2019 Red Hat, Inc
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+    org.freedesktop.impl.portal.Background:
+    @short_description: Background portal backend interface
+
+    This interface provides APIs related to applications
+    that are running in the background.
+  -->
+  <interface name="org.freedesktop.impl.portal.Background">
+
+    <!--
+      EnableAutostart:
+      @app_id: App id of the application
+      @enable: TRUE to enable autostart, FALSE to disable it
+      @commandline: The commandline to use in the autostart file
+      @activatable: Whether to use D-Bus activation in the autostart file
+      @result: TRUE if autostart was enabled, FALSE otherwise
+
+      Enables or disables autostart for an application.
+    -->
+    <method name='EnableAutostart'>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="b" name="enable" direction="in"/>
+      <arg type="as" name="commandline" direction="in"/>
+      <arg type="b" name="activatable" direction="in"/>
+      <arg type="b" name="result" direction="out"/>
+    </method>
+  </interface>
+</node>

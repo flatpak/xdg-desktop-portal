@@ -39,6 +39,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Lockdown.xml	\
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Background.xml		\
 	$(NULL)
 
 xml_files = 								\
