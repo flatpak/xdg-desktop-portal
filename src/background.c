@@ -173,32 +173,6 @@ set_permission (const char *app_id,
     }
 }
 
-/* This is conservative, but lets us avoid escaping most
-   regular Exec= lines, which is nice as that can sometimes
-   cause problems for apps launching desktop files. */
-static gboolean
-need_quotes (const char *str)
-{
-  const char *p;
-
-  for (p = str; *p; p++)
-    {
-      if (!g_ascii_isalnum (*p) &&
-          strchr ("-_%.=:/@", *p) == NULL)
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
-static char *
-maybe_quote (const char *str)
-{
-  if (need_quotes (str))
-    return g_shell_quote (str);
-  return g_strdup (str);
-}
-
 static char **
 rewrite_commandline (const char *app_id,
                      const char * const *commandline)
@@ -214,8 +188,7 @@ rewrite_commandline (const char *app_id,
       int i;
       g_autofree char *cmd = NULL;
 
-      cmd = maybe_quote (commandline[0]);
-      g_ptr_array_add (args, g_strdup_printf ("--command=%s", cmd));
+      g_ptr_array_add (args, g_strdup_printf ("--command=%s", commandline[0]));
       g_ptr_array_add (args, g_strdup (app_id));
       for (i = 1; commandline[i]; i++)
         g_ptr_array_add (args, g_strdup (commandline[i]));
