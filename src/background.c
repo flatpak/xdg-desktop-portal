@@ -62,56 +62,6 @@ G_DEFINE_TYPE_WITH_CODE (Background, background, XDP_TYPE_BACKGROUND_SKELETON,
 
 typedef enum { UNSET, NO, YES, ASK } Permission;
 
-static Permission
-get_permission (const char *app_id)
-{
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GVariant) out_perms = NULL;
-  g_autoptr(GVariant) out_data = NULL;
-  const char **permissions;
-
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   PERMISSION_ID,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No background permissions found: %s", error->message);
-      return UNSET;
-    }
-
-  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
-    {
-      g_debug ("No permissions stored for: app %s", app_id);
-
-      return UNSET;
-    }
-  else if (g_strv_length ((char **)permissions) != 1)
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
-      g_warning ("Wrong permission format, ignoring (%s)", a);
-      return UNSET;
-    }
-  g_debug ("permission store: app %s -> %s", app_id, permissions[0]);
-
-  if (strcmp (permissions[0], "yes") == 0)
-    return YES;
-  else if (strcmp (permissions[0], "no") == 0)
-    return NO;
-  else if (strcmp (permissions[0], "ask") == 0)
-    return ASK;
-  else
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
-      g_warning ("Wrong permission format, ignoring (%s)", a);
-    }
-
-  return UNSET;
-}
-
 static GVariant *
 get_all_permissions (void)
 {
@@ -173,6 +123,18 @@ get_one_permission (const char *app_id,
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
     }
+
+  return UNSET;
+}
+
+static Permission
+get_permission (const char *app_id)
+{
+  g_autoptr(GVariant) perms = NULL;
+
+  perms = get_all_permissions ();
+  if (perms)
+    return get_one_permission (app_id, perms);
 
   return UNSET;
 }
