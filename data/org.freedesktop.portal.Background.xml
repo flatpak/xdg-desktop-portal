@@ -23,10 +23,9 @@
       org.freedesktop.portal.Background:
       @short_description: Portal for requesting autostart and background activity
 
-      This simple interface lets sandboxed applications request that the
-      application is allowed to run in the background. If the application installs
-      an autostart file, it will be used to run the application when the user
-      logs in.
+      This simple interface lets sandboxed applications request that
+      the application is allowed to run in the background or started
+      automatically when the user logs in.
 
       This documentation describes version 1 of this interface.
   -->
@@ -76,7 +75,7 @@ k linkend="parent_window">Common Conventions</link>
           <varlistentry>
             <term>dbus-activatable b</term>
             <listitem><para>
-              If TRUE, add DBusActivatable=true to the autostart file.
+              If TRUE, use D-Bus activation for autostart.
             </para></listitem>
           </varlistentry>
         </variablelist>
