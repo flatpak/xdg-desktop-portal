@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <mntent.h>
 
+#include <gio/gdesktopappinfo.h>
 
 #include "xdp-utils.h"
 
@@ -191,6 +192,21 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   g_return_val_if_fail (app_info != NULL, NULL);
 
   return app_info->id;
+}
+
+GAppInfo *
+xdp_app_info_load_app_info (XdpAppInfo *app_info)
+{
+  g_autofree char *desktop_id = NULL;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->id[0] == '\0')
+    return NULL;
+
+  desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
+
+  return G_APP_INFO (g_desktop_app_info_new (desktop_id));
 }
 
 gboolean
