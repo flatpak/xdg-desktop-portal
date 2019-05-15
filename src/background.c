@@ -321,12 +321,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_autoptr(GError) error = NULL;
       g_autoptr(GAppInfo) info = NULL;
 
-      if (app_id[0] != 0)
-        {
-          g_autofree char *desktop_id;
-          desktop_id = g_strconcat (app_id, ".desktop", NULL);
-          info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
-        }
+      info = xdp_app_info_load_app_info (request->app_info);
 
       title = g_strdup_printf (_("Allow %s to run in the background?"), info ? g_app_info_get_display_name (info) : app_id);
       if (reason)
