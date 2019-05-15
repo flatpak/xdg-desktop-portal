@@ -264,6 +264,11 @@ rewrite_commandline (const char *app_id,
   return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
 }
 
+typedef enum {
+  AUTOSTART_FLAGS_NONE        = 0,
+  AUTOSTART_FLAGS_ACTIVATABLE = 1 << 0,
+} AutostartFlags;
+
 static void
 handle_request_background_in_thread_func (GTask *task,
                                           gpointer source_object,
@@ -280,7 +285,8 @@ handle_request_background_in_thread_func (GTask *task,
   gboolean allowed;
   g_autoptr(GError) error = NULL;
   const char * const *autostart_exec = { NULL };
-  gboolean autostart_activatable = FALSE;
+  AutostartFlags autostart_flags = AUTOSTART_FLAGS_NONE;
+  gboolean activatable = FALSE;
   g_auto(GStrv) commandline = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -289,7 +295,10 @@ handle_request_background_in_thread_func (GTask *task,
   g_variant_lookup (options, "reason", "&s", &reason);
   g_variant_lookup (options, "autostart", "b", &autostart_requested);
   g_variant_lookup (options, "commandline", "^a&s", &autostart_exec);
-  g_variant_lookup (options, "dbus-activatable", "b", &autostart_activatable);
+  g_variant_lookup (options, "dbus-activatable", "b", &activatable);
+
+  if (activatable)
+    autostart_flags |= AUTOSTART_FLAGS_ACTIVATABLE;
 
   app_id = xdp_app_info_get_id (request->app_info);
   permission = get_permission (app_id);
@@ -361,7 +370,7 @@ handle_request_background_in_thread_func (GTask *task,
                                                        app_id,
                                                        allowed && autostart_requested,
                                                        (const char * const *)commandline,
-                                                       autostart_activatable,
+                                                       autostart_flags,
                                                        &autostart_enabled,
                                                        NULL,
                                                        &error))

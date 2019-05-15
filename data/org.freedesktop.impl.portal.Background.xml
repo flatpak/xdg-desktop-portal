@@ -78,16 +78,21 @@
       @app_id: App id of the application
       @enable: TRUE to enable autostart, FALSE to disable it
       @commandline: The commandline to use in the autostart file
-      @activatable: Whether to use D-Bus activation in the autostart file
+      @flags: Flags influencing the details of the autostarting
       @result: TRUE if autostart was enabled, FALSE otherwise
 
       Enables or disables autostart for an application.
+
+      The following flags are understood:
+      <simplelist>
+        <member>1: Use D-Bus activation</member>
+      </simplelist>
     -->
     <method name='EnableAutostart'>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="b" name="enable" direction="in"/>
       <arg type="as" name="commandline" direction="in"/>
-      <arg type="b" name="activatable" direction="in"/>
+      <arg type="u" name="flags" direction="in"/>
       <arg type="b" name="result" direction="out"/>
     </method>
   </interface>
