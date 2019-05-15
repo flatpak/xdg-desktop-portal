@@ -787,30 +787,28 @@ check_background_apps (void)
     }
 }
 
-static void
-background_monitor (GTask *task,
-                    gpointer source_object,
-                    gpointer task_data,
-                    GCancellable *cancellable)
+static gpointer
+background_monitor (gpointer data)
 {
   while (1)
     {
       check_background_apps ();
       sleep (60);
     }
+
+  return NULL;
 }
 
 static void
 start_background_monitor (void)
 {
-  g_autoptr(GTask) task = NULL;
+  g_autoptr(GThread) thread = NULL;
 
   applications = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
   g_debug ("Starting background app monitor");
 
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_run_in_thread (task, background_monitor);
+  thread = g_thread_new ("background monitor", background_monitor, NULL);
 }
 
 GDBusInterfaceSkeleton *
