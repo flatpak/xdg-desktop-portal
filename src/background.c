@@ -33,6 +33,33 @@
 #include "xdp-utils.h"
 #include "flatpak-instance.h"
 
+/* Implementation notes:
+ *
+ * We store a YES/NO/ASK permission for "run in background".
+ *
+ * There is a portal api for apps to request this permission
+ * ahead of time. The portal also lets apps ask for being
+ * autostarted.
+ *
+ * We determine this condition by getting per-application
+ * state from the compositor, and comparing that list to
+ * the list of running flatpak instances obtained from
+ * $XDG_RUNTIME_DIR/.flatpak/. A thread is comparing
+ * this list every minute, and if it finds an app that
+ * is in the background twice, we take actions:
+ * - if the permission is NO, we kill it
+ * - if the permission is YES or ASK, we notify the user
+ *
+ * We only notify once per running instance to not be
+ * annoying.
+ *
+ * Platform-dependent parts are in the background portal
+ * backend:
+ * - Notifying the user
+ * - Getting compositor state
+ * - Enable or disable autostart
+ */
+
 #define PERMISSION_TABLE "background"
 #define PERMISSION_ID "background"
 
