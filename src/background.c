@@ -173,33 +173,6 @@ set_permission (const char *app_id,
     }
 }
 
-static char **
-rewrite_commandline (const char *app_id,
-                     const char * const *commandline)
-{
-  g_autoptr(GPtrArray) args = NULL;
-
-  args = g_ptr_array_new_with_free_func (g_free);
-
-  g_ptr_array_add (args, g_strdup ("flatpak"));
-  g_ptr_array_add (args, g_strdup ("run"));
-  if (commandline && commandline[0])
-    {
-      int i;
-      g_autofree char *cmd = NULL;
-
-      g_ptr_array_add (args, g_strdup_printf ("--command=%s", commandline[0]));
-      g_ptr_array_add (args, g_strdup (app_id));
-      for (i = 1; commandline[i]; i++)
-        g_ptr_array_add (args, g_strdup (commandline[i]));
-    }
-  else
-    g_ptr_array_add (args, g_strdup (app_id));
-  g_ptr_array_add (args, NULL);
-
-  return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
-}
-
 typedef enum {
   AUTOSTART_FLAGS_NONE        = 0,
   AUTOSTART_FLAGS_ACTIVATABLE = 1 << 0,
@@ -300,7 +273,7 @@ handle_request_background_in_thread_func (GTask *task,
   g_debug ("Setting autostart for %s to %s", app_id,
            allowed && autostart_requested ? "enabled" : "disabled");
 
-  commandline = rewrite_commandline (app_id, autostart_exec);
+  commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec);
   if (!xdp_impl_background_call_enable_autostart_sync (background_impl,
                                                        app_id,
                                                        allowed && autostart_requested,
