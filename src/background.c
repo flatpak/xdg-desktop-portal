@@ -537,7 +537,8 @@ done_data_free (gpointer data)
 
 typedef enum {
   FORBID = 0,
-  ALLOW  = 1
+  ALLOW  = 1,
+  IGNORE = 2
 } NotifyResult;
 
 static void
@@ -581,10 +582,15 @@ notify_background_done (GObject *source,
 
       kill_instance (ddata->id);
     }
+  else if (result == IGNORE)
+    {
+      g_debug ("Allow this instance of %s to run in background without permission changes", ddata->app_id);
+    }
   else
     g_debug ("Unexpected response from NotifyBackground: %u", result);
 
-  set_permission (ddata->app_id, ddata->perm);
+  if (ddata->perm != UNSET)
+    set_permission (ddata->app_id, ddata->perm);
 
   idata = g_hash_table_lookup (applications, ddata->id);
   if (idata)

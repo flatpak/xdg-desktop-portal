@@ -65,6 +65,7 @@
             <simplelist>
               <member>0: Forbid background activity by this app</member>
               <member>1: Allow background activity by this app</member>
+              <member>2: Allow this instance of background activity</member>
             </simplelist>
           </para></listitem>
         </varlistentry>
