@@ -35,6 +35,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.RemoteDesktop.xml \
 	data/org.freedesktop.portal.Location.xml \
 	data/org.freedesktop.portal.Settings.xml \
+	data/org.freedesktop.portal.Updates.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -147,6 +148,8 @@ xdg_desktop_portal_SOURCES = \
 	src/xdp-utils.h			\
 	src/fc-monitor.c		\
 	src/fc-monitor.h		\
+        src/updates.c                   \
+        src/updates.h                   \
 	$(NULL)
 
 if HAVE_PIPEWIRE

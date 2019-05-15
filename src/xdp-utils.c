@@ -193,6 +193,44 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   return app_info->id;
 }
 
+char *
+xdp_app_info_get_ref (XdpAppInfo *app_info)
+{
+  g_autofree char *arch = NULL;
+  g_autofree char *branch = NULL;
+
+  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+    return NULL;
+
+  arch = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                "arch", NULL);
+  branch = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                  FLATPAK_METADATA_GROUP_INSTANCE,
+                                  "branch", NULL);
+
+  return g_strconcat ("app/", app_info->id, "/", arch, "/", branch, NULL);
+}
+
+char *
+xdp_app_info_get_inst_path (XdpAppInfo *app_info)
+{
+  g_autofree char *path = NULL;
+  char *p;
+
+  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+    return NULL;
+
+  path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                FLATPAK_METADATA_KEY_APP_PATH, NULL);
+
+  p = strstr (path, "/app/");
+  p[0] = '\0';
+
+  return g_steal_pointer (&path);
+}
+
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {

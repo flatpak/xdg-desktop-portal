@@ -290,6 +290,22 @@ get_token (GDBusMethodInvocation *invocation)
     {
       // no request objects
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Updates") == 0)
+    {
+      if (strcmp (method, "InstallUpdate") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 1);
+        }
+      else if (strcmp (method, "CreateUpdateMonitor") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 0);
+        }
+      else
+        {
+          g_warning ("Support for %s::%s missing in %s",
+                     interface, method, G_STRLOC);
+        }
+    }
   else
     {
       g_print ("Support for %s missing in " G_STRLOC, interface);
