@@ -58,9 +58,14 @@
       The following results get returned via the @results vardict:
       <variablelist>
         <varlistentry>
-          <term>allow b</term>
+          <term>result u</term>
           <listitem><para>
-            TRUE to allow the app to run in the background, FALSE to stop it.
+            The choice that the user made regarding the background
+            activity:
+            <simplelist>
+              <member>0: Forbid background activity by this app</member>
+              <member>1: Allow background activity by this app</member>
+            </simplelist>
           </para></listitem>
         </varlistentry>
       </variablelist>

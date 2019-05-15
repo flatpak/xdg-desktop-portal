@@ -654,7 +654,7 @@ notify_background_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) results = NULL;
   guint response;
-  gboolean allow;
+  guint result;
 
   if (!xdp_impl_background_call_notify_background_finish (background_impl,
                                                           &response,
@@ -667,15 +667,15 @@ notify_background_done (GObject *source,
       return;
     }
 
-  g_variant_lookup (results, "allow", "b", &allow);
+  g_variant_lookup (results, "result", "u", &result);
 
-  if (allow)
+  if (result == 1)
     {
       g_debug ("Allowing app %s to run in background", ddata->app_id);
       if (ddata->perm != ASK)
         set_permission (ddata->app_id, YES);
     }
-  else
+  else if (result == 0)
     {
       g_debug ("Forbid app %s to run in background", ddata->app_id);
 
@@ -683,6 +683,8 @@ notify_background_done (GObject *source,
         set_permission (ddata->app_id, NO);
       kill_app (ddata->app_id);
     }
+  else
+    g_debug ("Unexpected response from NotifyBackground: %u", result);
 
   add_background_app (ddata->app_id, NULL);
   done_data_free (ddata);
