@@ -159,6 +159,7 @@ get_one_permission (const char *app_id,
       g_warning ("Wrong background permission format, ignoring (%s)", a);
       return UNSET;
     }
+
   g_debug ("permission store: background, app %s -> %s", app_id, permissions[0]);
 
   if (strcmp (permissions[0], "yes") == 0)
@@ -301,7 +302,11 @@ handle_request_background_in_thread_func (GTask *task,
     autostart_flags |= AUTOSTART_FLAGS_ACTIVATABLE;
 
   app_id = xdp_app_info_get_id (request->app_info);
-  permission = get_permission (app_id);
+
+  if (xdp_app_info_is_host (request->app_info))
+    permission = YES;
+  else
+    permission = get_permission (app_id);
 
   g_debug ("Handle RequestBackground for %s\n", app_id);
 
