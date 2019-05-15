@@ -151,6 +151,8 @@ xdg_desktop_portal_SOURCES = \
 	src/fc-monitor.h		\
 	src/background.c		\
 	src/background.h		\
+        src/flatpak-instance.c          \
+        src/flatpak-instance.h          \
 	$(NULL)
 
 if HAVE_PIPEWIRE
@@ -175,7 +177,6 @@ xdg_desktop_portal_LDADD = \
 	$(BASE_LIBS) \
 	$(PIPEWIRE_LIBS) \
 	$(GEOCLUE_LIBS) \
-        $(FLATPAK_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
 	-DPKGDATADIR=\"$(pkgdatadir)\" \
@@ -184,7 +185,6 @@ xdg_desktop_portal_CFLAGS = \
 	$(BASE_CFLAGS) \
 	$(PIPEWIRE_CFLAGS) \
 	$(GEOCLUE_CFLAGS) \
-        $(FLATPAK_CFLAGS) \
 	-I$(srcdir)/src \
 	-I$(builddir)/src \
 	$(NULL)

@@ -61,7 +61,7 @@ AC_PATH_PROG([BWRAP], [bwrap])
 AC_SUBST([GLIB_COMPILE_RESOURCES], [`$PKG_CONFIG --variable glib_compile_resources gio-2.0`])
 AC_SUBST([GDBUS_CODEGEN], [`$PKG_CONFIG --variable gdbus_codegen gio-2.0`])
 
-PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0 fontconfig])
+PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0 fontconfig json-glib-1.0])
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 
@@ -136,7 +136,6 @@ fi
 GLIB_TESTS
 
 PKG_CHECK_MODULES(FUSE, [fuse])
-PKG_CHECK_MODULES(FLATPAK, [flatpak])
 
 AC_CONFIG_FILES([
 Makefile

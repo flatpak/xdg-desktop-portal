@@ -25,13 +25,13 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include <flatpak.h>
 #include "background.h"
 #include "request.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+#include "flatpak-instance.h"
 
 #define PERMISSION_TABLE "background"
 #define PERMISSION_ID "background"
