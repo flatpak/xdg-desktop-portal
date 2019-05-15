@@ -680,7 +680,7 @@ notify_background_done (GObject *source,
       g_debug ("Forbid app %s to run in background", ddata->app_id);
 
       if (ddata->perm != ASK)
-        set_permission (ddata->app_id, ASK);
+        set_permission (ddata->app_id, NO);
       kill_app (ddata->app_id);
     }
 
