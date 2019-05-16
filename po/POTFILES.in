@@ -1,3 +1,4 @@
+src/background.c
 src/device.c
 src/location.c
 src/settings.c
