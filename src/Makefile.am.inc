@@ -35,6 +35,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.RemoteDesktop.xml \
 	data/org.freedesktop.portal.Location.xml \
 	data/org.freedesktop.portal.Settings.xml \
+	data/org.freedesktop.portal.Background.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -54,6 +55,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
 	data/org.freedesktop.impl.portal.Settings.xml \
 	data/org.freedesktop.impl.portal.Lockdown.xml \
+	data/org.freedesktop.impl.portal.Background.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
@@ -147,6 +149,10 @@ xdg_desktop_portal_SOURCES = \
 	src/xdp-utils.h			\
 	src/fc-monitor.c		\
 	src/fc-monitor.h		\
+	src/background.c		\
+	src/background.h		\
+        src/flatpak-instance.c          \
+        src/flatpak-instance.h          \
 	$(NULL)
 
 if HAVE_PIPEWIRE

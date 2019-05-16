@@ -107,6 +107,7 @@
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Settings.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Background.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.xml"/>
   </reference>
@@ -145,6 +146,7 @@
     <xi:include href="portal-org.freedesktop.impl.portal.Access.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Settings.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Lockdown.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Background.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.PermissionStore.xml"/>
   </reference>
 </book>

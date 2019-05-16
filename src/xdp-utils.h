@@ -62,6 +62,9 @@ char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
 gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
+GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);
+char **     xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
+                                              const char *const *commandline);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 

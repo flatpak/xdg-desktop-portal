@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2019 Red Hat, Inc
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthias Clasen <mclasen@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+    org.freedesktop.impl.portal.Background:
+    @short_description: Background portal backend interface
+
+    This interface provides APIs related to applications
+    that are running in the background.
+  -->
+  <interface name="org.freedesktop.impl.portal.Background">
+
+    <!--
+      GetAppState:
+      @apps: an array with information about running apps
+
+      Gets information about running apps. Each entry has
+      an application ID as key. The returned values are of
+      type u and have the following meaning:
+      <simplelist>
+        <member>0: Background (no open window)</member>
+        <member>1: Running (at least one open window)</member>
+        <member>2: Active (in the foreground)</member>
+      </simplelist>
+    -->
+    <method name='GetAppState'>
+      <arg type="a{sv}" name="apps" direction="out"/>
+    </method>
+
+    <!--
+      NotifyBackground:
+      @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+      @app_id: App id of the application
+      @name: A display name for the application
+      @response: Numeric response, not used
+      @results: Vardict with results of the call
+
+      Notifies the user that an application is running in the background.
+
+      The following results get returned via the @results vardict:
+      <variablelist>
+        <varlistentry>
+          <term>result u</term>
+          <listitem><para>
+            The choice that the user made regarding the background
+            activity:
+            <simplelist>
+              <member>0: Forbid background activity by this app</member>
+              <member>1: Allow background activity by this app</member>
+              <member>2: Allow this instance of background activity</member>
+            </simplelist>
+          </para></listitem>
+        </varlistentry>
+      </variablelist>
+    -->
+    <method name='NotifyBackground'>
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+      EnableAutostart:
+      @app_id: App id of the application
+      @enable: TRUE to enable autostart, FALSE to disable it
+      @commandline: The commandline to use in the autostart file
+      @flags: Flags influencing the details of the autostarting
+      @result: TRUE if autostart was enabled, FALSE otherwise
+
+      Enables or disables autostart for an application.
+
+      The following flags are understood:
+      <simplelist>
+        <member>1: Use D-Bus activation</member>
+      </simplelist>
+    -->
+    <method name='EnableAutostart'>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="b" name="enable" direction="in"/>
+      <arg type="as" name="commandline" direction="in"/>
+      <arg type="u" name="flags" direction="in"/>
+      <arg type="b" name="result" direction="out"/>
+    </method>
+  </interface>
+</node>

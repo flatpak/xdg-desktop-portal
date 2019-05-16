@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <mntent.h>
 
+#include <gio/gdesktopappinfo.h>
 
 #include "xdp-utils.h"
 
@@ -191,6 +192,59 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   g_return_val_if_fail (app_info != NULL, NULL);
 
   return app_info->id;
+}
+
+GAppInfo *
+xdp_app_info_load_app_info (XdpAppInfo *app_info)
+{
+  g_autofree char *desktop_id = NULL;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->id[0] == '\0')
+    return NULL;
+
+  desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
+
+  return G_APP_INFO (g_desktop_app_info_new (desktop_id));
+}
+
+char **
+xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
+                                  const char * const *commandline)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+    {
+      return g_strdupv ((char **)commandline);
+    }
+  else if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+    {
+      g_autoptr(GPtrArray) args = NULL;
+
+      args = g_ptr_array_new_with_free_func (g_free);
+
+      g_ptr_array_add (args, g_strdup ("flatpak"));
+      g_ptr_array_add (args, g_strdup ("run"));
+      if (commandline && commandline[0])
+        {
+          int i;
+          g_autofree char *cmd = NULL;
+
+          g_ptr_array_add (args, g_strdup_printf ("--command=%s", commandline[0]));
+          g_ptr_array_add (args, g_strdup (app_info->id));
+          for (i = 1; commandline[i]; i++)
+            g_ptr_array_add (args, g_strdup (commandline[i]));
+        }
+      else
+        g_ptr_array_add (args, g_strdup (app_info->id));
+      g_ptr_array_add (args, NULL);
+
+      return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
+    }
+  else
+    return NULL;
 }
 
 gboolean
