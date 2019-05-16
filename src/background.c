@@ -346,10 +346,35 @@ validate_reason (const char *key,
   return TRUE;
 }
 
+static gboolean
+validate_commandline (const char *key,
+                      GVariant *value,
+                      GVariant *options,
+                      GError **error)
+{
+  gsize length;
+  const char **strv = g_variant_get_strv (value, &length);
+
+  if (g_utf8_strlen (strv[0], -1) > 256)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting overly long commandlines");
+      return FALSE;
+    }
+
+  if (length > 100)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting overly long commandlines");
+      return FALSE;
+    }
+
+  return TRUE;
+}
 static XdpOptionKey background_options[] = {
   { "reason", G_VARIANT_TYPE_STRING, validate_reason },
   { "autostart", G_VARIANT_TYPE_BOOLEAN, NULL },
-  { "commandline", G_VARIANT_TYPE_STRING_ARRAY, NULL },
+  { "commandline", G_VARIANT_TYPE_STRING_ARRAY, validate_commandline },
   { "dbus-activatable", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
 
