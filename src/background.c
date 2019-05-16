@@ -757,7 +757,7 @@ background_monitor (gpointer data)
   while (1)
     {
       check_background_apps ();
-      sleep (20);
+      sleep (60);
     }
 
   g_clear_pointer (&applications, g_hash_table_unref);
