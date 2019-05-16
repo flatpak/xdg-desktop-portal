@@ -300,15 +300,21 @@ handle_request_background_in_thread_func (GTask *task,
   g_debug ("Setting autostart for %s to %s", app_id,
            allowed && autostart_requested ? "enabled" : "disabled");
 
+  autostart_enabled = FALSE;
+
   commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec);
-  if (!xdp_impl_background_call_enable_autostart_sync (background_impl,
-                                                       app_id,
-                                                       allowed && autostart_requested,
-                                                       (const char * const *)commandline,
-                                                       autostart_flags,
-                                                       &autostart_enabled,
-                                                       NULL,
-                                                       &error))
+  if (commandline == NULL)
+    {
+      g_debug ("Autostart not supported for: %s", app_id);
+    }
+  else if (!xdp_impl_background_call_enable_autostart_sync (background_impl,
+                                                            app_id,
+                                                            allowed && autostart_requested,
+                                                            (const char * const *)commandline,
+                                                            autostart_flags,
+                                                            &autostart_enabled,
+                                                            NULL,
+                                                            &error))
     {
       g_warning ("EnableAutostart call failed: %s", error->message);
       g_clear_error (&error);
