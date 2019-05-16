@@ -499,10 +499,10 @@ instance_data_free (gpointer data)
   g_free (idata);
 }
 
-/* Only used by the monitor thread, so no locking needed
- * instance ID -> InstanceData
+/* instance ID -> InstanceData
  */
 static GHashTable *applications;
+G_LOCK_DEFINE (applications);
 
 static void
 close_notification (const char *handle)
@@ -525,16 +525,28 @@ remove_outdated_instances (int stamp)
   GHashTableIter iter;
   char *id;
   InstanceData *data;
+  g_autoptr(GPtrArray) handles = NULL;
+  int i;
 
+  handles = g_ptr_array_new_with_free_func (g_free);
+
+  G_LOCK (applications);
   g_hash_table_iter_init (&iter, applications);
   while (g_hash_table_iter_next (&iter, (gpointer *)&id, (gpointer *)&data))
     {
       if (data->stamp < stamp)
         {
           if (data->handle)
-            close_notification (data->handle);
+            g_ptr_array_add (handles, g_strdup (data->handle));
           g_hash_table_iter_remove (&iter);
         }
+    }
+  G_UNLOCK (applications);
+
+  for (i = 0; i < handles->len; i++)
+    {
+      char *handle = g_ptr_array_index (handles, i);
+      close_notification (handle);
     }
 }
 
@@ -557,34 +569,25 @@ flatpak_instance_get_display_name (FlatpakInstance *instance)
   return g_strdup (app_id);
 }
 
-static void
-kill_instance (const char *id)
-{
-  InstanceData *idata;
-
-  idata = g_hash_table_lookup (applications, id);
-
-  if (idata)
-    {
-      g_debug ("Killing app %s", flatpak_instance_get_app (idata->instance));
-      kill (flatpak_instance_get_child_pid (idata->instance), SIGKILL);
-    }
-}
-
 typedef struct {
+  char *handle;
   char *app_id;
   char *id;
+  char *name;
   Permission perm;
-} DoneData;
+  pid_t child_pid;
+} NotificationData;
 
 static void
-done_data_free (gpointer data)
+notification_data_free (gpointer data)
 {
-  DoneData *ddata = data;
+  NotificationData *nd = data;
 
-  g_free (ddata->app_id);
-  g_free (ddata->id);
-  g_free (ddata);
+  g_free (nd->handle);
+  g_free (nd->app_id);
+  g_free (nd->id);
+  g_free (nd->name);
+  g_free (nd);
 }
 
 typedef enum {
@@ -598,7 +601,7 @@ notify_background_done (GObject *source,
                         GAsyncResult *res,
                         gpointer data)
 {
-  DoneData *ddata = (DoneData *)data;
+  NotificationData *nd = (NotificationData *)data;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) results = NULL;
   guint response;
@@ -612,7 +615,7 @@ notify_background_done (GObject *source,
                                                           &error))
     {
       g_warning ("Error from background backend: %s", error->message);
-      done_data_free (ddata);
+      notification_data_free (nd);
       return;
     }
 
@@ -620,69 +623,42 @@ notify_background_done (GObject *source,
 
   if (result == ALLOW)
     {
-      g_debug ("Allowing app %s to run in background", ddata->app_id);
+      g_debug ("Allowing app %s to run in background", nd->app_id);
 
-      if (ddata->perm != ASK)
-        ddata->perm = YES;
+      if (nd->perm != ASK)
+        nd->perm = YES;
     }
   else if (result == FORBID)
     {
-      g_debug ("Forbid app %s to run in background", ddata->app_id);
+      g_debug ("Forbid app %s to run in background", nd->app_id);
 
-      if (ddata->perm != ASK)
-        ddata->perm = NO;
+      if (nd->perm != ASK)
+        nd->perm = NO;
 
-      kill_instance (ddata->id);
+      g_debug ("Kill app %s (pid %d)", nd->app_id, nd->child_pid);
+
+      kill (nd->child_pid, SIGKILL);
     }
   else if (result == IGNORE)
     {
-      g_debug ("Allow this instance of %s to run in background without permission changes", ddata->app_id);
+      g_debug ("Allow this instance of %s to run in background without permission changes", nd->app_id);
     }
   else
     g_debug ("Unexpected response from NotifyBackground: %u", result);
 
-  if (ddata->perm != UNSET)
-    set_permission (ddata->app_id, ddata->perm);
+  if (nd->perm != UNSET)
+    set_permission (nd->app_id, nd->perm);
 
-  idata = g_hash_table_lookup (applications, ddata->id);
+  G_LOCK (applications);
+  idata = g_hash_table_lookup (applications, nd->id);
   if (idata)
     {
       g_clear_pointer (&idata->handle, g_free);
-      idata->permission = ddata->perm;
+      idata->permission = nd->perm;
     }
+  G_UNLOCK (applications);
 
-  done_data_free (ddata);
-}
-
-static void
-send_notification (InstanceData *idata)
-{
-  FlatpakInstance *instance = idata->instance;
-  DoneData *ddata;
-  g_autofree char *name = flatpak_instance_get_display_name (instance);
-  static int count;
-  char *handle;
-
-  ddata = g_new (DoneData, 1);
-  ddata->app_id = g_strdup (flatpak_instance_get_app (instance));
-  ddata->id = g_strdup (flatpak_instance_get_id (instance));
-  ddata->perm = idata->permission;
-
-  g_debug ("Notify background for %s", ddata->app_id);
-
-  handle = g_strdup_printf ("/org/freedesktop/portal/desktop/notify/background%d", count++);
-
-  xdp_impl_background_call_notify_background (background_impl,
-                                              handle,
-                                              ddata->app_id,
-                                              name,
-                                              NULL,
-                                              notify_background_done,
-                                              ddata);
-
-  g_assert (idata->handle == NULL);
-  idata->handle = handle;
-  idata->notified = TRUE;
+  notification_data_free (nd);
 }
 
 static void
@@ -693,6 +669,7 @@ check_background_apps (void)
   g_autoptr(GPtrArray) instances = NULL;
   int i;
   static int stamp;
+  g_autoptr(GPtrArray) notifications = NULL;
 
   app_states = get_app_states ();
   if (app_states == NULL)
@@ -702,14 +679,17 @@ check_background_apps (void)
 
   perms = get_all_permissions ();
   instances = flatpak_instance_get_all ();
+  notifications = g_ptr_array_new ();
 
   stamp++;
 
+  G_LOCK (applications);
   for (i = 0; i < instances->len; i++)
     {
       FlatpakInstance *instance = g_ptr_array_index (instances, i);
       const char *id;
       const char *app_id;
+      pid_t child_pid;
       InstanceData *idata;
       Permission permission;
       const char *state_names[] = { "background", "running", "active" };
@@ -720,6 +700,8 @@ check_background_apps (void)
 
       id = flatpak_instance_get_id (instance);
       app_id = flatpak_instance_get_app (instance);
+      child_pid = flatpak_instance_get_child_pid (instance);
+
       idata = g_hash_table_lookup (applications, id);
 
       if (!idata)
@@ -756,19 +738,52 @@ check_background_apps (void)
       switch (idata->permission)
         {
         case NO:
-          kill_instance (id);
           idata->stamp = 0;
+
+          g_debug ("Kill app %s (pid %d)", app_id, child_pid);
+          kill (child_pid, SIGKILL);
           break;
 
         case ASK:
         case UNSET:
-          send_notification (idata);
+          {
+            NotificationData *nd = g_new0 (NotificationData, 1);
+
+            g_assert (idata->handle == NULL);
+            idata->handle = g_strdup_printf ("/org/freedesktop/portal/desktop/notify/background%d", stamp);
+            idata->notified = TRUE;
+
+            nd->handle = g_strdup (idata->handle);
+            nd->name = flatpak_instance_get_display_name (instance);
+            nd->app_id = g_strdup (app_id);
+            nd->id = g_strdup (id);
+            nd->child_pid = child_pid;
+            nd->perm = idata->permission;
+
+            g_ptr_array_add (notifications, nd);
+          }
           break;
 
         case YES:
         default:
           break;
         }
+    }
+  G_UNLOCK (applications);
+
+  for (i = 0; i < notifications->len; i++)
+    {
+      NotificationData *nd = g_ptr_array_index (notifications, i);
+
+      g_debug ("Notify background for %s", nd->app_id);
+
+      xdp_impl_background_call_notify_background (background_impl,
+                                                  nd->handle,
+                                                  nd->app_id,
+                                                  nd->name,
+                                                  NULL,
+                                                  notify_background_done,
+                                                  nd);
     }
 
   remove_outdated_instances (stamp);
