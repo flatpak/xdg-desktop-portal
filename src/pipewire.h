@@ -22,6 +22,12 @@
 #include <pipewire/pipewire.h>
 #include <stdint.h>
 
+typedef struct _PipeWireGlobal
+{
+  uint32_t parent_id;
+  gboolean permission_set;
+} PipeWireGlobal;
+
 typedef struct _PipeWireRemote
 {
   struct pw_main_loop *loop;
@@ -35,6 +41,7 @@ typedef struct _PipeWireRemote
 
   struct spa_hook registry_listener;
 
+  GHashTable *globals;
   uint32_t node_factory_id;
 
   GError *error;

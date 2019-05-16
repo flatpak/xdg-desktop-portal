@@ -37,6 +37,14 @@ registry_event_global (void *user_data,
   PipeWireRemote *remote = user_data;
   struct pw_type *core_type = pw_core_get_type (remote->core);
   const struct spa_dict_item *factory_object_type;
+  PipeWireGlobal *global;
+
+  global = g_new0 (PipeWireGlobal, 1);
+  *global = (PipeWireGlobal) {
+    .parent_id = parent_id,
+  };
+
+  g_hash_table_insert (remote->globals, GINT_TO_POINTER (id), global);
 
   if (type != core_type->factory)
     return;
@@ -145,6 +153,7 @@ static const struct pw_core_proxy_events core_events = {
 void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
+  g_clear_pointer (&remote->globals, g_hash_table_destroy);
   g_clear_pointer (&remote->remote, pw_remote_destroy);
   g_clear_pointer (&remote->core, pw_core_destroy);
   g_clear_pointer (&remote->loop, pw_main_loop_destroy);
@@ -202,6 +211,8 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
                    "Couldn't create PipeWire remote");
       return NULL;
     }
+
+  remote->globals = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 
   pw_remote_add_listener (remote->remote,
                           &remote->remote_listener,
