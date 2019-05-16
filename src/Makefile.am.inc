@@ -153,6 +153,8 @@ xdg_desktop_portal_SOURCES = \
 	src/background.h		\
         src/flatpak-instance.c          \
         src/flatpak-instance.h          \
+	src/portal-impl.h		\
+	src/portal-impl.c		\
 	$(NULL)
 
 if HAVE_PIPEWIRE
@@ -179,7 +181,7 @@ xdg_desktop_portal_LDADD = \
 	$(GEOCLUE_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
-	-DPKGDATADIR=\"$(pkgdatadir)\" \
+	-DDATADIR=\"$(datadir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" \
 	-DBWRAP=\"$(BWRAP)\" \
 	$(BASE_CFLAGS) \
