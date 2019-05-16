@@ -181,7 +181,7 @@ xdg_desktop_portal_LDADD = \
 	$(GEOCLUE_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
-	-DPKGDATADIR=\"$(pkgdatadir)\" \
+	-DDATADIR=\"$(datadir)\" \
 	-DLIBEXECDIR=\"$(libexecdir)\" \
 	-DBWRAP=\"$(BWRAP)\" \
 	$(BASE_CFLAGS) \

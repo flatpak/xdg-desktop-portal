@@ -116,7 +116,7 @@ sort_impl_by_name (gconstpointer a,
 void
 load_installed_portals (gboolean opt_verbose)
 {
-  const char *portal_dir = PKGDATADIR "/portals";
+  const char *portal_dir = DATADIR "/xdg-desktop-portal/portals";
   g_autoptr(GFile) dir = g_file_new_for_path (portal_dir);
   g_autoptr(GFileEnumerator) enumerator = NULL;
 
