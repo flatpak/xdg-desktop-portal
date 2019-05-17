@@ -595,7 +595,9 @@ open_pipewire_screen_cast_remote (const char *app_id,
   pipewire_properties = pw_properties_new ("pipewire.access.portal.app_id", app_id,
                                            "pipewire.access.portal.media_roles", "",
                                            NULL);
-  remote = pipewire_remote_new_sync (pipewire_properties, error);
+  remote = pipewire_remote_new_sync (pipewire_properties,
+                                     NULL, NULL, NULL, NULL,
+                                     error);
   if (!remote)
     return FALSE;
 

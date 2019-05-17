@@ -36,6 +36,10 @@ typedef struct _CameraClass CameraClass;
 struct _Camera
 {
   XdpCameraSkeleton parent_instance;
+
+  PipeWireRemote *pipewire_remote;
+  GSource *pipewire_source;
+  GHashTable *cameras;
 };
 
 struct _CameraClass
@@ -123,7 +127,9 @@ open_pipewire_camera_remote (const char *app_id,
     pw_properties_new ("pipewire.access.portal.app_id", app_id,
                        "pipewire.access.portal.media_roles", "Camera",
                        NULL);
-  remote = pipewire_remote_new_sync (pipewire_properties, error);
+  remote = pipewire_remote_new_sync (pipewire_properties,
+                                     NULL, NULL, NULL, NULL,
+                                     error);
   if (!remote)
     return NULL;
 
@@ -211,14 +217,122 @@ camera_iface_init (XdpCameraIface *iface)
 }
 
 static void
+global_added_cb (PipeWireRemote *remote,
+                 uint32_t id,
+                 uint32_t type,
+                 const struct spa_dict *props,
+                 gpointer user_data)
+{
+  Camera *camera = user_data;
+  struct pw_type *core_type = pw_core_get_type (remote->core);
+  const struct spa_dict_item *media_class;
+  const struct spa_dict_item *media_role;
+
+  if (type != core_type->node)
+    return;
+
+  if (!props)
+    return;
+
+  media_class = spa_dict_lookup_item (props, "media.class");
+  if (!media_class)
+    return;
+
+  if (g_strcmp0 (media_class->value, "Video/Source") != 0)
+    return;
+
+  media_role = spa_dict_lookup_item (props, "media.role");
+  if (!media_role)
+    return;
+
+  if (g_strcmp0 (media_role->value, "Camera") != 0)
+    return;
+
+  g_hash_table_add (camera->cameras, GINT_TO_POINTER (id));
+
+  xdp_camera_set_is_camera_present (XDP_CAMERA (camera),
+                                    g_hash_table_size (camera->cameras) > 0);
+}
+
+static void global_removed_cb (PipeWireRemote *remote,
+                               uint32_t id,
+                               gpointer user_data)
+{
+  Camera *camera = user_data;
+
+  g_hash_table_remove (camera->cameras, GINT_TO_POINTER (id));
+
+  xdp_camera_set_is_camera_present (XDP_CAMERA (camera),
+                                    g_hash_table_size (camera->cameras) > 0);
+}
+
+static void
+pipewire_remote_error_cb (gpointer data,
+                          gpointer user_data)
+{
+  Camera *camera = user_data;
+
+  g_hash_table_remove_all (camera->cameras);
+  xdp_camera_set_is_camera_present (XDP_CAMERA (camera), FALSE);
+
+  g_clear_pointer (&camera->pipewire_source, g_source_destroy);
+  g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
+}
+
+static gboolean
+init_camera_tracker (Camera *camera,
+                     GError **error)
+{
+  struct pw_properties *pipewire_properties;
+
+  camera->cameras = g_hash_table_new (NULL, NULL);
+
+  pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
+                                           NULL);
+  camera->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
+                                                      global_added_cb,
+                                                      global_removed_cb,
+                                                      pipewire_remote_error_cb,
+                                                      camera,
+                                                      error);
+  if (!camera->pipewire_remote)
+    return FALSE;
+
+  camera->pipewire_source =
+    pipewire_remote_create_source (camera->pipewire_remote);
+
+  return TRUE;
+}
+
+static void
+camera_finalize (GObject *object)
+{
+  Camera *camera = (Camera *)object;
+
+  g_clear_pointer (&camera->pipewire_source, g_source_destroy);
+  g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
+  g_clear_pointer (&camera->cameras, g_hash_table_unref);
+
+  G_OBJECT_CLASS (camera_parent_class)->finalize (object);
+}
+
+static void
 camera_init (Camera *camera)
 {
+  g_autoptr(GError) error = NULL;
+
   xdp_camera_set_version (XDP_CAMERA (camera), 1);
+
+  if (!init_camera_tracker (camera, &error))
+    g_warning ("Failed to track cameras: %s", error->message);
 }
 
 static void
 camera_class_init (CameraClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = camera_finalize;
 }
 
 GDBusInterfaceSkeleton *

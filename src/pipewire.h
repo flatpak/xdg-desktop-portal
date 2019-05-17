@@ -22,13 +22,25 @@
 #include <pipewire/pipewire.h>
 #include <stdint.h>
 
+typedef struct _PipeWireRemote PipeWireRemote;
+
 typedef struct _PipeWireGlobal
 {
   uint32_t parent_id;
   gboolean permission_set;
 } PipeWireGlobal;
 
-typedef struct _PipeWireRemote
+typedef void (* PipeWireGlobalAddedCallback) (PipeWireRemote *remote,
+                                              uint32_t id,
+                                              uint32_t type,
+                                              const struct spa_dict *props,
+                                              gpointer user_data);
+
+typedef void (* PipeWireGlobalRemovedCallback) (PipeWireRemote *remote,
+                                                uint32_t id,
+                                                gpointer user_data);
+
+struct _PipeWireRemote
 {
   struct pw_main_loop *loop;
   struct pw_core *core;
@@ -42,14 +54,25 @@ typedef struct _PipeWireRemote
   struct spa_hook registry_listener;
 
   GHashTable *globals;
+  PipeWireGlobalAddedCallback global_added_cb;
+  PipeWireGlobalRemovedCallback global_removed_cb;
+  gpointer user_data;
+  GFunc error_callback;
+
   uint32_t node_factory_id;
 
   GError *error;
-} PipeWireRemote;
+};
 
 PipeWireRemote * pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
+                                           PipeWireGlobalAddedCallback global_added_cb,
+                                           PipeWireGlobalRemovedCallback global_removed_cb,
+                                           GFunc error_callback,
+                                           gpointer user_data,
                                            GError **error);
 
 void pipewire_remote_destroy (PipeWireRemote *remote);
 
 void pipewire_remote_roundtrip (PipeWireRemote *remote);
+
+GSource * pipewire_remote_create_source (PipeWireRemote *remote);
