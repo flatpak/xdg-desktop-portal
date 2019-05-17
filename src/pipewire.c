@@ -110,13 +110,19 @@ on_state_changed (void *user_data,
   switch (state)
     {
     case PW_REMOTE_STATE_ERROR:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "%s", error);
+      if (!remote->error)
+        {
+          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "%s", error);
+        }
       pw_main_loop_quit (remote->loop);
       break;
     case PW_REMOTE_STATE_UNCONNECTED:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Disconnected");
+      if (!remote->error)
+        {
+          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "Disconnected");
+        }
       pw_main_loop_quit (remote->loop);
       break;
     case PW_REMOTE_STATE_CONNECTING:
