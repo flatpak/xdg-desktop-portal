@@ -1,13 +1,13 @@
 # Danish translation for xdg-desktop-portal
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# scootergrisen, 2018.
+# scootergrisen, 2018-2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-12-05 03:29+0000\n"
-"PO-Revision-Date: 2018-12-06 03:17+0200\n"
+"POT-Creation-Date: 2019-05-20 15:30+0000\n"
+"PO-Revision-Date: 2019-05-21 00:00+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -16,11 +16,41 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/device.c:203
+#: src/background.c:261
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Tillad %s at køre i baggrunden?"
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s anmoder om at starte automatisk og køre i baggrunden."
+
+#: src/background.c:267
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s anmoder om at køre i baggrunden."
+
+#: src/background.c:268
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"‘Kør i baggrunden’-tilladelsen kan altid ændres i programindstillingerne."
+
+#: src/background.c:273
+msgid "Don't allow"
+msgstr "Tillad ikke"
+
+#: src/background.c:274
+msgid "Allow"
+msgstr "Tillad"
+
+#: src/device.c:205
 msgid "Turn On Microphone?"
 msgstr "Tænd for mikrofonen?"
 
-#: src/device.c:204
+#: src/device.c:206
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -28,82 +58,81 @@ msgstr ""
 "Adgang til din mikrofon kan når som helst ændres fra "
 "privatlivsindstillingerne."
 
-#: src/device.c:208
+#: src/device.c:210
 msgid "An application wants to use your microphone."
 msgstr "Et program anmoder om at bruge din mikrofon."
 
-#: src/device.c:210
+#: src/device.c:212
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s anmoder om at bruge din mikrofon."
 
-#: src/device.c:216
+#: src/device.c:218
 msgid "Turn On Speakers?"
 msgstr "Tænd for højttalerne?"
 
-#: src/device.c:217
+#: src/device.c:219
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til dine højttalere kan når som helst ændres fra "
 "privatlivsindstillingerne."
 
-#: src/device.c:221
+#: src/device.c:223
 msgid "An application wants to play sound."
 msgstr "Et program anmoder om at afspille lyd."
 
-#: src/device.c:223
+#: src/device.c:225
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s anmoder om at afspille lyd."
 
-#: src/device.c:229
+#: src/device.c:231
 msgid "Turn On Camera?"
 msgstr "Tænd for kameraet?"
 
-#: src/device.c:230
+#: src/device.c:232
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Adgang til dit kamera kan når som helst ændres fra "
-"privatlivsindstillingerne."
+"Adgang til dit kamera kan når som helst ændres fra privatlivsindstillingerne."
 
-#: src/device.c:234
+#: src/device.c:236
 msgid "An application wants to use your camera."
 msgstr "Et program anmoder om at bruge dit kamera."
 
-#: src/device.c:236
+#: src/device.c:238
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s anmoder om at bruge dit kamera."
 
-#: src/location.c:547
+#: src/location.c:549
 msgid "Deny Access"
 msgstr "Nægt adgang"
 
-#: src/location.c:549
+#: src/location.c:551
 msgid "Grant Access"
 msgstr "Giv adgang"
 
-#: src/location.c:555
+#: src/location.c:557
 msgid "Grant Access to Your Location?"
 msgstr "Giv adgang til din placering?"
 
-#: src/location.c:556
+#: src/location.c:558
 msgid "An application wants to use your location."
 msgstr "Et program anmoder om at bruge din placering."
 
-#: src/location.c:568
+#: src/location.c:570
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
 
-#: src/location.c:572
+#: src/location.c:574
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s anmoder om at bruge din placering."
 
-#: src/location.c:575
+#: src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til din placering kan når som helst ændres fra "
