@@ -33,6 +33,8 @@ typedef struct _PipeWireRemote
   struct spa_hook core_listener;
   uint32_t sync_seq;
 
+  struct spa_hook registry_listener;
+
   uint32_t node_factory_id;
 
   GError *error;

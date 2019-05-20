@@ -70,13 +70,12 @@ discover_node_factory_sync (PipeWireRemote *remote,
 {
   struct pw_type *core_type = pw_core_get_type (remote->core);
   struct pw_registry_proxy *registry_proxy;
-  struct spa_hook registry_listener;
 
   registry_proxy = pw_core_proxy_get_registry (remote->core_proxy,
                                                core_type->registry,
                                                PW_VERSION_REGISTRY, 0);
   pw_registry_proxy_add_listener (registry_proxy,
-                                  &registry_listener,
+                                  &remote->registry_listener,
                                   &registry_events,
                                   remote);
 
