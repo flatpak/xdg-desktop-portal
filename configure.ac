@@ -47,6 +47,12 @@ AC_ARG_WITH(dbus_service_dir,
 DBUS_SERVICE_DIR=$with_dbus_service_dir
 AC_SUBST(DBUS_SERVICE_DIR)
 
+AC_ARG_WITH(flatpak_interfaces_dir,
+        AS_HELP_STRING([--with-flatpak-interfaces-dir=PATH],[choose directory for Flatpak interface files, [default=PREFIX/share/dbus-1/interfaces]]),
+        [[FLATPAK_INTERFACES_DIR="$withval"]],
+	[PKG_CHECK_VAR([FLATPAK_INTERFACES_DIR], [flatpak], [interfaces_dir])])
+AC_SUBST(FLATPAK_INTERFACES_DIR)
+
 AC_ARG_WITH([systemduserunitdir],
             [AS_HELP_STRING([--with-systemduserunitdir=DIR],
                             [Directory for systemd user service files (default=PREFIX/lib/systemd/user)])],
