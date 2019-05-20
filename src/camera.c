@@ -39,6 +39,7 @@ struct _Camera
 
   PipeWireRemote *pipewire_remote;
   GSource *pipewire_source;
+  GFileMonitor *pipewire_socket_monitor;
   GHashTable *cameras;
 };
 
@@ -280,12 +281,10 @@ pipewire_remote_error_cb (gpointer data,
 }
 
 static gboolean
-init_camera_tracker (Camera *camera,
-                     GError **error)
+create_pipewire_remote (Camera *camera,
+                        GError **error)
 {
   struct pw_properties *pipewire_properties;
-
-  camera->cameras = g_hash_table_new (NULL, NULL);
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
                                            NULL);
@@ -300,6 +299,59 @@ init_camera_tracker (Camera *camera,
 
   camera->pipewire_source =
     pipewire_remote_create_source (camera->pipewire_remote);
+
+  return TRUE;
+}
+
+static void
+on_pipewire_socket_changed (GFileMonitor *monitor,
+                            GFile *file,
+                            GFile *other_file,
+                            GFileMonitorEvent event_type,
+                            Camera *camera)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (event_type != G_FILE_MONITOR_EVENT_CREATED)
+    return;
+
+  if (camera->pipewire_remote)
+    {
+      g_debug ("PipeWire socket created after remote was created");
+      return;
+    }
+
+  g_debug ("PipeWireSocket created, tracking cameras");
+
+  if (!create_pipewire_remote (camera, &error))
+    g_warning ("Failed connect to PipeWire: %s", error->message);
+}
+
+static gboolean
+init_camera_tracker (Camera *camera,
+                     GError **error)
+{
+  g_autofree char *pipewire_socket_path = NULL;
+  GFile *pipewire_socket;
+  g_autoptr(GError) local_error = NULL;
+
+  pipewire_socket_path = g_strdup_printf ("%s/pipewire-0",
+                                          g_get_user_runtime_dir ());
+  pipewire_socket = g_file_new_for_path (pipewire_socket_path);
+  camera->pipewire_socket_monitor =
+    g_file_monitor_file (pipewire_socket, G_FILE_MONITOR_NONE, NULL, error);
+  if (!camera->pipewire_socket_monitor)
+    return FALSE;
+
+  g_signal_connect (camera->pipewire_socket_monitor,
+                    "changed",
+                    G_CALLBACK (on_pipewire_socket_changed),
+                    camera);
+
+  camera->cameras = g_hash_table_new (NULL, NULL);
+
+  if (!create_pipewire_remote (camera, &local_error))
+    g_warning ("Failed connect to PipeWire: %s", local_error->message);
 
   return TRUE;
 }
