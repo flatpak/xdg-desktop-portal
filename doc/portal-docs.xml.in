@@ -108,6 +108,7 @@
     <xi:include href="portal-org.freedesktop.portal.ProxyResolver.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Settings.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Background.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.GameMode.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.xml"/>
   </reference>

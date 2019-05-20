@@ -36,6 +36,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Location.xml \
 	data/org.freedesktop.portal.Settings.xml \
 	data/org.freedesktop.portal.Background.xml \
+	data/org.freedesktop.portal.GameMode.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -151,6 +152,8 @@ xdg_desktop_portal_SOURCES = \
 	src/fc-monitor.h		\
 	src/background.c		\
 	src/background.h		\
+	src/gamemode.c			\
+	src/gamemode.h			\
         src/flatpak-instance.c          \
         src/flatpak-instance.h          \
 	src/portal-impl.h		\

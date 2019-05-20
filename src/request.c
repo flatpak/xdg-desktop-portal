@@ -290,6 +290,10 @@ get_token (GDBusMethodInvocation *invocation)
     {
       // no request objects
     }
+  else if (strcmp (interface, "org.freedesktop.portal.GameMode") == 0)
+    {
+      // no request objects
+    }
   else
     {
       g_print ("Support for %s missing in " G_STRLOC, interface);

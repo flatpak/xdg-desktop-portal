@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#include <json-glib/json-glib.h>
+
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -27,6 +29,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <mntent.h>
+#include <unistd.h>
 
 #include <gio/gdesktopappinfo.h>
 
@@ -121,6 +124,9 @@ struct _XdpAppInfo {
       struct
         {
           GKeyFile *keyfile;
+	   /* pid namespace mapping */
+          GMutex *pidns_lock;
+          ino_t   pidns_id;
         } flatpak;
       struct
         {
@@ -247,6 +253,20 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
     return NULL;
 }
 
+char *
+xdp_app_info_get_instance (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+    return NULL;
+
+  return g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                FLATPAK_METADATA_GROUP_INSTANCE,
+                                FLATPAK_METADATA_KEY_INSTANCE_ID,
+                                NULL);
+}
+
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
@@ -346,8 +366,6 @@ static XdpAppInfo *
 parse_app_info_from_flatpak_info (int pid, GError **error)
 {
   g_autofree char *root_path = NULL;
-  g_autofree char *path = NULL;
-  g_autofree char *content = NULL;
   int root_fd = -1;
   int info_fd = -1;
   struct stat stat_buf;
@@ -1231,4 +1249,433 @@ xdp_has_path_prefix (const char *str,
       if (*str != '/' && *str != 0)
         return FALSE;
     }
+}
+
+/* pid mapping code */
+static int
+parse_pid (const char *str,
+           pid_t      *pid)
+{
+  char *end;
+  guint64 v;
+  pid_t p;
+
+  errno = 0;
+  v = g_ascii_strtoull (str, &end, 0);
+  if (end == str)
+    return -ENOENT;
+  else if (errno != 0)
+    return -errno;
+
+  p = (pid_t) v;
+
+  if (p < 1 || (guint64) p != v)
+    return -ERANGE;
+
+  if (pid)
+    *pid = p;
+
+  return 0;
+}
+
+static int
+parse_status_field_pid (const char *val,
+                        pid_t      *pid)
+{
+  const char *t;
+
+  t = strrchr (val, '\t');
+  if (t == NULL)
+    return -ENOENT;
+
+  return parse_pid (t, pid);
+}
+
+static int
+parse_status_field_uid (const char *val,
+                        uid_t      *uid)
+{
+  const char *t;
+  char *end;
+  guint64 v;
+  uid_t u;
+
+  t = strrchr (val, '\t');
+  if (t == NULL)
+    return -ENOENT;
+
+  errno = 0;
+  v = g_ascii_strtoull (t, &end, 0);
+  if (end == val)
+    return -ENOENT;
+  else if (errno != 0)
+    return -errno;
+
+  u = (uid_t) v;
+
+  if ((guint64) u != v)
+    return -ERANGE;
+
+  if (uid)
+    *uid = u;
+
+  return 0;
+}
+
+static int
+parse_status_file (int    pid_fd,
+                   pid_t *pid_out,
+                   uid_t *uid_out)
+{
+  g_autofree char *key = NULL;
+  g_autofree char *val = NULL;
+  gboolean have_pid = pid_out == NULL;
+  gboolean have_uid = uid_out == NULL;
+  FILE *f;
+  size_t keylen = 0;
+  size_t vallen = 0;
+  ssize_t n;
+  int fd;
+  int r = 0;
+
+  g_return_val_if_fail (pid_fd > -1, FALSE);
+
+  fd = openat (pid_fd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (fd == -1)
+    return -errno;
+
+  f = fdopen (fd, "r");
+
+  if (f == NULL)
+    return -errno;
+
+  fd = -1; /* fd is now owned by f */
+
+  do {
+    n = getdelim (&key, &keylen, ':', f);
+    if (n == -1)
+      {
+        r = -errno;
+        break;
+      }
+
+    n = getdelim (&val, &vallen, '\n', f);
+    if (n == -1)
+      {
+        r = -errno;
+        break;
+      }
+
+    g_strstrip (key);
+    g_strstrip (val);
+
+    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+      {
+        r = parse_status_field_pid (val, pid_out);
+        have_pid = r > -1;
+      }
+    else if (!strncmp (key, "Uid", strlen ("Uid")))
+      {
+        r = parse_status_field_uid (val, uid_out);
+        have_uid = r > -1;
+      }
+
+    if (r < 0)
+      g_warning ("Failed to parse 'status::%s': %s",
+                 key, g_strerror (-r));
+
+  } while (r == 0 && (!have_uid || !have_pid));
+
+  fclose (f);
+
+  if (r != 0)
+    return r;
+  else if (!have_uid || !have_pid)
+    return -ENXIO; /* ENOENT for the fields */
+
+  return 0;
+}
+
+static int
+lookup_ns_from_pid_fd (int    pid_fd,
+                       ino_t *ns)
+{
+  struct stat st;
+  int r;
+
+  g_return_val_if_fail (ns != NULL, FALSE);
+
+  r = fstatat (pid_fd, "ns/pid", &st, 0);
+  if (r == -1)
+    return -errno;
+
+  /* The inode number (together with the device ID) encode
+   * the identity of the pid namespace, see namespaces(7)
+   */
+  *ns = st.st_ino;
+
+  return 0;
+}
+
+static int
+open_pid_fd (int      proc_fd,
+             pid_t    pid,
+             GError **error)
+{
+  char buf[20] = {0, };
+  int fd;
+
+  snprintf (buf, sizeof(buf), "%u", (guint) pid);
+
+  fd = openat (proc_fd, buf, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+
+  if (fd == -1)
+    g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                 "Could not to open '/proc/pid/%u': %s", (guint) pid,
+                 g_strerror (errno));
+
+  return fd;
+}
+
+static inline gboolean
+find_pid (pid_t *pids,
+          guint  n_pids,
+          pid_t  want,
+          guint *idx)
+{
+  for (guint i = 0; i < n_pids; i++)
+    {
+      if (pids[i] == want)
+        {
+          *idx = i;
+          return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+static gboolean
+map_pids (DIR     *proc,
+          ino_t    pidns,
+          pid_t   *pids,
+          guint    n_pids,
+          uid_t    target_uid,
+          GError **error)
+{
+  pid_t *res = NULL;
+  struct dirent *de;
+  guint count = 0;
+
+  res = g_alloca (sizeof (pid_t) * n_pids);
+
+  while ((de = readdir (proc)) != NULL)
+    {
+      xdp_autofd int pid_fd = -1;
+      pid_t outside = 0;
+      pid_t inside = 0;
+      uid_t uid = 0;
+      guint idx;
+      ino_t ns;
+      int r;
+
+      if (de->d_type != DT_DIR)
+        continue;
+
+      pid_fd = openat (dirfd (proc), de->d_name, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+      if (pid_fd == -1)
+        continue;
+
+      r = lookup_ns_from_pid_fd (pid_fd, &ns);
+      if (r < 0)
+        continue;
+
+      if (pidns != ns)
+        continue;
+
+      r = parse_pid (de->d_name, &outside);
+      if (r < 0)
+        continue;
+
+      r = parse_status_file (pid_fd, &inside, &uid);
+      if (r < 0)
+        continue;
+
+      if (!find_pid (pids, n_pids, inside, &idx))
+        continue;
+
+      /* We got a match, let's make sure the real uids match as well */
+      if (uid != target_uid)
+        {
+          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                               "Matching pid doesn't belong to the target user");
+          return FALSE;
+        }
+
+      res[idx] = outside;
+      count++;
+    }
+
+  if (count != n_pids)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                           "Some process ids could not be found");
+      return FALSE;
+    }
+
+  memcpy (pids, res, sizeof (pid_t) * n_pids);
+
+  return TRUE;
+}
+
+static pid_t
+xdp_app_info_get_child_pid (XdpAppInfo *app_info,
+                            GError    **error)
+{
+  g_autoptr(JsonParser) parser = NULL;
+  g_autofree char *instance = NULL;
+  g_autofree char *data = NULL;
+  JsonNode *root;
+  JsonObject *cpo;
+  gsize len;
+  char *path;
+  pid_t pid;
+
+  g_return_val_if_fail (app_info != NULL, 0);
+
+  instance = xdp_app_info_get_instance (app_info);
+
+  if (instance == NULL)
+    return 0;
+
+  path = g_build_filename (g_get_user_runtime_dir (),
+                           ".flatpak",
+                           instance,
+                           "bwrapinfo.json",
+                           NULL);
+
+  if (!g_file_get_contents (path, &data, &len, error))
+    return 0;
+
+  parser = json_parser_new ();
+  if (!json_parser_load_from_data (parser, data, len, error))
+    {
+      g_prefix_error (error, "Could not parse '%s': ", path);
+      return 0;
+    }
+
+  root = json_parser_get_root (parser);
+  if (!root)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Could not parse '%s': empty file", path);
+      return 0;
+    }
+
+  if (!JSON_NODE_HOLDS_OBJECT (root))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Could not parse '%s': invalid structure", path);
+      return 0;
+    }
+
+  cpo = json_node_get_object (root);
+
+  pid = json_object_get_int_member (cpo, "child-pid");
+  if (pid == 0)
+    g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                 "Could not parse '%s': child-pid missing", path);
+
+  return pid;
+}
+
+#define xdp_lockguard G_GNUC_UNUSED __attribute__((cleanup(xdp_auto_unlock_helper)))
+
+static gboolean
+xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
+                           DIR         *proc,
+                           GError     **error)
+{
+  xdp_lockguard GMutex *guard = NULL;
+  xdp_autofd int fd = -1;
+  pid_t pid;
+  ino_t ns;
+  int r;
+
+  guard = xdp_auto_lock_helper (app_info->u.flatpak.pidns_lock);
+
+  if (app_info->u.flatpak.pidns_id != 0)
+    return TRUE;
+
+  pid = xdp_app_info_get_child_pid (app_info, error);
+  if (pid == 0)
+    return FALSE;
+
+  fd = open_pid_fd (dirfd (proc), pid, error);
+  if (fd == -1)
+    return FALSE;
+
+  r = lookup_ns_from_pid_fd (fd, &ns);
+  if (r < 0)
+    {
+      int code = g_io_error_from_errno (-r);
+      g_set_error (error, G_IO_ERROR, code,
+                   "Could not query /proc/%u/ns/pid: %s",
+                   (guint) pid, g_strerror (-r));
+      return FALSE;
+    }
+
+  app_info->u.flatpak.pidns_id = ns;
+
+  return TRUE;
+}
+
+gboolean
+xdg_app_info_map_pids (XdpAppInfo  *app_info,
+                       pid_t       *pids,
+                       guint        n_pids,
+                       GError     **error)
+{
+  gboolean ok;
+  DIR *proc;
+  uid_t uid;
+  ino_t ns;
+
+  g_return_val_if_fail (app_info != NULL, FALSE);
+  g_return_val_if_fail (pids != NULL, FALSE);
+
+  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                           "Mapping pids is not supported.");
+      return FALSE;
+    }
+
+  proc = opendir ("/proc");
+  if (proc == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not open '/proc: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  /* Make sure we know the pid namespace the app is running in */
+  ok = xdg_app_info_ensure_pidns (app_info, proc, error);
+  if (!ok)
+    {
+      g_prefix_error (error, "Could not determine pid namespace: ");
+      goto out;
+    }
+
+  /* we also make sure the real user id matches
+   * to the process owner we are trying to resolve
+   */
+  uid = getuid ();
+
+  ns = app_info->u.flatpak.pidns_id;
+  ok = map_pids (proc, ns, pids, n_pids, uid, error);
+
+ out:
+  closedir (proc);
+  return ok;
 }
