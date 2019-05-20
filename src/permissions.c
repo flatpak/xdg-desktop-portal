@@ -32,7 +32,7 @@ get_permissions_sync (const char *app_id,
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
-  char **permissions;
+  g_autofree char **permissions = NULL;
 
   if (!xdp_impl_permission_store_call_lookup_sync (permission_store,
                                                    table,
