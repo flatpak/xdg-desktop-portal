@@ -40,6 +40,8 @@ struct _Camera
   PipeWireRemote *pipewire_remote;
   GSource *pipewire_source;
   GFileMonitor *pipewire_socket_monitor;
+  int64_t connect_timestamps[10];
+  int connect_timestamps_i;
   GHashTable *cameras;
 };
 
@@ -56,6 +58,10 @@ static void camera_iface_init (XdpCameraIface *iface);
 G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_TYPE_CAMERA_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_CAMERA,
                                                 camera_iface_init))
+
+static gboolean
+create_pipewire_remote (Camera *camera,
+                        GError **error);
 
 static void
 handle_access_camera_in_thread_func (GTask *task,
@@ -272,12 +278,16 @@ pipewire_remote_error_cb (gpointer data,
                           gpointer user_data)
 {
   Camera *camera = user_data;
+  g_autoptr(GError) error = NULL;
 
   g_hash_table_remove_all (camera->cameras);
   xdp_camera_set_is_camera_present (XDP_CAMERA (camera), FALSE);
 
   g_clear_pointer (&camera->pipewire_source, g_source_destroy);
   g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
+
+  if (!create_pipewire_remote (camera, &error))
+    g_warning ("Failed connect to PipeWire: %s", error->message);
 }
 
 static gboolean
@@ -285,6 +295,27 @@ create_pipewire_remote (Camera *camera,
                         GError **error)
 {
   struct pw_properties *pipewire_properties;
+  const int n_connect_retries = G_N_ELEMENTS (camera->connect_timestamps);
+  int64_t now;
+  int max_retries_ago_i;
+  int64_t max_retries_ago;
+
+  now = g_get_monotonic_time ();
+  camera->connect_timestamps[camera->connect_timestamps_i] = now;
+
+  max_retries_ago_i = (camera->connect_timestamps_i + 1) % n_connect_retries;
+  max_retries_ago = camera->connect_timestamps[max_retries_ago_i];
+
+  camera->connect_timestamps_i =
+    (camera->connect_timestamps_i + 1) % n_connect_retries;
+
+  if (max_retries_ago &&
+      now - max_retries_ago < G_USEC_PER_SEC * 10)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Tried to reconnect to PipeWire too often, giving up");
+      return FALSE;
+    }
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
                                            NULL);
