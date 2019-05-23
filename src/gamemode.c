@@ -63,6 +63,21 @@ static  gboolean handle_unregister_game (XdpGameMode *object,
                                          GDBusMethodInvocation *invocation,
                                          gint pid);
 
+static gboolean handle_query_status_by_pid (XdpGameMode *object,
+                                            GDBusMethodInvocation *invocation,
+                                            gint target,
+                                            gint requester);
+
+static gboolean handle_register_game_by_pid (XdpGameMode *object,
+                                             GDBusMethodInvocation *invocation,
+                                             gint target,
+                                             gint requester);
+
+static gboolean handle_unregister_game_by_pid (XdpGameMode *object,
+                                               GDBusMethodInvocation *invocation,
+                                               gint target,
+                                               gint requester);
+
 /* globals  */
 static GameMode *gamemode;
 
@@ -93,12 +108,16 @@ game_mode_iface_init (XdpGameModeIface *iface)
   iface->handle_query_status = handle_query_status;
   iface->handle_register_game = handle_register_game;
   iface->handle_unregister_game = handle_unregister_game;
+
+  iface->handle_query_status_by_pid = handle_query_status_by_pid;
+  iface->handle_register_game_by_pid = handle_register_game_by_pid;
+  iface->handle_unregister_game_by_pid = handle_unregister_game_by_pid;
 }
 
 static void
 game_mode_init (GameMode *gamemode)
 {
-  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 1);
+  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 2);
 }
 
 static void
@@ -161,6 +180,7 @@ typedef struct CallData_ {
 
   char *method;
   gint  pid;
+  gint  requester;
 
 } CallData;
 
@@ -202,9 +222,11 @@ handle_call_thread (GTask        *task,
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) res = NULL;
+  GVariant *params;
   const char *app_id;
   CallData *call;
-  pid_t mapped;
+  pid_t pids[2] = {0, };
+  guint n_pids;
   gboolean ok;
   gint r;
 
@@ -217,20 +239,33 @@ handle_call_thread (GTask        *task,
       return;
     }
 
-  mapped = call->pid;
-  ok = xdg_app_info_map_pids (call->app_info, &mapped, 1, &error);
+  pids[0] = call->pid;
+  n_pids = 1;
+
+  if (call->requester != 0)
+    {
+      pids[1] = call->requester;
+      n_pids = 2;
+    }
+
+  ok = xdg_app_info_map_pids (call->app_info, pids, n_pids, &error);
 
   if (!ok)
     {
-      g_prefix_error (&error, "Could not map pid '%i': ", call->pid);
-      g_warning ("Failed to map pid '%i': %s", call->pid, error->message);
+      g_prefix_error (&error, "Could not map pids: ");
+      g_warning ("GameMode error: %s", error->message);
       g_dbus_method_invocation_return_gerror (call->inv, error);
       return;
     }
 
+  if (n_pids == 1)
+    params = g_variant_new ("(i)", (gint32) pids[0]);
+  else
+    params = g_variant_new ("(ii)", (gint32) pids[0], (gint32) pids[1]);
+
   res = g_dbus_proxy_call_sync (G_DBUS_PROXY (gamemode->client),
                                 call->method,
-                                g_variant_new ("(i)", (gint32) mapped),
+                                params,
                                 G_DBUS_CALL_FLAGS_NONE,
                                 -1,
                                 NULL, /* cancel */
@@ -249,7 +284,8 @@ static void
 handle_call_in_thread (XdpGameMode           *object,
                        const char            *method,
                        GDBusMethodInvocation *invocation,
-                       gint                   pid)
+                       gint                   target,
+                       gint                   requester)
 {
   g_autoptr(GTask) task = NULL;
   XdpAppInfo *app_info;
@@ -260,7 +296,8 @@ handle_call_in_thread (XdpGameMode           *object,
   app_info = request->app_info;
 
   call = call_data_new (invocation, app_info, method);
-  call->pid = pid;
+  call->pid = target;
+  call->requester = requester;
 
   task = g_task_new (object, NULL, NULL, NULL);
 
@@ -274,7 +311,7 @@ handle_query_status (XdpGameMode           *object,
                      GDBusMethodInvocation *invocation,
                      gint                   pid)
 {
-  handle_call_in_thread (object, "QueryStatus", invocation, pid);
+  handle_call_in_thread (object, "QueryStatus", invocation, pid, 0);
   return TRUE;
 }
 
@@ -283,7 +320,7 @@ handle_register_game (XdpGameMode           *object,
                       GDBusMethodInvocation *invocation,
                       gint                   pid)
 {
-  handle_call_in_thread (object, "RegisterGame", invocation, pid);
+  handle_call_in_thread (object, "RegisterGame", invocation, pid, 0);
   return TRUE;
 }
 
@@ -292,9 +329,53 @@ handle_unregister_game (XdpGameMode *object,
                         GDBusMethodInvocation *invocation,
                         gint pid)
 {
-  handle_call_in_thread (object, "UnregisterGame", invocation, pid);
+  handle_call_in_thread (object, "UnregisterGame", invocation, pid, 0);
   return TRUE;
 }
+
+static gboolean
+handle_query_status_by_pid (XdpGameMode *object,
+                            GDBusMethodInvocation *invocation,
+                            gint target,
+                            gint requester)
+{
+  handle_call_in_thread (object,
+                         "QueryStatusByPID",
+                         invocation,
+                         target,
+                         requester);
+  return TRUE;
+
+}
+
+static gboolean
+handle_register_game_by_pid (XdpGameMode *object,
+                             GDBusMethodInvocation *invocation,
+                             gint target,
+                             gint requester)
+{
+  handle_call_in_thread (object,
+                         "RegisterGameByPID",
+                         invocation,
+                         target,
+                         requester);
+  return TRUE;
+}
+
+static gboolean
+handle_unregister_game_by_pid (XdpGameMode *object,
+                               GDBusMethodInvocation *invocation,
+                               gint target,
+                               gint requester)
+{
+  handle_call_in_thread (object,
+                         "UnregisterGameByPID",
+                         invocation,
+                         target,
+                         requester);
+  return TRUE;
+}
+
 
 /* public API */
 GDBusInterfaceSkeleton *
