@@ -37,6 +37,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Settings.xml \
 	data/org.freedesktop.portal.Background.xml \
 	data/org.freedesktop.portal.GameMode.xml \
+	data/org.freedesktop.portal.Camera.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -142,6 +143,8 @@ xdg_desktop_portal_SOURCES = \
         src/email.h                     \
 	src/settings.c			\
 	src/settings.h			\
+	src/camera.c			\
+	src/camera.h			\
 	src/session.c			\
 	src/session.h			\
 	src/trash.c			\

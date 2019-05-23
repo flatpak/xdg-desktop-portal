@@ -53,6 +53,7 @@
 #include "settings.h"
 #include "background.h"
 #include "gamemode.h"
+#include "camera.h"
 
 static GMainLoop *loop = NULL;
 
@@ -113,6 +114,13 @@ method_needs_request (GDBusMethodInvocation *invocation)
   else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
     {
       if (strstr (method, "Notify") == method)
+        return FALSE;
+      else
+        return TRUE;
+    }
+  if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
+    {
+      if (strcmp (method, "OpenPipeWireRemote") == 0)
         return FALSE;
       else
         return TRUE;
@@ -257,6 +265,10 @@ on_bus_acquired (GDBusConnection *connection,
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
+#endif
+
+#if HAVE_PIPEWIRE
+      export_portal_implementation (connection, camera_create (connection));
 #endif
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Red Hat, Inc
+ * Copyright © 2018 Red Hat, Inc
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,24 +14,10 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  *
- * Authors:
- *       Matthias Clasen <mclasen@redhat.com>
  */
 
 #pragma once
 
 #include <gio/gio.h>
 
-#include "request.h"
-#include "permissions.h"
-
-Permission device_get_permission_sync (const char *app_id,
-                                       const char *device);
-
-gboolean device_query_permission_sync (const char *app_id,
-                                       const char *device,
-                                       const char *request_handle);
-
-GDBusInterfaceSkeleton * device_create (GDBusConnection *connection,
-                                        const char      *dbus_name,
-                                        gpointer         lockdown);
+GDBusInterfaceSkeleton * camera_create (GDBusConnection *connection);

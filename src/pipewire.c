@@ -18,10 +18,18 @@
 
 #include "config.h"
 
+#include <errno.h>
 #include <glib.h>
 #include <pipewire/pipewire.h>
 
 #include "pipewire.h"
+
+typedef struct _PipeWireSource
+{
+  GSource base;
+
+  PipeWireRemote *remote;
+} PipeWireSource;
 
 static gboolean is_pipewire_initialized = FALSE;
 
@@ -37,6 +45,16 @@ registry_event_global (void *user_data,
   PipeWireRemote *remote = user_data;
   struct pw_type *core_type = pw_core_get_type (remote->core);
   const struct spa_dict_item *factory_object_type;
+  PipeWireGlobal *global;
+
+  global = g_new0 (PipeWireGlobal, 1);
+  *global = (PipeWireGlobal) {
+    .parent_id = parent_id,
+  };
+
+  g_hash_table_insert (remote->globals, GINT_TO_POINTER (id), global);
+  if (remote->global_added_cb)
+    remote->global_added_cb (remote, id, type, props, remote->user_data);
 
   if (type != core_type->factory)
     return;
@@ -52,9 +70,21 @@ registry_event_global (void *user_data,
     }
 }
 
+static void
+registry_event_global_remove (void *user_data,
+                              uint32_t id)
+{
+  PipeWireRemote *remote = user_data;
+
+  if (remote->global_removed_cb)
+    remote->global_removed_cb (remote, id, remote->user_data);
+  g_hash_table_remove (remote->globals, GINT_TO_POINTER (id));
+}
+
 static const struct pw_registry_proxy_events registry_events = {
   PW_VERSION_REGISTRY_PROXY_EVENTS,
   .global = registry_event_global,
+  .global_remove = registry_event_global_remove,
 };
 
 void
@@ -70,13 +100,12 @@ discover_node_factory_sync (PipeWireRemote *remote,
 {
   struct pw_type *core_type = pw_core_get_type (remote->core);
   struct pw_registry_proxy *registry_proxy;
-  struct spa_hook registry_listener;
 
   registry_proxy = pw_core_proxy_get_registry (remote->core_proxy,
                                                core_type->registry,
                                                PW_VERSION_REGISTRY, 0);
   pw_registry_proxy_add_listener (registry_proxy,
-                                  &registry_listener,
+                                  &remote->registry_listener,
                                   &registry_events,
                                   remote);
 
@@ -103,13 +132,19 @@ on_state_changed (void *user_data,
   switch (state)
     {
     case PW_REMOTE_STATE_ERROR:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "%s", error);
+      if (!remote->error)
+        {
+          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "%s", error);
+        }
       pw_main_loop_quit (remote->loop);
       break;
     case PW_REMOTE_STATE_UNCONNECTED:
-      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Disconnected");
+      if (!remote->error)
+        {
+          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "Disconnected");
+        }
       pw_main_loop_quit (remote->loop);
       break;
     case PW_REMOTE_STATE_CONNECTING:
@@ -143,9 +178,65 @@ static const struct pw_core_proxy_events core_events = {
   .done = core_event_done,
 };
 
+static gboolean
+pipewire_loop_source_prepare (GSource *base,
+                              int *timeout)
+{
+  *timeout = -1;
+  return FALSE;
+}
+
+static gboolean
+pipewire_loop_source_dispatch (GSource *source,
+                               GSourceFunc callback,
+                               gpointer user_data)
+{
+  PipeWireSource *pipewire_source = (PipeWireSource *) source;
+  struct pw_loop *loop;
+  int result;
+
+  loop = pw_main_loop_get_loop (pipewire_source->remote->loop);
+  result = pw_loop_iterate (loop, 0);
+  if (result < 0)
+    g_warning ("pipewire_loop_iterate failed: %s", spa_strerror (result));
+
+  if (pipewire_source->remote->error)
+    {
+      GFunc error_callback;
+
+      g_warning ("Caught PipeWire error: %s", pipewire_source->remote->error->message);
+
+      error_callback = pipewire_source->remote->error_callback;
+      if (error_callback)
+        error_callback (pipewire_source->remote,
+                        pipewire_source->remote->user_data);
+    }
+
+  return TRUE;
+}
+
+static void
+pipewire_loop_source_finalize (GSource *source)
+{
+  PipeWireSource *pipewire_source = (PipeWireSource *) source;
+  struct pw_loop *loop;
+
+  loop = pw_main_loop_get_loop (pipewire_source->remote->loop);
+  pw_loop_leave (loop);
+}
+
+static GSourceFuncs pipewire_source_funcs =
+{
+  pipewire_loop_source_prepare,
+  NULL,
+  pipewire_loop_source_dispatch,
+  pipewire_loop_source_finalize
+};
+
 void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
+  g_clear_pointer (&remote->globals, g_hash_table_destroy);
   g_clear_pointer (&remote->remote, pw_remote_destroy);
   g_clear_pointer (&remote->core, pw_core_destroy);
   g_clear_pointer (&remote->loop, pw_main_loop_destroy);
@@ -165,8 +256,35 @@ ensure_pipewire_is_initialized (void)
   is_pipewire_initialized = TRUE;
 }
 
+GSource *
+pipewire_remote_create_source (PipeWireRemote *remote)
+{
+  PipeWireSource *pipewire_source;
+  struct pw_loop *loop;
+
+
+  pipewire_source = (PipeWireSource *) g_source_new (&pipewire_source_funcs,
+                                                     sizeof (PipeWireSource));
+  pipewire_source->remote = remote;
+
+  loop = pw_main_loop_get_loop (pipewire_source->remote->loop);
+  g_source_add_unix_fd (&pipewire_source->base,
+                        pw_loop_get_fd (loop),
+                        G_IO_IN | G_IO_ERR);
+
+  pw_loop_enter (loop);
+  g_source_attach (&pipewire_source->base, NULL);
+
+  return &pipewire_source->base;
+}
+
 PipeWireRemote *
-pipewire_remote_new_sync (GError **error)
+pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
+                          PipeWireGlobalAddedCallback global_added_cb,
+                          PipeWireGlobalRemovedCallback global_removed_cb,
+                          GFunc error_callback,
+                          gpointer user_data,
+                          GError **error)
 {
   PipeWireRemote *remote;
 
@@ -174,10 +292,16 @@ pipewire_remote_new_sync (GError **error)
 
   remote = g_new0 (PipeWireRemote, 1);
 
+  remote->global_added_cb = global_added_cb;
+  remote->global_removed_cb = global_removed_cb;
+  remote->error_callback = error_callback;
+  remote->user_data = user_data;
+
   remote->loop = pw_main_loop_new (NULL);
   if (!remote->loop)
     {
       pipewire_remote_destroy (remote);
+      pw_properties_free (pipewire_properties);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Couldn't create PipeWire main loop");
       return NULL;
@@ -187,12 +311,13 @@ pipewire_remote_new_sync (GError **error)
   if (!remote->core)
     {
       pipewire_remote_destroy (remote);
+      pw_properties_free (pipewire_properties);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Couldn't create PipeWire core");
       return NULL;
     }
 
-  remote->remote = pw_remote_new (remote->core, NULL, 0);
+  remote->remote = pw_remote_new (remote->core, pipewire_properties, 0);
   if (!remote->remote)
     {
       pipewire_remote_destroy (remote);
@@ -200,6 +325,8 @@ pipewire_remote_new_sync (GError **error)
                    "Couldn't create PipeWire remote");
       return NULL;
     }
+
+  remote->globals = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 
   pw_remote_add_listener (remote->remote,
                           &remote->remote_listener,

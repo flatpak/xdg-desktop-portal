@@ -64,95 +64,6 @@ static void device_iface_init (XdpDeviceIface *iface);
 G_DEFINE_TYPE_WITH_CODE (Device, device, XDP_TYPE_DEVICE_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_DEVICE, device_iface_init));
 
-typedef enum { UNSET, NO, YES, ASK } Permission;
-
-static Permission
-get_permission (const char *app_id,
-                const char *device)
-{
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GVariant) out_perms = NULL;
-  g_autoptr(GVariant) out_data = NULL;
-  const char **permissions;
-
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   device,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No device permissions found: %s", error->message);
-      return UNSET;
-    }
-
-  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
-    {
-      g_debug ("No permissions stored for: device %s, app %s", device, app_id);
-
-      return UNSET;
-    }
-  else if (g_strv_length ((char **)permissions) != 1)
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
-      g_warning ("Wrong permission format, ignoring (%s)", a);
-      return UNSET;
-    }
-
-  g_debug ("permission store: device %s, app %s -> %s", device, app_id, permissions[0]);
-
-  if (strcmp (permissions[0], "yes") == 0)
-    return YES;
-  else if (strcmp (permissions[0], "no") == 0)
-    return NO;
-  else if (strcmp (permissions[0], "ask") == 0)
-    return ASK;
-  else
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)permissions);
-      g_warning ("Wrong permission format, ignoring (%s)", a);
-    }
-
-  return UNSET;
-}
-
-static void
-set_permission (const char *app_id,
-                const char *device,
-                Permission permission)
-{
-  g_autoptr(GError) error = NULL;
-  const char *permissions[2];
-
-  if (permission == ASK)
-    permissions[0] = "ask";
-  else if (permission == YES)
-    permissions[0] = "yes";
-  else if (permission == NO)
-    permissions[0] = "no";
-  else
-    {
-      g_warning ("Wrong permission format, ignoring");
-      return;
-    }
-  permissions[1] = NULL;
-
-  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           PERMISSION_TABLE,
-                                                           TRUE,
-                                                           device,
-                                                           app_id,
-                                                           (const char * const*)permissions,
-                                                           NULL,
-                                                           &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Error updating permission store: %s", error->message);
-    }
-}
-
 static const char *known_devices[] = {
   "microphone",
   "speakers",
@@ -160,25 +71,40 @@ static const char *known_devices[] = {
   NULL
 };
 
-static void
-handle_access_microphone_in_thread (GTask *task,
-                                    gpointer source_object,
-                                    gpointer task_data,
-                                    GCancellable *cancellable)
+Permission
+device_get_permission_sync (const char *app_id,
+                            const char *device)
 {
-  Request *request = (Request *)task_data;
-  const char *app_id;
+  char **permissions;
+
+  permissions = get_permissions_sync (app_id, PERMISSION_TABLE, device);
+  if (!permissions)
+    {
+      return PERMISSION_UNSET;
+    }
+  else
+    {
+      Permission permission;
+
+      g_debug ("device: %s %s, app %s -> %s",
+               PERMISSION_TABLE, device, app_id, permissions[0]);
+
+      permission = permissions_to_tristate (permissions);
+      g_strfreev (permissions);
+      return permission;
+    }
+}
+
+gboolean
+device_query_permission_sync (const char *app_id,
+                              const char *device,
+                              const char *request_handle)
+{
   Permission permission;
   gboolean allowed;
-  const char *device;
 
-  REQUEST_AUTOLOCK (request);
-
-  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
-  device = (const char *)g_object_get_data (G_OBJECT (request), "device");
-
-  permission = get_permission (app_id, device);
-  if (permission == ASK || permission == UNSET)
+  permission = device_get_permission_sync (app_id, device);
+  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
     {
       GVariantBuilder opt_builder;
       g_autofree char *title = NULL;
@@ -241,7 +167,7 @@ handle_access_microphone_in_thread (GTask *task,
       g_debug ("Calling backend for device access to: %s", device);
 
       if (!xdp_impl_access_call_access_dialog_sync (impl,
-                                                    request->id,
+                                                    request_handle,
                                                     app_id,
                                                     "",
                                                     title,
@@ -258,11 +184,40 @@ handle_access_microphone_in_thread (GTask *task,
 
       allowed = response == 0;
 
-      if (permission == UNSET)
-        set_permission (app_id, device, allowed ? YES : NO);
+      if (permission == PERMISSION_UNSET)
+        {
+          char **permissions;
+
+          permissions = permissions_from_tristate (allowed ? PERMISSION_YES
+                                                           : PERMISSION_NO);
+          set_permissions_sync (app_id, PERMISSION_TABLE, device,
+                                (const char * const *)permissions);
+          g_strfreev (permissions);
+        }
     }
   else
-    allowed = permission == YES ? TRUE : FALSE;
+    allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+
+  return allowed;
+}
+
+static void
+handle_access_device_in_thread (GTask *task,
+                                gpointer source_object,
+                                gpointer task_data,
+                                GCancellable *cancellable)
+{
+  Request *request = (Request *)task_data;
+  const char *app_id;
+  const char *device;
+  gboolean allowed;
+
+  REQUEST_AUTOLOCK (request);
+
+  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
+  device = (const char *)g_object_get_data (G_OBJECT (request), "device");
+
+  allowed = device_query_permission_sync (app_id, device, request->id);
 
   if (request->exported)
     {
@@ -371,7 +326,7 @@ handle_access_device (XdpDevice *object,
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_access_microphone_in_thread);
+  g_task_run_in_thread (task, handle_access_device_in_thread);
 
   return TRUE;
 }

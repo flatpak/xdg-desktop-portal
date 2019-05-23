@@ -87,8 +87,6 @@ G_DEFINE_TYPE_WITH_CODE (Background, background, XDP_TYPE_BACKGROUND_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_BACKGROUND, background_iface_init));
 
 
-typedef enum { UNSET, NO, YES, ASK } Permission;
-
 static GVariant *
 get_all_permissions (void)
 {
@@ -122,36 +120,36 @@ get_one_permission (const char *app_id,
     {
       g_debug ("No background permissions found");
 
-      return UNSET;
+      return PERMISSION_UNSET;
     }
   else if (!g_variant_lookup (perms, app_id, "^a&s", &permissions))
     {
       g_debug ("No background permissions stored for: app %s", app_id);
 
-      return UNSET;
+      return PERMISSION_UNSET;
     }
   else if (g_strv_length ((char **)permissions) != 1)
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong background permission format, ignoring (%s)", a);
-      return UNSET;
+      return PERMISSION_UNSET;
     }
 
   g_debug ("permission store: background, app %s -> %s", app_id, permissions[0]);
 
   if (strcmp (permissions[0], "yes") == 0)
-    return YES;
+    return PERMISSION_YES;
   else if (strcmp (permissions[0], "no") == 0)
-    return NO;
+    return PERMISSION_NO;
   else if (strcmp (permissions[0], "ask") == 0)
-    return ASK;
+    return PERMISSION_ASK;
   else
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
     }
 
-  return UNSET;
+  return PERMISSION_UNSET;
 }
 
 static Permission
@@ -163,7 +161,7 @@ get_permission (const char *app_id)
   if (perms)
     return get_one_permission (app_id, perms);
 
-  return UNSET;
+  return PERMISSION_UNSET;
 }
 
 static void
@@ -173,11 +171,11 @@ set_permission (const char *app_id,
   g_autoptr(GError) error = NULL;
   const char *permissions[2];
 
-  if (permission == ASK)
+  if (permission == PERMISSION_ASK)
     permissions[0] = "ask";
-  else if (permission == YES)
+  else if (permission == PERMISSION_YES)
     permissions[0] = "yes";
-  else if (permission == NO)
+  else if (permission == PERMISSION_NO)
     permissions[0] = "no";
   else
     {
@@ -239,13 +237,13 @@ handle_request_background_in_thread_func (GTask *task,
   app_id = xdp_app_info_get_id (request->app_info);
 
   if (xdp_app_info_is_host (request->app_info))
-    permission = YES;
+    permission = PERMISSION_YES;
   else
     permission = get_permission (app_id);
 
   g_debug ("Handle RequestBackground for %s\n", app_id);
 
-  if (permission == ASK || permission == UNSET)
+  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
     {
       GVariantBuilder opt_builder;
       g_autofree char *title = NULL;
@@ -291,11 +289,11 @@ handle_request_background_in_thread_func (GTask *task,
 
       allowed = response == 0;
 
-      if (permission == UNSET)
-        set_permission (app_id, allowed ? YES : NO);
+      if (permission == PERMISSION_UNSET)
+        set_permission (app_id, allowed ? PERMISSION_YES : PERMISSION_NO);
     }
   else
-    allowed = permission == YES ? TRUE : FALSE;
+    allowed = permission == PERMISSION_YES ? TRUE : FALSE;
 
   g_debug ("Setting autostart for %s to %s", app_id,
            allowed && autostart_requested ? "enabled" : "disabled");
@@ -631,15 +629,15 @@ notify_background_done (GObject *source,
     {
       g_debug ("Allowing app %s to run in background", nd->app_id);
 
-      if (nd->perm != ASK)
-        nd->perm = YES;
+      if (nd->perm != PERMISSION_ASK)
+        nd->perm = PERMISSION_YES;
     }
   else if (result == FORBID)
     {
       g_debug ("Forbid app %s to run in background", nd->app_id);
 
-      if (nd->perm != ASK)
-        nd->perm = NO;
+      if (nd->perm != PERMISSION_ASK)
+        nd->perm = PERMISSION_NO;
 
       g_debug ("Kill app %s (pid %d)", nd->app_id, nd->child_pid);
 
@@ -652,7 +650,7 @@ notify_background_done (GObject *source,
   else
     g_debug ("Unexpected response from NotifyBackground: %u", result);
 
-  if (nd->perm != UNSET)
+  if (nd->perm != PERMISSION_UNSET)
     set_permission (nd->app_id, nd->perm);
 
   G_LOCK (applications);
@@ -743,15 +741,15 @@ check_background_apps (void)
 
       switch (idata->permission)
         {
-        case NO:
+        case PERMISSION_NO:
           idata->stamp = 0;
 
           g_debug ("Kill app %s (pid %d)", app_id, child_pid);
           kill (child_pid, SIGKILL);
           break;
 
-        case ASK:
-        case UNSET:
+        case PERMISSION_ASK:
+        case PERMISSION_UNSET:
           {
             NotificationData *nd = g_new0 (NotificationData, 1);
 
@@ -770,7 +768,7 @@ check_background_apps (void)
           }
           break;
 
-        case YES:
+        case PERMISSION_YES:
         default:
           break;
         }
