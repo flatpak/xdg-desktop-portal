@@ -1,7 +1,7 @@
 NULL =
 
 org.freedesktop.portal.Flatpak.xml :
-	cp $(datadir)/dbus-1/interfaces/org.freedesktop.portal.Flatpak.xml .
+	cp $(FLATPAK_INTERFACES_DIR)/org.freedesktop.portal.Flatpak.xml .
 
 portal_files = 								\
 	org.freedesktop.portal.Flatpak.xml		 		\
