@@ -1512,8 +1512,16 @@ map_pids (DIR     *proc,
           return FALSE;
         }
 
-      res[idx] = outside;
-      count++;
+      /* this handles the first occurrence, already identified by find_pid,
+       * as well as duplicate entries */
+      for (guint i = idx; i < n_pids; i++)
+        {
+          if (pids[i] == inside)
+            {
+              res[idx] = outside;
+              count++;
+            }
+        }
     }
 
   if (count != n_pids)
