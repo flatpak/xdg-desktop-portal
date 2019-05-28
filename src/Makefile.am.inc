@@ -143,8 +143,6 @@ xdg_desktop_portal_SOURCES = \
         src/email.h                     \
 	src/settings.c			\
 	src/settings.h			\
-	src/camera.c			\
-	src/camera.h			\
 	src/session.c			\
 	src/session.h			\
 	src/trash.c			\
@@ -171,6 +169,8 @@ xdg_desktop_portal_SOURCES += \
 	src/remote-desktop.h		\
 	src/pipewire.c			\
 	src/pipewire.h			\
+	src/camera.c			\
+	src/camera.h			\
 	$(NULL)
 endif
 
