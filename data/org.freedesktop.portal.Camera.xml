@@ -40,6 +40,7 @@
               more information about the @handle.
             </para></listitem>
           </varlistentry>
+        </variablelist>
 
         Following the #org.freedesktop.portal.Request::Response signal, if
         granted, #org.freedesktop.org.Camera.OpenPipeWireRemote can be used to
