@@ -1,7 +1,10 @@
-Changes in 1.3.0
+Changes in 1.4.0
 ================
 
 * Add a background&autostart portal
+* Add a gamemode portal
+* Add a camera portal
+* Require pipewire 0.2.6
 * inhibit: Track session state
 * documents: Fix a ref-counting bug
 * screencast: Add cursor modes
