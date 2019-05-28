@@ -21,6 +21,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Settings.xml \
 	data/org.freedesktop.portal.Background.xml \
 	data/org.freedesktop.portal.GameMode.xml \
+	data/org.freedesktop.portal.Camera.xml \
 	data/org.freedesktop.impl.portal.PermissionStore.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.Session.xml \

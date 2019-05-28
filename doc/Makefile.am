@@ -24,6 +24,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Settings.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.Background.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.GameMode.xml		\
+	$(top_srcdir)/data/org.freedesktop.portal.Camera.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Session.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
