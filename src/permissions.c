@@ -101,9 +101,10 @@ permissions_from_tristate (Permission permission)
     case PERMISSION_ASK:
       permission_str = g_strdup ("ask");
       break;
+    default:
+      g_assert_not_reached ();
+      break;
     }
-
-  g_assert (permission_str);
 
   permissions = g_new0 (char *, 2);
   permissions[0] = permission_str;
