@@ -1,14 +1,14 @@
 # Lithuanian translation for xdg-desktop-portal.
 # Copyright (C) 2018 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Moo, 2018.
+# Moo, 2018,2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-17 03:26+0000\n"
-"PO-Revision-Date: 2018-12-04 12:02+0200\n"
+"POT-Creation-Date: 2019-06-06 15:29+0000\n"
+"PO-Revision-Date: 2019-06-07 00:20+0300\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -17,13 +17,44 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Poedit 2.2.1\n"
 
-#: src/device.c:202
+#: src/background.c:259
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Leisti %s vykdyti fone?"
+
+#: src/background.c:263
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s prašo, kad būtų paleidžiama automatiškai ir vykdoma fone."
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s prašo, kad būtų vykdoma fone."
+
+#: src/background.c:266
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Leidimas \"vykdyti fone\" bet kuriuo metu gali būti pakeistas programos "
+"nustatymuose."
+
+#: src/background.c:271
+msgid "Don't allow"
+msgstr "Neleisti"
+
+#: src/background.c:272
+msgid "Allow"
+msgstr "Leisti"
+
+#: src/device.c:131
 msgid "Turn On Microphone?"
 msgstr "Įjungti mikrofoną?"
 
-#: src/device.c:203
+#: src/device.c:132
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -31,82 +62,82 @@ msgstr ""
 "Prieiga prie jūsų mikrofono bet kuriuo metu gali būti pakeista privatumo "
 "nustatymuose."
 
-#: src/device.c:207
+#: src/device.c:136
 msgid "An application wants to use your microphone."
 msgstr "Programa nori naudoti jūsų mikrofoną."
 
-#: src/device.c:209
+#: src/device.c:138
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s nori naudoti jūsų mikrofoną."
 
-#: src/device.c:215
+#: src/device.c:144
 msgid "Turn On Speakers?"
 msgstr "Įjungti garsiakalbius?"
 
-#: src/device.c:216
+#: src/device.c:145
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Prieiga prie jūsų garsiakalbių bet kuriuo metu gali būti pakeista privatumo "
 "nustatymuose."
 
-#: src/device.c:220
+#: src/device.c:149
 msgid "An application wants to play sound."
 msgstr "Programa nori atkurti garsą."
 
-#: src/device.c:222
+#: src/device.c:151
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s nori atkurti garsą."
 
-#: src/device.c:228
+#: src/device.c:157
 msgid "Turn On Camera?"
 msgstr "Įjungti kamerą?"
 
-#: src/device.c:229
+#: src/device.c:158
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Prieiga prie jūsų kameros bet kuriuo metu gali būti pakeista privatumo "
 "nustatymuose."
 
-#: src/device.c:233
+#: src/device.c:162
 msgid "An application wants to use your camera."
 msgstr "Programa nori naudoti jūsų kamerą."
 
-#: src/device.c:235
+#: src/device.c:164
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s nori naudoti jūsų kamerą."
 
-#: src/location.c:536
+#: src/location.c:549
 msgid "Deny Access"
 msgstr "Drausti prieigą"
 
-#: src/location.c:538
+#: src/location.c:551
 msgid "Grant Access"
 msgstr "Suteikti prieigą"
 
-#: src/location.c:544
+#: src/location.c:557
 msgid "Grant Access to Your Location?"
 msgstr "Suteikti prieigą prie jūsų buvimo vietos?"
 
-#: src/location.c:545
+#: src/location.c:558
 msgid "An application wants to use your location."
 msgstr "Programa nori naudoti jūsų buvimo vietą."
 
-#: src/location.c:557
+#: src/location.c:570
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Suteikti %s prieigą prie jūsų buvimo vietos?"
 
-#: src/location.c:561
+#: src/location.c:574
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s nori naudoti jūsų buvimo vietą."
 
-#: src/location.c:564
+#: src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Prieiga prie jūsų buvimo vietos bet kuriuo metu gali būti pakeista privatumo "
