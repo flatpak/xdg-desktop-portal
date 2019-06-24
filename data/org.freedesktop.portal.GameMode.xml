@@ -42,7 +42,7 @@
       'UnregisterGame' method, GameMode will automatically un-register
       the client. This might happen with a (small) delay.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
     -->
     <interface name="org.freedesktop.portal.GameMode">
       <!--
@@ -98,6 +98,54 @@
       -->
       <method name="UnregisterGame">
         <arg type="i" name="pid" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+
+      <!--
+          QueryStatusByPid:
+          @target: Process id to query the GameMode status of
+          @requester: Process id of the process requesting the information
+          @result: The GameMode status for @target
+
+          Query the GameMode status for a process.
+	  Like org.freedesktop.portal.GameMode.QueryStatus() but @requester
+          acting on behalf of @target.
+      -->
+      <method name="QueryStatusByPid">
+        <arg type="i" name="target" direction="in"/>
+	<arg type="i" name="requester" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+
+      <!--
+          RegisterGameByPid:
+          @target: Process id of the game to register
+          @requester: Process id of the process requesting the registration
+          @result: Status of the request: 0 for success, -1 indicates an error
+
+          Register a game with GameMode.
+	  Like org.freedesktop.portal.GameMode.RegisterGame() but @requester
+          acting on behalf of @target.
+      -->
+      <method name="RegisterGameByPid">
+        <arg type="i" name="target" direction="in"/>
+	<arg type="i" name="requester" direction="in"/>
+        <arg type="i" name="result" direction="out"/>
+      </method>
+
+      <!--
+          UnregisterGameByPid:
+          @target: Process id of the game to un-register
+          @requester: Process id of the process requesting the un-registration
+          @result: Status of the request: 0 for success, -1 indicates an error
+
+          Register a game with GameMode.
+	  Like org.freedesktop.portal.GameMode.UnregisterGame() but @requester
+          acting on behalf of @target.
+      -->
+      <method name="UnregisterGameByPid">
+        <arg type="i" name="target" direction="in"/>
+	<arg type="i" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 

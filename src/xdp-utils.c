@@ -1468,6 +1468,7 @@ map_pids (DIR     *proc,
   guint count = 0;
 
   res = g_alloca (sizeof (pid_t) * n_pids);
+  memset (res, 0, sizeof (pid_t) * n_pids);
 
   while ((de = readdir (proc)) != NULL)
     {
@@ -1512,14 +1513,31 @@ map_pids (DIR     *proc,
           return FALSE;
         }
 
-      res[idx] = outside;
-      count++;
+      /* this handles the first occurrence, already identified by find_pid,
+       * as well as duplicate entries */
+      for (guint i = idx; i < n_pids; i++)
+        {
+          if (pids[i] == inside)
+            {
+              res[idx] = outside;
+              count++;
+            }
+        }
     }
 
   if (count != n_pids)
     {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
-                           "Some process ids could not be found");
+      g_autoptr(GString) str = NULL;
+
+      str = g_string_new ("Process ids could not be found: ");
+
+      for (guint i = 0; i < n_pids; i++)
+        if (res[i] == 0)
+          g_string_append_printf (str, "%d, ", (guint32) pids[i]);
+
+      g_string_truncate (str, str->len - 2);
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND, str->str);
+
       return FALSE;
     }
 
