@@ -294,6 +294,13 @@ get_token (GDBusMethodInvocation *invocation)
     {
       // no request objects
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
+    {
+        if (strcmp (method, "RequestBackground") == 0 )
+          {
+            options = g_variant_get_child_value (parameters, 1);
+          }
+    }
   else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
     {
       if (strcmp (method, "AccessCamera") == 0 )
