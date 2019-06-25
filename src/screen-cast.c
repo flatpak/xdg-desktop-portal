@@ -591,6 +591,7 @@ open_pipewire_screen_cast_remote (const char *app_id,
   char *node_factory_permission_string;
   GList *string_stash = NULL;
   struct spa_dict *permission_dict;
+  PipeWireGlobal *node_global;
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.app_id", app_id,
                                            "pipewire.access.portal.media_roles", "",
@@ -631,6 +632,10 @@ open_pipewire_screen_cast_remote (const char *app_id,
   g_array_append_val (permission_items,
                       PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_GLOBAL,
                                        node_factory_permission_string));
+  node_global = g_hash_table_lookup (remote->globals,
+                                     GINT_TO_POINTER (remote->node_factory_id));
+  append_parent_permissions (remote, permission_items, &string_stash,
+                             node_global, "r--");
 
   append_stream_permissions (remote, permission_items, &string_stash, streams);
 
