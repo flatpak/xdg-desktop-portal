@@ -2537,7 +2537,8 @@ xdp_fuse_init (GError **error)
   main_ch = fuse_mount (path, &args);
   if (main_ch == NULL)
     {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED, "Can't mount fuse fs");
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                   "Can't mount fuse fs on %s: %s", path, g_strerror (errno));
       return FALSE;
     }
 
