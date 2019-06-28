@@ -39,6 +39,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.GameMode.xml \
 	data/org.freedesktop.portal.Camera.xml \
 	data/org.freedesktop.portal.Secret.xml \
+	data/org.freedesktop.portal.Wallpaper.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -60,6 +61,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Lockdown.xml \
 	data/org.freedesktop.impl.portal.Background.xml \
 	data/org.freedesktop.impl.portal.Secret.xml \
+	data/org.freedesktop.impl.portal.Wallpaper.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
@@ -149,6 +151,8 @@ xdg_desktop_portal_SOURCES = \
 	src/session.h			\
 	src/trash.c			\
 	src/trash.h			\
+	src/wallpaper.c			\
+	src/wallpaper.h			\
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
 	src/fc-monitor.c		\

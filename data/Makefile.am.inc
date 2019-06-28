@@ -23,6 +23,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.GameMode.xml \
 	data/org.freedesktop.portal.Camera.xml \
 	data/org.freedesktop.portal.Secret.xml \
+	data/org.freedesktop.portal.Wallpaper.xml \
 	data/org.freedesktop.impl.portal.PermissionStore.xml \
 	data/org.freedesktop.impl.portal.Request.xml \
 	data/org.freedesktop.impl.portal.Session.xml \
@@ -41,4 +42,5 @@ dist_introspection_DATA = \
 	data/org.freedesktop.impl.portal.Lockdown.xml \
 	data/org.freedesktop.impl.portal.Background.xml \
 	data/org.freedesktop.impl.portal.Secret.xml \
+	data/org.freedesktop.impl.portal.Wallpaper.xml	\
 	$(NULL)

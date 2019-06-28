@@ -25,6 +25,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Background.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.GameMode.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.Camera.xml		\
+	$(top_srcdir)/data/org.freedesktop.portal.Wallpaper.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Session.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
@@ -42,6 +43,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Background.xml		\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Wallpaper.xml		\
 	$(NULL)
 
 xml_files = 								\
@@ -69,6 +71,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.GameMode.xml			\
 	portal-org.freedesktop.portal.Camera.xml			\
 	portal-org.freedesktop.impl.portal.Background.xml 			\
+	portal-org.freedesktop.portal.Wallpaper.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
 	portal-org.freedesktop.impl.portal.Session.xml 			\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\

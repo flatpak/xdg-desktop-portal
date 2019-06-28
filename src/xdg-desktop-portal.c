@@ -55,6 +55,7 @@
 #include "gamemode.h"
 #include "camera.h"
 #include "secret.h"
+#include "wallpaper.h"
 
 static GMainLoop *loop = NULL;
 
@@ -251,6 +252,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   notification_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  wallpaper_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Inhibit");
   if (implementation != NULL)
