@@ -380,7 +380,14 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
   if (root_fd == -1)
     {
-      /* Not able to open the root dir shouldn't happen. Probably the app died and
+      if (errno == EACCES)
+        {
+          /* Access to the root dir isn't allowed => inside a Toolbox
+             container, return NULL with no error */
+          return NULL;
+        }
+
+      /* Otherwise, we should be able to open the root dir. Probably the app died and
          we're failing due to /proc/$pid not existing. In that case fail instead
          of treating this as privileged. */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
