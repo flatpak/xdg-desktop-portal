@@ -441,7 +441,12 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
 
   id = g_key_file_get_string (metadata, group, "name", error);
   if (id == NULL)
-    return NULL;
+    {
+      close (info_fd);
+      return NULL;
+    }
+
+  close (info_fd);
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_FLATPAK);
   app_info->id = g_steal_pointer (&id);
