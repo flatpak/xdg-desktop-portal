@@ -1,14 +1,14 @@
 # Italian translation for xdg-desktop-portal.
-# Copyright (C) 2017, 2018 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2017, 2018, 2019 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Milo Casagrande <milo@milo.name>, 2017, 2018.
+# Milo Casagrande <milo@milo.name>, 2017, 2018, 2019.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2018-11-21 14:54+0100\n"
+"POT-Creation-Date: 2019-05-17 03:29+0000\n"
+"PO-Revision-Date: 2019-08-13 09:37+0200\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
 "Language: it\n"
@@ -16,13 +16,46 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.1.1\n"
+"X-Generator: Poedit 2.2.3\n"
 
-#: src/device.c:202
+#: src/background.c:261
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr ""
+"L'applicazione %s richiede di essere avviata automaticamente e di essere "
+"eseguita sullo sfondo."
+
+#: src/background.c:267
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
+
+#: src/background.c:268
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Il permesso «esegui sullo sfondo» può essere modificato in qualsiasi momento "
+"attraverso le impostazioni dell'applicazione."
+
+#: src/background.c:273
+msgid "Don't allow"
+msgstr "Non consentire"
+
+#: src/background.c:274
+msgid "Allow"
+msgstr "Consenti"
+
+#: src/device.c:205
 msgid "Turn On Microphone?"
 msgstr "Accendere il microfono?"
 
-#: src/device.c:203
+#: src/device.c:206
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -30,82 +63,82 @@ msgstr ""
 "L'accesso al microfono può essere modificato in qualsiasi momento attraverso "
 "le impostazioni della privacy."
 
-#: src/device.c:207
+#: src/device.c:210
 msgid "An application wants to use your microphone."
 msgstr "Un'applicazione vuole utilizzare il microfono."
 
-#: src/device.c:209
+#: src/device.c:212
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s vuole utilizzare il microfono."
 
-#: src/device.c:215
+#: src/device.c:218
 msgid "Turn On Speakers?"
 msgstr "Accendere gli altoparlanti?"
 
-#: src/device.c:216
+#: src/device.c:219
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "L'accesso al microfono può essere modificato in qualsiasi momento attraverso "
 "le impostazioni della privacy."
 
-#: src/device.c:220
+#: src/device.c:223
 msgid "An application wants to play sound."
 msgstr "Un'applicazione vuole riprodurre un suono."
 
-#: src/device.c:222
+#: src/device.c:225
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s vuole riprodurre un suono."
 
-#: src/device.c:228
+#: src/device.c:231
 msgid "Turn On Camera?"
 msgstr "Accendere la videocamera?"
 
-#: src/device.c:229
+#: src/device.c:232
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "L'accesso alla videocamera può essere modificato in qualsiasi momento "
 "attraverso le impostazioni della privacy."
 
-#: src/device.c:233
+#: src/device.c:236
 msgid "An application wants to use your camera."
 msgstr "Un'applicazione vuole utilizzare la videocamera."
 
-#: src/device.c:235
+#: src/device.c:238
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s vuole utilizzare la videocamera."
 
-#: src/location.c:536
+#: src/location.c:549
 msgid "Deny Access"
 msgstr "Nega accesso"
 
-#: src/location.c:538
+#: src/location.c:551
 msgid "Grant Access"
 msgstr "Consenti accesso"
 
-#: src/location.c:544
+#: src/location.c:557
 msgid "Grant Access to Your Location?"
 msgstr "Consentire l'accesso alla propria posizione?"
 
-#: src/location.c:545
+#: src/location.c:558
 msgid "An application wants to use your location."
 msgstr "Un'applicazione vuole utilizzare la propria posizione."
 
-#: src/location.c:557
+#: src/location.c:570
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Consentire a %s di accedere alla propria posizione?"
 
-#: src/location.c:561
+#: src/location.c:574
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vuole utilizzare la propria posizione."
 
-#: src/location.c:564
+#: src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "L'accesso alla posizione può essere modificato in qualsiasi momento "
