@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
-"PO-Revision-Date: 2018-02-20 14:43-0600\n"
+"POT-Creation-Date: 2019-05-17 03:29+0000\n"
+"PO-Revision-Date: 2019-08-17 05:36-0500\n"
 "Last-Translator: Adolfo Jayme Barrientos <fitojb@ubuntu.com>\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
@@ -15,103 +15,132 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 2.2.3\n"
 
-#: src/device.c:202
+#: src/background.c:261
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "¿Quiere permitir que %s se ejecute en segundo plano?"
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s solicita iniciarse automáticamente y ejecutarse en segundo plano."
+
+#: src/background.c:267
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s solicita ejecutarse en segundo plano."
+
+#: src/background.c:268
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"El permiso «ejecución en segundo plano» puede modificarse en cualquier "
+"momento a través de la configuración de privacidad."
+
+#: src/background.c:273
+msgid "Don't allow"
+msgstr "No permitir"
+
+#: src/background.c:274
+msgid "Allow"
+msgstr "Permitir"
+
+#: src/device.c:205
 msgid "Turn On Microphone?"
 msgstr "¿Quiere encender el micrófono?"
 
-#: src/device.c:203
+#: src/device.c:206
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"El acceso al micrófono se puede cambiar en cualquier momento a través de la "
+"El acceso al micrófono puede modificarse en cualquier momento a través de la "
 "configuración de privacidad."
 
-#: src/device.c:207
+#: src/device.c:210
 msgid "An application wants to use your microphone."
 msgstr "Una aplicación intenta utilizar el micrófono."
 
-#: src/device.c:209
+#: src/device.c:212
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s intenta utilizar el micrófono."
 
-#: src/device.c:215
+#: src/device.c:218
 msgid "Turn On Speakers?"
 msgstr "¿Quiere encender los altavoces?"
 
-#: src/device.c:216
+#: src/device.c:219
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"El acceso a los altavoces se puede cambiar en cualquier momento a través de "
+"El acceso a los altavoces puede modificarse en cualquier momento a través de "
 "la configuración de privacidad."
 
-#: src/device.c:220
+#: src/device.c:223
 msgid "An application wants to play sound."
 msgstr "Una aplicación intenta reproducir sonido."
 
-#: src/device.c:222
+#: src/device.c:225
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s intenta reproducir sonido."
 
-#: src/device.c:228
+#: src/device.c:231
 msgid "Turn On Camera?"
 msgstr "¿Quiere encender la cámara?"
 
-#: src/device.c:229
+#: src/device.c:232
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"El acceso a la cámara se puede cambiar en cualquier momento a través de la "
+"El acceso a la cámara puede modificarse en cualquier momento a través de la "
 "configuración de privacidad."
 
-#: src/device.c:233
+#: src/device.c:236
 msgid "An application wants to use your camera."
 msgstr "Una aplicación intenta utilizar la cámara."
 
-#: src/device.c:235
+#: src/device.c:238
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s intenta utilizar la cámara."
 
-#: src/location.c:536
+#: src/location.c:549
 msgid "Deny Access"
-msgstr ""
+msgstr "Denegar acceso"
 
-#: src/location.c:538
+#: src/location.c:551
 msgid "Grant Access"
-msgstr ""
-
-#: src/location.c:544
-msgid "Grant Access to Your Location?"
-msgstr ""
-
-#: src/location.c:545
-#, fuzzy
-msgid "An application wants to use your location."
-msgstr "Una aplicación intenta utilizar la cámara."
+msgstr "Conceder acceso"
 
 #: src/location.c:557
+msgid "Grant Access to Your Location?"
+msgstr "¿Quiere conceder acceso a su ubicación?"
+
+#: src/location.c:558
+msgid "An application wants to use your location."
+msgstr "Una aplicación intenta utilizar su ubicación."
+
+#: src/location.c:570
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "¿Quiere conceder a %s acceso a su ubicación?"
 
-#: src/location.c:561
-#, fuzzy, c-format
+#: src/location.c:574
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s intenta utilizar la cámara."
+msgstr "%s intenta utilizar su ubicación."
 
-#: src/location.c:564
-#, fuzzy
+#: src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"El acceso a los altavoces se puede cambiar en cualquier momento a través de "
+"El acceso a la ubicación puede modificarse en cualquier momento a través de "
 "la configuración de privacidad."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
-msgstr ""
+msgstr "No se encontró la configuración solicitada"
