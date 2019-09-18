@@ -462,7 +462,14 @@ get_app_states (void)
 
   if (!xdp_impl_background_call_get_app_state_sync (background_impl, &apps, NULL, &error))
     {
-      g_warning ("Failed to get application states: %s", error->message);
+      static int warned = 0;
+
+      if (!warned)
+        {
+          g_warning ("Failed to get application states: %s", error->message);
+          warned = 1;
+        }
+
       return NULL;
     }
 
