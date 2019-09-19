@@ -7,6 +7,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Trash.xml \
 	data/org.freedesktop.portal.OpenURI.xml \
 	data/org.freedesktop.portal.Print.xml \
+	data/org.freedesktop.portal.MemoryMonitor.xml \
 	data/org.freedesktop.portal.NetworkMonitor.xml \
 	data/org.freedesktop.portal.ProxyResolver.xml \
 	data/org.freedesktop.portal.Screenshot.xml \
