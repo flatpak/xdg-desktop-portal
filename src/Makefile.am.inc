@@ -38,6 +38,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Background.xml \
 	data/org.freedesktop.portal.GameMode.xml \
 	data/org.freedesktop.portal.Camera.xml \
+	data/org.freedesktop.portal.Secret.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -58,6 +59,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	data/org.freedesktop.impl.portal.Settings.xml \
 	data/org.freedesktop.impl.portal.Lockdown.xml \
 	data/org.freedesktop.impl.portal.Background.xml \
+	data/org.freedesktop.impl.portal.Secret.xml \
 	$(NULL)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
@@ -155,6 +157,8 @@ xdg_desktop_portal_SOURCES = \
 	src/background.h		\
 	src/gamemode.c			\
 	src/gamemode.h			\
+	src/secret.c			\
+	src/secret.h			\
         src/flatpak-instance.c          \
         src/flatpak-instance.h          \
 	src/portal-impl.h		\

@@ -317,6 +317,10 @@ get_token (GDBusMethodInvocation *invocation)
                      interface, method, G_STRLOC);
         }
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Secret") == 0)
+    {
+      options = g_variant_get_child_value (parameters, 1);
+    }
   else
     {
       g_print ("Support for %s missing in " G_STRLOC, interface);
