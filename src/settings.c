@@ -287,6 +287,7 @@ init_settings_table (Settings   *self,
     "org.gnome.desktop.wm.preferences",
     "org.gnome.settings-daemon.plugins.xsettings",
     "org.gnome.desktop.a11y",
+    "org.gnome.desktop.input-sources",
   };
   size_t i;
   GSettingsSchemaSource *source = g_settings_schema_source_get_default ();
