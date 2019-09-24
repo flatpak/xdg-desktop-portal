@@ -606,11 +606,115 @@ handle_save_file (XdpFileChooser *object,
   return TRUE;
 }
 
+static XdpOptionKey save_files_options[] = {
+  { "accept_label", G_VARIANT_TYPE_STRING, NULL },
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "current_name", G_VARIANT_TYPE_STRING, NULL },
+  { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
+  { "files", G_VARIANT_TYPE_BYTESTRING_ARRAY, NULL },
+  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices  }
+};
+
+static void
+save_files_done (GObject *source,
+                 GAsyncResult *result,
+                 gpointer data)
+{
+  g_autoptr(Request) request = data;
+  guint response = 2;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+
+  if (!xdp_impl_file_chooser_call_save_files_finish (XDP_IMPL_FILE_CHOOSER (source),
+                                                     &response,
+                                                     &options,
+                                                     result,
+                                                     &error))
+    {
+      g_warning ("Backend call failed: %s", error->message);
+    }
+
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (options)
+    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
+}
+
+static gboolean
+handle_save_files (XdpFileChooser *object,
+                   GDBusMethodInvocation *invocation,
+                   const gchar *arg_parent_window,
+                   const gchar *arg_title,
+                   GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  const char *app_id = xdp_app_info_get_id (request->app_info);
+  g_autoptr(GError) error = NULL;
+  XdpImplRequest *impl_request;
+  GVariantBuilder options;
+
+  if (xdp_impl_lockdown_get_disable_save_to_disk (lockdown))
+    {
+      g_debug ("File saving disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "File saving disabled");
+      return TRUE;
+    }
+
+  REQUEST_AUTOLOCK (request);
+
+  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  if (!xdp_filter_options (arg_options, &options,
+                           save_files_options, G_N_ELEMENTS (save_files_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                  request->id,
+                                                  NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (TRUE));
+
+  request_set_impl_request (request, impl_request);
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_impl_file_chooser_call_save_files (impl,
+                                         request->id,
+                                         app_id,
+                                         arg_parent_window,
+                                         arg_title,
+                                         g_variant_builder_end (&options),
+                                         NULL,
+                                         save_files_done,
+                                         g_object_ref (request));
+
+  xdp_file_chooser_complete_open_file (object, invocation, request->id);
+
+  return TRUE;
+}
+
 static void
 file_chooser_iface_init (XdpFileChooserIface *iface)
 {
   iface->handle_open_file = handle_open_file;
   iface->handle_save_file = handle_save_file;
+  iface->handle_save_files = handle_save_files;
 }
 
 static void
