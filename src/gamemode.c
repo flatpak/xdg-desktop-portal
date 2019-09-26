@@ -179,8 +179,9 @@ typedef struct CallData_ {
   XdpAppInfo *app_info;
 
   char *method;
-  gint  pid;
-  gint  requester;
+
+  int      ids[2];
+  guint    n_ids;
 
 } CallData;
 
@@ -239,14 +240,9 @@ handle_call_thread (GTask        *task,
       return;
     }
 
-  pids[0] = call->pid;
-  n_pids = 1;
-
-  if (call->requester != 0)
-    {
-      pids[1] = call->requester;
-      n_pids = 2;
-    }
+  n_pids = call->n_ids;
+  for (guint i = 0; i < n_pids; i++)
+    pids[0] = (pid_t) call->ids[i];
 
   ok = xdg_app_info_map_pids (call->app_info, pids, n_pids, &error);
 
@@ -296,8 +292,15 @@ handle_call_in_thread (XdpGameMode           *object,
   app_info = request->app_info;
 
   call = call_data_new (invocation, app_info, method);
-  call->pid = target;
-  call->requester = requester;
+
+  call->ids[0] = target;
+  call->n_ids = 1;
+
+  if (requester != 0)
+    {
+      call->ids[1] = requester;
+      call->n_ids += 1;
+    }
 
   task = g_task_new (object, NULL, NULL, NULL);
 
