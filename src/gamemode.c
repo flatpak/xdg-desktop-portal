@@ -78,6 +78,26 @@ static gboolean handle_unregister_game_by_pid (XdpGameMode *object,
                                                gint target,
                                                gint requester);
 
+static gboolean handle_query_status_by_pidfd (XdpGameMode *object,
+                                              GDBusMethodInvocation *invocation,
+                                              GUnixFDList *fd_list,
+                                              GVariant *arg_target,
+                                              GVariant *arg_requester);
+
+static gboolean handle_register_game_by_pidfd (XdpGameMode *object,
+                                               GDBusMethodInvocation *invocation,
+                                               GUnixFDList *fd_list,
+                                               GVariant *arg_target,
+                                               GVariant *arg_requester);
+
+static gboolean handle_unregister_game_by_pidfd (XdpGameMode *object,
+                                                 GDBusMethodInvocation *invocation,
+                                                 GUnixFDList *fd_list,
+                                                 GVariant *arg_target,
+                                                 GVariant *arg_requester);
+
+
+
 /* globals  */
 static GameMode *gamemode;
 
@@ -112,12 +132,18 @@ game_mode_iface_init (XdpGameModeIface *iface)
   iface->handle_query_status_by_pid = handle_query_status_by_pid;
   iface->handle_register_game_by_pid = handle_register_game_by_pid;
   iface->handle_unregister_game_by_pid = handle_unregister_game_by_pid;
+
+  iface->handle_query_status_by_pidfd = handle_query_status_by_pidfd;
+  iface->handle_register_game_by_pidfd = handle_register_game_by_pidfd;
+  iface->handle_unregister_game_by_pidfd = handle_unregister_game_by_pidfd;
+
+
 }
 
 static void
 game_mode_init (GameMode *gamemode)
 {
-  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 2);
+  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 3);
 }
 
 static void
@@ -172,6 +198,21 @@ game_mode_is_allowed_for_app (const char *app_id, GError **error)
   return TRUE;
 }
 
+static gboolean
+check_pids(const pid_t *pids, gint count, GError **error)
+{
+
+  for (gint i = 0; i < count; i++) {
+    if (pids[i] == 0) {
+      g_set_error (error, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
+                   "pid %d is invalid (0)", i);
+      return FALSE;
+    }
+  }
+
+  return TRUE;
+}
+
 /* generic dbus call handling */
 
 typedef struct CallData_ {
@@ -182,6 +223,8 @@ typedef struct CallData_ {
 
   int      ids[2];
   guint    n_ids;
+
+  GUnixFDList *fdlist;
 
 } CallData;
 
@@ -211,6 +254,7 @@ call_data_free (gpointer data)
   g_object_unref (call->inv);
   xdp_app_info_unref (call->app_info);
   g_free (call->method);
+  g_clear_object(&call->fdlist);
 
   g_slice_free (CallData, call);
 }
@@ -223,11 +267,10 @@ handle_call_thread (GTask        *task,
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) res = NULL;
+  GUnixFDList *fdlist = NULL;
   GVariant *params;
   const char *app_id;
   CallData *call;
-  pid_t pids[2] = {0, };
-  guint n_pids;
   gboolean ok;
   gint r;
 
@@ -240,32 +283,69 @@ handle_call_thread (GTask        *task,
       return;
     }
 
-  n_pids = call->n_ids;
-  for (guint i = 0; i < n_pids; i++)
-    pids[0] = (pid_t) call->ids[i];
-
-  ok = xdg_app_info_map_pids (call->app_info, pids, n_pids, &error);
-
-  if (!ok)
+  /* if we don't have a list of fds, we got pids and need to map them */
+  if (call->fdlist == NULL)
     {
-      g_prefix_error (&error, "Could not map pids: ");
-      g_warning ("GameMode error: %s", error->message);
-      g_dbus_method_invocation_return_gerror (call->inv, error);
-      return;
+      pid_t pids[2] = {0, };
+      guint n_pids;
+
+      n_pids = call->n_ids;
+
+      for (guint i = 0; i < n_pids; i++)
+        pids[0] = (pid_t) call->ids[i];
+
+      ok = xdg_app_info_map_pids (call->app_info, pids, n_pids, &error);
+
+      if (!ok)
+        {
+          g_prefix_error (&error, "Could not map pids: ");
+          g_warning ("GameMode error: %s", error->message);
+          g_dbus_method_invocation_return_gerror (call->inv, error);
+          return;
+        }
+
+      if (n_pids == 1)
+        params = g_variant_new ("(i)", (gint32) pids[0]);
+      else
+        params = g_variant_new ("(ii)", (gint32) pids[0], (gint32) pids[1]);
+
+    }
+  else
+    {
+      pid_t pids[2] = {0, };
+      const int *fds;
+      gint n_pids;
+
+      fdlist = call->fdlist;
+
+      /* verify fds are actually pidfds */
+      fds = g_unix_fd_list_peek_fds (fdlist, &n_pids);
+
+      ok = xdg_app_info_pidfds_to_pids (call->app_info, fds, pids, n_pids, &error);
+
+      if (!ok || !check_pids (pids, n_pids, &error))
+        {
+          g_warning ("Pidfd verification error: %s", error->message);
+          g_dbus_method_invocation_return_error (call->inv,
+                                                 G_DBUS_ERROR,
+                                                 G_DBUS_ERROR_INVALID_ARGS,
+                                                 "failed to verify fds as pidfds: %s",
+                                                 error->message);
+          return;
+        }
+
+      params = g_variant_new ("(hh)", 0, 1);
     }
 
-  if (n_pids == 1)
-    params = g_variant_new ("(i)", (gint32) pids[0]);
-  else
-    params = g_variant_new ("(ii)", (gint32) pids[0], (gint32) pids[1]);
-
-  res = g_dbus_proxy_call_sync (G_DBUS_PROXY (gamemode->client),
-                                call->method,
-                                params,
-                                G_DBUS_CALL_FLAGS_NONE,
-                                -1,
-                                NULL, /* cancel */
-                                &error);
+  res = g_dbus_proxy_call_with_unix_fd_list_sync (G_DBUS_PROXY (gamemode->client),
+                                                  call->method,
+                                                  params,
+                                                  G_DBUS_CALL_FLAGS_NONE,
+                                                  -1,
+                                                  fdlist,
+                                                  NULL,
+                                                  NULL, /* cancel */
+                                                  &error);
 
   r = -2; /* default to "call got rejected" */
   if (res != NULL)
@@ -274,6 +354,36 @@ handle_call_thread (GTask        *task,
     g_debug ("Call to GameMode failed: %s", error->message);
 
   g_dbus_method_invocation_return_value (call->inv, g_variant_new ("(i)", r));
+}
+
+static void
+handle_call_in_thread_fds (XdpGameMode           *object,
+                           const char            *method,
+                           GDBusMethodInvocation *invocation,
+                           GUnixFDList           *fdlist)
+{
+  g_autoptr(GTask) task = NULL;
+  XdpAppInfo *app_info;
+  Request  *request;
+  CallData *call;
+
+  if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
+    {
+      g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
+                                             "File descriptor number is incorrect");
+      return;
+    }
+
+  request = request_from_invocation (invocation);
+  app_info = request->app_info;
+
+  call = call_data_new (invocation, app_info, method);
+  call->fdlist = g_object_ref (fdlist);
+
+  task = g_task_new (object, NULL, NULL, NULL);
+
+  g_task_set_task_data (task, call, call_data_free);
+  g_task_run_in_thread (task, handle_call_thread);
 }
 
 static void
@@ -379,6 +489,51 @@ handle_unregister_game_by_pid (XdpGameMode *object,
   return TRUE;
 }
 
+/* pidfd based APIs */
+static gboolean
+handle_query_status_by_pidfd (XdpGameMode *object,
+                              GDBusMethodInvocation *invocation,
+                              GUnixFDList *fd_list,
+                              GVariant *arg_target,
+                              GVariant *arg_requester)
+{
+  handle_call_in_thread_fds (object,
+                             "QueryStatusByPIDFd",
+                             invocation,
+                             fd_list);
+
+  return TRUE;
+}
+
+static gboolean
+handle_register_game_by_pidfd (XdpGameMode *object,
+                               GDBusMethodInvocation *invocation,
+                               GUnixFDList *fd_list,
+                               GVariant *arg_target,
+                               GVariant *arg_requester)
+{
+  handle_call_in_thread_fds (object,
+                             "RegisterGameByPIDFd",
+                             invocation,
+                             fd_list);
+
+  return TRUE;
+}
+
+static gboolean
+handle_unregister_game_by_pidfd (XdpGameMode *object,
+                                 GDBusMethodInvocation *invocation,
+                                 GUnixFDList *fd_list,
+                                 GVariant *arg_target,
+                                 GVariant *arg_requester)
+{
+  handle_call_in_thread_fds (object,
+                             "UnregisterGameByPIDFd",
+                             invocation,
+                             fd_list);
+
+  return TRUE;
+}
 
 /* public API */
 GDBusInterfaceSkeleton *
