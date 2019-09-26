@@ -1442,6 +1442,21 @@ open_pid_fd (int      proc_fd,
   return fd;
 }
 
+static int
+open_fdinfo_dir (GError **error)
+{
+  int fd;
+
+  fd = open ("/proc/self/fdinfo", O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+
+  if (fd < 0)
+    g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                 "Could not to open /proc/self/fdinfo: %s",
+                 g_strerror (errno));
+
+  return fd;
+}
+
 static inline gboolean
 find_pid (pid_t *pids,
           guint  n_pids,
@@ -1549,6 +1564,79 @@ map_pids (DIR     *proc,
   memcpy (pids, res, sizeof (pid_t) * n_pids);
 
   return TRUE;
+}
+
+static gboolean
+pidfd_to_pid (int fdinfo, const int pidfd, pid_t *pid, GError **error)
+{
+  g_autofree char *name = NULL;
+  g_autofree char *key = NULL;
+  g_autofree char *val = NULL;
+  gboolean found = FALSE;
+  FILE *f = NULL;
+  size_t keylen = 0;
+  size_t vallen = 0;
+  ssize_t n;
+  int fd;
+  int r = 0;
+
+  *pid = 0;
+
+  name = g_strdup_printf ("%d", pidfd);
+
+  fd = openat (fdinfo, name, O_RDONLY | O_CLOEXEC | O_NOCTTY);
+
+  if (fd != -1)
+    f = fdopen (fd, "r");
+
+  if (f == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Unable to open /proc/self/fdinfo/%d: %s",
+                   fd, g_strerror (errno));
+      return FALSE;
+    }
+
+  do {
+    n = getdelim (&key, &keylen, ':', f);
+    if (n == -1)
+      {
+        r = errno;
+        break;
+      }
+
+    n = getdelim (&val, &vallen, '\n', f);
+    if (n == -1)
+      {
+        r = errno;
+        break;
+      }
+
+    g_strstrip (key);
+
+    if (!strncmp (key, "Pid", 3))
+      {
+        r = parse_status_field_pid (val, pid);
+        found = r > -1;
+      }
+
+  } while (r == 0 && !found);
+
+  fclose (f);
+
+  if (r < 0)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Could not parse fdinfo::%s: %s",
+                   key, g_strerror (-r));
+    }
+  else if (!found)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "Could not parse fdinfo: Pid field missing");
+    }
+
+  return found;
 }
 
 static JsonNode *
@@ -1700,6 +1788,8 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+
+
 gboolean
 xdg_app_info_map_pids (XdpAppInfo  *app_info,
                        pid_t       *pids,
@@ -1747,5 +1837,31 @@ xdg_app_info_map_pids (XdpAppInfo  *app_info,
 
  out:
   closedir (proc);
+  return ok;
+}
+
+gboolean
+xdg_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
+                             const int   *fds,
+                             pid_t       *pids,
+                             gint         count,
+                             GError     **error)
+{
+  gboolean ok = TRUE;
+  int fdinfo = -1;
+
+  g_return_val_if_fail (app_info != NULL, FALSE);
+  g_return_val_if_fail (fds != NULL, FALSE);
+  g_return_val_if_fail (pids != NULL, FALSE);
+
+  fdinfo = open_fdinfo_dir (error);
+  if (fdinfo == -1)
+    return FALSE;
+
+  for (gint i = 0; i < count && ok; i++)
+    ok = pidfd_to_pid (fdinfo, fds[i], &pids[i], error);
+
+  (void) close (fdinfo);
+
   return ok;
 }
