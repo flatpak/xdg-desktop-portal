@@ -362,7 +362,6 @@ main (int argc, char *argv[])
       g_printerr ("Try \"%s --help\" for more information.",
                   g_get_prgname ());
       g_printerr ("\n");
-      g_option_context_free (context);
       return 1;
     }
 
