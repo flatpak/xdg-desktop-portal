@@ -46,6 +46,7 @@ portal_files = 								\
 
 xml_files = 								\
 	portal-org.freedesktop.portal.Flatpak.xml 			\
+	portal-org.freedesktop.portal.Flatpak.UpdateMonitor.xml 			\
 	portal-org.freedesktop.portal.Request.xml 			\
 	portal-org.freedesktop.portal.Session.xml 			\
 	portal-org.freedesktop.portal.FileChooser.xml 			\
@@ -66,6 +67,8 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Settings.xml			\
 	portal-org.freedesktop.portal.Background.xml			\
 	portal-org.freedesktop.portal.GameMode.xml			\
+	portal-org.freedesktop.portal.Camera.xml			\
+	portal-org.freedesktop.impl.portal.Background.xml 			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
 	portal-org.freedesktop.impl.portal.Session.xml 			\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\
