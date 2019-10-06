@@ -288,7 +288,8 @@ initable_init (GInitable    *initable,
   if (self->gvdb_contents == NULL)
     {
       if (!self->fail_if_not_found &&
-          g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
+          (g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT) ||
+           g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)))
         {
           g_error_free (my_error);
         }
