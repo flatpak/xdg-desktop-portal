@@ -225,7 +225,8 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, game_mode_create (connection));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Settings");
-  export_portal_implementation (connection, settings_create (connection, implementation ? implementation->dbus_name : NULL));
+  if (implementation != NULL)
+    export_portal_implementation (connection, settings_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
