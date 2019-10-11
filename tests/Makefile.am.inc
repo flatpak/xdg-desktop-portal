@@ -24,6 +24,23 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
+test_account_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS)
+test_account_portal_LDADD = \
+	$(AM_LDADD) \
+	$(BASE_LIBS) \
+	$(LIBPORTAL_LIBS) \
+	$(NULL)
+test_account_portal_SOURCES = tests/test-account-portal.c
+nodist_test_account_portal_SOURCES = src/xdp-dbus.c
+
+account_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+account_portal_LDADD = \
+	$(AM_LDADD) \
+	$(BASE_LIBS) \
+	$(NULL)
+account_portal_SOURCES = tests/account-portal.c
+nodist_account_portal_SOURCES = src/xdp-impl-dbus.c
+
 test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
 test_permission_store_LDADD = \
 	$(AM_LDADD) \
@@ -58,9 +75,14 @@ endif
 dist_test_scripts = \
 	$(NULL)
 
+noinst_PROGRAMS = \
+	account-portal \
+	$(NULL)
+
 test_programs = \
 	testdb \
 	test-doc-portal \
+	test-account-portal \
 	test-permission-store \
 	$(NULL)
 
