@@ -137,7 +137,8 @@ get_user_information_done (GObject *source,
     }
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
+  if (results)
+    g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
