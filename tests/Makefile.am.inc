@@ -33,14 +33,6 @@ test_account_portal_LDADD = \
 test_account_portal_SOURCES = tests/test-account-portal.c
 nodist_test_account_portal_SOURCES = src/xdp-dbus.c
 
-account_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
-account_portal_LDADD = \
-	$(AM_LDADD) \
-	$(BASE_LIBS) \
-	$(NULL)
-account_portal_SOURCES = tests/account-portal.c
-nodist_account_portal_SOURCES = src/xdp-impl-dbus.c
-
 test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
 test_permission_store_LDADD = \
 	$(AM_LDADD) \
@@ -73,10 +65,6 @@ dist_installed_test_dbs_DATA = tests/dbs/no_tables
 endif
 
 dist_test_scripts = \
-	$(NULL)
-
-noinst_PROGRAMS = \
-	account-portal \
 	$(NULL)
 
 test_programs = \

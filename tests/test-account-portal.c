@@ -74,7 +74,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
  
-  argv[0] = "./account-portal";
+  argv[0] = "./test-backends";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 

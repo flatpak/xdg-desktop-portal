@@ -36,6 +36,7 @@ lib_LTLIBRARIES =
 include data/Makefile.am.inc
 include document-portal/Makefile.am.inc
 include src/Makefile.am.inc
+include tests/backend/Makefile.am.inc
 include tests/Makefile.am.inc
 
 pkgconfigdir = $(datadir)/pkgconfig
