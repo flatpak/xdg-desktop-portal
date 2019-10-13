@@ -119,5 +119,7 @@ main (int argc, char *argv[])
   g_bus_unown_name (owner_id);
   g_main_loop_unref (loop);
 
+  g_debug ("%s exiting.", g_get_prgname ());
+
   return 0;
 }

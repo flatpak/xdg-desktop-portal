@@ -9,7 +9,6 @@
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/test"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
@@ -25,11 +24,19 @@ name_appeared_cb (GDBusConnection *bus,
 {
   gboolean *b = data;
 
-  g_print ("Name %s now owned by %s\n", name, name_owner);
+  g_debug ("Name %s now owned by %s\n", name, name_owner);
 
   *b = TRUE;
 
   g_main_context_wakeup (NULL);
+}
+
+static void
+name_disappeared_cb (GDBusConnection *bus,
+                     const char *name,
+                     gpointer data)
+{
+  g_debug ("Name %s disappeared\n", name);
 }
 
 static void
@@ -39,7 +46,6 @@ global_setup (void)
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
-  guint name_watch;
   gboolean name_appeared = FALSE;
   const char *argv[3];
 
@@ -61,13 +67,13 @@ global_setup (void)
   g_assert_no_error (error);
 
   /* start portal backends */
-  name_watch = g_bus_watch_name_on_connection (session_bus,
-                                               BACKEND_BUS_NAME,
-                                               0,
-                                               name_appeared_cb,
-                                               NULL,
-                                               &name_appeared,
-                                               NULL);
+  g_bus_watch_name_on_connection (session_bus,
+                                  BACKEND_BUS_NAME,
+                                  0,
+                                  name_appeared_cb,
+                                  name_disappeared_cb,
+                                  &name_appeared,
+                                  NULL);
 
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
@@ -84,17 +90,16 @@ global_setup (void)
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
 
-  g_bus_unwatch_name (name_watch);
   name_appeared = FALSE;
   
   /* start portals */
-  name_watch = g_bus_watch_name_on_connection (session_bus,
-                                               PORTAL_BUS_NAME,
-                                               0,
-                                               name_appeared_cb,
-                                               NULL,
-                                               &name_appeared,
-                                               NULL);
+  g_bus_watch_name_on_connection (session_bus,
+                                  PORTAL_BUS_NAME,
+                                  0,
+                                  name_appeared_cb,
+                                  name_disappeared_cb,
+                                  &name_appeared,
+                                  NULL);
 
   portal_dir = g_test_build_filename (G_TEST_DIST, "portals", NULL);
 
@@ -113,8 +118,6 @@ global_setup (void)
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
-
-  g_bus_unwatch_name (name_watch);
 }
 
 static void
@@ -170,27 +173,36 @@ account_cb (GObject *obj,
   gboolean res;
   const char *s;
   char *t;
+  int response;
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
 
   ret = xdp_portal_get_user_information_finish (portal, result, &error);
-  g_assert_no_error (error);
+  if (response == 0)
+    {
+      g_assert_no_error (error);
   
-  t = g_key_file_get_string (keyfile, "account", "id", NULL);
-  res = g_variant_lookup (ret, "id", "&s", &s); 
-  g_assert (res == (t != NULL));
-  if (t)
-    g_assert_cmpstr (s, ==, t);
+      t = g_key_file_get_string (keyfile, "account", "id", NULL);
+      res = g_variant_lookup (ret, "id", "&s", &s); 
+      g_assert (res == (t != NULL));
+      if (t) g_assert_cmpstr (s, ==, t);
 
-  t = g_key_file_get_string (keyfile, "account", "name", NULL);
-  res = g_variant_lookup (ret, "name", "&s", &s); 
-  g_assert (res == (t != NULL));
-  if (t)
-    g_assert_cmpstr (s, ==, t);
+      t = g_key_file_get_string (keyfile, "account", "name", NULL);
+      res = g_variant_lookup (ret, "name", "&s", &s); 
+      g_assert (res == (t != NULL));
+      if (t) g_assert_cmpstr (s, ==, t);
 
-  t = g_key_file_get_string (keyfile, "account", "image", NULL);
-  res = g_variant_lookup (ret, "image", "&s", &s); 
-  g_assert (res == (t != NULL));
-  if (t)
-    g_assert_cmpstr (s, ==, t);
+      t = g_key_file_get_string (keyfile, "account", "image", NULL);
+      res = g_variant_lookup (ret, "image", "&s", &s); 
+      g_assert (res == (t != NULL));
+      if (t) g_assert_cmpstr (s, ==, t);
+    }
+  else if (response == 1)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  else if (response == 2)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+  else
+    g_assert_not_reached ();
 
   got_info = TRUE;
 
@@ -224,10 +236,14 @@ test_account_libportal (void)
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "account", "reason", "test");
   g_key_file_set_string (keyfile, "account", "id", "test");
   g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
   g_key_file_set_string (keyfile, "account", "image", "");
+
+  g_key_file_set_string (keyfile, "backend", "reason", "test");
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
 
   path = g_build_filename (outdir, "account", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -235,35 +251,65 @@ test_account_libportal (void)
 
   portal = xdp_portal_new ();
 
+  got_info = FALSE;
   xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  got_info = FALSE;
-
   g_key_file_free (keyfile);
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "account", "reason", "xx");
   g_key_file_set_string (keyfile, "account", "id", "test");
   g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
+
+  g_key_file_set_string (keyfile, "backend", "reason", "xx");
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
 
   path = g_build_filename (outdir, "account", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
   g_assert_no_error (error);
 
+  got_info = FALSE;
   xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
   got_info = FALSE;
-
   xdp_portal_get_user_information (portal, NULL, "yy", NULL, account_cb_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+}
+
+static void
+test_account_libportal_delay (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+  g_key_file_set_string (keyfile, "account", "id", "test");
+  g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
+  g_key_file_set_string (keyfile, "backend", "reason", "xx");
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
+  got_info = FALSE;
 }
 
 int
@@ -275,6 +321,7 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
   g_test_add_func ("/portal/account/libportal", test_account_libportal);
+  g_test_add_func ("/portal/account/libportal-delay", test_account_libportal_delay);
 
   global_setup ();
 

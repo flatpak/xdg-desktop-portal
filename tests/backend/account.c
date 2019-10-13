@@ -5,46 +5,57 @@
 
 #include "src/xdp-impl-dbus.h"
 
+#include "request.h"
 #include "account.h"
 
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
-static gboolean
-handle_get_user_information (XdpImplAccount *object,
-                             GDBusMethodInvocation *invocation,
-                             const char *arg_handle,
-                             const char *arg_app_id,
-                             const char *arg_parent_window,
-                             GVariant *arg_options)
+typedef struct {
+  XdpImplAccount *impl;
+  GDBusMethodInvocation *invocation;
+  Request *request;
+  GKeyFile *keyfile;
+  char *app_id;
+  char *reason;
+  guint timeout;
+} AccountDialogHandle;
+
+static void
+account_dialog_handle_free (AccountDialogHandle *handle)
 {
+  g_object_unref (handle->impl);
+  g_object_unref (handle->request);
+  g_key_file_unref (handle->keyfile);
+  g_free (handle->app_id);
+  g_free (handle->reason);
+  if (handle->timeout)
+    g_source_remove (handle->timeout);
+
+  g_free (handle);
+}
+
+static gboolean
+send_response (gpointer data)
+{
+  AccountDialogHandle *handle = data;
   GVariantBuilder opt_builder;
-  const char *dir;
-  g_autofree char *path = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
-  g_autoptr(GError) error = NULL;
   g_autofree char *reason = NULL;
   g_autofree char *id = NULL;
   g_autofree char *name = NULL;
   g_autofree char *image = NULL;
-  const char *r;
+  g_autoptr(GError) error = NULL;
+  int response;
 
-  dir = g_getenv ("XDG_DATA_HOME");
-  path = g_build_filename (dir, "account", NULL);
+  reason = g_key_file_get_string (handle->keyfile, "backend", "reason", &error);
+  id = g_key_file_get_string (handle->keyfile, "account", "id", NULL);
+  name = g_key_file_get_string (handle->keyfile, "account", "name", NULL);
+  image = g_key_file_get_string (handle->keyfile, "account", "image", NULL);
 
-  keyfile = g_key_file_new ();
-  g_key_file_load_from_file (keyfile, path, 0, &error);
-  g_assert_no_error (error);
+  response = g_key_file_get_integer (handle->keyfile, "backend", "response", NULL);
 
-  reason = g_key_file_get_string (keyfile, "account", "reason", &error);
-  id = g_key_file_get_string (keyfile, "account", "id", &error);
-  name = g_key_file_get_string (keyfile, "account", "name", &error);
-  image = g_key_file_get_string (keyfile, "account", "image", &error);
-
-  g_variant_lookup (arg_options, "reason", "&s", &r);
-  if (g_strcmp0 (r, reason) != 0)
+  if (g_strcmp0 (handle->reason, reason) != 0)
     {
-      g_dbus_method_invocation_return_error (invocation, G_IO_ERROR, G_IO_ERROR_FAILED, "Bad reason");
+      g_dbus_method_invocation_return_error (handle->invocation, G_IO_ERROR, G_IO_ERROR_FAILED, "Unexpected reason: '%s' != '%s'", reason, handle->reason);
       return TRUE;
     }
 
@@ -56,10 +67,97 @@ handle_get_user_information (XdpImplAccount *object,
   if (image)
     g_variant_builder_add (&opt_builder, "{sv}", "image", g_variant_new_string (image));
 
-  xdp_impl_account_complete_get_user_information (object,
-                                                  invocation,
-                                                  0,
+  if (handle->request->exported)
+    request_unexport (handle->request);
+
+  g_debug ("send response %d", response);
+
+  xdp_impl_account_complete_get_user_information (handle->impl,
+                                                  handle->invocation,
+                                                  response,
                                                   g_variant_builder_end (&opt_builder));
+
+  handle->timeout = 0;
+
+  account_dialog_handle_free (handle);
+
+  return G_SOURCE_REMOVE;
+}
+
+static gboolean
+handle_close (XdpImplRequest *object,
+              GDBusMethodInvocation *invocation,
+              AccountDialogHandle *handle)
+{
+  GVariantBuilder opt_builder;
+
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  g_debug ("send response 2");
+  xdp_impl_account_complete_get_user_information (handle->impl,
+                                                  handle->invocation,
+                                                  2,
+                                                  g_variant_builder_end (&opt_builder));
+  account_dialog_handle_free (handle);
+
+  return FALSE;
+}
+
+
+static gboolean
+handle_get_user_information (XdpImplAccount *object,
+                             GDBusMethodInvocation *invocation,
+                             const char *arg_handle,
+                             const char *arg_app_id,
+                             const char *arg_parent_window,
+                             GVariant *arg_options)
+{
+  const char *sender;
+  const char *dir;
+  g_autofree char *path = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  int delay;
+  AccountDialogHandle *handle;
+  const char *reason = NULL;
+  g_autoptr(Request) request = NULL;
+
+  g_debug ("Handling GetUserInformation");
+
+  sender = g_dbus_method_invocation_get_sender (invocation);
+
+  dir = g_getenv ("XDG_DATA_HOME");
+  path = g_build_filename (dir, "account", NULL);
+  keyfile = g_key_file_new ();
+  g_key_file_load_from_file (keyfile, path, 0, &error);
+  g_assert_no_error (error);
+
+  request = request_new (sender, arg_app_id, arg_handle);
+
+  g_variant_lookup (arg_options, "reason", "&s", &reason);
+
+  handle = g_new0 (AccountDialogHandle, 1);
+  handle->impl = g_object_ref (object);
+  handle->invocation = invocation;
+  handle->request = g_object_ref (request);
+  handle->keyfile = g_key_file_ref (keyfile);
+  handle->app_id = g_strdup (arg_app_id);
+  handle->reason = g_strdup (reason);
+
+  g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), handle);
+
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  if (g_key_file_has_key (keyfile, "backend", "delay", NULL))
+    delay = g_key_file_get_integer (keyfile, "backend", "delay", NULL);
+  else
+    delay = 200;
+
+  g_debug ("delay %d", delay);
+
+  if (delay == 0)
+    send_response (handle);
+  else
+    handle->timeout = g_timeout_add (delay, send_response, handle);
 
   return TRUE;
 }
@@ -85,5 +183,5 @@ account_init (GDBusConnection *connection)
       exit (1);
     }
 
-  g_debug ("providing %s", g_dbus_interface_skeleton_get_info (helper)->name);
+  g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, BACKEND_OBJECT_PATH);
 }

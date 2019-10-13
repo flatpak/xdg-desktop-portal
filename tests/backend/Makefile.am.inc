@@ -7,6 +7,8 @@ test_backends_SOURCES = \
 	tests/backend/test-backends.c \
 	tests/backend/account.c \
 	tests/backend/account.h \
+	tests/backend/request.h \
+	tests/backend/request.c \
 	$(NULL)
 nodist_test_backends_SOURCES = src/xdp-impl-dbus.c
 

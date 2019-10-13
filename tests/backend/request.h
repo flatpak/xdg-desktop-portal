@@ -21,7 +21,7 @@
 
 #pragma once
 
-#include "xdg-desktop-portal-dbus.h"
+#include "src/xdp-impl-dbus.h"
 
 typedef struct _Request Request;
 typedef struct _RequestClass RequestClass;
