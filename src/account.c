@@ -101,7 +101,7 @@ send_response_in_thread_func (GTask        *task,
         g_warning ("Failed to register %s: %s", image, error->message);
       else
         {
-          g_debug ("convert uri %s -> %s\n", image, ruri);
+          g_debug ("convert uri '%s' -> '%s'\n", image, ruri);
           g_variant_builder_add (&new_results, "{sv}", "image", g_variant_new_string (ruri));
         }
     }
@@ -160,6 +160,8 @@ handle_get_user_information (XdpAccount *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
+
+  g_debug ("handling GetUserInformation");
 
   REQUEST_AUTOLOCK (request);
 
@@ -232,6 +234,7 @@ account_create (GDBusConnection *connection,
       return NULL;
     }
 
+  g_debug ("using %s at %s\n", "org.freedesktop.impl.portal.Account", dbus_name);
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   account = g_object_new (account_get_type (), NULL);
