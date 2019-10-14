@@ -393,6 +393,7 @@ test_account_app_cancel (void)
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
   g_key_file_set_integer (keyfile, "result", "response", 1);
+  g_key_file_set_boolean (keyfile, "result", "expect-close", 1);
 
   path = g_build_filename (outdir, "account", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -409,10 +410,6 @@ test_account_app_cancel (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
-
-  /* FIXME: we should verify that the backend got the Close()
-   * and dismissed the dialog.
-   */
 }
 
 int

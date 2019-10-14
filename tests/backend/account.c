@@ -46,6 +46,9 @@ send_response (gpointer data)
   g_autoptr(GError) error = NULL;
   int response;
 
+  if (g_key_file_get_boolean (handle->keyfile, "result", "expect-close", NULL))
+    g_assert_not_reached ();
+
   reason = g_key_file_get_string (handle->keyfile, "backend", "reason", &error);
   id = g_key_file_get_string (handle->keyfile, "account", "id", NULL);
   name = g_key_file_get_string (handle->keyfile, "account", "name", NULL);
