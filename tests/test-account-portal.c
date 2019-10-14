@@ -331,6 +331,38 @@ test_account_delay (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+static void
+test_account_user_cancel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  /* simulate that the user cancels a hypothetical dialog,
+   * by telling the backend to return 1 as response code.
+   */
+  keyfile = g_key_file_new ();
+  g_key_file_set_string (keyfile, "account", "id", "test");
+  g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
+  g_key_file_set_string (keyfile, "backend", "reason", "xx");
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 1);
+  g_key_file_set_integer (keyfile, "result", "response", 1);
+
+  path = g_build_filename (outdir, "account", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
 static gboolean
 cancel_call (gpointer data)
 {
@@ -343,7 +375,7 @@ cancel_call (gpointer data)
 }
 
 static void
-test_account_cancel (void)
+test_account_app_cancel (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -351,6 +383,9 @@ test_account_cancel (void)
   g_autofree char *path = NULL;
   g_autoptr(GCancellable) cancellable = NULL;
 
+  /* cancel the interaction while the hypothetical dialog
+   * is up.
+   */
   keyfile = g_key_file_new ();
   g_key_file_set_string (keyfile, "account", "id", "test");
   g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
@@ -374,6 +409,10 @@ test_account_cancel (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+
+  /* FIXME: we should verify that the backend got the Close()
+   * and dismissed the dialog.
+   */
 }
 
 int
@@ -387,7 +426,8 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/libportal", test_account_libportal);
   g_test_add_func ("/portal/account/reason", test_account_reason);
   g_test_add_func ("/portal/account/delay", test_account_delay);
-  g_test_add_func ("/portal/account/cancel", test_account_cancel);
+  g_test_add_func ("/portal/account/cancel/user", test_account_user_cancel);
+  g_test_add_func ("/portal/account/cancel/app", test_account_app_cancel);
 
   global_setup ();
 
