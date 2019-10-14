@@ -146,7 +146,7 @@ get_user_information_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
-static XdpOptionKey open_file_options[] = {
+static XdpOptionKey user_information_options[] = {
   { "reason", G_VARIANT_TYPE_STRING, NULL },
 };
 
@@ -182,7 +182,7 @@ handle_get_user_information (XdpAccount *object,
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options,
-                      open_file_options, G_N_ELEMENTS (open_file_options),
+                      user_information_options, G_N_ELEMENTS (user_information_options),
                       NULL);
 
   xdp_impl_account_call_get_user_information (impl,
