@@ -138,8 +138,9 @@ global_teardown (void)
   g_object_unref (dbus);
 }
 
-/* just check that the backend is there, and we have the expected
- * version of the portal
+/* Just check that the portal is there, and has the
+ * expected version. This will fail if the backend
+ * is not found.
  */
 static void
 test_account_exists (void)
@@ -162,6 +163,15 @@ test_account_exists (void)
   g_assert_cmpuint (xdp_account_get_version (XDP_ACCOUNT (account)), ==, 1);
 }
 
+/* Tests below use the libportal async apis.
+ *
+ * We use g_main_context_wakeup() and a boolean variable
+ * to make the test cases wait for async calls to return
+ * without a maze of callbacks.
+ *
+ * The tests communicate with the backend via a keyfile
+ * in a shared location.
+ */
 static gboolean got_info = FALSE;
 
 static void
@@ -302,6 +312,11 @@ test_account_reason (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+/* test that everything works as expected when the
+ * backend takes some time to send its response, as
+ * is to be expected from a real backend that presents
+ * dialogs to the user.
+ */
 static void
 test_account_delay (void)
 {
@@ -331,6 +346,11 @@ test_account_delay (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+/* Test that user cancellation works as expected.
+ * We simulate that the user cancels a hypothetical dialog,
+ * by telling the backend to return 1 as response code.
+ * And we check that we get the expected G_IO_ERROR_CANCELLED.
+ */
 static void
 test_account_user_cancel (void)
 {
@@ -339,9 +359,6 @@ test_account_user_cancel (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
-  /* simulate that the user cancels a hypothetical dialog,
-   * by telling the backend to return 1 as response code.
-   */
   keyfile = g_key_file_new ();
   g_key_file_set_string (keyfile, "account", "id", "test");
   g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
@@ -374,6 +391,12 @@ cancel_call (gpointer data)
   return G_SOURCE_REMOVE;
 }
 
+/* Test that app-side cancellation works as expected.
+ * We cancel the cancellable while while the hypothetical
+ * dialog is up, and tell the backend that it should
+ * expect a Close call. We rely on the backend to
+ * verify that that call actually happened.
+ */
 static void
 test_account_app_cancel (void)
 {
@@ -383,9 +406,6 @@ test_account_app_cancel (void)
   g_autofree char *path = NULL;
   g_autoptr(GCancellable) cancellable = NULL;
 
-  /* cancel the interaction while the hypothetical dialog
-   * is up.
-   */
   keyfile = g_key_file_new ();
   g_key_file_set_string (keyfile, "account", "id", "test");
   g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
