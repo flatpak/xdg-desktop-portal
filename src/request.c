@@ -66,6 +66,7 @@ handle_close (XdpRequest *object,
   Request *request = (Request *)object;
   g_autoptr(GError) error = NULL;
 
+  g_debug ("Handling Close");
   REQUEST_AUTOLOCK (request);
 
   if (request->exported)
