@@ -228,14 +228,6 @@ account_cb_fail (GObject *obj,
   g_main_context_wakeup (NULL);
 }
 
-static void
-account_cb_not_reached (GObject *obj,
-                        GAsyncResult *result,
-                        gpointer data)
-{
-  g_assert_not_reached ();
-}
-
 /* some basic tests using libportal, and test that communication
  * with the backend via keyfile works
  */
@@ -344,18 +336,8 @@ cancel_call (gpointer data)
 {
   GCancellable *cancellable = data;
 
-g_debug ("cancel call");
+  g_debug ("cancel call");
   g_cancellable_cancel (cancellable);
-
-  return G_SOURCE_REMOVE;
-}
-
-static gboolean
-stop_waiting (gpointer data)
-{
-g_debug ("stop waiting");
-  got_info = TRUE;
-  g_main_context_wakeup (NULL);
 
   return G_SOURCE_REMOVE;
 }
@@ -375,7 +357,7 @@ test_account_cancel (void)
   g_key_file_set_string (keyfile, "backend", "reason", "xx");
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
-  g_key_file_set_integer (keyfile, "result", "response", 2);
+  g_key_file_set_integer (keyfile, "result", "response", 1);
 
   path = g_build_filename (outdir, "account", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -386,10 +368,9 @@ test_account_cancel (void)
   cancellable = g_cancellable_new ();
 
   got_info = FALSE;
-  xdp_portal_get_user_information (portal, NULL, "xx", cancellable, account_cb_not_reached, NULL);
+  xdp_portal_get_user_information (portal, NULL, "xx", cancellable, account_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
-  g_timeout_add (300, stop_waiting, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
