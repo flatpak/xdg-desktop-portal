@@ -1,4 +1,5 @@
 [portal]
 DBusName=org.freedesktop.impl.portal.Test
-Interfaces=org.freedesktop.impl.portal.Account;
+Interfaces=org.freedesktop.impl.portal.Account;\
+           org.freedesktop.impl.portal.Email;
 UseIn=test

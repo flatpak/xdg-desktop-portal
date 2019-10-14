@@ -6,6 +6,7 @@
 #include "src/xdp-impl-dbus.h"
 
 #include "account.h"
+#include "email.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
@@ -18,6 +19,7 @@ on_bus_acquired (GDBusConnection *connection,
                  gpointer         user_data)
 {
   account_init (connection);
+  email_init (connection);
 }
 
 static void
