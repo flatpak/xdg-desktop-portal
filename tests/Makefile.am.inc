@@ -1,3 +1,5 @@
+test_programs =
+
 TESTS_ENVIRONMENT = FLATPAK_TESTS_DEBUG=1 \
 	FLATPAK_TRIGGERSDIR=$$(cd $(top_srcdir) && pwd)/triggers \
 	FLATPAK_DBUSPROXY=$$(cd $(top_builddir) && pwd)/flatpak-dbus-proxy \
@@ -24,6 +26,7 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
+if HAVE_LIBPORTAL
 test_account_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS)
 test_account_portal_LDADD = \
 	$(AM_LDADD) \
@@ -32,6 +35,8 @@ test_account_portal_LDADD = \
 	$(NULL)
 test_account_portal_SOURCES = tests/test-account-portal.c
 nodist_test_account_portal_SOURCES = src/xdp-dbus.c
+test_programs += test-account-portal
+endif
 
 test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
 test_permission_store_LDADD = \
@@ -67,10 +72,9 @@ endif
 dist_test_scripts = \
 	$(NULL)
 
-test_programs = \
+test_programs += \
 	testdb \
 	test-doc-portal \
-	test-account-portal \
 	test-permission-store \
 	$(NULL)
 
