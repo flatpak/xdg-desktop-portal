@@ -34,7 +34,10 @@ test_portals_LDADD = \
 	$(LIBPORTAL_LIBS) \
 	$(NULL)
 test_portals_SOURCES = tests/test-portals.c
-nodist_test_portals_SOURCES = src/xdp-dbus.c
+nodist_test_portals_SOURCES = \
+	src/xdp-dbus.c \
+	src/xdp-utils.c \
+	$(NULL)
 test_programs += test-portals
 endif
 

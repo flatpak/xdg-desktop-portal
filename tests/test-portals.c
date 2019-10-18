@@ -5,16 +5,18 @@
 #include <libportal/portal.h>
 
 #include "src/xdp-dbus.h"
+#include "src/xdp-utils.h"
 
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 
-char outdir[] = "/tmp/xdp-test-XXXXXX";
+static char outdir[] = "/tmp/xdp-test-XXXXXX";
 
-GTestDBus *dbus;
-GDBusConnection *session_bus;
-GSubprocess *portals;
+static GTestDBus *dbus;
+static GDBusConnection *session_bus;
+static GSubprocess *portals;
+static GSubprocess *backends;
 
 static void
 name_appeared_cb (GDBusConnection *bus,
@@ -84,7 +86,7 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
   while (!name_appeared)
@@ -130,6 +132,7 @@ global_teardown (void)
   g_assert_no_error (error);
 
   g_subprocess_force_exit (portals);
+  g_subprocess_force_exit (backends);
 
   g_object_unref (session_bus);
 
@@ -432,35 +435,6 @@ test_account_app_cancel (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
-static void
-email_cb (GObject *obj,
-          GAsyncResult *result,
-          gpointer data)
-{
-  XdpPortal *portal = XDP_PORTAL (obj);
-  g_autoptr(GError) error = NULL;
-  gboolean ret;
-  GKeyFile *keyfile = data;
-  int response;
-
-  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
-
-  ret = xdp_portal_compose_email_finish (portal, result, &error);
-  g_assert (ret == (response == 0));
-  if (response == 0)
-    g_assert_no_error (error);
-  else if (response == 1)
-    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
-  else if (response == 2)
-    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
-  else
-    g_assert_not_reached ();
-
-  got_info = TRUE;
-
-  g_main_context_wakeup (NULL);
-}
-
 /* Just check that the portal is there, and has the
  * expected version. This will fail if the backend
  * is not found.
@@ -484,6 +458,39 @@ test_email_exists (void)
   g_assert_nonnull (owner);
 
   g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (email)), ==, 2);
+}
+
+static void
+email_cb (GObject *obj,
+          GAsyncResult *result,
+          gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (obj);
+  g_autoptr(GError) error = NULL;
+  gboolean ret;
+  GKeyFile *keyfile = data;
+  int response;
+  int domain;
+  int code;
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+  domain = g_key_file_get_integer (keyfile, "result", "error_domain", NULL);
+  code = g_key_file_get_integer (keyfile, "result", "error_code", NULL);
+
+  ret = xdp_portal_compose_email_finish (portal, result, &error);
+  g_assert (ret == (response == 0));
+  if (response == 0)
+    g_assert_no_error (error);
+  else if (response == 1)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  else if (response == 2)
+    g_assert_error (error, domain, code);
+  else
+    g_assert_not_reached ();
+
+  got_info = TRUE;
+
+  g_main_context_wakeup (NULL);
 }
 
 /* some basic tests using libportal, and test that communication
@@ -526,6 +533,258 @@ test_email_libportal (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 }
+
+/* test that an invalid address triggers an error
+ */
+static void
+test_email_address (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  const char *address;
+
+  keyfile = g_key_file_new ();
+
+  address = "gibberish! not an email address\n%Q";
+
+  g_key_file_set_string (keyfile, "input", "address", address); 
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 2);
+  g_key_file_set_integer (keyfile, "result", "error_domain", XDG_DESKTOP_PORTAL_ERROR);
+  g_key_file_set_integer (keyfile, "result", "error_code", XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            address,
+                            NULL,
+                            NULL,
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+/* test that an invalid subject triggers an error
+ */
+static void
+test_email_subject (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  const char *subject;
+
+  keyfile = g_key_file_new ();
+
+  subject = "not\na\nvalid\nsubject line";
+
+  g_key_file_set_string (keyfile, "input", "subject", subject); 
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 2);
+  g_key_file_set_integer (keyfile, "result", "error_domain", XDG_DESKTOP_PORTAL_ERROR);
+  g_key_file_set_integer (keyfile, "result", "error_code", XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            NULL,
+                            subject,
+                            NULL,
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
+  subject = "This subject line is too long, much too long. It is more than twohundred characters long, which is much, much too long for a reasonable subject line. Be concise! This is not twitter where you can use hundreds of characters, including Emoji like 😂️ or 😩️";
+  g_assert_cmpint (g_utf8_strlen (subject, -1), >, 200);
+
+  g_key_file_set_string (keyfile, "input", "subject", subject); 
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            NULL,
+                            subject,
+                            NULL,
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+/* test that everything works as expected when the
+ * backend takes some time to send its response, as
+ * is to be expected from a real backend that presents
+ * dialogs to the user.
+ */
+static void
+test_email_delay (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  const char *address;
+  const char *subject;
+
+  address = "mclasen@redhat.com";
+  subject = "delay test";
+
+  keyfile = g_key_file_new ();
+  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string (keyfile, "input", "subject", subject);
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 400);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            address,
+                            subject,
+                            NULL,
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+/* Test that user cancellation works as expected.
+ * We simulate that the user cancels a hypothetical dialog,
+ * by telling the backend to return 1 as response code.
+ * And we check that we get the expected G_IO_ERROR_CANCELLED.
+ */
+static void
+test_email_user_cancel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  const char *address;
+  const char *subject;
+
+  address = "mclasen@redhat.com";
+  subject = "delay test";
+
+  keyfile = g_key_file_new ();
+  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string (keyfile, "input", "subject", subject);
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 1);
+  g_key_file_set_integer (keyfile, "result", "response", 1);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            address,
+                            subject,
+                            NULL,
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+/* Test that app-side cancellation works as expected.
+ * We cancel the cancellable while while the hypothetical
+ * dialog is up, and tell the backend that it should
+ * expect a Close call. We rely on the backend to
+ * verify that that call actually happened.
+ */
+static void
+test_email_app_cancel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GCancellable) cancellable = NULL;
+  const char *address;
+  const char *subject;
+
+  address = "mclasen@redhat.com";
+  subject = "delay test";
+
+  keyfile = g_key_file_new ();
+  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string (keyfile, "input", "subject", subject);
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 400);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 1);
+  g_key_file_set_boolean (keyfile, "result", "expect-close", 1);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  cancellable = g_cancellable_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            address,
+                            subject,
+                            NULL,
+                            NULL,
+                            cancellable,
+                            email_cb,
+                            keyfile);
+
+  g_timeout_add (100, cancel_call, cancellable);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -542,6 +801,11 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/email/libportal", test_email_libportal);
+  g_test_add_func ("/portal/email/options/address", test_email_address);
+  g_test_add_func ("/portal/email/options/subject", test_email_subject);
+  g_test_add_func ("/portal/email/delay", test_email_delay);
+  g_test_add_func ("/portal/email/cancel/user", test_email_user_cancel);
+  g_test_add_func ("/portal/email/cancel/app", test_email_app_cancel);
 
   global_setup ();
 
