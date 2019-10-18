@@ -27,15 +27,15 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
 if HAVE_LIBPORTAL
-test_account_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS)
-test_account_portal_LDADD = \
+test_portals_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS)
+test_portals_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
 	$(LIBPORTAL_LIBS) \
 	$(NULL)
-test_account_portal_SOURCES = tests/test-account-portal.c
-nodist_test_account_portal_SOURCES = src/xdp-dbus.c
-test_programs += test-account-portal
+test_portals_SOURCES = tests/test-portals.c
+nodist_test_portals_SOURCES = src/xdp-dbus.c
+test_programs += test-portals
 endif
 
 test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
