@@ -41,6 +41,16 @@ name_disappeared_cb (GDBusConnection *bus,
   g_debug ("Name %s disappeared\n", name);
 }
 
+static gboolean
+timeout_cb (gpointer data)
+{
+  const char *msg = data;
+
+  g_error ("%s", msg);
+
+  return G_SOURCE_REMOVE;
+}
+
 static void
 global_setup (void)
 {
@@ -49,6 +59,7 @@ global_setup (void)
   g_autofree gchar *portal_dir = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   gboolean name_appeared = FALSE;
+  guint name_timeout;
   const char *argv[3];
 
   g_mkdtemp (outdir);
@@ -89,8 +100,12 @@ global_setup (void)
   backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
+  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch test-backends");
+
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
+
+  g_source_remove (name_timeout);
 
   name_appeared = FALSE;
   
@@ -118,8 +133,12 @@ global_setup (void)
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
+  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-desktop-portal");
+
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
+
+  g_source_remove (name_timeout);
 }
 
 static void
