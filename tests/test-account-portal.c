@@ -432,6 +432,100 @@ test_account_app_cancel (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+static void
+email_cb (GObject *obj,
+          GAsyncResult *result,
+          gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (obj);
+  g_autoptr(GError) error = NULL;
+  gboolean ret;
+  GKeyFile *keyfile = data;
+  int response;
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+
+  ret = xdp_portal_compose_email_finish (portal, result, &error);
+  g_assert (ret == (response == 0));
+  if (response == 0)
+    g_assert_no_error (error);
+  else if (response == 1)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  else if (response == 2)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+  else
+    g_assert_not_reached ();
+
+  got_info = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
+/* Just check that the portal is there, and has the
+ * expected version. This will fail if the backend
+ * is not found.
+ */
+static void
+test_email_exists (void)
+{
+  g_autoptr(XdpEmailProxy) email = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  email = XDP_EMAIL_PROXY (xdp_email_proxy_new_sync (session_bus,
+                                                     0,
+                                                     PORTAL_BUS_NAME,
+                                                     PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (email));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (email)), ==, 2);
+}
+
+/* some basic tests using libportal, and test that communication
+ * with the backend via keyfile works
+ */
+static void
+test_email_libportal (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile, "input", "address", "mclasen@redhat.com");
+  g_key_file_set_string (keyfile, "input", "subject", "Re: portal tests");
+  g_key_file_set_string (keyfile, "input", "body", "You have to see this...");
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_compose_email (portal, NULL,
+                            "mclasen@redhat.com",
+                            "Re: portal tests",
+                            "You have to see this...",
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
 int
 main (int argc, char **argv)
 {
@@ -445,6 +539,9 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/delay", test_account_delay);
   g_test_add_func ("/portal/account/cancel/user", test_account_user_cancel);
   g_test_add_func ("/portal/account/cancel/app", test_account_app_cancel);
+
+  g_test_add_func ("/portal/email/exists", test_email_exists);
+  g_test_add_func ("/portal/email/libportal", test_email_libportal);
 
   global_setup ();
 
