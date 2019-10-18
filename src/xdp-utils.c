@@ -779,7 +779,21 @@ xdp_filter_options (GVariant *options,
                                       supported_options[i].key,
                                       supported_options[i].type);
       if (!value)
-        continue;
+        {
+          value = g_variant_lookup_value (options, supported_options[i].key, NULL);
+          if (value)
+            {
+              if (*error == NULL)
+                g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                             "Expected type '%s' for option '%s', got '%s'",
+                             g_variant_type_peek_string (supported_options[i].type),
+                             supported_options[i].key,
+                             g_variant_type_peek_string (g_variant_get_type (value)));
+              ret = FALSE;
+            }
+
+          continue;
+        }
          
       if (supported_options[i].validate)
         {
@@ -790,7 +804,8 @@ xdp_filter_options (GVariant *options,
               if (ret)
                 {
                   ret = FALSE;
-                  g_propagate_error (error, local_error);
+                  if (*error == NULL)
+                    g_propagate_error (error, local_error);
                   local_error = NULL;
                 }
 
