@@ -43,6 +43,8 @@ test_portals_SOURCES += \
 	tests/email.h \
 	tests/screenshot.c \
 	tests/screenshot.h \
+	tests/trash.c \
+	tests/trash.h \
 	$(NULL)
 endif
 nodist_test_portals_SOURCES = \
