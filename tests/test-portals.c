@@ -171,11 +171,116 @@ global_teardown (void)
 static void
 test_account_exists (void)
 {
-  g_autoptr(XdpAccountProxy) account = NULL;
+  g_autoptr(GDBusProxy) proxy = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *owner = NULL;
 
-  account = XDP_ACCOUNT_PROXY (xdp_account_proxy_new_sync (session_bus,
+  proxy = G_DBUS_PROXY (xdp_account_proxy_new_sync (session_bus,
+                                                    0,
+                                                    PORTAL_BUS_NAME,
+                                                    PORTAL_OBJECT_PATH,
+                                                    NULL,
+                                                    &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_account_get_version (XDP_ACCOUNT (proxy)), ==, 1);
+}
+
+static void
+test_email_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_email_proxy_new_sync (session_bus,
+                                                  0,
+                                                  PORTAL_BUS_NAME,
+                                                  PORTAL_OBJECT_PATH,
+                                                  NULL,
+                                                  &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (proxy)), ==, 2);
+}
+
+static void
+test_screenshot_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_screenshot_proxy_new_sync (session_bus,
+                                                       0,
+                                                       PORTAL_BUS_NAME,
+                                                       PORTAL_OBJECT_PATH,
+                                                       NULL,
+                                                       &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_screenshot_get_version (XDP_SCREENSHOT (proxy)), ==, 2);
+}
+
+static void
+test_trash_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_trash_proxy_new_sync (session_bus,
+                                                  0,
+                                                  PORTAL_BUS_NAME,
+                                                  PORTAL_OBJECT_PATH,
+                                                  NULL,
+                                                  &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_trash_get_version (XDP_TRASH (proxy)), ==, 1);
+}
+
+static void
+test_settings_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_settings_proxy_new_sync (session_bus,
+                                                     0,
+                                                     PORTAL_BUS_NAME,
+                                                     PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_settings_get_version (XDP_SETTINGS (proxy)), ==, 1);
+}
+
+static void
+test_proxy_resolver_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_proxy_resolver_proxy_new_sync (session_bus,
                                                            0,
                                                            PORTAL_BUS_NAME,
                                                            PORTAL_OBJECT_PATH,
@@ -183,136 +288,31 @@ test_account_exists (void)
                                                            &error));
   g_assert_no_error (error);
 
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (account));
+  owner = g_dbus_proxy_get_name_owner (proxy);
   g_assert_nonnull (owner);
 
-  g_assert_cmpuint (xdp_account_get_version (XDP_ACCOUNT (account)), ==, 1);
-}
-
-static void
-test_email_exists (void)
-{
-  g_autoptr(XdpEmailProxy) email = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  email = XDP_EMAIL_PROXY (xdp_email_proxy_new_sync (session_bus,
-                                                     0,
-                                                     PORTAL_BUS_NAME,
-                                                     PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (email));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (email)), ==, 2);
-}
-
-static void
-test_screenshot_exists (void)
-{
-  g_autoptr(XdpScreenshotProxy) screenshot = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  screenshot = XDP_SCREENSHOT_PROXY (xdp_screenshot_proxy_new_sync (session_bus,
-                                                                    0,
-                                                                    PORTAL_BUS_NAME,
-                                                                    PORTAL_OBJECT_PATH,
-                                                                    NULL,
-                                                                    &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (screenshot));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_screenshot_get_version (XDP_SCREENSHOT (screenshot)), ==, 2);
-}
-
-static void
-test_trash_exists (void)
-{
-  g_autoptr(XdpTrashProxy) trash = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  trash = XDP_TRASH_PROXY (xdp_trash_proxy_new_sync (session_bus,
-                                                     0,
-                                                     PORTAL_BUS_NAME,
-                                                     PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (trash));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_trash_get_version (XDP_TRASH (trash)), ==, 1);
-}
-
-static void
-test_settings_exists (void)
-{
-  g_autoptr(XdpSettingsProxy) settings = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  settings = XDP_SETTINGS_PROXY (xdp_settings_proxy_new_sync (session_bus,
-                                                              0,
-                                                              PORTAL_BUS_NAME,
-                                                              PORTAL_OBJECT_PATH,
-                                                              NULL,
-                                                              &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (settings));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_settings_get_version (XDP_SETTINGS (settings)), ==, 1);
-}
-
-static void
-test_proxy_resolver_exists (void)
-{
-  g_autoptr(XdpProxyResolverProxy) resolver = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  resolver = XDP_PROXY_RESOLVER_PROXY (xdp_proxy_resolver_proxy_new_sync (session_bus,
-                                                                          0,
-                                                                          PORTAL_BUS_NAME,
-                                                                          PORTAL_OBJECT_PATH,
-                                                                          NULL,
-                                                                          &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (resolver));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_proxy_resolver_get_version (XDP_PROXY_RESOLVER (resolver)), ==, 1);
+  g_assert_cmpuint (xdp_proxy_resolver_get_version (XDP_PROXY_RESOLVER (proxy)), ==, 1);
 }
 
 static void
 test_network_monitor_exists (void)
 {
-  g_autoptr(XdpNetworkMonitorProxy) monitor = NULL;
+  g_autoptr(GDBusProxy) proxy = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *owner = NULL;
 
-  monitor = XDP_NETWORK_MONITOR_PROXY (xdp_network_monitor_proxy_new_sync (session_bus,
-                                                                           0,
-                                                                           PORTAL_BUS_NAME,
-                                                                           PORTAL_OBJECT_PATH,
-                                                                           NULL,
-                                                                           &error));
+  proxy = G_DBUS_PROXY (xdp_network_monitor_proxy_new_sync (session_bus,
+                                                            0,
+                                                            PORTAL_BUS_NAME,
+                                                            PORTAL_OBJECT_PATH,
+                                                            NULL,
+                                                            &error));
   g_assert_no_error (error);
 
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (monitor));
+  owner = g_dbus_proxy_get_name_owner (proxy);
   g_assert_nonnull (owner);
 
-  g_assert_cmpuint (xdp_network_monitor_get_version (XDP_NETWORK_MONITOR (monitor)), ==, 3);
+  g_assert_cmpuint (xdp_network_monitor_get_version (XDP_NETWORK_MONITOR (proxy)), ==, 3);
 }
 
 int
