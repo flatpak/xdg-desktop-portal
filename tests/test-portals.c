@@ -434,8 +434,8 @@ test_account_app_cancel (void)
   g_key_file_set_string (keyfile, "backend", "reason", "xx");
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_boolean (keyfile, "backend", "expect-close", 1);
   g_key_file_set_integer (keyfile, "result", "response", 1);
-  g_key_file_set_boolean (keyfile, "result", "expect-close", 1);
 
   path = g_build_filename (outdir, "account", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -777,8 +777,8 @@ test_email_app_cancel (void)
 
   g_key_file_set_integer (keyfile, "backend", "delay", 400);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_boolean (keyfile, "backend", "expect-close", 1);
   g_key_file_set_integer (keyfile, "result", "response", 1);
-  g_key_file_set_boolean (keyfile, "result", "expect-close", 1);
 
   path = g_build_filename (outdir, "email", NULL);
   g_key_file_save_to_file (keyfile, path, &error);

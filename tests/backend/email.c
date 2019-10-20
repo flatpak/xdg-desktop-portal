@@ -51,7 +51,7 @@ send_response (gpointer data)
   g_variant_lookup (handle->options, "body", "&s", &body);
   g_variant_lookup (handle->options, "attachments", "^a&s", &attachments);
 
-  if (g_key_file_get_boolean (handle->keyfile, "result", "expect-close", NULL))
+  if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
     g_assert_not_reached ();
 
   s = g_key_file_get_string (handle->keyfile, "input", "address", NULL);
