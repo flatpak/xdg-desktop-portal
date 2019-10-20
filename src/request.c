@@ -295,6 +295,10 @@ get_token (GDBusMethodInvocation *invocation)
     {
       // no request objects
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0)
+    {
+      // no request objects
+    }
   else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
     {
         if (strcmp (method, "RequestBackground") == 0 )
