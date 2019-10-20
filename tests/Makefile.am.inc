@@ -33,7 +33,15 @@ test_portals_LDADD = \
 	$(BASE_LIBS) \
 	$(LIBPORTAL_LIBS) \
 	$(NULL)
-test_portals_SOURCES = tests/test-portals.c
+test_portals_SOURCES = \
+	tests/test-portals.c \
+	tests/account.c \
+	tests/account.h \
+	tests/email.c \
+	tests/email.h \
+	tests/screenshot.c \
+	tests/screenshot.h \
+	$(NULL)
 nodist_test_portals_SOURCES = \
 	src/xdp-dbus.c \
 	src/xdp-utils.c \
