@@ -1,13 +1,14 @@
 #include <config.h>
 
 #include <gio/gio.h>
-#include <glib/gstdio.h>
 
 #include "src/xdp-dbus.h"
 
+#ifdef HAVE_LIBPORTAL
 #include "account.h"
 #include "email.h"
 #include "screenshot.h"
+#endif
 
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
@@ -237,23 +238,26 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
-  g_test_add_func ("/portal/account/libportal", test_account_libportal);
-  g_test_add_func ("/portal/account/reason", test_account_reason);
+  g_test_add_func ("/portal/email/exists", test_email_exists);
+  g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
+
+#ifdef HAVE_LIBPORTAL
+  g_test_add_func ("/portal/account/basic", test_account_libportal);
   g_test_add_func ("/portal/account/delay", test_account_delay);
   g_test_add_func ("/portal/account/cancel", test_account_cancel);
   g_test_add_func ("/portal/account/close", test_account_close);
+  g_test_add_func ("/portal/account/reason", test_account_reason);
 
-  g_test_add_func ("/portal/email/exists", test_email_exists);
-  g_test_add_func ("/portal/email/libportal", test_email_libportal);
-  g_test_add_func ("/portal/email/options/address", test_email_address);
-  g_test_add_func ("/portal/email/options/subject", test_email_subject);
+  g_test_add_func ("/portal/email/basic", test_email_libportal);
   g_test_add_func ("/portal/email/delay", test_email_delay);
   g_test_add_func ("/portal/email/cancel", test_email_cancel);
   g_test_add_func ("/portal/email/close", test_email_close);
+  g_test_add_func ("/portal/email/address", test_email_address);
+  g_test_add_func ("/portal/email/subject", test_email_subject);
 
-  g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
-  g_test_add_func ("/portal/screenshot/libportal", test_screenshot_libportal);
+  g_test_add_func ("/portal/screenshot/basic", test_screenshot_libportal);
   g_test_add_func ("/portal/screenshot/color", test_screenshot_color);
+#endif
 
   global_setup ();
 
