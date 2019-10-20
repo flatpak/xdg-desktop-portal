@@ -7,6 +7,7 @@
 
 #include "account.h"
 #include "email.h"
+#include "screenshot.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
@@ -20,6 +21,7 @@ on_bus_acquired (GDBusConnection *connection,
 {
   account_init (connection);
   email_init (connection);
+  screenshot_init (connection);
 }
 
 static void

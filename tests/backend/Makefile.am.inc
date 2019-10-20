@@ -11,6 +11,8 @@ test_backends_SOURCES = \
 	tests/backend/account.h \
 	tests/backend/email.c \
 	tests/backend/email.h \
+	tests/backend/screenshot.c \
+	tests/backend/screenshot.h \
 	$(NULL)
 nodist_test_backends_SOURCES = src/xdp-impl-dbus.c
 
