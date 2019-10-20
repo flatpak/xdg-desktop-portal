@@ -123,6 +123,7 @@ test_account_reason (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+  const char *long_reason;
 
   keyfile = g_key_file_new ();
 
@@ -151,6 +152,25 @@ test_account_reason (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+
+  g_key_file_remove_key (keyfile, "backend", "reason", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  long_reason = "This reason is unreasonably long, it stretches over "
+      "more than twohundredfiftysix characters, which is really quite "
+      "long. Excessively so. The portal frontend will silently drop "
+      "reasons of this magnitude. If you can't express your reasons "
+      "concisely, you probably have no good reason in the first place "
+      "and are just waffling around.";
+  g_assert (g_utf8_strlen (long_reason, -1) > 256);
+
+  got_info = FALSE;
+  xdp_portal_get_user_information (portal, NULL, long_reason, NULL, account_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
 }
 
 /* test that everything works as expected when the
