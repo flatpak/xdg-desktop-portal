@@ -7,6 +7,7 @@
 
 #include "account.h"
 #include "email.h"
+#include "filechooser.h"
 #include "screenshot.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
@@ -21,6 +22,7 @@ on_bus_acquired (GDBusConnection *connection,
 {
   account_init (connection);
   email_init (connection);
+  file_chooser_init (connection);
   screenshot_init (connection);
 }
 
