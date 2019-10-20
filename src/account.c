@@ -146,8 +146,26 @@ get_user_information_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static gboolean
+validate_reason (const char *key,
+                 GVariant *value,
+                 GVariant *options,
+                 GError **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (g_utf8_strlen (string, -1) > 256)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting overly long reasons");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey user_information_options[] = {
-  { "reason", G_VARIANT_TYPE_STRING, NULL },
+  { "reason", G_VARIANT_TYPE_STRING, validate_reason },
 };
 
 static gboolean
@@ -162,7 +180,7 @@ handle_get_user_information (XdpAccount *object,
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
 
-  g_debug ("handling GetUserInformation");
+  g_debug ("Handling GetUserInformation");
 
   REQUEST_AUTOLOCK (request);
 
@@ -184,6 +202,8 @@ handle_get_user_information (XdpAccount *object,
   xdp_filter_options (arg_options, &options,
                       user_information_options, G_N_ELEMENTS (user_information_options),
                       NULL);
+
+  g_debug ("options filtered");
 
   xdp_impl_account_call_get_user_information (impl,
                                               request->id,
