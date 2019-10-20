@@ -252,6 +252,27 @@ test_trash_exists (void)
   g_assert_cmpuint (xdp_trash_get_version (XDP_TRASH (trash)), ==, 1);
 }
 
+static void
+test_settings_exists (void)
+{
+  g_autoptr(XdpSettingsProxy) settings = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  settings = XDP_SETTINGS_PROXY (xdp_settings_proxy_new_sync (session_bus,
+                                                              0,
+                                                              PORTAL_BUS_NAME,
+                                                              PORTAL_OBJECT_PATH,
+                                                              NULL,
+                                                              &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (settings));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_settings_get_version (XDP_SETTINGS (settings)), ==, 1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -263,6 +284,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
+  g_test_add_func ("/portal/settings/exists", test_settings_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_libportal);
