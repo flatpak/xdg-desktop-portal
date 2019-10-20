@@ -41,6 +41,8 @@ test_portals_SOURCES += \
 	tests/account.h \
 	tests/email.c \
 	tests/email.h \
+	tests/filechooser.c \
+	tests/filechooser.h \
 	tests/screenshot.c \
 	tests/screenshot.h \
 	tests/trash.c \

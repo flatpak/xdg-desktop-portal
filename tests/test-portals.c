@@ -7,6 +7,7 @@
 #ifdef HAVE_LIBPORTAL
 #include "account.h"
 #include "email.h"
+#include "filechooser.h"
 #include "screenshot.h"
 #include "trash.h"
 #endif
@@ -315,6 +316,27 @@ test_network_monitor_exists (void)
   g_assert_cmpuint (xdp_network_monitor_get_version (XDP_NETWORK_MONITOR (proxy)), ==, 3);
 }
 
+static void
+test_file_chooser_exists (void)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  proxy = G_DBUS_PROXY (xdp_file_chooser_proxy_new_sync (session_bus,
+                                                         0,
+                                                         PORTAL_BUS_NAME,
+                                                         PORTAL_OBJECT_PATH,
+                                                         NULL,
+                                                         &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (proxy);
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_file_chooser_get_version (XDP_FILE_CHOOSER (proxy)), ==, 1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -324,11 +346,12 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
-  g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
-  g_test_add_func ("/portal/trash/exists", test_trash_exists);
-  g_test_add_func ("/portal/settings/exists", test_settings_exists);
-  g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
+  g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
+  g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
+  g_test_add_func ("/portal/settings/exists", test_settings_exists);
+  g_test_add_func ("/portal/trash/exists", test_trash_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_libportal);
@@ -355,6 +378,11 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/color/close", test_color_close);
 
   g_test_add_func ("/portal/trash/file", test_trash_file);
+
+  g_test_add_func ("/portal/openfile/basic", test_open_file_libportal);
+  g_test_add_func ("/portal/openfile/delay", test_open_file_delay);
+  g_test_add_func ("/portal/openfile/close", test_open_file_close);
+  g_test_add_func ("/portal/openfile/cancel", test_open_file_cancel);
 #endif
 
   global_setup ();
