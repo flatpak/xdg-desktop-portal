@@ -294,6 +294,27 @@ test_proxy_resolver_exists (void)
   g_assert_cmpuint (xdp_proxy_resolver_get_version (XDP_PROXY_RESOLVER (resolver)), ==, 1);
 }
 
+static void
+test_network_monitor_exists (void)
+{
+  g_autoptr(XdpNetworkMonitorProxy) monitor = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  monitor = XDP_NETWORK_MONITOR_PROXY (xdp_network_monitor_proxy_new_sync (session_bus,
+                                                                           0,
+                                                                           PORTAL_BUS_NAME,
+                                                                           PORTAL_OBJECT_PATH,
+                                                                           NULL,
+                                                                           &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (monitor));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_network_monitor_get_version (XDP_NETWORK_MONITOR (monitor)), ==, 3);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -307,6 +328,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
+  g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_libportal);
