@@ -804,9 +804,11 @@ xdp_filter_options (GVariant *options,
               if (ret)
                 {
                   ret = FALSE;
-                  if (*error == NULL)
-                    g_propagate_error (error, local_error);
-                  local_error = NULL;
+                  if (error && *error == NULL)
+                    {
+                      g_propagate_error (error, local_error);
+                      local_error = NULL;
+                    }
                 }
 
               continue;
