@@ -185,6 +185,48 @@ test_account_exists (void)
   g_assert_cmpuint (xdp_account_get_version (XDP_ACCOUNT (account)), ==, 1);
 }
 
+static void
+test_email_exists (void)
+{
+  g_autoptr(XdpEmailProxy) email = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  email = XDP_EMAIL_PROXY (xdp_email_proxy_new_sync (session_bus,
+                                                     0,
+                                                     PORTAL_BUS_NAME,
+                                                     PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (email));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (email)), ==, 2);
+}
+
+static void
+test_screenshot_exists (void)
+{
+  g_autoptr(XdpScreenshotProxy) screenshot = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  screenshot = XDP_SCREENSHOT_PROXY (xdp_screenshot_proxy_new_sync (session_bus,
+                                                                    0,
+                                                                    PORTAL_BUS_NAME,
+                                                                    PORTAL_OBJECT_PATH,
+                                                                    NULL,
+                                                                    &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (screenshot));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_screenshot_get_version (XDP_SCREENSHOT (screenshot)), ==, 2);
+}
+
 /* Tests below use the libportal async apis.
  *
  * We use g_main_context_wakeup() and a boolean variable
@@ -452,31 +494,6 @@ test_account_app_cancel (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
-}
-
-/* Just check that the portal is there, and has the
- * expected version. This will fail if the backend
- * is not found.
- */
-static void
-test_email_exists (void)
-{
-  g_autoptr(XdpEmailProxy) email = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  email = XDP_EMAIL_PROXY (xdp_email_proxy_new_sync (session_bus,
-                                                     0,
-                                                     PORTAL_BUS_NAME,
-                                                     PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (email));
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (email)), ==, 2);
 }
 
 static void
@@ -804,6 +821,137 @@ test_email_app_cancel (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+static void
+screenshot_cb (GObject *obj,
+               GAsyncResult *result,
+               gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (obj);
+  g_autoptr(GError) error = NULL;
+  GKeyFile *keyfile = data;
+  int response;
+  g_autofree char *ret = NULL;
+  g_autoptr(GVariant) retv = NULL;
+  g_autofree char *uri = NULL;
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+  uri = g_key_file_get_string (keyfile, "result", "uri", NULL);
+
+  ret = xdp_portal_take_screenshot_finish (portal, result, &error);
+
+  if (response == 0)
+    {
+      g_assert_no_error (error);
+      g_assert_cmpstr (ret, ==, uri);
+    }
+  else if (response == 1)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  else if (response == 2)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+  else
+    g_assert_not_reached ();
+
+  got_info = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
+static void
+pick_color_cb (GObject *obj,
+               GAsyncResult *result,
+               gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (obj);
+  g_autoptr(GError) error = NULL;
+  GKeyFile *keyfile = data;
+  int response;
+  g_autoptr(GVariant) ret = NULL;
+  double red, green, blue;
+  g_autoptr(GVariant) expected = NULL;
+
+  red = g_key_file_get_double (keyfile, "result", "red", NULL);
+  green = g_key_file_get_double (keyfile, "result", "green", NULL);
+  blue = g_key_file_get_double (keyfile, "result", "blue", NULL);
+  expected = g_variant_new ("(ddd)", red, green, blue);
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+  ret = xdp_portal_pick_color_finish (portal, result, &error);
+
+  if (response == 0)
+    {
+      g_assert_no_error (error);
+      g_assert_true (g_variant_equal (ret, expected));
+    }
+  else if (response == 1)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+  else if (response == 2)
+    g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+  else
+    g_assert_not_reached ();
+
+  got_info = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
+static void
+test_screenshot_libportal (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_string (keyfile, "result", "uri", "file://test/image");
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "screenshot", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+static void
+test_screenshot_color (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+  g_key_file_set_double (keyfile, "result", "red", 0.3);
+  g_key_file_set_double (keyfile, "result", "green", 0.5);
+  g_key_file_set_double (keyfile, "result", "blue", 0.7);
+
+  path = g_build_filename (outdir, "screenshot", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -825,6 +973,10 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/delay", test_email_delay);
   g_test_add_func ("/portal/email/cancel/user", test_email_user_cancel);
   g_test_add_func ("/portal/email/cancel/app", test_email_app_cancel);
+
+  g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
+  g_test_add_func ("/portal/screenshot/libportal", test_screenshot_libportal);
+  g_test_add_func ("/portal/screenshot/color", test_screenshot_color);
 
   global_setup ();
 
