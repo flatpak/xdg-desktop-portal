@@ -256,7 +256,14 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/subject", test_email_subject);
 
   g_test_add_func ("/portal/screenshot/basic", test_screenshot_libportal);
-  g_test_add_func ("/portal/screenshot/color", test_screenshot_color);
+  g_test_add_func ("/portal/screenshot/delay", test_screenshot_delay);
+  g_test_add_func ("/portal/screenshot/cancel", test_screenshot_cancel);
+  g_test_add_func ("/portal/screenshot/close", test_screenshot_close);
+
+  g_test_add_func ("/portal/color/basic", test_color_libportal);
+  g_test_add_func ("/portal/color/delay", test_color_delay);
+  g_test_add_func ("/portal/color/cancel", test_color_cancel);
+  g_test_add_func ("/portal/color/close", test_color_close);
 #endif
 
   global_setup ();
