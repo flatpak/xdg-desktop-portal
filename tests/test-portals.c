@@ -273,6 +273,27 @@ test_settings_exists (void)
   g_assert_cmpuint (xdp_settings_get_version (XDP_SETTINGS (settings)), ==, 1);
 }
 
+static void
+test_proxy_resolver_exists (void)
+{
+  g_autoptr(XdpProxyResolverProxy) resolver = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *owner = NULL;
+
+  resolver = XDP_PROXY_RESOLVER_PROXY (xdp_proxy_resolver_proxy_new_sync (session_bus,
+                                                                          0,
+                                                                          PORTAL_BUS_NAME,
+                                                                          PORTAL_OBJECT_PATH,
+                                                                          NULL,
+                                                                          &error));
+  g_assert_no_error (error);
+
+  owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (resolver));
+  g_assert_nonnull (owner);
+
+  g_assert_cmpuint (xdp_proxy_resolver_get_version (XDP_PROXY_RESOLVER (resolver)), ==, 1);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -285,6 +306,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
+  g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_libportal);
