@@ -60,6 +60,11 @@ gboolean    xdg_app_info_map_pids        (XdpAppInfo  *app_info,
 					  pid_t       *pids,
 					  guint        n_pids,
 					  GError     **error);
+gboolean    xdg_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
+                                         const int   *fds,
+                                         pid_t       *pids,
+                                         gint         count,
+                                         GError     **error);
 char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           int          fd,
                                           int          require_st_mode,
