@@ -101,7 +101,7 @@ send_response_in_thread_func (GTask        *task,
         g_warning ("Failed to register %s: %s", image, error->message);
       else
         {
-          g_debug ("convert uri %s -> %s\n", image, ruri);
+          g_debug ("convert uri '%s' -> '%s'\n", image, ruri);
           g_variant_builder_add (&new_results, "{sv}", "image", g_variant_new_string (ruri));
         }
     }
@@ -133,6 +133,7 @@ get_user_information_done (GObject *source,
                                                           result,
                                                           &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
 
@@ -145,8 +146,26 @@ get_user_information_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
-static XdpOptionKey open_file_options[] = {
-  { "reason", G_VARIANT_TYPE_STRING, NULL },
+static gboolean
+validate_reason (const char *key,
+                 GVariant *value,
+                 GVariant *options,
+                 GError **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (g_utf8_strlen (string, -1) > 256)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Not accepting overly long reasons");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static XdpOptionKey user_information_options[] = {
+  { "reason", G_VARIANT_TYPE_STRING, validate_reason },
 };
 
 static gboolean
@@ -160,6 +179,8 @@ handle_get_user_information (XdpAccount *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
+
+  g_debug ("Handling GetUserInformation");
 
   REQUEST_AUTOLOCK (request);
 
@@ -179,8 +200,10 @@ handle_get_user_information (XdpAccount *object,
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options,
-                      open_file_options, G_N_ELEMENTS (open_file_options),
+                      user_information_options, G_N_ELEMENTS (user_information_options),
                       NULL);
+
+  g_debug ("options filtered");
 
   xdp_impl_account_call_get_user_information (impl,
                                               request->id,
@@ -232,6 +255,7 @@ account_create (GDBusConnection *connection,
       return NULL;
     }
 
+  g_debug ("using %s at %s\n", "org.freedesktop.impl.portal.Account", dbus_name);
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   account = g_object_new (account_get_type (), NULL);

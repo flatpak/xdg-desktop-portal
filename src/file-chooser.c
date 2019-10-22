@@ -458,6 +458,8 @@ handle_open_file (XdpFileChooser *object,
   GVariantBuilder options;
   g_autoptr(GVariant) value = NULL;
 
+  g_debug ("Handling OpenFile");
+
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -550,6 +552,8 @@ handle_save_file (XdpFileChooser *object,
   g_autoptr(GError) error = NULL;
   XdpImplRequest *impl_request;
   GVariantBuilder options;
+
+  g_debug ("Handling SaveFile");
 
   if (xdp_impl_lockdown_get_disable_save_to_disk (lockdown))
     {

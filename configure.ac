@@ -71,6 +71,24 @@ PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0 fontconfig json-glib-1.0]
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 
+AC_ARG_ENABLE(libportal,
+	      [AS_HELP_STRING([--enable-libportal],[Enable libportal support. Needed for tests])],
+	      enable_libportal=$enableval, enable_libportal=yes)
+if test x$enable_libportal = xyes ; then
+	PKG_CHECK_MODULES(LIBPORTAL, [libportal])
+	AC_DEFINE([HAVE_LIBPORTAL],[1], [Define to enable libportal support])
+fi
+AM_CONDITIONAL([HAVE_LIBPORTAL],[test "$enable_libportal" = "yes"])
+
+AC_ARG_ENABLE(geoclue,
+	      [AS_HELP_STRING([--enable-geoclue],[Enable Geoclue support. Needed for location portal])],
+	      enable_geoclue=$enableval, enable_geoclue=yes)
+if test x$enable_geoclue = xyes ; then
+	PKG_CHECK_MODULES(GEOCLUE, [libgeoclue-2.0 >= 2.5.2])
+	AC_DEFINE([HAVE_GEOCLUE],[1], [Define to enable Geoclue support])
+fi
+AM_CONDITIONAL([HAVE_GEOCLUE],[test "$enable_geoclue" = "yes"])
+
 AC_ARG_ENABLE(pipewire,
 	      [AS_HELP_STRING([--enable-pipewire],[Enable PipeWire support. Needed for screen cast portal])],
 	      enable_pipewire=$enableval, enable_pipewire=yes)

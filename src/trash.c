@@ -91,6 +91,8 @@ handle_trash_file (XdpTrash *object,
   int idx, fd;
   guint result;
 
+  g_debug ("Handling TrashFile");
+
   REQUEST_AUTOLOCK (request);
 
   g_variant_get (arg_fd, "h", &idx);

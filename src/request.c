@@ -66,6 +66,7 @@ handle_close (XdpRequest *object,
   Request *request = (Request *)object;
   g_autoptr(GError) error = NULL;
 
+  g_debug ("Handling Close");
   REQUEST_AUTOLOCK (request);
 
   if (request->exported)
@@ -291,6 +292,10 @@ get_token (GDBusMethodInvocation *invocation)
       // no request objects
     }
   else if (strcmp (interface, "org.freedesktop.portal.GameMode") == 0)
+    {
+      // no request objects
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0)
     {
       // no request objects
     }

@@ -176,6 +176,8 @@ handle_compose_email (XdpEmail *object,
   GVariantBuilder options;
   g_autoptr(GVariant) attachment_fds = NULL;
 
+  g_debug ("Handling ComposeEmail");
+
   REQUEST_AUTOLOCK (request);
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -223,6 +225,7 @@ handle_compose_email (XdpEmail *object,
                            compose_email_options, G_N_ELEMENTS (compose_email_options),
                            &error))
     {
+      g_debug ("Returning an error from option filtering");
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }

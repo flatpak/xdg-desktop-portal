@@ -1,0 +1,4 @@
+[portal]
+DBusName=org.freedesktop.impl.portal.Test
+Interfaces=org.freedesktop.impl.portal.Account;org.freedesktop.impl.portal.Email;org.freedesktop.impl.portal.FileChooser;org.freedesktop.impl.portal.Screenshot;
+UseIn=test
