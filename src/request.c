@@ -301,6 +301,10 @@ get_token (GDBusMethodInvocation *invocation)
             options = g_variant_get_child_value (parameters, 1);
           }
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Wallpaper") == 0)
+    {
+      options = g_variant_get_child_value (parameters, 2);
+    }
   else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
     {
       if (strcmp (method, "AccessCamera") == 0 )
