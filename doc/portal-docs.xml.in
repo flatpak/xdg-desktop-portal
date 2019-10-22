@@ -152,5 +152,6 @@
     <xi:include href="portal-org.freedesktop.impl.portal.Lockdown.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Background.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.PermissionStore.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Wallpaper.xml"/>
   </reference>
 </book>
