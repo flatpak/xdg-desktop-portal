@@ -17,6 +17,8 @@ typedef struct {
   GKeyFile *keyfile;
   char *app_id;
   char *title;
+  char *filters;
+  char *current_filter;
   GVariant *options;
   guint timeout;
 } FileChooserHandle;
@@ -31,6 +33,8 @@ file_chooser_handle_free (FileChooserHandle *handle)
   if (handle->timeout)
     g_source_remove (handle->timeout);
   g_free (handle->title);
+  g_free (handle->filters);
+  g_free (handle->current_filter);
   g_variant_unref (handle->options);
   g_free (handle);
 }
@@ -45,6 +49,8 @@ send_response (gpointer data)
   g_autofree char *name = NULL;
   g_autofree char *image = NULL;
   g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) filters = NULL;
+  g_autoptr(GVariant) current_filter = NULL;
   int response;
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
@@ -53,6 +59,33 @@ send_response (gpointer data)
   response = g_key_file_get_integer (handle->keyfile, "backend", "response", NULL);
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+
+  g_variant_lookup (handle->options, "filters", "@a(sa(us))", &filters);
+  g_variant_lookup (handle->options, "current_filter", "@(sa(us))", &current_filter);
+
+  if (handle->filters)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (filters);
+      expected = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), handle->filters, NULL, NULL, NULL);
+      g_assert (g_variant_equal (filters, expected));
+    }
+  else
+    {
+      g_assert_null (filters);
+    }
+
+  if (handle->current_filter)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (current_filter);
+      expected = g_variant_parse (G_VARIANT_TYPE ("(sa(us))"), handle->current_filter, NULL, NULL, NULL);
+      g_assert (g_variant_equal (current_filter, expected));
+    }
+  else
+    {
+      g_assert_null (current_filter);
+    }
 
   if (response == 0)
     {
@@ -126,6 +159,7 @@ handle_open_file (XdpImplFileChooser *object,
   int delay;
   FileChooserHandle *handle;
   g_autoptr(Request) request = NULL;
+  g_autofree char *filters = NULL;
 
   g_debug ("Handling %s", g_dbus_method_invocation_get_method_name (invocation));
 
@@ -146,6 +180,8 @@ handle_open_file (XdpImplFileChooser *object,
   handle->keyfile = g_key_file_ref (keyfile);
   handle->app_id = g_strdup (arg_app_id);
   handle->title = g_strdup (arg_title);
+  handle->filters = g_key_file_get_string (keyfile, "backend", "filters", NULL);
+  handle->current_filter = g_key_file_get_string (keyfile, "backend", "current_filter", NULL);
   handle->options = g_variant_ref (arg_options);
 
   g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), handle);
