@@ -246,6 +246,11 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/delay", test_open_file_delay);
   g_test_add_func ("/portal/openfile/close", test_open_file_close);
   g_test_add_func ("/portal/openfile/cancel", test_open_file_cancel);
+
+  g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
+  g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
+  g_test_add_func ("/portal/savefile/close", test_save_file_close);
+  g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
 #endif
 
   global_setup ();
