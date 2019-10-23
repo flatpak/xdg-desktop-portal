@@ -246,11 +246,19 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/delay", test_open_file_delay);
   g_test_add_func ("/portal/openfile/close", test_open_file_close);
   g_test_add_func ("/portal/openfile/cancel", test_open_file_cancel);
+  g_test_add_func ("/portal/openfile/multiple", test_open_file_multiple);
+  g_test_add_func ("/portal/openfile/filters", test_open_file_filters);
+  g_test_add_func ("/portal/openfile/filters2", test_open_file_filters2);
+  g_test_add_func ("/portal/openfile/current_filter", test_open_file_current_filter);
+  g_test_add_func ("/portal/openfile/current_filter2", test_open_file_current_filter2);
+  g_test_add_func ("/portal/openfile/current_filter3", test_open_file_current_filter3);
+  g_test_add_func ("/portal/openfile/current_filter4", test_open_file_current_filter4);
 
   g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
   g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
   g_test_add_func ("/portal/savefile/close", test_save_file_close);
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
+  g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
 #endif
 
   global_setup ();
