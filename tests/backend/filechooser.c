@@ -17,8 +17,6 @@ typedef struct {
   GKeyFile *keyfile;
   char *app_id;
   char *title;
-  char *filters;
-  char *current_filter;
   GVariant *options;
   guint timeout;
 } FileChooserHandle;
@@ -33,8 +31,6 @@ file_chooser_handle_free (FileChooserHandle *handle)
   if (handle->timeout)
     g_source_remove (handle->timeout);
   g_free (handle->title);
-  g_free (handle->filters);
-  g_free (handle->current_filter);
   g_variant_unref (handle->options);
   g_free (handle);
 }
@@ -51,6 +47,10 @@ send_response (gpointer data)
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) filters = NULL;
   g_autoptr(GVariant) current_filter = NULL;
+  g_autoptr(GVariant) choices = NULL;
+  g_autofree char *filters_string = NULL;
+  g_autofree char *current_filter_string = NULL;
+  g_autofree char *choices_string = NULL;
   int response;
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
@@ -61,13 +61,12 @@ send_response (gpointer data)
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
 
   g_variant_lookup (handle->options, "filters", "@a(sa(us))", &filters);
-  g_variant_lookup (handle->options, "current_filter", "@(sa(us))", &current_filter);
-
-  if (handle->filters)
+  filters_string = g_key_file_get_string (handle->keyfile, "backend", "filters", NULL);
+  if (filters_string)
     {
       g_autoptr(GVariant) expected = NULL;
       g_assert_nonnull (filters);
-      expected = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), handle->filters, NULL, NULL, NULL);
+      expected = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), filters_string, NULL, NULL, NULL);
       g_assert (g_variant_equal (filters, expected));
     }
   else
@@ -75,11 +74,13 @@ send_response (gpointer data)
       g_assert_null (filters);
     }
 
-  if (handle->current_filter)
+  g_variant_lookup (handle->options, "current_filter", "@(sa(us))", &current_filter);
+  current_filter_string = g_key_file_get_string (handle->keyfile, "backend", "current_filter", NULL);
+  if (current_filter_string)
     {
       g_autoptr(GVariant) expected = NULL;
       g_assert_nonnull (current_filter);
-      expected = g_variant_parse (G_VARIANT_TYPE ("(sa(us))"), handle->current_filter, NULL, NULL, NULL);
+      expected = g_variant_parse (G_VARIANT_TYPE ("(sa(us))"), current_filter_string, NULL, NULL, NULL);
       g_assert (g_variant_equal (current_filter, expected));
     }
   else
@@ -87,12 +88,35 @@ send_response (gpointer data)
       g_assert_null (current_filter);
     }
 
+  g_variant_lookup (handle->options, "choices", "@a(ssa(ss)s)", &choices);
+  choices_string = g_key_file_get_string (handle->keyfile, "backend", "choices", NULL);
+  if (choices_string)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (choices);
+      expected = g_variant_parse (G_VARIANT_TYPE ("a(ssa(ss)s)"), choices_string, NULL, NULL, NULL);
+      g_assert (g_variant_equal (choices, expected));
+    }
+  else
+    {
+      g_assert_null (choices);
+    }
+
   if (response == 0)
     {
       g_auto(GStrv) uris = NULL;
+      g_autofree char *chosen_string = NULL;
 
       uris = g_key_file_get_string_list (handle->keyfile, "result", "uris", NULL, NULL);
       g_variant_builder_add (&opt_builder, "{sv}", "uris", g_variant_new_strv ((const char * const *)uris, -1));
+
+      chosen_string = g_key_file_get_string (handle->keyfile, "result", "choices", NULL);
+      if (chosen_string)
+        {
+          g_autoptr(GVariant) chosen = NULL;
+          chosen = g_variant_parse (G_VARIANT_TYPE ("a(ss)"), chosen_string, NULL, NULL, NULL);
+          g_variant_builder_add (&opt_builder, "{sv}", "choices", chosen);
+        }
     }
 
   if (handle->request->exported)
@@ -180,8 +204,6 @@ handle_open_file (XdpImplFileChooser *object,
   handle->keyfile = g_key_file_ref (keyfile);
   handle->app_id = g_strdup (arg_app_id);
   handle->title = g_strdup (arg_title);
-  handle->filters = g_key_file_get_string (keyfile, "backend", "filters", NULL);
-  handle->current_filter = g_key_file_get_string (keyfile, "backend", "current_filter", NULL);
   handle->options = g_variant_ref (arg_options);
 
   g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), handle);
