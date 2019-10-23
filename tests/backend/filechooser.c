@@ -67,10 +67,16 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                            handle->invocation,
-                                            response,
-                                            g_variant_builder_end (&opt_builder));
+  if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
+    xdp_impl_file_chooser_complete_open_file (handle->impl,
+                                              handle->invocation,
+                                              response,
+                                              g_variant_builder_end (&opt_builder));
+  else
+    xdp_impl_file_chooser_complete_save_file (handle->impl,
+                                              handle->invocation,
+                                              response,
+                                              g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -88,15 +94,20 @@ handle_close (XdpImplRequest *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("send response 2");
-  xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                            handle->invocation,
-                                            2,
-                                            g_variant_builder_end (&opt_builder));
+  if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
+    xdp_impl_file_chooser_complete_open_file (handle->impl,
+                                              handle->invocation,
+                                              2,
+                                              g_variant_builder_end (&opt_builder));
+  else
+    xdp_impl_file_chooser_complete_save_file (handle->impl,
+                                              handle->invocation,
+                                              2,
+                                              g_variant_builder_end (&opt_builder));
   file_chooser_handle_free (handle);
 
   return FALSE;
 }
-
 
 static gboolean
 handle_open_file (XdpImplFileChooser *object,
@@ -116,7 +127,7 @@ handle_open_file (XdpImplFileChooser *object,
   FileChooserHandle *handle;
   g_autoptr(Request) request = NULL;
 
-  g_debug ("Handling OpenFile");
+  g_debug ("Handling %s", g_dbus_method_invocation_get_method_name (invocation));
 
   sender = g_dbus_method_invocation_get_sender (invocation);
 
@@ -165,6 +176,7 @@ file_chooser_init (GDBusConnection *connection)
   helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_file_chooser_skeleton_new ());
 
   g_signal_connect (helper, "handle-open-file", G_CALLBACK (handle_open_file), NULL);
+  g_signal_connect (helper, "handle-save-file", G_CALLBACK (handle_open_file), NULL);
 
   if (!g_dbus_interface_skeleton_export (helper,
                                          connection,
