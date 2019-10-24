@@ -29,7 +29,7 @@ jobs:
         submodules: true
     - name: Build libportal dependency
       run: |
-        git clone https://gitlab.freedesktop.org/flatpak/libportal.git ./libportal
+        git clone https://github.com/flatpak/libportal.git ./libportal
         pushd ./libportal
         git checkout master
         meson setup --prefix=/usr _build
@@ -83,7 +83,7 @@ jobs:
         submodules: true
     - name: Configure xdg-desktop-portal
       # We disable introspection because it fails with clang: https://bugzilla.redhat.com/show_bug.cgi?id=1543295
-      run: ./autogen.sh --disable-introspection
+      run: ./autogen.sh --disable-introspection --disable-libportal
       env:
         CC: clang
         CFLAGS: -Werror=unused-variable
