@@ -8,6 +8,7 @@
 #include "account.h"
 #include "email.h"
 #include "filechooser.h"
+#include "print.h"
 #include "screenshot.h"
 #include "trash.h"
 #endif
@@ -196,6 +197,7 @@ DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
+DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
@@ -213,6 +215,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
@@ -265,6 +268,11 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
   g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
   g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
+
+  g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_libportal);
+  g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
+  g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
+  g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
 #endif
 
   global_setup ();
