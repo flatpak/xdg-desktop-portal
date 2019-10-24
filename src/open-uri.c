@@ -504,7 +504,6 @@ handle_open_in_thread_func (GTask *task,
   const char *parent_window;
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autofree char *uri = NULL;
-  g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   g_auto(GStrv) choices = NULL;
   g_autofree char *scheme = NULL;

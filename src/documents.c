@@ -64,7 +64,6 @@ register_document (const char *uri,
   g_autoptr(GFile) file = NULL;
   gboolean ret = FALSE;
   const char *permissions[5];
-  g_autofree char *fuse_path = NULL;
   g_autofree char *doc_path = NULL;
   int i;
   int version;

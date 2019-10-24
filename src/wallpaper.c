@@ -140,9 +140,7 @@ handle_set_wallpaper_uri_done (GObject *source,
                                GAsyncResult *result,
                                gpointer data)
 {
-  g_autoptr(Request) request = data;
   guint response = 2;
-  g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
   if (!xdp_impl_wallpaper_call_set_wallpaper_uri_finish (XDP_IMPL_WALLPAPER (source),

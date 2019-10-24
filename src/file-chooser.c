@@ -456,7 +456,6 @@ handle_open_file (XdpFileChooser *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
-  g_autoptr(GVariant) value = NULL;
 
   g_debug ("Handling OpenFile");
 

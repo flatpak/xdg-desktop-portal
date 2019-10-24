@@ -69,7 +69,6 @@ inhibit_done (GObject *source,
               GAsyncResult *result,
               gpointer data)
 {
-  g_autoptr(Request) request = data;
   g_autoptr(GError) error = NULL;
 
   if (!xdp_impl_inhibit_call_inhibit_finish (impl, result, &error))
@@ -331,7 +330,6 @@ create_monitor_done (GObject *source_object,
   Session *session;
   guint response = 2;
   gboolean should_close_session;
-  g_autofree char *session_id = NULL;
   GVariantBuilder results_builder;
   g_autoptr(GError) error = NULL;
 

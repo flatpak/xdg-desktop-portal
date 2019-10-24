@@ -236,8 +236,6 @@ network_monitor_class_init (NetworkMonitorClass *klass)
 GDBusInterfaceSkeleton *
 network_monitor_create (GDBusConnection *connection)
 {
-  g_autoptr(GError) error = NULL;
-
   network_monitor = g_object_new (network_monitor_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (network_monitor);

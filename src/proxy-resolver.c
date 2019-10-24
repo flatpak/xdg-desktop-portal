@@ -104,8 +104,6 @@ proxy_resolver_class_init (ProxyResolverClass *klass)
 GDBusInterfaceSkeleton *
 proxy_resolver_create (GDBusConnection *connection)
 {
-  g_autoptr(GError) error = NULL;
-
   proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (proxy_resolver);

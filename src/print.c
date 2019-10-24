@@ -178,8 +178,6 @@ prepare_print_done (GObject *source,
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
-  g_autoptr(GUnixFDList) fd_list = NULL;
-  g_autoptr(GVariant) ret = NULL;
 
   REQUEST_AUTOLOCK (request);
 

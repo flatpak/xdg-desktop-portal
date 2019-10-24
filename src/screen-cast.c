@@ -146,7 +146,6 @@ create_session_done (GObject *source_object,
   Session *session;
   guint response = 2;
   gboolean should_close_session;
-  g_autofree char *session_id = NULL;
   GVariantBuilder results_builder;
   g_autoptr(GError) error = NULL;
 
