@@ -72,7 +72,6 @@ handle_access_camera_in_thread_func (GTask *task,
   Request *request = (Request *)task_data;
   const char *app_id;
   gboolean allowed;
-  g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
 

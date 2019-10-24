@@ -38,14 +38,9 @@ send_response (gpointer data)
 {
   FileChooserHandle *handle = data;
   GVariantBuilder opt_builder;
-  g_autofree char *reason = NULL;
-  g_autofree char *id = NULL;
-  g_autofree char *name = NULL;
-  g_autofree char *image = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GVariant) filters = NULL;
   g_autoptr(GVariant) current_filter = NULL;
   g_autoptr(GVariant) choices = NULL;
+  g_autoptr(GVariant) filters = NULL;
   g_autofree char *filters_string = NULL;
   g_autofree char *current_filter_string = NULL;
   g_autofree char *choices_string = NULL;
@@ -181,7 +176,6 @@ handle_open_file (XdpImplFileChooser *object,
   int delay;
   FileChooserHandle *handle;
   g_autoptr(Request) request = NULL;
-  g_autofree char *filters = NULL;
 
   g_debug ("Handling %s", g_dbus_method_invocation_get_method_name (invocation));
 

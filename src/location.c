@@ -193,7 +193,6 @@ location_session_start (LocationSession *loc_session)
 {
   g_autoptr(GDBusConnection) system_bus = NULL;
   g_autoptr(GVariant) ret = NULL;
-  g_autoptr(GVariant) ret2 = NULL;
   g_autoptr(GError) error = NULL;
   char *client_id;
 

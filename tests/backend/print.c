@@ -46,7 +46,6 @@ send_response (gpointer data)
 {
   PrintHandle *handle = data;
   GVariantBuilder opt_builder;
-  g_autoptr(GError) error = NULL;
   int response;
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))

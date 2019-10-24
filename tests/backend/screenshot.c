@@ -36,7 +36,6 @@ send_response (gpointer data)
 {
   ScreenshotHandle *handle = data;
   GVariantBuilder opt_builder;
-  g_autoptr(GError) error = NULL;
   int response;
   g_autofree char *uri = NULL;
   double red, green, blue;
