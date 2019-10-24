@@ -40,6 +40,7 @@ jobs:
       run: mkdir test-logs
     - name: Configure xdg-desktop-portal
       # TODO: Enable gtk-doc builds
+      # Disable geoclue and pipewire (need to figure out dependencies)
       run: ./autogen.sh --disable-geoclue --disable-pipewire
       env:
         CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
@@ -83,7 +84,9 @@ jobs:
         submodules: true
     - name: Configure xdg-desktop-portal
       # We disable introspection because it fails with clang: https://bugzilla.redhat.com/show_bug.cgi?id=1543295
-      run: ./autogen.sh --disable-introspection --disable-libportal
+      # Disable libportal since it is only used for tests
+      # Disable geoclue and pipewire (need to figure out dependencies)
+      run: ./autogen.sh --disable-introspection --disable-libportal --disable-geoclue --disable-pipewire
       env:
         CC: clang
         CFLAGS: -Werror=unused-variable
