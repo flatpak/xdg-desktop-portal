@@ -8,8 +8,6 @@
 #include "request.h"
 #include "screenshot.h"
 
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 typedef struct {
   XdpImplScreenshot *impl;
   GDBusMethodInvocation *invocation;
@@ -175,7 +173,8 @@ handle_screenshot (XdpImplScreenshot *object,
 }
 
 void
-screenshot_init (GDBusConnection *connection)
+screenshot_init (GDBusConnection *connection,
+                 const char *object_path)
 {
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
@@ -185,10 +184,7 @@ screenshot_init (GDBusConnection *connection)
   g_signal_connect (helper, "handle-screenshot", G_CALLBACK (handle_screenshot), NULL);
   g_signal_connect (helper, "handle-pick-color", G_CALLBACK (handle_screenshot), NULL);
 
-  if (!g_dbus_interface_skeleton_export (helper,
-                                         connection,
-                                         BACKEND_OBJECT_PATH,
-                                         &error))
+  if (!g_dbus_interface_skeleton_export (helper, connection, object_path, &error))
     {
       g_error ("Failed to export %s skeleton: %s\n",
                g_dbus_interface_skeleton_get_info (helper)->name,
@@ -196,5 +192,5 @@ screenshot_init (GDBusConnection *connection)
       exit (1);
     }
 
-  g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, BACKEND_OBJECT_PATH);
+  g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, object_path);
 }
