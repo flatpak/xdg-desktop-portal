@@ -194,6 +194,7 @@ test_##pp##_exists (void) \
 DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
+DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
@@ -210,6 +211,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/exists", test_account_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
+  g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
