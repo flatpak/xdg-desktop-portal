@@ -288,6 +288,8 @@ main (int argc, char **argv)
 
   res = g_test_run ();
 
+  sleep (1);
+
   global_teardown ();
 
   return res;
