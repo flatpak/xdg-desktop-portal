@@ -40,7 +40,7 @@ jobs:
       run: mkdir test-logs
     - name: Configure xdg-desktop-portal
       # TODO: Enable gtk-doc builds
-      run: ./autogen.sh
+      run: ./autogen.sh --disable-geoclue --disable-pipewire
       env:
         CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
     - name: Build xdg-desktop-portal
