@@ -262,6 +262,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/savefile/close", test_save_file_close);
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
   g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
+  g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
 #endif
 
   global_setup ();

@@ -20,3 +20,4 @@ void test_save_file_delay (void);
 void test_save_file_cancel (void);
 void test_save_file_close (void);
 void test_save_file_filters (void);
+void test_save_file_lockdown (void);

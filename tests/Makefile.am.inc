@@ -51,6 +51,7 @@ test_portals_SOURCES += \
 endif
 nodist_test_portals_SOURCES = \
 	src/xdp-dbus.c \
+	src/xdp-impl-dbus.c \
 	src/xdp-utils.c \
 	$(NULL)
 test_programs += test-portals
