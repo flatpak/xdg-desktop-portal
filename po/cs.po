@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-05-17 03:29+0000\n"
-"PO-Revision-Date: 2019-06-04 18:24+0200\n"
+"POT-Creation-Date: 2019-10-24 03:50+0000\n"
+"PO-Revision-Date: 2019-10-24 16:06+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,91 +18,91 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 2.2.3\n"
+"X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:261
+#: src/background.c:259
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Povolit aplikaci %s běh na pozadí?"
 
-#: src/background.c:265
+#: src/background.c:263
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Aplikace %s požaduje automatické spouštění a běh na pozadí."
 
-#: src/background.c:267
+#: src/background.c:265
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Aplikace %s požaduje běh na pozadí."
 
-#: src/background.c:268
+#: src/background.c:266
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"Oprávnění pro „běh na pozadí“ lze kdykoliv změnit v nastavení aplikace."
+"Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace."
 
-#: src/background.c:273
+#: src/background.c:271
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:274
+#: src/background.c:272 src/wallpaper.c:217
 msgid "Allow"
 msgstr "Povolit"
 
-#: src/device.c:205
+#: src/device.c:131
 msgid "Turn On Microphone?"
 msgstr "Zapnout mikrofon?"
 
-#: src/device.c:206
+#: src/device.c:132
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
 "Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
 
-#: src/device.c:210
+#: src/device.c:136
 msgid "An application wants to use your microphone."
 msgstr "Nějaká aplikace chce používat váš mikrofon."
 
-#: src/device.c:212
+#: src/device.c:138
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "Aplikace %s chce používat váš mikrofon."
 
-#: src/device.c:218
+#: src/device.c:144
 msgid "Turn On Speakers?"
 msgstr "Zapnout reproduktory?"
 
-#: src/device.c:219
+#: src/device.c:145
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
 
-#: src/device.c:223
+#: src/device.c:149
 msgid "An application wants to play sound."
 msgstr "Nějaká aplikace chce přehrávat zvuk."
 
-#: src/device.c:225
+#: src/device.c:151
 #, c-format
 msgid "%s wants to play sound."
 msgstr "Aplikace %s chce přehrávat zvuk."
 
-#: src/device.c:231
+#: src/device.c:157
 msgid "Turn On Camera?"
 msgstr "Zapnout kameru?"
 
-#: src/device.c:232
+#: src/device.c:158
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr "Přístup ke své kameře můžete kdykoliv změnit v nastavení soukromí."
 
-#: src/device.c:236
+#: src/device.c:162
 msgid "An application wants to use your camera."
 msgstr "Nějaká aplikace chce používat vaši kameru."
 
-#: src/device.c:238
+#: src/device.c:164
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "Aplikace %s chce používat vaši kameru."
@@ -136,9 +136,35 @@ msgstr "Aplikace %s chce přistupovat k vaší poloze."
 #: src/location.c:577
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"Přístup ke službám pro určování polohy lze kdykoliv změnit v nastavení "
+"Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
 "soukromí."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"
+
+#: src/wallpaper.c:215
+msgid "Deny"
+msgstr "Zamítnout"
+
+#: src/wallpaper.c:223
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Povolit aplikacím možnost nastavit pozadí?"
+
+#: src/wallpaper.c:224
+msgid "An application is requesting to be able to change the background image."
+msgstr "Aplikace požaduje mít možnost změnit obrázek na pozadí."
+
+#: src/wallpaper.c:236
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Povolit aplikaci %s možnost nastavit pozadí?"
+
+#: src/wallpaper.c:237
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "Aplikace %s požaduje mít možnost změnit obrázek na pozadí."
+
+#: src/wallpaper.c:240
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
