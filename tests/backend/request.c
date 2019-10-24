@@ -33,7 +33,6 @@ handle_close (XdpImplRequest *object,
               GDBusMethodInvocation *invocation)
 {
   Request *request = (Request *)object;
-  g_autoptr(GError) error = NULL;
 
   if (request->exported)
     request_unexport (request);

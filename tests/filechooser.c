@@ -507,7 +507,6 @@ test_open_file_choices1 (void)
     NULL
   };
   g_autoptr(GVariant) choices = NULL;
-  g_autoptr(GVariant) chosen = NULL;
   const char *choices_string = "[('encoding', 'Encoding', [('utf8', 'Unicode'), ('latin15', 'Western')], 'latin15'), ('reencode', 'Reencode', [], 'false'), ('third', 'Third', [('a', 'A'), ('b', 'B')], '')]";
   const char *chosen_string = "[('encoding', 'utf8'), ('reencode', 'true'), ('third', 'a')]";
 

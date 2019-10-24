@@ -18,7 +18,6 @@ screenshot_cb (GObject *obj,
   GKeyFile *keyfile = data;
   int response;
   g_autofree char *ret = NULL;
-  g_autoptr(GVariant) retv = NULL;
   g_autofree char *uri = NULL;
 
   response = g_key_file_get_integer (keyfile, "result", "response", NULL);

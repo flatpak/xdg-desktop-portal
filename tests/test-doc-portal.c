@@ -581,7 +581,6 @@ static void
 test_add_named (void)
 {
   g_autofree char *id1 = NULL;
-  g_autofree char *doc_path1 = NULL;
   const char *basename1 = "add-named-1";
   GError *error = NULL;
   gboolean res;

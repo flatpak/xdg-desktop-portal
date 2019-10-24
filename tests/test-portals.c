@@ -151,10 +151,10 @@ static void
 global_teardown (void)
 {
   GError *error = NULL;
-  g_autoptr(GFile) outdir_file = g_file_new_for_path (outdir);
 
   g_dbus_connection_flush_sync (session_bus, NULL, &error);
   g_assert_no_error (error);
+
   g_dbus_connection_close_sync (session_bus, NULL, &error);
   g_assert_no_error (error);
 
