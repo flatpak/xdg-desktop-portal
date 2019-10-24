@@ -71,6 +71,10 @@ PKG_CHECK_MODULES(BASE, [glib-2.0 gio-2.0 gio-unix-2.0 fontconfig json-glib-1.0]
 AC_SUBST(BASE_CFLAGS)
 AC_SUBST(BASE_LIBS)
 
+PKG_CHECK_MODULES(GLIB260, glib-2.0 >= 2.60,
+                  [AC_DEFINE(GLIB_VERSION_MIN_REQUIRED, GLIB_VERSION_2_60, [Ignore massive GTimeVal deprecation warnings in 2.62])],
+                  [true])
+
 AC_ARG_ENABLE(libportal,
 	      [AS_HELP_STRING([--enable-libportal],[Enable libportal support. Needed for tests])],
 	      enable_libportal=$enableval, enable_libportal=yes)
