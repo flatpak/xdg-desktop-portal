@@ -236,7 +236,6 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
       if (commandline && commandline[0])
         {
           int i;
-          g_autofree char *cmd = NULL;
 
           g_ptr_array_add (args, g_strdup_printf ("--command=%s", commandline[0]));
           g_ptr_array_add (args, g_strdup (app_info->id));
