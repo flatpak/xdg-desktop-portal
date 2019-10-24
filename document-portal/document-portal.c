@@ -589,7 +589,6 @@ app_has_file_access_fallback (const char *target_app_id,
   g_autofree char *system_override = NULL;
   g_autofree char *user_global_override = NULL;
   g_autofree char *system_global_override = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *homedir = NULL;
   g_autofree char *canonical_path = NULL;
   gboolean is_in_home = FALSE;
@@ -1007,7 +1006,6 @@ portal_add_named (GDBusMethodInvocation *invocation,
   struct stat parent_st_buf;
   const char *filename;
   gboolean reuse_existing, persistent;
-  g_autoptr(GError) error = NULL;
 
   g_autoptr(GVariant) filename_v = NULL;
 
