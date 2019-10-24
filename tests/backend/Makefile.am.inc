@@ -13,6 +13,10 @@ test_backends_SOURCES = \
 	tests/backend/email.h \
 	tests/backend/filechooser.c \
 	tests/backend/filechooser.h \
+	tests/backend/lockdown.c \
+	tests/backend/lockdown.h \
+	tests/backend/print.c \
+	tests/backend/print.h \
 	tests/backend/screenshot.c \
 	tests/backend/screenshot.h \
 	$(NULL)

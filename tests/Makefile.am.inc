@@ -43,6 +43,8 @@ test_portals_SOURCES += \
 	tests/email.h \
 	tests/filechooser.c \
 	tests/filechooser.h \
+	tests/print.c \
+	tests/print.h \
 	tests/screenshot.c \
 	tests/screenshot.h \
 	tests/trash.c \
@@ -51,6 +53,7 @@ test_portals_SOURCES += \
 endif
 nodist_test_portals_SOURCES = \
 	src/xdp-dbus.c \
+	src/xdp-impl-dbus.c \
 	src/xdp-utils.c \
 	$(NULL)
 test_programs += test-portals

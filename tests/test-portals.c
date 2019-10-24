@@ -8,6 +8,7 @@
 #include "account.h"
 #include "email.h"
 #include "filechooser.h"
+#include "print.h"
 #include "screenshot.h"
 #include "trash.h"
 #endif
@@ -169,173 +170,38 @@ global_teardown (void)
  * expected version. This will fail if the backend
  * is not found.
  */
-static void
-test_account_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_account_proxy_new_sync (session_bus,
-                                                    0,
-                                                    PORTAL_BUS_NAME,
-                                                    PORTAL_OBJECT_PATH,
-                                                    NULL,
-                                                    &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_account_get_version (XDP_ACCOUNT (proxy)), ==, 1);
+#define DEFINE_TEST_EXISTS(pp,PP,version) \
+static void \
+test_##pp##_exists (void) \
+{ \
+  g_autoptr(GDBusProxy) proxy = NULL; \
+  g_autoptr(GError) error = NULL; \
+  g_autofree char *owner = NULL; \
+ \
+  proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
+                                                   0, \
+                                                   PORTAL_BUS_NAME, \
+                                                   PORTAL_OBJECT_PATH, \
+                                                   NULL, \
+                                                   &error)); \
+  g_assert_no_error (error); \
+ \
+  owner = g_dbus_proxy_get_name_owner (proxy); \
+  g_assert_nonnull (owner); \
+ \
+  g_assert_cmpuint (xdp_##pp##_get_version (XDP_##PP (proxy)), ==, version); \
 }
 
-static void
-test_email_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_email_proxy_new_sync (session_bus,
-                                                  0,
-                                                  PORTAL_BUS_NAME,
-                                                  PORTAL_OBJECT_PATH,
-                                                  NULL,
-                                                  &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_email_get_version (XDP_EMAIL (proxy)), ==, 2);
-}
-
-static void
-test_screenshot_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_screenshot_proxy_new_sync (session_bus,
-                                                       0,
-                                                       PORTAL_BUS_NAME,
-                                                       PORTAL_OBJECT_PATH,
-                                                       NULL,
-                                                       &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_screenshot_get_version (XDP_SCREENSHOT (proxy)), ==, 2);
-}
-
-static void
-test_trash_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_trash_proxy_new_sync (session_bus,
-                                                  0,
-                                                  PORTAL_BUS_NAME,
-                                                  PORTAL_OBJECT_PATH,
-                                                  NULL,
-                                                  &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_trash_get_version (XDP_TRASH (proxy)), ==, 1);
-}
-
-static void
-test_settings_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_settings_proxy_new_sync (session_bus,
-                                                     0,
-                                                     PORTAL_BUS_NAME,
-                                                     PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_settings_get_version (XDP_SETTINGS (proxy)), ==, 1);
-}
-
-static void
-test_proxy_resolver_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_proxy_resolver_proxy_new_sync (session_bus,
-                                                           0,
-                                                           PORTAL_BUS_NAME,
-                                                           PORTAL_OBJECT_PATH,
-                                                           NULL,
-                                                           &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_proxy_resolver_get_version (XDP_PROXY_RESOLVER (proxy)), ==, 1);
-}
-
-static void
-test_network_monitor_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_network_monitor_proxy_new_sync (session_bus,
-                                                            0,
-                                                            PORTAL_BUS_NAME,
-                                                            PORTAL_OBJECT_PATH,
-                                                            NULL,
-                                                            &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_network_monitor_get_version (XDP_NETWORK_MONITOR (proxy)), ==, 3);
-}
-
-static void
-test_file_chooser_exists (void)
-{
-  g_autoptr(GDBusProxy) proxy = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *owner = NULL;
-
-  proxy = G_DBUS_PROXY (xdp_file_chooser_proxy_new_sync (session_bus,
-                                                         0,
-                                                         PORTAL_BUS_NAME,
-                                                         PORTAL_OBJECT_PATH,
-                                                         NULL,
-                                                         &error));
-  g_assert_no_error (error);
-
-  owner = g_dbus_proxy_get_name_owner (proxy);
-  g_assert_nonnull (owner);
-
-  g_assert_cmpuint (xdp_file_chooser_get_version (XDP_FILE_CHOOSER (proxy)), ==, 1);
-}
+DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
+DEFINE_TEST_EXISTS(email, EMAIL, 2)
+DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
+DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
+DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
+DEFINE_TEST_EXISTS(print, PRINT, 1)
+DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
+DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
+DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
+DEFINE_TEST_EXISTS(trash, TRASH, 1)
 
 int
 main (int argc, char **argv)
@@ -347,7 +213,9 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/exists", test_account_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
+  g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
@@ -383,6 +251,35 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/delay", test_open_file_delay);
   g_test_add_func ("/portal/openfile/close", test_open_file_close);
   g_test_add_func ("/portal/openfile/cancel", test_open_file_cancel);
+  g_test_add_func ("/portal/openfile/multiple", test_open_file_multiple);
+  g_test_add_func ("/portal/openfile/filters1", test_open_file_filters1);
+  g_test_add_func ("/portal/openfile/filters2", test_open_file_filters2);
+  g_test_add_func ("/portal/openfile/current_filter1", test_open_file_current_filter1);
+  g_test_add_func ("/portal/openfile/current_filter2", test_open_file_current_filter2);
+  g_test_add_func ("/portal/openfile/current_filter3", test_open_file_current_filter3);
+  g_test_add_func ("/portal/openfile/current_filter4", test_open_file_current_filter4);
+  g_test_add_func ("/portal/openfile/choices1", test_open_file_choices1);
+  g_test_add_func ("/portal/openfile/choices2", test_open_file_choices2);
+  g_test_add_func ("/portal/openfile/choices3", test_open_file_choices3);
+
+  g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
+  g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
+  g_test_add_func ("/portal/savefile/close", test_save_file_close);
+  g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
+  g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
+  g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
+
+  g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_libportal);
+  g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
+  g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
+  g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
+  g_test_add_func ("/portal/prepareprint/lockdown", test_prepare_print_lockdown);
+
+  g_test_add_func ("/portal/print/basic", test_print_libportal);
+  g_test_add_func ("/portal/print/delay", test_print_delay);
+  g_test_add_func ("/portal/print/close", test_print_close);
+  g_test_add_func ("/portal/print/cancel", test_print_cancel);
+  g_test_add_func ("/portal/print/lockdown", test_print_lockdown);
 #endif
 
   global_setup ();

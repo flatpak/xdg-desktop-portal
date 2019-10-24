@@ -31,12 +31,12 @@
   -->
   <interface name="org.freedesktop.impl.portal.Lockdown">
 
-    <property name="disable-printing" type="b" access="read"/>
-    <property name="disable-save-to-disk" type="b" access="read"/>
-    <property name="disable-application-handlers" type="b" access="read"/>
-    <property name="disable-location" type="b" access="read"/>
-    <property name="disable-camera" type="b" access="read"/>
-    <property name="disable-microphone" type="b" access="read"/>
-    <property name="disable-sound-output" type="b" access="read"/>
+    <property name="disable-printing" type="b" access="readwrite"/>
+    <property name="disable-save-to-disk" type="b" access="readwrite"/>
+    <property name="disable-application-handlers" type="b" access="readwrite"/>
+    <property name="disable-location" type="b" access="readwrite"/>
+    <property name="disable-camera" type="b" access="readwrite"/>
+    <property name="disable-microphone" type="b" access="readwrite"/>
+    <property name="disable-sound-output" type="b" access="readwrite"/>
   </interface>
 </node>

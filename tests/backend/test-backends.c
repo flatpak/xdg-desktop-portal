@@ -8,6 +8,8 @@
 #include "account.h"
 #include "email.h"
 #include "filechooser.h"
+#include "lockdown.h"
+#include "print.h"
 #include "screenshot.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
@@ -20,10 +22,12 @@ on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  account_init (connection);
-  email_init (connection);
-  file_chooser_init (connection);
-  screenshot_init (connection);
+  account_init (connection, BACKEND_OBJECT_PATH);
+  email_init (connection, BACKEND_OBJECT_PATH);
+  lockdown_init (connection, BACKEND_OBJECT_PATH);
+  file_chooser_init (connection, BACKEND_OBJECT_PATH);
+  print_init (connection, BACKEND_OBJECT_PATH);
+  screenshot_init (connection, BACKEND_OBJECT_PATH);
 }
 
 static void

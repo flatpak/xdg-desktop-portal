@@ -8,8 +8,6 @@
 #include "request.h"
 #include "account.h"
 
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 typedef struct {
   XdpImplFileChooser *impl;
   GDBusMethodInvocation *invocation;
@@ -45,6 +43,12 @@ send_response (gpointer data)
   g_autofree char *name = NULL;
   g_autofree char *image = NULL;
   g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) filters = NULL;
+  g_autoptr(GVariant) current_filter = NULL;
+  g_autoptr(GVariant) choices = NULL;
+  g_autofree char *filters_string = NULL;
+  g_autofree char *current_filter_string = NULL;
+  g_autofree char *choices_string = NULL;
   int response;
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
@@ -54,12 +58,63 @@ send_response (gpointer data)
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
 
+  g_variant_lookup (handle->options, "filters", "@a(sa(us))", &filters);
+  filters_string = g_key_file_get_string (handle->keyfile, "backend", "filters", NULL);
+  if (filters_string)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (filters);
+      expected = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), filters_string, NULL, NULL, NULL);
+      g_assert (g_variant_equal (filters, expected));
+    }
+  else
+    {
+      g_assert_null (filters);
+    }
+
+  g_variant_lookup (handle->options, "current_filter", "@(sa(us))", &current_filter);
+  current_filter_string = g_key_file_get_string (handle->keyfile, "backend", "current_filter", NULL);
+  if (current_filter_string)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (current_filter);
+      expected = g_variant_parse (G_VARIANT_TYPE ("(sa(us))"), current_filter_string, NULL, NULL, NULL);
+      g_assert (g_variant_equal (current_filter, expected));
+    }
+  else
+    {
+      g_assert_null (current_filter);
+    }
+
+  g_variant_lookup (handle->options, "choices", "@a(ssa(ss)s)", &choices);
+  choices_string = g_key_file_get_string (handle->keyfile, "backend", "choices", NULL);
+  if (choices_string)
+    {
+      g_autoptr(GVariant) expected = NULL;
+      g_assert_nonnull (choices);
+      expected = g_variant_parse (G_VARIANT_TYPE ("a(ssa(ss)s)"), choices_string, NULL, NULL, NULL);
+      g_assert (g_variant_equal (choices, expected));
+    }
+  else
+    {
+      g_assert_null (choices);
+    }
+
   if (response == 0)
     {
       g_auto(GStrv) uris = NULL;
+      g_autofree char *chosen_string = NULL;
 
       uris = g_key_file_get_string_list (handle->keyfile, "result", "uris", NULL, NULL);
       g_variant_builder_add (&opt_builder, "{sv}", "uris", g_variant_new_strv ((const char * const *)uris, -1));
+
+      chosen_string = g_key_file_get_string (handle->keyfile, "result", "choices", NULL);
+      if (chosen_string)
+        {
+          g_autoptr(GVariant) chosen = NULL;
+          chosen = g_variant_parse (G_VARIANT_TYPE ("a(ss)"), chosen_string, NULL, NULL, NULL);
+          g_variant_builder_add (&opt_builder, "{sv}", "choices", chosen);
+        }
     }
 
   if (handle->request->exported)
@@ -67,10 +122,16 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                            handle->invocation,
-                                            response,
-                                            g_variant_builder_end (&opt_builder));
+  if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
+    xdp_impl_file_chooser_complete_open_file (handle->impl,
+                                              handle->invocation,
+                                              response,
+                                              g_variant_builder_end (&opt_builder));
+  else
+    xdp_impl_file_chooser_complete_save_file (handle->impl,
+                                              handle->invocation,
+                                              response,
+                                              g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -88,15 +149,20 @@ handle_close (XdpImplRequest *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("send response 2");
-  xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                            handle->invocation,
-                                            2,
-                                            g_variant_builder_end (&opt_builder));
+  if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
+    xdp_impl_file_chooser_complete_open_file (handle->impl,
+                                              handle->invocation,
+                                              2,
+                                              g_variant_builder_end (&opt_builder));
+  else
+    xdp_impl_file_chooser_complete_save_file (handle->impl,
+                                              handle->invocation,
+                                              2,
+                                              g_variant_builder_end (&opt_builder));
   file_chooser_handle_free (handle);
 
   return FALSE;
 }
-
 
 static gboolean
 handle_open_file (XdpImplFileChooser *object,
@@ -115,8 +181,9 @@ handle_open_file (XdpImplFileChooser *object,
   int delay;
   FileChooserHandle *handle;
   g_autoptr(Request) request = NULL;
+  g_autofree char *filters = NULL;
 
-  g_debug ("Handling OpenFile");
+  g_debug ("Handling %s", g_dbus_method_invocation_get_method_name (invocation));
 
   sender = g_dbus_method_invocation_get_sender (invocation);
 
@@ -157,7 +224,8 @@ handle_open_file (XdpImplFileChooser *object,
 }
 
 void
-file_chooser_init (GDBusConnection *connection)
+file_chooser_init (GDBusConnection *connection,
+                   const char *object_path)
 {
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
@@ -165,11 +233,9 @@ file_chooser_init (GDBusConnection *connection)
   helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_file_chooser_skeleton_new ());
 
   g_signal_connect (helper, "handle-open-file", G_CALLBACK (handle_open_file), NULL);
+  g_signal_connect (helper, "handle-save-file", G_CALLBACK (handle_open_file), NULL);
 
-  if (!g_dbus_interface_skeleton_export (helper,
-                                         connection,
-                                         BACKEND_OBJECT_PATH,
-                                         &error))
+  if (!g_dbus_interface_skeleton_export (helper, connection, object_path, &error))
     {
       g_error ("Failed to export %s skeleton: %s\n",
                g_dbus_interface_skeleton_get_info (helper)->name,
@@ -177,5 +243,5 @@ file_chooser_init (GDBusConnection *connection)
       exit (1);
     }
 
-  g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, BACKEND_OBJECT_PATH);
+  g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, object_path);
 }
