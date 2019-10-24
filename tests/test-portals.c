@@ -273,6 +273,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
   g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
   g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
+  g_test_add_func ("/portal/prepareprint/lockdown", test_prepare_print_lockdown);
 #endif
 
   global_setup ();
