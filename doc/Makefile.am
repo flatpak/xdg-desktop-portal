@@ -67,11 +67,11 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Device.xml			\
 	portal-org.freedesktop.portal.Location.xml			\
 	portal-org.freedesktop.portal.Settings.xml			\
+	portal-org.freedesktop.portal.Wallpaper.xml			\
 	portal-org.freedesktop.portal.Background.xml			\
 	portal-org.freedesktop.portal.GameMode.xml			\
 	portal-org.freedesktop.portal.Camera.xml			\
 	portal-org.freedesktop.impl.portal.Background.xml 			\
-	portal-org.freedesktop.portal.Wallpaper.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
 	portal-org.freedesktop.impl.portal.Session.xml 			\
 	portal-org.freedesktop.impl.portal.FileChooser.xml		\
@@ -85,6 +85,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
 	portal-org.freedesktop.impl.portal.Access.xml	 		\
 	portal-org.freedesktop.impl.portal.Settings.xml	 		\
+	portal-org.freedesktop.impl.portal.Wallpaper.xml			\
 	portal-org.freedesktop.impl.portal.Lockdown.xml	 		\
 	portal-org.freedesktop.impl.portal.PermissionStore.xml		\
 	$(NULL)
