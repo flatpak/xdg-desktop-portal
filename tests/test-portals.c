@@ -276,6 +276,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
   g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
   g_test_add_func ("/portal/prepareprint/lockdown", test_prepare_print_lockdown);
+  g_test_add_func ("/portal/prepareprint/results", test_prepare_print_results);
 
   g_test_add_func ("/portal/print/basic", test_print_libportal);
   g_test_add_func ("/portal/print/delay", test_print_delay);

@@ -30,7 +30,14 @@ prepare_cb (GObject *obj,
   ret = xdp_portal_prepare_print_finish (portal, result, &error);
   if (response == 0)
     {
+      int expected, token;
+
       g_assert_no_error (error);
+
+      expected = g_key_file_get_integer (keyfile, "result", "token", NULL);
+      g_variant_lookup (ret, "token", "u", &token);
+
+      g_assert_cmpint (expected, ==, token);
     }
   else if (response == 1)
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
@@ -216,6 +223,34 @@ test_prepare_print_lockdown (void)
     g_main_context_iteration (NULL, TRUE);
 
   xdp_impl_lockdown_set_disable_printing (XDP_IMPL_LOCKDOWN (lockdown), FALSE);
+}
+
+void
+test_prepare_print_results (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "token", 123);
+
+  path = g_build_filename (outdir, "print", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = FALSE;
+  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
 }
 
 /* test of Print below */
