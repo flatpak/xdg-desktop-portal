@@ -5,6 +5,7 @@
 
 #include "src/xdp-impl-dbus.h"
 
+#include "access.h"
 #include "account.h"
 #include "email.h"
 #include "filechooser.h"
@@ -22,6 +23,7 @@ on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
+  access_init (connection, BACKEND_OBJECT_PATH);
   account_init (connection, BACKEND_OBJECT_PATH);
   email_init (connection, BACKEND_OBJECT_PATH);
   lockdown_init (connection, BACKEND_OBJECT_PATH);
