@@ -13,7 +13,7 @@ extern char outdir[];
  * The tests communicate with the backend via a keyfile
  * in a shared location.
  */
-static gboolean got_info = FALSE;
+static int got_info = 0;
 
 static void
 account_cb (GObject *obj,
@@ -58,7 +58,7 @@ account_cb (GObject *obj,
   else
     g_assert_not_reached ();
 
-  got_info = TRUE;
+  got_info++;
 
   g_main_context_wakeup (NULL);
 }
@@ -75,7 +75,7 @@ account_cb_fail (GObject *obj,
   ret = xdp_portal_get_user_information_finish (portal, result, &error);
   g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
 
-  got_info = TRUE;
+  got_info++;
   g_main_context_wakeup (NULL);
 }
 
@@ -107,7 +107,7 @@ test_account_libportal (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
 
   while (!got_info)
@@ -141,7 +141,7 @@ test_account_reason (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
 
   while (!got_info)
@@ -165,7 +165,7 @@ test_account_reason (void)
       "and are just waffling around.";
   g_assert (g_utf8_strlen (long_reason, -1) > 256);
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, long_reason, NULL, account_cb, keyfile);
 
   while (!got_info)
@@ -200,7 +200,7 @@ test_account_delay (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
 
   while (!got_info)
@@ -234,7 +234,7 @@ test_account_cancel (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
 
   while (!got_info)
@@ -284,7 +284,7 @@ test_account_close (void)
 
   cancellable = g_cancellable_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "xx", cancellable, account_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
@@ -292,3 +292,39 @@ test_account_close (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 }
+
+/* Test multiple requests in parallel */
+void
+test_account_parallel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile, "account", "id", "test");
+  g_key_file_set_string (keyfile, "account", "name", "Donald Duck");
+  g_key_file_set_string (keyfile, "account", "image", "");
+
+  g_key_file_set_string (keyfile, "backend", "reason", "test");
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "account", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
+
+  while (got_info < 3)
+    g_main_context_iteration (NULL, TRUE);
+}
+

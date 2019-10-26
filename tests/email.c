@@ -7,7 +7,7 @@
 
 extern char outdir[];
 
-static gboolean got_info = FALSE;
+static int got_info;
 
 static void
 email_cb (GObject *obj,
@@ -37,7 +37,7 @@ email_cb (GObject *obj,
   else
     g_assert_not_reached ();
 
-  got_info = TRUE;
+  got_info++;
 
   g_main_context_wakeup (NULL);
 }
@@ -69,7 +69,7 @@ test_email_libportal (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             "mclasen@redhat.com",
                             "Re: portal tests",
@@ -112,7 +112,7 @@ test_email_address (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             address,
                             NULL,
@@ -155,7 +155,7 @@ test_email_subject (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             NULL,
                             subject,
@@ -175,7 +175,7 @@ test_email_subject (void)
   g_key_file_save_to_file (keyfile, path, &error);
   g_assert_no_error (error);
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             NULL,
                             subject,
@@ -221,7 +221,7 @@ test_email_delay (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             address,
                             subject,
@@ -267,7 +267,7 @@ test_email_cancel (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             address,
                             subject,
@@ -329,7 +329,7 @@ test_email_close (void)
 
   cancellable = g_cancellable_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_compose_email (portal, NULL,
                             address,
                             subject,
@@ -344,3 +344,58 @@ test_email_close (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 }
+
+void
+test_email_parallel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile, "input", "address", "mclasen@redhat.com");
+  g_key_file_set_string (keyfile, "input", "subject", "Re: portal tests");
+  g_key_file_set_string (keyfile, "input", "body", "You have to see this...");
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "email", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_compose_email (portal, NULL,
+                            "mclasen@redhat.com",
+                            "Re: portal tests",
+                            "You have to see this...",
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+  xdp_portal_compose_email (portal, NULL,
+                            "mclasen@redhat.com",
+                            "Re: portal tests",
+                            "You have to see this...",
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+  xdp_portal_compose_email (portal, NULL,
+                            "mclasen@redhat.com",
+                            "Re: portal tests",
+                            "You have to see this...",
+                            NULL,
+                            NULL,
+                            email_cb,
+                            keyfile);
+
+  while (got_info < 3)
+    g_main_context_iteration (NULL, TRUE);
+}
+

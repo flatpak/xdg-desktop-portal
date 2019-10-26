@@ -6,7 +6,7 @@
 
 extern char outdir[];
 
-static gboolean got_info;
+static int got_info;
 
 static void
 screenshot_cb (GObject *obj,
@@ -37,7 +37,7 @@ screenshot_cb (GObject *obj,
   else
     g_assert_not_reached ();
 
-  got_info = TRUE;
+  got_info++;
 
   g_main_context_wakeup (NULL);
 }
@@ -63,7 +63,7 @@ test_screenshot_libportal (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
@@ -95,7 +95,7 @@ test_screenshot_delay (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
@@ -126,7 +126,7 @@ test_screenshot_cancel (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
@@ -173,7 +173,7 @@ test_screenshot_close (void)
 
   cancellable = g_cancellable_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, cancellable, screenshot_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
@@ -182,6 +182,35 @@ test_screenshot_close (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
+void
+test_screenshot_parallel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_string (keyfile, "result", "uri", "file://test/image");
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "screenshot", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+
+  while (got_info < 3)
+    g_main_context_iteration (NULL, TRUE);
+}
 
 /* Tests for PickColor below */
 
@@ -218,7 +247,7 @@ pick_color_cb (GObject *obj,
   else
     g_assert_not_reached ();
 
-  got_info = TRUE;
+  got_info++;
 
   g_main_context_wakeup (NULL);
 }
@@ -246,7 +275,7 @@ test_color_libportal (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
 
   while (!got_info)
@@ -280,7 +309,7 @@ test_color_delay (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
 
   while (!got_info)
@@ -311,7 +340,7 @@ test_color_cancel (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
 
   while (!got_info)
@@ -347,11 +376,43 @@ test_color_close (void)
 
   cancellable = g_cancellable_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_pick_color (portal, NULL, cancellable, pick_color_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
   while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+void
+test_color_parallel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+  g_key_file_set_double (keyfile, "result", "red", 0.3);
+  g_key_file_set_double (keyfile, "result", "green", 0.5);
+  g_key_file_set_double (keyfile, "result", "blue", 0.7);
+
+  path = g_build_filename (outdir, "screenshot", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
+  xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
+  xdp_portal_pick_color (portal, NULL, NULL, pick_color_cb, keyfile);
+
+  while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
 }

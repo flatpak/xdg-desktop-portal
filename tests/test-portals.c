@@ -258,6 +258,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/cancel", test_account_cancel);
   g_test_add_func ("/portal/account/close", test_account_close);
   g_test_add_func ("/portal/account/reason", test_account_reason);
+  g_test_add_func ("/portal/account/parallel", test_account_parallel);
 
   g_test_add_func ("/portal/email/basic", test_email_libportal);
   g_test_add_func ("/portal/email/delay", test_email_delay);
@@ -265,16 +266,19 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/close", test_email_close);
   g_test_add_func ("/portal/email/address", test_email_address);
   g_test_add_func ("/portal/email/subject", test_email_subject);
+  g_test_add_func ("/portal/email/parallel", test_email_parallel);
 
   g_test_add_func ("/portal/screenshot/basic", test_screenshot_libportal);
   g_test_add_func ("/portal/screenshot/delay", test_screenshot_delay);
   g_test_add_func ("/portal/screenshot/cancel", test_screenshot_cancel);
   g_test_add_func ("/portal/screenshot/close", test_screenshot_close);
+  g_test_add_func ("/portal/screenshot/parallel", test_screenshot_parallel);
 
   g_test_add_func ("/portal/color/basic", test_color_libportal);
   g_test_add_func ("/portal/color/delay", test_color_delay);
   g_test_add_func ("/portal/color/cancel", test_color_cancel);
   g_test_add_func ("/portal/color/close", test_color_close);
+  g_test_add_func ("/portal/color/parallel", test_color_parallel);
 
   g_test_add_func ("/portal/trash/file", test_trash_file);
 
@@ -292,6 +296,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/choices1", test_open_file_choices1);
   g_test_add_func ("/portal/openfile/choices2", test_open_file_choices2);
   g_test_add_func ("/portal/openfile/choices3", test_open_file_choices3);
+  g_test_add_func ("/portal/openfile/parallel", test_open_file_parallel);
 
   g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
   g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
@@ -299,6 +304,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
   g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
   g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
+  g_test_add_func ("/portal/savefile/parallel", test_save_file_parallel);
 
   g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_libportal);
   g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
@@ -306,12 +312,14 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
   g_test_add_func ("/portal/prepareprint/lockdown", test_prepare_print_lockdown);
   g_test_add_func ("/portal/prepareprint/results", test_prepare_print_results);
+  g_test_add_func ("/portal/prepareprint/parallel", test_prepare_print_parallel);
 
   g_test_add_func ("/portal/print/basic", test_print_libportal);
   g_test_add_func ("/portal/print/delay", test_print_delay);
   g_test_add_func ("/portal/print/close", test_print_close);
   g_test_add_func ("/portal/print/cancel", test_print_cancel);
   g_test_add_func ("/portal/print/lockdown", test_print_lockdown);
+  g_test_add_func ("/portal/print/parallel", test_print_parallel);
 
   g_test_add_func ("/portal/camera/basic", test_camera_libportal);
   g_test_add_func ("/portal/camera/delay", test_camera_delay);
@@ -320,6 +328,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/camera/lockdown", test_camera_lockdown);
   g_test_add_func ("/portal/camera/noaccess1", test_camera_no_access1);
   g_test_add_func ("/portal/camera/noaccess2", test_camera_no_access2);
+  g_test_add_func ("/portal/camera/parallel", test_camera_parallel);
 #endif
 
   global_setup ();

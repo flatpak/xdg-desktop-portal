@@ -11,7 +11,7 @@
 
 extern char outdir[];
 
-static gboolean got_info;
+static int got_info;
 
 extern XdpImplPermissionStore *permission_store;
 
@@ -77,7 +77,7 @@ camera_cb (GObject *obj,
   else
     g_assert_not_reached ();
 
-  got_info = TRUE;
+  got_info++;
 
   g_main_context_wakeup (NULL);
 }
@@ -113,7 +113,7 @@ test_camera_libportal (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
@@ -144,7 +144,7 @@ test_camera_delay (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
@@ -175,7 +175,7 @@ test_camera_cancel (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
@@ -221,7 +221,7 @@ test_camera_close (void)
 
   cancellable = g_cancellable_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, cancellable, camera_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
@@ -272,7 +272,7 @@ test_camera_lockdown (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
@@ -305,7 +305,7 @@ test_camera_no_access1 (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
@@ -336,9 +336,42 @@ test_camera_no_access2 (void)
 
   portal = xdp_portal_new ();
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 }
+
+void
+test_camera_parallel (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  require_pipewire ();
+
+  reset_camera_permissions ();
+
+  keyfile = g_key_file_new ();
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+
+  while (got_info < 3)
+    g_main_context_iteration (NULL, TRUE);
+}
+
