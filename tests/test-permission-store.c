@@ -217,15 +217,58 @@ test_create2 (void)
 {
   gboolean res;
   g_autoptr(GError) error = NULL;
-  const char * perms[] = { "one", "two", NULL };
+  const char * perms[] = { "logout", "suspend", NULL };
 
   res = xdg_permission_store_call_set_permission_sync (permissions,
-                                                       "DOESNOTEXIST", TRUE,
-                                                       "test-resource",
-                                                       "one.two.three",
+                                                       "inhibit",
+                                                       TRUE,
+                                                       "inhibit",
+                                                       "",
                                                        perms,
                                                        NULL,
                                                        &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+}
+
+static void
+test_delete1 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "inhibit",
+                                               "no-such-entry",
+                                               NULL,
+                                               &error);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+}
+
+static void
+test_delete2 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "logout", "suspend", NULL };
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "inhibit",
+                                                       TRUE,
+                                                       "inhibit",
+                                                       "",
+                                                       perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "inhibit",
+                                               "inhibit",
+                                               NULL,
+                                               &error);
   g_assert_no_error (error);
   g_assert_true (res);
 }
@@ -343,6 +386,8 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/version", test_version);
   g_test_add_func ("/permissions/change", test_change);
   g_test_add_func ("/permissions/lookup", test_lookup);
+  g_test_add_func ("/permissions/delete1", test_delete1);
+  g_test_add_func ("/permissions/delete2", test_delete2);
   g_test_add_func ("/permissions/create1", test_create1);
   g_test_add_func ("/permissions/create2", test_create2);
 
