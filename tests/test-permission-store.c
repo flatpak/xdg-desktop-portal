@@ -195,7 +195,7 @@ test_lookup (void)
 }
 
 static void
-test_create (void)
+test_create1 (void)
 {
   gboolean res;
   g_autoptr(GError) error = NULL;
@@ -210,6 +210,24 @@ test_create (void)
                                                        &error);
   g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
   g_assert_false (res);
+}
+
+static void
+test_create2 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "one", "two", NULL };
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "DOESNOTEXIST", TRUE,
+                                                       "test-resource",
+                                                       "one.two.three",
+                                                       perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
 }
 
 static void
@@ -325,7 +343,8 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/version", test_version);
   g_test_add_func ("/permissions/change", test_change);
   g_test_add_func ("/permissions/lookup", test_lookup);
-  g_test_add_func ("/permissions/create", test_create);
+  g_test_add_func ("/permissions/create1", test_create1);
+  g_test_add_func ("/permissions/create2", test_create2);
 
   global_setup ();
 
