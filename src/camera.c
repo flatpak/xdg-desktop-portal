@@ -29,6 +29,9 @@
 #include "pipewire.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
+
+static XdpImplLockdown *lockdown;
 
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;
@@ -73,11 +76,11 @@ handle_access_camera_in_thread_func (GTask *task,
   const char *app_id;
   gboolean allowed;
 
-  REQUEST_AUTOLOCK (request);
-
   app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
 
-  allowed = device_query_permission_sync (app_id, "camera", request->id);
+  allowed = device_query_permission_sync (app_id, "camera", request);
+
+  REQUEST_AUTOLOCK (request);
 
   if (request->exported)
     {
@@ -88,6 +91,7 @@ handle_access_camera_in_thread_func (GTask *task,
 
       response = allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS
                          : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
+      g_debug ("Camera: sending response %d", response);
       xdp_request_emit_response (XDP_REQUEST (request),
                                  response,
                                  g_variant_builder_end (&results));
@@ -104,9 +108,20 @@ handle_access_camera (XdpCamera *object,
   const char *app_id;
   g_autoptr(GTask) task = NULL;
 
+  if (xdp_impl_lockdown_get_disable_camera (lockdown))
+    {
+      g_debug ("Camera access disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Camera access disabled");
+      return TRUE;
+    }
+
   REQUEST_AUTOLOCK (request);
 
   app_id = xdp_app_info_get_id (request->app_info);
+
 
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (app_id), g_free);
 
@@ -169,6 +184,16 @@ handle_open_pipewire_remote (XdpCamera *object,
   int fd_id;
   g_autoptr(GError) error = NULL;
   PipeWireRemote *remote;
+
+  if (xdp_impl_lockdown_get_disable_camera (lockdown))
+    {
+      g_debug ("Camera access disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Camera access disabled");
+      return TRUE;
+    }
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
   app_id = xdp_app_info_get_id (app_info);
@@ -418,8 +443,11 @@ camera_class_init (CameraClass *klass)
 }
 
 GDBusInterfaceSkeleton *
-camera_create (GDBusConnection *connection)
+camera_create (GDBusConnection *connection,
+               gpointer lockdown_proxy)
 {
+  lockdown = lockdown_proxy;
+
   camera = g_object_new (camera_get_type (), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (camera);

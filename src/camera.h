@@ -20,4 +20,5 @@
 
 #include <gio/gio.h>
 
-GDBusInterfaceSkeleton * camera_create (GDBusConnection *connection);
+GDBusInterfaceSkeleton * camera_create (GDBusConnection *connection,
+                                        gpointer         lockdown_proxy);

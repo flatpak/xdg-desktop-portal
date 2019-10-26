@@ -7,6 +7,8 @@ test_backends_SOURCES = \
 	tests/backend/test-backends.c \
 	tests/backend/request.h \
 	tests/backend/request.c \
+	tests/backend/access.c \
+	tests/backend/access.h \
 	tests/backend/account.c \
 	tests/backend/account.h \
 	tests/backend/email.c \

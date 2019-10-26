@@ -274,8 +274,8 @@ on_bus_acquired (GDBusConnection *connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
 #endif
 
-#if HAVE_PIPEWIRE
-      export_portal_implementation (connection, camera_create (connection));
+#ifdef HAVE_PIPEWIRE
+      export_portal_implementation (connection, camera_create (connection, lockdown));
 #endif
     }
 
@@ -300,7 +300,7 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
 				  secret_create (connection, implementation->dbus_name));
 
-#if HAVE_PIPEWIRE
+#ifdef HAVE_PIPEWIRE
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
   if (implementation != NULL)
     export_portal_implementation (connection,

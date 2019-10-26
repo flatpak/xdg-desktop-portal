@@ -3,9 +3,11 @@
 #include <gio/gio.h>
 
 #include "src/xdp-dbus.h"
+#include "src/xdp-impl-dbus.h"
 
 #ifdef HAVE_LIBPORTAL
 #include "account.h"
+#include "camera.h"
 #include "email.h"
 #include "filechooser.h"
 #include "print.h"
@@ -17,12 +19,16 @@
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 
+#include "document-portal/permission-store-dbus.h"
+
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
 static GTestDBus *dbus;
 static GDBusConnection *session_bus;
 static GSubprocess *portals;
 static GSubprocess *backends;
+XdpImplPermissionStore *permission_store;
+
 
 static void
 name_appeared_cb (GDBusConnection *bus,
@@ -99,7 +105,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
  
-  argv[0] = "./test-backends";
+  argv[0] = "test-backends";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -132,7 +138,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
  
-  argv[0] = "./xdg-desktop-portal";
+  argv[0] = "xdg-desktop-portal";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -145,6 +151,12 @@ global_setup (void)
     g_main_context_iteration (NULL, TRUE);
 
   g_source_remove (name_timeout);
+
+  permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus, 0,
+                                                               "org.freedesktop.impl.portal.PermissionStore",
+                                                               "/org/freedesktop/impl/portal/PermissionStore",
+                                                               NULL, &error);
+  g_assert_no_error (error);
 }
 
 static void
@@ -161,6 +173,8 @@ global_teardown (void)
   g_subprocess_force_exit (portals);
   g_subprocess_force_exit (backends);
 
+  g_object_unref (permission_store);
+
   g_object_unref (session_bus);
 
   g_test_dbus_down (dbus);
@@ -172,6 +186,17 @@ global_teardown (void)
  * expected version. This will fail if the backend
  * is not found.
  */
+#ifdef HAVE_PIPEWIRE
+#define skip_if_camera(name)
+#else
+#define skip_if_camera(name) \
+ if (strcmp (name , "camera") == 0) \
+   { \
+     g_test_skip ("Skipping test that require pipewire"); \
+     return; \
+   }
+#endif
+
 #define DEFINE_TEST_EXISTS(pp,PP,version) \
 static void \
 test_##pp##_exists (void) \
@@ -179,6 +204,8 @@ test_##pp##_exists (void) \
   g_autoptr(GDBusProxy) proxy = NULL; \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
+ \
+ skip_if_camera ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
                                                    0, \
@@ -195,6 +222,7 @@ test_##pp##_exists (void) \
 }
 
 DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
+DEFINE_TEST_EXISTS(camera, CAMERA, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
@@ -213,6 +241,7 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
+  g_test_add_func ("/portal/camera/exists", test_camera_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
@@ -229,6 +258,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/account/cancel", test_account_cancel);
   g_test_add_func ("/portal/account/close", test_account_close);
   g_test_add_func ("/portal/account/reason", test_account_reason);
+  g_test_add_func ("/portal/account/parallel", test_account_parallel);
 
   g_test_add_func ("/portal/email/basic", test_email_libportal);
   g_test_add_func ("/portal/email/delay", test_email_delay);
@@ -236,16 +266,19 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/close", test_email_close);
   g_test_add_func ("/portal/email/address", test_email_address);
   g_test_add_func ("/portal/email/subject", test_email_subject);
+  g_test_add_func ("/portal/email/parallel", test_email_parallel);
 
   g_test_add_func ("/portal/screenshot/basic", test_screenshot_libportal);
   g_test_add_func ("/portal/screenshot/delay", test_screenshot_delay);
   g_test_add_func ("/portal/screenshot/cancel", test_screenshot_cancel);
   g_test_add_func ("/portal/screenshot/close", test_screenshot_close);
+  g_test_add_func ("/portal/screenshot/parallel", test_screenshot_parallel);
 
   g_test_add_func ("/portal/color/basic", test_color_libportal);
   g_test_add_func ("/portal/color/delay", test_color_delay);
   g_test_add_func ("/portal/color/cancel", test_color_cancel);
   g_test_add_func ("/portal/color/close", test_color_close);
+  g_test_add_func ("/portal/color/parallel", test_color_parallel);
 
   g_test_add_func ("/portal/trash/file", test_trash_file);
 
@@ -263,6 +296,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/choices1", test_open_file_choices1);
   g_test_add_func ("/portal/openfile/choices2", test_open_file_choices2);
   g_test_add_func ("/portal/openfile/choices3", test_open_file_choices3);
+  g_test_add_func ("/portal/openfile/parallel", test_open_file_parallel);
 
   g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
   g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
@@ -270,18 +304,31 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
   g_test_add_func ("/portal/savefile/filters", test_save_file_filters);
   g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
+  g_test_add_func ("/portal/savefile/parallel", test_save_file_parallel);
 
   g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_libportal);
   g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
   g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
   g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
   g_test_add_func ("/portal/prepareprint/lockdown", test_prepare_print_lockdown);
+  g_test_add_func ("/portal/prepareprint/results", test_prepare_print_results);
+  g_test_add_func ("/portal/prepareprint/parallel", test_prepare_print_parallel);
 
   g_test_add_func ("/portal/print/basic", test_print_libportal);
   g_test_add_func ("/portal/print/delay", test_print_delay);
   g_test_add_func ("/portal/print/close", test_print_close);
   g_test_add_func ("/portal/print/cancel", test_print_cancel);
   g_test_add_func ("/portal/print/lockdown", test_print_lockdown);
+  g_test_add_func ("/portal/print/parallel", test_print_parallel);
+
+  g_test_add_func ("/portal/camera/basic", test_camera_libportal);
+  g_test_add_func ("/portal/camera/delay", test_camera_delay);
+  g_test_add_func ("/portal/camera/close", test_camera_close);
+  g_test_add_func ("/portal/camera/cancel", test_camera_cancel);
+  g_test_add_func ("/portal/camera/lockdown", test_camera_lockdown);
+  g_test_add_func ("/portal/camera/noaccess1", test_camera_no_access1);
+  g_test_add_func ("/portal/camera/noaccess2", test_camera_no_access2);
+  g_test_add_func ("/portal/camera/parallel", test_camera_parallel);
 #endif
 
   global_setup ();

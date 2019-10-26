@@ -47,6 +47,9 @@ send_response (gpointer data)
   PrintHandle *handle = data;
   GVariantBuilder opt_builder;
   int response;
+  int token;
+  GVariantBuilder settings;
+  GVariantBuilder page_setup;
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
     g_assert_not_reached ();
@@ -58,8 +61,19 @@ send_response (gpointer data)
   if (handle->request->exported)
     request_unexport (handle->request);
 
-  g_debug ("send response %d", response);
+  if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "PreparePrint") == 0)
+    {
+      token = g_key_file_get_integer (handle->keyfile, "result", "token", NULL);
+      g_variant_builder_init (&settings, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_init (&page_setup, G_VARIANT_TYPE_VARDICT);
 
+      g_variant_builder_add (&opt_builder, "{sv}", "token", g_variant_new_uint32 (token));
+      g_variant_builder_add (&opt_builder, "{sv}", "settings", g_variant_builder_end (&settings));
+      g_variant_builder_add (&opt_builder, "{sv}", "page-setup", g_variant_builder_end (&page_setup));
+    }
+
+  g_debug ("send response %d", response);
+ 
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "Print") == 0)
     xdp_impl_print_complete_print (handle->impl,
                                    handle->invocation,

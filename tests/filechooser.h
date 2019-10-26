@@ -14,6 +14,7 @@ void test_open_file_current_filter4 (void);
 void test_open_file_choices1 (void);
 void test_open_file_choices2 (void);
 void test_open_file_choices3 (void);
+void test_open_file_parallel (void);
 
 void test_save_file_libportal (void);
 void test_save_file_delay (void);
@@ -21,3 +22,4 @@ void test_save_file_cancel (void);
 void test_save_file_close (void);
 void test_save_file_filters (void);
 void test_save_file_lockdown (void);
+void test_save_file_parallel (void);
