@@ -275,7 +275,7 @@ on_bus_acquired (GDBusConnection *connection,
 #endif
 
 #ifdef HAVE_PIPEWIRE
-      export_portal_implementation (connection, camera_create (connection));
+      export_portal_implementation (connection, camera_create (connection, lockdown));
 #endif
     }
 
