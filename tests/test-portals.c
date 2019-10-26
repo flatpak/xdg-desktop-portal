@@ -3,9 +3,11 @@
 #include <gio/gio.h>
 
 #include "src/xdp-dbus.h"
+#include "src/xdp-impl-dbus.h"
 
 #ifdef HAVE_LIBPORTAL
 #include "account.h"
+#include "camera.h"
 #include "email.h"
 #include "filechooser.h"
 #include "print.h"
@@ -17,12 +19,16 @@
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 
+#include "document-portal/permission-store-dbus.h"
+
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
 static GTestDBus *dbus;
 static GDBusConnection *session_bus;
 static GSubprocess *portals;
 static GSubprocess *backends;
+XdpImplPermissionStore *permission_store;
+
 
 static void
 name_appeared_cb (GDBusConnection *bus,
@@ -99,7 +105,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
  
-  argv[0] = "./test-backends";
+  argv[0] = "test-backends";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -132,7 +138,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
  
-  argv[0] = "./xdg-desktop-portal";
+  argv[0] = "xdg-desktop-portal";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -145,6 +151,12 @@ global_setup (void)
     g_main_context_iteration (NULL, TRUE);
 
   g_source_remove (name_timeout);
+
+  permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus, 0,
+                                                               "org.freedesktop.impl.portal.PermissionStore",
+                                                               "/org/freedesktop/impl/portal/PermissionStore",
+                                                               NULL, &error);
+  g_assert_no_error (error);
 }
 
 static void
@@ -160,6 +172,8 @@ global_teardown (void)
 
   g_subprocess_force_exit (portals);
   g_subprocess_force_exit (backends);
+
+  g_object_unref (permission_store);
 
   g_object_unref (session_bus);
 
@@ -285,6 +299,14 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/print/close", test_print_close);
   g_test_add_func ("/portal/print/cancel", test_print_cancel);
   g_test_add_func ("/portal/print/lockdown", test_print_lockdown);
+
+  g_test_add_func ("/portal/camera/basic", test_camera_libportal);
+  g_test_add_func ("/portal/camera/delay", test_camera_delay);
+  g_test_add_func ("/portal/camera/close", test_camera_close);
+  g_test_add_func ("/portal/camera/cancel", test_camera_cancel);
+  g_test_add_func ("/portal/camera/lockdown", test_camera_lockdown);
+  g_test_add_func ("/portal/camera/noaccess1", test_camera_no_access1);
+  g_test_add_func ("/portal/camera/noaccess2", test_camera_no_access2);
 #endif
 
   global_setup ();

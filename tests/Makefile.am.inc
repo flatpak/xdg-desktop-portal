@@ -39,6 +39,8 @@ test_portals_LDADD += $(LIBPORTAL_LIBS)
 test_portals_SOURCES += \
 	tests/account.c \
 	tests/account.h \
+        tests/camera.c \
+        tests/camera.h \
 	tests/email.c \
 	tests/email.h \
 	tests/filechooser.c \
@@ -55,6 +57,7 @@ nodist_test_portals_SOURCES = \
 	src/xdp-dbus.c \
 	src/xdp-impl-dbus.c \
 	src/xdp-utils.c \
+        document-portal/permission-store-dbus.c \
 	$(NULL)
 test_programs += test-portals
 
