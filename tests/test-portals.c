@@ -186,6 +186,17 @@ global_teardown (void)
  * expected version. This will fail if the backend
  * is not found.
  */
+#ifdef HAVE_PIPEWIRE
+#define skip_if_camera(name)
+#else
+#define skip_if_camera(name) \
+ if (strcmp (name , "camera") == 0) \
+   { \
+     g_test_skip ("Skipping test that require pipewire"); \
+     return; \
+   }
+#endif
+
 #define DEFINE_TEST_EXISTS(pp,PP,version) \
 static void \
 test_##pp##_exists (void) \
@@ -193,6 +204,8 @@ test_##pp##_exists (void) \
   g_autoptr(GDBusProxy) proxy = NULL; \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
+ \
+ skip_if_camera ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
                                                    0, \
