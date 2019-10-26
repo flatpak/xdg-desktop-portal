@@ -15,6 +15,8 @@ test_backends_SOURCES = \
 	tests/backend/email.h \
 	tests/backend/filechooser.c \
 	tests/backend/filechooser.h \
+	tests/backend/inhibit.c \
+	tests/backend/inhibit.h \
 	tests/backend/lockdown.c \
 	tests/backend/lockdown.h \
 	tests/backend/print.c \
