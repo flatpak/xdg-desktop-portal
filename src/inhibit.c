@@ -70,9 +70,24 @@ inhibit_done (GObject *source,
               gpointer data)
 {
   g_autoptr(GError) error = NULL;
+  Request *request = data;
+  int response = 0;
+
+  REQUEST_AUTOLOCK (request);
 
   if (!xdp_impl_inhibit_call_inhibit_finish (impl, result, &error))
-    g_warning ("Backend call failed: %s", error->message);
+    response = 2;
+
+  if (request->exported)
+    {
+      GVariantBuilder new_results;
+
+      g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
+
+      xdp_request_emit_response (XDP_REQUEST (request),
+                                 response,
+                                 g_variant_builder_end (&new_results));
+    }
 }
 
 static guint32
