@@ -534,11 +534,13 @@ handle_open_in_thread_func (GTask *task,
   gboolean skip_app_chooser = FALSE;
   int fd;
   gboolean writable = FALSE;
+  gboolean open_dir = FALSE;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+  open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
 
   REQUEST_AUTOLOCK (request);
 
@@ -578,6 +580,13 @@ handle_open_in_thread_func (GTask *task,
               request_unexport (request);
             }
           return;
+        }
+
+      if (open_dir)
+        {
+          char *dir = g_path_get_dirname (path);
+          g_free (path);
+          path = dir;
         }
 
       get_content_type_for_file (path, &content_type);
@@ -739,11 +748,58 @@ handle_open_file (XdpOpenURI *object,
   return TRUE;
 }
 
+static gboolean
+handle_open_directory (XdpOpenURI *object,
+                       GDBusMethodInvocation *invocation,
+                       GUnixFDList *fd_list,
+                       const gchar *arg_parent_window,
+                       GVariant *arg_fd,
+                       GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  g_autoptr(GTask) task = NULL;
+  int fd_id, fd;
+  g_autoptr(GError) error = NULL;
+
+  if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
+    {
+      g_debug ("Application handlers disabled");
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Application handlers disabled");
+      return TRUE;
+    }
+
+  g_variant_get (arg_fd, "h", &fd_id);
+  fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+  if (fd == -1)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
+  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+  g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (0));
+  g_object_set_data (G_OBJECT (request), "open-dir", GINT_TO_POINTER (1));
+
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_open_uri_complete_open_file (object, invocation, NULL, request->id);
+
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, handle_open_in_thread_func);
+
+  return TRUE;
+}
+
 static void
 open_uri_iface_init (XdpOpenURIIface *iface)
 {
   iface->handle_open_uri = handle_open_uri;
   iface->handle_open_file = handle_open_file;
+  iface->handle_open_directory = handle_open_directory;
 }
 
 static void
