@@ -38,9 +38,6 @@
 
         Asks to set a given picture as the desktop background picture.
 
-        Note that file: uris are explicitly not supported here. To use a local image file as
-        background, use the SetWallpaperFile method.
-
         The following options are supported:
         show-preview: (b) whether to show a preview of the picture. Note that the portal may
              decide to show a preview even if this option is not set
