@@ -191,12 +191,23 @@ global_teardown (void)
  * is not found.
  */
 #ifdef HAVE_PIPEWIRE
-#define skip_if_camera(name)
+#define check_pipewire(name)
 #else
-#define skip_if_camera(name) \
+#define check_pipewire(name) \
  if (strcmp (name , "camera") == 0) \
    { \
      g_test_skip ("Skipping test that require pipewire"); \
+     return; \
+   }
+#endif
+
+#ifdef HAVE_GEOCLUE
+#define check_geoclue(name)
+#else
+#define check_geoclue(name) \
+ if (strcmp (name , "location") == 0) \
+   { \
+     g_test_skip ("Skipping test that require location"); \
      return; \
    }
 #endif
@@ -209,7 +220,8 @@ test_##pp##_exists (void) \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
  \
- skip_if_camera ( #pp ) \
+ check_pipewire ( #pp ) \
+ check_geoclue ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
                                                    0, \
@@ -231,6 +243,7 @@ DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
+DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 2)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
@@ -252,6 +265,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
+  g_test_add_func ("/portal/location/exists", test_location_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
   g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
