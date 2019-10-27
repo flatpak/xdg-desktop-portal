@@ -11,6 +11,7 @@
 #include "email.h"
 #include "filechooser.h"
 #include "inhibit.h"
+#include "openuri.h"
 #include "print.h"
 #include "screenshot.h"
 #include "trash.h"
@@ -231,6 +232,7 @@ DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
+DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 2)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
@@ -251,6 +253,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
@@ -341,6 +344,12 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/inhibit/cancel", test_inhibit_cancel);
   g_test_add_func ("/portal/inhibit/parallel", test_inhibit_parallel);
   g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
+
+  g_test_add_func ("/portal/openuri/http", test_open_uri_http);
+  g_test_add_func ("/portal/openuri/file", test_open_uri_file);
+  g_test_add_func ("/portal/openuri/delay", test_open_uri_delay);
+  g_test_add_func ("/portal/openuri/close", test_open_uri_close);
+  g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
 #endif
 
   global_setup ();
