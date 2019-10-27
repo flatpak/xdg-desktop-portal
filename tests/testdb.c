@@ -157,7 +157,8 @@ test_db_open (void)
   PermissionDb *db;
 
   db = permission_db_new (g_test_get_filename (G_TEST_DIST, "dbs", "does_not_exist", NULL), TRUE, &error);
-  g_assert_error (error, G_FILE_ERROR, G_FILE_ERROR_NOENT);
+  g_assert (g_error_matches (error, G_FILE_ERROR, G_FILE_ERROR_NOENT) ||
+            g_error_matches (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND));
   g_assert (db == NULL);
   g_clear_error (&error);
 

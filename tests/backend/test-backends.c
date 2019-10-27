@@ -9,6 +9,7 @@
 #include "account.h"
 #include "email.h"
 #include "filechooser.h"
+#include "inhibit.h"
 #include "lockdown.h"
 #include "print.h"
 #include "screenshot.h"
@@ -26,8 +27,9 @@ on_bus_acquired (GDBusConnection *connection,
   access_init (connection, BACKEND_OBJECT_PATH);
   account_init (connection, BACKEND_OBJECT_PATH);
   email_init (connection, BACKEND_OBJECT_PATH);
-  lockdown_init (connection, BACKEND_OBJECT_PATH);
   file_chooser_init (connection, BACKEND_OBJECT_PATH);
+  inhibit_init (connection, BACKEND_OBJECT_PATH);
+  lockdown_init (connection, BACKEND_OBJECT_PATH);
   print_init (connection, BACKEND_OBJECT_PATH);
   screenshot_init (connection, BACKEND_OBJECT_PATH);
 }

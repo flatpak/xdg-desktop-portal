@@ -45,6 +45,8 @@ test_portals_SOURCES += \
 	tests/email.h \
 	tests/filechooser.c \
 	tests/filechooser.h \
+        tests/inhibit.c \
+        tests/inhibit.h \
 	tests/print.c \
 	tests/print.h \
 	tests/screenshot.c \

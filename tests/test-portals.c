@@ -10,6 +10,7 @@
 #include "camera.h"
 #include "email.h"
 #include "filechooser.h"
+#include "inhibit.h"
 #include "print.h"
 #include "screenshot.h"
 #include "trash.h"
@@ -226,6 +227,7 @@ DEFINE_TEST_EXISTS(camera, CAMERA, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
+DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
@@ -245,6 +247,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
+  g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
@@ -329,6 +332,9 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/camera/noaccess1", test_camera_no_access1);
   g_test_add_func ("/portal/camera/noaccess2", test_camera_no_access2);
   g_test_add_func ("/portal/camera/parallel", test_camera_parallel);
+
+  g_test_add_func ("/portal/inhibit/basic", test_inhibit_libportal);
+  g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
 #endif
 
   global_setup ();

@@ -130,6 +130,8 @@ test_change (void)
   g_source_remove (timeout_id);
 
   g_assert_cmpint (change_count, ==, 1);
+
+  g_signal_handler_disconnect (permissions, changed_handler);
 }
 
 static void
@@ -195,7 +197,7 @@ test_lookup (void)
 }
 
 static void
-test_create (void)
+test_create1 (void)
 {
   gboolean res;
   g_autoptr(GError) error = NULL;
@@ -210,6 +212,110 @@ test_create (void)
                                                        &error);
   g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
   g_assert_false (res);
+}
+
+static void
+test_create2 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "logout", "suspend", NULL };
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "inhibit",
+                                                       TRUE,
+                                                       "inhibit",
+                                                       "",
+                                                       perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+}
+
+static void
+test_delete1 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "inhibit",
+                                               "no-such-entry",
+                                               NULL,
+                                               &error);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+}
+
+static void
+test_delete2 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  const char * perms[] = { "logout", "suspend", NULL };
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "inhibit",
+                                                       TRUE,
+                                                       "inhibit",
+                                                       "",
+                                                       perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "inhibit",
+                                               "inhibit",
+                                               NULL,
+                                               &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+}
+
+static int got_result;
+
+static void
+set_cb (GObject *object,
+        GAsyncResult *result,
+        gpointer data)
+{
+  g_autoptr(GError) error = NULL;
+
+  xdg_permission_store_call_set_permission_finish (permissions, result, &error);
+  g_assert_no_error (error);
+
+  got_result++;
+  g_main_context_wakeup (NULL);
+}
+
+static void
+delete_cb (GObject *object,
+           GAsyncResult *result,
+           gpointer data)
+{
+  g_autoptr(GError) error = NULL;
+
+  xdg_permission_store_call_delete_finish (permissions, result, &error);
+  g_assert_no_error (error);
+
+  got_result++;
+  g_main_context_wakeup (NULL);
+}
+
+static void
+test_delete3 (void)
+{
+  const char * perms[] = { "logout", "suspend", NULL };
+
+  got_result = 0;
+  xdg_permission_store_call_set_permission (permissions, "inhibit", TRUE, "inhibit", "", perms, NULL, set_cb, NULL);
+  xdg_permission_store_call_delete (permissions, "inhibit", "inhibit", NULL, delete_cb, NULL);
+
+  while (got_result < 2)
+    g_main_context_iteration (NULL, TRUE);
 }
 
 static void
@@ -325,7 +431,11 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/version", test_version);
   g_test_add_func ("/permissions/change", test_change);
   g_test_add_func ("/permissions/lookup", test_lookup);
-  g_test_add_func ("/permissions/create", test_create);
+  g_test_add_func ("/permissions/delete1", test_delete1);
+  g_test_add_func ("/permissions/delete2", test_delete2);
+  g_test_add_func ("/permissions/delete3", test_delete3);
+  g_test_add_func ("/permissions/create1", test_create1);
+  g_test_add_func ("/permissions/create2", test_create2);
 
   global_setup ();
 
