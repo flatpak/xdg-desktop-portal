@@ -52,7 +52,7 @@ prepare_cb (GObject *obj,
 }
 
 void
-test_prepare_print_libportal (void)
+test_prepare_print_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -318,7 +318,7 @@ print_cb (GObject *obj,
 }
 
 void
-test_print_libportal (void)
+test_print_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;

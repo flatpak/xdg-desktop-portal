@@ -75,7 +75,7 @@ inhibit_cb (GObject *object,
 }
 
 void
-test_inhibit_libportal (void)
+test_inhibit_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;

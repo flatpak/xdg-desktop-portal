@@ -43,7 +43,7 @@ screenshot_cb (GObject *obj,
 }
 
 void
-test_screenshot_libportal (void)
+test_screenshot_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -253,7 +253,7 @@ pick_color_cb (GObject *obj,
 }
 
 void
-test_color_libportal (void)
+test_color_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;

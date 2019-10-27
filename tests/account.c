@@ -83,7 +83,7 @@ account_cb_fail (GObject *obj,
  * with the backend via keyfile works
  */
 void
-test_account_libportal (void)
+test_account_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;

@@ -1,6 +1,6 @@
 #pragma once
 
-void test_inhibit_libportal (void);
+void test_inhibit_basic (void);
 void test_inhibit_delay (void);
 void test_inhibit_close (void);
 void test_inhibit_cancel (void);

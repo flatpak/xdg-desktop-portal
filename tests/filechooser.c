@@ -68,7 +68,7 @@ open_file_cb (GObject *obj,
 }
 
 void
-test_open_file_libportal (void)
+test_open_file_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -683,7 +683,7 @@ save_file_cb (GObject *obj,
 }
 
 void
-test_save_file_libportal (void)
+test_save_file_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
