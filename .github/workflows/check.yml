@@ -18,11 +18,9 @@ jobs:
         sudo add-apt-repository ppa:alexlarsson/flatpak
         sudo add-apt-repository ppa:alexlarsson/glib260
         sudo apt-get update
-        sudo apt-get install -y libglib2.0 attr automake gettext autopoint bison  dbus gtk-doc-tools \
-        libfuse-dev ostree libostree-dev libarchive-dev libcap-dev libattr1-dev libdw-dev libelf-dev \
-        libjson-glib-dev shared-mime-info desktop-file-utils libpolkit-agent-1-dev libpolkit-gobject-1-dev \
-        libseccomp-dev libsoup2.4-dev libsystemd-dev libxml2-utils libgpgme11-dev gobject-introspection \
-        libgirepository1.0-dev libappstream-glib-dev libdconf-dev clang socat meson libdbus-1-dev
+        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
+        libjson-glib-dev libfontconfig1-dev libfuse-dev
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v1
       with:
@@ -40,8 +38,9 @@ jobs:
       run: mkdir test-logs
     - name: Configure xdg-desktop-portal
       # TODO: Enable gtk-doc builds
-      # Disable geoclue and pipewire (need to figure out dependencies)
-      run: ./autogen.sh --disable-geoclue --disable-pipewire
+      # Could not find a pipewire package
+      # Geoclue is in 18.04 too old
+      run: ./autogen.sh --disable-pipewire --disable-geoclue
       env:
         CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
     - name: Build xdg-desktop-portal
@@ -73,11 +72,9 @@ jobs:
         sudo add-apt-repository ppa:alexlarsson/flatpak
         sudo add-apt-repository ppa:alexlarsson/glib260
         sudo apt-get update
-        sudo apt-get install -y libglib2.0 attr automake gettext autopoint bison  dbus gtk-doc-tools \
-        libfuse-dev ostree libostree-dev libarchive-dev libcap-dev libattr1-dev libdw-dev libelf-dev \
-        libjson-glib-dev shared-mime-info desktop-file-utils libpolkit-agent-1-dev libpolkit-gobject-1-dev \
-        libseccomp-dev libsoup2.4-dev libsystemd-dev libxml2-utils libgpgme11-dev gobject-introspection \
-        libgirepository1.0-dev libappstream-glib-dev libdconf-dev clang
+        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
+        libjson-glib-dev libfontconfig1-dev libfuse-dev
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v1
       with:
