@@ -522,8 +522,6 @@ handle_start_in_thread_func (GTask *task,
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
 
   app_id = xdp_app_info_get_id (request->app_info);
-  if (app_id[0] == '\0' && getenv("TEST_LOCATION"))
-    app_id = "org.gnome.PortalTest";
 
   if (!get_location_permissions (app_id, &accuracy, &last_used))
     {
