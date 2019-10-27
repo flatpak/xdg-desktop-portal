@@ -3,6 +3,7 @@
 #include <gio/gio.h>
 
 #include "src/xdp-dbus.h"
+#include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
 #ifdef HAVE_LIBPORTAL
@@ -20,6 +21,7 @@
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
+#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 #include "document-portal/permission-store-dbus.h"
 
@@ -30,7 +32,7 @@ static GDBusConnection *session_bus;
 static GSubprocess *portals;
 static GSubprocess *backends;
 XdpImplPermissionStore *permission_store;
-
+XdpImplLockdown *lockdown;
 
 static void
 name_appeared_cb (GDBusConnection *bus,
@@ -156,10 +158,20 @@ global_setup (void)
 
   g_source_remove (name_timeout);
 
-  permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus, 0,
+  permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus,
+                                                               0,
                                                                "org.freedesktop.impl.portal.PermissionStore",
                                                                "/org/freedesktop/impl/portal/PermissionStore",
-                                                               NULL, &error);
+                                                               NULL,
+                                                               &error);
+  g_assert_no_error (error);
+
+  lockdown = xdp_impl_lockdown_proxy_new_sync (session_bus,
+                                               0,
+                                               BACKEND_BUS_NAME,
+                                               BACKEND_OBJECT_PATH,
+                                               NULL,
+                                               &error);
   g_assert_no_error (error);
 }
 
@@ -177,6 +189,7 @@ global_teardown (void)
   g_subprocess_force_exit (portals);
   g_subprocess_force_exit (backends);
 
+  g_object_unref (lockdown);
   g_object_unref (permission_store);
 
   g_object_unref (session_bus);
@@ -191,12 +204,23 @@ global_teardown (void)
  * is not found.
  */
 #ifdef HAVE_PIPEWIRE
-#define skip_if_camera(name)
+#define check_pipewire(name)
 #else
-#define skip_if_camera(name) \
+#define check_pipewire(name) \
  if (strcmp (name , "camera") == 0) \
    { \
      g_test_skip ("Skipping test that require pipewire"); \
+     return; \
+   }
+#endif
+
+#ifdef HAVE_GEOCLUE
+#define check_geoclue(name)
+#else
+#define check_geoclue(name) \
+ if (strcmp (name , "location") == 0) \
+   { \
+     g_test_skip ("Skipping test that require location"); \
      return; \
    }
 #endif
@@ -209,7 +233,8 @@ test_##pp##_exists (void) \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
  \
- skip_if_camera ( #pp ) \
+ check_pipewire ( #pp ) \
+ check_geoclue ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
                                                    0, \
@@ -231,6 +256,7 @@ DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
+DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 2)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
@@ -252,6 +278,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
+  g_test_add_func ("/portal/location/exists", test_location_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
   g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
@@ -350,6 +377,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openuri/delay", test_open_uri_delay);
   g_test_add_func ("/portal/openuri/close", test_open_uri_close);
   g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
+  g_test_add_func ("/portal/openuri/lockdown", test_open_uri_lockdown);
 #endif
 
   global_setup ();
