@@ -1,10 +1,6 @@
 test_programs =
 
-TESTS_ENVIRONMENT = FLATPAK_TESTS_DEBUG=1 \
-	FLATPAK_TRIGGERSDIR=$$(cd $(top_srcdir) && pwd)/triggers \
-	FLATPAK_DBUSPROXY=$$(cd $(top_builddir) && pwd)/flatpak-dbus-proxy \
-	GI_TYPELIB_PATH=$$(cd $(top_builddir) && pwd)$${GI_TYPELIB_PATH:+:$$GI_TYPELIB_PATH} \
-	LD_LIBRARY_PATH=$$(cd $(top_builddir)/.libs && pwd)$${LD_LIBRARY_PATH:+:$$LD_LIBRARY_PATH} \
+TESTS_ENVIRONMENT = \
 	PATH=$$(cd $(top_builddir) && pwd):$${PATH} \
 	$(NULL)
 
@@ -47,6 +43,8 @@ test_portals_SOURCES += \
 	tests/filechooser.h \
         tests/inhibit.c \
         tests/inhibit.h \
+        tests/openuri.c \
+        tests/openuri.h \
 	tests/print.c \
 	tests/print.h \
 	tests/screenshot.c \

@@ -1,6 +1,6 @@
 #pragma once
 
-void test_camera_libportal (void);
+void test_camera_basic (void);
 void test_camera_delay (void);
 void test_camera_cancel (void);
 void test_camera_close (void);

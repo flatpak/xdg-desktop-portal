@@ -11,6 +11,7 @@
 #include "email.h"
 #include "filechooser.h"
 #include "inhibit.h"
+#include "openuri.h"
 #include "print.h"
 #include "screenshot.h"
 #include "trash.h"
@@ -105,6 +106,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
   argv[0] = "test-backends";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
@@ -138,6 +140,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
   argv[0] = "xdg-desktop-portal";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
@@ -229,6 +232,7 @@ DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
+DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 2)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
@@ -249,6 +253,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
@@ -256,14 +261,14 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
 
 #ifdef HAVE_LIBPORTAL
-  g_test_add_func ("/portal/account/basic", test_account_libportal);
+  g_test_add_func ("/portal/account/basic", test_account_basic);
   g_test_add_func ("/portal/account/delay", test_account_delay);
   g_test_add_func ("/portal/account/cancel", test_account_cancel);
   g_test_add_func ("/portal/account/close", test_account_close);
   g_test_add_func ("/portal/account/reason", test_account_reason);
   g_test_add_func ("/portal/account/parallel", test_account_parallel);
 
-  g_test_add_func ("/portal/email/basic", test_email_libportal);
+  g_test_add_func ("/portal/email/basic", test_email_basic);
   g_test_add_func ("/portal/email/delay", test_email_delay);
   g_test_add_func ("/portal/email/cancel", test_email_cancel);
   g_test_add_func ("/portal/email/close", test_email_close);
@@ -271,13 +276,13 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/subject", test_email_subject);
   g_test_add_func ("/portal/email/parallel", test_email_parallel);
 
-  g_test_add_func ("/portal/screenshot/basic", test_screenshot_libportal);
+  g_test_add_func ("/portal/screenshot/basic", test_screenshot_basic);
   g_test_add_func ("/portal/screenshot/delay", test_screenshot_delay);
   g_test_add_func ("/portal/screenshot/cancel", test_screenshot_cancel);
   g_test_add_func ("/portal/screenshot/close", test_screenshot_close);
   g_test_add_func ("/portal/screenshot/parallel", test_screenshot_parallel);
 
-  g_test_add_func ("/portal/color/basic", test_color_libportal);
+  g_test_add_func ("/portal/color/basic", test_color_basic);
   g_test_add_func ("/portal/color/delay", test_color_delay);
   g_test_add_func ("/portal/color/cancel", test_color_cancel);
   g_test_add_func ("/portal/color/close", test_color_close);
@@ -285,7 +290,7 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/trash/file", test_trash_file);
 
-  g_test_add_func ("/portal/openfile/basic", test_open_file_libportal);
+  g_test_add_func ("/portal/openfile/basic", test_open_file_basic);
   g_test_add_func ("/portal/openfile/delay", test_open_file_delay);
   g_test_add_func ("/portal/openfile/close", test_open_file_close);
   g_test_add_func ("/portal/openfile/cancel", test_open_file_cancel);
@@ -301,7 +306,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openfile/choices3", test_open_file_choices3);
   g_test_add_func ("/portal/openfile/parallel", test_open_file_parallel);
 
-  g_test_add_func ("/portal/savefile/basic", test_save_file_libportal);
+  g_test_add_func ("/portal/savefile/basic", test_save_file_basic);
   g_test_add_func ("/portal/savefile/delay", test_save_file_delay);
   g_test_add_func ("/portal/savefile/close", test_save_file_close);
   g_test_add_func ("/portal/savefile/cancel", test_save_file_cancel);
@@ -309,7 +314,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/savefile/lockdown", test_save_file_lockdown);
   g_test_add_func ("/portal/savefile/parallel", test_save_file_parallel);
 
-  g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_libportal);
+  g_test_add_func ("/portal/prepareprint/basic", test_prepare_print_basic);
   g_test_add_func ("/portal/prepareprint/delay", test_prepare_print_delay);
   g_test_add_func ("/portal/prepareprint/close", test_prepare_print_close);
   g_test_add_func ("/portal/prepareprint/cancel", test_prepare_print_cancel);
@@ -317,14 +322,14 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/prepareprint/results", test_prepare_print_results);
   g_test_add_func ("/portal/prepareprint/parallel", test_prepare_print_parallel);
 
-  g_test_add_func ("/portal/print/basic", test_print_libportal);
+  g_test_add_func ("/portal/print/basic", test_print_basic);
   g_test_add_func ("/portal/print/delay", test_print_delay);
   g_test_add_func ("/portal/print/close", test_print_close);
   g_test_add_func ("/portal/print/cancel", test_print_cancel);
   g_test_add_func ("/portal/print/lockdown", test_print_lockdown);
   g_test_add_func ("/portal/print/parallel", test_print_parallel);
 
-  g_test_add_func ("/portal/camera/basic", test_camera_libportal);
+  g_test_add_func ("/portal/camera/basic", test_camera_basic);
   g_test_add_func ("/portal/camera/delay", test_camera_delay);
   g_test_add_func ("/portal/camera/close", test_camera_close);
   g_test_add_func ("/portal/camera/cancel", test_camera_cancel);
@@ -333,8 +338,18 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/camera/noaccess2", test_camera_no_access2);
   g_test_add_func ("/portal/camera/parallel", test_camera_parallel);
 
-  g_test_add_func ("/portal/inhibit/basic", test_inhibit_libportal);
+  g_test_add_func ("/portal/inhibit/basic", test_inhibit_basic);
+  g_test_add_func ("/portal/inhibit/delay", test_inhibit_delay);
+  g_test_add_func ("/portal/inhibit/close", test_inhibit_close);
+  g_test_add_func ("/portal/inhibit/cancel", test_inhibit_cancel);
+  g_test_add_func ("/portal/inhibit/parallel", test_inhibit_parallel);
   g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
+
+  g_test_add_func ("/portal/openuri/http", test_open_uri_http);
+  g_test_add_func ("/portal/openuri/file", test_open_uri_file);
+  g_test_add_func ("/portal/openuri/delay", test_open_uri_delay);
+  g_test_add_func ("/portal/openuri/close", test_open_uri_close);
+  g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
 #endif
 
   global_setup ();

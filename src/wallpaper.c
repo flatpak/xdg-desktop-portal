@@ -195,9 +195,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
   REQUEST_AUTOLOCK (request);
 
-  if (app_id[0] == '\0' && getenv("TEST_WALLPAPER"))
-    app_id = "org.gnome.PortalTest";
-
   g_variant_lookup (options, "show-preview", "b", &show_preview);
   if (!show_preview && !get_set_wallpaper_allowed (app_id))
     {

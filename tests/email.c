@@ -46,7 +46,7 @@ email_cb (GObject *obj,
  * with the backend via keyfile works
  */
 void
-test_email_libportal (void)
+test_email_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;

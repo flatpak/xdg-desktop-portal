@@ -205,6 +205,10 @@ on_bus_acquired (GDBusConnection *connection,
   PortalImplementation *implementation2;
   g_autoptr(GError) error = NULL;
   XdpImplLockdown *lockdown;
+  GQuark portal_errors G_GNUC_UNUSED;
+
+  /* make sure errors are registered */
+  portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 
   xdp_connection_track_name_owners (connection, peer_died_cb);
   init_document_proxy (connection);

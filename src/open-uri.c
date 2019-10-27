@@ -267,6 +267,13 @@ update_permissions_store (const char *app_id,
   in_permissions[PERM_APP_COUNT] = g_strdup_printf ("%u", latest_count);
   in_permissions[PERM_APP_THRESHOLD] = always_ask ? g_strdup ("") : g_strdup_printf ("%u", latest_threshold);
 
+  g_debug ("updating permissions for %s: content-type %s, handler %s, count %s / %s",
+           app_id,
+           content_type,
+           in_permissions[PERM_APP_ID],
+           in_permissions[PERM_APP_COUNT],
+           in_permissions[PERM_APP_THRESHOLD]);
+
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            PERMISSION_TABLE,
                                                            TRUE,
@@ -444,6 +451,8 @@ find_recommended_choices (const char *scheme,
       *skip_app_chooser = TRUE;
       *choices = result;
 
+      g_debug ("Using default application %s for %s, %s. Skipping app chooser", result[0], scheme, content_type);
+
       g_object_unref (default_app);
       return;
     }
@@ -466,9 +475,17 @@ find_recommended_choices (const char *scheme,
   result[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
+  {
+    g_autofree char *a = g_strjoinv (", ", result);
+    g_debug ("Possible handlers for %s, %s: %s", scheme, content_type, a);
+  }
+
   /* We might skip the dialog too if there's only one possible option to handle the URI */
   if ((n_choices == 1) && can_skip_app_chooser (scheme, content_type))
-    *skip_app_chooser = TRUE;
+    {
+      g_debug ("Skipping app chooser, since only one choice");
+      *skip_app_chooser = TRUE;
+    }
 
   *choices = result;
 }

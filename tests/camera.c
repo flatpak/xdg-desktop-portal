@@ -91,7 +91,7 @@ camera_cb (GObject *obj,
 #endif
 
 void
-test_camera_libportal (void)
+test_camera_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
