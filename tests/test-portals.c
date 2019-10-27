@@ -334,6 +334,10 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/camera/parallel", test_camera_parallel);
 
   g_test_add_func ("/portal/inhibit/basic", test_inhibit_libportal);
+  g_test_add_func ("/portal/inhibit/delay", test_inhibit_delay);
+  g_test_add_func ("/portal/inhibit/close", test_inhibit_close);
+  g_test_add_func ("/portal/inhibit/cancel", test_inhibit_cancel);
+  g_test_add_func ("/portal/inhibit/parallel", test_inhibit_parallel);
   g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
 #endif
 
