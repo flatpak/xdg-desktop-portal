@@ -3,6 +3,10 @@
 #include "openuri.h"
 
 #include <libportal/portal.h>
+#include "src/xdp-utils.h"
+#include "src/xdp-impl-dbus.h"
+
+extern XdpImplLockdown *lockdown;
 
 extern char outdir[];
 
@@ -18,8 +22,12 @@ open_uri_cb (GObject *obj,
   GKeyFile *keyfile = data;
   gboolean ret;
   int response;
+  int domain;
+  int code;
 
   response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+  domain = g_key_file_get_integer (keyfile, "result", "error_domain", NULL);
+  code = g_key_file_get_integer (keyfile, "result", "error_code", NULL);
 
   ret = xdp_portal_open_uri_finish (portal, result, &error);
   if (response == 0)
@@ -34,7 +42,7 @@ open_uri_cb (GObject *obj,
     }
   else if (response == 2)
     {
-      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+      g_assert_error (error, domain, code);
       g_assert_false (ret);
     }
   else
@@ -228,4 +236,37 @@ test_open_uri_close (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+}
+
+void
+test_open_uri_lockdown (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  xdp_impl_lockdown_set_disable_application_handlers (lockdown, TRUE);
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 2);
+  g_key_file_set_integer (keyfile, "result", "error_domain", XDG_DESKTOP_PORTAL_ERROR);
+  g_key_file_set_integer (keyfile, "result", "error_code", XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED);
+
+  path = g_build_filename (outdir, "appchooser", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", FALSE, NULL, open_uri_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
+  xdp_impl_lockdown_set_disable_application_handlers (lockdown, FALSE);
 }

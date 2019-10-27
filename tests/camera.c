@@ -1,3 +1,4 @@
+#include "src/xdp-utils.h"
 #include <config.h>
 
 #include "camera.h"
@@ -6,14 +7,12 @@
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 extern char outdir[];
 
 static int got_info;
 
 extern XdpImplPermissionStore *permission_store;
+extern XdpImplLockdown *lockdown;
 
 static void
 set_camera_permissions (const char *permission)
@@ -237,25 +236,10 @@ test_camera_lockdown (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GDBusProxy) lockdown = NULL;
 
   require_pipewire ();
-
   reset_camera_permissions ();
-
-  session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-  g_assert_no_error (error);
-
-  lockdown = G_DBUS_PROXY (xdp_impl_lockdown_proxy_new_sync (session_bus,
-                                                             0,
-                                                             BACKEND_BUS_NAME,
-                                                             BACKEND_OBJECT_PATH,
-                                                             NULL,
-                                                             &error));
-  g_assert_no_error (error);
-
-  xdp_impl_lockdown_set_disable_camera (XDP_IMPL_LOCKDOWN (lockdown), TRUE);
+  xdp_impl_lockdown_set_disable_camera (lockdown, TRUE);
 
   keyfile = g_key_file_new ();
 
@@ -278,7 +262,7 @@ test_camera_lockdown (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_camera (XDP_IMPL_LOCKDOWN (lockdown), FALSE);
+  xdp_impl_lockdown_set_disable_camera (lockdown, FALSE);
 }
 
 /* Test the effect of the user denying the access dialog */

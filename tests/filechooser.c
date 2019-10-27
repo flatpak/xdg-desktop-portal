@@ -6,6 +6,8 @@
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
+extern XdpImplLockdown *lockdown;
+
 extern char outdir[];
 
 static int got_info;
@@ -856,9 +858,6 @@ test_save_file_filters (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 void
 test_save_file_lockdown (void)
 {
@@ -870,21 +869,8 @@ test_save_file_lockdown (void)
     "file:///test/file",
     NULL
   };
-  g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GDBusProxy) lockdown = NULL;
 
-  session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-  g_assert_no_error (error);
-
-  lockdown = G_DBUS_PROXY (xdp_impl_lockdown_proxy_new_sync (session_bus,
-			                                     0,
-                                                             BACKEND_BUS_NAME,
-                                                             BACKEND_OBJECT_PATH,
-                                                             NULL,
-							     &error));
-  g_assert_no_error (error);
-
-  xdp_impl_lockdown_set_disable_save_to_disk (XDP_IMPL_LOCKDOWN (lockdown), TRUE);
+  xdp_impl_lockdown_set_disable_save_to_disk (lockdown, TRUE);
 
   keyfile = g_key_file_new ();
 
@@ -907,7 +893,7 @@ test_save_file_lockdown (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_save_to_disk (XDP_IMPL_LOCKDOWN (lockdown), FALSE);
+  xdp_impl_lockdown_set_disable_save_to_disk (lockdown, FALSE);
 }
 
 void

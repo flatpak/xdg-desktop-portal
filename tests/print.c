@@ -6,6 +6,8 @@
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
+extern XdpImplLockdown *lockdown;
+
 extern char outdir[];
 
 static int got_info;
@@ -176,9 +178,6 @@ test_prepare_print_close (void)
     g_main_context_iteration (NULL, TRUE);
 }
 
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
-#define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 void
 test_prepare_print_lockdown (void)
 {
@@ -186,21 +185,8 @@ test_prepare_print_lockdown (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GDBusProxy) lockdown = NULL;
 
-  session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-  g_assert_no_error (error);
-
-  lockdown = G_DBUS_PROXY (xdp_impl_lockdown_proxy_new_sync (session_bus,
-                                                             0,
-                                                             BACKEND_BUS_NAME,
-                                                             BACKEND_OBJECT_PATH,
-                                                             NULL,
-                                                             &error));
-  g_assert_no_error (error);
-
-  xdp_impl_lockdown_set_disable_printing (XDP_IMPL_LOCKDOWN (lockdown), TRUE);
+  xdp_impl_lockdown_set_disable_printing (lockdown, TRUE);
 
   keyfile = g_key_file_new ();
 
@@ -222,7 +208,7 @@ test_prepare_print_lockdown (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_printing (XDP_IMPL_LOCKDOWN (lockdown), FALSE);
+  xdp_impl_lockdown_set_disable_printing (lockdown, FALSE);
 }
 
 void
@@ -439,21 +425,8 @@ test_print_lockdown (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GDBusProxy) lockdown = NULL;
-  g_autoptr(GCancellable) cancellable = NULL;
 
-  session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
-  g_assert_no_error (error);
-
-  lockdown = G_DBUS_PROXY (xdp_impl_lockdown_proxy_new_sync (session_bus,
-                                                             0,
-                                                             BACKEND_BUS_NAME,
-                                                             BACKEND_OBJECT_PATH,
-                                                             NULL,
-                                                             &error));
-  g_assert_no_error (error);
-
-  xdp_impl_lockdown_set_disable_printing (XDP_IMPL_LOCKDOWN (lockdown), TRUE);
+  xdp_impl_lockdown_set_disable_printing (lockdown, TRUE);
 
   keyfile = g_key_file_new ();
 
@@ -469,15 +442,13 @@ test_print_lockdown (void)
 
   portal = xdp_portal_new ();
 
-  cancellable = g_cancellable_new ();
-
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, cancellable, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_printing (XDP_IMPL_LOCKDOWN (lockdown), FALSE);
+  xdp_impl_lockdown_set_disable_printing (lockdown, FALSE);
 }
 
 void
