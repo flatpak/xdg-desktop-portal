@@ -105,6 +105,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
   argv[0] = "test-backends";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
@@ -138,6 +139,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
   argv[0] = "xdg-desktop-portal";
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
