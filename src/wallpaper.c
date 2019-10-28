@@ -59,65 +59,6 @@ static void wallpaper_iface_init (XdpWallpaperIface *iface);
 G_DEFINE_TYPE_WITH_CODE (Wallpaper, wallpaper, XDP_TYPE_WALLPAPER_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_WALLPAPER, wallpaper_iface_init));
 
-static gboolean
-get_set_wallpaper_allowed (const gchar *app_id)
-{
-  g_autoptr(GVariant) out_perms = NULL;
-  g_autoptr(GVariant) out_data = NULL;
-  g_autoptr(GError) error = NULL;
-
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   PERMISSION_ID,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No wallpaper permissions found: %s", error->message);
-      g_clear_error (&error);
-    }
-
-  if (out_perms != NULL)
-    {
-      const gchar **perms;
-      if (g_variant_lookup (out_perms, app_id, "^a&s", &perms))
-        {
-          g_autofree gchar *a = g_strjoinv (" ", (gchar **)perms);
-
-          g_debug ("Wallpaper permissions for %s: %s", app_id, a);
-
-          return g_strv_contains (perms, "yes");
-        }
-    }
-
-  return FALSE;
-}
-
-static void
-authorize_app (const gchar *app_id)
-{
-  g_autoptr(GError) error = NULL;
-  const char *permissions[2];
-
-  permissions[0] = "yes";
-  permissions[1] = NULL;
-
-  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                          PERMISSION_TABLE,
-                                                          TRUE,
-                                                          PERMISSION_ID,
-                                                          app_id,
-                                                          (const char * const*)permissions,
-                                                          NULL,
-                                                          &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Error updating permission store: %s", error->message);
-    }
-}
-
 static void
 send_response (Request *request,
                guint response)
@@ -142,6 +83,7 @@ handle_set_wallpaper_uri_done (GObject *source,
 {
   guint response = 2;
   g_autoptr(GError) error = NULL;
+  Request *request = data;
 
   if (!xdp_impl_wallpaper_call_set_wallpaper_uri_finish (XDP_IMPL_WALLPAPER (source),
                                                          &response,
@@ -150,6 +92,9 @@ handle_set_wallpaper_uri_done (GObject *source,
     {
       g_warning ("A backend call failed: %s", error->message);
     }
+
+  send_response (request, response);
+  g_object_unref (request);
 }
 
 static gboolean
@@ -181,22 +126,30 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *uri = NULL;
-  g_autofree char *basename = NULL;
   GVariantBuilder opt_builder;
   g_autoptr(XdpImplRequest) impl_request = NULL;
-  g_autoptr(GVariant) options = NULL;
+  GVariant *options;
   gboolean show_preview = FALSE;
   int fd;
+  Permission permission;
+
+  REQUEST_AUTOLOCK (request);
 
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
 
-  REQUEST_AUTOLOCK (request);
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+
+  if (permission == PERMISSION_NO)
+    {
+      send_response (request, 2);
+      return;
+    }
 
   g_variant_lookup (options, "show-preview", "b", &show_preview);
-  if (!show_preview && !get_set_wallpaper_allowed (app_id))
+  if (!show_preview && permission != PERMISSION_YES)
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
@@ -251,14 +204,12 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           return;
         }
 
-      if (access_response == 0)
-        {
-          authorize_app (app_id);
-        }
-      else
+      if (permission == PERMISSION_UNSET)
+        set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
+
+      if (access_response != 0)
         {
           send_response (request, 2);
-
           return;
         }
     }
@@ -281,8 +232,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           return;
         }
 
-      basename = g_path_get_basename (path);
-
       uri = g_filename_to_uri (path, NULL, NULL);
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
     }
@@ -299,6 +248,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                       wallpaper_options, G_N_ELEMENTS (wallpaper_options),
                       NULL);
 
+  g_debug ("Calling SetWallpaperURI with %s", uri);
   xdp_impl_wallpaper_call_set_wallpaper_uri (impl,
                                              request->id,
                                              app_id,
