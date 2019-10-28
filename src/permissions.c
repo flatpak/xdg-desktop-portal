@@ -134,6 +134,31 @@ set_permissions_sync (const char *app_id,
     }
 }
 
+Permission
+get_permission_sync (const char *app_id,
+                     const char *table,
+                     const char *id)
+{
+  g_auto(GStrv) perms = NULL;
+
+  perms = get_permissions_sync (app_id, table, id);
+  if (perms)
+    return permissions_to_tristate (perms);
+
+  return PERMISSION_UNSET;
+}
+
+void set_permission_sync (const char *app_id,
+                          const char *table,
+                          const char *id,
+                          Permission permission)
+{
+  g_auto(GStrv) perms = NULL;
+
+  perms = permissions_from_tristate (permission);
+  set_permissions_sync (app_id, table, id, (const char * const *)perms);
+}
+
 void
 init_permission_store (GDBusConnection *connection)
 {
