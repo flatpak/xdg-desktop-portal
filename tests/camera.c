@@ -1,4 +1,3 @@
-#include "src/xdp-utils.h"
 #include <config.h>
 
 #include "camera.h"
