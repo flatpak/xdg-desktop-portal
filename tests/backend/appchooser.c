@@ -51,6 +51,9 @@ send_response (gpointer data)
   if (handle->request->exported)
     request_unexport (handle->request);
 
+  if (handle->choices[0] == NULL)
+    response = 2;
+
   if (response == 0)
     {
       g_debug ("choice: %s\n", handle->choices[0]);
