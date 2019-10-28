@@ -32,6 +32,7 @@
 #include "xdp-utils.h"
 
 #define PERMISSION_TABLE "inhibit"
+#define PERMISSION_ID "inhibit"
 
 enum {
   INHIBIT_LOGOUT  = 1,
@@ -93,44 +94,27 @@ inhibit_done (GObject *source,
 static guint32
 get_allowed_inhibit (const char *app_id)
 {
-  g_autoptr(GVariant) out_perms = NULL;
-  g_autoptr(GVariant) out_data = NULL;
-  g_autoptr(GError) error = NULL;
+  g_auto(GStrv) perms = NULL;
   guint32 ret = 0;
 
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   "inhibit",
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No inhibit permissions found: %s", error->message);
-      g_clear_error (&error);
-    }
+  perms = get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
-  if (out_perms != NULL)
+  if (perms != NULL)
     {
-      const char **perms;
-      if (g_variant_lookup (out_perms, app_id, "^a&s", &perms))
+      int i;
+
+      for (i = 0; perms[i]; i++)
         {
-          int i;
-
-          for (i = 0; perms[i]; i++)
-            {
-              if (strcmp (perms[i], "logout") == 0)
-                ret |= INHIBIT_LOGOUT;
-              else if (strcmp (perms[i], "switch") == 0)
-                ret |= INHIBIT_SWITCH;
-              else if (strcmp (perms[i], "suspend") == 0)
-                ret |= INHIBIT_SUSPEND;
-              else if (strcmp (perms[i], "idle") == 0)
-                ret |= INHIBIT_IDLE;
-              else
-                g_warning ("Unknown inhibit flag in permission store: %s", perms[i]);
-            }
+          if (strcmp (perms[i], "logout") == 0)
+            ret |= INHIBIT_LOGOUT;
+          else if (strcmp (perms[i], "switch") == 0)
+            ret |= INHIBIT_SWITCH;
+          else if (strcmp (perms[i], "suspend") == 0)
+            ret |= INHIBIT_SUSPEND;
+          else if (strcmp (perms[i], "idle") == 0)
+            ret |= INHIBIT_IDLE;
+          else
+            g_warning ("Unknown inhibit flag in permission store: %s", perms[i]);
         }
     }
   else
