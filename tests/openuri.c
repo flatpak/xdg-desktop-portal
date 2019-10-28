@@ -316,12 +316,15 @@ test_open_directory (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
+  g_autoptr(GAppInfo) app = NULL;
 
   keyfile = g_key_file_new ();
 
+  app = g_app_info_get_default_for_type ("inode/directory", FALSE);
+
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
-  g_key_file_set_integer (keyfile, "result", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", app != NULL ? 0 : 2);
 
   path = g_build_filename (outdir, "appchooser", NULL);
   g_key_file_save_to_file (keyfile, path, &error);

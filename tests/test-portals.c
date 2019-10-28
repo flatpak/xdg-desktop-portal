@@ -16,6 +16,7 @@
 #include "print.h"
 #include "screenshot.h"
 #include "trash.h"
+#include "wallpaper.h"
 #endif
 
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
@@ -264,6 +265,7 @@ DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
 DEFINE_TEST_EXISTS(trash, TRASH, 1)
+DEFINE_TEST_EXISTS(wallpaper, WALLPAPER, 1)
 
 int
 main (int argc, char **argv)
@@ -286,6 +288,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
+  g_test_add_func ("/portal/wallpaper/exists", test_wallpaper_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_basic);
@@ -379,6 +382,12 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
   g_test_add_func ("/portal/openuri/lockdown", test_open_uri_lockdown);
   g_test_add_func ("/portal/openuri/directory", test_open_directory);
+
+  g_test_add_func ("/portal/wallpaper/basic", test_wallpaper_basic);
+  g_test_add_func ("/portal/wallpaper/delay", test_wallpaper_delay);
+  g_test_add_func ("/portal/wallpaper/cancel1", test_wallpaper_cancel1);
+  g_test_add_func ("/portal/wallpaper/cancel2", test_wallpaper_cancel2);
+  g_test_add_func ("/portal/wallpaper/permission", test_wallpaper_permission);
 #endif
 
   global_setup ();

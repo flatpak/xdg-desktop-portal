@@ -14,6 +14,7 @@
 #include "lockdown.h"
 #include "print.h"
 #include "screenshot.h"
+#include "wallpaper.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
@@ -34,6 +35,7 @@ on_bus_acquired (GDBusConnection *connection,
   lockdown_init (connection, BACKEND_OBJECT_PATH);
   print_init (connection, BACKEND_OBJECT_PATH);
   screenshot_init (connection, BACKEND_OBJECT_PATH);
+  wallpaper_init (connection, BACKEND_OBJECT_PATH);
 }
 
 static void

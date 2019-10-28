@@ -40,6 +40,15 @@ void set_permissions_sync (const char *app_id,
                            const char *id,
                            const char * const *permissions);
 
+Permission get_permission_sync (const char *app_id,
+                                const char *table,
+                                const char *id);
+
+void set_permission_sync (const char *app_id,
+                          const char *table,
+                          const char *id,
+                          Permission permission);
+
 char **permissions_from_tristate (Permission permission);
 
 Permission permissions_to_tristate (char **permissions);

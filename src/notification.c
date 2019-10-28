@@ -132,53 +132,18 @@ add_done (GObject *source,
 static gboolean
 get_notification_allowed (const char *app_id)
 {
-  g_autoptr(GVariant) out_perms = NULL;
-  g_autoptr(GVariant) out_data = NULL;
-  g_autoptr(GError) error = NULL;
-  const char *permissions[2];
+  Permission permission;
 
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   PERMISSION_ID,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+
+  if (permission == PERMISSION_NO)
+    return FALSE;
+
+  if (permission == PERMISSION_UNSET)
     {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No notification permissions found: %s", error->message);
-      g_clear_error (&error);
-    }
+      g_debug ("No notification permissions stored for %s: allowing", app_id);
 
-  if (out_perms != NULL)
-    {
-      const char **perms;
-      if (g_variant_lookup (out_perms, app_id, "^a&s", &perms))
-        {
-          g_autofree char *a = g_strjoinv (" ", (char **)perms);
-
-          g_debug ("Notification permissions for %s: %s", app_id, a);
-
-          return !g_strv_contains (perms, "no");
-        }
-    }
-
-  g_debug ("No notification permissions stored for %s: allowing", app_id);
-
-  permissions[0] = "yes";
-  permissions[1] = NULL;
-
-  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           PERMISSION_TABLE,
-                                                           TRUE,
-                                                           PERMISSION_ID,
-                                                           app_id,
-                                                           (const char * const*)permissions,
-                                                           NULL,
-                                                           &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Error updating permission store: %s", error->message);
+      set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, PERMISSION_YES);
     }
 
   return TRUE;
