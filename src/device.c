@@ -75,24 +75,7 @@ Permission
 device_get_permission_sync (const char *app_id,
                             const char *device)
 {
-  char **permissions;
-
-  permissions = get_permissions_sync (app_id, PERMISSION_TABLE, device);
-  if (!permissions)
-    {
-      return PERMISSION_UNSET;
-    }
-  else
-    {
-      Permission permission;
-
-      g_debug ("device: %s %s, app %s -> %s",
-               PERMISSION_TABLE, device, app_id, permissions[0]);
-
-      permission = permissions_to_tristate (permissions);
-      g_strfreev (permissions);
-      return permission;
-    }
+  return get_permission_sync (app_id, PERMISSION_TABLE, device);
 }
 
 gboolean
@@ -196,15 +179,7 @@ device_query_permission_sync (const char *app_id,
       allowed = response == 0;
 
       if (permission == PERMISSION_UNSET)
-        {
-          char **permissions;
-
-          permissions = permissions_from_tristate (allowed ? PERMISSION_YES
-                                                           : PERMISSION_NO);
-          set_permissions_sync (app_id, PERMISSION_TABLE, device,
-                                (const char * const *)permissions);
-          g_strfreev (permissions);
-        }
+        set_permission_sync (app_id, PERMISSION_TABLE, device, allowed ? PERMISSION_YES : PERMISSION_NO);
     }
   else
     allowed = permission == PERMISSION_YES ? TRUE : FALSE;
