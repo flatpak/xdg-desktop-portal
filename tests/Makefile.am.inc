@@ -51,6 +51,8 @@ test_portals_SOURCES += \
 	tests/screenshot.h \
 	tests/trash.c \
 	tests/trash.h \
+	tests/wallpaper.c \
+	tests/wallpaper.h \
 	$(NULL)
 endif
 nodist_test_portals_SOURCES = \
