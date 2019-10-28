@@ -38,11 +38,6 @@ static gboolean
 send_response (gpointer data)
 {
   WallpaperHandle *handle = data;
-  g_autofree char *reason = NULL;
-  g_autofree char *id = NULL;
-  g_autofree char *name = NULL;
-  g_autofree char *image = NULL;
-  g_autoptr(GError) error = NULL;
   int response;
   g_autofree char *s1 = NULL;
   const char *s;
