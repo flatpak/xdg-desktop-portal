@@ -270,3 +270,75 @@ test_open_uri_lockdown (void)
 
   xdp_impl_lockdown_set_disable_application_handlers (lockdown, FALSE);
 }
+
+static void
+open_dir_cb (GObject *obj,
+             GAsyncResult *result,
+             gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (obj);
+  g_autoptr(GError) error = NULL;
+  GKeyFile *keyfile = data;
+  gboolean ret;
+  int response;
+
+  response = g_key_file_get_integer (keyfile, "result", "response", NULL);
+
+  ret = xdp_portal_open_directory_finish (portal, result, &error);
+  if (response == 0)
+    {
+      g_assert_no_error (error);
+      g_assert_true (ret);
+    }
+  else if (response == 1)
+    {
+      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
+      g_assert_false (ret);
+    }
+  else if (response == 2)
+    {
+      g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+      g_assert_false (ret);
+    }
+  else
+    g_assert_not_reached ();
+
+  got_info++;
+
+  g_main_context_wakeup (NULL);
+}
+
+void
+test_open_directory (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  g_autofree char *uri = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "appchooser", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  g_free (path);
+  path = g_build_filename (outdir, "test.txt", NULL);
+  g_file_set_contents (path, "text", -1, &error);
+  g_assert_no_error (error);
+
+  uri = g_strconcat ("file://", path, NULL);
+
+  got_info = 0;
+  xdp_portal_open_directory (portal, NULL, uri, NULL, open_dir_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}

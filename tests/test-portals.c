@@ -378,6 +378,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openuri/close", test_open_uri_close);
   g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
   g_test_add_func ("/portal/openuri/lockdown", test_open_uri_lockdown);
+  g_test_add_func ("/portal/openuri/directory", test_open_directory);
 #endif
 
   global_setup ();
