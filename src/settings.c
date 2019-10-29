@@ -280,14 +280,14 @@ init_settings_table (Settings   *self,
                      GHashTable *table)
 {
   static const char * const schemas[] = {
-    "org.gnome.desktop.interface",
-    "org.gnome.settings-daemon.peripherals.mouse",
-    "org.gnome.desktop.sound",
-    "org.gnome.desktop.privacy",
-    "org.gnome.desktop.wm.preferences",
-    "org.gnome.settings-daemon.plugins.xsettings",
     "org.gnome.desktop.a11y",
     "org.gnome.desktop.input-sources",
+    "org.gnome.desktop.interface",
+    "org.gnome.desktop.privacy",
+    "org.gnome.desktop.sound",
+    "org.gnome.desktop.wm.preferences",
+    "org.gnome.settings-daemon.peripherals.mouse",
+    "org.gnome.settings-daemon.plugins.xsettings",
   };
   size_t i;
   GSettingsSchemaSource *source = g_settings_schema_source_get_default ();
