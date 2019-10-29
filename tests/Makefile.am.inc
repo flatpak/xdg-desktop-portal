@@ -103,6 +103,10 @@ test_programs += \
 	test-permission-store \
 	$(NULL)
 
+EXTRA_DIST += \
+        tests/portals/test.portal \
+        $(BNULL)
+
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \
 	tests/services/org.freedesktop.impl.portal.PermissionStore.service \
