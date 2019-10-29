@@ -1,3 +1,12 @@
+Changes in 1.5.2
+================
+
+* Add many more tests, using libportal
+* gamemode: Add a pidfd-based api
+* inhibit: Send a Response signal
+* openuri: Add an OpenDirectory api
+* Translation updates
+
 Changes in 1.5.1
 ================
 
