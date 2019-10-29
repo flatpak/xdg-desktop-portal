@@ -121,7 +121,7 @@ if test x$enable_docbook_docs = xauto ; then
 fi
 if test x$enable_docbook_docs = xyes; then
         if test x$have_docbook = xno; then
-                AC_MSG_ERROR([Building DocBook docs explicitly required, but DocBook not found])
+                AC_MSG_ERROR([Building DocBook docs explicitly required, but xmlto not found])
         fi
         AC_MSG_RESULT(yes)
 else
