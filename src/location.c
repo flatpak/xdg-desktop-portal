@@ -328,13 +328,15 @@ get_location_permissions (const char *app_id,
 {
   g_auto(GStrv) perms = NULL;
 
-  if (app_id == NULL)
+  if (app_id == NULL || app_id[0] == '\0')
     {
       /* unsandboxed */
       *accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
       *last_used = 0;
       return TRUE;
     }
+
+  g_debug ("Getting location permissions for '%s'", app_id);
 
   perms = get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
