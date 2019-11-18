@@ -374,6 +374,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/inhibit/cancel", test_inhibit_cancel);
   g_test_add_func ("/portal/inhibit/parallel", test_inhibit_parallel);
   g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
+  g_test_add_func ("/portal/inhibit/monitor", test_inhibit_monitor);
 
   g_test_add_func ("/portal/openuri/http", test_open_uri_http);
   g_test_add_func ("/portal/openuri/file", test_open_uri_file);
