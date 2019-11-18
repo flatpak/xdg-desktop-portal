@@ -43,6 +43,8 @@ test_portals_SOURCES += \
 	tests/filechooser.h \
         tests/inhibit.c \
         tests/inhibit.h \
+        tests/location.c \
+        tests/location.h \
         tests/openuri.c \
         tests/openuri.h \
 	tests/print.c \
