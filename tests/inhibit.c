@@ -361,7 +361,7 @@ test_inhibit_monitor (void)
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+  g_key_file_set_integer (keyfile, "backend", "delay", 500);
   g_key_file_set_string (keyfile, "backend", "change", "query-end");
 
   path = g_build_filename (outdir, "inhibit", NULL);
