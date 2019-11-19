@@ -449,7 +449,13 @@ handle_create_session (XdpLocation *object,
       else if (accuracy == 8)
         session->accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
       else
-        g_warning ("Unsupported location accuracy level");
+        {
+          g_dbus_method_invocation_return_error (invocation,
+                                                 XDG_DESKTOP_PORTAL_ERROR,
+                                                 XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                 "Invalid accuracy level");
+          return TRUE;
+        }
     }
 
   if (!session_export ((Session *)session, &error))
