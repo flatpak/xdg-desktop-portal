@@ -1484,7 +1484,7 @@ main (int    argc,
   db = permission_db_new (path, FALSE, &error);
   if (db == NULL)
     {
-      g_printerr ("Failed to load db: %s", error->message);
+      g_printerr ("Failed to load db from '%s': %s", path, error->message);
       exit (2);
     }
 
