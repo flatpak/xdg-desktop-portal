@@ -326,7 +326,6 @@ session_state_changed_cb (XdpPortal *portal,
   g_assert_false (screensaver_active);
   g_assert_cmpint (state, ==, XDP_LOGIN_SESSION_RUNNING);
 
-  g_print ("session state now running\n");
   got_info += 1;
 }
 
@@ -339,7 +338,6 @@ session_state_changed_cb2 (XdpPortal *portal,
   g_assert_false (screensaver_active);
   g_assert_cmpint (state, ==, XDP_LOGIN_SESSION_QUERY_END);
 
-  g_print ("session state now query-end\n");
   got_info += 1;
 }
 
@@ -358,10 +356,11 @@ test_inhibit_monitor (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+  gulong id;
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_integer (keyfile, "backend", "delay", 500);
+  g_key_file_set_integer (keyfile, "backend", "delay", 1000);
   g_key_file_set_string (keyfile, "backend", "change", "query-end");
 
   path = g_build_filename (outdir, "inhibit", NULL);
@@ -370,7 +369,7 @@ test_inhibit_monitor (void)
   
   portal = xdp_portal_new ();
 
-  g_signal_connect (portal, "session-state-changed", G_CALLBACK (session_state_changed_cb), NULL);
+  id = g_signal_connect (portal, "session-state-changed", G_CALLBACK (session_state_changed_cb), NULL);
 
   got_info = 0;
   xdp_portal_session_monitor_start (portal, NULL, NULL, monitor_cb, NULL);
@@ -379,7 +378,7 @@ test_inhibit_monitor (void)
   while (got_info < 2)
     g_main_context_iteration (NULL, TRUE);
 
-  g_signal_handlers_disconnect_by_func (portal, session_state_changed_cb, NULL);
+  g_signal_handler_disconnect (portal, id);
 
   /* now wait for the query-end state */
   g_print ("waiting for query-end state\n");
