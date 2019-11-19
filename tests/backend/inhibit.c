@@ -379,6 +379,9 @@ handle_create_monitor (XdpImplInhibit *object,
 
   g_debug ("Handling CreateMonitor");
 
+  session_state = RUNNING;
+  screensaver_active = FALSE;
+
   dir = g_getenv ("XDG_DATA_HOME");
   path = g_build_filename (dir, "inhibit", NULL);
   keyfile = g_key_file_new ();
