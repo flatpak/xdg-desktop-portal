@@ -79,6 +79,7 @@ global_setup (void)
   gboolean name_appeared = FALSE;
   guint name_timeout;
   const char *argv[3];
+  GQuark portal_errors G_GNUC_UNUSED;
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
@@ -175,6 +176,9 @@ global_setup (void)
                                                NULL,
                                                &error);
   g_assert_no_error (error);
+
+  /* make sure errors are registered */
+  portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 }
 
 static void
@@ -392,6 +396,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/wallpaper/permission", test_wallpaper_permission);
 
   g_test_add_func ("/portal/location/basic", test_location_basic);
+  g_test_add_func ("/portal/location/accuracy", test_location_accuracy);
 #endif
 
   global_setup ();
