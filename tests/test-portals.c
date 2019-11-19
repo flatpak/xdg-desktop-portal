@@ -12,6 +12,7 @@
 #include "email.h"
 #include "filechooser.h"
 #include "inhibit.h"
+#include "location.h"
 #include "openuri.h"
 #include "print.h"
 #include "screenshot.h"
@@ -210,7 +211,7 @@ global_teardown (void)
 #define check_pipewire(name) \
  if (strcmp (name , "camera") == 0) \
    { \
-     g_test_skip ("Skipping test that require pipewire"); \
+     g_test_skip ("Skipping tests that require pipewire"); \
      return; \
    }
 #endif
@@ -221,7 +222,7 @@ global_teardown (void)
 #define check_geoclue(name) \
  if (strcmp (name , "location") == 0) \
    { \
-     g_test_skip ("Skipping test that require location"); \
+     g_test_skip ("Skipping tests that require geoclue"); \
      return; \
    }
 #endif
@@ -374,6 +375,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/inhibit/cancel", test_inhibit_cancel);
   g_test_add_func ("/portal/inhibit/parallel", test_inhibit_parallel);
   g_test_add_func ("/portal/inhibit/permissions", test_inhibit_permissions);
+  g_test_add_func ("/portal/inhibit/monitor", test_inhibit_monitor);
 
   g_test_add_func ("/portal/openuri/http", test_open_uri_http);
   g_test_add_func ("/portal/openuri/file", test_open_uri_file);
@@ -388,6 +390,8 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/wallpaper/cancel1", test_wallpaper_cancel1);
   g_test_add_func ("/portal/wallpaper/cancel2", test_wallpaper_cancel2);
   g_test_add_func ("/portal/wallpaper/permission", test_wallpaper_permission);
+
+  g_test_add_func ("/portal/location/basic", test_location_basic);
 #endif
 
   global_setup ();
