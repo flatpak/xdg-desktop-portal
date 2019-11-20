@@ -1,3 +1,16 @@
+Changes in 1.5.3
+================
+
+* Add more tests
+* Translation updates
+* location: Various fixes
+* document portal: Monitor fuse mount
+* openuri: Only ask 3 times to use the same app
+* openuri: Add an 'ask' option
+* Fix build from git
+* email: Allow multiple addresses, cc and bcc
+* filechooser: Allow saving multiple files
+
 Changes in 1.5.2
 ================
 
