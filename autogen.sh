@@ -1,6 +1,30 @@
 #!/bin/sh
 # Run this to generate all the initial makefiles, etc.
 
+REQUIRED_FLATPAK_VERSION=1.5.0
+
+check_flatpak() {
+        # This check is only needed when building from git, as
+        # the tarball carries a copy of a new enough file
+        if ! pkg-config --exists flatpak; then
+                echo "*** flatpak $REQUIRED_FLATPAK_VERSION required ***"
+                exit 1
+        fi
+        if ! pkg-config --atleast-version $REQUIRED_FLATPAK_VERSION flatpak; then
+                FLATPAK_VERSION=$(pkg-config --modversion flatpak)
+                echo "*** flatpak $REQUIRED_FLATPAK_VERSION required, $FLATPAK_VERSION found ***"
+                exit 1
+        fi
+}
+
+# Check whether docs are enabled, and if so, require the newest
+# Flatpak so that docs can be built
+for i in "$@"; do
+        if [ x"$i" = x"--enable-docbook-docs" ]; then
+                check_flatpak
+        fi
+done
+
 test -n "$srcdir" || srcdir=`dirname "$0"`
 test -n "$srcdir" || srcdir=.
 
