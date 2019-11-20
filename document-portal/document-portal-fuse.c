@@ -2295,7 +2295,22 @@ xdp_fuse_access (fuse_req_t req, fuse_ino_t ino, int mask)
   fuse_reply_err (req, 0);
 }
 
+extern void on_fuse_unmount (void);
+
+static int destroyed;
+
+static void
+xdp_fuse_destroy (void *userdata)
+{
+  g_debug ("xdp_fuse_destroy");
+
+  destroyed = 1;
+
+  on_fuse_unmount ();
+}
+
 static struct fuse_lowlevel_ops xdp_fuse_oper = {
+  .destroy      = xdp_fuse_destroy,
   .lookup       = xdp_fuse_lookup,
   .forget       = xdp_fuse_forget,
   .getattr      = xdp_fuse_getattr,
@@ -2381,7 +2396,7 @@ xdp_fuse_get_mountpoint (void)
 void
 xdp_fuse_exit (void)
 {
-  if (session)
+  if (!destroyed && session)
     fuse_session_exit (session);
 
   if (fuse_pthread)
