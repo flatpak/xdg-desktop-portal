@@ -292,6 +292,40 @@ handle_delete (XdgPermissionStore     *object,
 }
 
 static gboolean
+handle_delete_permission (XdgPermissionStore     *object,
+                          GDBusMethodInvocation  *invocation,
+                          const char             *table_name,
+                          const char             *id,
+                          const char             *app)
+{
+  Table *table;
+
+  g_autoptr(PermissionDbEntry) entry = NULL;
+  g_autoptr(PermissionDbEntry) new_entry = NULL;
+
+  table = lookup_table (table_name, invocation);
+  if (table == NULL)
+    return TRUE;
+
+  entry = permission_db_lookup (table->db, id);
+  if (entry == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                             "No entry for %s", id);
+      return TRUE;
+    }
+
+  new_entry = permission_db_entry_remove_app_permissions (entry, app);
+  permission_db_set_entry (table->db, id, new_entry);
+  emit_changed (object, table_name, id, new_entry);
+
+  ensure_writeout (table, invocation);
+
+  return TRUE;
+}
+
+static gboolean
 handle_set (XdgPermissionStore     *object,
             GDBusMethodInvocation  *invocation,
             const gchar            *table_name,
@@ -448,7 +482,7 @@ xdg_permission_store_start (GDBusConnection *connection)
 
   store = xdg_permission_store_skeleton_new ();
 
-  xdg_permission_store_set_version (XDG_PERMISSION_STORE (store), 1);
+  xdg_permission_store_set_version (XDG_PERMISSION_STORE (store), 2);
 
   g_signal_connect (store, "handle-list", G_CALLBACK (handle_list), NULL);
   g_signal_connect (store, "handle-lookup", G_CALLBACK (handle_lookup), NULL);
@@ -456,6 +490,7 @@ xdg_permission_store_start (GDBusConnection *connection)
   g_signal_connect (store, "handle-set-permission", G_CALLBACK (handle_set_permission), NULL);
   g_signal_connect (store, "handle-set-value", G_CALLBACK (handle_set_value), NULL);
   g_signal_connect (store, "handle-delete", G_CALLBACK (handle_delete), NULL);
+  g_signal_connect (store, "handle-delete-permission", G_CALLBACK (handle_delete_permission), NULL);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (store),
                                          connection,

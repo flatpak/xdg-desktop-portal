@@ -1040,6 +1040,17 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
   return res;
 }
 
+gboolean
+permission_db_entry_has_app (PermissionDbEntry *entry,
+                             const char        *app)
+{
+  g_autoptr(GVariant) permissions = NULL;
+
+  permissions = permission_db_entry_get_permissions_variant (entry, app);
+
+  return permissions != NULL;
+}
+
 
 /* Transfer: container */
 const char **
@@ -1169,6 +1180,31 @@ add_permissions (GVariant *app_permissions,
   return g_variant_builder_end (&builder);
 }
 
+static GVariant *
+remove_permissions (GVariant   *app_permissions,
+                    const char *app)
+{
+  GVariantBuilder builder;
+  GVariantIter iter;
+  GVariant *child;
+  const char *child_app_id;
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+
+  g_variant_iter_init (&iter, app_permissions);
+  while ((child = g_variant_iter_next_value (&iter)))
+    {
+      g_autoptr(GVariant) old_perms_array = NULL;
+
+      g_variant_get (child, "{&s@as}", &child_app_id, &old_perms_array);
+
+      if (strcmp (app, child_app_id) != 0)
+        g_variant_builder_add_value (&builder, child);
+    }
+
+  return g_variant_builder_end (&builder);
+}
+
 PermissionDbEntry  *
 permission_db_entry_new (GVariant *data)
 {
@@ -1198,7 +1234,6 @@ permission_db_entry_modify_data (PermissionDbEntry *entry,
   return (PermissionDbEntry  *) g_variant_ref_sink (res);
 }
 
-/* NULL (or empty) permissions to remove permissions */
 PermissionDbEntry  *
 permission_db_entry_set_app_permissions (PermissionDbEntry *entry,
                                          const char     *app,
@@ -1215,6 +1250,21 @@ permission_db_entry_set_app_permissions (PermissionDbEntry *entry,
                     add_permissions (old_permissions,
                                      make_permissions (app,
                                                        permissions)));
+  return (PermissionDbEntry  *) g_variant_ref_sink (res);
+}
+
+PermissionDbEntry  *
+permission_db_entry_remove_app_permissions (PermissionDbEntry *entry,
+                                            const char        *app)
+{
+  GVariant *v = (GVariant *) entry;
+  GVariant *res;
+
+  g_autoptr(GVariant) old_data_v = g_variant_get_child_value (v, 0);
+  g_autoptr(GVariant) old_data = g_variant_get_child_value (old_data_v, 0);
+  g_autoptr(GVariant) old_permissions = g_variant_get_child_value (v, 1);
+
+  res = make_entry (old_data, remove_permissions (old_permissions, app));
   return (PermissionDbEntry  *) g_variant_ref_sink (res);
 }
 
