@@ -241,7 +241,7 @@ handle_request_background_in_thread_func (GTask *task,
   else
     permission = get_permission (app_id);
 
-  g_debug ("Handle RequestBackground for %s\n", app_id);
+  g_debug ("Handle RequestBackground for '%s'", app_id);
 
   if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
     {
