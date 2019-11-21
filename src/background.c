@@ -359,6 +359,13 @@ validate_commandline (const char *key,
   gsize length;
   const char **strv = g_variant_get_strv (value, &length);
 
+  if (strv[0] == NULL)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Commandline can't be empty");
+      return FALSE;
+    }
+
   if (g_utf8_strlen (strv[0], -1) > 256)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -398,9 +405,13 @@ handle_request_background (XdpBackground *object,
   REQUEST_AUTOLOCK (request);
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-  xdp_filter_options (arg_options, &opt_builder,
-                      background_options, G_N_ELEMENTS (background_options),
-                      NULL);
+  if (!xdp_filter_options (arg_options, &opt_builder,
+                           background_options, G_N_ELEMENTS (background_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
 
