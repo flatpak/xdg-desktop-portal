@@ -15,6 +15,8 @@ test_backends_SOURCES = \
 	tests/backend/account.h \
 	tests/backend/appchooser.c \
 	tests/backend/appchooser.h \
+	tests/backend/background.c \
+	tests/backend/background.h \
 	tests/backend/email.c \
 	tests/backend/email.h \
 	tests/backend/filechooser.c \
