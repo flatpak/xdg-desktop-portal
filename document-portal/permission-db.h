@@ -93,6 +93,8 @@ PermissionDbEntry  *permission_db_entry_modify_data (PermissionDbEntry *entry,
 PermissionDbEntry  *permission_db_entry_set_app_permissions (PermissionDbEntry *entry,
                                                              const char     *app,
                                                              const char    **permissions);
+PermissionDbEntry  *permission_db_entry_remove_app_permissions (PermissionDbEntry *entry,
+                                                                const char        *app);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDb, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDbEntry, permission_db_entry_unref)
