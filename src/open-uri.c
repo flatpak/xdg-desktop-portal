@@ -534,12 +534,14 @@ handle_open_in_thread_func (GTask *task,
   gboolean skip_app_chooser = FALSE;
   int fd;
   gboolean writable = FALSE;
+  gboolean ask = FALSE;
   gboolean open_dir = FALSE;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+  ask = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "ask"));
   open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
 
   REQUEST_AUTOLOCK (request);
@@ -603,7 +605,7 @@ handle_open_in_thread_func (GTask *task,
   find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
   get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
 
-  if ((always_ask && skip_app_chooser) || (!always_ask && (latest_count >= latest_threshold)))
+  if (!ask && ((always_ask && skip_app_chooser) || (!always_ask && (latest_count >= latest_threshold))))
     {
       /* If a recommended choice is found, just use it and skip the chooser dialog */
       gboolean result = launch_application_with_uri (skip_app_chooser ? choices[0] : latest_id,
@@ -671,6 +673,7 @@ handle_open_uri (XdpOpenURI *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
+  gboolean ask;
 
   if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
     {
@@ -685,9 +688,13 @@ handle_open_uri (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "writable", "b", &writable))
     writable = FALSE;
 
+  if (!g_variant_lookup (arg_options, "ask", "b", &ask))
+    ask = FALSE;
+
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
+  g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (ask));
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
@@ -710,6 +717,7 @@ handle_open_file (XdpOpenURI *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
+  gboolean ask;
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
 
@@ -726,6 +734,9 @@ handle_open_file (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "writable", "b", &writable))
     writable = FALSE;
 
+  if (!g_variant_lookup (arg_options, "ask", "b", &ask))
+    ask = FALSE;
+
   g_variant_get (arg_fd, "h", &fd_id);
   fd = g_unix_fd_list_get (fd_list, fd_id, &error);
   if (fd == -1)
@@ -737,6 +748,7 @@ handle_open_file (XdpOpenURI *object,
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
+  g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (ask));
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_file (object, invocation, NULL, request->id);
@@ -782,6 +794,7 @@ handle_open_directory (XdpOpenURI *object,
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (0));
+  g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (0));
   g_object_set_data (G_OBJECT (request), "open-dir", GINT_TO_POINTER (1));
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
