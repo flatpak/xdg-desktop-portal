@@ -35,6 +35,8 @@ test_portals_LDADD += $(LIBPORTAL_LIBS)
 test_portals_SOURCES += \
 	tests/account.c \
 	tests/account.h \
+	tests/background.c \
+	tests/background.h \
         tests/camera.c \
         tests/camera.h \
 	tests/email.c \
