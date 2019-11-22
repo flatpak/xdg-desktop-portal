@@ -45,6 +45,8 @@
 
 #define PERMISSION_TABLE "desktop-used-apps"
 
+#define DEFAULT_THRESHOLD 3
+
 typedef struct _OpenURI OpenURI;
 
 typedef struct _OpenURIClass OpenURIClass;
@@ -86,8 +88,8 @@ parse_permissions (const char **permissions,
 {
   char *perms_id = NULL;
   gint perms_count = 0;
-  gint perms_threshold = G_MAXINT;
-  gboolean perms_always_ask = TRUE;
+  gint perms_threshold = DEFAULT_THRESHOLD;
+  gboolean perms_always_ask = FALSE;
 
   if ((permissions != NULL) &&
       (permissions[PERM_APP_ID] != NULL) &&
@@ -101,7 +103,7 @@ parse_permissions (const char **permissions,
           if (g_strstrip(threshold)[0] != '\0')
             {
               perms_threshold = atoi (permissions[PERM_APP_THRESHOLD]);
-              perms_always_ask = FALSE;
+              perms_always_ask = perms_threshold == G_MAXINT;
             }
         }
     }
@@ -122,8 +124,8 @@ get_latest_choice_info (const char *app_id,
 {
   char *choice_id = NULL;
   gint choice_count = 0;
-  gint choice_threshold = G_MAXINT;
-  gboolean choice_always_ask = TRUE;
+  gint choice_threshold = DEFAULT_THRESHOLD;
+  gboolean choice_always_ask = FALSE;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
