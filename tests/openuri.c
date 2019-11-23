@@ -7,10 +7,49 @@
 #include "src/xdp-impl-dbus.h"
 
 extern XdpImplLockdown *lockdown;
+extern XdpImplPermissionStore *permission_store;
 
 extern char outdir[];
 
 static int got_info = 0;
+
+static void
+set_openuri_permissions (const char *type,
+                         const char *handler,
+                         guint count,
+                         guint threshold)
+{
+  g_autoptr(GError) error = NULL;
+  g_autofree char *count_s = g_strdup_printf ("%u", count);
+  g_autofree char *threshold_s = g_strdup_printf ("%u", threshold);
+  const char *permissions[4];
+
+  permissions[0] = handler;
+  permissions[1] = count_s;
+  permissions[2] = threshold_s;
+  permissions[3] = NULL;
+
+  xdp_impl_permission_store_call_set_permission_sync (permission_store,
+                                                      "desktop-used-apps",
+                                                      TRUE,
+                                                      type,
+                                                      "",
+                                                      permissions,
+                                                      NULL,
+                                                      &error);
+  g_assert_no_error (error);
+}
+
+static void
+unset_openuri_permissions (const char *type)
+{
+  xdp_impl_permission_store_call_delete_sync (permission_store,
+                                              "desktop-used-apps",
+                                              type,
+                                              NULL,
+                                              NULL);
+  /* Ignore the error here, since this fails if the table doesn't exist */
+}
 
 static void
 open_uri_cb (GObject *obj,
@@ -61,10 +100,45 @@ test_open_uri_http (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
+  unset_openuri_permissions ("x-scheme-handler/http");
+
   keyfile = g_key_file_new ();
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "appchooser", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  got_info = 0;
+  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", FALSE, NULL, open_uri_cb, keyfile);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+void
+test_open_uri_http2 (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GAppInfo) app = NULL;
+
+  app = g_app_info_get_default_for_type ("x-scheme-handler/http", FALSE);
+
+  set_openuri_permissions ("x-scheme-handler/http", g_app_info_get_id (app), 3, 3);
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_boolean (keyfile, "backend", "expect-no-call", 1);
   g_key_file_set_integer (keyfile, "result", "response", 0);
 
   path = g_build_filename (outdir, "appchooser", NULL);
@@ -88,6 +162,8 @@ test_open_uri_file (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
+
+  unset_openuri_permissions ("text/plain");
 
   keyfile = g_key_file_new ();
 
@@ -124,6 +200,8 @@ test_open_uri_delay (void)
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
 
+  unset_openuri_permissions ("text/plain");
+
   keyfile = g_key_file_new ();
 
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -158,6 +236,8 @@ test_open_uri_cancel (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
+
+  unset_openuri_permissions ("text/plain");
 
   keyfile = g_key_file_new ();
 
@@ -205,6 +285,8 @@ test_open_uri_close (void)
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
   GCancellable *cancellable;
+
+  unset_openuri_permissions ("text/plain");
 
   keyfile = g_key_file_new ();
 
