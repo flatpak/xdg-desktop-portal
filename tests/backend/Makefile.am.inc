@@ -25,6 +25,8 @@ test_backends_SOURCES = \
 	tests/backend/inhibit.h \
 	tests/backend/lockdown.c \
 	tests/backend/lockdown.h \
+	tests/backend/notification.c \
+	tests/backend/notification.h \
 	tests/backend/print.c \
 	tests/backend/print.h \
 	tests/backend/screenshot.c \
