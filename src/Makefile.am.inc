@@ -155,8 +155,6 @@ xdg_desktop_portal_SOURCES = \
 	src/wallpaper.h			\
 	src/xdp-utils.c			\
 	src/xdp-utils.h			\
-	src/fc-monitor.c		\
-	src/fc-monitor.h		\
 	src/background.c		\
 	src/background.h		\
 	src/gamemode.c			\
