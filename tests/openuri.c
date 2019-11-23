@@ -65,7 +65,6 @@ test_open_uri_http (void)
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
-  g_key_file_set_boolean (keyfile, "backend", "expect-no-call", 1);
   g_key_file_set_integer (keyfile, "result", "response", 0);
 
   path = g_build_filename (outdir, "appchooser", NULL);
