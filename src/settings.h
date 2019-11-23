@@ -24,4 +24,4 @@
 #include <gio/gio.h>
 
 GDBusInterfaceSkeleton * settings_create (GDBusConnection *connection,
-                                          const char      *dbus_name);
+                                          GPtrArray       *impls);

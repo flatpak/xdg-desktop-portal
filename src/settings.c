@@ -30,6 +30,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 #include "fc-monitor.h"
+#include "portal-impl.h"
 
 typedef struct _Settings Settings;
 typedef struct _SettingsClass SettingsClass;
@@ -48,7 +49,8 @@ struct _SettingsClass
   XdpSettingsSkeletonClass parent_class;
 };
 
-static XdpImplSettings *impl;
+static XdpImplSettings **impls;
+static int n_impls;
 static Settings *settings;
 
 GType settings_get_type (void) G_GNUC_CONST;
@@ -117,15 +119,16 @@ settings_handle_read_all (XdpSettings           *object,
   GHashTableIter iter;
   char *key;
   SettingsBundle *value;
+  int j;
 
   g_variant_builder_open (builder, G_VARIANT_TYPE ("a{sa{sv}}"));
 
-  if (impl != NULL)
+  for (j = 0; j < n_impls; j++)
     {
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) impl_value = NULL;
 
-      if (!xdp_impl_settings_call_read_all_sync (impl, arg_namespaces, &impl_value, NULL, &error))
+      if (!xdp_impl_settings_call_read_all_sync (impls[j], arg_namespaces, &impl_value, NULL, &error))
         {
           g_warning ("Failed to ReadAll() from Settings implementation: %s", error->message);
         }
@@ -182,15 +185,16 @@ settings_handle_read (XdpSettings           *object,
                       const char            *arg_key)
 {
   Settings *self = (Settings *)object;
+  int i;
 
   g_debug ("Read %s %s", arg_namespace, arg_key);
 
-  if (impl != NULL)
+ for (i = 0; i < n_impls; i++)
     {
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) impl_value = NULL;
 
-      if (!xdp_impl_settings_call_read_sync (impl, arg_namespace, arg_key, &impl_value, NULL, &error))
+      if (!xdp_impl_settings_call_read_sync (impls[i], arg_namespace, arg_key, &impl_value, NULL, &error))
         {
           /* A key not being found is expected, continue to our implementation */
           g_debug ("Failed to Read() from Settings implementation: %s", error->message);
@@ -355,9 +359,12 @@ static void
 settings_finalize (GObject *object)
 {
   Settings *self = (Settings*)object;
+  int i;
+
   g_hash_table_destroy (self->settings);
 
-  g_signal_handlers_disconnect_by_data (impl, self);
+  for (i = 0; i < n_impls; i++)
+    g_signal_handlers_disconnect_by_data (impls[i], self);
   g_signal_handlers_disconnect_by_data (self->fontconfig_monitor, self);
   fc_monitor_stop (self->fontconfig_monitor);
   g_object_unref (self->fontconfig_monitor);
@@ -375,28 +382,32 @@ settings_class_init (SettingsClass *klass)
 
 GDBusInterfaceSkeleton *
 settings_create (GDBusConnection *connection,
-                 const char      *dbus_name)
+                 GPtrArray       *implementations)
 {
   g_autoptr(GError) error = NULL;
+  int i;
 
-  if (dbus_name != NULL)
+  n_impls = implementations->len;
+  impls = g_new (XdpImplSettings *, n_impls);
+
+  for (i = 0; i < n_impls; i++)
     {
-      impl = xdp_impl_settings_proxy_new_sync (connection,
-                                              G_DBUS_PROXY_FLAGS_NONE,
-                                              dbus_name,
-                                              DESKTOP_PORTAL_OBJECT_PATH,
-                                              NULL,
-                                              &error);
-      if (impl == NULL)
-        {
-          g_warning ("Failed to create settings proxy: %s", error->message);
-        }
+      PortalImplementation *impl = g_ptr_array_index (implementations, i);
+      const char *dbus_name = impl->dbus_name;
+
+      impls[i] = xdp_impl_settings_proxy_new_sync (connection,
+                                                   G_DBUS_PROXY_FLAGS_NONE,
+                                                   dbus_name,
+                                                   DESKTOP_PORTAL_OBJECT_PATH,
+                                                   NULL,
+                                                   &error);
+      if (impls[i] == NULL)
+        g_warning ("Failed to create settings proxy: %s", error->message);
+      else
+        g_signal_connect (impls[i], "setting-changed", G_CALLBACK (on_impl_settings_changed), settings);
     }
 
   settings = g_object_new (settings_get_type (), NULL);
-
-  if (impl != NULL)
-    g_signal_connect (impl, "setting-changed", G_CALLBACK (on_impl_settings_changed), settings);
 
   return G_DBUS_INTERFACE_SKELETON (settings);
 }
