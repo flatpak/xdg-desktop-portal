@@ -219,3 +219,25 @@ find_portal_implementation (const char *interface)
 
   return NULL;
 }
+
+GPtrArray *
+find_all_portal_implementations (const char *interface)
+{
+  GPtrArray *impls;
+  GList *l;
+
+  impls = g_ptr_array_new ();
+
+  for (l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (g_strv_contains ((const char **)impl->interfaces, interface))
+        {
+          g_debug ("Using %s for %s", impl->source, interface);
+          g_ptr_array_add (impls, impl);
+        }
+    }
+
+  return impls;
+}

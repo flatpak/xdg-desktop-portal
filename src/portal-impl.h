@@ -32,7 +32,8 @@ typedef struct {
   int priority;
 } PortalImplementation;
 
-void                  load_installed_portals     (gboolean opt_verbose);
-PortalImplementation *find_portal_implementation (const char *interface);
+void                  load_installed_portals          (gboolean opt_verbose);
+PortalImplementation *find_portal_implementation      (const char *interface);
+GPtrArray            *find_all_portal_implementations (const char *interface);
 
 #endif  /* __PORTAL_IMPL_H__ */
