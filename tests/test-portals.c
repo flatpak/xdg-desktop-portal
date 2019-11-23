@@ -15,6 +15,7 @@
 #include "filechooser.h"
 #include "inhibit.h"
 #include "location.h"
+#include "notification.h"
 #include "openuri.h"
 #include "print.h"
 #include "screenshot.h"
@@ -259,6 +260,7 @@ test_##pp##_exists (void) \
 }
 
 DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
+DEFINE_TEST_EXISTS(background, BACKGROUND, 1)
 DEFINE_TEST_EXISTS(camera, CAMERA, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
@@ -266,6 +268,7 @@ DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
+DEFINE_TEST_EXISTS(notification, NOTIFICATION, 1)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 3)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
@@ -273,7 +276,6 @@ DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
 DEFINE_TEST_EXISTS(trash, TRASH, 1)
 DEFINE_TEST_EXISTS(wallpaper, WALLPAPER, 1)
-DEFINE_TEST_EXISTS(background, BACKGROUND, 1)
 
 int
 main (int argc, char **argv)
@@ -283,6 +285,7 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
+  g_test_add_func ("/portal/background/exists", test_background_exists);
   g_test_add_func ("/portal/camera/exists", test_camera_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
@@ -290,6 +293,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
   g_test_add_func ("/portal/location/exists", test_location_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
+  g_test_add_func ("/portal/notification/exists", test_notification_exists);
   g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
   g_test_add_func ("/portal/print/exists", test_print_exists);
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
@@ -297,7 +301,6 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/wallpaper/exists", test_wallpaper_exists);
-  g_test_add_func ("/portal/background/exists", test_background_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_basic);
@@ -407,6 +410,12 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/background/basic2", test_background_basic2);
   g_test_add_func ("/portal/background/commandline", test_background_commandline);
   g_test_add_func ("/portal/background/reason", test_background_reason);
+
+  g_test_add_func ("/portal/notification/basic", test_notification_basic);
+  g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
+  g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
+  g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
+  g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
 #endif
 
   global_setup ();
