@@ -259,6 +259,7 @@ test_##pp##_exists (void) \
 }
 
 DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
+DEFINE_TEST_EXISTS(background, BACKGROUND, 1)
 DEFINE_TEST_EXISTS(camera, CAMERA, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 2)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 1)
@@ -273,7 +274,6 @@ DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
 DEFINE_TEST_EXISTS(trash, TRASH, 1)
 DEFINE_TEST_EXISTS(wallpaper, WALLPAPER, 1)
-DEFINE_TEST_EXISTS(background, BACKGROUND, 1)
 
 int
 main (int argc, char **argv)
@@ -283,6 +283,7 @@ main (int argc, char **argv)
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/portal/account/exists", test_account_exists);
+  g_test_add_func ("/portal/background/exists", test_background_exists);
   g_test_add_func ("/portal/camera/exists", test_camera_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
@@ -297,7 +298,6 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/wallpaper/exists", test_wallpaper_exists);
-  g_test_add_func ("/portal/background/exists", test_background_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_basic);
