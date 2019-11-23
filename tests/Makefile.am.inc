@@ -47,6 +47,8 @@ test_portals_SOURCES += \
         tests/inhibit.h \
         tests/location.c \
         tests/location.h \
+        tests/notification.c \
+        tests/notification.h \
         tests/openuri.c \
         tests/openuri.h \
 	tests/print.c \
