@@ -1,4 +1,5 @@
 #include <config.h>
+#include <config.h>
 
 #include <gio/gio.h>
 
@@ -385,6 +386,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/inhibit/monitor", test_inhibit_monitor);
 
   g_test_add_func ("/portal/openuri/http", test_open_uri_http);
+  g_test_add_func ("/portal/openuri/http2", test_open_uri_http2);
   g_test_add_func ("/portal/openuri/file", test_open_uri_file);
   g_test_add_func ("/portal/openuri/delay", test_open_uri_delay);
   g_test_add_func ("/portal/openuri/close", test_open_uri_close);
