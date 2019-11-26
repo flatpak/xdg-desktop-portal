@@ -43,11 +43,18 @@ send_response (gpointer data)
   const char **attachments = no_att;
   char *s;
   int response;
+  const char * const *addresses;
+  const char * const *cc;
+  const char * const *bcc;
+  char **strv;
 
   g_variant_lookup (handle->options, "address", "&s", &address);
   g_variant_lookup (handle->options, "subject", "&s", &subject);
   g_variant_lookup (handle->options, "body", "&s", &body);
   g_variant_lookup (handle->options, "attachments", "^a&s", &attachments);
+  g_variant_lookup (handle->options, "address", "^a&s", &addresses);
+  g_variant_lookup (handle->options, "cc", "^a&s", &cc);
+  g_variant_lookup (handle->options, "bcc", "^a&s", &bcc);
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
     g_assert_not_reached ();
@@ -61,6 +68,31 @@ send_response (gpointer data)
   s = g_key_file_get_string (handle->keyfile, "input", "body", NULL);
   g_assert_cmpstr (s, ==, body);
   g_free (s);
+
+  strv = g_key_file_get_string_list (handle->keyfile, "input", "addresses", NULL, NULL);
+  if (strv)
+    {
+      g_assert (addresses != NULL);
+      g_assert_true (g_strv_equal ((const char * const *)strv, addresses));
+      g_strfreev (strv);
+    }
+
+  strv = g_key_file_get_string_list (handle->keyfile, "input", "cc", NULL, NULL);
+  if (strv)
+    {
+      g_assert (addresses != NULL);
+      g_assert_true (g_strv_equal ((const char * const *)strv, cc));
+      g_strfreev (strv);
+    }
+
+  strv = g_key_file_get_string_list (handle->keyfile, "input", "bcc", NULL, NULL);
+  if (strv)
+    {
+      g_assert (addresses != NULL);
+      g_assert_true (g_strv_equal ((const char * const *)strv, bcc));
+      g_strfreev (strv);
+    }
+
   /* fixme: attachments */
 
   response = g_key_file_get_integer (handle->keyfile, "backend", "response", NULL);
