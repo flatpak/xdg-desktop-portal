@@ -26,7 +26,7 @@
       This simple portal lets sandboxed applications request to send an email,
       optionally providing an address, subject, body and attachments.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.Email">
     <!--
@@ -51,6 +51,30 @@
             <term>address s</term>
             <listitem><para>
               The email address to send to.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>addresses as</term>
+            <listitem><para>
+              Email addresses to send to. This will be used in addition to address.
+            </para><para>
+              This option was added in version 3.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>cc as</term>
+            <listitem><para>
+              Email addresses to cc.
+            </para><para>
+              This option was added in version 3.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>bcc as</term>
+            <listitem><para>
+              Email addresses to bcc.
+            </para><para>
+              This option was added in version 3.
             </para></listitem>
           </varlistentry>
           <varlistentry>
