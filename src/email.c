@@ -114,6 +114,12 @@ compose_email_done (GObject *source,
 }
 
 static gboolean
+is_valid_email (const char *string)
+{
+  return g_regex_match_simple ("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$", string, 0, 0);
+}
+
+static gboolean
 validate_email_address (const char *key,
                         GVariant *value,
                         GVariant *options,
@@ -121,11 +127,33 @@ validate_email_address (const char *key,
 {
   const char *string = g_variant_get_string (value, NULL);
 
-  if (!g_regex_match_simple ("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$", string, 0, 0))
+  if (!is_valid_email (string))
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "'%s' does not look like an email address", string);
       return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+validate_email_addresses (const char *key,
+                          GVariant *value,
+                          GVariant *options,
+                          GError **error)
+{
+  const char *const *strings = g_variant_get_strv (value, NULL);
+  int i;
+
+  for (i = 0; strings[i]; i++)
+    {
+      if (!is_valid_email (strings[i]))
+        {
+          g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "'%s' does not look like an email address", strings[i]);
+          return FALSE;
+        }
     }
 
   return TRUE;
@@ -158,6 +186,9 @@ validate_email_subject (const char *key,
 
 static XdpOptionKey compose_email_options[] = {
   { "address", G_VARIANT_TYPE_STRING, validate_email_address },
+  { "addresses", G_VARIANT_TYPE_STRING_ARRAY, validate_email_addresses },
+  { "cc", G_VARIANT_TYPE_STRING_ARRAY, validate_email_addresses },
+  { "bcc", G_VARIANT_TYPE_STRING_ARRAY, validate_email_addresses },
   { "subject", G_VARIANT_TYPE_STRING, validate_email_subject },
   { "body", G_VARIANT_TYPE_STRING, NULL }
 };
@@ -256,7 +287,7 @@ email_iface_init (XdpEmailIface *iface)
 static void
 email_init (Email *email)
 {
-  xdp_email_set_version (XDP_EMAIL (email), 2);
+  xdp_email_set_version (XDP_EMAIL (email), 3);
 }
 
 static void

@@ -46,6 +46,24 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>addresses as</term>
+            <listitem><para>
+              Email addresses to send to.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>cc as</term>
+            <listitem><para>
+              Email addresses to cc.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>bcc as</term>
+            <listitem><para>
+              Email addresses to bcc.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>subject s</term>
             <listitem><para>
               The subject for the email.
