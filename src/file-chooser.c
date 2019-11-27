@@ -720,7 +720,7 @@ file_chooser_iface_init (XdpFileChooserIface *iface)
 static void
 file_chooser_init (FileChooser *fc)
 {
-  xdp_file_chooser_set_version (XDP_FILE_CHOOSER (fc), 1);
+  xdp_file_chooser_set_version (XDP_FILE_CHOOSER (fc), 2);
 }
 
 static void
