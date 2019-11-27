@@ -52,16 +52,13 @@ send_response (gpointer data)
   g_variant_lookup (handle->options, "subject", "&s", &subject);
   g_variant_lookup (handle->options, "body", "&s", &body);
   g_variant_lookup (handle->options, "attachments", "^a&s", &attachments);
-  g_variant_lookup (handle->options, "address", "^a&s", &addresses);
+  g_variant_lookup (handle->options, "addresses", "^a&s", &addresses);
   g_variant_lookup (handle->options, "cc", "^a&s", &cc);
   g_variant_lookup (handle->options, "bcc", "^a&s", &bcc);
 
   if (g_key_file_get_boolean (handle->keyfile, "backend", "expect-close", NULL))
     g_assert_not_reached ();
 
-  s = g_key_file_get_string (handle->keyfile, "input", "address", NULL);
-  g_assert_cmpstr (s, ==, address);
-  g_free (s);
   s = g_key_file_get_string (handle->keyfile, "input", "subject", NULL);
   g_assert_cmpstr (s, ==, subject);
   g_free (s);
