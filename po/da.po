@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-05-20 15:30+0000\n"
+"POT-Creation-Date: 2019-11-27 14:51-0500\n"
 "PO-Revision-Date: 2019-05-21 00:00+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -16,41 +16,41 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/background.c:261
+#: src/background.c:259
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillad %s at køre i baggrunden?"
 
-#: src/background.c:265
+#: src/background.c:263
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s anmoder om at starte automatisk og køre i baggrunden."
 
-#: src/background.c:267
+#: src/background.c:265
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s anmoder om at køre i baggrunden."
 
-#: src/background.c:268
+#: src/background.c:266
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "‘Kør i baggrunden’-tilladelsen kan altid ændres i programindstillingerne."
 
-#: src/background.c:273
+#: src/background.c:271
 msgid "Don't allow"
 msgstr "Tillad ikke"
 
-#: src/background.c:274
+#: src/background.c:272 src/wallpaper.c:165
 msgid "Allow"
 msgstr "Tillad"
 
-#: src/device.c:205
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Tænd for mikrofonen?"
 
-#: src/device.c:206
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -58,81 +58,81 @@ msgstr ""
 "Adgang til din mikrofon kan når som helst ændres fra "
 "privatlivsindstillingerne."
 
-#: src/device.c:210
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "Et program anmoder om at bruge din mikrofon."
 
-#: src/device.c:212
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s anmoder om at bruge din mikrofon."
 
-#: src/device.c:218
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Tænd for højttalerne?"
 
-#: src/device.c:219
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til dine højttalere kan når som helst ændres fra "
 "privatlivsindstillingerne."
 
-#: src/device.c:223
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "Et program anmoder om at afspille lyd."
 
-#: src/device.c:225
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s anmoder om at afspille lyd."
 
-#: src/device.c:231
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Tænd for kameraet?"
 
-#: src/device.c:232
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til dit kamera kan når som helst ændres fra privatlivsindstillingerne."
 
-#: src/device.c:236
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "Et program anmoder om at bruge dit kamera."
 
-#: src/device.c:238
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s anmoder om at bruge dit kamera."
 
-#: src/location.c:549
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Nægt adgang"
 
-#: src/location.c:551
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Giv adgang"
 
-#: src/location.c:557
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Giv adgang til din placering?"
 
-#: src/location.c:558
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Et program anmoder om at bruge din placering."
 
-#: src/location.c:570
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
 
-#: src/location.c:574
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s anmoder om at bruge din placering."
 
-#: src/location.c:577
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til din placering kan når som helst ændres fra "
@@ -141,3 +141,33 @@ msgstr ""
 #: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "Den anmodede indstilling blev ikke fundet"
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr ""
+
+#: src/wallpaper.c:171
+#, fuzzy
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Tillad %s at køre i baggrunden?"
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:184
+#, fuzzy, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Tillad %s at køre i baggrunden?"
+
+#: src/wallpaper.c:185
+#, fuzzy, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "%s anmoder om at køre i baggrunden."
+
+#: src/wallpaper.c:188
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Adgang til din placering kan når som helst ændres fra "
+"privatlivsindstillingerne."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-17 03:26+0000\n"
+"POT-Creation-Date: 2019-11-27 14:51-0500\n"
 "PO-Revision-Date: 2019-02-12 21:18+0100\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -18,11 +18,43 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: src/device.c:202
+#: src/background.c:259
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr ""
+
+#: src/background.c:263
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr ""
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to run in the background."
+msgstr ""
+
+#: src/background.c:266
+#, fuzzy
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
+"adatvédelmi beállításokban."
+
+#: src/background.c:271
+msgid "Don't allow"
+msgstr ""
+
+#: src/background.c:272 src/wallpaper.c:165
+msgid "Allow"
+msgstr ""
+
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Mikrofon bekapcsolása?"
 
-#: src/device.c:203
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -30,82 +62,82 @@ msgstr ""
 "A mikrofonhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:207
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "Egy alkalmazás használni szeretné a mikrofonját."
 
-#: src/device.c:209
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s használni szeretné a mikrofonját."
 
-#: src/device.c:215
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Hangszórók bekapcsolása?"
 
-#: src/device.c:216
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:220
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "Egy alkalmazás hangot szeretne lejátszani."
 
-#: src/device.c:222
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s hangot szeretne lejátszani."
 
-#: src/device.c:228
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Kamera bekapcsolása?"
 
-#: src/device.c:229
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "A kamerához való hozzáférés bármikor megváltoztatható az adatvédelmi "
 "beállításokban."
 
-#: src/device.c:233
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "Egy alkalmazás használni szeretné a kameráját."
 
-#: src/device.c:235
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s használni szeretné a kameráját."
 
-#: src/location.c:536
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:538
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:544
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Hozzáférést ad a tartózkodási helyéhez?"
 
-#: src/location.c:545
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:557
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:561
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:564
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
@@ -114,3 +146,33 @@ msgstr ""
 #: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr ""
+
+#: src/wallpaper.c:171
+#, fuzzy
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Egy alkalmazás hangot szeretne lejátszani."
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:184
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr ""
+
+#: src/wallpaper.c:185
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:188
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
+"adatvédelmi beállításokban."

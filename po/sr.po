@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2018-11-16 14:10-0500\n"
+"POT-Creation-Date: 2019-11-27 14:51-0500\n"
 "PO-Revision-Date: 2016-09-14 12:54+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: српски <gnome-sr@googlegroups.org>\n"
@@ -18,11 +18,43 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : n"
 "%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
-#: src/device.c:202
+#: src/background.c:259
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr ""
+
+#: src/background.c:263
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr ""
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to run in the background."
+msgstr ""
+
+#: src/background.c:266
+#, fuzzy
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Приступ вашим звучницима се може изменити у било које време из подешавања "
+"приватности."
+
+#: src/background.c:271
+msgid "Don't allow"
+msgstr ""
+
+#: src/background.c:272 src/wallpaper.c:165
+msgid "Allow"
+msgstr ""
+
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Да укључим микрофон?"
 
-#: src/device.c:203
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -30,83 +62,83 @@ msgstr ""
 "Приступ вашем микрофону се може изменити у било које време из подешавања "
 "приватности."
 
-#: src/device.c:207
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "Један програм жели да користи ваш микрофон."
 
-#: src/device.c:209
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "„%s“ жели да користи ваш микрофон."
 
-#: src/device.c:215
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Да укључим звучнике?"
 
-#: src/device.c:216
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Приступ вашим звучницима се може изменити у било које време из подешавања "
 "приватности."
 
-#: src/device.c:220
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "Један програм жели да пусти звук."
 
-#: src/device.c:222
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "„%s“ жели да пусти звук."
 
-#: src/device.c:228
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Да укључим камерицу?"
 
-#: src/device.c:229
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Приступ вашој камерици се може изменити у било које време из подешавања "
 "приватности."
 
-#: src/device.c:233
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "Један програм жели да користи вашу камерицу."
 
-#: src/device.c:235
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "„%s“ жели да користи вашу камерицу."
 
-#: src/location.c:536
+#: src/location.c:526
 msgid "Deny Access"
 msgstr ""
 
-#: src/location.c:538
+#: src/location.c:528
 msgid "Grant Access"
 msgstr ""
 
-#: src/location.c:544
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr ""
 
-#: src/location.c:545
+#: src/location.c:535
 #, fuzzy
 msgid "An application wants to use your location."
 msgstr "Један програм жели да користи вашу камерицу."
 
-#: src/location.c:557
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr ""
 
-#: src/location.c:561
+#: src/location.c:551
 #, fuzzy, c-format
 msgid "%s wants to use your location."
 msgstr "„%s“ жели да користи вашу камерицу."
 
-#: src/location.c:564
+#: src/location.c:554
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
@@ -116,3 +148,33 @@ msgstr ""
 #: src/settings.c:229
 msgid "Requested setting not found"
 msgstr ""
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr ""
+
+#: src/wallpaper.c:171
+#, fuzzy
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Један програм жели да пусти звук."
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:184
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr ""
+
+#: src/wallpaper.c:185
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:188
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Приступ вашим звучницима се може изменити у било које време из подешавања "
+"приватности."

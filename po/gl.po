@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-02-20 01:42+0100\n"
+"POT-Creation-Date: 2019-11-27 14:51-0500\n"
 "PO-Revision-Date: 2019-02-20 01:44+0200\n"
 "Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -17,11 +17,43 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Virtaal 0.7.1\n"
 
-#: ../src/device.c:205
+#: src/background.c:259
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr ""
+
+#: src/background.c:263
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr ""
+
+#: src/background.c:265
+#, c-format
+msgid "%s requests to run in the background."
+msgstr ""
+
+#: src/background.c:266
+#, fuzzy
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"O acceso á súa localización pode cambiarse en calquera momento desde as "
+"preferencias de privacidade."
+
+#: src/background.c:271
+msgid "Don't allow"
+msgstr ""
+
+#: src/background.c:272 src/wallpaper.c:165
+msgid "Allow"
+msgstr ""
+
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Acender micrófono?"
 
-#: ../src/device.c:206
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -29,87 +61,117 @@ msgstr ""
 "O acceso ao seu micrófono pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: ../src/device.c:210
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "Un aplicativo quere usar o seu micrófono."
 
-#: ../src/device.c:212
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s quere uar o seu micrófono."
 
-#: ../src/device.c:218
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Acender os altofalantes?"
 
-#: ../src/device.c:219
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso aos seus altofalantes pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: ../src/device.c:223
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "Un aplicativo quere reproducir son."
 
-#: ../src/device.c:225
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s querer reproducir son."
 
-#: ../src/device.c:231
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Acender a cámara?"
 
-#: ../src/device.c:232
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso á súa cámara pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: ../src/device.c:236
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "Un aplicativo quere usar a súa cámara."
 
-#: ../src/device.c:238
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s quere uar a súa cámara."
 
-#: ../src/location.c:549
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Denegar acceso"
 
-#: ../src/location.c:551
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Conceder acceso"
 
-#: ../src/location.c:557
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Desexa acceder acceso á súa localización?"
 
-#: ../src/location.c:558
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Un aplicativo quere usar a súa localización."
 
-#: ../src/location.c:570
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Desexa darlle acceso a %s á súa localización?"
 
-#: ../src/location.c:574
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s quere usar a súa localización."
 
-#: ../src/location.c:577
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso á súa localización pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
-#: ../src/settings.c:229
+#: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "Non se atopou a configuración solicitada"
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr ""
+
+#: src/wallpaper.c:171
+#, fuzzy
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Un aplicativo quere reproducir son."
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:184
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr ""
+
+#: src/wallpaper.c:185
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:188
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"O acceso á súa localización pode cambiarse en calquera momento desde as "
+"preferencias de privacidade."

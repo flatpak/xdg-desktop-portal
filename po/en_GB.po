@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-08-24 15:29+0000\n"
+"POT-Creation-Date: 2019-11-27 14:51-0500\n"
 "PO-Revision-Date: 2019-08-24 23:48+0100\n"
 "Last-Translator: Zander Brown <zbrown@gnome.org>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
@@ -45,15 +45,15 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Don't allow"
 
-#: src/background.c:272
+#: src/background.c:272 src/wallpaper.c:165
 msgid "Allow"
 msgstr "Allow"
 
-#: src/device.c:131
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Turn On Microphone?"
 
-#: src/device.c:132
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -61,83 +61,111 @@ msgstr ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 
-#: src/device.c:136
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "An application wants to use your microphone."
 
-#: src/device.c:138
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s wants to use your microphone."
 
-#: src/device.c:144
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Turn On Speakers?"
 
-#: src/device.c:145
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Access to your speakers can be changed at any time from the privacy settings."
 
-#: src/device.c:149
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "An application wants to play sound."
 
-#: src/device.c:151
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s wants to play sound."
 
-#: src/device.c:157
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Turn On Camera?"
 
-#: src/device.c:158
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Access to your camera can be changed at any time from the privacy settings."
 
-#: src/device.c:162
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "An application wants to use your camera."
 
-#: src/device.c:164
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s wants to use your camera."
 
-#: src/location.c:549
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Deny Access"
 
-#: src/location.c:551
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/location.c:557
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Grant Access to Your Location?"
 
-#: src/location.c:558
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "An application wants to use your location."
 
-#: src/location.c:570
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Give %s Access to Your Location?"
 
-#: src/location.c:574
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s wants to use your location."
 
-#: src/location.c:577
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Location access can be changed at any time from the privacy settings."
 
 #: src/settings.c:229
 msgid "Requested setting not found"
 msgstr "Requested setting not found"
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr ""
+
+#: src/wallpaper.c:171
+#, fuzzy
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Allow %s to run in the background?"
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+
+#: src/wallpaper.c:184
+#, fuzzy, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Allow %s to run in the background?"
+
+#: src/wallpaper.c:185
+#, fuzzy, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "%s requests to run in the background."
+
+#: src/wallpaper.c:188
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Location access can be changed at any time from the privacy settings."
