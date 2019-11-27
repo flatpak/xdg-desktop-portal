@@ -52,6 +52,7 @@ test_email_basic (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+  const char *addresses[2] = { "mclasen@redhat.com", NULL };
 
   keyfile = g_key_file_new ();
 
@@ -71,7 +72,7 @@ test_email_basic (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            "mclasen@redhat.com",
+                            addresses, NULL, NULL,
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
@@ -92,13 +93,14 @@ test_email_address (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  const char *address;
+  const char *addresses[2];;
 
   keyfile = g_key_file_new ();
 
-  address = "gibberish! not an email address\n%Q";
+  addresses[0] = "gibberish! not an email address\n%Q";
+  addresses[1] = NULL;
 
-  g_key_file_set_string (keyfile, "input", "address", address); 
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1); 
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
@@ -114,7 +116,7 @@ test_email_address (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            address,
+                            addresses, NULL, NULL,
                             NULL,
                             NULL,
                             NULL,
@@ -157,7 +159,7 @@ test_email_subject (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            NULL,
+                            NULL, NULL, NULL,
                             subject,
                             NULL,
                             NULL,
@@ -177,7 +179,7 @@ test_email_subject (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            NULL,
+                            NULL, NULL, NULL,
                             subject,
                             NULL,
                             NULL,
@@ -201,14 +203,15 @@ test_email_delay (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  const char *address;
+  const char *addresses[2];
   const char *subject;
 
-  address = "mclasen@redhat.com";
+  addresses[0] = "mclasen@redhat.com";
+  addresses[1] = NULL;
   subject = "delay test";
 
   keyfile = g_key_file_new ();
-  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1);
   g_key_file_set_string (keyfile, "input", "subject", subject);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 400);
@@ -223,7 +226,7 @@ test_email_delay (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            address,
+                            addresses, NULL, NULL,
                             subject,
                             NULL,
                             NULL,
@@ -247,14 +250,15 @@ test_email_cancel (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  const char *address;
+  const char *addresses[2];
   const char *subject;
 
-  address = "mclasen@redhat.com";
+  addresses[0] = "mclasen@redhat.com";
+  addresses[1] = NULL;
   subject = "delay test";
 
   keyfile = g_key_file_new ();
-  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1);
   g_key_file_set_string (keyfile, "input", "subject", subject);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -269,7 +273,7 @@ test_email_cancel (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            address,
+                            addresses, NULL, NULL,
                             subject,
                             NULL,
                             NULL,
@@ -306,14 +310,15 @@ test_email_close (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GCancellable) cancellable = NULL;
-  const char *address;
+  const char *addresses[2];
   const char *subject;
 
-  address = "mclasen@redhat.com";
+  addresses[0] = "mclasen@redhat.com";
+  addresses[1] = NULL;
   subject = "delay test";
 
   keyfile = g_key_file_new ();
-  g_key_file_set_string (keyfile, "input", "address", address);
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1);
   g_key_file_set_string (keyfile, "input", "subject", subject);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 400);
@@ -331,7 +336,7 @@ test_email_close (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            address,
+                            addresses, NULL, NULL,
                             subject,
                             NULL,
                             NULL,
@@ -352,10 +357,14 @@ test_email_parallel (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+  const char *addresses[2];
+
+  addresses[0] = "mclasen@redhat.com";
+  addresses[1] = NULL;
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "input", "address", "mclasen@redhat.com");
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1);
   g_key_file_set_string (keyfile, "input", "subject", "Re: portal tests");
   g_key_file_set_string (keyfile, "input", "body", "You have to see this...");
 
@@ -371,7 +380,7 @@ test_email_parallel (void)
 
   got_info = 0;
   xdp_portal_compose_email (portal, NULL,
-                            "mclasen@redhat.com",
+                            addresses, NULL, NULL,
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
@@ -379,7 +388,7 @@ test_email_parallel (void)
                             email_cb,
                             keyfile);
   xdp_portal_compose_email (portal, NULL,
-                            "mclasen@redhat.com",
+                            addresses, NULL, NULL,
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
@@ -387,7 +396,7 @@ test_email_parallel (void)
                             email_cb,
                             keyfile);
   xdp_portal_compose_email (portal, NULL,
-                            "mclasen@redhat.com",
+                            addresses, NULL, NULL,
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
