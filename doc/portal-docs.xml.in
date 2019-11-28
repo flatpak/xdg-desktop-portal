@@ -114,6 +114,7 @@
     <xi:include href="portal-org.freedesktop.portal.Wallpaper.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.UpdateMonitor.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Contacts.xml"/>
   </reference>
   <reference>
     <title>Portal Backend API Reference</title>
