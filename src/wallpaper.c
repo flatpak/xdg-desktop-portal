@@ -270,6 +270,8 @@ handle_set_wallpaper_uri (XdpWallpaper *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
 
+  g_debug ("Handle SetWallpaperURI");
+
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data_full (G_OBJECT (request),
@@ -299,6 +301,8 @@ handle_set_wallpaper_file (XdpWallpaper *object,
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
+
+  g_debug ("Handle SetWallpaperFile");
 
   g_variant_get (arg_fd, "h", &fd_id);
   fd = g_unix_fd_list_get (fd_list, fd_id, &error);
@@ -344,7 +348,8 @@ wallpaper_class_init (WallpaperClass *klass)
 
 GDBusInterfaceSkeleton *
 wallpaper_create (GDBusConnection *connection,
-		  const char *dbus_name_wallpaper)
+                  const char *dbus_name_access,
+                  const char *dbus_name_wallpaper)
 {
   g_autoptr(GError) error = NULL;
 
@@ -365,7 +370,7 @@ wallpaper_create (GDBusConnection *connection,
 
   access_impl = xdp_impl_access_proxy_new_sync (connection,
                                                 G_DBUS_PROXY_FLAGS_NONE,
-                                                dbus_name_wallpaper,
+                                                dbus_name_access,
                                                 DESKTOP_PORTAL_OBJECT_PATH,
                                                 NULL,
                                                 &error);

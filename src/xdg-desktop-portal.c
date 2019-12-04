@@ -257,11 +257,6 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   notification_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
-  if (implementation != NULL)
-    export_portal_implementation (connection,
-                                  wallpaper_create (connection, implementation->dbus_name));
-
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Inhibit");
   if (implementation != NULL)
     export_portal_implementation (connection,
@@ -288,6 +283,13 @@ on_bus_acquired (GDBusConnection *connection,
                                   background_create (connection,
                                                      implementation->dbus_name,
                                                      implementation2->dbus_name));
+
+  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
+  if (implementation != NULL && implementation2 != NULL)
+    export_portal_implementation (connection,
+                                  wallpaper_create (connection,
+                                                    implementation->dbus_name,
+                                                    implementation2->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
   if (implementation != NULL)
