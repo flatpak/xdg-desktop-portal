@@ -101,5 +101,14 @@
       <arg type="u" name="flags" direction="in"/>
       <arg type="b" name="result" direction="out"/>
     </method>
+
+    <!--
+      RunningApplicationsChanged:
+
+      This signal gets emitted when applications change their state
+      and it is worth calling GetAppState again.
+    -->
+    <signal name='RunningApplicationsChanged'>
+    </signal>
   </interface>
 </node>
