@@ -1,0 +1,591 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016 Red Hat, Inc.
+ Copyright (C) 2019 Michael Gratton <mike@vee.net>
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Michael Gratton <mike@vee.net>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Contacts:
+      @short_description: Portal for desktop address books
+
+      This portal provides sandboxed applications access to desktop contacts.
+
+      For interoperability, the portal exchanges contact information
+      as VCard 3.0 formatted strings. Latter versions of this
+      specification may support additional versions and alternative
+      formats.
+
+      Contacts from a single data source (for example, from a local
+      database, or an online provider) are grouped together into a
+      collection. These should not be confused with user-created
+      groups or lists. Most applications will want to simply use the
+      default collection.
+
+      Each contact and contact collection is assigned a stable,
+      unique, opaque identifier (id) that is guaranteed to not change
+      for the lifetime of the underlying collection's data
+      source. Applications or libraries that cache contact ids
+      between portal method invocations must also cache its associated
+      collection id.
+
+      This documentation describes version 1 of this interface.
+  -->
+
+  <interface name="org.freedesktop.portal.Contacts">
+
+    <!--
+        Returns the version of this specification supported by the portal.
+    -->
+    <property name="version" type="u" access="read"/>
+
+    <!--
+        GetDefaultCollection:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Retrieves the opaque identifier for the default collection.
+
+        While the identifier itself is stable in that the same
+        identifier will always refer to the same collection, the
+        default may change at any time.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the
+              @handle. Must be a valid object path element. See the
+              #org.freedesktop.portal.Request documentation for more
+              information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>collection_id s</term>
+            <listitem><para>
+              The opaque identifier of the default collection.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="GetDefaultCollection">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        ListContacts:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection to list contacts from
+        @start: Index of the first contact to be listed
+        @count: Maximum number of contacts after the first to be listed
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Lists all contacts from the given collection.
+
+        By default, this method will return all known data for each
+        contact in the collection, including a photo if
+        present. Subsets of this information can be returned by
+        setting the `properties` key in @options.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>properties as</term>
+            <listitem><para>
+              A list of strings that determine which VCard properties
+              will be included the resulting contact dictionaries. If
+              not specified, all known properties will be returned.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the
+              @handle. Must be a valid object path element. See the
+              #org.freedesktop.portal.Request documentation for more
+              information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contacts aa{sv}</term>
+            <listitem><para>
+              List of contact dictionaries matching the list criteria.
+              See #GetContact for the members found in these
+              dictionaries.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="ListContacts">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="u" name="start" direction="in"/>
+      <arg type="u" name="count" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        SearchContacts:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection to search
+        @criterion: Search criterion to match contacts against
+        @ordering: A list of properties that the returned contacts
+                   will be ordered by
+        @start: Index of the first matching contact to be listed
+        @count: Maximum number of contacts after the first to be
+                listed
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Searches for contacts by matching VCard properties.
+
+        This method returns contact identifiers rather than data, see
+        #ListContacts and #GetContact to retrieve the matching
+        contact details.
+
+        The @criteria parameter is a search criterion tuple. These
+        tuples have the form `(sv)` where the first element is the
+        criterion type, and the second is the criterion's arguments.
+
+        Supported search criteria are:
+        <variablelist>
+          <varlistentry>
+            <term>AND, arguments: av</term>
+            <listitem><para>
+              The conjunction of one or more other criteria, matches
+              contacts when each given criterion is also matched.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>OR, arguments: av</term>
+            <listitem><para>
+              The disjunction of one or more other criteria, matches
+              contacts when any of the given criterion is also
+              matched.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>NOT, arguments: v</term>
+            <listitem><para>
+              The negation of another criterion, matches contacts when
+              the given criterion is not matched.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SUBI, arguments: ss</term>
+            <listitem><para>
+              Property case-insensitive sub-string equality, matching
+              contacts when the named VCard property's normalised,
+              case folded value contains the given value as a substring.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>SUB, arguments: ss</term>
+            <listitem><para>
+              Property case-sensitive sub-string equality, matching
+              contacts when the named VCard property's normalised,
+              case folded value contains the given value as a substring.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>EQI, arguments: ss</term>
+            <listitem><para>
+              Property case-insensitive equality, matching contacts
+              when the named VCard property's normalised, case folded
+              value is equal to the given value.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>EQ, arguments: ss</term>
+            <listitem><para>
+              Property case-sensitive equality, matching contacts
+              when the named VCard property's normalised, case folded
+              value is equal to the given value.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The @ordering parameter specifies the desired ordering of the
+        search results. The array contains tuples with the form `(su)`
+        where the first element is the VCard property name to order
+        by, for example `FN`, and the second is `0` to indicate
+        ascending order, or `1` to indicate descending order.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the
+              @handle. Must be a valid object path element. See the
+              #org.freedesktop.portal.Request documentation for more
+              information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contact_ids as</term>
+            <listitem><para>
+              List of contact identifiers matching the search
+              @criterion, sorted according to @ordering.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="SearchContacts">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="v" name="criterion" direction="in"/>
+      <arg type="a(su)" name="ordering" direction="in"/>
+      <arg type="u" name="start" direction="in"/>
+      <arg type="u" name="count" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        GetContact:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection to retrieve the
+                        contact from
+        @contact_id: Identifier of the contact to be retrieved
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Retrieves contact data for a single contact from a collection.
+
+        By default, this method will return all known data for the
+        given contact, including a photo if present. Subsets of this
+        information can be returned by setting the `properties` key in
+        @options.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>properties as</term>
+            <listitem><para>
+              A list of strings that determine which VCard properties
+              will be included in the resulting contact dictionary. If
+              not specified, all present properties will be returned.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the
+              @handle. Must be a valid object path element. See the
+              #org.freedesktop.portal.Request documentation for more
+              information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contact a{sv}</term>
+            <listitem><para>
+              A contact dictionary matching the properties given in
+              @options.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        Each contact dictionary contains (at a minimum):
+        <variablelist>
+          <varlistentry>
+            <term>id s</term>
+            <listitem><para>
+              A stable, opaque, unique identifier for the contact.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>last-modified x</term>
+            <listitem><para>
+              The time the contact was last modified, in seconds since
+              the UTC epoch.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        Depending on the given @options, contact dictionaries may also
+        contain:
+        <variablelist>
+          <varlistentry>
+            <term>vcard3 s</term>
+            <listitem><para>
+              A VCard 3.0 formatted UTF-8 string containing the
+              requested contact information.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>photo (say)</term>
+            <listitem><para>
+              An encoded image containing the contact's photo. The
+              first value of the tuple is the MIME Content Type of the
+              photo data, the second value is the photo data itself.
+              This is used instead of inline Base64-encoded values for
+              the `PHOTO` property in `vcard3`.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="GetContact">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="s" name="contact_id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        CreateContact:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection to create the
+                        contact in
+        @contact: A contact dictionary containing the new contact data
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Creates a new contact in a collection.
+
+        The portal may present a window requesting confirmation and
+        allowing the contact details to be edited before being saved
+        in the collection.
+
+        The @contact dictionary must contain (at a minimum):
+        <variablelist>
+          <varlistentry>
+            <term>vcard3 s</term>
+            <listitem><para>
+              A VCard 3.0 formatted UTF-8 string containing at least
+              one VCard property. It is recommended that at least the
+              `N` or `FN` properties be present.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The @contact dictionary may also optionally contain:
+        <variablelist>
+          <varlistentry>
+            <term>photo (say)</term>
+            <listitem><para>
+              An encoded image containing the contact's photo. The
+              first value of the tuple is the MIME Content Type of the
+              photo data, the second value is the photo data itself.
+              This is used as the value of the `PHOTO` property,
+              overriding any given in `vcard3`.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contact_id s</term>
+            <listitem><para>
+              The stable, opaque identifier of the contact in the collection.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="CreateContact">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="a{sv}" name="contact" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        UpdateContact:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection containing the
+                        contact
+        @contact_id: Identifier of the collection containing the
+                     contact
+        @contact: A contact dictionary containing updated contact data
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Updates an existing contact in a collection.
+
+        The @contact dict should only contain VCard properties that
+        have changed, so that if the underlying contact data has
+        changed in the meantime, the changes are not lost. Newly added
+        properties and changed properties can be included as-is,
+        properties to be removed should have empty values.
+
+        The portal may present a window requesting confirmation and
+        allowing the contact details to be edited before being saved
+        in the collection.
+
+        The @contact dictionary must contain (at a minimum):
+        <variablelist>
+          <varlistentry>
+            <term>vcard3 s</term>
+            <listitem><para>
+              A VCard 3.0 formatted UTF-8 string containing at least
+              one VCard property. Any VCard properties present will be
+              updated in the underlying data store, any with empty
+              values will be removed.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The @contact dictionary may also optionally contain:
+        <variablelist>
+          <varlistentry>
+            <term>photo (say)</term>
+            <listitem><para>
+              An encoded image containing the contact's photo. The
+              first value of the tuple is the MIME Content Type of the
+              photo data, the second value is the photo data itself.
+              This is used as the value of the `PHOTO` property,
+              overriding any given in `vcard3`.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contact_id s</term>
+            <listitem><para>
+              The stable, opaque identifier of the contact in the collection.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="UpdateContact">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="s" name="contact_id" direction="in"/>
+      <arg type="a{sv}" name="contact" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        DeleteContact:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>
+        @collection_id: Identifier of the collection to remove the
+                        contact from
+        @contact_id: Identifier of the contact to be removed
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request
+                 object representing this call
+
+        Deletes a contact from a collection.
+
+        The portal may present a window requesting confirmation before
+        deleting the contact.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results are returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>contact_id s</term>
+            <listitem><para>
+              The stable, opaque identifier of the contact in the collection.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="DeleteContact">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="collection_id" direction="in"/>
+      <arg type="s" name="contact_id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+  </interface>
+</node>
