@@ -79,6 +79,7 @@ struct _BackgroundClass
 static XdpImplAccess *access_impl;
 static XdpImplBackground *background_impl;
 static Background *background;
+static GFileMonitor *instance_monitor;
 
 GType background_get_type (void) G_GNUC_CONST;
 static void background_iface_init (XdpBackgroundIface *iface);
@@ -460,6 +461,22 @@ background_class_init (BackgroundClass *klass)
 
 /* background monitor */
 
+/* The background monitor is running in a dedicated thread.
+ *
+ * We rely on the RunningApplicationsChanged signal from the backend to get
+ * notified about applications that start or stop having open windows, and on
+ * file monitoring to learn about flatpak instances appearing and disappearing.
+ *
+ * When either of these changes happens, we wake up the background monitor
+ * thread, and it will do a check the state of applications a few times, with
+ * a few seconds of wait in between. When we find an application in the background
+ * more than once, we check the permissions, and kill or notify if warranted.
+ *
+ * We require an application to be in background state for more than once check
+ * to avoid killing an unlucky application that just happend to start up as we
+ * did our check.
+ */
+
 typedef enum { BACKGROUND, RUNNING, ACTIVE } AppState;
 
 static GHashTable *
@@ -529,7 +546,7 @@ G_LOCK_DEFINE (applications);
 static void
 close_notification (const char *handle)
 {
-  g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (background)),
+  g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (background_impl)),
                           g_dbus_proxy_get_name (G_DBUS_PROXY (background_impl)),
                           handle,
                           "org.freedesktop.impl.portal.Request",
@@ -641,7 +658,8 @@ notify_background_done (GObject *source,
       return;
     }
 
-  g_variant_lookup (results, "result", "u", &result);
+  if (!g_variant_lookup (results, "result", "u", &result))
+    result = IGNORE;
 
   if (result == ALLOW)
     {
@@ -713,7 +731,6 @@ check_background_apps (void)
       const char *app_id;
       pid_t child_pid;
       InstanceData *idata;
-      Permission permission;
       const char *state_names[] = { "background", "running", "active" };
       gboolean is_new = FALSE;
 
@@ -739,23 +756,22 @@ check_background_apps (void)
 
       g_debug ("App %s is %s", app_id, state_names[idata->state]);
 
-      permission = get_one_permission (app_id, perms);
-
-      if (idata->permission != permission)
-        {
-          /* Notify again if permissions change */
-          idata->permission = permission;
-          idata->notified = FALSE;
-        }
+      idata->permission = get_one_permission (app_id, perms);
 
       /* If the app is not in the list yet, add it,
        * but don't notify yet - this gives apps some
-       * leeway to get their window app. If it is still
+       * leeway to get their window up. If it is still
        * in the background next time around, we'll proceed
        * to the next step.
        */
       if (idata->state != BACKGROUND || idata->notified || is_new)
-        continue;
+        {
+          if (idata->notified)
+            g_debug ("Already notified app %s ...skipping\n", app_id);
+          if (is_new)
+            g_debug ("App %s is new ...skipping\n", app_id);
+          continue;
+        }
 
       switch (idata->permission)
         {
@@ -771,7 +787,12 @@ check_background_apps (void)
           {
             NotificationData *nd = g_new0 (NotificationData, 1);
 
-            g_assert (idata->handle == NULL);
+            if (idata->handle)
+              {
+                close_notification (idata->handle);
+                g_free (idata->handle);
+              }
+
             idata->handle = g_strdup_printf ("/org/freedesktop/portal/desktop/notify/background%d", stamp);
             idata->notified = TRUE;
 
@@ -797,6 +818,10 @@ check_background_apps (void)
     {
       NotificationData *nd = g_ptr_array_index (notifications, i);
 
+      g_debug ("Tentatively allow background for %s", nd->app_id);
+
+      set_permission (nd->app_id, PERMISSION_YES);
+
       g_debug ("Notify background for %s", nd->app_id);
 
       xdp_impl_background_call_notify_background (background_impl,
@@ -811,18 +836,26 @@ check_background_apps (void)
   remove_outdated_instances (stamp);
 }
 
+static GMainContext *monitor_context;
+
 static gpointer
 background_monitor (gpointer data)
 {
   applications = g_hash_table_new_full (g_str_hash, g_str_equal,
                                         g_free, instance_data_free);
-  while (1)
+
+  while (TRUE)
     {
+      g_main_context_iteration (monitor_context, TRUE);
+      /* We check twice, to avoid killing unlucky apps hit at a bad time */
+      sleep (30);
       check_background_apps ();
-      sleep (60);
+      sleep (30);
+      check_background_apps ();
     }
 
   g_clear_pointer (&applications, g_hash_table_unref);
+  g_clear_pointer (&monitor_context, g_main_context_unref);
 
   return NULL;
 }
@@ -834,7 +867,23 @@ start_background_monitor (void)
 
   g_debug ("Starting background app monitor");
 
+  monitor_context = g_main_context_new ();
+
   thread = g_thread_new ("background monitor", background_monitor, NULL);
+}
+
+static void
+running_apps_changed (gpointer data)
+{
+  g_debug ("Running app windows changed, wake up monitor thread");
+  g_main_context_wakeup (monitor_context);
+}
+
+static void
+instances_changed (gpointer data)
+{
+  g_debug ("Running instances changed, wake up monitor thread");
+  g_main_context_wakeup (monitor_context);
 }
 
 GDBusInterfaceSkeleton *
@@ -842,6 +891,8 @@ background_create (GDBusConnection *connection,
                    const char *dbus_name_access,
                    const char *dbus_name_background)
 {
+  g_autofree char *instance_path = NULL;
+  g_autoptr(GFile) instance_dir = NULL;
   g_autoptr(GError) error = NULL;
 
   access_impl = xdp_impl_access_proxy_new_sync (connection,
@@ -874,6 +925,18 @@ background_create (GDBusConnection *connection,
   background = g_object_new (background_get_type (), NULL);
 
   start_background_monitor ();
+
+  g_signal_connect (background_impl, "running-applications-changed",
+                    G_CALLBACK (running_apps_changed), NULL);
+
+  /* FIXME: it would be better if libflatpak had a monitor api for this */
+  instance_path = g_build_filename (g_get_user_runtime_dir (), ".flatpak", NULL);
+  instance_dir = g_file_new_for_path (instance_path);
+  instance_monitor = g_file_monitor_directory (instance_dir, G_FILE_MONITOR_NONE, NULL, &error);
+  if (!instance_monitor)
+    g_warning ("Failed to create a monitor for %s: %s", instance_path, error->message);
+  else
+    g_signal_connect (instance_monitor, "changed", G_CALLBACK (instances_changed), NULL);
 
   return G_DBUS_INTERFACE_SKELETON (background);
 }
