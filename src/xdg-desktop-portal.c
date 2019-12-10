@@ -206,6 +206,7 @@ on_bus_acquired (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   XdpImplLockdown *lockdown;
   GQuark portal_errors G_GNUC_UNUSED;
+  GPtrArray *impls;
 
   /* make sure errors are registered */
   portal_errors = XDG_DESKTOP_PORTAL_ERROR;
@@ -229,8 +230,9 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, trash_create (connection));
   export_portal_implementation (connection, game_mode_create (connection));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Settings");
-  export_portal_implementation (connection, settings_create (connection, implementation ? implementation->dbus_name : NULL));
+  impls = find_all_portal_implementations ("org.freedesktop.impl.portal.Settings");
+  export_portal_implementation (connection, settings_create (connection, impls));
+  g_ptr_array_free (impls, TRUE);
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
