@@ -37,6 +37,20 @@
 
         Presents a window that lets the user compose an email.
 
+        Note that the default email client for the host will need to support mailto: URIs
+        following <ulink url="https://tools.ietf.org/html/rfc2368">RFC 2368</ulink>, with
+        “cc”, “bcc”, “subject” and “body” query keys each corresponding to the email
+        header of the same name, and with each attachment being passed as a “file://”
+        URI as a value in an “attachment” query key.
+
+        For example:
+        <programlisting>
+        mailto:foo@bar.com,baz@bar.com?cc=ceo@bar.com&amp;subject=Test%20e-mail%20subject&amp;attachment=file://path/to/full/file.txt
+        </programlisting>
+        would send a mail to “foo@bar.com”, “baz@bar.com”, with a CC:
+        to “ceo@bar.com”, with the subject “Test e-mail subject”
+        and the file pointed by URI “file://path/to/full/file.txt” as an attachment.
+
         Supported keys in the @options vardict include:
         <variablelist>
           <varlistentry>
