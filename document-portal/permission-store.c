@@ -48,6 +48,7 @@ on_name_lost (GDBusConnection *connection,
               const gchar     *name,
               gpointer         user_data)
 {
+  g_debug ("Name lost.");
   exit (1);
 }
 

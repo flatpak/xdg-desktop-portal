@@ -480,6 +480,8 @@ xdg_permission_store_start (GDBusConnection *connection)
   XdgPermissionStore *store;
   GError *error = NULL;
 
+  g_debug ("Starting permission store");
+
   tables = g_hash_table_new_full (g_str_hash, g_str_equal,
                                   g_free, (GDestroyNotify) table_free);
 
