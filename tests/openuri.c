@@ -198,7 +198,7 @@ test_open_uri_file (void)
   g_autofree char *uri = NULL;
 
   unset_openuri_permissions ("text/plain");
-  enable_paranoid_mode ("x-scheme-handler/http");
+  enable_paranoid_mode ("text/plain");
 
   keyfile = g_key_file_new ();
 
@@ -236,7 +236,7 @@ test_open_uri_delay (void)
   g_autofree char *uri = NULL;
 
   unset_openuri_permissions ("text/plain");
-  enable_paranoid_mode ("x-scheme-handler/http");
+  enable_paranoid_mode ("text/plain");
 
   keyfile = g_key_file_new ();
 
@@ -324,7 +324,7 @@ test_open_uri_close (void)
   GCancellable *cancellable;
 
   unset_openuri_permissions ("text/plain");
-  enable_paranoid_mode ("x-scheme-handler/http");
+  enable_paranoid_mode ("text/plain");
 
   keyfile = g_key_file_new ();
 
