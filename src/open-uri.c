@@ -174,6 +174,9 @@ get_latest_choice_info (const char *app_id,
   *latest_threshold = choice_threshold;
   *always_ask = ask;
 
+  g_debug ("Found in permission store: handler: %s, count: %d / %d, always ask: %d",
+           choice_id, choice_count, choice_threshold, ask);
+
   return (choice_id != NULL);
 }
 
@@ -227,11 +230,14 @@ launch_application_with_uri (const char *choice_id,
   g_autofree char *ruri = NULL;
   GList uris;
 
+  g_debug ("Launching %s %s", choice_id, uri);
+
   if (is_sandboxed (info) && is_file_uri (uri))
     {
       g_autoptr(GError) error = NULL;
 
-      g_debug ("registering %s for %s", uri, choice_id);
+      g_debug ("Registering %s for %s", uri, choice_id);
+
       ruri = register_document (uri, choice_id, FALSE, writable, &error);
       if (ruri == NULL)
         {
@@ -247,7 +253,6 @@ launch_application_with_uri (const char *choice_id,
   uris.data = (gpointer)ruri;
   uris.next = NULL;
 
-  g_debug ("launching %s %s", choice_id, ruri);
   g_app_info_launch_uris (G_APP_INFO (info), &uris, context, NULL);
 
   return TRUE;
@@ -337,6 +342,8 @@ send_response_in_thread_func (GTask *task,
       const char *parent_window;
       gboolean writable;
       const char *content_type;
+
+      g_debug ("Received choice %s", choice);
 
       uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
       parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
@@ -436,12 +443,14 @@ can_skip_app_chooser (const char *scheme,
                       const char *content_type)
 {
   /* We skip the app chooser for Internet URIs, to be open in the browser */
-  if ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0))
-    return TRUE;
-
-  /* Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
-  if (g_strcmp0 (content_type, "inode/directory") == 0)
-    return TRUE;
+  /*  Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
+  if (g_strcmp0 (scheme, "http") == 0 ||
+      g_strcmp0 (scheme, "https") == 0 ||
+      g_strcmp0 (content_type, "inode/directory") == 0)
+    {
+      g_debug ("Can skip app chooser for %s", content_type);
+      return TRUE;
+    }
 
   return FALSE;
 }
@@ -538,6 +547,7 @@ handle_open_in_thread_func (GTask *task,
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
   gboolean can_skip = FALSE;
+  const char *reason;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
@@ -611,21 +621,49 @@ handle_open_in_thread_func (GTask *task,
                           &latest_id, &latest_count, &latest_threshold,
                           &ask_for_content_type);
 
+  skip_app_chooser = FALSE;
+  reason = NULL;
+
   /* apply default handling: skip if the we have a default handler and its http or inode/directory */
-  if ((default_app != NULL && can_skip) || n_choices == 1)
-    skip_app_chooser = TRUE;
+  if (default_app != NULL && can_skip)
+    {
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: can use default";
+      skip_app_chooser = TRUE;
+    }
+
+  if (n_choices == 1)
+    {
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: no choice";
+      skip_app_chooser = TRUE;
+    }
 
   /* also skip if the user has made the same choice often enough */
   if (latest_id != NULL && latest_count >= latest_threshold)
-    skip_app_chooser = TRUE;
+    {
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: above threshold";
+      skip_app_chooser = TRUE;
+    }
 
   /* respect the app choices */
   if (ask)
-    skip_app_chooser = FALSE;
+    {
+      if (skip_app_chooser)
+        reason = "Refusing to skip app chooser: app request";
+      skip_app_chooser = FALSE;
+    }
 
   /* respect the users choices: paranoid mode overrides everything else */
   if (ask_for_content_type || latest_threshold == G_MAXINT)
-    skip_app_chooser = FALSE;
+    {
+      if (skip_app_chooser)
+        reason = "Refusing to skip app chooser: always-ask enabled";
+      skip_app_chooser = FALSE;
+    }
+
+  g_debug ("%s", reason);
 
   if (skip_app_chooser)
     {
@@ -641,6 +679,8 @@ handle_open_in_thread_func (GTask *task,
       if (app)
         {
           /* Launch the app directly */
+
+          g_debug ("Skipping app chooser");
 
           gboolean result = launch_application_with_uri (app, uri, parent_window, writable);
           if (request->exported)
@@ -680,6 +720,8 @@ handle_open_in_thread_func (GTask *task,
   request_set_impl_request (request, impl_request);
 
   g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
+
+  g_debug ("Opening app chooser");
 
   xdp_impl_app_chooser_call_choose_application (impl,
                                                 request->id,
