@@ -142,7 +142,9 @@ get_latest_choice_info (const char *app_id,
 
   if (out_data != NULL)
     {
-      g_variant_lookup (out_data, "always-ask", "b", &ask);
+      g_autoptr(GVariant) data = g_variant_get_child_value (out_data, 0);
+      if (g_variant_is_of_type (data, G_VARIANT_TYPE_VARDICT))
+        g_variant_lookup (data, "always-ask", "b", &ask);
     }
 
   if (out_perms != NULL)
