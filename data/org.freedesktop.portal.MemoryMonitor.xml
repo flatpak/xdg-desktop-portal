@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2016, 2019 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Authors: Matthias Clasen <mclasen@redhat.com>
+          Bastien Nocera <hadess@hadess.net>
+-->
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.MemoryMonitor:
+      @short_description: Memory monitoring portal
+
+      The Memory Monitor interface provides information about low system
+      memory to sandboxed applications. It is not a portal in the strict
+      sense, since it does not involve user interaction. Applications are
+      expected to use this interface indirectly, via a library API
+      such as the GLib GMemoryMonitor interface.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.MemoryMonitor">
+    <!--
+        LowMemoryWarning:
+        @level: An integer representing the level of low memory warning.
+
+        Signal emitted when a particular low memory situation happens with 0 being the lowest
+        level of memory availability warning, and 255 being the highest. Those levels are defined
+        and documented in <ulink url="https://hadess.pages.freedesktop.org/low-memory-monitor/">
+        Low Memory Monitor's documentation</ulink>.
+    -->
+    <signal name="LowMemoryWarning">
+      <arg name="level" type="y"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
