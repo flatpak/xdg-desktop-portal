@@ -113,11 +113,13 @@ get_latest_choice_info (const char *app_id,
                         const char *content_type,
                         gchar **latest_id,
                         gint *latest_count,
-                        gint *latest_threshold)
+                        gint *latest_threshold,
+                        gboolean *always_ask)
 {
   char *choice_id = NULL;
-  gint choice_count = 0;
-  gint choice_threshold = DEFAULT_THRESHOLD;
+  int choice_count = 0;
+  int choice_threshold = DEFAULT_THRESHOLD;
+  gboolean ask = FALSE;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
@@ -136,6 +138,11 @@ get_latest_choice_info (const char *app_id,
         g_warning ("Unable to retrieve info for '%s' in the %s table of the permission store: %s",
                    content_type, PERMISSION_TABLE, error->message);
       g_clear_error (&error);
+    }
+
+  if (out_data != NULL)
+    {
+      g_variant_lookup (out_data, "always-ask", "b", &ask);
     }
 
   if (out_perms != NULL)
@@ -163,6 +170,7 @@ get_latest_choice_info (const char *app_id,
   *latest_id = choice_id;
   *latest_count = choice_count;
   *latest_threshold = choice_threshold;
+  *always_ask = ask;
 
   return (choice_id != NULL);
 }
@@ -253,8 +261,10 @@ update_permissions_store (const char *app_id,
   gint latest_count;
   gint latest_threshold;
   g_auto(GStrv) in_permissions = NULL;
+  gboolean ask;
 
-  if (get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold) &&
+  if (get_latest_choice_info (app_id, content_type,
+                              &latest_id, &latest_count, &latest_threshold, &ask) &&
       (g_strcmp0 (chosen_id, latest_id) == 0))
     {
       /* same app chosen once again: update the counter */
@@ -281,6 +291,7 @@ update_permissions_store (const char *app_id,
            in_permissions[PERM_APP_COUNT],
            in_permissions[PERM_APP_THRESHOLD]);
 
+  
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            PERMISSION_TABLE,
                                                            TRUE,
@@ -517,6 +528,7 @@ handle_open_in_thread_func (GTask *task,
   g_autofree char *basename = NULL;
   gint latest_count;
   gint latest_threshold;
+  gboolean ask_for_content_type;
   GVariantBuilder opts_builder;
   gboolean skip_app_chooser = FALSE;
   int fd;
@@ -593,7 +605,9 @@ handle_open_in_thread_func (GTask *task,
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
   can_skip = can_skip_app_chooser (scheme, content_type);
-  get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold);
+  get_latest_choice_info (app_id, content_type,
+                          &latest_id, &latest_count, &latest_threshold,
+                          &ask_for_content_type);
 
   /* apply default handling: skip if the we have a default handler and its http or inode/directory */
   if ((default_app != NULL && can_skip) || n_choices == 1)
@@ -608,7 +622,7 @@ handle_open_in_thread_func (GTask *task,
     skip_app_chooser = FALSE;
 
   /* respect the users choices: paranoid mode overrides everything else */
-  if (latest_threshold == G_MAXINT)
+  if (ask_for_content_type || latest_threshold == G_MAXINT)
     skip_app_chooser = FALSE;
 
   if (skip_app_chooser)
