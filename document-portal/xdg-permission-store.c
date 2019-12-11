@@ -436,6 +436,7 @@ handle_set_value (XdgPermissionStore     *object,
 {
   Table *table;
 
+  g_autoptr(GVariant) data_child = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
@@ -443,12 +444,14 @@ handle_set_value (XdgPermissionStore     *object,
   if (table == NULL)
     return TRUE;
 
+  data_child = g_variant_get_child_value (data, 0);
+
   entry = permission_db_lookup (table->db, id);
   if (entry == NULL)
     {
       if (create)
         {
-          new_entry = permission_db_entry_new (data);
+          new_entry = permission_db_entry_new (data_child);
         }
       else
         {
@@ -460,7 +463,7 @@ handle_set_value (XdgPermissionStore     *object,
     }
   else
     {
-      new_entry = permission_db_entry_modify_data (entry, data);
+      new_entry = permission_db_entry_modify_data (entry, data_child);
     }
 
   permission_db_set_entry (table->db, id, new_entry);
