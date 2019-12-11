@@ -29,6 +29,10 @@
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 
+#if GLIB_CHECK_VERSION(2, 63, 3)
+#define HAS_MEMORY_MONITOR 1
+#endif
+
 typedef struct _MemoryMonitor MemoryMonitor;
 typedef struct _MemoryMonitorClass MemoryMonitorClass;
 
@@ -36,7 +40,9 @@ struct _MemoryMonitor
 {
   XdpMemoryMonitorSkeleton parent_instance;
 
+#ifdef HAS_MEMORY_MONITOR
   GMemoryMonitor *monitor;
+#endif /* HAS_MEMORY_MONITOR */
 };
 
 struct _MemoryMonitorClass
@@ -57,6 +63,7 @@ memory_monitor_iface_init (XdpMemoryMonitorIface *iface)
 {
 }
 
+#ifdef HAS_MEMORY_MONITOR
 static void
 low_memory_warning_cb (GObject *object,
                        GMemoryMonitorWarningLevel level,
@@ -64,12 +71,15 @@ low_memory_warning_cb (GObject *object,
 {
   xdp_memory_monitor_emit_low_memory_warning (XDP_MEMORY_MONITOR (mm), level);
 }
+#endif /* HAS_MEMORY_MONITOR */
 
 static void
 memory_monitor_init (MemoryMonitor *mm)
 {
+#ifdef HAS_MEMORY_MONITOR
   mm->monitor = g_memory_monitor_dup_default ();
   g_signal_connect (mm->monitor, "low-memory-warning", G_CALLBACK (low_memory_warning_cb), mm);
+#endif /* HAS_MEMORY_MONITOR */
 
   xdp_memory_monitor_set_version (XDP_MEMORY_MONITOR (mm), 1);
 }
@@ -77,9 +87,11 @@ memory_monitor_init (MemoryMonitor *mm)
 static void
 memory_monitor_finalize (GObject *object)
 {
+#ifdef HAS_MEMORY_MONITOR
   MemoryMonitor *mm = (MemoryMonitor *) object;
 
   g_clear_object (&mm->monitor);
+#endif /* HAS_MEMORY_MONITOR */
 
   G_OBJECT_CLASS (memory_monitor_parent_class)->finalize (object);
 }
