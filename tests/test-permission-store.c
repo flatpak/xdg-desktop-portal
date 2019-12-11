@@ -197,6 +197,59 @@ test_lookup (void)
 }
 
 static void
+test_set_value (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) p = NULL;
+  g_autoptr(GVariant) d = NULL;
+
+  res = xdg_permission_store_call_lookup_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               &p,
+                                               &d,
+                                               NULL,
+                                               &error);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+  g_clear_error (&error);
+
+  res = xdg_permission_store_call_set_value_sync (permissions,
+                                                  "TEST", TRUE,
+                                                  "test-resource",
+                                                  g_variant_new_variant (g_variant_new_boolean (TRUE)),
+                                                  NULL,
+                                                  &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  res = xdg_permission_store_call_lookup_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               &p,
+                                               &d,
+                                               NULL,
+                                               &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  g_assert_true (g_variant_is_of_type (p, G_VARIANT_TYPE ("a{sas}")));
+  g_assert_cmpint (g_variant_n_children (p), ==, 0);
+  g_assert_true (res);
+  g_assert_true (g_variant_is_of_type (d, G_VARIANT_TYPE_VARIANT));
+  g_assert_true (g_variant_is_of_type (g_variant_get_variant (d), G_VARIANT_TYPE_BOOLEAN));
+  g_assert_true (g_variant_get_boolean (g_variant_get_variant (d)));
+
+  res = xdg_permission_store_call_delete_sync (permissions,
+                                               "TEST",
+                                               "test-resource",
+                                               NULL,
+                                               &error);
+  g_assert_no_error (error);
+}
+
+static void
 test_create1 (void)
 {
   gboolean res;
@@ -510,6 +563,7 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/delete4", test_delete4);
   g_test_add_func ("/permissions/create1", test_create1);
   g_test_add_func ("/permissions/create2", test_create2);
+  g_test_add_func ("/permissions/set-value", test_set_value);
 
   global_setup ();
 
