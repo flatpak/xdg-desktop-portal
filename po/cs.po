@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-11-27 14:51-0500\n"
+"POT-Creation-Date: 2019-12-12 10:44-0500\n"
 "PO-Revision-Date: 2019-10-24 16:06+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
@@ -20,33 +20,33 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:259
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Povolit aplikaci %s běh na pozadí?"
 
-#: src/background.c:263
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Aplikace %s požaduje automatické spouštění a běh na pozadí."
 
-#: src/background.c:265
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Aplikace %s požaduje běh na pozadí."
 
-#: src/background.c:266
+#: src/background.c:267
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace."
 
-#: src/background.c:271
+#: src/background.c:272
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:272 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
 msgstr "Povolit"
 
@@ -139,7 +139,7 @@ msgstr ""
 "Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
 "soukromí."
 
-#: src/settings.c:229
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"
 

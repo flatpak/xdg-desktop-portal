@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-11-27 14:51-0500\n"
+"POT-Creation-Date: 2019-12-12 10:44-0500\n"
 "PO-Revision-Date: 2019-02-12 21:18+0100\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 2.0\n"
 
-#: src/background.c:259
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:263
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:265
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:266
+#: src/background.c:267
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -42,11 +42,11 @@ msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
 "adatvédelmi beállításokban."
 
-#: src/background.c:271
+#: src/background.c:272
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:272 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
 msgstr ""
 
@@ -143,7 +143,7 @@ msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
 "adatvédelmi beállításokban."
 
-#: src/settings.c:229
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 

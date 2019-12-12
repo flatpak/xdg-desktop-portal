@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-11-27 14:51-0500\n"
+"POT-Creation-Date: 2019-12-12 10:44-0500\n"
 "PO-Revision-Date: 2019-11-24 22:29-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "X-Generator: Gtranslator 3.32.0\n"
 
-#: src/background.c:259
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir que %s execute em segundo plano?"
 
-#: src/background.c:263
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:265
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita ser executado em segundo plano."
 
-#: src/background.c:266
+#: src/background.c:267
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "A permissão “executar em segundo plano” pode ser alterada a qualquer tempo a "
 "partir das configurações do aplicativo."
 
-#: src/background.c:271
+#: src/background.c:272
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:272 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
 msgstr "Permitir"
 
@@ -142,7 +142,7 @@ msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
 "configurações de privacidades."
 
-#: src/settings.c:229
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr "A configuração requisitada não foi encontrada"
 

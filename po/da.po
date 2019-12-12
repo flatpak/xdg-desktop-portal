@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-11-27 14:51-0500\n"
+"POT-Creation-Date: 2019-12-12 10:44-0500\n"
 "PO-Revision-Date: 2019-05-21 00:00+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -16,33 +16,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/background.c:259
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillad %s at køre i baggrunden?"
 
-#: src/background.c:263
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s anmoder om at starte automatisk og køre i baggrunden."
 
-#: src/background.c:265
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s anmoder om at køre i baggrunden."
 
-#: src/background.c:266
+#: src/background.c:267
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "‘Kør i baggrunden’-tilladelsen kan altid ændres i programindstillingerne."
 
-#: src/background.c:271
+#: src/background.c:272
 msgid "Don't allow"
 msgstr "Tillad ikke"
 
-#: src/background.c:272 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
 msgstr "Tillad"
 
@@ -138,7 +138,7 @@ msgstr ""
 "Adgang til din placering kan når som helst ændres fra "
 "privatlivsindstillingerne."
 
-#: src/settings.c:229
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr "Den anmodede indstilling blev ikke fundet"
 

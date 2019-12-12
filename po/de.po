@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-11-27 14:51-0500\n"
+"POT-Creation-Date: 2019-12-12 10:44-0500\n"
 "PO-Revision-Date: 2016-09-23 19:17+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: src/background.c:259
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:263
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:265
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:266
+#: src/background.c:267
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -43,11 +43,11 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/background.c:271
+#: src/background.c:272
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:272 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
 msgstr ""
 
@@ -146,7 +146,7 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/settings.c:229
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr ""
 
