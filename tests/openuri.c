@@ -43,11 +43,24 @@ set_openuri_permissions (const char *type,
 static void
 unset_openuri_permissions (const char *type)
 {
+  GVariantBuilder data_builder;
+
   xdp_impl_permission_store_call_delete_sync (permission_store,
                                               "desktop-used-apps",
                                               type,
                                               NULL,
                                               NULL);
+
+  /* turn on paranoid mode to ensure we get a backend call */
+  g_variant_builder_init (&data_builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&data_builder, "{sv}", "always-ask", g_variant_new_boolean (TRUE));
+  xdp_impl_permission_store_call_set_value_sync (permission_store,
+                                                 "desktop-used-apps",
+                                                 TRUE,
+                                                 type,
+                                                 g_variant_new_variant (g_variant_builder_end (&data_builder)),
+                                                 NULL,
+                                                 NULL);
   /* Ignore the error here, since this fails if the table doesn't exist */
 }
 
