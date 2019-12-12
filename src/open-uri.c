@@ -190,19 +190,23 @@ is_sandboxed (GDesktopAppInfo *info)
   return flatpak != NULL;
 }
 
+/* This returns the desktop file basename without extension.
+ * We cant' just use the flatpak ID, since flatpaks are allowed
+ * to export 'sub ids', like the org.libreoffice.LibreOffice
+ * flatpak exporting org.libreoffice.LibreOffice.Impress.desktop,
+ * and we need to track the actual handlers.
+ *
+ * We still strip the .desktop extension, since that is what
+ * the backends expect.
+ */
 static char *
-get_actual_app_id (GAppInfo *info)
+get_app_id (GAppInfo *info)
 {
-  g_autofree char *flatpak = NULL;
   const char *desktop_id;
 
-  flatpak = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (info), "X-Flatpak");
   desktop_id = g_app_info_get_id (info);
 
-  if (flatpak)
-    return g_steal_pointer (&flatpak);
-  else
-    return g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+  return g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
 }
 
 static gboolean
@@ -469,7 +473,7 @@ find_recommended_choices (const char *scheme,
   int i;
 
   info = g_app_info_get_default_for_type (content_type, FALSE);
-  *default_app = get_actual_app_id (info);
+  *default_app = get_app_id (info);
 
   g_debug ("Default handler %s for %s, %s", *default_app, scheme, content_type);
 
@@ -483,7 +487,7 @@ find_recommended_choices (const char *scheme,
   for (l = infos, i = 0; l; l = l->next)
     {
       info = l->data;
-      result[i++] = get_actual_app_id (info);
+      result[i++] = get_app_id (info);
     }
   result[i] = NULL;
   g_list_free_full (infos, g_object_unref);
