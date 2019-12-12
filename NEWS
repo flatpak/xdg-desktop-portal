@@ -1,3 +1,14 @@
+Changes in 1.5.4
+================
+
+- background: Add a signal to the impl api
+- background: Rewrite the monitoring to better track when apps disappear
+- permissions: Fix SetValue handling of GVariant wrapping. This is an api change
+- openuri: Add a per-type always-ask option
+- openuri: Show the app chooser dialog less often
+- memorymonitor: A new portal to let apps receive low memory warnings
+- filetransfer: A new portal to rewrite file paths between sandboxes
+
 Changes in 1.5.3
 ================
 
