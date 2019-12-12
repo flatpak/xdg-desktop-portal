@@ -88,7 +88,9 @@ CLEANFILES += $(nodist_xdg_document_portal_SOURCES)
 xdg_document_portal_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
+	document-portal/document-portal.h		\
 	document-portal/document-portal.c		\
+	document-portal/file-transfer.h			\
 	document-portal/file-transfer.c			\
 	document-portal/document-enums.h		\
 	document-portal/document-store.h		\
