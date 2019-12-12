@@ -1332,6 +1332,8 @@ on_bus_acquired (GDBusConnection *connection,
       g_error_free (error);
     }
 
+  g_debug ("Providing portal %s", g_dbus_interface_skeleton_get_info (G_DBUS_INTERFACE_SKELETON (dbus_api))->name);
+
   if (!g_dbus_interface_skeleton_export (file_transfer,
                                          connection,
                                          "/org/freedesktop/portal/documents",
@@ -1340,6 +1342,8 @@ on_bus_acquired (GDBusConnection *connection,
       g_warning ("error: %s", error->message);
       g_error_free (error);
     }
+
+  g_debug ("Providing portal %s", g_dbus_interface_skeleton_get_info (G_DBUS_INTERFACE_SKELETON (file_transfer))->name);
 }
 
 static void
