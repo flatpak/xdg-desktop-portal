@@ -45,7 +45,7 @@ name_appeared_cb (GDBusConnection *bus,
                   const char *name_owner,
                   gpointer data)
 {
-  gboolean *b = data;
+  gboolean *b = (gboolean *)data;
 
   g_debug ("Name %s now owned by %s\n", name, name_owner);
 
@@ -79,10 +79,11 @@ global_setup (void)
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
-  gboolean name_appeared = FALSE;
   guint name_timeout;
-  const char *argv[3];
+  const char *argv[4];
   GQuark portal_errors G_GNUC_UNUSED;
+  static gboolean name_appeared;
+  guint watch;
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
@@ -102,13 +103,14 @@ global_setup (void)
   g_assert_no_error (error);
 
   /* start portal backends */
-  g_bus_watch_name_on_connection (session_bus,
-                                  BACKEND_BUS_NAME,
-                                  0,
-                                  name_appeared_cb,
-                                  name_disappeared_cb,
-                                  &name_appeared,
-                                  NULL);
+  name_appeared = FALSE;
+  watch = g_bus_watch_name_on_connection (session_bus,
+                                          BACKEND_BUS_NAME,
+                                          0,
+                                          name_appeared_cb,
+                                          name_disappeared_cb,
+                                          &name_appeared,
+                                          NULL);
 
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
@@ -120,6 +122,8 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
+  g_print ("launching test-backend\n");
+
   backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
@@ -129,20 +133,21 @@ global_setup (void)
     g_main_context_iteration (NULL, TRUE);
 
   g_source_remove (name_timeout);
+  g_bus_unwatch_name (watch);
 
-  name_appeared = FALSE;
-  
   /* start portals */
-  g_bus_watch_name_on_connection (session_bus,
-                                  PORTAL_BUS_NAME,
-                                  0,
-                                  name_appeared_cb,
-                                  name_disappeared_cb,
-                                  &name_appeared,
-                                  NULL);
+  name_appeared = FALSE;
+  watch = g_bus_watch_name_on_connection (session_bus,
+                                          PORTAL_BUS_NAME,
+                                          0,
+                                          name_appeared_cb,
+                                          name_disappeared_cb,
+                                          &name_appeared,
+                                          NULL);
 
   portal_dir = g_test_build_filename (G_TEST_DIST, "portals", NULL);
 
+  g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
@@ -154,6 +159,8 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
+  g_print ("launching xdg-desktop-portal\n");
+
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
@@ -163,6 +170,42 @@ global_setup (void)
     g_main_context_iteration (NULL, TRUE);
 
   g_source_remove (name_timeout);
+  g_bus_unwatch_name (watch);
+
+  /* start permission store */
+  name_appeared = FALSE;
+  watch = g_bus_watch_name_on_connection (session_bus,
+                                          "org.freedesktop.impl.portal.PermissionStore",
+                                          0,
+                                          name_appeared_cb,
+                                          name_disappeared_cb,
+                                          &name_appeared,
+                                          NULL);
+
+  g_clear_object (&launcher);
+  launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
+  g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
+  g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
+  g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+ 
+  argv[0] = "xdg-permission-store";
+  argv[1] = "--replace";
+  argv[2] = g_test_verbose () ? "--verbose" : NULL;
+  argv[3] = NULL;
+
+  g_print ("launching xdg-permission-store");
+
+  portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  g_assert_no_error (error);
+
+  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-permission-store");
+
+  while (!name_appeared)
+    g_main_context_iteration (NULL, TRUE);
+
+  g_source_remove (name_timeout);
+  g_bus_unwatch_name (watch);
 
   permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus,
                                                                0,

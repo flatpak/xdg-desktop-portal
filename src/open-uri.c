@@ -83,13 +83,11 @@ static void
 parse_permissions (const char **permissions,
                    char **app_id,
                    gint *app_count,
-                   gint *app_threshold,
-                   gboolean *always_ask)
+                   gint *app_threshold)
 {
   char *perms_id = NULL;
   gint perms_count = 0;
   gint perms_threshold = DEFAULT_THRESHOLD;
-  gboolean perms_always_ask = FALSE;
 
   if ((permissions != NULL) &&
       (permissions[PERM_APP_ID] != NULL) &&
@@ -101,17 +99,13 @@ parse_permissions (const char **permissions,
         {
           g_autofree char *threshold = g_strdup (permissions[PERM_APP_THRESHOLD]);
           if (g_strstrip(threshold)[0] != '\0')
-            {
-              perms_threshold = atoi (permissions[PERM_APP_THRESHOLD]);
-              perms_always_ask = perms_threshold == G_MAXINT;
-            }
+            perms_threshold = atoi (permissions[PERM_APP_THRESHOLD]);
         }
     }
 
   *app_id = perms_id;
   *app_count = perms_count;
   *app_threshold = perms_threshold;
-  *always_ask = perms_always_ask;
 }
 
 static gboolean
@@ -123,9 +117,9 @@ get_latest_choice_info (const char *app_id,
                         gboolean *always_ask)
 {
   char *choice_id = NULL;
-  gint choice_count = 0;
-  gint choice_threshold = DEFAULT_THRESHOLD;
-  gboolean choice_always_ask = FALSE;
+  int choice_count = 0;
+  int choice_threshold = DEFAULT_THRESHOLD;
+  gboolean ask = FALSE;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
@@ -146,6 +140,13 @@ get_latest_choice_info (const char *app_id,
       g_clear_error (&error);
     }
 
+  if (out_data != NULL)
+    {
+      g_autoptr(GVariant) data = g_variant_get_child_value (out_data, 0);
+      if (g_variant_is_of_type (data, G_VARIANT_TYPE_VARDICT))
+        g_variant_lookup (data, "always-ask", "b", &ask);
+    }
+
   if (out_perms != NULL)
     {
       GVariantIter iter;
@@ -161,7 +162,7 @@ get_latest_choice_info (const char *app_id,
           g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
           if (g_strcmp0 (child_app_id, app_id) == 0)
             {
-              parse_permissions (permissions, &choice_id, &choice_count, &choice_threshold, &choice_always_ask);
+              parse_permissions (permissions, &choice_id, &choice_count, &choice_threshold);
               app_found = TRUE;
             }
           g_variant_unref (child);
@@ -171,7 +172,10 @@ get_latest_choice_info (const char *app_id,
   *latest_id = choice_id;
   *latest_count = choice_count;
   *latest_threshold = choice_threshold;
-  *always_ask = choice_always_ask;
+  *always_ask = ask;
+
+  g_debug ("Found in permission store: handler: %s, count: %d / %d, always ask: %d",
+           choice_id, choice_count, choice_threshold, ask);
 
   return (choice_id != NULL);
 }
@@ -179,10 +183,30 @@ get_latest_choice_info (const char *app_id,
 static gboolean
 is_sandboxed (GDesktopAppInfo *info)
 {
-  g_autofree char *exec;
+  g_autofree char *flatpak = NULL;
 
-  exec = g_desktop_app_info_get_string (info, G_KEY_FILE_DESKTOP_KEY_EXEC);
-  return strstr (exec, "flatpak run ") != NULL;
+  flatpak = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (info), "X-Flatpak");
+
+  return flatpak != NULL;
+}
+
+/* This returns the desktop file basename without extension.
+ * We cant' just use the flatpak ID, since flatpaks are allowed
+ * to export 'sub ids', like the org.libreoffice.LibreOffice
+ * flatpak exporting org.libreoffice.LibreOffice.Impress.desktop,
+ * and we need to track the actual handlers.
+ *
+ * We still strip the .desktop extension, since that is what
+ * the backends expect.
+ */
+static char *
+get_app_id (GAppInfo *info)
+{
+  const char *desktop_id;
+
+  desktop_id = g_app_info_get_id (info);
+
+  return g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
 }
 
 static gboolean
@@ -210,11 +234,14 @@ launch_application_with_uri (const char *choice_id,
   g_autofree char *ruri = NULL;
   GList uris;
 
+  g_debug ("Launching %s %s", choice_id, uri);
+
   if (is_sandboxed (info) && is_file_uri (uri))
     {
       g_autoptr(GError) error = NULL;
 
-      g_debug ("registering %s for %s", uri, choice_id);
+      g_debug ("Registering %s for %s", uri, choice_id);
+
       ruri = register_document (uri, choice_id, FALSE, writable, &error);
       if (ruri == NULL)
         {
@@ -230,7 +257,6 @@ launch_application_with_uri (const char *choice_id,
   uris.data = (gpointer)ruri;
   uris.next = NULL;
 
-  g_debug ("launching %s %s", choice_id, ruri);
   g_app_info_launch_uris (G_APP_INFO (info), &uris, context, NULL);
 
   return TRUE;
@@ -245,10 +271,11 @@ update_permissions_store (const char *app_id,
   g_autofree char *latest_id = NULL;
   gint latest_count;
   gint latest_threshold;
-  gboolean always_ask;
   g_auto(GStrv) in_permissions = NULL;
+  gboolean ask;
 
-  if (get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask) &&
+  if (get_latest_choice_info (app_id, content_type,
+                              &latest_id, &latest_count, &latest_threshold, &ask) &&
       (g_strcmp0 (chosen_id, latest_id) == 0))
     {
       /* same app chosen once again: update the counter */
@@ -259,15 +286,14 @@ update_permissions_store (const char *app_id,
     }
   else
     {
-      /* latest_id is heap-allocated */
       latest_id = g_strdup (chosen_id);
-      latest_count = 0;
+      latest_count = 1;
     }
 
   in_permissions = (GStrv) g_new0 (char *, LAST_PERM + 1);
   in_permissions[PERM_APP_ID] = g_strdup (latest_id);
   in_permissions[PERM_APP_COUNT] = g_strdup_printf ("%u", latest_count);
-  in_permissions[PERM_APP_THRESHOLD] = always_ask ? g_strdup ("") : g_strdup_printf ("%u", latest_threshold);
+  in_permissions[PERM_APP_THRESHOLD] = g_strdup_printf ("%u", latest_threshold);
 
   g_debug ("updating permissions for %s: content-type %s, handler %s, count %s / %s",
            app_id,
@@ -276,6 +302,7 @@ update_permissions_store (const char *app_id,
            in_permissions[PERM_APP_COUNT],
            in_permissions[PERM_APP_THRESHOLD]);
 
+  
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            PERMISSION_TABLE,
                                                            TRUE,
@@ -319,6 +346,8 @@ send_response_in_thread_func (GTask *task,
       const char *parent_window;
       gboolean writable;
       const char *content_type;
+
+      g_debug ("Received choice %s", choice);
 
       uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
       parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
@@ -418,12 +447,14 @@ can_skip_app_chooser (const char *scheme,
                       const char *content_type)
 {
   /* We skip the app chooser for Internet URIs, to be open in the browser */
-  if ((g_strcmp0 (scheme, "http") == 0) || (g_strcmp0 (scheme, "https") == 0))
-    return TRUE;
-
-  /* Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
-  if (g_strcmp0 (content_type, "inode/directory") == 0)
-    return TRUE;
+  /*  Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
+  if (g_strcmp0 (scheme, "http") == 0 ||
+      g_strcmp0 (scheme, "https") == 0 ||
+      g_strcmp0 (content_type, "inode/directory") == 0)
+    {
+      g_debug ("Can skip app chooser for %s", content_type);
+      return TRUE;
+    }
 
   return FALSE;
 }
@@ -431,33 +462,20 @@ can_skip_app_chooser (const char *scheme,
 static void
 find_recommended_choices (const char *scheme,
                           const char *content_type,
+                          char **default_app,
                           GStrv *choices,
-                          gboolean *skip_app_chooser)
+                          guint *choices_len)
 {
-  GAppInfo *default_app = NULL;
+  GAppInfo *info;
   GList *infos, *l;
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
 
-  default_app = g_app_info_get_default_for_type (content_type, FALSE);
-  if (default_app != NULL && can_skip_app_chooser (scheme, content_type))
-    {
-      /* Use the default application if it's set */
-      const char *desktop_id = g_app_info_get_id (default_app);
+  info = g_app_info_get_default_for_type (content_type, FALSE);
+  *default_app = get_app_id (info);
 
-      result = g_new (char *, 2);
-      result[0] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
-      result[1] = NULL;
-
-      *skip_app_chooser = TRUE;
-      *choices = result;
-
-      g_debug ("Using default application %s for %s, %s. Skipping app chooser", result[0], scheme, content_type);
-
-      g_object_unref (default_app);
-      return;
-    }
+  g_debug ("Default handler %s for %s, %s", *default_app, scheme, content_type);
 
   infos = g_app_info_get_recommended_for_type (content_type);
   /* Use fallbacks if we have no recommended application for this type */
@@ -468,28 +486,19 @@ find_recommended_choices (const char *scheme,
   result = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
     {
-      const char *desktop_id;
-
-      GAppInfo *info = l->data;
-      desktop_id = g_app_info_get_id (info);
-      result[i++] = g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+      info = l->data;
+      result[i++] = get_app_id (info);
     }
   result[i] = NULL;
   g_list_free_full (infos, g_object_unref);
 
   {
     g_autofree char *a = g_strjoinv (", ", result);
-    g_debug ("Possible handlers for %s, %s: %s", scheme, content_type, a);
+    g_debug ("Recommended handlers for %s, %s: %s", scheme, content_type, a);
   }
 
-  /* We might skip the dialog too if there's only one possible option to handle the URI */
-  if ((n_choices == 1) && can_skip_app_chooser (scheme, content_type))
-    {
-      g_debug ("Skipping app chooser, since only one choice");
-      *skip_app_chooser = TRUE;
-    }
-
   *choices = result;
+  *choices_len = n_choices;
 }
 
 static void
@@ -498,12 +507,13 @@ app_info_changed (GAppInfoMonitor *monitor,
 {
   const char *scheme;
   const char *content_type;
+  g_autofree char *default_app = NULL;
   g_auto(GStrv) choices = NULL;
-  gboolean skip_app_chooser = FALSE;
+  guint n_choices;
 
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
-  find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
+  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_impl_app_chooser_call_update_choices (impl,
                                             request->id,
@@ -524,20 +534,24 @@ handle_open_in_thread_func (GTask *task,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autofree char *uri = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autofree char *default_app = NULL;
   g_auto(GStrv) choices = NULL;
+  guint n_choices;
   g_autofree char *scheme = NULL;
   g_autofree char *content_type = NULL;
   g_autofree char *latest_id = NULL;
   g_autofree char *basename = NULL;
   gint latest_count;
   gint latest_threshold;
-  gboolean always_ask;
+  gboolean ask_for_content_type;
   GVariantBuilder opts_builder;
   gboolean skip_app_chooser = FALSE;
   int fd;
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
+  gboolean can_skip = FALSE;
+  const char *reason;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
@@ -604,37 +618,94 @@ handle_open_in_thread_func (GTask *task,
   g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
-  find_recommended_choices (scheme, content_type, &choices, &skip_app_chooser);
-  get_latest_choice_info (app_id, content_type, &latest_id, &latest_count, &latest_threshold, &always_ask);
+  /* collect all the information */
+  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  can_skip = can_skip_app_chooser (scheme, content_type);
+  get_latest_choice_info (app_id, content_type,
+                          &latest_id, &latest_count, &latest_threshold,
+                          &ask_for_content_type);
 
-  if (!ask && ((always_ask && skip_app_chooser) || (!always_ask && (latest_count >= latest_threshold))))
+  skip_app_chooser = FALSE;
+  reason = NULL;
+
+  /* apply default handling: skip if the we have a default handler and its http or inode/directory */
+  if (default_app != NULL && can_skip)
     {
-      /* If a recommended choice is found, just use it and skip the chooser dialog */
-      gboolean result = launch_application_with_uri (skip_app_chooser ? choices[0] : latest_id,
-                                                     uri,
-                                                     parent_window,
-                                                     writable);
-      if (request->exported)
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: can use default";
+      skip_app_chooser = TRUE;
+    }
+
+  if (n_choices == 1)
+    {
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: no choice";
+      skip_app_chooser = TRUE;
+    }
+
+  /* also skip if the user has made the same choice often enough */
+  if (latest_id != NULL && latest_count >= latest_threshold)
+    {
+      if (!skip_app_chooser)
+        reason = "Allowing to skip app chooser: above threshold";
+      skip_app_chooser = TRUE;
+    }
+
+  /* respect the app choices */
+  if (ask)
+    {
+      if (skip_app_chooser)
+        reason = "Refusing to skip app chooser: app request";
+      skip_app_chooser = FALSE;
+    }
+
+  /* respect the users choices: paranoid mode overrides everything else */
+  if (ask_for_content_type || latest_threshold == G_MAXINT)
+    {
+      if (skip_app_chooser)
+        reason = "Refusing to skip app chooser: always-ask enabled";
+      skip_app_chooser = FALSE;
+    }
+
+  g_debug ("%s", reason);
+
+  if (skip_app_chooser)
+    {
+      const char *app;
+
+      if (latest_id != NULL)
+        app = latest_id;
+      else if (default_app != NULL)
+        app = default_app;
+      else
+        app = choices[0];
+
+      if (app)
         {
-          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-          xdp_request_emit_response (XDP_REQUEST (request),
-                                     result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                     g_variant_builder_end (&opts_builder));
-          request_unexport (request);
+          /* Launch the app directly */
+
+          g_debug ("Skipping app chooser");
+
+          gboolean result = launch_application_with_uri (app, uri, parent_window, writable);
+          if (request->exported)
+            {
+              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+              xdp_request_emit_response (XDP_REQUEST (request),
+                                         result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                         g_variant_builder_end (&opts_builder));
+              request_unexport (request);
+            }
+
+          return;
         }
-      return;
     }
 
   g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
 
   if (latest_id != NULL)
-    {
-      /* Add extra options to the request for the backend */
-      g_variant_builder_add (&opts_builder,
-                             "{sv}",
-                             "last_choice",
-                             g_variant_new_string (latest_id));
-    }
+    g_variant_builder_add (&opts_builder, "{sv}", "last_choice", g_variant_new_string (latest_id));
+  else if (default_app != NULL)
+    g_variant_builder_add (&opts_builder, "{sv}", "last_choice", g_variant_new_string (default_app));
 
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
@@ -653,6 +724,8 @@ handle_open_in_thread_func (GTask *task,
   request_set_impl_request (request, impl_request);
 
   g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
+
+  g_debug ("Opening app chooser");
 
   xdp_impl_app_chooser_call_choose_application (impl,
                                                 request->id,
