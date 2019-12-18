@@ -64,7 +64,7 @@ test_screenshot_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -96,7 +96,7 @@ test_screenshot_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -127,7 +127,7 @@ test_screenshot_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -174,7 +174,7 @@ test_screenshot_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, cancellable, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, cancellable, screenshot_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -204,9 +204,9 @@ test_screenshot_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
-  xdp_portal_take_screenshot (portal, NULL, FALSE, FALSE, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
+  xdp_portal_take_screenshot (portal, NULL, 0, NULL, screenshot_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);

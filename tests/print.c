@@ -74,7 +74,7 @@ test_prepare_print_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -101,7 +101,7 @@ test_prepare_print_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -128,7 +128,7 @@ test_prepare_print_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -170,7 +170,7 @@ test_prepare_print_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, cancellable, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, cancellable, prepare_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -203,7 +203,7 @@ test_prepare_print_lockdown (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -233,7 +233,7 @@ test_prepare_print_results (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -260,9 +260,9 @@ test_prepare_print_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
-  xdp_portal_prepare_print (portal, NULL, "test", FALSE, NULL, NULL, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
+  xdp_portal_prepare_print (portal, NULL, "test", NULL, NULL, 0, NULL, prepare_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
@@ -324,7 +324,7 @@ test_print_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -351,7 +351,7 @@ test_print_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -378,7 +378,7 @@ test_print_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -409,7 +409,7 @@ test_print_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, cancellable, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, cancellable, print_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -443,7 +443,7 @@ test_print_lockdown (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -472,9 +472,9 @@ test_print_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
-  xdp_portal_print_file (portal, NULL, "test", FALSE, 0, path, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
+  xdp_portal_print_file (portal, NULL, "test", 0, path, 0, NULL, print_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);

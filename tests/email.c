@@ -76,6 +76,7 @@ test_email_basic (void)
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -120,6 +121,7 @@ test_email_address (void)
                             NULL,
                             NULL,
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -163,6 +165,7 @@ test_email_subject (void)
                             subject,
                             NULL,
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -183,6 +186,7 @@ test_email_subject (void)
                             subject,
                             NULL,
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -230,6 +234,7 @@ test_email_delay (void)
                             subject,
                             NULL,
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -277,6 +282,7 @@ test_email_cancel (void)
                             subject,
                             NULL,
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -340,6 +346,7 @@ test_email_close (void)
                             subject,
                             NULL,
                             NULL,
+                            0,
                             cancellable,
                             email_cb,
                             keyfile);
@@ -384,6 +391,7 @@ test_email_parallel (void)
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -392,6 +400,7 @@ test_email_parallel (void)
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);
@@ -400,6 +409,7 @@ test_email_parallel (void)
                             "Re: portal tests",
                             "You have to see this...",
                             NULL,
+                            0,
                             NULL,
                             email_cb,
                             keyfile);

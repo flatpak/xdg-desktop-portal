@@ -89,7 +89,7 @@ test_inhibit_basic (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_LOGOUT|XDP_INHIBIT_USER_SWITCH;
+  flags = XDP_INHIBIT_FLAG_LOGOUT|XDP_INHIBIT_FLAG_USER_SWITCH;
 
   g_key_file_set_integer (keyfile, "inhibit", "flags", flags);
   g_key_file_set_integer (keyfile, "result", "response", 0);
@@ -101,7 +101,7 @@ test_inhibit_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -122,7 +122,7 @@ test_inhibit_delay (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_USER_SWITCH|XDP_INHIBIT_IDLE;
+  flags = XDP_INHIBIT_FLAG_USER_SWITCH|XDP_INHIBIT_FLAG_IDLE;
 
   g_key_file_set_integer (keyfile, "inhibit", "flags", flags);
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -135,7 +135,7 @@ test_inhibit_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -156,7 +156,7 @@ test_inhibit_cancel (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_USER_SWITCH|XDP_INHIBIT_IDLE;
+  flags = XDP_INHIBIT_FLAG_USER_SWITCH|XDP_INHIBIT_FLAG_IDLE;
 
   g_key_file_set_integer (keyfile, "inhibit", "flags", flags);
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -170,7 +170,7 @@ test_inhibit_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -201,7 +201,7 @@ test_inhibit_close (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_USER_SWITCH|XDP_INHIBIT_IDLE;
+  flags = XDP_INHIBIT_FLAG_USER_SWITCH|XDP_INHIBIT_FLAG_IDLE;
 
   g_key_file_set_integer (keyfile, "inhibit", "flags", flags);
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -218,7 +218,7 @@ test_inhibit_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", cancellable, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, cancellable, inhibit_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -240,9 +240,9 @@ test_inhibit_permissions (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_LOGOUT|XDP_INHIBIT_USER_SWITCH;
+  flags = XDP_INHIBIT_FLAG_LOGOUT|XDP_INHIBIT_FLAG_USER_SWITCH;
 
-  g_key_file_set_integer (keyfile, "inhibit", "flags", XDP_INHIBIT_LOGOUT); /* user switch is not allowed */
+  g_key_file_set_integer (keyfile, "inhibit", "flags", XDP_INHIBIT_FLAG_LOGOUT); /* user switch is not allowed */
 
   path = g_build_filename (outdir, "inhibit", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -251,7 +251,7 @@ test_inhibit_permissions (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -274,7 +274,7 @@ test_inhibit_parallel (void)
 
   keyfile = g_key_file_new ();
 
-  flags = XDP_INHIBIT_USER_SWITCH|XDP_INHIBIT_IDLE;
+  flags = XDP_INHIBIT_FLAG_USER_SWITCH|XDP_INHIBIT_FLAG_IDLE;
 
   g_key_file_set_integer (keyfile, "inhibit", "flags", flags);
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
@@ -287,9 +287,9 @@ test_inhibit_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
-  xdp_portal_session_inhibit (portal, NULL, flags, "Testing portals", NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
+  xdp_portal_session_inhibit (portal, NULL, "Testing portals", flags, NULL, inhibit_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
@@ -378,7 +378,7 @@ test_inhibit_monitor (void)
   id = g_signal_connect (portal, "session-state-changed", G_CALLBACK (session_state_changed_cb), NULL);
 
   got_info = 0;
-  xdp_portal_session_monitor_start (portal, NULL, NULL, monitor_cb, NULL);
+  xdp_portal_session_monitor_start (portal, NULL, 0, NULL, monitor_cb, NULL);
 
   /* we get a monitor_cb and an initial state-changed emission */
   while (got_info < 2)
