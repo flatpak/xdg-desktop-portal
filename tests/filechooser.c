@@ -95,7 +95,7 @@ test_open_file_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -127,7 +127,7 @@ test_open_file_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -159,7 +159,7 @@ test_open_file_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -206,7 +206,7 @@ test_open_file_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, cancellable, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, cancellable, open_file_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -241,7 +241,7 @@ test_open_file_multiple (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", TRUE, TRUE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -281,7 +281,7 @@ test_open_file_filters1 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, filters, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", filters, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -323,7 +323,7 @@ test_open_file_filters2 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, filters, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", filters, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -367,7 +367,7 @@ test_open_file_current_filter1 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, filters, current_filter, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", filters, current_filter, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -405,7 +405,7 @@ test_open_file_current_filter2 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, current_filter, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, current_filter, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -445,7 +445,7 @@ test_open_file_current_filter3 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, current_filter, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, current_filter, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -491,7 +491,7 @@ test_open_file_current_filter4 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, filters, current_filter, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", filters, current_filter, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -531,7 +531,7 @@ test_open_file_choices1 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, choices, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, choices, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -566,7 +566,7 @@ test_open_file_choices2 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, choices, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, choices, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -601,7 +601,7 @@ test_open_file_choices3 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, choices, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, choices, 0, NULL, open_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -633,9 +633,9 @@ test_open_file_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
-  xdp_portal_open_file (portal, NULL, "test", FALSE, FALSE, NULL, NULL, NULL, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
+  xdp_portal_open_file (portal, NULL, "test", NULL, NULL, NULL, 0, NULL, open_file_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
@@ -710,7 +710,7 @@ test_save_file_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -742,7 +742,7 @@ test_save_file_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -774,7 +774,7 @@ test_save_file_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -810,7 +810,7 @@ test_save_file_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, cancellable, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, cancellable, save_file_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -852,7 +852,7 @@ test_save_file_filters (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, filters, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, filters, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -888,7 +888,7 @@ test_save_file_lockdown (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -922,9 +922,9 @@ test_save_file_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
-  xdp_portal_save_file (portal, NULL, "test", FALSE, "test_file.txt", NULL, NULL, NULL, NULL, NULL, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
+  xdp_portal_save_file (portal, NULL, "test", "test_file.txt", NULL, NULL, NULL, NULL, NULL, 0, NULL, save_file_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);

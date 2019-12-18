@@ -112,7 +112,7 @@ test_camera_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -143,7 +143,7 @@ test_camera_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -174,7 +174,7 @@ test_camera_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -220,7 +220,7 @@ test_camera_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, cancellable, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, cancellable, camera_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -256,7 +256,7 @@ test_camera_lockdown (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -289,7 +289,7 @@ test_camera_no_access1 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -320,7 +320,7 @@ test_camera_no_access2 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -350,9 +350,9 @@ test_camera_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
-  xdp_portal_access_camera (portal, NULL, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
+  xdp_portal_access_camera (portal, NULL, 0, NULL, camera_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);

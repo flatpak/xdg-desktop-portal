@@ -139,7 +139,7 @@ test_open_uri_http (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -182,7 +182,7 @@ test_open_uri_http2 (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -220,7 +220,7 @@ test_open_uri_file (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, uri, FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, uri, 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -258,7 +258,7 @@ test_open_uri_delay (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, uri, FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, uri, 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -296,7 +296,7 @@ test_open_uri_cancel (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, uri, FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, uri, 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -349,7 +349,7 @@ test_open_uri_close (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, uri, FALSE, FALSE, cancellable, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, uri, 0, cancellable, open_uri_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -382,7 +382,7 @@ test_open_uri_lockdown (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", FALSE, FALSE, NULL, open_uri_cb, keyfile);
+  xdp_portal_open_uri (portal, NULL, "http://www.flatpak.org", 0, NULL, open_uri_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -465,7 +465,7 @@ test_open_directory (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_open_directory (portal, NULL, uri, NULL, open_dir_cb, keyfile);
+  xdp_portal_open_directory (portal, NULL, uri, 0, NULL, open_dir_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);

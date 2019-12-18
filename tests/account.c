@@ -108,7 +108,7 @@ test_account_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", 0, NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -142,13 +142,13 @@ test_account_reason (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "xx", 0, NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
   got_info = FALSE;
-  xdp_portal_get_user_information (portal, NULL, "yy", NULL, account_cb_fail, NULL);
+  xdp_portal_get_user_information (portal, NULL, "yy", 0, NULL, account_cb_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -166,7 +166,7 @@ test_account_reason (void)
   g_assert (g_utf8_strlen (long_reason, -1) > 256);
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, long_reason, NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, long_reason, 0, NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -201,7 +201,7 @@ test_account_delay (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "xx", 0, NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -235,7 +235,7 @@ test_account_cancel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "xx", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "xx", 0, NULL, account_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -285,7 +285,7 @@ test_account_close (void)
   cancellable = g_cancellable_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "xx", cancellable, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "xx", 0, cancellable, account_cb, keyfile);
 
   g_timeout_add (100, cancel_call, cancellable);
 
@@ -320,9 +320,9 @@ test_account_parallel (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
-  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
-  xdp_portal_get_user_information (portal, NULL, "test", NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", 0, NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", 0, NULL, account_cb, keyfile);
+  xdp_portal_get_user_information (portal, NULL, "test", 0, NULL, account_cb, keyfile);
 
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);

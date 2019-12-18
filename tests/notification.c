@@ -66,7 +66,7 @@ test_notification_basic (void)
   id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test", notification, NULL, NULL, NULL);
+  xdp_portal_add_notification (portal, "test", notification, 0, NULL, NULL, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -114,7 +114,7 @@ test_notification_buttons (void)
   id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test2", notification, NULL, NULL, NULL);
+  xdp_portal_add_notification (portal, "test2", notification, 0, NULL, NULL, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -172,7 +172,7 @@ test_notification_bad_arg (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test3", notification, NULL, notification_fail, NULL);
+  xdp_portal_add_notification (portal, "test3", notification, 0, NULL, notification_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -210,7 +210,7 @@ test_notification_bad_priority (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test4", notification, NULL, notification_fail, NULL);
+  xdp_portal_add_notification (portal, "test4", notification, 0, NULL, notification_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -249,7 +249,7 @@ test_notification_bad_button (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test5", notification, NULL, notification_fail, NULL);
+  xdp_portal_add_notification (portal, "test5", notification, 0, NULL, notification_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);

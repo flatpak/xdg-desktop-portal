@@ -38,7 +38,7 @@ test_location_basic (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_location_monitor_start (portal, NULL, 0, 0,  XDP_LOCATION_ACCURACY_EXACT, NULL, location_cb, NULL);
+  xdp_portal_location_monitor_start (portal, NULL, 0, 0,  XDP_LOCATION_ACCURACY_EXACT, 0, NULL, location_cb, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -75,7 +75,7 @@ test_location_accuracy (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_location_monitor_start (portal, NULL, 0, 0,  22, NULL, location_error, NULL);
+  xdp_portal_location_monitor_start (portal, NULL, 0, 0,  22, 0, NULL, location_error, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);

@@ -64,7 +64,7 @@ test_background_basic1 (void)
   argv = g_ptr_array_new ();
   g_ptr_array_add (argv, "/bin/true");
 
-  xdp_portal_request_background (portal, NULL, argv, "Testing portals", FALSE, FALSE, NULL, background_cb, NULL);
+  xdp_portal_request_background (portal, NULL, "Testing portals", argv, 0, NULL, background_cb, NULL);
 
   while (got_info < 1)
     g_main_context_iteration (NULL, TRUE);
@@ -78,6 +78,7 @@ test_background_basic2 (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GError) error = NULL;
+  XdpBackgroundFlags flags = XDP_BACKGROUND_FLAG_NONE;
 
   keyfile = g_key_file_new ();
 
@@ -109,7 +110,8 @@ test_background_basic2 (void)
   argv = g_ptr_array_new ();
   g_ptr_array_add (argv, "/bin/true");
 
-  xdp_portal_request_background (portal, NULL, argv, "Testing portals", TRUE, TRUE, NULL, background_cb, NULL);
+  flags = XDP_BACKGROUND_FLAG_AUTOSTART | XDP_BACKGROUND_FLAG_ACTIVATABLE;
+  xdp_portal_request_background (portal, NULL, "Testing portals", argv, flags, NULL, background_cb, NULL);
 
   while (got_info < 1)
     g_main_context_iteration (NULL, TRUE);
@@ -139,6 +141,7 @@ test_background_commandline (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GError) error = NULL;
+  XdpBackgroundFlags flags = XDP_BACKGROUND_FLAG_NONE;
 
   keyfile = g_key_file_new ();
 
@@ -158,7 +161,8 @@ test_background_commandline (void)
   got_info = 0;
   argv = g_ptr_array_new ();
 
-  xdp_portal_request_background (portal, NULL, argv, "Testing portals", TRUE, TRUE, NULL, background_fail, NULL);
+  flags = XDP_BACKGROUND_FLAG_AUTOSTART | XDP_BACKGROUND_FLAG_ACTIVATABLE;
+  xdp_portal_request_background (portal, NULL, "Testing portals", argv, flags, NULL, background_fail, NULL);
 
   while (got_info < 1)
     g_main_context_iteration (NULL, TRUE);
@@ -172,6 +176,7 @@ test_background_reason (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GError) error = NULL;
+  XdpBackgroundFlags flags = XDP_BACKGROUND_FLAG_NONE;
 
   keyfile = g_key_file_new ();
 
@@ -191,11 +196,12 @@ test_background_reason (void)
   got_info = 0;
   argv = g_ptr_array_new ();
 
-  xdp_portal_request_background (portal, NULL, argv,
+  flags = XDP_BACKGROUND_FLAG_AUTOSTART | XDP_BACKGROUND_FLAG_ACTIVATABLE;
+  xdp_portal_request_background (portal, NULL,
 "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
 "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
 "012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789",
-TRUE, TRUE, NULL, background_fail, NULL);
+argv, flags, NULL, background_fail, NULL);
 
   while (got_info < 1)
     g_main_context_iteration (NULL, TRUE);

@@ -73,10 +73,10 @@ wallpaper_cb (GObject *obj,
 }
 
 static const char *
-target_to_string (XdpWallpaperTarget target)
+target_to_string (XdpWallpaperFlags target)
 {
   const char *strings[] = { "", "background", "lockscreen", "both" };
-  return strings[target];
+  return strings[target & 3];
 }
 
 void
@@ -87,9 +87,7 @@ test_wallpaper_basic (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
-
-  XdpWallpaperTarget target = XDP_WALLPAPER_TARGET_BOTH;
-  gboolean preview = FALSE;
+  XdpWallpaperFlags target = XDP_WALLPAPER_FLAG_BACKGROUND | XDP_WALLPAPER_FLAG_LOCKSCREEN;
 
   reset_wallpaper_permissions ();
 
@@ -105,7 +103,7 @@ test_wallpaper_basic (void)
   g_free (path);
 
   g_key_file_set_string (keyfile, "wallpaper", "target", target_to_string (target));
-  g_key_file_set_boolean (keyfile, "wallpaper", "preview", preview);
+  g_key_file_set_boolean (keyfile, "wallpaper", "preview", FALSE);
 
   path = g_build_filename (outdir, "wallpaper", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -116,7 +114,7 @@ test_wallpaper_basic (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_set_wallpaper (portal, NULL, uri, preview, target, NULL, wallpaper_cb, keyfile);
+  xdp_portal_set_wallpaper (portal, NULL, uri, target, NULL, wallpaper_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -130,9 +128,7 @@ test_wallpaper_delay (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
-
-  XdpWallpaperTarget target = XDP_WALLPAPER_TARGET_LOCKSCREEN;
-  gboolean preview = FALSE;
+  XdpWallpaperFlags target = XDP_WALLPAPER_FLAG_LOCKSCREEN;
 
   reset_wallpaper_permissions ();
 
@@ -148,7 +144,7 @@ test_wallpaper_delay (void)
   g_free (path);
 
   g_key_file_set_string (keyfile, "wallpaper", "target", target_to_string (target));
-  g_key_file_set_boolean (keyfile, "wallpaper", "preview", preview);
+  g_key_file_set_boolean (keyfile, "wallpaper", "preview", FALSE);
 
   path = g_build_filename (outdir, "wallpaper", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -159,7 +155,7 @@ test_wallpaper_delay (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_set_wallpaper (portal, NULL, uri, preview, target, NULL, wallpaper_cb, keyfile);
+  xdp_portal_set_wallpaper (portal, NULL, uri, target, NULL, wallpaper_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -173,9 +169,7 @@ test_wallpaper_cancel1 (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
-
-  XdpWallpaperTarget target = XDP_WALLPAPER_TARGET_BACKGROUND;
-  gboolean preview = FALSE;
+  XdpWallpaperFlags target = XDP_WALLPAPER_FLAG_BACKGROUND;
 
   reset_wallpaper_permissions ();
 
@@ -194,7 +188,7 @@ test_wallpaper_cancel1 (void)
   g_key_file_set_integer (keyfile, "backend", "response", 0);
   g_key_file_set_integer (keyfile, "result", "response", 2);
   g_key_file_set_string (keyfile, "wallpaper", "target", target_to_string (target));
-  g_key_file_set_boolean (keyfile, "wallpaper", "preview", preview);
+  g_key_file_set_boolean (keyfile, "wallpaper", "preview", FALSE);
 
   path = g_build_filename (outdir, "wallpaper", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -205,7 +199,7 @@ test_wallpaper_cancel1 (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_set_wallpaper (portal, NULL, uri, preview, target, NULL, wallpaper_cb, keyfile);
+  xdp_portal_set_wallpaper (portal, NULL, uri, target, NULL, wallpaper_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -219,9 +213,7 @@ test_wallpaper_cancel2 (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
-
-  XdpWallpaperTarget target = XDP_WALLPAPER_TARGET_BOTH;
-  gboolean preview = TRUE;
+  XdpWallpaperFlags target = XDP_WALLPAPER_FLAG_BACKGROUND | XDP_WALLPAPER_FLAG_LOCKSCREEN | XDP_WALLPAPER_FLAG_PREVIEW;
 
   reset_wallpaper_permissions ();
 
@@ -240,7 +232,7 @@ test_wallpaper_cancel2 (void)
   g_key_file_set_integer (keyfile, "backend", "response", 1);
   g_key_file_set_integer (keyfile, "result", "response", 1);
   g_key_file_set_string (keyfile, "wallpaper", "target", target_to_string (target));
-  g_key_file_set_boolean (keyfile, "wallpaper", "preview", preview);
+  g_key_file_set_boolean (keyfile, "wallpaper", "preview", TRUE);
 
   path = g_build_filename (outdir, "wallpaper", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -251,7 +243,7 @@ test_wallpaper_cancel2 (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_set_wallpaper (portal, NULL, uri, preview, target, NULL, wallpaper_cb, keyfile);
+  xdp_portal_set_wallpaper (portal, NULL, uri, target, NULL, wallpaper_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -265,9 +257,7 @@ test_wallpaper_permission (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autofree char *uri = NULL;
-
-  XdpWallpaperTarget target = XDP_WALLPAPER_TARGET_BOTH;
-  gboolean preview = TRUE;
+  XdpWallpaperFlags target = XDP_WALLPAPER_FLAG_BACKGROUND | XDP_WALLPAPER_FLAG_LOCKSCREEN | XDP_WALLPAPER_FLAG_PREVIEW;
 
   set_wallpaper_permissions ("no");
 
@@ -286,7 +276,7 @@ test_wallpaper_permission (void)
   g_key_file_set_integer (keyfile, "backend", "response", 1);
   g_key_file_set_integer (keyfile, "result", "response", 2);
   g_key_file_set_string (keyfile, "wallpaper", "target", target_to_string (target));
-  g_key_file_set_boolean (keyfile, "wallpaper", "preview", preview);
+  g_key_file_set_boolean (keyfile, "wallpaper", "preview", TRUE);
 
   path = g_build_filename (outdir, "wallpaper", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -297,7 +287,7 @@ test_wallpaper_permission (void)
   uri = g_strconcat ("file://", path, NULL);
 
   got_info = 0;
-  xdp_portal_set_wallpaper (portal, NULL, uri, preview, target, NULL, wallpaper_cb, keyfile);
+  xdp_portal_set_wallpaper (portal, NULL, uri, target, NULL, wallpaper_cb, keyfile);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
