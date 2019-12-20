@@ -33,6 +33,8 @@ test_backends_SOURCES = \
 	tests/backend/screenshot.h \
         tests/backend/wallpaper.c \
         tests/backend/wallpaper.h \
+        tests/glib-backports.c \
+        tests/glib-backports.h \
 	$(NULL)
 nodist_test_backends_SOURCES = src/xdp-impl-dbus.c
 
