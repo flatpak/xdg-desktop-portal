@@ -20,6 +20,8 @@
 
 #include "config.h"
 
+#include <string.h>
+
 #include "permissions.h"
 
 static XdpImplPermissionStore *permission_store = NULL;
