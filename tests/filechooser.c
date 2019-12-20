@@ -2,6 +2,8 @@
 
 #include "account.h"
 
+#include "glib-backports.h"
+
 #include <libportal/portal.h>
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"

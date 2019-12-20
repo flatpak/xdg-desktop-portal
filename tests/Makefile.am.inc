@@ -59,6 +59,8 @@ test_portals_SOURCES += \
 	tests/trash.h \
 	tests/wallpaper.c \
 	tests/wallpaper.h \
+        tests/glib-backports.c \
+        tests/glib-backports.h \
 	$(NULL)
 endif
 nodist_test_portals_SOURCES = \
