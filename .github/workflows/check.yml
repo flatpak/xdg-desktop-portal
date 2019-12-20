@@ -90,3 +90,29 @@ jobs:
         CFLAGS: -Werror=unused-variable
     - name: Build xdg-desktop-portal
       run: make -j $(getconf _NPROCESSORS_ONLN)
+
+  xenial:
+    name: Build on xenial (old glib)
+    runs-on: ubuntu-16.04
+    steps:
+    - name: Install Dependencies
+      run: |
+        sudo add-apt-repository ppa:alexlarsson/flatpak
+        sudo apt-get update
+        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
+        libjson-glib-dev libfontconfig1-dev libfuse-dev
+    - name: Check out xdg-desktop-portal
+      uses: actions/checkout@v1
+      with:
+        submodules: true
+    - name: Configure xdg-desktop-portal
+      # TODO: Enable gtk-doc builds
+      # Meson to old to build libportal
+      # Could not find a pipewire package
+      # Geoclue is in 18.04 too old
+      run: ./autogen.sh --disable-pipewire --disable-geoclue --disable-libportal
+      env:
+        CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
+    - name: Build xdg-desktop-portal
+      run: make -j $(getconf _NPROCESSORS_ONLN)
