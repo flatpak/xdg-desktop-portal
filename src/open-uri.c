@@ -473,9 +473,17 @@ find_recommended_choices (const char *scheme,
   int i;
 
   info = g_app_info_get_default_for_type (content_type, FALSE);
-  *default_app = get_app_id (info);
 
-  g_debug ("Default handler %s for %s, %s", *default_app, scheme, content_type);
+  if (info != NULL)
+    {
+      *default_app = get_app_id (info);
+      g_debug ("Default handler %s for %s, %s", *default_app, scheme, content_type);
+    }
+  else
+    {
+      *default_app = NULL;
+      g_debug ("No default handler for %s, %s", scheme, content_type);
+    }
 
   infos = g_app_info_get_recommended_for_type (content_type);
   /* Use fallbacks if we have no recommended application for this type */
