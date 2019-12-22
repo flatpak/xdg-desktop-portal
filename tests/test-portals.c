@@ -76,6 +76,7 @@ static void
 global_setup (void)
 {
   GError *error = NULL;
+  g_autofree gchar *backends_executable = NULL;
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
@@ -118,7 +119,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
-  argv[0] = "test-backends";
+  backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
+  argv[0] = backends_executable;
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
