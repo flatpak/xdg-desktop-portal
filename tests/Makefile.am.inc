@@ -2,6 +2,7 @@ test_programs =
 
 TESTS_ENVIRONMENT = \
 	PATH=$$(cd $(top_builddir) && pwd):$${PATH} \
+	XDP_UNINSTALLED=1 \
 	$(NULL)
 
 testdb_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal -I$(builddir)/
@@ -29,6 +30,7 @@ test_portals_LDADD = \
 	$(LIBPORTAL_LIBS) \
 	$(NULL)
 test_portals_SOURCES = tests/test-portals.c
+test_portals_CPPFLAGS = $(AM_CPPFLAGS) -DLIBEXECDIR=\"$(libexecdir)\"
 if HAVE_LIBPORTAL
 test_portals_CFLAGS += $(LIBPORTAL_CFLAGS)
 test_portals_LDADD += $(LIBPORTAL_LIBS)
