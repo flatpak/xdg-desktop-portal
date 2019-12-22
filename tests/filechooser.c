@@ -8,6 +8,8 @@
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
+#include "utils.h"
+
 extern XdpImplLockdown *lockdown;
 
 extern char outdir[];
@@ -872,7 +874,12 @@ test_save_file_lockdown (void)
     NULL
   };
 
-  xdp_impl_lockdown_set_disable_save_to_disk (lockdown, TRUE);
+  tests_set_property_sync (G_DBUS_PROXY (lockdown),
+                           "org.freedesktop.impl.portal.Lockdown",
+                           "disable-save-to-disk",
+                           g_variant_new_boolean (TRUE),
+                           &error);
+  g_assert_no_error (error);
 
   keyfile = g_key_file_new ();
 
@@ -895,7 +902,12 @@ test_save_file_lockdown (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_save_to_disk (lockdown, FALSE);
+  tests_set_property_sync (G_DBUS_PROXY (lockdown),
+                           "org.freedesktop.impl.portal.Lockdown",
+                           "disable-save-to-disk",
+                           g_variant_new_boolean (FALSE),
+                           &error);
+  g_assert_no_error (error);
 }
 
 void

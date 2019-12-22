@@ -59,6 +59,8 @@ test_portals_SOURCES += \
 	tests/trash.h \
 	tests/wallpaper.c \
 	tests/wallpaper.h \
+	tests/utils.c \
+	tests/utils.h \
         tests/glib-backports.c \
         tests/glib-backports.h \
 	$(NULL)
