@@ -1689,7 +1689,7 @@ xdg_app_info_load_brwap_info (XdpAppInfo *app_info,
       return 0;
     }
 
-  root = json_parser_steal_root (parser);
+  root = json_node_ref (json_parser_get_root (parser));
   if (!root)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
