@@ -664,6 +664,9 @@ check_background_apps (void)
       app_id = flatpak_instance_get_app (instance);
       idata = g_hash_table_lookup (applications, id);
 
+      if (!app_id)
+        continue;
+
       if (!idata)
         {
           is_new = TRUE;
