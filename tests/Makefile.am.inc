@@ -99,9 +99,11 @@ if ENABLE_INSTALLED_TESTS
 endif
 
 installed_test_dbsdir = $(installed_testdir)/dbs
+installed_test_portalsdir = $(installed_testdir)/portals
 
 if ENABLE_INSTALLED_TESTS
 dist_installed_test_dbs_DATA = tests/dbs/no_tables
+dist_installed_test_portals_DATA = tests/portals/test.portal
 endif
 
 dist_test_scripts = \
@@ -112,10 +114,6 @@ test_programs += \
 	test-doc-portal \
 	test-permission-store \
 	$(NULL)
-
-EXTRA_DIST += \
-        tests/portals/test.portal \
-        $(BNULL)
 
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \
