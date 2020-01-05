@@ -7,47 +7,46 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2019-12-12 10:44-0500\n"
-"PO-Revision-Date: 2019-02-20 01:44+0200\n"
-"Last-Translator: Fran Dieguez <frandieguez@gnome.org>\n"
+"PO-Revision-Date: 2020-01-06 00:03+0100\n"
+"Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Virtaal 0.7.1\n"
+"X-Generator: Poedit 2.2.4\n"
 
 #: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr ""
+msgstr "Permitir a %s executarse en segundo plano?"
 
 #: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr ""
+msgstr "%s solicita iniciarse automaticamente e en segundo plano."
 
 #: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
-msgstr ""
+msgstr "%s solicita executarse en segundo plano."
 
 #: src/background.c:267
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"O acceso á súa localización pode cambiarse en calquera momento desde as "
-"preferencias de privacidade."
+"Pode cambiar o permiso «executarse en segundo plano» en calquera momento "
+"desde as preferencias da aplicación."
 
 #: src/background.c:272
 msgid "Don't allow"
-msgstr ""
+msgstr "Non permitir"
 
 #: src/background.c:273 src/wallpaper.c:165
 msgid "Allow"
-msgstr ""
+msgstr "Permitir"
 
 #: src/device.c:115
 msgid "Turn On Microphone?"
@@ -63,7 +62,7 @@ msgstr ""
 
 #: src/device.c:120
 msgid "An application wants to use your microphone."
-msgstr "Un aplicativo quere usar o seu micrófono."
+msgstr "Unha aplicación quere usar o seu micrófono."
 
 #: src/device.c:122
 #, c-format
@@ -83,7 +82,7 @@ msgstr ""
 
 #: src/device.c:133
 msgid "An application wants to play sound."
-msgstr "Un aplicativo quere reproducir son."
+msgstr "Unha aplicación quere reproducir son."
 
 #: src/device.c:135
 #, c-format
@@ -103,7 +102,7 @@ msgstr ""
 
 #: src/device.c:146
 msgid "An application wants to use your camera."
-msgstr "Un aplicativo quere usar a súa cámara."
+msgstr "Unha aplicación quere usar a súa cámara."
 
 #: src/device.c:148
 #, c-format
@@ -124,7 +123,7 @@ msgstr "Desexa acceder acceso á súa localización?"
 
 #: src/location.c:535
 msgid "An application wants to use your location."
-msgstr "Un aplicativo quere usar a súa localización."
+msgstr "Unha aplicación quere usar a súa localización."
 
 #: src/location.c:547
 #, c-format
@@ -148,30 +147,28 @@ msgstr "Non se atopou a configuración solicitada"
 
 #: src/wallpaper.c:163
 msgid "Deny"
-msgstr ""
+msgstr "Denegar"
 
 #: src/wallpaper.c:171
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Un aplicativo quere reproducir son."
+msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
 
 #: src/wallpaper.c:172
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo"
 
 #: src/wallpaper.c:184
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr ""
+msgstr "Permitirlle a %s configurar o fondo de pantalla?"
 
 #: src/wallpaper.c:185
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr ""
+msgstr "%s está solicitando poder cambiar o fondo de pantalla."
 
 #: src/wallpaper.c:188
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
-"O acceso á súa localización pode cambiarse en calquera momento desde as "
-"preferencias de privacidade."
+"Este permiso pode cambiarse en calquera momento desde as preferencias de "
+"privacidade."
