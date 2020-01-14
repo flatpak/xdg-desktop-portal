@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <glib.h>
 #include <pipewire/pipewire.h>
+#include <spa/utils/result.h>
 
 #include "pipewire.h"
 
@@ -36,27 +37,25 @@ static gboolean is_pipewire_initialized = FALSE;
 static void
 registry_event_global (void *user_data,
                        uint32_t id,
-                       uint32_t parent_id,
                        uint32_t permissions,
-                       uint32_t type,
+                       const char *type,
                        uint32_t version,
                        const struct spa_dict *props)
 {
   PipeWireRemote *remote = user_data;
-  struct pw_type *core_type = pw_core_get_type (remote->core);
   const struct spa_dict_item *factory_object_type;
   PipeWireGlobal *global;
 
   global = g_new0 (PipeWireGlobal, 1);
   *global = (PipeWireGlobal) {
-    .parent_id = parent_id,
+    .parent_id = id,
   };
 
   g_hash_table_insert (remote->globals, GINT_TO_POINTER (id), global);
   if (remote->global_added_cb)
     remote->global_added_cb (remote, id, type, props, remote->user_data);
 
-  if (type != core_type->factory)
+  if (strcmp(type, PW_TYPE_INTERFACE_Factory) != 0)
     return;
 
   factory_object_type = spa_dict_lookup_item (props, "factory.type.name");
@@ -81,8 +80,8 @@ registry_event_global_remove (void *user_data,
   g_hash_table_remove (remote->globals, GINT_TO_POINTER (id));
 }
 
-static const struct pw_registry_proxy_events registry_events = {
-  PW_VERSION_REGISTRY_PROXY_EVENTS,
+static const struct pw_registry_events registry_events = {
+  PW_VERSION_REGISTRY_EVENTS,
   .global = registry_event_global,
   .global_remove = registry_event_global_remove,
 };
@@ -90,7 +89,7 @@ static const struct pw_registry_proxy_events registry_events = {
 void
 pipewire_remote_roundtrip (PipeWireRemote *remote)
 {
-  pw_core_proxy_sync (remote->core_proxy, ++remote->sync_seq);
+  remote->sync_seq = pw_core_sync (remote->core, PW_ID_CORE, remote->sync_seq);
   pw_main_loop_run (remote->loop);
 }
 
@@ -98,16 +97,13 @@ static gboolean
 discover_node_factory_sync (PipeWireRemote *remote,
                             GError **error)
 {
-  struct pw_type *core_type = pw_core_get_type (remote->core);
-  struct pw_registry_proxy *registry_proxy;
+  struct pw_registry *registry;
 
-  registry_proxy = pw_core_proxy_get_registry (remote->core_proxy,
-                                               core_type->registry,
-                                               PW_VERSION_REGISTRY, 0);
-  pw_registry_proxy_add_listener (registry_proxy,
-                                  &remote->registry_listener,
-                                  &registry_events,
-                                  remote);
+  registry = pw_core_get_registry (remote->core, PW_VERSION_REGISTRY, 0);
+  pw_registry_add_listener (registry,
+                            &remote->registry_listener,
+                            &registry_events,
+                            remote);
 
   pipewire_remote_roundtrip (remote);
 
@@ -122,59 +118,35 @@ discover_node_factory_sync (PipeWireRemote *remote,
 }
 
 static void
-on_state_changed (void *user_data,
-                  enum pw_remote_state old,
-                  enum pw_remote_state state,
-                  const char *error)
+core_event_error (void       *user_data,
+                  uint32_t    id,
+		  int         seq,
+		  int         res,
+		  const char *message)
 {
   PipeWireRemote *remote = user_data;
 
-  switch (state)
+  if (id == PW_ID_CORE)
     {
-    case PW_REMOTE_STATE_ERROR:
-      if (!remote->error)
-        {
-          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "%s", error);
-        }
+      g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                 "%s", message);
       pw_main_loop_quit (remote->loop);
-      break;
-    case PW_REMOTE_STATE_UNCONNECTED:
-      if (!remote->error)
-        {
-          g_set_error (&remote->error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Disconnected");
-        }
-      pw_main_loop_quit (remote->loop);
-      break;
-    case PW_REMOTE_STATE_CONNECTING:
-      break;
-    case PW_REMOTE_STATE_CONNECTED:
-      pw_main_loop_quit (remote->loop);
-      break;
-    default:
-      g_warning ("Unknown PipeWire state");
-      break;
     }
 }
 
-static const struct pw_remote_events remote_events = {
-  PW_VERSION_REMOTE_EVENTS,
-  .state_changed = on_state_changed,
-};
-
 static void
 core_event_done (void *user_data,
-                 uint32_t seq)
+                 uint32_t id, int seq)
 {
   PipeWireRemote *remote = user_data;
 
-  if (remote->sync_seq == seq)
+  if (id == PW_ID_CORE && remote->sync_seq == seq)
     pw_main_loop_quit (remote->loop);
 }
 
-static const struct pw_core_proxy_events core_events = {
-  PW_VERSION_CORE_PROXY_EVENTS,
+static const struct pw_core_events core_events = {
+  PW_VERSION_CORE_EVENTS,
+  .error = core_event_error,
   .done = core_event_done,
 };
 
@@ -237,8 +209,8 @@ void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
-  g_clear_pointer (&remote->remote, pw_remote_destroy);
-  g_clear_pointer (&remote->core, pw_core_destroy);
+  g_clear_pointer (&remote->core, pw_core_disconnect);
+  g_clear_pointer (&remote->context, pw_context_destroy);
   g_clear_pointer (&remote->loop, pw_main_loop_destroy);
   g_clear_error (&remote->error);
 
@@ -307,68 +279,31 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
       return NULL;
     }
 
-  remote->core = pw_core_new (pw_main_loop_get_loop (remote->loop), NULL);
-  if (!remote->core)
+  remote->context = pw_context_new (pw_main_loop_get_loop (remote->loop), NULL, 0);
+  if (!remote->context)
     {
       pipewire_remote_destroy (remote);
       pw_properties_free (pipewire_properties);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't create PipeWire core");
+                   "Couldn't create PipeWire context");
       return NULL;
     }
 
-  remote->remote = pw_remote_new (remote->core, pipewire_properties, 0);
-  if (!remote->remote)
+  remote->core = pw_context_connect (remote->context, pipewire_properties, 0);
+  if (!remote->core)
     {
       pipewire_remote_destroy (remote);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't create PipeWire remote");
+                   "Couldn't connect to PipeWire");
       return NULL;
     }
 
   remote->globals = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 
-  pw_remote_add_listener (remote->remote,
-                          &remote->remote_listener,
-                          &remote_events,
-                          remote);
-
-  if (pw_remote_connect (remote->remote) != 0)
-    {
-      pipewire_remote_destroy (remote);
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Couldn't connect PipeWire remote");
-      return NULL;
-    }
-
-  pw_main_loop_run (remote->loop);
-
-  switch (pw_remote_get_state (remote->remote, NULL))
-    {
-    case PW_REMOTE_STATE_ERROR:
-    case PW_REMOTE_STATE_UNCONNECTED:
-      *error = g_steal_pointer (&remote->error);
-      pipewire_remote_destroy (remote);
-      return NULL;
-    case PW_REMOTE_STATE_CONNECTING:
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "PipeWire loop stopped unexpectedly");
-      pipewire_remote_destroy (remote);
-      return NULL;
-    case PW_REMOTE_STATE_CONNECTED:
-      break;
-    default:
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Unexpected PipeWire state");
-      pipewire_remote_destroy (remote);
-      return NULL;
-    }
-
-  remote->core_proxy = pw_remote_get_core_proxy (remote->remote);
-  pw_core_proxy_add_listener (remote->core_proxy,
-                              &remote->core_listener,
-                              &core_events,
-                              remote);
+  pw_core_add_listener (remote->core,
+                        &remote->core_listener,
+                        &core_events,
+                        remote);
 
   if (!discover_node_factory_sync (remote, error))
     {

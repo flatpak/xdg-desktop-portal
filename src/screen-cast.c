@@ -31,10 +31,10 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define PERMISSION_ITEM(item_key, item_value) \
-  ((struct spa_dict_item) { \
-    .key = item_key, \
-    .value = item_value \
+#define PERMISSION_ITEM(item_id, item_permissions) \
+  ((struct pw_permission) { \
+    .id = item_id, \
+    .permissions = item_permissions \
   })
 
 typedef struct _ScreenCast ScreenCast;
@@ -518,41 +518,8 @@ screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
 }
 
 static void
-append_parent_permissions (PipeWireRemote *remote,
-                           GArray *permission_items,
-                           GList **string_stash,
-                           PipeWireGlobal *global,
-                           const char *permission)
-{
-  PipeWireGlobal *parent;
-  char *parent_permission_value;
-
-  if (global->parent_id == 0)
-    return;
-
-  parent = g_hash_table_lookup (remote->globals, GINT_TO_POINTER (global->parent_id));
-
-  if (parent->permission_set)
-    return;
-  parent->permission_set = TRUE;
-
-  append_parent_permissions (remote, permission_items, string_stash,
-                             parent, permission);
-
-  parent_permission_value = g_strdup_printf ("%u:%s",
-                                             global->parent_id,
-                                             permission);
-  *string_stash = g_list_prepend (*string_stash, parent_permission_value);
-
-  g_array_append_val (permission_items,
-                      PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_GLOBAL,
-                                       parent_permission_value));
-}
-
-static void
 append_stream_permissions (PipeWireRemote *remote,
                            GArray *permission_items,
-                           GList **string_stash,
                            GList *streams)
 {
   GList *l;
@@ -561,21 +528,10 @@ append_stream_permissions (PipeWireRemote *remote,
     {
       ScreenCastStream *stream = l->data;
       uint32_t stream_id;
-      PipeWireGlobal *stream_global;
-      char *stream_permission_value;
 
       stream_id = screen_cast_stream_get_pipewire_node_id (stream);
-      stream_global = g_hash_table_lookup (remote->globals,
-                                           GINT_TO_POINTER (stream_id));
-
-      append_parent_permissions (remote, permission_items, string_stash,
-                                 stream_global, "r--");
-
-      stream_permission_value = g_strdup_printf ("%u:rwx", stream_id);
-      *string_stash = g_list_prepend (*string_stash, stream_permission_value);
       g_array_append_val (permission_items,
-                          PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_GLOBAL,
-                                           stream_permission_value));
+                          PERMISSION_ITEM (stream_id, PW_PERM_RWX));
     }
 }
 
@@ -587,9 +543,6 @@ open_pipewire_screen_cast_remote (const char *app_id,
   struct pw_properties *pipewire_properties;
   PipeWireRemote *remote;
   g_autoptr(GArray) permission_items = NULL;
-  char *node_factory_permission_string;
-  GList *string_stash = NULL;
-  struct spa_dict *permission_dict;
   PipeWireGlobal *node_global;
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.app_id", app_id,
@@ -604,47 +557,30 @@ open_pipewire_screen_cast_remote (const char *app_id,
   permission_items = g_array_new (FALSE, TRUE, sizeof (struct spa_dict_item));
 
   /*
-   * Hide all existing and future nodes (except the ones we explicitly list below.
-   */
-  g_array_append_val (permission_items,
-                      PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_EXISTING,
-                                       "---"));
-  g_array_append_val (permission_items,
-                      PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_DEFAULT,
-                                       "---"));
-
-  /*
    * PipeWire:Interface:Core
    * Needs rwx to be able create the sink node using the create-object method
    */
   g_array_append_val (permission_items,
-                      PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_GLOBAL,
-                                       "0:rwx"));
+                      PERMISSION_ITEM (PW_ID_CORE, PW_PERM_RWX));
 
   /*
    * PipeWire:Interface:NodeFactory
    * Needs r-- so it can be passed to create-object when creating the sink node.
    */
-  node_factory_permission_string = g_strdup_printf ("%d:r--",
-                                                    remote->node_factory_id);
-  string_stash = g_list_prepend (string_stash, node_factory_permission_string);
   g_array_append_val (permission_items,
-                      PERMISSION_ITEM (PW_CORE_PROXY_PERMISSIONS_GLOBAL,
-                                       node_factory_permission_string));
-  node_global = g_hash_table_lookup (remote->globals,
-                                     GINT_TO_POINTER (remote->node_factory_id));
-  append_parent_permissions (remote, permission_items, &string_stash,
-                             node_global, "r--");
+                      PERMISSION_ITEM (remote->node_factory_id, PW_PERM_R));
 
-  append_stream_permissions (remote, permission_items, &string_stash, streams);
+  append_stream_permissions (remote, permission_items, streams);
 
-  permission_dict =
-    &SPA_DICT_INIT ((struct spa_dict_item *) permission_items->data,
-                    permission_items->len);
-  pw_core_proxy_permissions (pw_remote_get_core_proxy (remote->remote),
-                             permission_dict);
+  /*
+   * Hide all existing and future nodes (except the ones we explicitly list above).
+   */
+  g_array_append_val (permission_items,
+                      PERMISSION_ITEM (PW_ID_ANY, 0));
 
-  g_list_free_full (string_stash, g_free);
+  pw_client_update_permissions (pw_core_get_client(remote->core),
+                                permission_items->len,
+                                (const struct pw_permission *)permission_items->data);
 
   pipewire_remote_roundtrip (remote);
 
@@ -943,7 +879,7 @@ handle_open_pipewire_remote (XdpScreenCast *object,
     }
 
   out_fd_list = g_unix_fd_list_new ();
-  fd = pw_remote_steal_fd (remote->remote);
+  fd = pw_core_steal_fd (remote->core);
   fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
   close (fd);
   pipewire_remote_destroy (remote);

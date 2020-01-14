@@ -32,7 +32,7 @@ typedef struct _PipeWireGlobal
 
 typedef void (* PipeWireGlobalAddedCallback) (PipeWireRemote *remote,
                                               uint32_t id,
-                                              uint32_t type,
+                                              const char *type,
                                               const struct spa_dict *props,
                                               gpointer user_data);
 
@@ -43,13 +43,11 @@ typedef void (* PipeWireGlobalRemovedCallback) (PipeWireRemote *remote,
 struct _PipeWireRemote
 {
   struct pw_main_loop *loop;
+  struct pw_context *context;
   struct pw_core *core;
-  struct pw_remote *remote;
-  struct spa_hook remote_listener;
-
-  struct pw_core_proxy *core_proxy;
   struct spa_hook core_listener;
-  uint32_t sync_seq;
+
+  int sync_seq;
 
   struct spa_hook registry_listener;
 
