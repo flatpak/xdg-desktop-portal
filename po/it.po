@@ -1,14 +1,14 @@
 # Italian translation for xdg-desktop-portal.
-# Copyright (C) 2017, 2018, 2019 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2017, 2018, 2019, 2020 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Milo Casagrande <milo@milo.name>, 2017, 2018, 2019.
+# Milo Casagrande <milo@milo.name>, 2017, 2018, 2019, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2019-12-12 10:44-0500\n"
-"PO-Revision-Date: 2019-08-13 09:37+0200\n"
+"PO-Revision-Date: 2020-02-10 16:11+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
 "Language: it\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.3\n"
+"X-Generator: Poedit 2.2.4\n"
 
 #: src/background.c:260
 #, c-format
@@ -150,30 +150,28 @@ msgstr "La risorsa richiesta non è stata trovata"
 
 #: src/wallpaper.c:163
 msgid "Deny"
-msgstr ""
+msgstr "Nega"
 
 #: src/wallpaper.c:171
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
+msgstr "Consentire alle applicazioni di impostare lo sfondo?"
 
 #: src/wallpaper.c:172
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Un'applicazione richiede di poter cambiare l'immagine di sfondo."
 
 #: src/wallpaper.c:184
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
+msgstr "Consentire a %s di impostare lo sfondo?"
 
 #: src/wallpaper.c:185
-#, fuzzy, c-format
+#, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
+msgstr "L'applicazione %s richiede di poter cambiare l'immagine di sfondo."
 
 #: src/wallpaper.c:188
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
-"L'accesso alla posizione può essere modificato in qualsiasi momento "
-"attraverso le impostazioni della privacy."
+"Questa impostazione può essere modificata in qualsiasi momento attraverso le "
+"impostazioni della privacy."
