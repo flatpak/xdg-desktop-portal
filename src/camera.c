@@ -141,7 +141,7 @@ open_pipewire_camera_remote (const char *app_id,
                              GError **error)
 {
   PipeWireRemote *remote;
-  struct spa_dict_item permission_items[1];
+  struct pw_permission permission_items[2];
   struct pw_properties *pipewire_properties;
 
   pipewire_properties =
@@ -158,12 +158,12 @@ open_pipewire_camera_remote (const char *app_id,
    * Hide all existing and future nodes by default. PipeWire will use the
    * permission store to set up permissions.
    */
-  permission_items[0].key = PW_CORE_PROXY_PERMISSIONS_DEFAULT;
-  permission_items[0].value = "---";
+  permission_items[0] = PW_PERMISSION_INIT (PW_ID_CORE, PW_PERM_RWX);
+  permission_items[1] = PW_PERMISSION_INIT (PW_ID_ANY, 0);
 
-  pw_core_proxy_permissions (pw_remote_get_core_proxy (remote->remote),
-                             &SPA_DICT_INIT (permission_items,
-                                             G_N_ELEMENTS (permission_items)));
+  pw_client_update_permissions (pw_core_get_client(remote->core),
+                                G_N_ELEMENTS (permission_items),
+                                permission_items);
 
   pipewire_remote_roundtrip (remote);
 
@@ -219,7 +219,7 @@ handle_open_pipewire_remote (XdpCamera *object,
     }
 
   out_fd_list = g_unix_fd_list_new ();
-  fd = pw_remote_steal_fd (remote->remote);
+  fd = pw_core_steal_fd (remote->core);
   fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
   close (fd);
   pipewire_remote_destroy (remote);
@@ -250,29 +250,28 @@ camera_iface_init (XdpCameraIface *iface)
 static void
 global_added_cb (PipeWireRemote *remote,
                  uint32_t id,
-                 uint32_t type,
+                 const char *type,
                  const struct spa_dict *props,
                  gpointer user_data)
 {
   Camera *camera = user_data;
-  struct pw_type *core_type = pw_core_get_type (remote->core);
   const struct spa_dict_item *media_class;
   const struct spa_dict_item *media_role;
 
-  if (type != core_type->node)
+  if (strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
     return;
 
   if (!props)
     return;
 
-  media_class = spa_dict_lookup_item (props, "media.class");
+  media_class = spa_dict_lookup_item (props, PW_KEY_MEDIA_CLASS);
   if (!media_class)
     return;
 
   if (g_strcmp0 (media_class->value, "Video/Source") != 0)
     return;
 
-  media_role = spa_dict_lookup_item (props, "media.role");
+  media_role = spa_dict_lookup_item (props, PW_KEY_MEDIA_ROLE);
   if (!media_role)
     return;
 
@@ -342,6 +341,7 @@ create_pipewire_remote (Camera *camera,
     }
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
+                                           "portal.monitor", "Camera",
                                            NULL);
   camera->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
                                                       global_added_cb,
