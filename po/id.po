@@ -1,21 +1,21 @@
 # Indonesian translation for xdg-desktop-portal.
 # Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017, 2018, 2019.
+# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017-2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-12-12 10:44-0500\n"
-"PO-Revision-Date: 2019-09-21 20:42+0700\n"
+"POT-Creation-Date: 2019-12-13 03:37+0000\n"
+"PO-Revision-Date: 2020-01-26 17:23+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.3\n"
+"X-Generator: Poedit 2.2.4\n"
 
 #: src/background.c:260
 #, c-format
@@ -86,7 +86,7 @@ msgstr "Aplikasi ingin memutar suara."
 #: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
-msgstr "%s ingin memutar suara"
+msgstr "%s ingin memutar suara."
 
 #: src/device.c:141
 msgid "Turn On Camera?"
@@ -143,28 +143,26 @@ msgstr "Pengaturan yang diminta tidak ditemukan"
 
 #: src/wallpaper.c:163
 msgid "Deny"
-msgstr ""
+msgstr "Tolak"
 
 #: src/wallpaper.c:171
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Izinkan %s berjalan di latar belakang?"
+msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"
 
 #: src/wallpaper.c:172
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Aplikasi meminta untuk dapat mengubah gambar latar belakang."
 
 #: src/wallpaper.c:184
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Izinkan %s berjalan di latar belakang?"
+msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 
 #: src/wallpaper.c:185
-#, fuzzy, c-format
+#, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "%s permintaan untuk berjalan di latar belakang."
+msgstr "%s meminta untuk dapat mengubah gambar latar belakang."
 
 #: src/wallpaper.c:188
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
+msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
