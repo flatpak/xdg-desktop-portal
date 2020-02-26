@@ -38,7 +38,7 @@ changed_cb (XdgPermissionStore *store,
             GVariant *perms,
             gpointer user_data)
 {
-  char **strv;
+  g_autofree char **strv = NULL;
   gboolean res;
 
   change_count++;
@@ -142,7 +142,7 @@ test_lookup (void)
   const char * perms[] = { "one", "two", NULL };
   g_autoptr(GVariant) p = NULL;
   g_autoptr(GVariant) d = NULL;
-  char **strv;
+  g_autofree char **strv = NULL;
   GVariantBuilder pb;
 
   res = xdg_permission_store_call_lookup_sync (permissions,

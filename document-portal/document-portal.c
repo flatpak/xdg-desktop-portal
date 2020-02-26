@@ -634,7 +634,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autoptr(GVariant) array = NULL;
   guint32 flags;
   const char *target_app_id;
-  const char **permissions = NULL;
+  g_autofree const char **permissions = NULL;
   DocumentPermissionFlags target_perms;
   gsize n_args;
   GDBusMessage *message;
@@ -1201,7 +1201,7 @@ get_path (PermissionDbEntry *entry)
   g_autoptr (GVariant) data = permission_db_entry_get_data (entry);
   const char *path;
 
-  g_variant_get (data, "(^ayttu)", &path, NULL, NULL, NULL);
+  g_variant_get (data, "(^&ayttu)", &path, NULL, NULL, NULL);
   return g_variant_new_bytestring (path);
 }
 
@@ -1503,7 +1503,7 @@ main (int    argc,
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   GDBusConnection *session_bus;
-  GOptionContext *context;
+  g_autoptr(GOptionContext) context = NULL;
   GDBusMethodInvocation *invocation;
 
   setlocale (LC_ALL, "");
@@ -1595,7 +1595,5 @@ main (int    argc,
 
   g_bus_unown_name (owner_id);
 
-  exit (final_exit_status);
-
-  return 0;
+  return final_exit_status;
 }
