@@ -417,7 +417,7 @@ add_files (GDBusMethodInvocation *invocation,
           return;
         }
 
-      if (!validate_fd (fd, app_info, &st_buf, &parent_st_buf, &path, &fd_is_writable, NULL) ||
+      if (!validate_fd (fd, app_info, FALSE, &st_buf, &parent_st_buf, &path, &fd_is_writable, NULL) ||
           (transfer->writable && !fd_is_writable))
         {
           g_dbus_method_invocation_return_error (invocation,

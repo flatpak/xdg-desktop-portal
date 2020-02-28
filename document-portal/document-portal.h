@@ -25,6 +25,7 @@
 
 gboolean validate_fd (int           fd,
                       XdpAppInfo   *app_info,
+                      gboolean      is_directory,
                       struct stat  *st_buf,
                       struct stat  *real_parent_st_buf,
                       char        **path_out,
