@@ -925,7 +925,7 @@ test_version (void)
       return;
     }
 
-  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 3);  
+  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 4);
 }
 
 int
