@@ -102,7 +102,16 @@ if ENABLE_INSTALLED_TESTS
 dist_installed_test_dbs_DATA = tests/dbs/no_tables
 endif
 
+dist_installed_test_data = \
+	tests/session.conf.in \
+	$(NULL)
+
+dist_installed_test_extra_scripts = \
+	tests/test-document-fuse.py \
+	$(NULL)
+
 dist_test_scripts = \
+	tests/test-document-fuse.sh \
 	$(NULL)
 
 test_programs += \
