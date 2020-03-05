@@ -37,6 +37,11 @@
 #define FLATPAK_METADATA_KEY_RUNTIME_PATH "runtime-path"
 #define FLATPAK_METADATA_KEY_INSTANCE_ID "instance-id"
 
+#define SNAP_METADATA_GROUP_INFO "Snap Info"
+#define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
+#define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
+#define SNAP_METADATA_KEY_NETWORK "HasNetworkStatus"
+
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
                     int    flags,

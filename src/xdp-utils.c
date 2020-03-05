@@ -28,8 +28,6 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <stdio.h>
-#include <mntent.h>
-#include <unistd.h>
 #include <sys/vfs.h>
 
 #include <gio/gdesktopappinfo.h>
@@ -131,7 +129,7 @@ struct _XdpAppInfo {
         } flatpak;
       struct
         {
-          int dummy;
+          GKeyFile *keyfile;
         } snap;
     } u;
 };
@@ -165,6 +163,7 @@ xdp_app_info_free (XdpAppInfo *app_info)
       break;
 
     case XDP_APP_INFO_KIND_SNAP:
+      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
       break;
 
     case XDP_APP_INFO_KIND_HOST:
@@ -470,132 +469,125 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
 }
 
 static gboolean
-aa_is_enabled (void)
+pid_is_snap (pid_t pid, GError **error)
 {
-  static int apparmor_enabled = -1;
-  struct stat statbuf;
-  struct mntent *mntpt;
-  FILE *mntfile;
+  g_autofree char *cgroup_path = NULL;;
+  int fd;
+  FILE *f = NULL;
+  gboolean is_snap = FALSE;
+  int err = 0;
+  ssize_t n;
+  g_autofree char *id = NULL;
+  g_autofree char *controller = NULL;
+  g_autofree char *cgroup = NULL;
+  size_t id_len = 0, controller_len = 0, cgroup_len = 0;
 
-  if (apparmor_enabled >= 0)
-    return apparmor_enabled;
+  g_return_val_if_fail(pid > 0, FALSE);
 
-  apparmor_enabled = FALSE;
-
-  mntfile = setmntent ("/proc/mounts", "r");
-  if (!mntfile)
-    return FALSE;
-
-  while ((mntpt = getmntent (mntfile)))
+  cgroup_path = g_strdup_printf ("/proc/%u/cgroup", (guint) pid);
+  fd = open (cgroup_path, O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (fd == -1)
     {
-      g_autofree char *proposed = NULL;
-
-      if (strcmp (mntpt->mnt_type, "securityfs") != 0)
-        continue;
-
-      proposed = g_strdup_printf ("%s/apparmor", mntpt->mnt_dir);
-      if (stat (proposed, &statbuf) == 0)
-        {
-          apparmor_enabled = TRUE;
-          break;
-        }
+      err = errno;
+      goto out;
     }
 
-  endmntent (mntfile);
+  f = fdopen (fd, "r");
+  if (f == NULL)
+    {
+      err = errno;
+      goto out;
+    }
 
-  return apparmor_enabled;
+  fd = -1; /* fd is now owned by f */
+
+  do {
+    n = getdelim (&id, &id_len, ':', f);
+    if (n == -1)
+      {
+        err = errno;
+        break;
+      }
+    n = getdelim (&controller, &controller_len, ':', f);
+    if (n == -1)
+      {
+        err = errno;
+        break;
+      }
+    n = getdelim (&cgroup, &cgroup_len, '\n', f);
+    if (n == -1)
+      {
+        err = errno;
+        break;
+      }
+
+    /* Only consider the freezer, systemd group or unified cgroup
+     * hierarchies */
+    if ((!strcmp (controller, "freezer:") != 0 ||
+         !strcmp (controller, "name=systemd:") != 0 ||
+         !strcmp (controller, ":") != 0) &&
+        strstr (cgroup, "/snap.") != NULL)
+      {
+        is_snap = TRUE;
+        break;
+      }
+  } while (n > 0);
+
+out:
+  if (f != NULL) fclose (f);
+
+  /* Silence ENOENT, treating it as "not a snap" */
+  if (err != 0 && err != ENOENT)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (err),
+                   "Could not parse cgroup info for pid %u: %s", (guint) pid,
+                   g_strerror (err));
+    }
+  return is_snap;
 }
 
-#define UNCONFINED		"unconfined"
-#define UNCONFINED_SIZE		strlen(UNCONFINED)
-
-static gboolean
-parse_unconfined (char *con, int size)
-{
-  return size == UNCONFINED_SIZE && strncmp (con, UNCONFINED, UNCONFINED_SIZE) == 0;
-}
-
-static char *
-aa_splitcon (char *con, char **mode)
-{
-  char *label = NULL;
-  char *mode_str = NULL;
-  char *newline = NULL;
-  int size = strlen (con);
-
-  if (size == 0)
-    return NULL;
-
-  /* Strip newline */
-  if (con[size - 1] == '\n')
-    {
-      newline = &con[size - 1];
-      size--;
-    }
-
-  if (parse_unconfined (con, size))
-    {
-      label = con;
-    }
-  else if (size > 3 && con[size - 1] == ')')
-    {
-      int pos = size - 2;
-
-      while (pos > 0 && !(con[pos] == ' ' && con[pos + 1] == '('))
-        pos--;
-
-      if (pos > 0)
-        {
-          con[pos] = 0; /* overwrite ' ' */
-          con[size - 1] = 0; /* overwrite trailing ) */
-          mode_str = &con[pos + 2]; /* skip '(' */
-          label = con;
-        }
-    }
-
-  if (label && newline)
-    *newline = 0; /* overwrite '\n', if requested, on success */
-  if (mode)
-    *mode = mode_str;
-
-  return label;
-}
-
+/* Returns NULL with error set on failure, NULL with no error set if not a snap, and app-info otherwise */
 static XdpAppInfo *
-parse_app_info_from_security_label (const char *security_label)
+parse_app_info_from_snap (pid_t pid, GError **error)
 {
-  char *label, *dot;
-  g_autofree char *snap_name = NULL;
+  g_autoptr(GError) local_error = NULL;
+  g_autofree char *pid_str = NULL;
+  const char *argv[] = { "snap", "routine", "portal-info", NULL, NULL };
+  g_autofree char *output = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autofree char *snap_name = NULL;
 
-  /* Snap confinement requires AppArmor */
-  if (aa_is_enabled ())
+  /* Check the process's cgroup membership to fail quickly for non-snaps */
+  if (!pid_is_snap (pid, error)) return NULL;
+
+  pid_str = g_strdup_printf ("%u", (guint) pid);
+  argv[3] = pid_str;
+  if (!xdp_spawnv (NULL, &output, 0, error, argv))
     {
-      /* Parse the security label as an AppArmor context.  We take a copy
-       * of the string because aa_splitcon modifies its argument. */
-      g_autofree char *security_label_copy = g_strdup (security_label);
-
-      label = aa_splitcon (security_label_copy, NULL);
-      if (label && g_str_has_prefix (label, "snap."))
-        {
-          /* If the label belongs to a snap, it will be of the form
-           * snap.$PACKAGE.$APPLICATION.  We want to extract the package
-           * name */
-
-          label += 5;
-          dot = strchr (label, '.');
-          if (!dot)
-            return NULL;
-          snap_name = g_strndup (label, dot - label);
-
-          app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
-          app_info->id = g_strconcat ("snap.", snap_name, NULL);
-
-          return g_steal_pointer (&app_info);
-        }
+      return NULL;
     }
 
-  return NULL;
+  metadata = g_key_file_new ();
+  if (!g_key_file_load_from_data (metadata, output, -1, G_KEY_FILE_NONE, &local_error))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't read snap info for pid %u: %s", pid, local_error->message);
+      return NULL;
+    }
+
+  snap_name = g_key_file_get_string (metadata, SNAP_METADATA_GROUP_INFO,
+                                     SNAP_METADATA_KEY_INSTANCE_NAME, error);
+  if (snap_name == NULL)
+    {
+      return NULL;
+    }
+
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
+  app_info->id = g_strconcat ("snap.", snap_name, NULL);
+  app_info->u.snap.keyfile = g_steal_pointer (&metadata);
+
+  return g_steal_pointer (&app_info);
 }
 
 
@@ -606,13 +598,21 @@ xdp_get_app_info_from_pid (pid_t pid,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
 
-  /* TODO: Handle snap support via apparmor here */
-
   app_info = parse_app_info_from_flatpak_info (pid, &local_error);
   if (app_info == NULL && local_error)
     {
       g_propagate_error (error, g_steal_pointer (&local_error));
       return NULL;
+    }
+
+  if (app_info == NULL)
+    {
+      app_info = parse_app_info_from_snap (pid, &local_error);
+      if (app_info == NULL && local_error)
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
     }
 
   if (app_info == NULL)
@@ -648,10 +648,6 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   g_autoptr(GDBusMessage) reply = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   GVariant *body;
-  g_autoptr(GVariantIter) iter = NULL;
-  const char *key;
-  GVariant *value;
-  g_autofree char *security_label = NULL;
   guint32 pid = 0;
 
   app_info = lookup_cached_app_info_by_sender (sender);
@@ -661,7 +657,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   msg = g_dbus_message_new_method_call (DBUS_NAME_DBUS,
                                         DBUS_PATH_DBUS,
                                         DBUS_INTERFACE_DBUS,
-                                        "GetConnectionCredentials");
+                                        "GetConnectionUnixProcessID");
   g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
 
   reply = g_dbus_connection_send_message_with_reply_sync (connection, msg,
@@ -680,37 +676,11 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     }
 
   body = g_dbus_message_get_body (reply);
+  g_variant_get (body, "(u)", &pid);
 
-  g_variant_get (body, "(a{sv})", &iter);
-  while (g_variant_iter_loop (iter, "{&sv}", &key, &value))
-    {
-      if (strcmp (key, "ProcessID") == 0)
-        pid = g_variant_get_uint32 (value);
-      else if (strcmp (key, "LinuxSecurityLabel") == 0)
-        {
-          g_clear_pointer (&security_label, g_free);
-          security_label = g_variant_dup_bytestring (value, NULL);
-        }
-    }
-
-  if (app_info == NULL && security_label != NULL)
-    {
-      app_info = parse_app_info_from_security_label (security_label);
-    }
-
+  app_info = xdp_get_app_info_from_pid (pid, error);
   if (app_info == NULL)
-    {
-      g_autoptr(GError) local_error = NULL;
-      app_info = parse_app_info_from_flatpak_info (pid, &local_error);
-      if (app_info == NULL && local_error)
-        {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return NULL;
-        }
-    }
-
-  if (app_info == NULL)
-    app_info = xdp_app_info_new_host ();
+    return NULL;
 
   G_LOCK (app_infos);
   ensure_app_info_by_unique_name ();
