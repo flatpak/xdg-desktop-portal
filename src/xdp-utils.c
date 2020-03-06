@@ -339,7 +339,9 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
       break;
 
     case XDP_APP_INFO_KIND_SNAP:
-      has_network = TRUE; /* FIXME */
+      has_network = g_key_file_get_boolean (app_info->u.snap.keyfile,
+                                            SNAP_METADATA_GROUP_INFO,
+                                            SNAP_METADATA_KEY_NETWORK, NULL);
       break;
 
     case XDP_APP_INFO_KIND_HOST:
