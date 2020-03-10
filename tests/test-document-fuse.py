@@ -247,6 +247,12 @@ class DocPortal:
                                     0, -1, None)
         return res[0]
 
+    def delete(self, doc_id):
+        self.proxy.call_sync ("Delete",
+                              GLib.Variant('(s)', (doc_id, )),
+                              0, -1, None)
+        del self.docs[doc_id]
+
     def add(self, path, reuse_existing=True):
         fdlist = Gio.UnixFDList.new()
         fd = os.open (path, os.O_PATH)
@@ -809,14 +815,32 @@ def export_a_dir_doc ():
     lookup_on_fuse = portal.lookup(doc.get_doc_path(None))
     assertEqual(lookup_on_fuse, doc.id)
 
-    # We should not be able to re-export a subfile
+    # We should not be able to portal lookup a file in the dir doc
     subpath = doc.get_doc_path(None) + "/sub"
     setFileContent(subpath, "sub")
     doc = portal.lookup(subpath)
     assertEqual(doc, "")
     doc2 = portal.lookup(dir + "/sub")
     assertEqual(doc, "")
+
+    # But we should be able to re-export the file
+    reexported_doc = portal.add(subpath)
+    reexported_docdir = reexported_doc.get_doc_path(None)
+    assertFileHasContent(reexported_docdir + "/sub", "sub")
+    portal.delete(reexported_doc.id)
+
     os.unlink(subpath)
+
+    # And also re-export a directory
+    os.mkdir(subpath)
+    setFileContent(subpath + "/subfile", "subfile")
+    reexported_doc = portal.add_dir(subpath)
+    reexported_docdir = reexported_doc.get_doc_path(None)
+    assertFileHasContent(reexported_docdir + "/subfile", "subfile")
+    portal.delete(reexported_doc.id)
+
+    os.unlink(subpath + "/subfile")
+    os.rmdir(subpath)
 
 
 def add_an_app (num_docs):
