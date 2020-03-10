@@ -3049,7 +3049,6 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
                               char **real_path_out)
 {
   XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
-  g_autofree char *doc_id = NULL;
   g_autoptr(XdpDomain) domain = NULL;
   g_autoptr(XdpPhysicalInode) physical = NULL;
 
