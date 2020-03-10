@@ -3045,19 +3045,62 @@ xdp_fuse_invalidate_doc_app (const char *doc_id,
 }
 
 char *
-xdp_fuse_lookup_id_for_inode (ino_t ino)
+xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory)
 {
   XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
-  char *doc_id = NULL;
+  g_autofree char *doc_id = NULL;
+  g_autoptr(XdpDomain) domain = NULL;
+  DevIno file_devino = {0, 0};
 
   G_LOCK (all_inodes);
   inode = g_hash_table_lookup (all_inodes, inode);
   if (inode)
     {
       /* We're not allowed to ressurect the inode here, but we can get the data while in the lock */
-      doc_id = g_strdup (inode->domain->doc_id);
+      domain = xdp_domain_ref (inode->domain);
+      if (domain->type == XDP_DOMAIN_DOCUMENT)
+        {
+          if ((domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0)
+            {
+              /* regular doc */
+              if (!directory && inode->physical != NULL)
+                {
+                  /* This should only be returned for the main file, but we need
+                     to check that outside the lock */
+                  file_devino = inode->physical->backing_devino;
+                  doc_id = g_strdup (inode->domain->doc_id);
+                }
+            }
+          else
+            {
+              /* directory */
+              if (directory && inode->physical == NULL)
+                doc_id = g_strdup (inode->domain->doc_id);
+            }
+        }
+
     }
   G_UNLOCK (all_inodes);
 
-  return doc_id;
+  if (doc_id == NULL)
+    return NULL;
+
+  if (directory)
+    {
+      /* We did all required checks */
+      return g_steal_pointer (&doc_id);
+    }
+  else
+    {
+      g_autofree char *main_path = g_build_filename (domain->doc_path, domain->doc_file, NULL);
+      struct stat buf;
+
+      /* Only return for main file */
+      if (lstat (main_path, &buf) == 0 &&
+          buf.st_dev == file_devino.dev &&
+          buf.st_ino == file_devino.ino)
+        return g_steal_pointer (&doc_id);
+
+      return NULL;
+    }
 }

@@ -414,7 +414,7 @@ validate_fd (int fd,
 }
 
 static char *
-verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
+verify_existing_document (struct stat *st_buf, gboolean reuse_existing, gboolean directory)
 {
   g_autoptr(PermissionDbEntry) old_entry = NULL;
   g_autofree char *id = NULL;
@@ -422,7 +422,7 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing)
   g_assert (st_buf->st_dev == fuse_dev);
 
   /* The passed in fd is on the fuse filesystem itself */
-  id = xdp_fuse_lookup_id_for_inode (st_buf->st_ino);
+  id = xdp_fuse_lookup_id_for_inode (st_buf->st_ino, directory);
   g_debug ("path on fuse, id %s", id);
   if (id == NULL)
     return NULL;
@@ -462,7 +462,7 @@ portal_add (GDBusMethodInvocation *invocation,
     flags |= DOCUMENT_ADD_FLAGS_REUSE_EXISTING;
   if (persistent)
     flags |= DOCUMENT_ADD_FLAGS_PERSISTENT;
- 
+
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
@@ -793,8 +793,7 @@ document_add_full (int                      *fd,
       if (st_buf.st_dev == fuse_dev)
         {
           /* The passed in fd is on the fuse filesystem itself */
-          /* TODO: This reuse code is not right for directory exposes (i.e. which file in there?) */
-          id = verify_existing_document (&st_buf, reuse_existing);
+          id = verify_existing_document (&st_buf, reuse_existing, is_dir);
           if (id == NULL)
             {
               g_set_error (error,
@@ -1137,9 +1136,9 @@ portal_lookup (GDBusMethodInvocation *invocation,
   g_autofree char *path = NULL;
   xdp_autofd int fd = -1;
   struct stat st_buf, real_dir_st_buf;
-  g_auto(GStrv) ids = NULL;
   g_autofree char *id = NULL;
   GError *error = NULL;
+  gboolean is_dir;
 
   if (!xdp_app_info_is_host (app_info))
     {
@@ -1161,31 +1160,51 @@ portal_lookup (GDBusMethodInvocation *invocation,
       return TRUE;
     }
 
-  if (!validate_fd (fd, app_info, FALSE, &st_buf, &real_dir_st_buf, &path, NULL, &error))
+  if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &real_dir_st_buf, &path, NULL, &error))
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return TRUE;
     }
 
+  is_dir = S_ISDIR (st_buf.st_mode);
+
   if (st_buf.st_dev == fuse_dev)
     {
       /* The passed in fd is on the fuse filesystem itself */
-      id = xdp_fuse_lookup_id_for_inode (st_buf.st_ino);
-      /* TODO: Handle directory documents here */
+      id = xdp_fuse_lookup_id_for_inode (st_buf.st_ino, is_dir);
       g_debug ("path on fuse, id %s", id);
     }
   else
     {
       g_autoptr(GVariant) data = NULL;
+      g_autoptr(GVariant) data_transient = NULL;
+      g_auto(GStrv) ids = NULL;
+      guint32 flags = 0;
+
+      if (is_dir)
+        flags |= DOCUMENT_ENTRY_FLAG_DIRECTORY;
 
       data = g_variant_ref_sink (g_variant_new ("(^ayttu)",
                                                 path,
                                                 (guint64)real_dir_st_buf.st_dev,
                                                 (guint64)real_dir_st_buf.st_ino,
-                                                0));
+                                                flags));
       ids = permission_db_list_ids_by_value (db, data);
       if (ids[0] != NULL)
         id = g_strdup (ids[0]);
+
+      if (id == NULL)
+        {
+          g_auto(GStrv) transient_ids = NULL;
+          data_transient = g_variant_ref_sink (g_variant_new ("(^ayttu)",
+                                                              path,
+                                                              (guint64)real_dir_st_buf.st_dev,
+                                                              (guint64)real_dir_st_buf.st_ino,
+                                                              flags|DOCUMENT_ENTRY_FLAG_TRANSIENT));
+          transient_ids = permission_db_list_ids_by_value (db, data_transient);
+          if (transient_ids[0] != NULL)
+            id = g_strdup (transient_ids[0]);
+        }
     }
 
   g_dbus_method_invocation_return_value (invocation,
