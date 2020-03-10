@@ -350,7 +350,7 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
 gboolean
 validate_fd (int fd,
              XdpAppInfo *app_info,
-             gboolean is_directory,
+             ValidateFdType ensure_type,
              struct stat *st_buf,
              struct stat *real_dir_st_buf,
              char **path_out,
@@ -367,7 +367,7 @@ validate_fd (int fd,
   if (path == NULL)
     goto errout;
 
-  if (!is_directory && S_ISREG (st_buf->st_mode))
+  if ((ensure_type == VALIDATE_FD_FILE_TYPE_REGULAR || ensure_type == VALIDATE_FD_FILE_TYPE_ANY) && S_ISREG (st_buf->st_mode))
     {
       /* We open the parent directory and do the stat in that, so that we have
        * trustworthy parent dev/ino + filename for later verification. Otherwise the caller
@@ -376,7 +376,7 @@ validate_fd (int fd,
       dirname = g_path_get_dirname (path);
       name = g_path_get_basename (path);
     }
-  else if (is_directory && S_ISDIR (st_buf->st_mode))
+  else if ((ensure_type == VALIDATE_FD_FILE_TYPE_DIR || ensure_type == VALIDATE_FD_FILE_TYPE_ANY)  && S_ISDIR (st_buf->st_mode))
     {
       /* For dirs, we keep the dev/ino of the directory itself */
       dirname = g_strdup (path);
@@ -765,7 +765,7 @@ document_add_full (int                      *fd,
     {
       g_autofree char *path = NULL;
 
-      if (!validate_fd (fd[i], app_info, is_dir, &st_buf, &real_dir_st_bufs[i], &path, &writable[i], error))
+      if (!validate_fd (fd[i], app_info, is_dir ? VALIDATE_FD_FILE_TYPE_DIR : VALIDATE_FD_FILE_TYPE_REGULAR, &st_buf, &real_dir_st_bufs[i], &path, &writable[i], error))
         return NULL;
 
       if (parent_dev != NULL && parent_ino != NULL)
