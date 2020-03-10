@@ -241,6 +241,12 @@ class DocPortal:
                               GLib.Variant('(ssas)', (doc_id, app_id, permissions)),
                               0, -1, None)
 
+    def lookup(self, path):
+        res = self.proxy.call_sync ("Lookup",
+                                    GLib.Variant('(ay)', (filename_to_ay(path), )),
+                                    0, -1, None)
+        return res[0]
+
     def add(self, path, reuse_existing=True):
         fdlist = Gio.UnixFDList.new()
         fd = os.open (path, os.O_PATH)
@@ -300,7 +306,7 @@ class DocPortal:
         return doc
 
     def add_dir(self, path):
-        return self.add_full (path, DOCUMENT_ADD_FLAGS_DIRECTORY)
+        return self.add_full (path, DOCUMENT_ADD_FLAGS_REUSE_EXISTING|DOCUMENT_ADD_FLAGS_DIRECTORY)
 
     def get_docs_for_app(self, app_id):
         docs = []
@@ -754,21 +760,64 @@ def export_a_doc ():
     doc = portal.add(path)
     logv("exported %s as %s" % (path, doc))
 
+    lookup = portal.lookup(path)
+    assertEqual(lookup, doc.id)
+
+    lookup_on_fuse = portal.lookup(doc.get_doc_path(None) + "/" + doc.filename)
+    assertEqual(lookup_on_fuse, doc.id)
+
     reused_doc = portal.add(path)
     assert doc is reused_doc
 
     not_reused_doc = portal.add(path, False)
     assert not doc is not_reused_doc
 
+    # We should not be able to re-export a tmpfile
+    tmppath = doc.get_doc_path(None) + "/tmpfile"
+    setFileContent(tmppath, "tempdata")
+
+    # Should not be able to add a tempfile on the fuse mount, or look it up
+    assertRaises(GLib.Error, portal.add, tmppath)
+    lookup = portal.lookup(tmppath)
+    assertEqual(lookup, "")
+
+    os.unlink(tmppath)
+
 def export_a_named_doc (create_file):
-    path = ensure_real_dir_file(False)
+    path = ensure_real_dir_file(create_file)
     doc = portal.add_named(path)
     logv("exported (named) %s as %s" % (path, doc))
+
+    if create_file:
+        lookup = portal.lookup(path)
+        assertEqual(lookup, doc.id)
+
+    reused_doc = portal.add_named(path)
+    assert doc is reused_doc
+
+    not_reused_doc = portal.add_named(path, False)
+    assert not doc is not_reused_doc
 
 def export_a_dir_doc ():
     (dir, count) = ensure_real_dir(False)
     doc = portal.add_dir(dir)
     logv("exported (dir) %s as %s" % (dir, doc))
+
+    lookup = portal.lookup(dir)
+    assertEqual(lookup, doc.id)
+
+    lookup_on_fuse = portal.lookup(doc.get_doc_path(None))
+    assertEqual(lookup_on_fuse, doc.id)
+
+    # We should not be able to re-export a subfile
+    subpath = doc.get_doc_path(None) + "/sub"
+    setFileContent(subpath, "sub")
+    doc = portal.lookup(subpath)
+    assertEqual(doc, "")
+    doc2 = portal.lookup(dir + "/sub")
+    assertEqual(doc, "")
+    os.unlink(subpath)
+
 
 def add_an_app (num_docs):
     if num_docs == 0:
