@@ -241,23 +241,26 @@ class DocPortal:
                               GLib.Variant('(ssas)', (doc_id, app_id, permissions)),
                               0, -1, None)
 
-    def add(self, path):
+    def add(self, path, reuse_existing=True):
         fdlist = Gio.UnixFDList.new()
         fd = os.open (path, os.O_PATH)
         handle = fdlist.append(fd);
         os.close(fd)
         res = self.proxy.call_with_unix_fd_list_sync ("Add",
                                                       GLib.Variant('(hbb)',
-                                                                   (handle, False, False)),
+                                                                   (handle, reuse_existing, False)),
                                                       0, -1, fdlist, None)
         doc_id = res[0][0]
+        if doc_id in self.docs:
+            return self.docs[doc_id]
+
         with open(path) as f:
             content = f.read()
         doc = Doc(self, doc_id, path, content)
         self.docs[doc.id] = doc
         return doc
 
-    def add_named(self, path):
+    def add_named(self, path, reuse_existing=True):
         (dirname, filename) = os.path.split(path)
         fdlist = Gio.UnixFDList.new()
         fd = os.open (dirname, os.O_PATH)
@@ -265,9 +268,12 @@ class DocPortal:
         os.close(fd)
         res = self.proxy.call_with_unix_fd_list_sync ("AddNamed",
                                                       GLib.Variant('(haybb)',
-                                                                   (handle, filename_to_ay(filename), False, False)),
+                                                                   (handle, filename_to_ay(filename), reuse_existing, False)),
                                                       0, -1, fdlist, None)
         doc_id = res[0][0]
+        if doc_id in self.docs:
+            return self.docs[doc_id]
+
         try:
             with open(path) as f:
                 content = f.read()
@@ -287,6 +293,8 @@ class DocPortal:
                                                                    ([handle], flags, '', [])),
                                                       0, -1, fdlist, None)
         doc_id = res[0][0][0]
+        if doc_id in self.docs:
+            return self.docs[doc_id]
         doc = Doc(self, doc_id, path, True, (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0)
         self.docs[doc.id] = doc
         return doc
@@ -745,6 +753,12 @@ def export_a_doc ():
     path = ensure_real_dir_file(True)
     doc = portal.add(path)
     logv("exported %s as %s" % (path, doc))
+
+    reused_doc = portal.add(path)
+    assert doc is reused_doc
+
+    not_reused_doc = portal.add(path, False)
+    assert not doc is not_reused_doc
 
 def export_a_named_doc (create_file):
     path = ensure_real_dir_file(False)
