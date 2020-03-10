@@ -3045,12 +3045,16 @@ xdp_fuse_invalidate_doc_app (const char *doc_id,
 }
 
 char *
-xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory)
+xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
+                              char **real_path_out)
 {
   XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
   g_autofree char *doc_id = NULL;
   g_autoptr(XdpDomain) domain = NULL;
-  DevIno file_devino = {0, 0};
+  g_autoptr(XdpPhysicalInode) physical = NULL;
+
+  if (real_path_out)
+    *real_path_out = NULL;
 
   G_LOCK (all_inodes);
   inode = g_hash_table_lookup (all_inodes, inode);
@@ -3058,49 +3062,66 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory)
     {
       /* We're not allowed to ressurect the inode here, but we can get the data while in the lock */
       domain = xdp_domain_ref (inode->domain);
-      if (domain->type == XDP_DOMAIN_DOCUMENT)
-        {
-          if ((domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0)
-            {
-              /* regular doc */
-              if (!directory && inode->physical != NULL)
-                {
-                  /* This should only be returned for the main file, but we need
-                     to check that outside the lock */
-                  file_devino = inode->physical->backing_devino;
-                  doc_id = g_strdup (inode->domain->doc_id);
-                }
-            }
-          else
-            {
-              /* directory */
-              if (directory && inode->physical == NULL)
-                doc_id = g_strdup (inode->domain->doc_id);
-            }
-        }
-
+      if (inode->physical)
+        physical = xdp_physical_inode_ref (inode->physical);
     }
   G_UNLOCK (all_inodes);
 
-  if (doc_id == NULL)
+  if (domain == NULL)
     return NULL;
 
-  if (directory)
+  if (domain->type != XDP_DOMAIN_DOCUMENT)
+    return NULL;
+
+  if ((domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0)
     {
-      /* We did all required checks */
-      return g_steal_pointer (&doc_id);
+      /* file document */
+
+      if (directory)
+        return NULL;
+
+      if (physical != NULL)
+        {
+          g_autofree char *main_path = g_build_filename (domain->doc_path, domain->doc_file, NULL);
+          DevIno file_devino = physical->backing_devino;
+          struct stat buf;
+
+          /* Only return for main file */
+          if (lstat (main_path, &buf) == 0 &&
+              buf.st_dev == file_devino.dev &&
+              buf.st_ino == file_devino.ino)
+            return g_strdup (domain->doc_id);
+        }
     }
   else
     {
-      g_autofree char *main_path = g_build_filename (domain->doc_path, domain->doc_file, NULL);
-      struct stat buf;
+      /* directory document */
+      if (directory && physical == NULL)
+        return g_strdup (domain->doc_id);
+      else if (physical != NULL && real_path_out)
+        {
+          g_autofree char *fd_path = fd_to_path (physical->fd);
+          char path_buffer[PATH_MAX + 1];
+          DevIno file_devino = physical->backing_devino;
+          ssize_t symlink_size;
+          struct stat buf;
 
-      /* Only return for main file */
-      if (lstat (main_path, &buf) == 0 &&
-          buf.st_dev == file_devino.dev &&
-          buf.st_ino == file_devino.ino)
-        return g_steal_pointer (&doc_id);
+          /* Try to extract a real path to the file (and verify it goes to the same place) */
+          symlink_size = readlink (fd_path, path_buffer, PATH_MAX);
+          if (symlink_size >= 1)
+            {
+              path_buffer[symlink_size] = 0;
 
-      return NULL;
+              if (lstat (path_buffer, &buf) == 0 &&
+                  buf.st_dev == file_devino.dev &&
+                  buf.st_ino == file_devino.ino)
+                {
+                  *real_path_out = g_strdup (path_buffer);
+                  return g_strdup (domain->doc_id);
+                }
+            }
+        }
     }
+
+  return NULL;
 }

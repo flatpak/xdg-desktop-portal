@@ -414,7 +414,12 @@ validate_fd (int fd,
 }
 
 static char *
-verify_existing_document (struct stat *st_buf, gboolean reuse_existing, gboolean directory)
+verify_existing_document (struct stat *st_buf,
+                          gboolean     reuse_existing,
+                          gboolean     directory,
+                          const char  *app_id,
+                          gboolean     allow_write,
+                          char       **real_path_out)
 {
   g_autoptr(PermissionDbEntry) old_entry = NULL;
   g_autofree char *id = NULL;
@@ -422,7 +427,7 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing, gboolean
   g_assert (st_buf->st_dev == fuse_dev);
 
   /* The passed in fd is on the fuse filesystem itself */
-  id = xdp_fuse_lookup_id_for_inode (st_buf->st_ino, directory);
+  id = xdp_fuse_lookup_id_for_inode (st_buf->st_ino, directory, real_path_out);
   g_debug ("path on fuse, id %s", id);
   if (id == NULL)
     return NULL;
@@ -438,6 +443,12 @@ verify_existing_document (struct stat *st_buf, gboolean reuse_existing, gboolean
    */
   old_entry = permission_db_lookup (db, id);
   if (old_entry == NULL || !reuse_existing)
+    return NULL;
+
+  /* Don't allow re-exposing non-writable document as writable */
+  if (allow_write &&
+      app_id != NULL &&
+      !document_entry_has_permissions (old_entry, app_id, DOCUMENT_PERMISSION_FLAGS_WRITE))
     return NULL;
 
   return g_steal_pointer (&id);
@@ -748,7 +759,6 @@ document_add_full (int                      *fd,
   struct stat st_buf;
   g_autofree gboolean *writable = NULL;
   int i;
-  char *id;
 
   reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
   persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
@@ -788,12 +798,13 @@ document_add_full (int                      *fd,
           return NULL;
         }
 
-      g_ptr_array_index(paths,i) = g_steal_pointer (&path);
-
       if (st_buf.st_dev == fuse_dev)
         {
+          g_autofree char *real_path = NULL;
+          g_autofree char *id = NULL;
+
           /* The passed in fd is on the fuse filesystem itself */
-          id = verify_existing_document (&st_buf, reuse_existing, is_dir);
+          id = verify_existing_document (&st_buf, reuse_existing, is_dir, app_id, allow_write, &real_path);
           if (id == NULL)
             {
               g_set_error (error,
@@ -801,8 +812,32 @@ document_add_full (int                      *fd,
                            "Invalid fd passed");
               return NULL;
             }
-          g_ptr_array_index(ids,i) = id;
+
+          /* Maybe this was a file on a directory document and we can expose the real path instead */
+          if (real_path)
+            {
+              g_autofree char *dirname = NULL;
+
+              g_free (path);
+              path = g_steal_pointer (&real_path);
+              /* Need to update real_dir_st_bufs */
+              if (is_dir)
+                dirname = g_strdup (path);
+              else
+                dirname = g_path_get_dirname (path);
+              if (lstat (dirname, &real_dir_st_bufs[i]) != 0)
+                {
+                  g_set_error (error,
+                               XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Invalid fd passed");
+                  return NULL;
+                }
+            }
+          else
+            g_ptr_array_index(ids,i) = g_steal_pointer (&id);
         }
+
+      g_ptr_array_index(paths,i) = g_steal_pointer (&path);
     }
 
   {
@@ -831,7 +866,7 @@ document_add_full (int                      *fd,
 
         if (g_ptr_array_index(ids,i) == NULL)
           {
-            id = do_create_doc (&real_dir_st_bufs[i], path, reuse_existing, persistent, is_dir);
+            char *id = do_create_doc (&real_dir_st_bufs[i], path, reuse_existing, persistent, is_dir);
             g_ptr_array_index(ids,i) = id;
 
             if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
@@ -857,7 +892,7 @@ document_add_full (int                      *fd,
   /* Invalidate with lock dropped to avoid deadlock */
   for (i = 0; i < n_args; i++)
     {
-      id = g_ptr_array_index (ids,i);
+      const char *id = g_ptr_array_index (ids,i);
       g_assert (id != NULL);
 
       if (*id == 0)
@@ -1171,7 +1206,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
   if (st_buf.st_dev == fuse_dev)
     {
       /* The passed in fd is on the fuse filesystem itself */
-      id = xdp_fuse_lookup_id_for_inode (st_buf.st_ino, is_dir);
+      id = xdp_fuse_lookup_id_for_inode (st_buf.st_ino, is_dir, NULL);
       g_debug ("path on fuse, id %s", id);
     }
   else
