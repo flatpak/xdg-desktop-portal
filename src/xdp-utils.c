@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <mntent.h>
 #include <unistd.h>
+#include <sys/vfs.h>
 
 #include <gio/gdesktopappinfo.h>
 
@@ -382,9 +383,16 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
     {
       if (errno == EACCES)
         {
-          /* Access to the root dir isn't allowed => inside a Toolbox
-             container, return NULL with no error */
-          return NULL;
+          struct statfs buf;
+
+          /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
+           * filesystem, such as in a toolbox container. We will never have a fuse rootfs
+           * in the flatpak case, so in that case its safe to ignore this and
+           * continue to detect other types of apps.
+           */
+          if (statfs (root_path, &buf) == 0 &&
+              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
+            return NULL;
         }
 
       /* Otherwise, we should be able to open the root dir. Probably the app died and
