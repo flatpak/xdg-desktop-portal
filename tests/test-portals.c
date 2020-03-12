@@ -76,6 +76,7 @@ static void
 global_setup (void)
 {
   GError *error = NULL;
+  g_autofree gchar *backends_executable = NULL;
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
@@ -118,7 +119,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
  
-  argv[0] = "test-backends";
+  backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
+  argv[0] = backends_executable;
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -154,8 +156,13 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
- 
-  argv[0] = "xdg-desktop-portal";
+
+  /* When running uninstalled we rely on this being added to PATH */
+  if (g_getenv ("XDP_UNINSTALLED") != NULL)
+    argv[0] = "xdg-desktop-portal";
+  else
+    argv[0] = LIBEXECDIR "/xdg-desktop-portal";
+
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -188,8 +195,13 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
- 
-  argv[0] = "xdg-permission-store";
+
+  /* When running uninstalled we rely on this being added to PATH */
+  if (g_getenv ("XDP_UNINSTALLED") != NULL)
+    argv[0] = "xdg-permission-store";
+  else
+    argv[0] = LIBEXECDIR "/xdg-permission-store";
+
   argv[1] = "--replace";
   argv[2] = g_test_verbose () ? "--verbose" : NULL;
   argv[3] = NULL;

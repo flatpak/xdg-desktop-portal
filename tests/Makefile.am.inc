@@ -2,6 +2,7 @@ test_programs =
 
 TESTS_ENVIRONMENT = \
 	PATH=$$(cd $(top_builddir) && pwd):$${PATH} \
+	XDP_UNINSTALLED=1 \
 	$(NULL)
 
 testdb_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal -I$(builddir)/
@@ -29,6 +30,7 @@ test_portals_LDADD = \
 	$(LIBPORTAL_LIBS) \
 	$(NULL)
 test_portals_SOURCES = tests/test-portals.c
+test_portals_CPPFLAGS = $(AM_CPPFLAGS) -DLIBEXECDIR=\"$(libexecdir)\"
 if HAVE_LIBPORTAL
 test_portals_CFLAGS += $(LIBPORTAL_CFLAGS)
 test_portals_LDADD += $(LIBPORTAL_LIBS)
@@ -99,9 +101,11 @@ if ENABLE_INSTALLED_TESTS
 endif
 
 installed_test_dbsdir = $(installed_testdir)/dbs
+installed_test_portalsdir = $(installed_testdir)/portals
 
 if ENABLE_INSTALLED_TESTS
 dist_installed_test_dbs_DATA = tests/dbs/no_tables
+dist_installed_test_portals_DATA = tests/portals/test.portal
 endif
 
 dist_test_scripts = \
@@ -112,10 +116,6 @@ test_programs += \
 	test-doc-portal \
 	test-permission-store \
 	$(NULL)
-
-EXTRA_DIST += \
-        tests/portals/test.portal \
-        $(BNULL)
 
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \

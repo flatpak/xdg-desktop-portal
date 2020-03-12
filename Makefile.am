@@ -6,6 +6,7 @@ noinst_LTLIBRARIES = $(NULL)
 noinst_SCRIPTS =
 noinst_DATA =
 libexec_PROGRAMS = $(NULL)
+test_extra_programs =
 CLEANFILES = $(NULL)
 DISTCLEANFILES= $(NULL)
 BUILT_SOURCES = $(NULL)

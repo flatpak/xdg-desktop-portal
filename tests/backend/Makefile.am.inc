@@ -1,9 +1,9 @@
-test_backends_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
-test_backends_LDADD = \
+tests_test_backends_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+tests_test_backends_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
 	$(NULL)
-test_backends_SOURCES = \
+tests_test_backends_SOURCES = \
 	tests/backend/test-backends.c \
 	tests/backend/request.h \
 	tests/backend/request.c \
@@ -36,8 +36,10 @@ test_backends_SOURCES = \
         tests/glib-backports.c \
         tests/glib-backports.h \
 	$(NULL)
-nodist_test_backends_SOURCES = src/xdp-impl-dbus.c
+nodist_tests_test_backends_SOURCES = src/xdp-impl-dbus.c
 
-noinst_PROGRAMS += \
-	test-backends \
+# We build this in a tests/ subdirectory so that it can be accessed
+# via G_TEST_BUILT
+test_extra_programs += \
+	tests/test-backends \
 	$(NULL)
