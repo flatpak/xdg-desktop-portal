@@ -1,14 +1,14 @@
 # Lithuanian translation for xdg-desktop-portal.
 # Copyright (C) 2018 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Moo, 2018,2019.
+# Moo, 2018,2019, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2019-12-12 10:44-0500\n"
-"PO-Revision-Date: 2019-06-07 00:20+0300\n"
+"POT-Creation-Date: 2019-12-13 03:37+0000\n"
+"PO-Revision-Date: 2020-03-07 20:26+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <gnome-lt@lists.akl.lt>\n"
 "Language: lt\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && (n"
 "%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Poedit 2.3\n"
 
 #: src/background.c:260
 #, c-format
@@ -149,30 +149,27 @@ msgstr "Užklaustas nustatymas nerastas"
 
 #: src/wallpaper.c:163
 msgid "Deny"
-msgstr ""
+msgstr "Drausti"
 
 #: src/wallpaper.c:171
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Leisti %s vykdyti fone?"
+msgstr "Leisti programoms nustatyti fonus?"
 
 #: src/wallpaper.c:172
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Programa prašo galimybės keisti fono paveikslą."
 
 #: src/wallpaper.c:184
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Leisti %s vykdyti fone?"
+msgstr "Leisti %s nustatyti fonus?"
 
 #: src/wallpaper.c:185
-#, fuzzy, c-format
+#, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "%s prašo, kad būtų vykdoma fone."
+msgstr "%s prašo galimybės keisti fono paveikslą."
 
 #: src/wallpaper.c:188
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
-"Prieiga prie jūsų buvimo vietos bet kuriuo metu gali būti pakeista privatumo "
-"nustatymuose."
+"Šis leidimas bet kuriuo metu gali būti pakeistas privatumo nustatymuose."
