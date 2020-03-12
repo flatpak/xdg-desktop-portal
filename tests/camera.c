@@ -6,6 +6,8 @@
 #include "src/xdp-utils.h"
 #include "src/xdp-impl-dbus.h"
 
+#include "utils.h"
+
 extern char outdir[];
 
 static int got_info;
@@ -238,7 +240,13 @@ test_camera_lockdown (void)
 
   require_pipewire ();
   reset_camera_permissions ();
-  xdp_impl_lockdown_set_disable_camera (lockdown, TRUE);
+
+  tests_set_property_sync (G_DBUS_PROXY (lockdown),
+                           "org.freedesktop.impl.portal.Lockdown",
+                           "disable-camera",
+                           g_variant_new_boolean (TRUE),
+                           &error);
+  g_assert_no_error (error);
 
   keyfile = g_key_file_new ();
 
@@ -261,7 +269,12 @@ test_camera_lockdown (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  xdp_impl_lockdown_set_disable_camera (lockdown, FALSE);
+  tests_set_property_sync (G_DBUS_PROXY (lockdown),
+                           "org.freedesktop.impl.portal.Lockdown",
+                           "disable-camera",
+                           g_variant_new_boolean (FALSE),
+                           &error);
+  g_assert_no_error (error);
 }
 
 /* Test the effect of the user denying the access dialog */
