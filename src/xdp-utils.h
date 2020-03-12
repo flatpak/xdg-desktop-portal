@@ -173,3 +173,20 @@ gboolean xdp_spawnv     (GFile                *dir,
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
+
+#if !GLIB_CHECK_VERSION (2, 58, 0)
+static inline gboolean
+g_hash_table_steal_extended (GHashTable    *hash_table,
+                             gconstpointer  lookup_key,
+                             gpointer      *stolen_key,
+                             gpointer      *stolen_value)
+{
+  if (g_hash_table_lookup_extended (hash_table, lookup_key, stolen_key, stolen_value))
+    {
+      g_hash_table_steal (hash_table, lookup_key);
+      return TRUE;
+    }
+  else
+      return FALSE;
+}
+#endif

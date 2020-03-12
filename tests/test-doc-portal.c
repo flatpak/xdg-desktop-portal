@@ -507,7 +507,7 @@ test_create_docs (void)
   guint32 fd_ids[2];
   GUnixFDList *fd_list = NULL;
   gboolean res;
-  char **out_doc_ids;
+  g_auto(GStrv) out_doc_ids = NULL;
   g_autoptr(GVariant) out_extra = NULL;
   const char *permissions[] = { "read", NULL };
   const char *basenames[] = { "doc1", "doc2" };
@@ -743,6 +743,7 @@ check_fuse (void)
 
   if (chan == NULL)
     {
+      fuse_opt_free_args (&args);
       cannot_use_fuse = g_strdup_printf ("fuse_mount: %s",
                                          g_strerror (errno));
       return FALSE;
@@ -754,6 +755,8 @@ check_fuse (void)
 
   if (g_rmdir (path) != 0)
     g_error ("rmdir %s: %s", path, g_strerror (errno));
+
+  fuse_opt_free_args (&args);
 
   return TRUE;
 }
@@ -922,7 +925,7 @@ test_version (void)
       return;
     }
 
-  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 3);  
+  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 4);
 }
 
 int

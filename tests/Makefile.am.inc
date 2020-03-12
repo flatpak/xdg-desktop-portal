@@ -108,7 +108,16 @@ dist_installed_test_dbs_DATA = tests/dbs/no_tables
 dist_installed_test_portals_DATA = tests/portals/test.portal
 endif
 
+dist_installed_test_data = \
+	tests/session.conf.in \
+	$(NULL)
+
+dist_installed_test_extra_scripts = \
+	tests/test-document-fuse.py \
+	$(NULL)
+
 dist_test_scripts = \
+	tests/test-document-fuse.sh \
 	$(NULL)
 
 test_programs += \

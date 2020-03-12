@@ -50,7 +50,7 @@
       bus name org.freedesktop.portal.Documents and the object path
       /org/freedesktop/portal/documents.
  
-      This documentation describes version 3 of this interface.
+      This documentation describes version 4 of this interface.
   -->
   <interface name='org.freedesktop.portal.Documents'>
     <property name="version" type="u" access="read"/>
@@ -107,7 +107,7 @@
     <!--
         AddFull:
         @o_path_fds: open file descriptors for the files to export
-        @flags: flags, 1 == reuse_existing, 2 == persistent, 4 == as-needed-by-app
+        @flags: flags, 1 == reuse_existing, 2 == persistent, 4 == as-needed-by-app, 8 = export directory
         @app_id: an application ID, or empty string
         @permissions: the permissions to grant, possible values are 'read', 'write', 'grant-permissions' and 'delete'
         @doc_ids: the IDs of the files in the document store
@@ -130,6 +130,8 @@
         fuse mountpoint of the document portal.
 
         This method was added in version 2 of the org.freedesktop.portal.Documents interface.
+
+        Support for exporting directories were added in version 4 of the org.freedesktop.portal.Documents interface.
     -->
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>

@@ -9,6 +9,7 @@ G_BEGIN_DECLS
 
 #define DOCUMENT_ENTRY_FLAG_UNIQUE (1 << 0)
 #define DOCUMENT_ENTRY_FLAG_TRANSIENT (1 << 1)
+#define DOCUMENT_ENTRY_FLAG_DIRECTORY (1 << 2)
 
 const char **      xdg_unparse_permissions (DocumentPermissionFlags permissions);
 DocumentPermissionFlags xdp_parse_permissions (const char **permissions,

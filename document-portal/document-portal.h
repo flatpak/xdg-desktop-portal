@@ -23,8 +23,15 @@
 #include <gio/gio.h>
 #include "document-enums.h"
 
+typedef enum {
+      VALIDATE_FD_FILE_TYPE_REGULAR,
+      VALIDATE_FD_FILE_TYPE_DIR,
+      VALIDATE_FD_FILE_TYPE_ANY,
+} ValidateFdType;
+
 gboolean validate_fd (int           fd,
                       XdpAppInfo   *app_info,
+                      ValidateFdType ensure_type,
                       struct stat  *st_buf,
                       struct stat  *real_parent_st_buf,
                       char        **path_out,
