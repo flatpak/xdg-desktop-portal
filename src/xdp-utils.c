@@ -618,7 +618,7 @@ xdp_get_app_info_from_pid (pid_t pid,
   if (app_info == NULL)
     app_info = xdp_app_info_new_host ();
 
-  return app_info;
+  return g_steal_pointer (&app_info);
 }
 
 static XdpAppInfo *
