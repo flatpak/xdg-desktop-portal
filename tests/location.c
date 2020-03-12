@@ -29,11 +29,22 @@ void
 test_location_basic (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GDBusConnection) system_bus = NULL;
+  g_autoptr(GError) error = NULL;
 
 #ifndef HAVE_GEOCLUE
   g_test_skip ("Skipping tests that require geoclue");
   return;
 #endif
+
+  system_bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+
+  if (system_bus == NULL)
+    {
+      g_prefix_error (&error, "Unable to test Location without system bus: ");
+      g_test_skip (error->message);
+      return;
+    }
 
   portal = xdp_portal_new ();
 
@@ -66,11 +77,22 @@ void
 test_location_accuracy (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GDBusConnection) system_bus = NULL;
+  g_autoptr(GError) error = NULL;
 
 #ifndef HAVE_GEOCLUE
   g_test_skip ("Skipping tests that require geoclue");
   return;
 #endif
+
+  system_bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, &error);
+
+  if (system_bus == NULL)
+    {
+      g_prefix_error (&error, "Unable to test Location without system bus: ");
+      g_test_skip (error->message);
+      return;
+    }
 
   portal = xdp_portal_new ();
 
