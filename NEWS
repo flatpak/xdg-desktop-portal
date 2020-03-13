@@ -1,3 +1,14 @@
+Changes in 1.7.0
+================
+
+- testsuite improvements
+- background: Avoid a segfault
+- screencast: Require pipewire 0.3
+- document: Support exporting directories
+- document: New fuse implementation
+- better support for snap and toolbox
+- Translation updates
+
 Changes in 1.6.0
 ================
 
