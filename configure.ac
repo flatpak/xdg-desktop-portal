@@ -51,6 +51,9 @@ AC_ARG_WITH(flatpak_interfaces_dir,
         AS_HELP_STRING([--with-flatpak-interfaces-dir=PATH],[choose directory for Flatpak interface files, [default=PREFIX/share/dbus-1/interfaces]]),
         [[FLATPAK_INTERFACES_DIR="$withval"]],
 	[PKG_CHECK_VAR([FLATPAK_INTERFACES_DIR], [flatpak], [interfaces_dir])])
+if ! pkg-config --atleast-version "1.5.0" flatpak; then
+        FLATPAK_INTERFACES_DIR=""
+fi
 AC_SUBST(FLATPAK_INTERFACES_DIR)
 
 AC_ARG_WITH([systemduserunitdir],
@@ -116,13 +119,30 @@ if test x$enable_docbook_docs = xauto ; then
         if test x$have_xmlto = xno ; then
                 enable_docbook_docs=no
         else
-                enable_docbook_docs=yes
+                if test ! -f "$srcdir/org.freedesktop.portal.Flatpak.xml" ; then
+                        if test -z "$FLATPAK_INTERFACES_DIR" -o ! -f "$FLATPAK_INTERFACES_DIR/org.freedesktop.portal.Flatpak.xml" ; then
+                                enable_docbook_docs=no
+                        else
+                                enable_docbook_docs=yes
+                        fi
+                else
+                        enable_docbook_docs=yes
+                fi
         fi
 fi
 if test x$enable_docbook_docs = xyes; then
         if test x$have_xmlto = xno; then
                 AC_MSG_ERROR([Building DocBook docs explicitly required, but xmlto not found])
         fi
+        if test ! -f "$srcdir/org.freedesktop.portal.Flatpak.xml" ; then
+                if test -z "$FLATPAK_INTERFACES_DIR"; then
+                        AC_MSG_ERROR([Flatpak development files are required to build DocBook docs])
+                fi
+                if test ! -f "$FLATPAK_INTERFACES_DIR/org.freedesktop.portal.Flatpak.xml" ; then
+                        AC_MSG_ERROR([Flatpak development files are not correctly installed at $FLATPAK_INTERFACES_DIR])
+                fi
+        fi
+
         AC_MSG_RESULT(yes)
 else
         AC_MSG_RESULT(no)
