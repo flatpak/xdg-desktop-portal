@@ -51,6 +51,12 @@ AC_ARG_WITH(flatpak_interfaces_dir,
         AS_HELP_STRING([--with-flatpak-interfaces-dir=PATH],[choose directory for Flatpak interface files, [default=PREFIX/share/dbus-1/interfaces]]),
         [[FLATPAK_INTERFACES_DIR="$withval"]],
 	[PKG_CHECK_VAR([FLATPAK_INTERFACES_DIR], [flatpak], [interfaces_dir])])
+if test -z "$FLATPAK_INTERFACES_DIR"; then
+	AC_MSG_ERROR([Flatpak development files are required])
+fi
+if test ! -f "$FLATPAK_INTERFACES_DIR/org.freedesktop.portal.Flatpak.xml" ; then
+	AC_MSG_ERROR([Flatpak development files are not correctly installed at $FLATPAK_INTERFACES_DIR])
+fi
 AC_SUBST(FLATPAK_INTERFACES_DIR)
 
 AC_ARG_WITH([systemduserunitdir],
