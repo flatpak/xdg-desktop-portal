@@ -204,6 +204,7 @@ xdg_desktop_portal_CFLAGS = \
 	$(GEOCLUE_CFLAGS) \
 	-I$(srcdir)/src \
 	-I$(builddir)/src \
+	-I$(srcdir)/document-portal \
 	$(NULL)
 xdg_desktop_portal_CPPFLAGS = \
 	-DGETTEXT_PACKAGE=\"$(GETTEXT_PACKAGE)\"        \
