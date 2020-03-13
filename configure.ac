@@ -108,19 +108,19 @@ AC_ARG_ENABLE(docbook-docs,
 AC_PATH_PROG(XMLTO, xmlto, no)
 AC_MSG_CHECKING([whether to build DocBook documentation])
 if test x$XMLTO = xno ; then
-        have_docbook=no
+        have_xmlto=no
 else
-        have_docbook=yes
+        have_xmlto=yes
 fi
 if test x$enable_docbook_docs = xauto ; then
-        if test x$have_docbook = xno ; then
+        if test x$have_xmlto = xno ; then
                 enable_docbook_docs=no
         else
                 enable_docbook_docs=yes
         fi
 fi
 if test x$enable_docbook_docs = xyes; then
-        if test x$have_docbook = xno; then
+        if test x$have_xmlto = xno; then
                 AC_MSG_ERROR([Building DocBook docs explicitly required, but xmlto not found])
         fi
         AC_MSG_RESULT(yes)
