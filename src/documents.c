@@ -31,6 +31,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "xdp-dbus.h"
+#include "document-enums.h"
 
 static XdpDocuments *documents = NULL;
 static char *documents_mountpoint = NULL;
@@ -111,7 +112,7 @@ register_document (const char *uri,
           ret = xdp_documents_call_add_named_full_sync (documents,
                                                         g_variant_new_handle (fd_in),
                                                         basename,
-                                                        7, /* reuse+persistent+as-needed */
+                                                        DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP,
                                                         app_id,
                                                         permissions,
                                                         fd_list,
@@ -140,7 +141,7 @@ register_document (const char *uri,
         {
           ret = xdp_documents_call_add_full_sync (documents,
                                                   g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),
-                                                  7, /* reuse+persistent+as-needed */
+                                                  DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP,
                                                   app_id,
                                                   permissions,
                                                   fd_list,
