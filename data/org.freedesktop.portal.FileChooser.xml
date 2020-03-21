@@ -31,7 +31,7 @@
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.FileChooser">
     <!--
@@ -74,7 +74,7 @@
        <varlistentry>
           <term>directory b</term>
           <listitem><para>
-            Whether to select for folders instead of files. Default is to select files.
+            Whether to select for folders instead of files. Default is to select files. This option was added in version 3.
           </para></listitem>
         </varlistentry>
         <varlistentry>
