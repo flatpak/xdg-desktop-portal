@@ -207,10 +207,27 @@ xdp_app_info_load_app_info (XdpAppInfo *app_info)
 
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->id[0] == '\0')
-    return NULL;
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
+      break;
 
-  desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
+    case XDP_APP_INFO_KIND_SNAP:
+      desktop_id = g_key_file_get_string (app_info->u.snap.keyfile,
+                                          SNAP_METADATA_GROUP_INFO,
+                                          SNAP_METADATA_KEY_DESKTOP_FILE,
+                                          NULL);
+      break;
+
+    case XDP_APP_INFO_KIND_HOST:
+    default:
+      desktop_id = NULL;
+      break;
+    }
+
+  if (desktop_id == NULL)
+    return NULL;
 
   return G_APP_INFO (g_desktop_app_info_new (desktop_id));
 }
