@@ -97,6 +97,12 @@
               See org.freedesktop.portal.FileChooser.OpenFile() for details.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>writable b</term>
+            <listitem><para>
+              Whether the file is opened with write access. Default is no.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="OpenFile">
