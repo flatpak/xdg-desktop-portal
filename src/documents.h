@@ -28,4 +28,5 @@ char *register_document (const char *uri,
                          const char *app_id,
                          gboolean for_save,
                          gboolean writable,
+                         gboolean directory,
                          GError **error);
