@@ -75,6 +75,7 @@ send_response_in_thread_func (GTask        *task,
   guint response;
   GVariant *options;
   gboolean writable = TRUE;
+  gboolean directory = TRUE;
   const char **uris;
   GVariant *choices;
   gboolean for_save;
@@ -85,6 +86,7 @@ send_response_in_thread_func (GTask        *task,
   REQUEST_AUTOLOCK (request);
 
   for_save = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save"));
+  directory = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory"));
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
@@ -107,7 +109,7 @@ send_response_in_thread_func (GTask        *task,
           g_autofree char *ruri = NULL;
           g_autoptr(GError) error = NULL;
 
-          ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), for_save, writable, FALSE, &error);
+          ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), for_save, writable, directory, &error);
           if (ruri == NULL)
             {
               g_warning ("Failed to register %s: %s", uris[i], error->message);
@@ -457,6 +459,7 @@ handle_open_file (XdpFileChooser *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   GVariantBuilder options;
+  g_autoptr(GVariant) dir_option = NULL;
 
   g_debug ("Handling OpenFile");
 
@@ -481,6 +484,12 @@ handle_open_file (XdpFileChooser *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
     }
+
+  dir_option = g_variant_lookup_value (arg_options,
+                                       "directory",
+                                       G_VARIANT_TYPE_BOOLEAN);
+  if (dir_option && g_variant_get_boolean (dir_option))
+    g_object_set_data (G_OBJECT (request), "directory", GINT_TO_POINTER (TRUE));
 
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
