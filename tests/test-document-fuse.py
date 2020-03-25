@@ -190,8 +190,10 @@ class Doc:
         if is_dir:
             self.real_dirname = path
             self.filename = None
+            self.dirname = os.path.basename(path)
         else:
             (self.real_dirname, self.filename) = os.path.split(path)
+            self.dirname = None
             if content:
                 self.files.append(self.filename)
 
@@ -208,9 +210,13 @@ class Doc:
 
     def get_doc_path(self, app_id):
         if app_id:
-            return portal.app_path(app_id) + "/" + self.id
+            base = portal.app_path(app_id) + "/" + self.id
         else:
-            return portal.mountpoint + "/" + self.id
+            base = portal.mountpoint + "/" + self.id
+        if self.is_dir:
+            return base + "/" + self.dirname
+        else:
+            return base
 
     def __str__(self):
         name = self.id
@@ -371,13 +377,20 @@ def verify_virtual_dir (path, files):
 
 def verify_doc(doc, app_id=None):
     dir = doc.get_doc_path(app_id)
-    info = os.lstat(dir)
-    check_virtual_stat (info, doc.is_writable_by(app_id))
-    assert os.access(dir, os.R_OK)
-    if doc.is_writable_by(app_id):
-        assert os.access(dir, os.W_OK)
+
+    if doc.is_dir:
+        vdir = os.path.dirname(dir)
+        info = os.lstat(vdir)
+        check_virtual_stat (info)
+        pass
     else:
-        assert not os.access(dir, os.W_OK)
+        info = os.lstat(dir)
+        check_virtual_stat (info, doc.is_writable_by(app_id))
+        assert os.access(dir, os.R_OK)
+        if doc.is_writable_by(app_id):
+            assert os.access(dir, os.W_OK)
+        else:
+            assert not os.access(dir, os.W_OK)
 
     assertRaises(FileNotFoundError, os.lstat, dir + "/not-existing-file")
 
@@ -596,6 +609,17 @@ def check_directory_doc_perms(doc, app_id):
     docpath = doc.get_doc_path(app_id)
     realpath = doc.real_path
 
+    # We should not be able to do anything with the toplevel document dir (other than reading the real dir)
+    vpath = os.path.dirname(docpath)
+    assertDirExist(vpath)
+    assertDirFiles(vpath, [doc.dirname])
+    assertRaises(PermissionError, os.mkdir, vpath + "/a_dir")
+    assertRaises(PermissionError, os.rename, docpath, vpath + "/foo")
+    assertRaises(PermissionError, os.rmdir, docpath)
+    assertRaises(PermissionError, os.open, vpath + "/a_file", os.O_CREAT|os.O_RDWR, 0o600)
+
+    assertDirExist(docpath)
+
     # Create some pre-existing files:
 
     real_dir = realpath + "/dir"
@@ -716,7 +740,10 @@ def check_doc_perms(doc, app_id):
     readable = doc.is_readable_by(app_id)
     if not readable:
         assertRaises(FileNotFoundError, os.lstat, path)
-        assertRaises(PermissionError, os.mkdir, path)
+        if doc.is_dir: # Non readable dir means we can't even see the toplevel dir
+            assertRaises(FileNotFoundError, os.mkdir, path)
+        else:
+            assertRaises(PermissionError, os.mkdir, path)
         return
 
     assertRaises(PermissionError, os.rmdir, path)
