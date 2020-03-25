@@ -25,7 +25,8 @@
 #include "src/xdp-utils.h"
 
 #define NON_DOC_DIR_PERMS 0500
-#define DOC_DIR_PERMS 0700
+#define DOC_DIR_PERMS_FILE 0700
+#define DOC_DIR_PERMS_DIR 0500
 
 static GThread *fuse_thread = NULL;
 static struct fuse_session *session = NULL;
@@ -446,6 +447,12 @@ xdp_domain_new_app (XdpDomain *parent,
   return domain;
 }
 
+static gboolean
+xdp_document_domain_is_dir (XdpDomain *domain)
+{
+  return (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) != 0;
+}
+
 static XdpDomain *
 xdp_domain_new_document (XdpDomain *parent,
                          const char *doc_id,
@@ -464,8 +471,11 @@ xdp_domain_new_document (XdpDomain *parent,
   domain->doc_dir_inode =  document_entry_get_inode (doc_entry);
 
   db_path = document_entry_get_path (doc_entry);
-  if (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY)
-    domain->doc_path = g_strdup (db_path);
+  if (xdp_document_domain_is_dir (domain))
+    {
+      domain->doc_path = g_strdup (db_path);
+      domain->doc_file = g_path_get_basename (db_path);
+    }
   else
     {
       domain->doc_path = g_path_get_dirname (db_path);
@@ -729,7 +739,9 @@ verify_doc_dir_devino (int dirfd, XdpDomain *doc_domain)
   return 0;
  }
 
-/* Only for toplevel dirs */
+/* Only for toplevel dirs, not this is a bit weird for toplevel dir
+   inodes as it returns the dir itself which isn't really the dirfd
+   for that (nonphysical) inode */
 static int
 xdp_nonphysical_document_inode_opendir (XdpInode *inode)
 {
@@ -765,6 +777,13 @@ xdp_document_inode_ensure_dirfd (XdpInode *inode,
     return inode->physical->fd;
   else
     {
+      if (xdp_document_domain_is_dir (inode->domain))
+        {
+          /* There is no dirfd for the toplevel dirs, happens for example
+             if renaming into toplevel, so just return EPERM */
+          return -EPERM;
+        }
+
       close_fd = xdp_nonphysical_document_inode_opendir (inode);
       if (close_fd < 0)
         return close_fd;
@@ -772,26 +791,6 @@ xdp_document_inode_ensure_dirfd (XdpInode *inode,
       *close_fd_out = close_fd;
       return close_fd;
     }
-}
-
-static int
-xdp_document_inode_open_self_fd (XdpInode *inode, int open_flags, mode_t mode)
-{
-  XdpDomain *domain = inode->domain;
-  int dirfd, fd;
-  xdp_autofd int close_fd = -1;
-
-  g_assert (domain->type == XDP_DOMAIN_DOCUMENT);
-
-  dirfd = xdp_document_inode_ensure_dirfd (inode, &close_fd);
-  if (dirfd < 0)
-    return dirfd;
-
-  fd = openat (dirfd, ".", open_flags, mode);
-  if (fd < 0)
-    return -errno;
-
-  return fd;
 }
 
 static gboolean
@@ -961,56 +960,73 @@ xdp_document_inode_open_child_fd (XdpInode *inode, const char *name, int open_fl
     {
       xdp_autofd int dirfd = -1;
 
-      dirfd = xdp_nonphysical_document_inode_opendir (inode);
-      if (dirfd < 0)
-        return dirfd;
-
-      if (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY ||
-          strcmp (name, domain->doc_file) == 0)
+      if (xdp_document_domain_is_dir (domain))
         {
-          fd = openat (dirfd, name, open_flags, mode);
-          if (fd == -1)
-            return -errno;
-          return xdp_steal_fd (&fd);
-        }
+          if (strcmp (name, domain->doc_file) == 0)
+            {
+              /* Ensure toplevel dir exist and is right */
+              dirfd = xdp_nonphysical_document_inode_opendir (inode);
+              if (dirfd < 0)
+                return dirfd;
 
-      /* Not directory and not main file, maybe a temporary file? */
-
-      g_mutex_lock (&domain->tempfile_mutex);
-
-      tempfile_lookup = g_hash_table_lookup (domain->tempfiles, name);
-      if (tempfile_lookup)
-        {
-          if ((open_flags & O_CREAT) && (open_flags & O_EXCL))
-            tempfile_res = -EEXIST;
-          else
-            tempfile = xdp_tempfile_ref (tempfile_lookup);
-        }
-      else if (open_flags & O_CREAT)
-        {
-          tempfile_res = create_tempfile (domain, name, dirfd, mode, &tempfile);
-        }
-
-      g_mutex_unlock (&domain->tempfile_mutex);
-
-      if (tempfile)
-        {
-          g_autofree char *fd_path = fd_to_path (tempfile->physical->fd);
-          fd = open (fd_path, open_flags & ~(O_CREAT|O_EXCL|O_NOFOLLOW), mode);
-          if (fd == -1)
-            return -errno;
-
-          return xdp_steal_fd (&fd);
+              fd = openat (dirfd, ".", open_flags, mode);
+              if (fd == -1)
+                return -errno;
+              return xdp_steal_fd (&fd);
+            }
         }
       else
         {
-          if (tempfile_res != 0)
-            return tempfile_res;
-          return -ENOENT;
+          /* Ensure parent dir exist and is right */
+          dirfd = xdp_nonphysical_document_inode_opendir (inode);
+          if (dirfd < 0)
+            return dirfd;
+
+          if (strcmp (name, domain->doc_file) == 0)
+            {
+              fd = openat (dirfd, name, open_flags, mode);
+              if (fd == -1)
+                return -errno;
+              return xdp_steal_fd (&fd);
+            }
+
+          /* Not main file, maybe a temporary file? */
+
+          g_mutex_lock (&domain->tempfile_mutex);
+
+          tempfile_lookup = g_hash_table_lookup (domain->tempfiles, name);
+          if (tempfile_lookup)
+            {
+              if ((open_flags & O_CREAT) && (open_flags & O_EXCL))
+                tempfile_res = -EEXIST;
+              else
+                tempfile = xdp_tempfile_ref (tempfile_lookup);
+            }
+          else if (open_flags & O_CREAT)
+            {
+              tempfile_res = create_tempfile (domain, name, dirfd, mode, &tempfile);
+            }
+
+          g_mutex_unlock (&domain->tempfile_mutex);
+
+          if (tempfile)
+            {
+              g_autofree char *fd_path = fd_to_path (tempfile->physical->fd);
+              fd = open (fd_path, open_flags & ~(O_CREAT|O_EXCL|O_NOFOLLOW), mode);
+              if (fd == -1)
+                return -errno;
+
+              return xdp_steal_fd (&fd);
+            }
+          else
+            {
+              if (tempfile_res != 0)
+                return tempfile_res;
+            }
         }
     }
 
-  return -ENOSYS;
+  return -ENOENT;
 }
 
 /* Returns /proc/self/fds/$fd path for O_PATH fd or toplevel path */
@@ -1022,7 +1038,11 @@ xdp_document_inode_get_self_as_path (XdpInode *inode)
   if (inode->physical)
     return fd_to_path (inode->physical->fd);
   else
-    return g_strdup (inode->domain->doc_path);
+    {
+      if (xdp_document_domain_is_dir (inode->domain))
+        return NULL;
+      return g_strdup (inode->domain->doc_path);
+    }
 }
 
 static void
@@ -1083,6 +1103,7 @@ typedef enum {
       CHECK_CAN_WRITE = 1 << 0,
       CHECK_IS_DIRECTORY = 1 << 1,
       CHECK_IS_PHYSICAL = 1 << 2,
+      CHECK_IS_PHYSICAL_IF_DIR = 1 << 3,
 } XdpDocumentChecks;
 
 static gboolean
@@ -1092,6 +1113,10 @@ xdp_document_inode_checks (const char *op,
                            XdpDocumentChecks checks)
 {
   XdpDomain *domain = inode->domain;
+  gboolean check_is_directory = (checks & CHECK_IS_DIRECTORY) != 0;
+  gboolean check_can_write = (checks & CHECK_CAN_WRITE) != 0;
+  gboolean check_is_physical = (checks & CHECK_IS_PHYSICAL) != 0;
+  gboolean check_is_physical_if_dir = (checks & CHECK_IS_PHYSICAL_IF_DIR) != 0;
 
   if (domain->type != XDP_DOMAIN_DOCUMENT)
     {
@@ -1106,22 +1131,22 @@ xdp_document_inode_checks (const char *op,
       return FALSE;
     }
 
-  if ((checks & CHECK_IS_DIRECTORY) != 0 &&
-      (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0)
+  if (check_is_directory && !xdp_document_domain_is_dir (domain))
     {
       xdp_reply_err (op, req, EPERM);
       return FALSE;
     }
 
-  if ((checks & CHECK_CAN_WRITE) != 0 &&
-      !xdp_document_domain_can_write (domain))
+  if (check_can_write && !xdp_document_domain_can_write (domain))
     {
       xdp_reply_err (op, req, EACCES);
       return FALSE;
     }
 
-  if ((checks & CHECK_IS_PHYSICAL) != 0 &&
-      inode->physical == NULL)
+  if (check_is_physical_if_dir && xdp_document_domain_is_dir (domain))
+    check_is_physical = TRUE;
+
+  if (check_is_physical && inode->physical == NULL)
     {
       xdp_reply_err (op, req, EPERM);
       return FALSE;
@@ -1148,7 +1173,10 @@ stat_virtual_inode (XdpInode *inode,
       buf->st_nlink = 2;
       break;
     case XDP_DOMAIN_DOCUMENT:
-      buf->st_mode = S_IFDIR | DOC_DIR_PERMS;
+      if (xdp_document_domain_is_dir (inode->domain))
+        buf->st_mode = S_IFDIR | DOC_DIR_PERMS_DIR;
+      else
+        buf->st_mode = S_IFDIR | DOC_DIR_PERMS_FILE;
       buf->st_nlink = 2;
 
       /* Remove perms if not writable */
@@ -1391,8 +1419,7 @@ ensure_docdir_inode (XdpDomain *domain,
     return -errno;
 
   /* non-directory documents only support regular files */
-  if ((domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0 &&
-      !S_ISREG(buf.st_mode))
+  if (!xdp_document_domain_is_dir (domain) &&  !S_ISREG(buf.st_mode))
     return -ENOENT;
 
   physical = ensure_physical_inode (buf.st_dev, buf.st_ino, xdp_steal_fd (&o_path_fd)); /* passed ownership of fd */
@@ -1623,7 +1650,9 @@ xdp_fuse_create (fuse_req_t             req,
 
   g_debug ("CREATE %lx %s %s, 0%o", parent_ino, filename, open_flags_string, mode);
 
-  if (!xdp_document_inode_checks (op, req, parent, CHECK_CAN_WRITE))
+  if (!xdp_document_inode_checks (op, req, parent,
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_PHYSICAL_IF_DIR))
     return;
 
   fd = xdp_document_inode_open_child_fd (parent, filename, open_flags, mode);
@@ -1959,21 +1988,37 @@ xdp_fuse_opendir (fuse_req_t             req,
     {
       g_assert (domain->type == XDP_DOMAIN_DOCUMENT);
 
-      if (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY)
+      if (xdp_document_domain_is_dir (domain))
         {
-          int fd = xdp_document_inode_open_self_fd (inode, open_flags, 0);
-          if (fd < 0)
-            return xdp_reply_err (op, req, -fd);
-
-          dir = fdopendir (fd);
-          if (dir == NULL)
+          if (inode->physical)
             {
-              xdp_reply_err (op, req, errno);
-              close (fd);
-              return;
-            }
+              int fd = openat (inode->physical->fd, ".", open_flags, 0);
+              if (fd < 0)
+                return xdp_reply_err (op, req, errno);
 
-          d = xdp_dir_new_physical (dir);
+              dir = fdopendir (fd);
+              if (dir == NULL)
+                {
+                  xdp_reply_err (op, req, errno);
+                  close (fd);
+                  return;
+                }
+
+              d = xdp_dir_new_physical (dir);
+            }
+          else /* Nonphysical, i.e. toplevel */
+            {
+              struct stat buf;
+
+              d = xdp_dir_new_buffered (req);
+
+              if (stat (domain->doc_path, &buf) == 0 &&
+                  buf.st_ino == domain->doc_dir_inode &&
+                  buf.st_dev == domain->doc_dir_device)
+                {
+                  xdp_dir_add (d, req, domain->doc_file, buf.st_mode);
+                }
+            }
         }
       else
         {
@@ -2160,7 +2205,8 @@ xdp_fuse_mkdir (fuse_req_t  req,
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
-                                  CHECK_IS_DIRECTORY))
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
   dirfd = xdp_document_inode_ensure_dirfd (parent, &close_fd);
@@ -2192,7 +2238,8 @@ xdp_fuse_unlink (fuse_req_t  req,
   g_debug ("UNLINK %lx %s", parent_ino, filename);
 
   if (!xdp_document_inode_checks (op, req, parent,
-                                  CHECK_CAN_WRITE))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_PHYSICAL_IF_DIR))
     return;
 
   if (parent->physical)
@@ -2205,12 +2252,13 @@ xdp_fuse_unlink (fuse_req_t  req,
     {
       xdp_autofd int dirfd = -1;
 
+      /* Only reached for non-directory inodes */
+
       dirfd = xdp_nonphysical_document_inode_opendir (parent);
       if (dirfd < 0)
         xdp_reply_err (op, req, -dirfd);
 
-      if (parent_domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY ||
-          strcmp (filename, parent_domain->doc_file) == 0)
+      if (strcmp (filename, parent_domain->doc_file) == 0)
         {
           res = unlinkat (dirfd, filename, 0);
           if (res != 0)
@@ -2252,7 +2300,8 @@ xdp_fuse_rename (fuse_req_t  req,
   g_debug ("RENAME %lx %s -> %lx %s", parent_ino, name, newparent_ino, newname);
 
   if (!xdp_document_inode_checks (op, req, parent,
-                                  CHECK_CAN_WRITE))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_PHYSICAL_IF_DIR))
     return;
 
   /* Don't allow cross-domain renames */
@@ -2260,7 +2309,7 @@ xdp_fuse_rename (fuse_req_t  req,
     return xdp_reply_err (op, req, EXDEV);
 
   domain = parent->domain;
-  if (domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY)
+  if (xdp_document_domain_is_dir (domain))
     {
       olddirfd = xdp_document_inode_ensure_dirfd (parent, &close_fd1);
       if (olddirfd < 0)
@@ -2423,7 +2472,17 @@ xdp_fuse_access (fuse_req_t req,
       res = access (path, mask);
     }
   else
-    res = access (inode->domain->doc_path, mask);
+    {
+      if (xdp_document_domain_is_dir (inode->domain))
+        {
+          if (mask & W_OK)
+            res = EPERM;
+          else
+            res = 0;
+        }
+      else
+        res = access (inode->domain->doc_path, mask);
+    }
 
   if (res == -1)
     xdp_reply_err (op, req, errno);
@@ -2445,7 +2504,9 @@ xdp_fuse_rmdir (fuse_req_t req,
   g_debug ("RMDIR %lx %s", parent_ino, filename);
 
   if (!xdp_document_inode_checks (op, req, parent,
-                                  CHECK_CAN_WRITE | CHECK_IS_DIRECTORY))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
   dirfd = xdp_document_inode_ensure_dirfd (parent, &close_fd);
@@ -2471,7 +2532,8 @@ xdp_fuse_readlink (fuse_req_t req,
   g_debug ("READLINK %lx", ino);
 
   if (!xdp_document_inode_checks (op, req, inode,
-                                  CHECK_IS_DIRECTORY))
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
   if (inode->physical == NULL)
@@ -2501,7 +2563,9 @@ xdp_fuse_symlink (fuse_req_t req,
   g_debug ("SYMLINK %s %lx %s", link, parent_ino, name);
 
   if (!xdp_document_inode_checks (op, req, parent,
-                                  CHECK_CAN_WRITE | CHECK_IS_DIRECTORY))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
   dirfd = xdp_document_inode_ensure_dirfd (parent, &close_fd);
@@ -2539,7 +2603,9 @@ xdp_fuse_link (fuse_req_t req,
 
   /* hardlinks only supported in docdirs, and only physical files */
   if (!xdp_document_inode_checks (op, req, inode,
-                                  CHECK_CAN_WRITE | CHECK_IS_DIRECTORY | CHECK_IS_PHYSICAL))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
   /* Don't allow linking between domains */
@@ -2605,16 +2671,13 @@ xdp_fuse_setxattr (fuse_req_t req,
   g_debug ("SETXATTR %lx %s", ino, name);
 
   if (!xdp_document_inode_checks (op, req, inode,
-                                  CHECK_CAN_WRITE | CHECK_IS_DIRECTORY))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
-  if (inode->physical)
-    {
-      path = fd_to_path (inode->physical->fd);
-      res = setxattr (path, name, value, size, flags);
-    }
-  else
-    res = setxattr (inode->domain->doc_path, name, value, size, flags);
+  path = fd_to_path (inode->physical->fd);
+  res = setxattr (path, name, value, size, flags);
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -2643,7 +2706,10 @@ xdp_fuse_getxattr (fuse_req_t req,
     buf = g_malloc (size);
 
   path = xdp_document_inode_get_self_as_path (inode);
-  res = getxattr (path, name, buf, size);
+  if (path == NULL)
+    res = ENODATA;
+  else
+    res = getxattr (path, name, buf, size);
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
@@ -2672,13 +2738,11 @@ xdp_fuse_listxattr (fuse_req_t req,
   if (size != 0)
     buf = g_malloc (size);
 
-  if (inode->physical)
-    {
-      path = fd_to_path (inode->physical->fd);
-      res = listxattr (path, buf, size);
-    }
+  path = xdp_document_inode_get_self_as_path (inode);
+  if (path)
+    res = listxattr (path, buf, size);
   else
-    res = listxattr (inode->domain->doc_path, buf, size);
+    res = 0;
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -2702,16 +2766,13 @@ xdp_fuse_removexattr (fuse_req_t req,
   g_debug ("REMOVEXATTR %lx %s", ino, name);
 
   if (!xdp_document_inode_checks (op, req, inode,
-                                  CHECK_CAN_WRITE | CHECK_IS_DIRECTORY))
+                                  CHECK_CAN_WRITE |
+                                  CHECK_IS_DIRECTORY |
+                                  CHECK_IS_PHYSICAL))
     return;
 
-  if (inode->physical)
-    {
-      path = fd_to_path (inode->physical->fd);
-      res = removexattr (path, name);
-    }
-  else
-    res = removexattr (inode->domain->doc_path, name);
+  path = fd_to_path (inode->physical->fd);
+  res = removexattr (path, name);
 
   if (res < 0)
     xdp_reply_err (op, req, errno);
@@ -3051,6 +3112,8 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
   XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
   g_autoptr(XdpDomain) domain = NULL;
   g_autoptr(XdpPhysicalInode) physical = NULL;
+  DevIno file_devino;
+  struct stat buf;
 
   if (real_path_out)
     *real_path_out = NULL;
@@ -3072,32 +3135,37 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
   if (domain->type != XDP_DOMAIN_DOCUMENT)
     return NULL;
 
-  if ((domain->doc_flags & DOCUMENT_ENTRY_FLAG_DIRECTORY) == 0)
+  if (physical == NULL)
+    return NULL;
+
+  file_devino = physical->backing_devino;
+
+  if (!xdp_document_domain_is_dir (domain))
     {
+      g_autofree char *main_path = g_build_filename (domain->doc_path, domain->doc_file, NULL);
+
       /* file document */
 
       if (directory)
         return NULL;
 
-      if (physical != NULL)
-        {
-          g_autofree char *main_path = g_build_filename (domain->doc_path, domain->doc_file, NULL);
-          DevIno file_devino = physical->backing_devino;
-          struct stat buf;
-
-          /* Only return for main file */
-          if (lstat (main_path, &buf) == 0 &&
-              buf.st_dev == file_devino.dev &&
-              buf.st_ino == file_devino.ino)
-            return g_strdup (domain->doc_id);
-        }
+      /* Only return for main file */
+      if (lstat (main_path, &buf) == 0 &&
+          buf.st_dev == file_devino.dev &&
+          buf.st_ino == file_devino.ino)
+        return g_strdup (domain->doc_id);
     }
   else
     {
       /* directory document */
-      if (directory && physical == NULL)
+
+      /* Only return entire doc for main dir */
+      if (file_devino.dev == domain->doc_dir_device &&
+          file_devino.ino == domain->doc_dir_inode)
         return g_strdup (domain->doc_id);
-      else if (physical != NULL && real_path_out)
+
+      /* But maybe its a subfile of the document */
+      if (real_path_out)
         {
           g_autofree char *fd_path = fd_to_path (physical->fd);
           char path_buffer[PATH_MAX + 1];
@@ -3105,7 +3173,7 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
           ssize_t symlink_size;
           struct stat buf;
 
-          /* Try to extract a real path to the file (and verify it goes to the same place) */
+          /* Try to extract a real path to the file (and verify it goes to the same place as the fd) */
           symlink_size = readlink (fd_path, path_buffer, PATH_MAX);
           if (symlink_size >= 1)
             {
