@@ -53,6 +53,7 @@ register_document (const char *uri,
                    const char *app_id,
                    gboolean for_save,
                    gboolean writable,
+                   gboolean directory,
                    GError **error)
 {
   g_autofree char *doc_id = NULL;
@@ -69,6 +70,7 @@ register_document (const char *uri,
   int i;
   int version;
   gboolean handled_permissions = FALSE;
+  DocumentAddFullFlags full_flags;
 
   if (app_id == NULL || *app_id == 0)
     return g_strdup (uri);
@@ -104,6 +106,9 @@ register_document (const char *uri,
   permissions[i++] = NULL;
 
   version = xdp_documents_get_version (documents);
+  full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
+  if (directory)
+    full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
   if (for_save)
     {
@@ -112,7 +117,7 @@ register_document (const char *uri,
           ret = xdp_documents_call_add_named_full_sync (documents,
                                                         g_variant_new_handle (fd_in),
                                                         basename,
-                                                        DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP,
+                                                        full_flags,
                                                         app_id,
                                                         permissions,
                                                         fd_list,
@@ -141,7 +146,7 @@ register_document (const char *uri,
         {
           ret = xdp_documents_call_add_full_sync (documents,
                                                   g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),
-                                                  DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP,
+                                                  full_flags,
                                                   app_id,
                                                   permissions,
                                                   fd_list,

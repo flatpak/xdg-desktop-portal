@@ -96,7 +96,7 @@ send_response_in_thread_func (GTask        *task,
       g_autofree char *ruri = NULL;
       g_autoptr(GError) error = NULL;
 
-      ruri = register_document (image, xdp_app_info_get_id (request->app_info), FALSE, FALSE, &error);
+      ruri = register_document (image, xdp_app_info_get_id (request->app_info), FALSE, FALSE, FALSE, &error);
       if (ruri == NULL)
         g_warning ("Failed to register %s: %s", image, error->message);
       else
