@@ -1,3 +1,10 @@
+Changes in 1.7.1
+================
+
+- filechooser: Add a "directory" option
+- filechooser: Document the "writable" option
+- document: Expose directories with their proper name
+
 Changes in 1.7.0
 ================
 
