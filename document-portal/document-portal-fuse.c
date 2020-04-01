@@ -133,6 +133,9 @@ struct _XdpDomain {
   guint64 doc_dir_inode;
   guint32 doc_flags;
 
+  fuse_ino_t doc_parent_ino; /* ino nr of the parent of the document dir, used to invalidate entries */
+  int doc_queued_invalidate; /* Access atomically, 1 if queued invalidate */
+
   /* Below is mutable, protected by mutex */
   GMutex  tempfile_mutex;
   GHashTable *tempfiles; /* Name -> physical */
@@ -1544,11 +1547,12 @@ ensure_by_app_inode (XdpDomain *by_app_domain,
 }
 
 static XdpInode *
-ensure_doc_inode (XdpDomain *parent_domain,
+ensure_doc_inode (XdpInode *parent,
                   const char *doc_id)
 {
   g_autoptr(XdpInode) inode = NULL;
   g_autoptr(PermissionDbEntry) doc_entry = NULL;
+  XdpDomain *parent_domain = parent->domain;
 
   doc_entry = xdp_lookup_doc (doc_id);
 
@@ -1565,11 +1569,40 @@ ensure_doc_inode (XdpDomain *parent_domain,
     {
       g_autoptr(XdpDomain) doc_domain = xdp_domain_new_document (parent_domain, doc_id, doc_entry);
       inode = xdp_inode_new (doc_domain, NULL);
+      doc_domain->doc_parent_ino = xdp_inode_to_ino (parent);
       g_hash_table_insert (parent_domain->inodes, doc_domain->doc_id, inode);
     }
   G_UNLOCK(domain_inodes);
 
   return g_steal_pointer (&inode);
+}
+
+static gboolean
+invalidate_doc_domain (gpointer user_data)
+{
+  g_autoptr(XdpDomain) doc_domain = user_data;
+
+  g_atomic_int_set (&doc_domain->doc_queued_invalidate, 0);
+
+  fuse_lowlevel_notify_inval_entry (main_ch, doc_domain->doc_parent_ino, doc_domain->doc_id, strlen (doc_domain->doc_id));
+
+  return FALSE;
+}
+
+/* Queue an inval_entry call on this domain, thereby freeing all unused inodes
+ * in the dcache which will free up a bunch of O_PATH fds in the fuse implementation
+ */
+static void
+doc_domain_queue_entry_invalidate (XdpDomain *doc_domain)
+{
+  int old = g_atomic_int_get (&doc_domain->doc_queued_invalidate);
+  if (old != 0)
+    return;
+
+  if (!g_atomic_int_compare_and_exchange (&doc_domain->doc_queued_invalidate, old, 1))
+    return; // Someone else set it to 1, return
+
+  g_timeout_add (1000, invalidate_doc_domain, xdp_domain_ref (doc_domain));
 }
 
 static void
@@ -1603,13 +1636,13 @@ xdp_fuse_lookup (fuse_req_t req,
           if (strcmp (name, BY_APP_NAME) == 0)
             inode = xdp_inode_ref (by_app_inode);
           else
-            inode = ensure_doc_inode (parent_domain, name);
+            inode = ensure_doc_inode (parent,name);
           break;
         case XDP_DOMAIN_BY_APP:
           inode = ensure_by_app_inode (parent_domain, name);
           break;
         case XDP_DOMAIN_APP:
-          inode = ensure_doc_inode (parent_domain, name);
+          inode = ensure_doc_inode (parent, name);
           break;
         default:
           g_assert_not_reached ();
@@ -1631,6 +1664,8 @@ xdp_fuse_lookup (fuse_req_t req,
       res = ensure_docdir_inode (parent->domain, fd, &e); /* Takes ownershif of fd */
       if (res != 0)
         return xdp_reply_err (op, req, -res);
+
+      doc_domain_queue_entry_invalidate (parent_domain);
     }
 
   g_debug ("LOOKUP %lx:%s => %lx", parent_ino, name, e.ino);
