@@ -1633,6 +1633,8 @@ xdp_fuse_lookup (fuse_req_t req,
         return xdp_reply_err (op, req, -res);
     }
 
+  g_debug ("LOOKUP %lx:%s => %lx", parent_ino, name, e.ino);
+
   if (fuse_reply_entry (req, &e) == -ENOENT)
     abort_reply_entry (&e);
 }
@@ -1883,6 +1885,7 @@ forget_one (fuse_ino_t ino,
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
 
+  g_debug ("FORGET %lx %ld", ino, nlookup);
   xdp_inode_kernel_unref (inode, nlookup);
 }
 
@@ -1891,7 +1894,6 @@ xdp_fuse_forget (fuse_req_t req,
                  fuse_ino_t ino,
                  unsigned long nlookup)
 {
-  g_debug ("FORGET %lx %ld", ino, nlookup);
   forget_one (ino, nlookup);
   fuse_reply_none (req);
 }
