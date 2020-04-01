@@ -116,7 +116,7 @@ static void         xdp_tempfile_unref (XdpTempfile *tempfile);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpTempfile, xdp_tempfile_unref)
 
 typedef struct {
-  gint ref_count; /* atomic, includes kernel_ref_count */
+  gint ref_count; /* atomic, includes one ref if kernel_ref_count != 0 */
   gint kernel_ref_count; /* atomic */
 
   XdpDomain *domain;
@@ -702,26 +702,33 @@ retry_atomic_decrement1:
 static XdpInode *
 xdp_inode_kernel_ref (XdpInode *inode)
 {
-  g_atomic_int_inc (&inode->kernel_ref_count);
-  return xdp_inode_ref (inode);
+  int old;
+
+  old = g_atomic_int_add (&inode->kernel_ref_count, 1);
+
+  if (old == 0)
+    xdp_inode_ref (inode);
+  return inode;
 }
 
 static void
-xdp_inode_kernel_unref (XdpInode *inode)
+xdp_inode_kernel_unref (XdpInode *inode, unsigned long count)
 {
-  gint old_ref;
+  gint old_ref, new_ref;
 
  retry_atomic_decrement1:
   old_ref = g_atomic_int_get (&inode->kernel_ref_count);
-  if (old_ref <= 0)
+  if (old_ref < count)
     {
       g_warning ("Can't kernel_unref inode with no kernel refs");
       return;
     }
-  if (!g_atomic_int_compare_and_exchange (&inode->kernel_ref_count, old_ref, old_ref - 1))
+  new_ref = old_ref - count;
+  if (!g_atomic_int_compare_and_exchange (&inode->kernel_ref_count, old_ref, new_ref))
     goto retry_atomic_decrement1;
 
-  xdp_inode_unref (inode);
+  if (new_ref == 0)
+    xdp_inode_unref (inode);
 }
 
 static int
@@ -1400,7 +1407,7 @@ static void
 abort_reply_entry (struct fuse_entry_param *e)
 {
   XdpInode *inode = xdp_inode_from_ino (e->ino);
-  xdp_inode_kernel_unref (inode);
+  xdp_inode_kernel_unref (inode, 1);
 }
 
 static int
@@ -1822,11 +1829,7 @@ forget_one (fuse_ino_t ino,
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
 
-  while (nlookup > 0)
-    {
-      xdp_inode_kernel_unref (inode);
-      nlookup--;
-    }
+  xdp_inode_kernel_unref (inode, nlookup);
 }
 
 static void
