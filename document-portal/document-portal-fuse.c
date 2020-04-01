@@ -24,6 +24,60 @@
 #include "document-store.h"
 #include "src/xdp-utils.h"
 
+/* Inode ownership model
+ *
+ * The document portal exposes something as a filesystem that it
+ * doesn't have full control over. For instance at any point some
+ * other process can rename an exposed file on the real filesystem and
+ * we won't be told about this. This means that in general we always
+ * return 0 for the cacheable lifetimes of entries and file attributes.
+ * (Except for the virtual directories we have full control of, the
+ * below only discusses real files).
+ *
+ * However, even though we don't have full control of the underlying
+ * filesystem the *kernel* has. This means we can used that to get
+ * the correct semantics.
+ *
+ * For example, assume that a directory is held opened by a process
+ * (for example, it could be the CWD of the process). When we opened
+ * the directory via a LOOKUP operation we returned an inode to it,
+ * and for as long as the kernel has this inode around (i.e.  until it
+ * sent a FORGET message) it can send operations on this inode without
+ * looking it up again. For example if the above process used a
+ * relative path.
+ *
+ * Now, consider the case where the app chdir():ed into the fuse
+ * directory, but after that the backing directory was renamed ouside
+ * the fuse filesystem. The fuse inode representation for the inode
+ * cannot be the directory name, because the expected semantics is
+ * that further relative pathnames from the app will still resolve
+ * to the same directory independent of its location in the tree.
+ *
+ * The way we do this is to keep a O_PATH file descriptor around for
+ * each underlying inode. This is represented by the XdpPhysicalInode
+ * type and we have a hashtable from backing dev+inode to a these
+ * so that we can use one fd per backing inode even when the file
+ * is visible in many places.
+ *
+ * Since we don't do any caching, each LOOKUP operation will do a
+ * statat() on the underlying filesystem. However, we then use the
+ * result of that to lookup (via backing dev+ino) the previous inode
+ * (as long as it still lives) if the backing file was unchanged.
+ *
+ * One problem with this approach is that the kernel tends to keep
+ * inodes alive for a very long time even if they are *only*
+ * references by the dcache (event though we will not really use the
+ * dcache info due to the 0 valid time). This is unfortunate, because
+ * it means we will keep a lot of file descriptor open. But, we
+ * can't know if the kernel needs the inode for some non-dcache use
+ * so we can't close the file descriptors.
+ *
+ * To work around this we regularly emit entry invalidation calls
+ * to the kernel, which will make it forget the inodes that are
+ * only pinned by the dcache.
+ */
+
+
 #define NON_DOC_DIR_PERMS 0500
 #define DOC_DIR_PERMS_FILE 0700
 #define DOC_DIR_PERMS_DIR 0500
