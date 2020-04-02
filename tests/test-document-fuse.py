@@ -166,11 +166,11 @@ def assertFileNotExist(path):
         raise AssertionError("Got wrong execption {} for {}, expected FileNotFoundError".format(sys.exc_info()[0], path))
     raise AssertionError("Path {} unexpectedly exists".format(path))
 
-def assertDirFiles(path, expected_files, exhaustive = True):
+def assertDirFiles(path, expected_files, exhaustive = True, volatile_files = None):
     found_files = os.listdir (path)
     remaining = set(found_files)
     for file in expected_files:
-        if not file in remaining:
+        if not file in remaining and not file in volatile_files:
             raise AssertionError("Expected file {} not found in dir {} (all: {})".format(file, path, found_files))
         remaining.remove(file)
     if exhaustive:
@@ -230,6 +230,7 @@ class Doc:
 class DocPortal:
     def __init__(self):
         self.apps = []
+        self.volatile_apps = set()
         self.docs = {}
         self.bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
         self.proxy = Gio.DBusProxy.new_sync( self.bus, Gio.DBusProxyFlags.NONE, None,
@@ -327,9 +328,11 @@ class DocPortal:
                 docs.append(doc.id)
         return docs
 
-    def ensure_app_id(self, app_id):
+    def ensure_app_id(self, app_id, volatile=False):
         if not app_id in self.apps:
             self.apps.append(app_id)
+        if volatile:
+            self.volatile_apps.add(app_id)
 
     def get_docs(self):
         return list(portal.docs.values())
@@ -344,6 +347,9 @@ class DocPortal:
 
     def get_app_ids(self):
         return self.apps
+
+    def get_volatile_app_ids(self):
+        return self.volatile_apps
 
     def get_app_ids_randomized(self):
         apps = self.apps.copy()
@@ -364,7 +370,7 @@ def check_virtual_stat (info, writable = False):
     else:
         assertEqual(info.st_mode, stat.S_IFDIR | 0o500)
 
-def verify_virtual_dir (path, files):
+def verify_virtual_dir (path, files, volatile_files=None):
     info = os.lstat(path)
     check_virtual_stat (info)
     assert os.access(path, os.R_OK)
@@ -373,7 +379,7 @@ def verify_virtual_dir (path, files):
     assertRaises(FileNotFoundError, os.lstat, path + "/not-existing-file")
 
     if files != None:
-        assertDirFiles(path, files, ensure_no_remaining)
+        assertDirFiles(path, files, ensure_no_remaining, volatile_files)
 
 def verify_doc(doc, app_id=None):
     dir = doc.get_doc_path(app_id)
@@ -436,7 +442,7 @@ def verify_doc(doc, app_id=None):
 
 def verify_fs_layout():
     verify_virtual_dir (portal.mountpoint, ["by-app"] + list(portal.docs.keys()))
-    verify_virtual_dir (portal.by_app_path(), portal.get_app_ids())
+    verify_virtual_dir (portal.by_app_path(), portal.get_app_ids(), portal.get_volatile_app_ids())
 
     for doc in portal.get_docs():
         verify_doc(doc)
@@ -771,7 +777,7 @@ def create_app_by_lookup ():
     app_id = app_prefix + "Lookup"
     info = os.lstat(portal.app_path(app_id))
     check_virtual_stat (info)
-    portal.ensure_app_id(app_id)
+    portal.ensure_app_id(app_id, volatile=True)
 
 def ensure_real_dir(create_hidden_file=True):
     count = get_a_count("doc")
