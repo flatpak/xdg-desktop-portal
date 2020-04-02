@@ -170,9 +170,10 @@ def assertDirFiles(path, expected_files, exhaustive = True, volatile_files = Non
     found_files = os.listdir (path)
     remaining = set(found_files)
     for file in expected_files:
-        if not file in remaining and not file in volatile_files:
+        if file in remaining:
+            remaining.remove(file)
+        elif not file in volatile_files:
             raise AssertionError("Expected file {} not found in dir {} (all: {})".format(file, path, found_files))
-        remaining.remove(file)
     if exhaustive:
         if len(remaining) != 0:
             raise AssertionError("Unexpected files {} in dir {} (all: {})".format(remaining, path, found_files))
