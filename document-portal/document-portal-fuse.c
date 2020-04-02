@@ -173,6 +173,7 @@ static void         xdp_tempfile_unref (XdpTempfile *tempfile);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpTempfile, xdp_tempfile_unref)
 
 struct _XdpInode {
+  guint64 ino;
   gint ref_count; /* atomic, includes one ref if kernel_ref_count != 0 */
   gint kernel_ref_count; /* atomic */
 
@@ -208,7 +209,8 @@ static XdpInode *xdp_inode_ref (XdpInode *inode);
 static void xdp_inode_unref (XdpInode *inode);
 
 /* Lookup by inode for verification */
-static GHashTable *all_inodes;
+static GHashTable *all_inodes; /* guint64 -> XdpInode */
+static guint64 next_virtual_inode = FUSE_ROOT_ID; /* root is the first inode created, so it gets this */
 G_LOCK_DEFINE (all_inodes);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpInode, xdp_inode_unref)
@@ -653,10 +655,37 @@ _xdp_inode_new (void)
   inode->ref_count = 1;
   inode->kernel_ref_count = 0;
 
-  G_LOCK (all_inodes);
-  g_hash_table_insert (all_inodes, inode, inode);
-  G_UNLOCK (all_inodes);
   return inode;
+}
+
+/* We try to create persistent inode nr based on the backing device and inode nrs, as
+ * well as the doc/app id (since the same backing dev/ino should be different inodes
+ * in the fuse filesystem). We do this by hashing the data to generate a value.
+ * For non-phsyical files or accidental collisions we just pick a free number
+ * by incrementing.
+ */
+static guint64
+generate_persistent_ino (DevIno *backing_devino,
+                         const char *doc_id,
+                         const char *app_id)
+{
+  g_autoptr(GChecksum) checksum = g_checksum_new (G_CHECKSUM_MD5);
+  guchar digest[64];
+  gsize digest_len = 64;
+  guint64 res;
+
+  g_checksum_update (checksum, (guchar *)backing_devino, sizeof (DevIno));
+  if (doc_id)
+    g_checksum_update (checksum, (guchar *)doc_id, strlen (doc_id));
+  if (app_id)
+    g_checksum_update (checksum, (guchar *)app_id, strlen (app_id));
+
+  g_checksum_get_digest (checksum, digest, &digest_len);
+
+  res = *(guint64 *)digest;
+  if (res == FUSE_ROOT_ID || res == 0)
+    res = FUSE_ROOT_ID + 1;
+  return res;
 }
 
 /* takes ownership of fd */
@@ -666,9 +695,29 @@ xdp_inode_new (XdpDomain *domain,
 {
   XdpInode *inode = _xdp_inode_new ();
   inode->domain = xdp_domain_ref (domain);
+  guint64 persistent_ino, try_ino;
 
   if (physical)
-    inode->physical = xdp_physical_inode_ref (physical);
+    {
+      inode->physical = xdp_physical_inode_ref (physical);
+      persistent_ino = generate_persistent_ino (&physical->backing_devino,
+                                                domain->doc_id,
+                                                domain->app_id);
+
+    }
+
+  G_LOCK (all_inodes);
+  if (physical)
+    try_ino = persistent_ino;
+  else
+    try_ino = next_virtual_inode++;
+
+  if (g_hash_table_contains (all_inodes, &try_ino))
+    try_ino++;
+
+  inode->ino = try_ino;
+  g_hash_table_insert (all_inodes, &inode->ino, inode);
+  G_UNLOCK (all_inodes);
 
   return inode;
 }
@@ -676,32 +725,22 @@ xdp_inode_new (XdpDomain *domain,
 static ino_t
 xdp_inode_to_ino (XdpInode *inode)
 {
-  if (inode == root_inode)
-    return FUSE_ROOT_ID;
-  return (ino_t)(gsize) inode;
+  return inode->ino;
 }
 
-/* Use if we don't know that the inode exists (i.e. when we didn't get
-   it from the kernel fuse apis) after this you need to verify with
-   all_inodes lookup */
-static XdpInode *
-_xdp_inode_from_maybe_ino (ino_t ino)
-{
-  XdpInode *inode;
-
-  if (ino == FUSE_ROOT_ID)
-    inode = root_inode;
-  else
-    inode = (XdpInode *)ino;
-
-  return inode;
-}
-
+/* This is called on kernel upcalls, so it *should* be guaranteed that the inode exists due to the kernel refs */
 static XdpInode *
 xdp_inode_from_ino (ino_t ino)
 {
-  XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
+  XdpInode *inode;
 
+  G_LOCK (all_inodes);
+  inode = g_hash_table_lookup (all_inodes, &ino);
+  G_UNLOCK (all_inodes);
+
+  g_assert (inode != NULL);
+
+  /* Its safe to ref it here because we know it exists outside the lock due to the kernel refs */
   return xdp_inode_ref (inode);
 }
 
@@ -750,17 +789,28 @@ retry_atomic_decrement1:
       else if (domain->type == XDP_DOMAIN_DOCUMENT)
         {
           if (inode->physical)
-            g_hash_table_remove (domain->inodes, inode->physical);
+            {
+              g_hash_table_remove (domain->inodes, inode->physical);
+            }
           else
             g_hash_table_remove (domain->parent->inodes, domain->doc_id);
         }
 
+      /* Run this under domain_inodes lock to avoid race condition in ensure_docdir_inode + xdp_inode_new
+       * where we don't want a domain->inode lookup to fail, but then an all_inode lookup to succeed
+       * when looking for an ino collision
+       *
+       * Note: After the domain->inodes removal and here we don't allow resurrection, but we may
+       * still race with an all_inodes lookup (e.g. in xdp_fuse_lookup_id_for_inode), which *is*
+       * allowed and it can read the inode fields (while the lock is held) as they are still valid.
+       **/
+      G_LOCK (all_inodes);
+      g_hash_table_remove (all_inodes, &inode->ino);
+      G_UNLOCK (all_inodes);
+
       G_UNLOCK (domain_inodes);
 
-      /* This doesn't allow ressurection (but can read inode data) */
-      G_LOCK (all_inodes);
-      g_hash_table_remove (all_inodes, inode);
-      G_UNLOCK (all_inodes);
+      /* By now we have no refs outstanding and no way to get at the inode, so free it */
 
       g_clear_pointer (&inode->domain_root_inode, xdp_inode_unref);
       g_clear_pointer (&inode->physical, xdp_physical_inode_unref);
@@ -3057,7 +3107,7 @@ xdp_fuse_init (GError **error)
   my_uid = getuid ();
   my_gid = getgid ();
 
-  all_inodes = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, NULL);
+  all_inodes = g_hash_table_new_full (g_int64_hash, g_int64_equal, NULL, NULL);
 
   root_domain = xdp_domain_new_root ();
   root_inode = xdp_inode_new (root_domain, NULL);
@@ -3234,7 +3284,6 @@ char *
 xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
                               char **real_path_out)
 {
-  XdpInode *inode = _xdp_inode_from_maybe_ino (ino);
   g_autoptr(XdpDomain) domain = NULL;
   g_autoptr(XdpPhysicalInode) physical = NULL;
   DevIno file_devino;
@@ -3244,14 +3293,16 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
     *real_path_out = NULL;
 
   G_LOCK (all_inodes);
-  inode = g_hash_table_lookup (all_inodes, inode);
-  if (inode)
-    {
-      /* We're not allowed to ressurect the inode here, but we can get the data while in the lock */
-      domain = xdp_domain_ref (inode->domain);
-      if (inode->physical)
-        physical = xdp_physical_inode_ref (inode->physical);
-    }
+  {
+    XdpInode *inode = g_hash_table_lookup (all_inodes, &ino);
+    if (inode)
+      {
+        /* We're not allowed to ressurect the inode here, but we can get the data while in the lock */
+        domain = xdp_domain_ref (inode->domain);
+        if (inode->physical)
+          physical = xdp_physical_inode_ref (inode->physical);
+      }
+  }
   G_UNLOCK (all_inodes);
 
   if (domain == NULL)
