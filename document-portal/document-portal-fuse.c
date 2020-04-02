@@ -181,7 +181,11 @@ struct _XdpInode {
 
   /* The below are only used for XDP_DOMAIN_DOCUMENT inodes */
   XdpPhysicalInode *physical;
-
+  /* The root of the domain, or NULL for the domain.  We use this to
+   * keep the root document inode alive so that when the kernel
+   * forgets it and then looks it up we will not get a new inode and
+   * thus a new domain. */
+  XdpInode *domain_root_inode;
 };
 
 typedef struct {
@@ -755,6 +759,7 @@ retry_atomic_decrement1:
       g_hash_table_remove (all_inodes, inode);
       G_UNLOCK (all_inodes);
 
+      g_clear_pointer (&inode->domain_root_inode, xdp_inode_unref);
       g_clear_pointer (&inode->physical, xdp_physical_inode_unref);
       xdp_domain_unref (inode->domain);
       g_free (inode);
@@ -1474,10 +1479,11 @@ abort_reply_entry (struct fuse_entry_param *e)
 }
 
 static int
-ensure_docdir_inode (XdpDomain *domain,
+ensure_docdir_inode (XdpInode *parent,
                      int o_path_fd_in, /* Takes ownership */
                      struct fuse_entry_param *e)
 {
+  XdpDomain *domain = parent->domain;
   g_autoptr(XdpPhysicalInode) physical = NULL;
   g_autoptr(XdpInode) inode = NULL;
   xdp_autofd int o_path_fd = o_path_fd_in;
@@ -1501,7 +1507,11 @@ ensure_docdir_inode (XdpDomain *domain,
   else
     {
       inode = xdp_inode_new (domain, physical);
-      g_hash_table_insert (domain->inodes, physical, inode);
+      if (parent->domain_root_inode)
+        inode->domain_root_inode = xdp_inode_ref (parent->domain_root_inode);
+      else
+        inode->domain_root_inode = xdp_inode_ref (parent);
+     g_hash_table_insert (domain->inodes, physical, inode);
     }
   G_UNLOCK(domain_inodes);
 
@@ -1513,7 +1523,7 @@ ensure_docdir_inode (XdpDomain *domain,
 }
 
 static int
-ensure_docdir_inode_by_name (XdpDomain *domain,
+ensure_docdir_inode_by_name (XdpInode *parent,
                              int dirfd,
                              const char *name,
                              struct fuse_entry_param *e)
@@ -1524,7 +1534,7 @@ ensure_docdir_inode_by_name (XdpDomain *domain,
   if (o_path_fd == -1)
       return -errno;
 
-  return ensure_docdir_inode (domain, o_path_fd, e); /* Takes ownershif of o_path_fd */
+  return ensure_docdir_inode (parent, o_path_fd, e); /* Takes ownershif of o_path_fd */
 }
 
 
@@ -1647,7 +1657,7 @@ xdp_fuse_lookup (fuse_req_t req,
           if (strcmp (name, BY_APP_NAME) == 0)
             inode = xdp_inode_ref (by_app_inode);
           else
-            inode = ensure_doc_inode (parent,name);
+            inode = ensure_doc_inode (parent, name);
           break;
         case XDP_DOMAIN_BY_APP:
           inode = ensure_by_app_inode (parent, name);
@@ -1672,7 +1682,7 @@ xdp_fuse_lookup (fuse_req_t req,
       if (fd < 0)
         return xdp_reply_err (op, req, -fd);
 
-      res = ensure_docdir_inode (parent->domain, fd, &e); /* Takes ownershif of fd */
+      res = ensure_docdir_inode (parent, fd, &e); /* Takes ownershif of fd */
       if (res != 0)
         return xdp_reply_err (op, req, -res);
 
@@ -1773,7 +1783,7 @@ xdp_fuse_create (fuse_req_t             req,
   if (o_path_fd < 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode (parent->domain, xdp_steal_fd (&o_path_fd), &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), &e); /* Takes ownershif of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -2322,7 +2332,7 @@ xdp_fuse_mkdir (fuse_req_t  req,
   if (res != 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode_by_name (parent->domain, dirfd, name, &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownershif of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -2681,7 +2691,7 @@ xdp_fuse_symlink (fuse_req_t req,
   if (res != 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode_by_name (parent->domain, dirfd, name, &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownershif of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -2726,7 +2736,7 @@ xdp_fuse_link (fuse_req_t req,
   if (res != 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode_by_name (inode->domain, newparent_dirfd, newname, &e); /* Takes ownership of o_path_fd */
+  res = ensure_docdir_inode_by_name (inode, newparent_dirfd, newname, &e); /* Takes ownership of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
