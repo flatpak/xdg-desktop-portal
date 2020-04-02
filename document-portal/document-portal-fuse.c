@@ -1664,7 +1664,7 @@ invalidate_doc_domain (gpointer user_data)
 
   parent_ino = xdp_inode_to_ino (doc_domain->parent_inode);
 
-  if (g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0)
+  if (g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0 && main_ch != NULL)
     fuse_lowlevel_notify_inval_entry (main_ch, parent_ino, doc_domain->doc_id, strlen (doc_domain->doc_id));
 
   return FALSE;
@@ -3079,6 +3079,7 @@ xdp_fuse_mainloop (gpointer data)
   fuse_session_remove_chan (main_ch);
   fuse_session_destroy (session);
   fuse_unmount (mount_path, main_ch);
+  main_ch = NULL;
 
   return NULL;
 }
