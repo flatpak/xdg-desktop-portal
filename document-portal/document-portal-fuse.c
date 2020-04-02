@@ -165,8 +165,7 @@ typedef struct {
                       used as key in domain->tempfiles */
   char *tempname;  /* Real filename on disk.
                       This can be NULLed to avoid unlink at finalize */
-  XdpPhysicalInode *physical;
-  XdpDomain *domain;
+  XdpInode *inode;
 } XdpTempfile;
 
 static XdpTempfile *xdp_tempfile_ref   (XdpTempfile *tempfile);
@@ -213,6 +212,11 @@ static GHashTable *all_inodes;
 G_LOCK_DEFINE (all_inodes);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpInode, xdp_inode_unref)
+
+static int ensure_docdir_inode (XdpInode *parent,
+                                int o_path_fd_in, /* Takes ownership */
+                                struct fuse_entry_param *e,
+                                XdpInode **inode_out);
 
 static gboolean
 app_can_write_doc (PermissionDbEntry *entry, const char *app_id)
@@ -611,14 +615,14 @@ xdp_tempfile_ref (XdpTempfile *tempfile)
 }
 
 static XdpTempfile *
-xdp_tempfile_new (XdpDomain  *domain,
+xdp_tempfile_new (XdpInode   *inode,
                   const char *name,
                   const char *tempname)
 {
   XdpTempfile *tempfile = g_new0 (XdpTempfile, 1);
 
   tempfile->ref_count = 1;
-  tempfile->domain = xdp_domain_ref (domain);
+  tempfile->inode = xdp_inode_ref (inode);
   tempfile->name = g_strdup (name);
   tempfile->tempname = g_strdup (tempname);
 
@@ -632,13 +636,12 @@ xdp_tempfile_unref (XdpTempfile *tempfile)
     {
       if (tempfile->tempname)
         {
-          g_autofree char *temppath = g_build_filename (tempfile->domain->doc_path, tempfile->tempname, NULL);
+          g_autofree char *temppath = g_build_filename (tempfile->inode->domain->doc_path, tempfile->tempname, NULL);
           (void)unlink (temppath);
         }
       g_free (tempfile->name);
       g_free (tempfile->tempname);
-      xdp_domain_unref (tempfile->domain);
-      g_clear_pointer (&tempfile->physical, xdp_physical_inode_unref);
+      g_clear_pointer (&tempfile->inode, xdp_inode_unref);
       g_free (tempfile);
     }
 }
@@ -925,18 +928,18 @@ open_temp_at (int    dirfd,
   return -EEXIST;
 }
 
-
 /* allocates tempfile for existing file,
    Called with tempfile lock held, sets errno */
 static int
-get_tempfile_for (XdpDomain *domain,
+get_tempfile_for (XdpInode *parent,
+                  XdpDomain *domain,
                   const char *name,
                   int dirfd,
                   const char *tmpname,
                   XdpTempfile **tempfile_out)
 {
   g_autoptr(XdpTempfile) tempfile = NULL;
-  struct stat buf;
+  g_autoptr(XdpInode) inode = NULL;
   xdp_autofd int o_path_fd = -1;
   int res;
 
@@ -947,12 +950,11 @@ get_tempfile_for (XdpDomain *domain,
   if (o_path_fd == -1)
     return -errno;
 
-  res = fstatat (o_path_fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
-  if (res == -1)
-    return -errno;
+  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), NULL, &inode); /* passed ownership of o_path_fd */
+  if (res != 0)
+    return res;
 
-  tempfile = xdp_tempfile_new (domain, name, tmpname);
-  tempfile->physical = ensure_physical_inode (buf.st_dev, buf.st_ino, xdp_steal_fd (&o_path_fd)); /* passed ownership of o_path_fd */
+  tempfile = xdp_tempfile_new (inode, name, tmpname);
 
   /* This is atomic, because we're called with the lock held */
   g_hash_table_replace (domain->tempfiles, tempfile->name, xdp_tempfile_ref (tempfile));
@@ -965,18 +967,20 @@ get_tempfile_for (XdpDomain *domain,
 /* Creates a new file on disk,
    Called with tempfile lock held, sets errno */
 static int
-create_tempfile (XdpDomain *domain,
+create_tempfile (XdpInode *parent,
+                 XdpDomain *domain,
                  const char *name,
                  int dirfd,
                  mode_t mode,
                   XdpTempfile **tempfile_out)
 {
-  struct stat buf;
+  g_autoptr(XdpInode) inode = NULL;
   g_autofree char *real_fd_path = NULL;
   xdp_autofd int real_fd = -1;
   xdp_autofd int o_path_fd = -1;
   g_autoptr(XdpTempfile) tempfile = NULL;
   g_autofree char *tmpname = NULL;
+  int res;
 
   if (tempfile_out != NULL)
     *tempfile_out = NULL;
@@ -993,11 +997,11 @@ create_tempfile (XdpDomain *domain,
   /* We can close the tmpfd early */
   close (xdp_steal_fd (&real_fd));
 
-  if (fstatat (o_path_fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW) != 0)
-    return -errno;
+  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), NULL, &inode); /* passed ownership of o_path_fd */
+  if (res != 0)
+    return res;
 
-  tempfile = xdp_tempfile_new (domain, name, tmpname);
-  tempfile->physical = ensure_physical_inode (buf.st_dev, buf.st_ino, xdp_steal_fd (&o_path_fd)); /* passed ownership of o_path_fd */
+  tempfile = xdp_tempfile_new (inode, name, tmpname);
 
   /* This is atomic, because we're called with the lock held */
   g_hash_table_replace (domain->tempfiles, tempfile->name, xdp_tempfile_ref (tempfile));
@@ -1079,14 +1083,14 @@ xdp_document_inode_open_child_fd (XdpInode *inode, const char *name, int open_fl
             }
           else if (open_flags & O_CREAT)
             {
-              tempfile_res = create_tempfile (domain, name, dirfd, mode, &tempfile);
+              tempfile_res = create_tempfile (inode, domain, name, dirfd, mode, &tempfile);
             }
 
           g_mutex_unlock (&domain->tempfile_mutex);
 
           if (tempfile)
             {
-              g_autofree char *fd_path = fd_to_path (tempfile->physical->fd);
+              g_autofree char *fd_path = fd_to_path (tempfile->inode->physical->fd);
               fd = open (fd_path, open_flags & ~(O_CREAT|O_EXCL|O_NOFOLLOW), mode);
               if (fd == -1)
                 return -errno;
@@ -1481,7 +1485,8 @@ abort_reply_entry (struct fuse_entry_param *e)
 static int
 ensure_docdir_inode (XdpInode *parent,
                      int o_path_fd_in, /* Takes ownership */
-                     struct fuse_entry_param *e)
+                     struct fuse_entry_param *e,
+                     XdpInode **inode_out)
 {
   XdpDomain *domain = parent->domain;
   g_autoptr(XdpPhysicalInode) physical = NULL;
@@ -1515,9 +1520,14 @@ ensure_docdir_inode (XdpInode *parent,
     }
   G_UNLOCK(domain_inodes);
 
-  tweak_statbuf_for_document_inode (inode, &buf);
+  if (e)
+    {
+      tweak_statbuf_for_document_inode (inode, &buf);
+      prepare_reply_entry (inode, &buf, e);
+    }
 
-  prepare_reply_entry (inode, &buf, e);
+  if (inode_out)
+    *inode_out = g_steal_pointer (&inode);
 
   return 0;
 }
@@ -1534,7 +1544,7 @@ ensure_docdir_inode_by_name (XdpInode *parent,
   if (o_path_fd == -1)
       return -errno;
 
-  return ensure_docdir_inode (parent, o_path_fd, e); /* Takes ownershif of o_path_fd */
+  return ensure_docdir_inode (parent, o_path_fd, e, NULL); /* Takes ownershif of o_path_fd */
 }
 
 
@@ -1682,7 +1692,7 @@ xdp_fuse_lookup (fuse_req_t req,
       if (fd < 0)
         return xdp_reply_err (op, req, -fd);
 
-      res = ensure_docdir_inode (parent, fd, &e); /* Takes ownershif of fd */
+      res = ensure_docdir_inode (parent, fd, &e, NULL); /* Takes ownershif of fd */
       if (res != 0)
         return xdp_reply_err (op, req, -res);
 
@@ -1783,7 +1793,7 @@ xdp_fuse_create (fuse_req_t             req,
   if (o_path_fd < 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), &e, NULL); /* Takes ownershif of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -2477,7 +2487,7 @@ xdp_fuse_rename (fuse_req_t  req,
             }
           else
             {
-              res = get_tempfile_for (domain, newname, dirfd, tmpname, NULL);
+              res = get_tempfile_for (parent, domain, newname, dirfd, tmpname, NULL);
             }
 
           g_mutex_unlock (&domain->tempfile_mutex);
