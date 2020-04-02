@@ -108,12 +108,14 @@ typedef enum {
 } XdpDomainType;
 
 typedef struct _XdpDomain XdpDomain;
+typedef struct _XdpInode XdpInode;
 
 struct _XdpDomain {
   gint ref_count; /* atomic */
   XdpDomainType type;
 
   XdpDomain *parent;
+  XdpInode *parent_inode; /* Inode of the parent domain (NULL for root) */
 
   char *doc_id; /* NULL for root, by-app, app */
   char *app_id; /* NULL for root, by-app, non-app id */
@@ -133,7 +135,6 @@ struct _XdpDomain {
   guint64 doc_dir_inode;
   guint32 doc_flags;
 
-  fuse_ino_t doc_parent_ino; /* ino nr of the parent of the document dir, used to invalidate entries */
   int doc_queued_invalidate; /* Access atomically, 1 if queued invalidate */
 
   /* Below is mutable, protected by mutex */
@@ -172,7 +173,7 @@ static XdpTempfile *xdp_tempfile_ref   (XdpTempfile *tempfile);
 static void         xdp_tempfile_unref (XdpTempfile *tempfile);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpTempfile, xdp_tempfile_unref)
 
-typedef struct {
+struct _XdpInode {
   gint ref_count; /* atomic, includes one ref if kernel_ref_count != 0 */
   gint kernel_ref_count; /* atomic */
 
@@ -181,7 +182,7 @@ typedef struct {
   /* The below are only used for XDP_DOMAIN_DOCUMENT inodes */
   XdpPhysicalInode *physical;
 
-} XdpInode;
+};
 
 typedef struct {
   int fd;
@@ -451,6 +452,7 @@ xdp_domain_unref (XdpDomain *domain)
         g_assert (g_hash_table_size (domain->inodes) == 0);
       g_clear_pointer (&domain->inodes, g_hash_table_unref);
       g_clear_pointer (&domain->parent, xdp_domain_unref);
+      g_clear_pointer (&domain->parent_inode, xdp_inode_unref);
       g_clear_pointer (&domain->tempfiles, g_hash_table_unref);
       g_mutex_clear (&domain->tempfile_mutex);
       g_free (domain);
@@ -485,20 +487,24 @@ xdp_domain_new_root (void)
 }
 
 static XdpDomain *
-xdp_domain_new_by_app (XdpDomain *root_domain)
+xdp_domain_new_by_app (XdpInode *root_inode)
 {
+  XdpDomain *root_domain = root_inode->domain;
   XdpDomain *domain = _xdp_domain_new (XDP_DOMAIN_BY_APP);
   domain->parent = xdp_domain_ref (root_domain);
+  domain->parent_inode = xdp_inode_ref (root_inode);
   domain->inodes = g_hash_table_new (g_str_hash, g_str_equal);
   return domain;
 }
 
 static XdpDomain *
-xdp_domain_new_app (XdpDomain *parent,
+xdp_domain_new_app (XdpInode *parent_inode,
                     const char *app_id)
 {
+  XdpDomain *parent = parent_inode->domain;
   XdpDomain *domain = _xdp_domain_new (XDP_DOMAIN_APP);
   domain->parent = xdp_domain_ref (parent);
+  domain->parent_inode = xdp_inode_ref (parent_inode);
   domain->app_id = g_strdup (app_id);
   domain->inodes = g_hash_table_new (g_str_hash, g_str_equal);
   return domain;
@@ -1523,9 +1529,10 @@ ensure_docdir_inode_by_name (XdpDomain *domain,
 
 
 static XdpInode *
-ensure_by_app_inode (XdpDomain *by_app_domain,
+ensure_by_app_inode (XdpInode *by_app_inode,
                      const char *app_id)
 {
+  XdpDomain *by_app_domain = by_app_inode->domain;
   g_autoptr(XdpInode) inode = NULL;
 
   if (!xdp_is_valid_app_id (app_id))
@@ -1537,7 +1544,7 @@ ensure_by_app_inode (XdpDomain *by_app_domain,
     inode = xdp_inode_ref (inode);
   else
     {
-      g_autoptr(XdpDomain) app_domain = xdp_domain_new_app (by_app_domain, app_id);
+      g_autoptr(XdpDomain) app_domain = xdp_domain_new_app (by_app_inode, app_id);
       inode = xdp_inode_new (app_domain, NULL);
       g_hash_table_insert (by_app_domain->inodes, app_domain->app_id, inode);
     }
@@ -1568,8 +1575,8 @@ ensure_doc_inode (XdpInode *parent,
   else
     {
       g_autoptr(XdpDomain) doc_domain = xdp_domain_new_document (parent_domain, doc_id, doc_entry);
+      doc_domain->parent_inode = xdp_inode_ref (parent);
       inode = xdp_inode_new (doc_domain, NULL);
-      doc_domain->doc_parent_ino = xdp_inode_to_ino (parent);
       g_hash_table_insert (parent_domain->inodes, doc_domain->doc_id, inode);
     }
   G_UNLOCK(domain_inodes);
@@ -1581,10 +1588,14 @@ static gboolean
 invalidate_doc_domain (gpointer user_data)
 {
   g_autoptr(XdpDomain) doc_domain = user_data;
+  ino_t parent_ino;
 
   g_atomic_int_set (&doc_domain->doc_queued_invalidate, 0);
 
-  fuse_lowlevel_notify_inval_entry (main_ch, doc_domain->doc_parent_ino, doc_domain->doc_id, strlen (doc_domain->doc_id));
+  parent_ino = xdp_inode_to_ino (doc_domain->parent_inode);
+
+  if (g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0)
+    fuse_lowlevel_notify_inval_entry (main_ch, parent_ino, doc_domain->doc_id, strlen (doc_domain->doc_id));
 
   return FALSE;
 }
@@ -1639,7 +1650,7 @@ xdp_fuse_lookup (fuse_req_t req,
             inode = ensure_doc_inode (parent,name);
           break;
         case XDP_DOMAIN_BY_APP:
-          inode = ensure_by_app_inode (parent_domain, name);
+          inode = ensure_by_app_inode (parent, name);
           break;
         case XDP_DOMAIN_APP:
           inode = ensure_doc_inode (parent, name);
@@ -3030,7 +3041,7 @@ xdp_fuse_init (GError **error)
 
   root_domain = xdp_domain_new_root ();
   root_inode = xdp_inode_new (root_domain, NULL);
-  by_app_domain = xdp_domain_new_by_app (root_domain);
+  by_app_domain = xdp_domain_new_by_app (root_inode);
   by_app_inode = xdp_inode_new (by_app_domain, NULL);
 
   physical_inodes =
