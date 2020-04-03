@@ -24,6 +24,10 @@
 #include "document-store.h"
 #include "src/xdp-utils.h"
 
+#ifndef O_FSYNC
+#define O_FSYNC O_SYNC
+#endif
+
 /* Inode ownership model
  *
  * The document portal exposes something as a filesystem that it
