@@ -1,5 +1,23 @@
 #!/bin/bash
 
+
+skip() {
+    echo "1..0 # SKIP" "$@"
+    exit 0
+}
+
+skip_without_fuse () {
+    fusermount --version >/dev/null 2>&1 || skip "no fusermount"
+
+    capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin' || \
+        skip "No cap_sys_admin in bounding set, can't use FUSE"
+
+    [ -w /dev/fuse ] || skip "no write access to /dev/fuse"
+    [ -e /etc/mtab ] || skip "no /etc/mtab"
+}
+
+skip_without_fuse
+
 echo "1..2"
 
 set -e
