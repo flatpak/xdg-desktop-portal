@@ -1,3 +1,10 @@
+Changes in 1.7.2
+================
+
+- document: Reduce the use of open fds
+- document: Add more tests and fix issues they found
+- Fix the build with musl
+
 Changes in 1.7.1
 ================
 
