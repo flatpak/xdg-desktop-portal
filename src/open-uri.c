@@ -448,10 +448,20 @@ static gboolean
 can_skip_app_chooser (const char *scheme,
                       const char *content_type)
 {
-  /* We skip the app chooser for Internet URIs, to be open in the browser */
-  /*  Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
-  if (g_strcmp0 (scheme, "http") == 0 ||
-      g_strcmp0 (scheme, "https") == 0 ||
+  const char *skipped_schemes[] = {
+    "http",
+    "https",
+    "ftp",
+    "mailto",
+    "webcal",
+    "calendar",
+    NULL
+  };
+
+  /* We skip the app chooser for Internet URIs, to be open in the browser,
+   * mail client, or calendar, as well as for directories to be opened in
+   * the file manager */
+  if (g_strv_contains (skipped_schemes, scheme) ||
       g_strcmp0 (content_type, "inode/directory") == 0)
     {
       g_debug ("Can skip app chooser for %s", content_type);
