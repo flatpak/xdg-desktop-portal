@@ -445,8 +445,8 @@ get_content_type_for_file (const char  *path,
 }
 
 static gboolean
-can_skip_app_chooser (const char *scheme,
-                      const char *content_type)
+should_use_default_app (const char *scheme,
+                        const char *content_type)
 {
   const char *skipped_schemes[] = {
     "http",
@@ -570,7 +570,7 @@ handle_open_in_thread_func (GTask *task,
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
-  gboolean can_skip = FALSE;
+  gboolean use_default_app = FALSE;
   const char *reason;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
@@ -651,7 +651,7 @@ handle_open_in_thread_func (GTask *task,
 
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
-  can_skip = can_skip_app_chooser (scheme, content_type);
+  use_default_app = should_use_default_app (scheme, content_type);
   get_latest_choice_info (app_id, content_type,
                           &latest_id, &latest_count, &latest_threshold,
                           &ask_for_content_type);
@@ -659,11 +659,10 @@ handle_open_in_thread_func (GTask *task,
   skip_app_chooser = FALSE;
   reason = NULL;
 
-  /* apply default handling: skip if the we have a default handler and its http or inode/directory */
-  if (default_app != NULL && can_skip)
+  /* apply default handling: skip if the we have a default handler */
+  if (default_app != NULL && use_default_app)
     {
-      if (!skip_app_chooser)
-        reason = "Allowing to skip app chooser: can use default";
+      reason = "Allowing to skip app chooser: can use default";
       skip_app_chooser = TRUE;
     }
 
@@ -704,7 +703,9 @@ handle_open_in_thread_func (GTask *task,
     {
       const char *app;
 
-      if (latest_id != NULL)
+      if (default_app != NULL && use_default_app)
+        app = default_app;
+      else if (latest_id != NULL)
         app = latest_id;
       else if (default_app != NULL)
         app = default_app;
