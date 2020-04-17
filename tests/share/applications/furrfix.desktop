@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Furrfix
+GenericName=Not a Web Browser
+Comment=Don't Browse the Web
+Exec=true %u
+Icon=furrfix
+Terminal=false
+Type=Application
+MimeType=text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/xdg-desktop-portal-test;
+StartupNotify=true
+Categories=Network;WebBrowser;
+Keywords=web;browser;internet;
