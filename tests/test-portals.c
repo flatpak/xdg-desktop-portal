@@ -168,7 +168,7 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  g_print ("launching xdg-desktop-portal\n");
+  g_print ("launching %s\n", argv0);
 
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
@@ -209,7 +209,7 @@ global_setup (void)
   argv[2] = g_test_verbose () ? "--verbose" : NULL;
   argv[3] = NULL;
 
-  g_print ("launching xdg-permission-store");
+  g_print ("launching %s\n", argv0);
 
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
