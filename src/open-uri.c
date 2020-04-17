@@ -596,7 +596,8 @@ handle_open_in_thread_func (GTask *task,
 
       path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, &fd_is_writable);
       if (path == NULL ||
-          (writable && !fd_is_writable))
+          (writable && !fd_is_writable) ||
+          (!xdp_app_info_is_host (request->app_info) && !writable && fd_is_writable))
         {
           /* Reject the request */
           if (request->exported)
