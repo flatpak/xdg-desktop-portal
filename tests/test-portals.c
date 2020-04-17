@@ -80,6 +80,7 @@ global_setup (void)
   g_autofree gchar *backends_executable = NULL;
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
+  g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   guint name_timeout;
   const char *argv[4];
@@ -158,12 +159,12 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
 
-  /* When running uninstalled we rely on this being added to PATH */
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv[0] = "xdg-desktop-portal";
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-desktop-portal", NULL);
   else
-    argv[0] = LIBEXECDIR "/xdg-desktop-portal";
+    argv0 = g_strdup (LIBEXECDIR "/xdg-desktop-portal");
 
+  argv[0] = argv0;
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
@@ -171,6 +172,7 @@ global_setup (void)
 
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
+  g_clear_pointer (&argv0, g_free);
 
   name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-desktop-portal");
 
@@ -197,12 +199,12 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
 
-  /* When running uninstalled we rely on this being added to PATH */
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv[0] = "xdg-permission-store";
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
   else
-    argv[0] = LIBEXECDIR "/xdg-permission-store";
+    argv0 = g_strdup (LIBEXECDIR "/xdg-permission-store");
 
+  argv[0] = argv0;
   argv[1] = "--replace";
   argv[2] = g_test_verbose () ? "--verbose" : NULL;
   argv[3] = NULL;
