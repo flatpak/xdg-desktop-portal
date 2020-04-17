@@ -1,5 +1,6 @@
 #include <config.h>
 #include <string.h>
+#include <locale.h>
 
 #include <gio/gio.h>
 
@@ -336,6 +337,8 @@ int
 main (int argc, char **argv)
 {
   int res;
+
+  setlocale (LC_ALL, NULL);
 
   g_test_init (&argc, &argv, NULL);
 
