@@ -120,6 +120,7 @@ global_setup (void)
   GQuark portal_errors G_GNUC_UNUSED;
   static gboolean name_appeared;
   guint watch;
+  guint timeout_mult = 1;
 
   update_data_dirs ();
 
@@ -133,6 +134,9 @@ global_setup (void)
   services = g_test_build_filename (G_TEST_BUILT, "services", NULL);
   g_test_dbus_add_service_dir (dbus, services);
   g_test_dbus_up (dbus);
+
+  if (g_getenv ("TEST_IN_CI"))
+    timeout_mult = 10;
 
   /* g_test_dbus_up unsets this, so re-set */
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
@@ -166,7 +170,7 @@ global_setup (void)
   backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch test-backends");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch test-backends");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
@@ -209,7 +213,7 @@ global_setup (void)
   g_assert_no_error (error);
   g_clear_pointer (&argv0, g_free);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-desktop-portal");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-desktop-portal");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
@@ -249,7 +253,7 @@ global_setup (void)
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-permission-store");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
