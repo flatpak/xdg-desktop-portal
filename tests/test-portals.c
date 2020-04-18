@@ -74,6 +74,39 @@ timeout_cb (gpointer data)
 }
 
 static void
+update_data_dirs (void)
+{
+  const char *data_dirs;
+  gssize len = 0;
+  GString *str;
+  char *new_val;
+
+  data_dirs = g_getenv ("XDG_DATA_DIRS");
+  if (data_dirs != NULL &&
+      strstr (data_dirs, "/usr/share") != NULL)
+    {
+      return;
+    }
+
+  if (data_dirs != NULL)
+    {
+      len = strlen (data_dirs);
+      if (data_dirs[len] == ':')
+        len--;
+    }
+
+  str = g_string_new_len (data_dirs, len);
+  if (str->len > 0)
+    g_string_append_c (str, ':');
+  g_string_append (str, "/usr/local/share/:/usr/share/");
+  new_val = g_string_free (str, FALSE);
+
+  g_debug ("Setting XDG_DATA_DIRS to %s", new_val);
+  g_setenv ("XDG_DATA_DIRS", new_val, TRUE);
+  /* new_val is leaked */
+}
+
+static void
 global_setup (void)
 {
   GError *error = NULL;
@@ -87,6 +120,8 @@ global_setup (void)
   GQuark portal_errors G_GNUC_UNUSED;
   static gboolean name_appeared;
   guint watch;
+
+  update_data_dirs ();
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
