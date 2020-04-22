@@ -1,5 +1,6 @@
 #include <config.h>
 #include <string.h>
+#include <locale.h>
 
 #include <gio/gio.h>
 
@@ -73,18 +74,55 @@ timeout_cb (gpointer data)
 }
 
 static void
+update_data_dirs (void)
+{
+  const char *data_dirs;
+  gssize len = 0;
+  GString *str;
+  char *new_val;
+
+  data_dirs = g_getenv ("XDG_DATA_DIRS");
+  if (data_dirs != NULL &&
+      strstr (data_dirs, "/usr/share") != NULL)
+    {
+      return;
+    }
+
+  if (data_dirs != NULL)
+    {
+      len = strlen (data_dirs);
+      if (data_dirs[len] == ':')
+        len--;
+    }
+
+  str = g_string_new_len (data_dirs, len);
+  if (str->len > 0)
+    g_string_append_c (str, ':');
+  g_string_append (str, "/usr/local/share/:/usr/share/");
+  new_val = g_string_free (str, FALSE);
+
+  g_debug ("Setting XDG_DATA_DIRS to %s", new_val);
+  g_setenv ("XDG_DATA_DIRS", new_val, TRUE);
+  /* new_val is leaked */
+}
+
+static void
 global_setup (void)
 {
   GError *error = NULL;
   g_autofree gchar *backends_executable = NULL;
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
+  g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   guint name_timeout;
   const char *argv[4];
   GQuark portal_errors G_GNUC_UNUSED;
   static gboolean name_appeared;
   guint watch;
+  guint timeout_mult = 1;
+
+  update_data_dirs ();
 
   g_mkdtemp (outdir);
   g_print ("outdir: %s\n", outdir);
@@ -96,6 +134,9 @@ global_setup (void)
   services = g_test_build_filename (G_TEST_BUILT, "services", NULL);
   g_test_dbus_add_service_dir (dbus, services);
   g_test_dbus_up (dbus);
+
+  if (g_getenv ("TEST_IN_CI"))
+    timeout_mult = 10;
 
   /* g_test_dbus_up unsets this, so re-set */
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
@@ -129,7 +170,7 @@ global_setup (void)
   backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch test-backends");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch test-backends");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
@@ -157,21 +198,22 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
 
-  /* When running uninstalled we rely on this being added to PATH */
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv[0] = "xdg-desktop-portal";
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-desktop-portal", NULL);
   else
-    argv[0] = LIBEXECDIR "/xdg-desktop-portal";
+    argv0 = g_strdup (LIBEXECDIR "/xdg-desktop-portal");
 
+  argv[0] = argv0;
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  g_print ("launching xdg-desktop-portal\n");
+  g_print ("launching %s\n", argv0);
 
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
+  g_clear_pointer (&argv0, g_free);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-desktop-portal");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-desktop-portal");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
@@ -196,22 +238,22 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
 
-  /* When running uninstalled we rely on this being added to PATH */
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv[0] = "xdg-permission-store";
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
   else
-    argv[0] = LIBEXECDIR "/xdg-permission-store";
+    argv0 = g_strdup (LIBEXECDIR "/xdg-permission-store");
 
+  argv[0] = argv0;
   argv[1] = "--replace";
   argv[2] = g_test_verbose () ? "--verbose" : NULL;
   argv[3] = NULL;
 
-  g_print ("launching xdg-permission-store");
+  g_print ("launching %s\n", argv0);
 
   portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
 
-  name_timeout = g_timeout_add (1000, timeout_cb, "Failed to launch xdg-permission-store");
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
@@ -336,6 +378,8 @@ int
 main (int argc, char **argv)
 {
   int res;
+
+  setlocale (LC_ALL, NULL);
 
   g_test_init (&argc, &argv, NULL);
 

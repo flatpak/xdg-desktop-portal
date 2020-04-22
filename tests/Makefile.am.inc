@@ -2,6 +2,7 @@ test_programs =
 
 TESTS_ENVIRONMENT = \
 	PATH=$$(cd $(top_builddir) && pwd):$${PATH} \
+	XDG_DATA_DIRS=$(top_srcdir)/tests/share/:$${XDG_DATA_DIRS} \
 	XDP_UNINSTALLED=1 \
 	$(NULL)
 
@@ -118,6 +119,11 @@ dist_installed_test_extra_scripts = \
 
 dist_test_scripts = \
 	tests/test-document-fuse.sh \
+	$(NULL)
+
+dist_test_apps = \
+	tests/share/applications/furrfix.desktop \
+	tests/share/applications/mimeinfo.cache \
 	$(NULL)
 
 test_programs += \

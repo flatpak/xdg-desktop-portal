@@ -157,13 +157,9 @@ test_open_uri_http2 (void)
   g_autoptr(GAppInfo) app = NULL;
   g_autofree char *app_id = NULL;
 
-  app = g_app_info_get_default_for_type ("x-scheme-handler/http", FALSE);
-
-  if (app == NULL)
-    {
-      g_test_skip ("No default handler for x-scheme-handler/http set");
-      return;
-    }
+  /* get furrfix.desktop as an app */
+  app = g_app_info_get_default_for_type ("x-scheme-handler/xdg-desktop-portal-test", FALSE);
+  g_assert_nonnull (app);
 
   app_id = g_strndup (g_app_info_get_id (app), strlen (g_app_info_get_id (app)) - strlen (".desktop"));
 
