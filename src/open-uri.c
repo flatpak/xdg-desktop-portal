@@ -226,7 +226,8 @@ static gboolean
 launch_application_with_uri (const char *choice_id,
                              const char *uri,
                              const char *parent_window,
-                             gboolean writable)
+                             gboolean    writable,
+                             GError    **error)
 {
   g_autofree char *desktop_id = g_strconcat (choice_id, ".desktop", NULL);
   g_autoptr(GDesktopAppInfo) info = g_desktop_app_info_new (desktop_id);
@@ -238,14 +239,15 @@ launch_application_with_uri (const char *choice_id,
 
   if (is_sandboxed (info) && is_file_uri (uri))
     {
-      g_autoptr(GError) error = NULL;
+      g_autoptr(GError) local_error = NULL;
 
       g_debug ("Registering %s for %s", uri, choice_id);
 
-      ruri = register_document (uri, choice_id, FALSE, writable, FALSE, &error);
+      ruri = register_document (uri, choice_id, FALSE, writable, FALSE, &local_error);
       if (ruri == NULL)
         {
-          g_warning ("Error registering %s for %s: %s", uri, choice_id, error->message);
+          g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);
+          g_propagate_error (error, local_error);
           return FALSE;
         }
     }
@@ -257,7 +259,7 @@ launch_application_with_uri (const char *choice_id,
   uris.data = (gpointer)ruri;
   uris.next = NULL;
 
-  g_app_info_launch_uris (G_APP_INFO (info), &uris, context, NULL);
+  g_app_info_launch_uris (G_APP_INFO (info), &uris, context, error);
 
   return TRUE;
 }
@@ -354,7 +356,7 @@ send_response_in_thread_func (GTask *task,
       writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
       content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
 
-      if (launch_application_with_uri (choice, uri, parent_window, writable))
+      if (launch_application_with_uri (choice, uri, parent_window, writable, NULL))
         update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
     }
 
@@ -578,6 +580,7 @@ handle_open_in_thread_func (GTask *task,
           /* Reject the request */
           if (request->exported)
             {
+              g_debug ("Rejecting open request as content-type couldn't be fetched for '%s'", uri);
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_request_emit_response (XDP_REQUEST (request),
                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
@@ -594,11 +597,21 @@ handle_open_in_thread_func (GTask *task,
 
       path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, &fd_is_writable);
       if (path == NULL ||
-          (writable && !fd_is_writable))
+          (writable && !fd_is_writable) ||
+          (!xdp_app_info_is_host (request->app_info) && !writable && fd_is_writable))
         {
           /* Reject the request */
           if (request->exported)
             {
+              if (path == NULL)
+                {
+                  g_debug ("Rejecting open request as fd has no path associated to it");
+                }
+              else
+                {
+                  g_debug ("Rejecting open request for %s as opening %swritable but fd is %swritable",
+                           path, writable ? "" : "not ", fd_is_writable ? "" : "not ");
+                }
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_request_emit_response (XDP_REQUEST (request),
                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
@@ -691,12 +704,15 @@ handle_open_in_thread_func (GTask *task,
       if (app)
         {
           /* Launch the app directly */
+          g_autoptr(GError) error = NULL;
 
           g_debug ("Skipping app chooser");
 
-          gboolean result = launch_application_with_uri (app, uri, parent_window, writable);
+          gboolean result = launch_application_with_uri (app, uri, parent_window, writable, &error);
           if (request->exported)
             {
+              if (!result)
+                g_debug ("Open request for '%s' failed: %s", uri, error->message);
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_request_emit_response (XDP_REQUEST (request),
                                          result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
