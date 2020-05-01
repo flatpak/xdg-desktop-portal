@@ -713,21 +713,26 @@ handle_open_in_thread_func (GTask *task,
           /* Launch the app directly */
           g_autoptr(GError) error = NULL;
 
-          g_debug ("Skipping app chooser");
-
           gboolean result = launch_application_with_uri (app, uri, parent_window, writable, &error);
-          if (request->exported)
+          if (result)
             {
-              if (!result)
-                g_debug ("Open request for '%s' failed: %s", uri, error->message);
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
-              xdp_request_emit_response (XDP_REQUEST (request),
-                                         result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                         g_variant_builder_end (&opts_builder));
-              request_unexport (request);
-            }
+              g_debug ("Skipped app chooser");
 
-          return;
+              if (request->exported)
+                {
+                  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+                  xdp_request_emit_response (XDP_REQUEST (request),
+                                             result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                             g_variant_builder_end (&opts_builder));
+                  request_unexport (request);
+                }
+
+              return;
+            }
+          else
+            {
+              g_debug ("Failed to skip app chooser: %s", error->message);
+            }
         }
     }
 
