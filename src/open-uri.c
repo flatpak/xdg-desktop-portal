@@ -235,6 +235,13 @@ launch_application_with_uri (const char *choice_id,
   g_autofree char *ruri = NULL;
   GList uris;
 
+  if (info == NULL)
+    {
+      g_debug ("Cannot launch %s because desktop file does not exist", desktop_id);
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND, "Desktop file %s does not exist", desktop_id);
+      return FALSE;
+    }
+
   g_debug ("Launching %s %s", choice_id, uri);
 
   if (is_sandboxed (info) && is_file_uri (uri))
