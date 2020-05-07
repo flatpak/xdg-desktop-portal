@@ -235,6 +235,13 @@ launch_application_with_uri (const char *choice_id,
   g_autofree char *ruri = NULL;
   GList uris;
 
+  if (info == NULL)
+    {
+      g_debug ("Cannot launch %s because desktop file does not exist", desktop_id);
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND, "Desktop file %s does not exist", desktop_id);
+      return FALSE;
+    }
+
   g_debug ("Launching %s %s", choice_id, uri);
 
   if (is_sandboxed (info) && is_file_uri (uri))
@@ -445,13 +452,23 @@ get_content_type_for_file (const char  *path,
 }
 
 static gboolean
-can_skip_app_chooser (const char *scheme,
-                      const char *content_type)
+should_use_default_app (const char *scheme,
+                        const char *content_type)
 {
-  /* We skip the app chooser for Internet URIs, to be open in the browser */
-  /*  Skipping the chooser for directories is useful too (e.g. opening in Nautilus) */
-  if (g_strcmp0 (scheme, "http") == 0 ||
-      g_strcmp0 (scheme, "https") == 0 ||
+  const char *skipped_schemes[] = {
+    "http",
+    "https",
+    "ftp",
+    "mailto",
+    "webcal",
+    "calendar",
+    NULL
+  };
+
+  /* We skip the app chooser for Internet URIs, to be open in the browser,
+   * mail client, or calendar, as well as for directories to be opened in
+   * the file manager */
+  if (g_strv_contains (skipped_schemes, scheme) ||
       g_strcmp0 (content_type, "inode/directory") == 0)
     {
       g_debug ("Can skip app chooser for %s", content_type);
@@ -533,6 +550,15 @@ app_info_changed (GAppInfoMonitor *monitor,
                                             NULL);
 }
 
+static gboolean
+app_exists (const char *app_id)
+{
+  g_autoptr(GDesktopAppInfo) info = NULL;
+
+  info = g_desktop_app_info_new (app_id);
+  return (info != NULL);
+}
+
 static void
 handle_open_in_thread_func (GTask *task,
                             gpointer source_object,
@@ -560,7 +586,7 @@ handle_open_in_thread_func (GTask *task,
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
-  gboolean can_skip = FALSE;
+  gboolean use_default_app = FALSE;
   const char *reason;
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
@@ -641,19 +667,22 @@ handle_open_in_thread_func (GTask *task,
 
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
-  can_skip = can_skip_app_chooser (scheme, content_type);
+  if (!app_exists (default_app))
+    g_clear_pointer (&default_app, g_free);
+  use_default_app = should_use_default_app (scheme, content_type);
   get_latest_choice_info (app_id, content_type,
                           &latest_id, &latest_count, &latest_threshold,
                           &ask_for_content_type);
+  if (!app_exists (latest_id))
+    g_clear_pointer (&latest_id, g_free);
 
   skip_app_chooser = FALSE;
   reason = NULL;
 
-  /* apply default handling: skip if the we have a default handler and its http or inode/directory */
-  if (default_app != NULL && can_skip)
+  /* apply default handling: skip if the we have a default handler */
+  if (default_app != NULL && use_default_app)
     {
-      if (!skip_app_chooser)
-        reason = "Allowing to skip app chooser: can use default";
+      reason = "Allowing to skip app chooser: can use default";
       skip_app_chooser = TRUE;
     }
 
@@ -692,13 +721,15 @@ handle_open_in_thread_func (GTask *task,
 
   if (skip_app_chooser)
     {
-      const char *app;
+      const char *app = NULL;
 
-      if (latest_id != NULL)
+      if (default_app != NULL && use_default_app)
+        app = default_app;
+      else if (latest_id != NULL)
         app = latest_id;
       else if (default_app != NULL)
         app = default_app;
-      else
+      else if (choices && app_exists (choices[0]))
         app = choices[0];
 
       if (app)
