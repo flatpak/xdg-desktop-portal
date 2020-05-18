@@ -141,7 +141,7 @@ open_pipewire_camera_remote (const char *app_id,
                              GError **error)
 {
   PipeWireRemote *remote;
-  struct pw_permission permission_items[2];
+  struct pw_permission permission_items[3];
   struct pw_properties *pipewire_properties;
 
   pipewire_properties =
@@ -159,7 +159,8 @@ open_pipewire_camera_remote (const char *app_id,
    * permission store to set up permissions.
    */
   permission_items[0] = PW_PERMISSION_INIT (PW_ID_CORE, PW_PERM_RWX);
-  permission_items[1] = PW_PERMISSION_INIT (PW_ID_ANY, 0);
+  permission_items[1] = PW_PERMISSION_INIT (remote->node_factory_id, PW_PERM_R);
+  permission_items[2] = PW_PERMISSION_INIT (PW_ID_ANY, 0);
 
   pw_client_update_permissions (pw_core_get_client(remote->core),
                                 G_N_ELEMENTS (permission_items),
