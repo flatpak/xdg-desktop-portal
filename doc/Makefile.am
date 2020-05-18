@@ -22,6 +22,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Device.xml	 	\
 	$(top_srcdir)/data/org.freedesktop.portal.Location.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.Settings.xml		\
+	$(top_srcdir)/data/org.freedesktop.portal.Secret.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.Background.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.GameMode.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.Camera.xml		\
@@ -41,6 +42,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Access.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Settings.xml	\
+	$(top_srcdir)/data/org.freedesktop.impl.portal.Secret.xml	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Lockdown.xml	\
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml		\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.PermissionStore.xml	\
@@ -69,6 +71,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.Device.xml			\
 	portal-org.freedesktop.portal.Location.xml			\
 	portal-org.freedesktop.portal.Settings.xml			\
+	portal-org.freedesktop.portal.Secret.xml			\
 	portal-org.freedesktop.portal.Wallpaper.xml			\
 	portal-org.freedesktop.portal.Background.xml			\
 	portal-org.freedesktop.portal.GameMode.xml			\
@@ -89,6 +92,7 @@ xml_files = 								\
 	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
 	portal-org.freedesktop.impl.portal.Access.xml	 		\
 	portal-org.freedesktop.impl.portal.Settings.xml	 		\
+	portal-org.freedesktop.impl.portal.Secret.xml	 		\
 	portal-org.freedesktop.impl.portal.Wallpaper.xml			\
 	portal-org.freedesktop.impl.portal.Lockdown.xml	 		\
 	portal-org.freedesktop.impl.portal.PermissionStore.xml		\
