@@ -1,0 +1,179 @@
+# Russian translation for xdg-desktop-portal.
+# Copyright (C) 2020 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Артемий Судаков <finziyr@yandex.ru>, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2020-04-03 15:37+0000\n"
+"PO-Revision-Date: 2020-04-04 06:13+0300\n"
+"Language-Team: Russian <gnome-cyr@gnome.org>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"Last-Translator: Артемий Судаков <finziyr@yandex.ru>\n"
+"X-Generator: Poedit 2.3\n"
+
+#: src/background.c:260
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Разрешить %s работать в фоне?"
+
+#: src/background.c:264
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s запрашивает доступ на автоматический запуск и работу в фоне."
+
+#: src/background.c:266
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s запрашивает доступ на работу в фоне."
+
+#: src/background.c:267
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Разрешение на \"работу в фоне\" может быть изменено в любое время из меню "
+"настроек приложения."
+
+#: src/background.c:272
+msgid "Don't allow"
+msgstr "Запретить"
+
+#: src/background.c:273 src/wallpaper.c:165
+msgid "Allow"
+msgstr "Разрешить"
+
+#: src/device.c:115
+msgid "Turn On Microphone?"
+msgstr "Включить микрофон?"
+
+#: src/device.c:116
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"Доступ к микрофону может быть изменен в любое время из меню настроек "
+"конфиденциальности."
+
+#: src/device.c:120
+msgid "An application wants to use your microphone."
+msgstr "Приложение запрашивает доступ к микрофону."
+
+#: src/device.c:122
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s запрашивает доступ к микрофону."
+
+#: src/device.c:128
+msgid "Turn On Speakers?"
+msgstr "Включить динамики?"
+
+#: src/device.c:129
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"Доступ к динамикам может быть изменен в любое время из меню настроек "
+"конфиденциальности."
+
+#: src/device.c:133
+msgid "An application wants to play sound."
+msgstr "Приложение хочет воспроизвести звук."
+
+#: src/device.c:135
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s хочет воспроизвести звук."
+
+#: src/device.c:141
+msgid "Turn On Camera?"
+msgstr "Включить камеру?"
+
+#: src/device.c:142
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"Доступ к камере может быть изменен в любое время из меню настроек "
+"конфиденциальности."
+
+#: src/device.c:146
+msgid "An application wants to use your camera."
+msgstr "Приложение запрашивает доступ к камере."
+
+#: src/device.c:148
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s запрашивает доступ к камере."
+
+#: src/location.c:526
+msgid "Deny Access"
+msgstr "Отклонить запрос"
+
+#: src/location.c:528
+msgid "Grant Access"
+msgstr "Предоставить доступ"
+
+#: src/location.c:534
+msgid "Grant Access to Your Location?"
+msgstr "Предоставить доступ к вашему местоположению?"
+
+#: src/location.c:535
+msgid "An application wants to use your location."
+msgstr "Приложение запрашивает доступ к сервисам геолокации."
+
+#: src/location.c:547
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Дать %s доступ к вашему местоположению?"
+
+#: src/location.c:551
+#, c-format
+msgid "%s wants to use your location."
+msgstr "%s запрашивает доступ к использоованию сервисов геолокации."
+
+#: src/location.c:554
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Доступ к сервисам местоположения может быть изменен в любое время из меню "
+"настроек конфиденциальности."
+
+#: src/settings.c:124
+msgid "Requested setting not found"
+msgstr "Запрашиваемая настройка не найдена"
+
+#: src/wallpaper.c:163
+msgid "Deny"
+msgstr "Отклонить"
+
+#: src/wallpaper.c:171
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Разрешить приложению работать в фоне?"
+
+#: src/wallpaper.c:172
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+"Приложение запрашивает доступ к возможности изменять изображения рабочего "
+"стола"
+
+#: src/wallpaper.c:184
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Разрешить %s изменять изображение на рабочем столе?"
+
+#: src/wallpaper.c:185
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr ""
+"%s запрашивает доступ к возможности изменять изображение рабочего стола."
+
+#: src/wallpaper.c:188
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Это разрешение может быть изменено в любое время из меню настроек "
+"конфиденциальности."
