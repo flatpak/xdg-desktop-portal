@@ -111,7 +111,7 @@
             <term>cursor_mode u</term>
             <listitem><para>
               Determines how the cursor will be drawn in the screen cast stream. It must be
-              one of the curosr modes advertised in
+              one of the cursor modes advertised in
               #org.freedesktop.portal.ScreenCast.AvailableCursorModes. Setting a cursor mode
               not advertised will cause the screen cast session to be closed. The default
               cursor mode is 'Hidden'.
