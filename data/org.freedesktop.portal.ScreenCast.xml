@@ -192,6 +192,14 @@
               stream.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>source_type u</term>
+            <listitem><para>
+              The type of the content which is being screen casted.
+              For available source types, see the AvailableSourceTypes property.
+              This property was added in version 3 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="Start">
