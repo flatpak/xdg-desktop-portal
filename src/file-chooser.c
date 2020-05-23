@@ -79,6 +79,7 @@ send_response_in_thread_func (GTask        *task,
   const char **uris;
   GVariant *choices;
   gboolean for_save;
+  GVariant *current_filter;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
@@ -99,6 +100,10 @@ send_response_in_thread_func (GTask        *task,
   choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
   if (choices)
     g_variant_builder_add (&results, "{sv}", "choices", choices);
+
+  current_filter = g_variant_lookup_value (options, "current_filter", G_VARIANT_TYPE ("(sa(us))"));
+  if (current_filter)
+    g_variant_builder_add (&results, "{sv}", "current_filter", current_filter);
 
   if (g_variant_lookup (options, "uris", "^a&s", &uris))
     {

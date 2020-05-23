@@ -110,6 +110,15 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>current_filter (sa(us))</term>
+            <listitem>
+              <para>
+                The filter that was selected.
+                See org.freedesktop.portal.FileChooser.OpenFile() for details.
+              </para>
+            </listitem>
+          </varlistentry>
+          <varlistentry>
             <term>writable b</term>
             <listitem><para>
               Whether the file is opened with write access. Default is no.
@@ -215,6 +224,15 @@
               An array of pairs of strings, corresponding to the passed-in choices.
               See org.freedesktop.portal.FileChooser.OpenFile() for details.
             </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>current_filter (sa(us))</term>
+            <listitem>
+              <para>
+                The filter that was selected.
+                See org.freedesktop.portal.FileChooser.OpenFile() for details.
+              </para>
+            </listitem>
           </varlistentry>
         </variablelist>
     -->
