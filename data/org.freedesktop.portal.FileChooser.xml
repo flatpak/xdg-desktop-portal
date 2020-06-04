@@ -112,8 +112,8 @@
             </para>
             <para>
               For each element, the first string is an ID that will be returned
-              with the response, te second string is a user-visible label. The
-              a(ss) is the list of choices, each being a is an ID and a
+              with the response, the second string is a user-visible label. The
+              a(ss) is the list of choices, each being an ID and a
               user-visible label. The final string is the initial selection,
               or "", to let the portal decide which choice will be initially selected.
               None of the strings, except for the initial selection, should be empty.
