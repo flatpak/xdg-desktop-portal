@@ -86,6 +86,12 @@ nodist_test_permission_store_SOURCES = document-portal/permission-store-dbus.c s
 
 EXTRA_test_permission_store_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
+test_programs += test-xdp-utils
+test_xdp_utils_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+test_xdp_utils_LDADD = $(AM_LD_ADD) $(BASE_LIBS)
+test_xdp_utils_SOURCES = tests/test-xdp-utils.c src/xdp-utils.c
+
+
 tests/services/org.freedesktop.portal.Documents.service: document-portal/org.freedesktop.portal.Documents.service.in
 	mkdir -p tests/services
 	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(abs_top_builddir)|" $< > $@
