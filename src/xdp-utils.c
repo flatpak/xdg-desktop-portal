@@ -487,6 +487,46 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   return g_steal_pointer (&app_info);
 }
 
+int
+_xdp_parse_cgroup_file (FILE *f, gboolean *is_snap)
+{
+  ssize_t n;
+  g_autofree char *id = NULL;
+  g_autofree char *controller = NULL;
+  g_autofree char *cgroup = NULL;
+  size_t id_len = 0, controller_len = 0, cgroup_len = 0;
+
+  g_return_val_if_fail(f != NULL, -1);
+  g_return_val_if_fail(is_snap != NULL, -1);
+
+  *is_snap = FALSE;
+  do
+    {
+      n = getdelim (&id, &id_len, ':', f);
+      if (n == -1) break;
+      n = getdelim (&controller, &controller_len, ':', f);
+      if (n == -1) break;
+      n = getdelim (&cgroup, &cgroup_len, '\n', f);
+      if (n == -1) break;
+
+      /* Only consider the freezer, systemd group or unified cgroup
+       * hierarchies */
+      if ((!strcmp (controller, "freezer:") != 0 ||
+           !strcmp (controller, "name=systemd:") != 0 ||
+           !strcmp (controller, ":") != 0) &&
+          strstr (cgroup, "/snap.") != NULL)
+        {
+          *is_snap = TRUE;
+          break;
+        }
+    }
+  while (n >= 0);
+
+  if (n < 0 && !feof(f)) return -1;
+
+  return 0;
+}
+
 static gboolean
 pid_is_snap (pid_t pid, GError **error)
 {
@@ -495,11 +535,6 @@ pid_is_snap (pid_t pid, GError **error)
   FILE *f = NULL;
   gboolean is_snap = FALSE;
   int err = 0;
-  ssize_t n;
-  g_autofree char *id = NULL;
-  g_autofree char *controller = NULL;
-  g_autofree char *cgroup = NULL;
-  size_t id_len = 0, controller_len = 0, cgroup_len = 0;
 
   g_return_val_if_fail(pid > 0, FALSE);
 
@@ -508,53 +543,24 @@ pid_is_snap (pid_t pid, GError **error)
   if (fd == -1)
     {
       err = errno;
-      goto out;
+      goto end;
     }
 
   f = fdopen (fd, "r");
   if (f == NULL)
     {
       err = errno;
-      goto out;
+      goto end;
     }
 
   fd = -1; /* fd is now owned by f */
 
-  do {
-    n = getdelim (&id, &id_len, ':', f);
-    if (n == -1)
-      {
-        err = errno;
-        break;
-      }
-    n = getdelim (&controller, &controller_len, ':', f);
-    if (n == -1)
-      {
-        err = errno;
-        break;
-      }
-    n = getdelim (&cgroup, &cgroup_len, '\n', f);
-    if (n == -1)
-      {
-        err = errno;
-        break;
-      }
+  if (_xdp_parse_cgroup_file (f, &is_snap) == -1)
+    err = errno;
 
-    /* Only consider the freezer, systemd group or unified cgroup
-     * hierarchies */
-    if ((!strcmp (controller, "freezer:") != 0 ||
-         !strcmp (controller, "name=systemd:") != 0 ||
-         !strcmp (controller, ":") != 0) &&
-        strstr (cgroup, "/snap.") != NULL)
-      {
-        is_snap = TRUE;
-        break;
-      }
-  } while (n > 0);
+  fclose (f);
 
-out:
-  if (f != NULL) fclose (f);
-
+end:
   /* Silence ENOENT, treating it as "not a snap" */
   if (err != 0 && err != ENOENT)
     {

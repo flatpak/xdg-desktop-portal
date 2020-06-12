@@ -21,6 +21,7 @@
 
 #pragma once
 
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -181,6 +182,11 @@ gboolean xdp_spawnv     (GFile                *dir,
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
+
+/* exposed for the benefit of tests */
+int _xdp_parse_cgroup_file (FILE     *f,
+                            gboolean *is_snap);
+
 
 #if !GLIB_CHECK_VERSION (2, 58, 0)
 static inline gboolean
