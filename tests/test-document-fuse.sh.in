@@ -72,7 +72,12 @@ fi
 
 # Run portal manually so that we get any segfault our assert output
 # Add -v here to get debug output from fuse
-./xdg-document-portal -r &
+if [ -n "${XDP_UNINSTALLED:-}" ]; then
+    document_portal=./xdg-document-portal
+else
+    document_portal=@libexecdir@/xdg-document-portal
+fi
+"${document_portal}" -r &
 
 # First run a basic single-thread test
 echo Testing single-threaded

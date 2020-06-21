@@ -109,6 +109,9 @@ dist_installed_test_dbs_DATA = tests/dbs/no_tables
 dist_installed_test_portals_DATA = tests/portals/test.portal
 endif
 
+tests/test-document-fuse.sh: tests/test-document-fuse.sh.in
+	$(AM_V_GEN) $(SED) -e "s|\@libexecdir\@|$(libexecdir)|" $< > $@
+
 dist_installed_test_data = \
 	tests/session.conf.in \
 	$(NULL)
@@ -117,9 +120,11 @@ dist_installed_test_extra_scripts = \
 	tests/test-document-fuse.py \
 	$(NULL)
 
-dist_test_scripts = \
+test_scripts = \
 	tests/test-document-fuse.sh \
 	$(NULL)
+
+EXTRA_DIST += tests/test-document-fuse.sh.in
 
 dist_test_apps = \
 	tests/share/applications/furrfix.desktop \
