@@ -55,7 +55,11 @@ cleanup () {
 }
 trap cleanup EXIT
 
-sed s#@testdir@#${test_builddir}# ${test_srcdir}/session.conf.in > session.conf
+conf_template="${test_srcdir}/session.conf.in"
+if [[ ! -f "$conf_template" ]]; then
+    conf_template="${test_srcdir}/tests/session.conf.in"
+fi
+sed s#@testdir@#${test_builddir}# $conf_template > session.conf
 
 dbus-daemon --fork --config-file=session.conf --print-address=3 --print-pid=4 \
             3> dbus-session-bus-address 4> dbus-session-bus-pid
