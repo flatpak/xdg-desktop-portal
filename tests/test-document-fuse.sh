@@ -49,7 +49,7 @@ export XDG_RUNTIME_DIR=${TEST_DATA_DIR}/runtime
 cleanup () {
     fusermount -u $XDG_RUNTIME_DIR/doc || :
     sleep 0.1
-    /bin/kill -9 $DBUS_SESSION_BUS_PID
+    kill -9 $DBUS_SESSION_BUS_PID
     kill $(jobs -p) &> /dev/null || true
     rm -rf $TEST_DATA_DIR
 }
@@ -62,7 +62,7 @@ dbus-daemon --fork --config-file=session.conf --print-address=3 --print-pid=4 \
 export DBUS_SESSION_BUS_ADDRESS="$(cat dbus-session-bus-address)"
 DBUS_SESSION_BUS_PID="$(cat dbus-session-bus-pid)"
 
-if ! /bin/kill -0 "$DBUS_SESSION_BUS_PID"; then
+if ! kill -0 "$DBUS_SESSION_BUS_PID"; then
     assert_not_reached "Failed to start dbus-daemon"
 fi
 
