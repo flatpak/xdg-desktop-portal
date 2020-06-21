@@ -76,14 +76,14 @@ fi
 
 # First run a basic single-thread test
 echo Testing single-threaded
-python3 ${test_srcdir}/test-document-fuse.py --iterations 3 -v
+${test_srcdir}/test-document-fuse.py --iterations 3 -v
 echo "ok single-threaded"
 
 # Then a bunch of copies in parallel to stress-test
 echo Testing in parallel
 PIDS=()
 for i in $(seq 20); do
-    python3 ${test_srcdir}/test-document-fuse.py --iterations 10 --prefix $i &
+    ${test_srcdir}/test-document-fuse.py --iterations 10 --prefix $i &
     PID="$!"
     PIDS+=( "$PID" )
 done
