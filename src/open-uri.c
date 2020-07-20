@@ -675,6 +675,8 @@ handle_open_in_thread_func (GTask *task,
       scheme = g_strdup ("file");
       uri = g_filename_to_uri (path, NULL, NULL);
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
+      close (fd);
+      g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
     }
 
   g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
