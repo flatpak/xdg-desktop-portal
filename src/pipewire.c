@@ -107,6 +107,8 @@ discover_node_factory_sync (PipeWireRemote *remote,
 
   pipewire_remote_roundtrip (remote);
 
+  pw_proxy_destroy((struct pw_proxy*)registry);
+
   if (remote->node_factory_id == 0)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
