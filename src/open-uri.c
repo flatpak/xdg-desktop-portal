@@ -598,6 +598,21 @@ handle_open_in_thread_func (GTask *task,
 
   REQUEST_AUTOLOCK (request);
 
+  /* Verify that either uri or fd is set, not both */
+  if (uri != NULL && fd != -1)
+    {
+      g_warning ("Rejecting invalid open-uri request (both URI and fd are set)");
+      if (request->exported)
+        {
+          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+          xdp_request_emit_response (XDP_REQUEST (request),
+                                     XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                     g_variant_builder_end (&opts_builder));
+          request_unexport (request);
+        }
+      return;
+    }
+
   if (uri)
     {
       resolve_scheme_and_content_type (uri, &scheme, &content_type);
