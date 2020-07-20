@@ -554,7 +554,7 @@ open_pipewire_screen_cast_remote (const char *app_id,
   if (!remote)
     return FALSE;
 
-  permission_items = g_array_new (FALSE, TRUE, sizeof (struct spa_dict_item));
+  permission_items = g_array_new (FALSE, TRUE, sizeof (struct pw_permission));
 
   /*
    * PipeWire:Interface:Core
