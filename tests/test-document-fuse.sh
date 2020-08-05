@@ -49,7 +49,7 @@ export XDG_RUNTIME_DIR=${TEST_DATA_DIR}/runtime
 cleanup () {
     fusermount -u "$XDG_RUNTIME_DIR/doc" || :
     sleep 0.1
-    kill -9 "$DBUS_SESSION_BUS_PID"
+    kill "$DBUS_SESSION_BUS_PID"
     kill $(jobs -p) &> /dev/null || true
     rm -rf "$TEST_DATA_DIR"
 }
