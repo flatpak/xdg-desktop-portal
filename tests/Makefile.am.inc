@@ -109,7 +109,7 @@ dist_installed_test_dbs_DATA = tests/dbs/no_tables
 dist_installed_test_portals_DATA = tests/portals/test.portal
 endif
 
-dist_installed_test_data = \
+dist_installed_test_DATA = \
 	tests/session.conf.in \
 	$(NULL)
 
