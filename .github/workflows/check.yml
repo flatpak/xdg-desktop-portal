@@ -18,7 +18,7 @@ jobs:
         sudo add-apt-repository ppa:alexlarsson/flatpak
         sudo add-apt-repository ppa:alexlarsson/glib260
         sudo apt-get update
-        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
         gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
         libjson-glib-dev libfontconfig1-dev libfuse-dev
     - name: Check out xdg-desktop-portal
@@ -73,7 +73,7 @@ jobs:
         sudo add-apt-repository ppa:alexlarsson/flatpak
         sudo add-apt-repository ppa:alexlarsson/glib260
         sudo apt-get update
-        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
         gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
         libjson-glib-dev libfontconfig1-dev libfuse-dev
     - name: Check out xdg-desktop-portal
@@ -99,7 +99,7 @@ jobs:
       run: |
         sudo add-apt-repository ppa:alexlarsson/flatpak
         sudo apt-get update
-        sudo apt-get install -y libglib2.0 automake autoconf libtool gettext autopoint dbus \
+        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
         gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
         libjson-glib-dev libfontconfig1-dev libfuse-dev
     - name: Check out xdg-desktop-portal
