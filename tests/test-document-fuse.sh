@@ -68,7 +68,11 @@ fi
 
 # Run portal manually so that we get any segfault our assert output
 # Add -v here to get debug output from fuse
-./xdg-document-portal -r &
+# Only do this when running uninstalled; when running as an installed-test,
+# we rely on D-Bus activation.
+if [ -n "${XDP_UNINSTALLED:-}" ]; then
+    ./xdg-document-portal -r &
+fi
 
 # First run a basic single-thread test
 echo Testing single-threaded
