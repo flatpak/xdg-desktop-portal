@@ -554,10 +554,12 @@ static gboolean
 app_exists (const char *app_id)
 {
   g_autoptr(GDesktopAppInfo) info = NULL;
+  g_autofree gchar *with_desktop = NULL;
 
   g_return_val_if_fail (app_id != NULL, FALSE);
 
-  info = g_desktop_app_info_new (app_id);
+  with_desktop = g_strconcat (app_id, ".desktop", NULL);
+  info = g_desktop_app_info_new (with_desktop);
   return (info != NULL);
 }
 
