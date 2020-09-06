@@ -555,6 +555,8 @@ app_exists (const char *app_id)
 {
   g_autoptr(GDesktopAppInfo) info = NULL;
 
+  g_return_val_if_fail (app_id != NULL, FALSE);
+
   info = g_desktop_app_info_new (app_id);
   return (info != NULL);
 }
@@ -667,13 +669,13 @@ handle_open_in_thread_func (GTask *task,
 
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
-  if (!app_exists (default_app))
+  if (default_app != NULL && !app_exists (default_app))
     g_clear_pointer (&default_app, g_free);
   use_default_app = should_use_default_app (scheme, content_type);
   get_latest_choice_info (app_id, content_type,
                           &latest_id, &latest_count, &latest_threshold,
                           &ask_for_content_type);
-  if (!app_exists (latest_id))
+  if (latest_id != NULL && !app_exists (latest_id))
     g_clear_pointer (&latest_id, g_free);
 
   skip_app_chooser = FALSE;
@@ -729,7 +731,7 @@ handle_open_in_thread_func (GTask *task,
         app = latest_id;
       else if (default_app != NULL)
         app = default_app;
-      else if (choices && app_exists (choices[0]))
+      else if (n_choices > 0 && app_exists (choices[0]))
         app = choices[0];
 
       if (app)
