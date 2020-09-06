@@ -79,9 +79,9 @@ message_handler (const gchar *log_domain,
 {
   /* Make this look like normal console output */
   if (log_level & G_LOG_LEVEL_DEBUG)
-    printf ("XDP: %s\n", message);
+    fprintf (stderr, "XDP: %s\n", message);
   else
-    printf ("%s: %s\n", g_get_prgname (), message);
+    fprintf (stderr, "%s: %s\n", g_get_prgname (), message);
 }
 
 static void
