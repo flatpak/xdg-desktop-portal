@@ -669,6 +669,8 @@ handle_open_in_thread_func (GTask *task,
 
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  /* it's never NULL, but might be empty (only contain the NULL terminator) */
+  g_assert (choices != NULL);
   if (default_app != NULL && !app_exists (default_app))
     g_clear_pointer (&default_app, g_free);
   use_default_app = should_use_default_app (scheme, content_type);
