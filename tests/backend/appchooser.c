@@ -122,7 +122,13 @@ handle_choose_application (XdpImplAppChooser *object,
   g_assert_no_error (error);
 
   if (g_key_file_has_key (keyfile, "backend", "expect-no-call", NULL))
-    g_assert_not_reached ();
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_IO_ERROR,
+                                             G_IO_ERROR_FAILED,
+                                             "Did not expect ChooseApplication to be called here");
+      return TRUE;  /* handled */
+    }
 
   request = request_new (sender, arg_app_id, arg_handle);
 
