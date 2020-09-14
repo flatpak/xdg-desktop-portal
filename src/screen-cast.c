@@ -543,7 +543,6 @@ open_pipewire_screen_cast_remote (const char *app_id,
   struct pw_properties *pipewire_properties;
   PipeWireRemote *remote;
   g_autoptr(GArray) permission_items = NULL;
-  PipeWireGlobal *node_global;
 
   pipewire_properties = pw_properties_new ("pipewire.access.portal.app_id", app_id,
                                            "pipewire.access.portal.media_roles", "",
