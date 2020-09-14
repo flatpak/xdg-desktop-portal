@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-03-27 09:18-0400\n"
+"POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2016-08-08 09:14+0200\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:273 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
 msgstr ""
 
@@ -147,30 +147,30 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr ""
 
-#: src/wallpaper.c:163
+#: src/wallpaper.c:177
 msgid "Deny"
 msgstr ""
 
-#: src/wallpaper.c:171
+#: src/wallpaper.c:185
 #, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Aplikácia sa pokúša prehrať zvuk."
 
-#: src/wallpaper.c:172
+#: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:184
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr ""
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:188
+#: src/wallpaper.c:202
 #, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""

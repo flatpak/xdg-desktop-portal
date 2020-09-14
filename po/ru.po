@@ -7,8 +7,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-04-03 15:37+0000\n"
+"POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2020-04-04 06:13+0300\n"
+"Last-Translator: Артемий Судаков <finziyr@yandex.ru>\n"
 "Language-Team: Russian <gnome-cyr@gnome.org>\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +17,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"Last-Translator: Артемий Судаков <finziyr@yandex.ru>\n"
 "X-Generator: Poedit 2.3\n"
 
 #: src/background.c:260
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Запретить"
 
-#: src/background.c:273 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
 msgstr "Разрешить"
 
@@ -147,32 +147,32 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Запрашиваемая настройка не найдена"
 
-#: src/wallpaper.c:163
+#: src/wallpaper.c:177
 msgid "Deny"
 msgstr "Отклонить"
 
-#: src/wallpaper.c:171
+#: src/wallpaper.c:185
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Разрешить приложению работать в фоне?"
 
-#: src/wallpaper.c:172
+#: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 "Приложение запрашивает доступ к возможности изменять изображения рабочего "
 "стола"
 
-#: src/wallpaper.c:184
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Разрешить %s изменять изображение на рабочем столе?"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 "%s запрашивает доступ к возможности изменять изображение рабочего стола."
 
-#: src/wallpaper.c:188
+#: src/wallpaper.c:202
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Это разрешение может быть изменено в любое время из меню настроек "

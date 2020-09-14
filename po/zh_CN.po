@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-03-27 09:18-0400\n"
+"POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2019-05-03 01:33+0800\n"
 "Last-Translator: 王滋涵 Zephyr Waitzman <i@wi24rd.ml>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
@@ -44,7 +44,7 @@ msgstr "您可随时在隐私设置中调整位置信息的访问权限。"
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:273 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
 msgstr ""
 
@@ -137,30 +137,30 @@ msgstr "您可随时在隐私设置中调整位置信息的访问权限。"
 msgid "Requested setting not found"
 msgstr "被请求设置未找到"
 
-#: src/wallpaper.c:163
+#: src/wallpaper.c:177
 msgid "Deny"
 msgstr ""
 
-#: src/wallpaper.c:171
+#: src/wallpaper.c:185
 #, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "有应用程序想要播放声音。"
 
-#: src/wallpaper.c:172
+#: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:184
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr ""
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:188
+#: src/wallpaper.c:202
 #, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中调整位置信息的访问权限。"

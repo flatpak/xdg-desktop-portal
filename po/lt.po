@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-03-27 09:18-0400\n"
+"POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2020-03-07 20:26+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <gnome-lt@lists.akl.lt>\n"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Neleisti"
 
-#: src/background.c:273 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
 msgstr "Leisti"
 
@@ -147,29 +147,29 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Užklaustas nustatymas nerastas"
 
-#: src/wallpaper.c:163
+#: src/wallpaper.c:177
 msgid "Deny"
 msgstr "Drausti"
 
-#: src/wallpaper.c:171
+#: src/wallpaper.c:185
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Leisti programoms nustatyti fonus?"
 
-#: src/wallpaper.c:172
+#: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
 msgstr "Programa prašo galimybės keisti fono paveikslą."
 
-#: src/wallpaper.c:184
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Leisti %s nustatyti fonus?"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s prašo galimybės keisti fono paveikslą."
 
-#: src/wallpaper.c:188
+#: src/wallpaper.c:202
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Šis leidimas bet kuriuo metu gali būti pakeistas privatumo nustatymuose."

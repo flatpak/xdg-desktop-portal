@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-03-27 09:18-0400\n"
+"POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2020-01-06 00:03+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -44,7 +44,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Non permitir"
 
-#: src/background.c:273 src/wallpaper.c:165
+#: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
 msgstr "Permitir"
 
@@ -145,29 +145,29 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Non se atopou a configuración solicitada"
 
-#: src/wallpaper.c:163
+#: src/wallpaper.c:177
 msgid "Deny"
 msgstr "Denegar"
 
-#: src/wallpaper.c:171
+#: src/wallpaper.c:185
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
 
-#: src/wallpaper.c:172
+#: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
 msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo"
 
-#: src/wallpaper.c:184
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitirlle a %s configurar o fondo de pantalla?"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s está solicitando poder cambiar o fondo de pantalla."
 
-#: src/wallpaper.c:188
+#: src/wallpaper.c:202
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Este permiso pode cambiarse en calquera momento desde as preferencias de "
