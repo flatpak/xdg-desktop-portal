@@ -1,3 +1,15 @@
+Changes in 1.8.0
+================
+
+- openuri: Allow skipping the chooser for more URL tyles
+- openuri: Robustness fixes
+- filechooser: Return the current filter
+- camera: Make the client node visible
+- camera: Don't leak pipewire proxy
+- Fix file descriptor leaks
+- Testsuite improvements
+- Translation updates
+
 Changes in 1.7.2
 ================
 
