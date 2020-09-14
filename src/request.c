@@ -355,6 +355,8 @@ request_init_invocation (GDBusMethodInvocation *invocation, XdpAppInfo *app_info
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
   request->app_info = xdp_app_info_ref (app_info);
 
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
+
   token = get_token (invocation);
   sender = g_strdup (request->sender + 1);
   for (i = 0; sender[i]; i++)
@@ -415,6 +417,12 @@ request_export (Request *request,
 void
 request_unexport (Request *request)
 {
+  int fd;
+
+  fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
+  if (fd != -1)
+    close (fd);
+
   request->exported = FALSE;
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   g_object_unref (request);
