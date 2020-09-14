@@ -40,6 +40,17 @@ static GSubprocess *backends;
 XdpImplPermissionStore *permission_store;
 XdpImplLockdown *lockdown;
 
+int
+xdup (int oldfd)
+{
+  int newfd = dup (oldfd);
+
+  if (newfd < 0)
+    g_error ("Unable to duplicate fd %d: %s", oldfd, g_strerror (errno));
+
+  return newfd;
+}
+
 static void
 name_appeared_cb (GDBusConnection *bus,
                   const char *name,
@@ -159,7 +170,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
- 
+  g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
+
   backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
   argv[0] = backends_executable;
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
@@ -197,6 +209,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
     argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-desktop-portal", NULL);
@@ -237,6 +250,7 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
     argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
