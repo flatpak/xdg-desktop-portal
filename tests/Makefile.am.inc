@@ -135,4 +135,12 @@ test_programs += \
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \
 	tests/services/org.freedesktop.impl.portal.PermissionStore.service \
+        session.conf \
+        dbus-session-bus-address \
+        dbus-session-bus-pid \
+	$(NULL)
+
+EXTRA_DIST += \
+	tests/share/applications/furrfix.desktop \
+	tests/share/applications/mimeinfo.cache \
 	$(NULL)
