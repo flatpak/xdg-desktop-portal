@@ -48,6 +48,9 @@ typedef void (*XdpPeerDiedCallback) (const char *name);
 
 typedef struct _XdpAppInfo XdpAppInfo;
 
+typedef int XdpFd;
+G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
+
 XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
 void        xdp_app_info_unref           (XdpAppInfo  *app_info);
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
