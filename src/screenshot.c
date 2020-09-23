@@ -29,7 +29,6 @@
 #include <fcntl.h>
 
 #include <gio/gio.h>
-#include <gio/gunixfdlist.h>
 
 #include "screenshot.h"
 #include "request.h"
