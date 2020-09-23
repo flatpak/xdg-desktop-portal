@@ -844,6 +844,7 @@ handle_open_uri (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "ask", "b", &ask))
     ask = FALSE;
 
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
