@@ -586,7 +586,7 @@ handle_open_in_thread_func (GTask *task,
   gboolean ask_for_content_type;
   GVariantBuilder opts_builder;
   gboolean skip_app_chooser = FALSE;
-  int fd;
+  g_auto(XdpFd) fd = -1;
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
