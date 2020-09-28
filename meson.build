@@ -82,6 +82,18 @@ if cc.has_function('renameat2')
   config_h.set('HAVE_RENAMEAT2', 1)
 endif
 
+check_headers = [
+  ['sys/vfs.h', 'HAVE_SYS_VFS_H'],
+  ['sys/mount.h', 'HAVE_SYS_MOUNT_H'],
+  ['sys/statfs.h', 'HAVE_SYS_STATFS_H'],
+  ['sys/xattr.h', 'HAVE_SYS_XATTR_H'],
+  ['sys/extattr.h', 'HAVE_SYS_EXTATTR_H'],
+]
+
+foreach h : check_headers
+  config_h.set(h.get(1), cc.has_header(h.get(0)))
+endforeach
+
 glib_dep = dependency('glib-2.0')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')

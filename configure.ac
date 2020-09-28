@@ -41,6 +41,8 @@ AM_GNU_GETTEXT_VERSION(0.18.3)
 
 PKG_PROG_PKG_CONFIG([0.24])
 
+AC_CHECK_HEADERS([sys/vfs.h sys/mount.h sys/statfs.h sys/xattr.h sys/extattr.h])
+
 AC_ARG_WITH(dbus_service_dir,
         AS_HELP_STRING([--with-dbus-service-dir=PATH],[choose directory for dbus service files, [default=PREFIX/share/dbus-1/services]]),
         with_dbus_service_dir="$withval", with_dbus_service_dir=$datadir/dbus-1/services)
