@@ -145,9 +145,10 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_warning ("Rejecting invalid open-uri request (both URI and fd are set)");
       if (request->exported)
         {
+          g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
           xdp_request_emit_response (XDP_REQUEST (request),
                                      XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                     NULL);
+                                     g_variant_builder_end (&opt_builder));
           request_unexport (request);
         }
       return;
@@ -238,9 +239,10 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           /* Reject the request */
           if (request->exported)
             {
+              g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
               xdp_request_emit_response (XDP_REQUEST (request),
                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                         NULL);
+                                         g_variant_builder_end (&opt_builder));
               request_unexport (request);
             }
           return;
