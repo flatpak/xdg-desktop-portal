@@ -3,50 +3,52 @@
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Mingye Wang <arthur2e5@aosc.xyz>, 2016.
 # 王滋涵 Zephyr Waitzman <i@wi24rd.ml>, 2019.
+# lumingzh <lumingzh@qq.com>, 2020.
+# Dingzhong Chen <wsxy162@gmail.com>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
-"PO-Revision-Date: 2019-05-03 01:33+0800\n"
-"Last-Translator: 王滋涵 Zephyr Waitzman <i@wi24rd.ml>\n"
-"Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
+"POT-Creation-Date: 2020-10-08 15:44+0000\n"
+"PO-Revision-Date: 2020-10-09 00:19+0800\n"
+"Last-Translator: Dingzhong Chen <wsxy162@gmail.com>\n"
+"Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.1\n"
+"X-Generator: Gtranslator 3.36.0\n"
+"Plural-Forms: nplurals=1; plural=0\n"
 
 #: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr ""
+msgstr "允许 %s 在后台运行吗？"
 
 #: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr ""
+msgstr "%s 请求自动启动并在后台运行。"
 
 #: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
-msgstr ""
+msgstr "%s 请求在后台运行。"
 
 #: src/background.c:267
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
-msgstr "您可随时在隐私设置中调整位置信息的访问权限。"
+msgstr "您可随时在应用设置中修改“后台运行”的权限。"
 
 #: src/background.c:272
 msgid "Don't allow"
-msgstr ""
+msgstr "禁止"
 
 #: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
-msgstr ""
+msgstr "允许"
 
 #: src/device.c:115
 msgid "Turn On Microphone?"
@@ -56,7 +58,7 @@ msgstr "要打开麦克风吗？"
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
-msgstr "您可随时在隐私设置中调整麦克风的访问权限。"
+msgstr "您可随时在隐私设置中修改麦克风的访问权限。"
 
 #: src/device.c:120
 msgid "An application wants to use your microphone."
@@ -74,7 +76,7 @@ msgstr "要打开扬声器吗？"
 #: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
-msgstr "您可随时在隐私设置中调整扬声器的访问权限。"
+msgstr "您可随时在隐私设置中修改扬声器的访问权限。"
 
 #: src/device.c:133
 msgid "An application wants to play sound."
@@ -92,7 +94,7 @@ msgstr "要打开摄像头吗？"
 #: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
-msgstr "您可随时在隐私设置中调整摄像头的访问权限。"
+msgstr "您可随时在隐私设置中修改摄像头的访问权限。"
 
 #: src/device.c:146
 msgid "An application wants to use your camera."
@@ -131,36 +133,34 @@ msgstr "%s 想使用您的位置信息。"
 
 #: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
-msgstr "您可随时在隐私设置中调整位置信息的访问权限。"
+msgstr "您可随时在隐私设置中修改位置信息的访问权限。"
 
 #: src/settings.c:124
 msgid "Requested setting not found"
-msgstr "被请求设置未找到"
+msgstr "未找到请求的设置"
 
 #: src/wallpaper.c:177
 msgid "Deny"
-msgstr ""
+msgstr "拒绝"
 
 #: src/wallpaper.c:185
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "有应用程序想要播放声音。"
+msgstr "允许应用程序设置背景吗？"
 
 #: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "一个应用程序正在请求允许修改背景图像。"
 
 #: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr ""
+msgstr "允许 %s 设置背景吗？"
 
 #: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr ""
+msgstr "%s 正在请求允许修改背景图像。"
 
 #: src/wallpaper.c:202
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr "您可随时在隐私设置中调整位置信息的访问权限。"
+msgstr "您可随时在隐私设置中修改该权限。"
