@@ -586,7 +586,7 @@ handle_open_in_thread_func (GTask *task,
   gboolean ask_for_content_type;
   GVariantBuilder opts_builder;
   gboolean skip_app_chooser = FALSE;
-  int fd;
+  g_auto(XdpFd) fd = -1;
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
@@ -844,6 +844,7 @@ handle_open_uri (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "ask", "b", &ask))
     ask = FALSE;
 
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));

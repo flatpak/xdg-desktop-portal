@@ -30,7 +30,6 @@
 #include <fcntl.h>
 
 #include <gio/gio.h>
-#include <gio/gunixfdlist.h>
 
 #include "account.h"
 #include "request.h"
