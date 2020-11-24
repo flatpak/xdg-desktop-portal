@@ -884,6 +884,35 @@ verify_proc_self_fd (XdpAppInfo *app_info,
   return xdp_app_info_remap_path (app_info, path_buffer);
 }
 
+static char *documents_mountpoint = NULL;
+
+void
+xdp_set_documents_mountpoint (const char *path)
+{
+  g_clear_pointer (&documents_mountpoint, g_free);
+  documents_mountpoint = g_strdup (path);
+}
+
+/* alternate_document_path converts a file path  */
+char *
+xdp_get_alternate_document_path (const char *path, const char *app_id)
+{
+  int len;
+
+  /* If we don't know where the document portal is mounted, then there
+   * is no alternate path */
+  if (documents_mountpoint == NULL)
+    return NULL;
+
+  /* If the path is not within the document portal, then there is no
+   * alternative path */
+  len = strlen (documents_mountpoint);
+  if (!g_str_has_prefix (path, documents_mountpoint) || path[len] != '/')
+    return NULL;
+
+  return g_strconcat (documents_mountpoint, "/by-app/", app_id, &path[len], NULL);
+}
+
 char *
 xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
                               int fd,
@@ -981,8 +1010,22 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
       st_buf->st_dev != real_st_buf.st_dev ||
       st_buf->st_ino != real_st_buf.st_ino)
     {
-      /* Different files on the inside and the outside, reject the request */
-      return NULL;
+      /* If the path is provided by the document portal, the inode
+         number will not match, due to only a subtree being mounted in
+         the sandbox.  So we check to see if the equivalent path
+         within that subtree matches our file descriptor.
+
+         If the alternate path doesn't match either, then we treat it
+         as a failure.
+      */
+      g_autofree char *alt_path = NULL;
+      alt_path = xdp_get_alternate_document_path (path, xdp_app_info_get_id (app_info));
+
+      if (alt_path == NULL ||
+          stat (alt_path, &real_st_buf) < 0 ||
+          st_buf->st_dev != real_st_buf.st_dev ||
+          st_buf->st_ino != real_st_buf.st_ino)
+        return NULL;
     }
 
   if (writable_out)
