@@ -1448,6 +1448,8 @@ on_name_acquired (GDBusConnection *connection,
 
   fuse_dev = stbuf.st_dev;
 
+  xdp_set_documents_mountpoint (xdp_fuse_get_mountpoint ());
+
   while ((invocation = g_queue_pop_head (&get_mount_point_invocations)) != NULL)
     {
       xdp_dbus_documents_complete_get_mount_point (dbus_api, invocation, xdp_fuse_get_mountpoint ());

@@ -95,6 +95,38 @@ test_parse_cgroup_not_snap (void)
   fclose(f);
 }
 
+static void
+test_alternate_doc_path (void)
+{
+  g_autofree char *path = NULL;
+
+  xdp_set_documents_mountpoint (NULL);
+
+  /* If no documents mount point is set, there is no alternate path */
+  path = xdp_get_alternate_document_path ("/whatever", "app-id");
+  g_assert_cmpstr (path, ==, NULL);
+
+  xdp_set_documents_mountpoint ("/doc/portal");
+
+  /* Paths outside of the document portal do not have an alternate path */
+  path = xdp_get_alternate_document_path ("/whatever", "app-id");
+  g_assert_cmpstr (path, ==, NULL);
+
+  /* The doc portal mount point itself does not have an alternate path */
+  path = xdp_get_alternate_document_path ("/doc/portal", "app-id");
+  g_assert_cmpstr (path, ==, NULL);
+
+  /* Paths under the doc portal mount point have an alternate path */
+  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "app-id");
+  g_assert_cmpstr (path, ==, "/doc/portal/by-app/app-id/foo/bar");
+
+  g_clear_pointer (&path, g_free);
+  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "second-app");
+  g_assert_cmpstr (path, ==, "/doc/portal/by-app/second-app/foo/bar");
+
+  xdp_set_documents_mountpoint (NULL);
+}
+
 int main (int argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
@@ -102,5 +134,6 @@ int main (int argc, char **argv)
   g_test_add_func ("/parse-cgroup/freezer", test_parse_cgroup_freezer);
   g_test_add_func ("/parse-cgroup/systemd", test_parse_cgroup_systemd);
   g_test_add_func ("/parse-cgroup/not-snap", test_parse_cgroup_not_snap);
+  g_test_add_func ("/alternate-doc-path", test_alternate_doc_path);
   return g_test_run ();
 }

@@ -31,6 +31,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "xdp-dbus.h"
+#include "xdp-utils.h"
 #include "document-enums.h"
 
 static XdpDocuments *documents = NULL;
@@ -46,6 +47,7 @@ init_document_proxy (GDBusConnection *connection)
   xdp_documents_call_get_mount_point_sync (documents,
                                            &documents_mountpoint,
                                            NULL, NULL);
+  xdp_set_documents_mountpoint (documents_mountpoint);
 }
 
 char *
