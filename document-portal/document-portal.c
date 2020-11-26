@@ -499,15 +499,16 @@ portal_add (GDBusMethodInvocation *invocation,
 }
 
 static char *
-flatpak (GError **error,
-         ...)
+get_output (GError     **error,
+            const char  *argv0,
+            ...)
 {
   gboolean res;
   g_autofree char *output = NULL;
   va_list ap;
 
-  va_start (ap, error);
-  res = xdp_spawn (NULL, &output, 0, error, "flatpak", ap);
+  va_start (ap, argv0);
+  res = xdp_spawn (NULL, &output, 0, error, argv0, ap);
   va_end (ap);
 
   if (res)
@@ -632,9 +633,17 @@ app_has_file_access (const char *target_app_id,
   if (target_app_id == NULL || target_app_id[0] == '\0')
     return FALSE;
 
-  /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
-  arg = g_strdup_printf ("--file-access=%s", path);
-  res = flatpak (&error, "info", arg, target_app_id, NULL);
+  if (g_str_has_prefix (target_app_id, "snap."))
+    {
+      res = get_output (&error, "snap", "routine", "file-access",
+                        target_app_id + strlen ("snap."), path, NULL);
+    }
+  else
+    {
+      /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
+      arg = g_strdup_printf ("--file-access=%s", path);
+      res = get_output (&error, "flatpak", "info", arg, target_app_id, NULL);
+    }
 
   if (res)
     {
