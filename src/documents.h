@@ -30,3 +30,6 @@ char *register_document (const char *uri,
                          gboolean writable,
                          gboolean directory,
                          GError **error);
+
+char *get_real_path_for_doc_path (const char *path,
+                                  const char *app_id);
