@@ -35,6 +35,7 @@ jobs:
             json-glib-devel \
             libcap \
             libcap-devel \
+            libgudev-devel \
             libportal-devel \
             llvm \
             meson \

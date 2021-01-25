@@ -65,6 +65,7 @@
 #include "secret.h"
 #include "settings.h"
 #include "trash.h"
+#include "usb.h"
 #include "wallpaper.h"
 
 static GMainLoop *loop = NULL;
@@ -132,7 +133,6 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-
   g_autoptr(GError) error = NULL;
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
@@ -185,6 +185,9 @@ export_portal_implementation (GDBusConnection *connection,
 static void
 peer_died_cb (const char *name)
 {
+#ifdef HAVE_GUDEV
+  revoke_usb_devices_from_sender (name);
+#endif
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
@@ -342,6 +345,13 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   input_capture_create (connection, implementation->dbus_name));
+
+#ifdef HAVE_GUDEV
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Usb");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  usb_create (connection, implementation->dbus_name));
+#endif
 }
 
 static void

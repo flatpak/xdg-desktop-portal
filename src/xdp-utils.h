@@ -22,6 +22,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -52,6 +53,49 @@ typedef enum
   XDP_APP_INFO_KIND_FLATPAK = 1,
   XDP_APP_INFO_KIND_SNAP    = 2,
 } XdpAppInfoKind;
+
+typedef struct
+{
+  enum {
+    XDP_USB_RULE_TYPE_ALL,
+    XDP_USB_RULE_TYPE_CLASS,
+    XDP_USB_RULE_TYPE_DEVICE,
+    XDP_USB_RULE_TYPE_VENDOR,
+  } rule_type;
+
+  union {
+    struct {
+      enum {
+        XDP_USB_RULE_CLASS_TYPE_CLASS_ONLY,
+        XDP_USB_RULE_CLASS_TYPE_CLASS_SUBCLASS,
+      } type;
+      uint16_t class;
+      uint16_t subclass;
+    } device_class;
+
+    struct {
+      uint16_t id;
+    } product;
+
+    struct {
+      uint16_t id;
+    } vendor;
+
+  } d;
+
+} XdpUsbRule;
+
+typedef enum
+{
+  XDP_USB_QUERY_TYPE_BLOCK,
+  XDP_USB_QUERY_TYPE_ALLOW,
+} XdpUsbQueryType;
+
+typedef struct
+{
+  XdpUsbQueryType query_type;
+  GPtrArray *rules;
+} XdpUsbQuery;
 
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
@@ -104,6 +148,7 @@ char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           gboolean    *writable_out,
                                           GError     **error);
 gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
+GPtrArray  *xdp_app_info_get_usb_queries (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
 GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);

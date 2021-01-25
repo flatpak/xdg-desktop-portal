@@ -112,6 +112,7 @@ libportal_dep = dependency('libportal',
                            required: get_option('libportal'))
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
+gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 
 
 bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation'))
@@ -139,6 +140,11 @@ endif
 have_libsystemd = libsystemd_dep.found()
 if have_libsystemd
   config_h.set('HAVE_LIBSYSTEMD', 1)
+endif
+
+have_gudev = gudev_dep.found()
+if have_gudev
+  config_h.set('HAVE_GUDEV', 1)
 endif
 
 add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66'], language: 'c')
@@ -199,6 +205,7 @@ summary({
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
     'Enable libportal support': have_libportal,
+    'Enable gudev support': have_gudev,
     'Enable installed tests:': enable_installed_tests,
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),

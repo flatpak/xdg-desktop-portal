@@ -114,6 +114,12 @@ if have_geoclue
   )
 endif
 
+if have_gudev
+  xdg_desktop_portal_sources += files(
+    'usb.c',
+  )
+endif
+
 if have_libsystemd
   xdg_desktop_portal_sources += sd_escape_sources
 endif
@@ -124,6 +130,10 @@ common_deps = [
   gio_unix_dep,
   json_glib_dep,
 ]
+
+if gudev_dep.found()
+  common_deps += gudev_dep
+endif
 
 xdg_desktop_portal_deps = common_deps + [
   geoclue_dep,
