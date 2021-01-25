@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2020 Endless OS Foundation LLC
+               2023 GNOME Foundation Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+         Ryan Gonzalez <rymg19+github@gmail.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Usb:
+      @short_description: Portal for USB device access
+
+      This interface lets sandboxed applications monitor and request
+      access to connected USB devices.
+
+      Applications should prefer specialized portals for specific
+      device types, such as the Camera portal for cameras.
+
+      This documentation describes version 1 of this interface.
+    -->
+  <interface name="org.freedesktop.portal.Usb">
+
+    <!--
+        CreateSession:
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Creates an USB monitoring session.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Session documentation for
+          more information about the session handle.
+    -->
+    <method name="CreateSession">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="session_handle" direction="out"/>
+    </method>
+
+    <!--
+        EnumerateDevices:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @options: Vardict with optional further information
+
+        Enumerates all connected USB devices that this application has permission
+        to see.
+
+        The following results are returned in the @device vardict:
+
+        * ``id`` (``s``)
+
+          The portal-specific unique identifier of the device.
+
+        * ``parent`` (``s``)
+
+          Device ID of the parent device.
+
+        * ``readable`` (``b``)
+
+          Whether the device can be opened for reading with
+          org.freedesktop.portal.Usb.AcquireDevices(). If not present, then
+          it should be assumed to be false.
+
+        * ``writable`` (``b``)
+
+          Whether the device can be opened for writing with
+          org.freedesktop.portal.Usb.AcquireDevices(). If not present, then
+          it should be assumed to be false.
+
+        * ``devnode`` (``s``)
+
+          A string path to the device node inside the /dev filesystem.
+
+        * ``properties`` (``a{sv}``)
+
+          A list of udev properties that this device has. These properties
+          are not parsed in any way by the portal, it is up to apps to parse
+          them.
+     -->
+    <method name="EnumerateDevices">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a(sa{sv})" name="devices" direction="out"/>
+    </method>
+
+    <!--
+        AcquireDevices:
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`.
+        @devices: Array of device identifiers, device information, and access options
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Acquires the given device nodes.
+
+        Each element of the @devices array contains the device ID, and the
+        following keys:
+
+        * ``writable`` (``b``)
+
+          Whether the device will be opened in read-write or read-only mode.
+          Default: False
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation
+          for more information about the @handle.
+
+        The #org.freedesktop.portal.Request::Response signal is emitted without
+        any extra information.
+     -->
+    <method name="AcquireDevices">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="a(sa{sv})" name="devices" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        FinishAcquireDevices:
+        @options: Vardict with optional further information
+        @results: Array of device ids, and the result of the access
+        @finished: Whether all device results were reported
+
+        Retrieves the file descriptors of the devices requested during
+        org.freedesktop.portal.Usb.AcquireDevices().
+
+        This method can only be called once, and only after calling
+        org.freedesktop.portal.Usb.AcquireDevices().
+
+        Each element of the @devices_fds array contains the device ID, and the
+        following keys:
+
+        * ``success`` (``b``)
+
+          Whether the device access was successful or not.
+
+        * ``fd`` (``h``)
+
+          The file descriptor representing the device. Only present if this
+          was a successful device access.
+
+        * ``error`` (``s``)
+
+          Error message describing why accessing the device was not
+          successful. Only present if this was an failed device access.
+
+        There are no supported keys in the @options vardict.
+     -->
+    <method name="FinishAcquireDevices">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a(sa{sv})" name="results" direction="out"/>
+      <arg type="b" name="finished" direction="out"/>
+    </method>
+
+    <!--
+        ReleaseDevices:
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`.
+        @devices: Array of device identifiers
+        @options: Vardict with optional further information
+
+        Releases previously acquired devices.
+
+        Each element of the @devices array contains the device ID of the device.
+
+        There are no supported keys in the @options vardict.
+     -->
+    <method name="ReleaseDevices">
+      <arg type="as" name="devices" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+    </method>
+
+    <!--
+        DeviceEvents:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @events: A list of events. See org.freedesktop.portal.Usb.EnumerateDevices() for a list of all the properties that may be present in the vardict.
+
+        The DeviceEvents signal is emitted when one or more USB devices have
+        been added, changed, or removed. This signal is only emitted for active
+        sessions created with org.freedesktop.portal.Usb.CreateSession().
+
+        Each element of the @events array is composed of the following fields:
+
+        * ``action`` (``s``)
+
+          Type of event that occurred. One of "add", "change", or "remove".
+
+        * ``id`` (``s``)
+
+          Device ID that the event occurred on.
+
+        * ``device`` (``s``)
+
+          Device properties attached to the ID. See
+          org.freedesktop.portal.Usb.EnumerateDevices() for a list of all
+          the properties that may be present in the vardict.
+      -->
+    <signal name="DeviceEvents">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a(ssa{sv})" name="events" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
