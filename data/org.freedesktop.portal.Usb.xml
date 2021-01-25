@@ -1,0 +1,265 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2020 Endless OS Foundation LLC
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Ryan Gonzalez <rymg19+github@gmail.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Usb:
+      @short_description: Portal for USB device access
+
+      This interface lets sandboxed applications monitor and request
+      access to connected USB devices.
+
+      This documentation describes version 1 of this interface.
+    -->
+  <interface name="org.freedesktop.portal.Usb">
+    <!--
+        EnumerateDevices:
+        @options: Vardict with optional further information
+        @devices: Dictionary of device IDs to a vardict of device properties.
+                  See org.freedesktop.portal.Usb.GetDeviceProperties() for a list
+                  of all the properties that may be present in the vardicts.
+
+        Enumerates all connected USB devices that this application has permission
+        to see.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>filter a{sv}</term>
+            <listitem><para>
+              A vardict of device properties that is used to filter the enumerated devices.
+              Each property value in the filter must exactly match the corresponding property
+              values in the returned devices.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+     -->
+    <method name="EnumerateDevices">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a{sa{sv}}" name="devices" direction="out"/>
+    </method>
+
+    <!--
+        GetDeviceProperties:
+        @id: Device ID to query the properties of.
+        @device: Device properties attached to the ID.
+
+        Finds all the known properties associated with the given device.
+
+        Supported keys in the @device vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>parent s</term>
+            <listitem><para>
+              Device ID of the parent device.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>devnode s</term>
+            <listitem><para>
+              A string path to the device node inside the /dev filesystem. This path
+              will not available inside the sandbox unless device=all is used, but it
+              can still be used to distinguish between different device APIs (e.g.
+              the legacy joystick API device nodes begin with "/dev/js", whereas
+              evdev ones begin with "/dev/event").
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>readable b</term>
+            <listitem><para>
+              Whether the device can be opened for reading with
+              org.freedesktop.portal.Usb.OpenDevice(). If not present, then it should be
+              assumed to be false.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>writable b</term>
+            <listitem><para>
+              Whether the device can be opened for writing with
+              org.freedesktop.portal.Usb.OpenDevice().If not present, then it should be
+              assumed to be false.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>vendor_id s</term>
+            <listitem><para>
+              USB vendor ID.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>product_id s</term>
+            <listitem><para>
+              USB product / model ID.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>vendor_id s</term>
+            <listitem><para>
+              Human-readable vendor name.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>vendor_id s</term>
+            <listitem><para>
+              Human-readable product name.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>serial s</term>
+            <listitem><para>
+              Unique device serial.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>subsystem s</term>
+            <listitem><para>
+              Udev subsystem that this device is a part of.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>has_joystick s</term>
+            <listitem><para>
+              Whether this device has / is a joystick.If not present, then it should be
+              assumed to be false.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+     -->
+    <method name="GetDeviceProperties">
+      <arg type="s" name="id" direction="in"/>
+      <arg type="a{sv}" name="device" direction="out"/>
+    </method>
+
+    <!--
+        RequestPermission:
+        @parent_window: Identifier for the application window, see
+                        <link linkend="parent_window">Common Conventions</link>.
+        @id: Device ID to request permission on.
+        @options: Vardict with optional further information.
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Requests permission to gain read or write access to the given device.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+     -->
+    <method name="RequestPermission">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        OpenDevice:
+        @id: Device ID to open.
+        @writable: Whether the device will be opened in read-write or read-only mode. Default: False
+        @fd: Resulting file descriptor of the opened device.
+
+        Opens the given device node. This will fail if the application has not previously requested
+        permission using org.freedesktop.portal.Usb.RequestPermission().
+     -->
+    <method name="OpenDevice">
+      <arg type="s" name="id" direction="in"/>
+      <arg type="b" name="writable" direction="in"/> 
+      <arg type="h" name="fd" direction="out"/>
+    </method>
+
+    <!--
+        CreateMonitor:
+        @options: Vardict with optional further information
+        @handle: Object path for the created #org.freedesktop.portal.Session object
+
+        Creates a monitoring session. While this session is active, the caller will
+        receive DeviceEvent signals when a device is added, changed, or removed.
+
+        A successfully created session can at any time be closed using
+        org.freedesktop.portal.Session::Close, or may at any time be closed
+        by the portal implementation, which will be signalled via
+        org.freedesktop.portal.Session::Closed.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>session_handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the session handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Session documentation for
+              more information about the session handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>filter a{sv}</term>
+            <listitem><para>
+              A vardict of device properties that is used to filter monitored devices.
+              Each property value in the filter must exactly match the corresponding property
+              values in each device for a signal to be sent for it.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>session_handle o</term>
+            <listitem><para>
+              The session handle. An object path for the
+              #org.freedesktop.portal.Session object representing the created
+              session.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="CreateMonitor">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        DeviceEvent:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @action: Type of event that occurred. One of "add", "change", or "remove".
+        @id: Device ID that the event occurred on.
+        @device: Device properties attached to the ID.
+                 See org.freedesktop.portal.Usb.GetDeviceProperties() for a list
+                 of all the properties that may be present in the vardicts.
+
+        The DeviceEvent signal is emitted when a USB device has been added, changed, or
+        removed.
+      -->
+    <signal name="DeviceEvent">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="s" name="action" direction="out"/>
+      <arg type="s" name="id" direction="out"/>
+      <arg type="a{sv}" name="device" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

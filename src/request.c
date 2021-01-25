@@ -330,6 +330,13 @@ get_token (GDBusMethodInvocation *invocation)
     {
       options = g_variant_get_child_value (parameters, 1);
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Usb") == 0)
+    {
+      if (strcmp (method, "RequestPermission") == 0)
+        {
+          options = g_variant_get_child_value (parameters, 2);
+        }
+    }
   else
     {
       g_print ("Support for %s missing in " G_STRLOC, interface);
