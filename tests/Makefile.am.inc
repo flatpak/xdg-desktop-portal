@@ -19,7 +19,11 @@ test_doc_portal_LDADD = \
 	$(BASE_LIBS) \
 	$(FUSE_LIBS) \
 	$(NULL)
-test_doc_portal_SOURCES = tests/test-doc-portal.c
+test_doc_portal_SOURCES = \
+	tests/can-use-fuse.c \
+	tests/can-use-fuse.h \
+	tests/test-doc-portal.c \
+	$(NULL)
 nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
