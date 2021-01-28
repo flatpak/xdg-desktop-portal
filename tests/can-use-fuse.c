@@ -54,6 +54,12 @@ check_fuse (void)
       return FALSE;
     }
 
+  if (!g_file_test ("/etc/mtab", G_FILE_TEST_EXISTS))
+    {
+      cannot_use_fuse = g_strdup ("fusermount won't work without /etc/mtab");
+      return FALSE;
+    }
+
   path = g_dir_make_tmp ("flatpak-test.XXXXXX", &error);
   g_assert_no_error (error);
 
