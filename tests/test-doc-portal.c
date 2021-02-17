@@ -13,10 +13,9 @@
 #include <gio/gunixfdlist.h>
 #include <glib/gstdio.h>
 
-#define FUSE_USE_VERSION 26
-#include <fuse_lowlevel.h>
-
 #include "document-portal/document-portal-dbus.h"
+
+#include "can-use-fuse.h"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
@@ -26,7 +25,6 @@ GTestDBus *dbus;
 GDBusConnection *session_bus;
 XdpDbusDocuments *documents;
 char *mountpoint;
-static gchar *cannot_use_fuse = NULL;
 
 static gboolean
 set_contents_trunc (const gchar  *filename,
@@ -356,11 +354,8 @@ test_create_doc (void)
   const char *basename = "a-file";
   GError *error = NULL;
 
-  if (cannot_use_fuse != NULL)
-    {
-      g_test_skip (cannot_use_fuse);
-      return;
-    }
+  if (!check_fuse_or_skip_test ())
+    return;
 
   /* Export a document */
   id = export_new_file (basename, "content", FALSE);
@@ -471,11 +466,8 @@ test_recursive_doc (void)
   g_autofree char *path = NULL;
   g_autofree char *app_path = NULL;
 
-  if (cannot_use_fuse != NULL)
-    {
-      g_test_skip (cannot_use_fuse);
-      return;
-    }
+  if (!check_fuse_or_skip_test ())
+    return;
 
   id = export_new_file (basename, "recursive-content", FALSE);
 
@@ -513,11 +505,8 @@ test_create_docs (void)
   const char *basenames[] = { "doc1", "doc2" };
   int i;
 
-  if (cannot_use_fuse != NULL)
-    {
-      g_test_skip (cannot_use_fuse);
-      return;
-    }
+  if (!check_fuse_or_skip_test ())
+    return;
 
   path1 = g_build_filename (outdir, basenames[0], NULL);
   g_file_set_contents (path1, basenames[0], -1, &error);
@@ -585,11 +574,8 @@ test_add_named (void)
   GError *error = NULL;
   gboolean res;
 
-  if (cannot_use_fuse != NULL)
-    {
-      g_test_skip (cannot_use_fuse);
-      return;
-    }
+  if (!check_fuse_or_skip_test ())
+    return;
 
   id1 = export_named_file (outdir, basename1, FALSE);
 
@@ -697,68 +683,6 @@ test_add_named (void)
   assert_doc_has_contents (id1, basename1, NULL, "foobar7");
   assert_doc_has_contents (id1, basename1, "com.test.App1", "foobar7");
   assert_doc_not_exist (id1, basename1, "com.test.App2");
-}
-
-/*
- * If we cannot use FUSE, set cannot_use_fuse and return %FALSE.
- */
-static gboolean
-check_fuse (void)
-{
-  g_autofree gchar *fusermount = NULL;
-  g_autofree gchar *path = NULL;
-  char *argv[] = { "xdp-fuse-test" };
-  struct fuse_args args = FUSE_ARGS_INIT (G_N_ELEMENTS (argv), argv);
-  struct fuse_chan *chan = NULL;
-  g_autoptr(GError) error = NULL;
-
-  if (cannot_use_fuse != NULL)
-    return FALSE;
-
-  if (access ("/dev/fuse", W_OK) != 0)
-    {
-      cannot_use_fuse = g_strdup_printf ("access /dev/fuse: %s",
-                                         g_strerror (errno));
-      return FALSE;
-    }
-
-  fusermount = g_find_program_in_path ("fusermount");
-
-  if (fusermount == NULL)
-    {
-      cannot_use_fuse = g_strdup ("fusermount not found in PATH");
-      return FALSE;
-    }
-
-  if (!g_file_test (fusermount, G_FILE_TEST_IS_EXECUTABLE))
-    {
-      cannot_use_fuse = g_strdup_printf ("%s not executable", fusermount);
-      return FALSE;
-    }
-
-  path = g_dir_make_tmp ("xdp-test.XXXXXX", &error);
-  g_assert_no_error (error);
-
-  chan = fuse_mount (path, &args);
-
-  if (chan == NULL)
-    {
-      fuse_opt_free_args (&args);
-      cannot_use_fuse = g_strdup_printf ("fuse_mount: %s",
-                                         g_strerror (errno));
-      return FALSE;
-    }
-
-  g_test_message ("Successfully set up test FUSE fs on %s", path);
-
-  fuse_unmount (path, chan);
-
-  if (g_rmdir (path) != 0)
-    g_error ("rmdir %s: %s", path, g_strerror (errno));
-
-  fuse_opt_free_args (&args);
-
-  return TRUE;
 }
 
 static void
@@ -919,11 +843,8 @@ global_teardown (void)
 static void
 test_version (void)
 {
-  if (cannot_use_fuse != NULL)
-    {
-      g_test_skip (cannot_use_fuse);
-      return;
-    }
+  if (!check_fuse_or_skip_test ())
+    return;
 
   g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 4);
 }
