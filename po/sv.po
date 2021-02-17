@@ -1,54 +1,54 @@
 # Swedish translation for xdg-desktop-portal.
-# Copyright © 2016 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright © 2016, 2020 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Sebastian Rasmussen <sebras@gmail.com>, 2016.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
-"PO-Revision-Date: 2016-08-14 13:43+0800\n"
-"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
+"POT-Creation-Date: 2020-09-15 03:43+0000\n"
+"PO-Revision-Date: 2020-09-20 00:11+0200\n"
+"Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 2.4.1\n"
 
 #: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr ""
+msgstr "Tillåt %s att köra i bakgrunden?"
 
 #: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr ""
+msgstr "%s begär att startas automatiskt och köras i bakgrunden."
 
 #: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
-msgstr ""
+msgstr "%s begär att köras i bakgrunden."
 
 #: src/background.c:267
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"Tillgång till dina högtalare kan ändras när som helst från "
-"sekretessinställningarna."
+"Rättigheten ”kör i bakgrund” kan ändras när som helst från "
+"programinställningarna."
 
 #: src/background.c:272
 msgid "Don't allow"
-msgstr ""
+msgstr "Tillåt inte"
 
 #: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
-msgstr ""
+msgstr "Tillåt"
 
 #: src/device.c:115
 msgid "Turn On Microphone?"
@@ -113,68 +113,61 @@ msgstr "%s vill använda din kamera."
 
 #: src/location.c:526
 msgid "Deny Access"
-msgstr ""
+msgstr "Neka åtkomst"
 
 #: src/location.c:528
 msgid "Grant Access"
-msgstr ""
+msgstr "Bevilja åtkomst"
 
 #: src/location.c:534
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "Bevilja åtkomst till din plats?"
 
 #: src/location.c:535
-#, fuzzy
 msgid "An application wants to use your location."
-msgstr "Ett program vill använda din kamera."
+msgstr "Ett program vill använda din plats."
 
 #: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "Ge %s åtkomst till din plats?"
 
 #: src/location.c:551
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s vill använda din kamera."
+msgstr "%s vill använda din plats."
 
 #: src/location.c:554
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
-msgstr ""
-"Tillgång till dina högtalare kan ändras när som helst från "
-"sekretessinställningarna."
+msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
 
 #: src/settings.c:124
 msgid "Requested setting not found"
-msgstr ""
+msgstr "Begärd inställning hittades inte"
 
 #: src/wallpaper.c:177
 msgid "Deny"
-msgstr ""
+msgstr "Neka"
 
 #: src/wallpaper.c:185
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Ett program vill spela upp ljud."
+msgstr "Tillåt program att ställa in bakgrunder?"
 
 #: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Ett program begär att kunna ändra bakgrundsbilden."
 
 #: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr ""
+msgstr "Tillåt %s att ställa in bakgrunder?"
 
 #: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr ""
+msgstr "%s begär att kunna ändra bakgrundsbilden."
 
 #: src/wallpaper.c:202
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
-"Tillgång till dina högtalare kan ändras när som helst från "
-"sekretessinställningarna."
+"Denna rättighet kan ändras när som helst från sekretessinställningarna."
