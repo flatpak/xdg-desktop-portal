@@ -1,13 +1,13 @@
 # Danish translation for xdg-desktop-portal
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
-# scootergrisen, 2018-2019.
+# scootergrisen, 2018-2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2020-09-14 12:22-0400\n"
-"PO-Revision-Date: 2019-05-21 00:00+0200\n"
+"PO-Revision-Date: 2020-10-12 01:25+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
 "Language: da\n"
@@ -36,7 +36,8 @@ msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"‘Kør i baggrunden’-tilladelsen kan altid ændres i programindstillingerne."
+"‘Kør i baggrunden’-tilladelsen kan når som helst ændres i "
+"programindstillingerne."
 
 #: src/background.c:272
 msgid "Don't allow"
@@ -55,7 +56,7 @@ msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Adgang til din mikrofon kan når som helst ændres fra "
+"Adgang til din mikrofon kan når som helst ændres i "
 "privatlivsindstillingerne."
 
 #: src/device.c:120
@@ -75,7 +76,7 @@ msgstr "Tænd for højttalerne?"
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"Adgang til dine højttalere kan når som helst ændres fra "
+"Adgang til dine højttalere kan når som helst ændres i "
 "privatlivsindstillingerne."
 
 #: src/device.c:133
@@ -95,7 +96,7 @@ msgstr "Tænd for kameraet?"
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Adgang til dit kamera kan når som helst ændres fra privatlivsindstillingerne."
+"Adgang til dit kamera kan når som helst ændres i privatlivsindstillingerne."
 
 #: src/device.c:146
 msgid "An application wants to use your camera."
@@ -135,7 +136,7 @@ msgstr "%s anmoder om at bruge din placering."
 #: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"Adgang til din placering kan når som helst ændres fra "
+"Adgang til din placering kan når som helst ændres i "
 "privatlivsindstillingerne."
 
 #: src/settings.c:124
@@ -144,30 +145,26 @@ msgstr "Den anmodede indstilling blev ikke fundet"
 
 #: src/wallpaper.c:177
 msgid "Deny"
-msgstr ""
+msgstr "Nægt"
 
 #: src/wallpaper.c:185
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Tillad %s at køre i baggrunden?"
+msgstr "Tillad programmer at indstille baggrunde?"
 
 #: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "Et program anmoder om at være i stand til at ændre baggrundsbilledet."
 
 #: src/wallpaper.c:198
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Tillad %s at køre i baggrunden?"
+msgstr "Tillad %s at indstille baggrunde?"
 
 #: src/wallpaper.c:199
-#, fuzzy, c-format
+#, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "%s anmoder om at køre i baggrunden."
+msgstr "%s anmoder om at være i stand til at ændre baggrundsbilledet."
 
 #: src/wallpaper.c:202
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Adgang til din placering kan når som helst ændres fra "
-"privatlivsindstillingerne."
+msgstr "Tilladelsen kan når som helst ændres i privatlivsindstillingerne."
