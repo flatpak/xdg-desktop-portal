@@ -1,3 +1,15 @@
+Changes in 1.8.1
+================
+
+- openuri: Fix an fd leak
+- filechooser: Fix directory support
+- build: Drop a fontconfig dependency
+- snap: Use cgroups to identify confined apps
+- documents: Add snap support
+- wallpaper: Fix a crash
+- build: Factor out a fuse check
+- Translation updates
+
 Changes in 1.8.0
 ================
 
