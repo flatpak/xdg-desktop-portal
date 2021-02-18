@@ -45,7 +45,7 @@ struct _SettingsClass
 };
 
 static XdpImplSettings **impls;
-static int n_impls;
+static int n_impls = 0;
 
 GType settings_get_type (void) G_GNUC_CONST;
 static void settings_iface_init (XdpSettingsIface *iface);
@@ -177,27 +177,38 @@ settings_create (GDBusConnection *connection,
   Settings *settings;
   g_autoptr(GError) error = NULL;
   int i;
+  int n_impls_tmp;
 
-  n_impls = implementations->len;
-  impls = g_new (XdpImplSettings *, n_impls);
+  n_impls_tmp = implementations->len;
+  impls = g_new (XdpImplSettings *, n_impls_tmp);
 
   settings = g_object_new (settings_get_type (), NULL);
 
-  for (i = 0; i < n_impls; i++)
+  for (i = 0; i < n_impls_tmp; i++)
     {
       PortalImplementation *impl = g_ptr_array_index (implementations, i);
       const char *dbus_name = impl->dbus_name;
 
-      impls[i] = xdp_impl_settings_proxy_new_sync (connection,
-                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                   dbus_name,
-                                                   DESKTOP_PORTAL_OBJECT_PATH,
-                                                   NULL,
-                                                   &error);
-      if (impls[i] == NULL)
-        g_warning ("Failed to create settings proxy: %s", error->message);
+      XdpImplSettings *impl_proxy = xdp_impl_settings_proxy_new_sync (connection,
+                                                                      G_DBUS_PROXY_FLAGS_NONE,
+                                                                      dbus_name,
+                                                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                                                      NULL,
+                                                                      &error);
+      if (impl_proxy == NULL)
+        {
+          g_warning ("Failed to create settings proxy: %s", error->message);
+        }
       else
-        g_signal_connect (impls[i], "setting-changed", G_CALLBACK (on_impl_settings_changed), settings);
+        {
+          impls[n_impls++] = impl_proxy;
+          g_signal_connect (impl_proxy, "setting-changed", G_CALLBACK (on_impl_settings_changed), settings);
+        }
+    }
+
+  if (!n_impls)
+    {
+      return NULL;
     }
 
   return G_DBUS_INTERFACE_SKELETON (settings);
