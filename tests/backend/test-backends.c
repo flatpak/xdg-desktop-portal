@@ -16,6 +16,7 @@
 #include "notification.h"
 #include "print.h"
 #include "screenshot.h"
+#include "settings.h"
 #include "wallpaper.h"
 
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
@@ -39,6 +40,7 @@ on_bus_acquired (GDBusConnection *connection,
   notification_init (connection, BACKEND_OBJECT_PATH);
   print_init (connection, BACKEND_OBJECT_PATH);
   screenshot_init (connection, BACKEND_OBJECT_PATH);
+  settings_init (connection, BACKEND_OBJECT_PATH);
   wallpaper_init (connection, BACKEND_OBJECT_PATH);
 }
 

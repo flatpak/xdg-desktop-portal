@@ -31,6 +31,8 @@ tests_test_backends_SOURCES = \
 	tests/backend/print.h \
 	tests/backend/screenshot.c \
 	tests/backend/screenshot.h \
+	tests/backend/settings.c \
+	tests/backend/settings.h \
         tests/backend/wallpaper.c \
         tests/backend/wallpaper.h \
         tests/glib-backports.c \
