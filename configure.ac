@@ -50,10 +50,7 @@ AC_SUBST(DBUS_SERVICE_DIR)
 AC_ARG_WITH(flatpak_interfaces_dir,
         AS_HELP_STRING([--with-flatpak-interfaces-dir=PATH],[choose directory for Flatpak interface files, [default=PREFIX/share/dbus-1/interfaces]]),
         [[FLATPAK_INTERFACES_DIR="$withval"]],
-	[PKG_CHECK_VAR([FLATPAK_INTERFACES_DIR], [flatpak], [interfaces_dir])])
-if ! pkg-config --atleast-version "1.5.0" flatpak; then
-        FLATPAK_INTERFACES_DIR=""
-fi
+	[PKG_CHECK_VAR([FLATPAK_INTERFACES_DIR], [flatpak >= 1.5.0], [interfaces_dir])])
 AC_SUBST(FLATPAK_INTERFACES_DIR)
 
 AC_ARG_WITH([systemduserunitdir],
