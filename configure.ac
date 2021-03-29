@@ -105,6 +105,15 @@ if test x$enable_pipewire = xyes ; then
 fi
 AM_CONDITIONAL([HAVE_PIPEWIRE],[test "$enable_pipewire" = "yes"])
 
+AC_ARG_ENABLE(udev,
+              [AS_HELP_STRING([--enable-udev,[Enable udev support. Needed for device portal]])],
+              enable_udev=$enableval, enable_udev=yes)
+if test x$enable_udev = xyes ; then
+        PKG_CHECK_MODULES(UDEV, [libudev])
+        AC_DEFINE([HAVE_UDEV],[1], [Define to enable udev support])
+fi
+AM_CONDITIONAL([HAVE_UDEV],[test "$enable_udev" = "yes"])
+
 AC_ARG_ENABLE(docbook-docs,
         [AS_HELP_STRING([--enable-docbook-docs],[build documentation (requires xmlto)])],
         enable_docbook_docs=$enableval, enable_docbook_docs=auto)

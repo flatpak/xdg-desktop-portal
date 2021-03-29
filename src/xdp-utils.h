@@ -57,6 +57,22 @@ typedef struct _XdpAppInfo XdpAppInfo;
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
 
+typedef struct {
+  char *subsystem;
+  char *vendor_id;
+  char *product_id;
+} XdpUsbRule;
+
+static inline void
+xdp_usb_rule_free (XdpUsbRule *rule)
+{
+  g_clear_pointer (&rule->subsystem, g_free);
+  g_clear_pointer (&rule->vendor_id, g_free);
+  g_clear_pointer (&rule->product_id, g_free);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpUsbRule, xdp_usb_rule_free)
+
 XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
 void        xdp_app_info_unref           (XdpAppInfo  *app_info);
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
@@ -80,6 +96,8 @@ char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           struct stat *st_buf,
                                           gboolean    *writable_out);
 gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
+gboolean    xdp_app_info_has_all_devices (XdpAppInfo  *app_info);
+GPtrArray  *xdp_app_info_get_usb_rules   (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
 GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);

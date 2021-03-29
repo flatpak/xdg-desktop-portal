@@ -370,6 +370,90 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
   return has_network;
 }
 
+gboolean
+xdp_app_info_has_all_devices (XdpAppInfo *app_info)
+{
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      {
+        g_auto(GStrv) devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+                                                            "Context", "devices",
+                                                            NULL, NULL);
+        if (devices)
+          return g_strv_contains ((const char * const *) devices, "all");
+        else
+          return FALSE;
+      }
+      break;
+    case XDP_APP_INFO_KIND_SNAP:
+      return FALSE;
+    case XDP_APP_INFO_KIND_HOST:
+      return TRUE;
+    }
+}
+
+GPtrArray *
+xdp_app_info_get_usb_rules (XdpAppInfo *app_info)
+{
+  g_autoptr(GPtrArray) rules = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_rule_free);
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      {
+        char **usb_device;
+        g_autoptr(GRegex) usb_rule_regex = g_regex_new (
+          /* Note that this regex is specifically designed so that the wildcard asterisk
+             is not included in the matched groups, that way it's consistently simple
+             to check for a wildcard: look for an empty group. */
+          "^(?:(\\w+)|\\*)/(?:\\*|([0-9a-z]{4}):(?:\\*|([0-9a-z]{4})))$", 0, 0, NULL);
+        g_return_val_if_fail (usb_rule_regex != NULL, NULL);
+
+        g_auto(GStrv) usb_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+                                                                "Context", "usb-devices",
+                                                                NULL, NULL);
+        for (usb_device = usb_devices; *usb_device != NULL; usb_device++)
+          {
+            g_autoptr(XdpUsbRule) usb_rule = NULL;
+            g_autoptr(GMatchInfo) match = NULL;
+            g_autofree char *subsystem = NULL;
+            g_autofree char *vendor_id = NULL;
+            g_autofree char *product_id = NULL;
+
+            if (!g_regex_match (usb_rule_regex, *usb_device, 0, &match))
+              {
+                g_warning ("Failed to parse USB device: %s", *usb_device);
+                continue;
+              }
+
+            usb_rule = g_new0 (XdpUsbRule, 1);
+
+            subsystem = g_match_info_fetch (match, 1);
+            if (subsystem != NULL && *subsystem != '\0')
+              usb_rule->subsystem = g_steal_pointer (&subsystem);
+
+            vendor_id = g_match_info_fetch (match, 2);
+            if (vendor_id != NULL && *vendor_id != '\0')
+              usb_rule->vendor_id = g_steal_pointer (&vendor_id);
+
+            product_id = g_match_info_fetch (match, 3);
+            if (product_id != NULL && *product_id != '\0')
+              usb_rule->product_id = g_steal_pointer (&product_id);
+
+            g_ptr_array_add (rules, g_steal_pointer (&usb_rule));
+          }
+      }
+      break;
+    case XDP_APP_INFO_KIND_SNAP:
+      // TODO
+    case XDP_APP_INFO_KIND_HOST:
+      break;
+    }
+
+  return g_steal_pointer (&rules);
+}
+
 static void
 ensure_app_info_by_unique_name (void)
 {
@@ -803,7 +887,7 @@ xdp_filter_options (GVariant *options,
 
           continue;
         }
-         
+
       if (supported_options[i].validate)
         {
           g_autoptr(GError) local_error = NULL;

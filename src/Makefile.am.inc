@@ -41,6 +41,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Camera.xml \
 	data/org.freedesktop.portal.Secret.xml \
 	data/org.freedesktop.portal.Wallpaper.xml \
+	data/org.freedesktop.portal.Usb.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -190,10 +191,18 @@ xdg_desktop_portal_SOURCES += \
 	$(NULL)
 endif
 
+if HAVE_UDEV
+xdg_desktop_portal_SOURCES += \
+	src/usb.c		\
+	src/usb.h		\
+	$(NULL)
+endif
+
 xdg_desktop_portal_LDADD = \
 	$(BASE_LIBS) \
 	$(PIPEWIRE_LIBS) \
 	$(GEOCLUE_LIBS) \
+	$(UDEV_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
 	-DDATADIR=\"$(datadir)\" \

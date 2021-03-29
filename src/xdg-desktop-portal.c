@@ -57,6 +57,7 @@
 #include "camera.h"
 #include "secret.h"
 #include "wallpaper.h"
+#include "usb.h"
 
 static GMainLoop *loop = NULL;
 
@@ -275,6 +276,10 @@ on_bus_acquired (GDBusConnection *connection,
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection, implementation->dbus_name, lockdown));
+#endif
+
+#ifdef HAVE_UDEV
+      export_portal_implementation (connection, usb_create (connection, implementation->dbus_name));
 #endif
 
 #ifdef HAVE_PIPEWIRE
