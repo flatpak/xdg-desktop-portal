@@ -445,6 +445,44 @@ test_delete4 (void)
 }
 
 static void
+test_delete5 (void)
+{
+  const char * perms[] = { "yes", NULL };
+  g_autoptr(GVariant) out_perms = NULL;
+  g_autoptr(GVariant) out_data = NULL;
+  g_autoptr(GVariant) expected = NULL;
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+
+  got_result = 0;
+  xdg_permission_store_call_set_permission (permissions, "notifications", TRUE, "notification", "a", perms, NULL, set_cb, NULL);
+  xdg_permission_store_call_delete_permission (permissions, "notifications", "notification", "a", NULL, delete_permission_cb, NULL);
+
+  while (got_result < 2)
+    g_main_context_iteration (NULL, TRUE);
+
+  /* it did not crash during delete permission */
+  g_assert_cmpint (got_result, ==, 2);
+
+  res = xdg_permission_store_call_lookup_sync (permissions,
+                                               "notifications",
+                                               "notification",
+                                               &out_perms,
+                                               &out_data,
+                                               NULL,
+                                               &error);
+
+
+  expected = g_variant_new_array (G_VARIANT_TYPE ("{sas}"), NULL, 0);
+
+  g_assert_true (res);
+  g_assert_no_error (error);
+
+  /* an empty entry is left instead */
+  g_assert_true (g_variant_equal (expected, out_perms));
+}
+
+static void
 global_setup (void)
 {
   GError *error = NULL;
@@ -561,6 +599,7 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/delete2", test_delete2);
   g_test_add_func ("/permissions/delete3", test_delete3);
   g_test_add_func ("/permissions/delete4", test_delete4);
+  g_test_add_func ("/permissions/delete5", test_delete5);
   g_test_add_func ("/permissions/create1", test_create1);
   g_test_add_func ("/permissions/create2", test_create2);
   g_test_add_func ("/permissions/set-value", test_set_value);

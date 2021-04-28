@@ -1259,12 +1259,17 @@ permission_db_entry_remove_app_permissions (PermissionDbEntry *entry,
 {
   GVariant *v = (GVariant *) entry;
   GVariant *res;
+  GVariant *app_permissions;
 
   g_autoptr(GVariant) old_data_v = g_variant_get_child_value (v, 0);
   g_autoptr(GVariant) old_data = g_variant_get_child_value (old_data_v, 0);
   g_autoptr(GVariant) old_permissions = g_variant_get_child_value (v, 1);
 
-  res = make_entry (old_data, remove_permissions (old_permissions, app));
+  app_permissions = remove_permissions (old_permissions, app);
+  if (app_permissions == NULL)
+    app_permissions = make_empty_app_permissions ();
+
+  res = make_entry (old_data, app_permissions);
   return (PermissionDbEntry  *) g_variant_ref_sink (res);
 }
 
