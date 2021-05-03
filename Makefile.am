@@ -27,6 +27,7 @@ CLEANFILES += $(dbus_service_DATA)
 CLEANFILES += $(systemduserunit_DATA)
 EXTRA_DIST += $(service_in_files)
 
+CFLAGS = -lsystemd
 ACLOCAL_AMFLAGS = --install -I m4 ${ACLOCAL_FLAGS}
 AM_CPPFLAGS =							\
 	-DG_LOG_DOMAIN=\"xdg-desktop-portal\"			\
