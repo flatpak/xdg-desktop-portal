@@ -67,14 +67,16 @@ DB_SOURCES = \
 xdg_permission_store_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
+	src/sd-escape.c	\
+	src/sd-escape.h	\
 	document-portal/permission-store.c	\
 	document-portal/xdg-permission-store.c	\
 	document-portal/xdg-permission-store.h	\
 	$(DB_SOURCES) \
 	$(NULL)
 
-xdg_permission_store_LDADD = $(AM_LDADD) $(BASE_LIBS)
-xdg_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
+xdg_permission_store_LDADD = $(AM_LDADD) $(BASE_LIBS) $(SYSTEMD_LIBS)
+xdg_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
 
 nodist_xdg_document_portal_SOURCES = \
 	$(nodist_xdg_permission_store_SOURCES) \
@@ -88,6 +90,8 @@ CLEANFILES += $(nodist_xdg_document_portal_SOURCES)
 xdg_document_portal_SOURCES = \
 	src/xdp-utils.c	\
 	src/xdp-utils.h	\
+	src/sd-escape.c	\
+	src/sd-escape.h	\
 	document-portal/document-portal.h		\
 	document-portal/document-portal.c		\
 	document-portal/file-transfer.h			\
@@ -100,5 +104,5 @@ xdg_document_portal_SOURCES = \
 	$(DB_SOURCES) \
 	$(NULL)
 
-xdg_document_portal_LDADD = $(AM_LDADD) $(BASE_LIBS) $(FUSE3_LIBS)
-xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE3_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
+xdg_document_portal_LDADD = $(AM_LDADD) $(BASE_LIBS) $(FUSE3_LIBS) $(SYSTEMD_LIBS)
+xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE3_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
