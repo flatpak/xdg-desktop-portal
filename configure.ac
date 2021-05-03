@@ -102,6 +102,15 @@ if test x$enable_pipewire = xyes ; then
 fi
 AM_CONDITIONAL([HAVE_PIPEWIRE],[test "$enable_pipewire" = "yes"])
 
+AC_ARG_WITH([systemd],
+            AS_HELP_STRING([--with-systemd], [Build with systemd support [default=yes]]),
+            [], [with_systemd=yes])
+if test "x$with_systemd" = "xyes"; then
+	PKG_CHECK_MODULES(SYSTEMD, [libsystemd])
+	AC_DEFINE([HAVE_LIBSYSTEMD], [1], [Define if libsystemd is available])
+fi
+AM_CONDITIONAL([HAVE_LIBSYSTEMD], [test "x$with_systemd" != "xno"])
+
 AC_ARG_ENABLE(docbook-docs,
         [AS_HELP_STRING([--enable-docbook-docs],[build documentation (requires xmlto)])],
         enable_docbook_docs=$enableval, enable_docbook_docs=auto)

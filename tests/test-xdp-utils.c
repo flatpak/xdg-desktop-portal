@@ -127,6 +127,46 @@ test_alternate_doc_path (void)
   xdp_set_documents_mountpoint (NULL);
 }
 
+static void
+test_app_id_via_systemd_unit (void)
+{
+  g_autofree char *app_id = NULL;
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-not-a-well-formed-unit-name");
+  g_assert_cmpstr (app_id, ==, "");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Evolution\\x2dalarm\\x2dnotify-2437.scope");
+  /* Note, this is not Evolution's app ID, because the scope is for a background service */
+  g_assert_cmpstr (app_id, ==, "org.gnome.Evolution-alarm-notify");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Epiphany-182352.scope");
+  g_assert_cmpstr (app_id, ==, "org.gnome.Epiphany");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-glib-spice\\x2dvdagent-1839.scope");
+  /* App IDs must have two periods */
+  g_assert_cmpstr (app_id, ==, "");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-KDE-org.kde.okular@12345.service");
+  g_assert_cmpstr (app_id, ==, "org.kde.okular");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-org.kde.amarok.service");
+  g_assert_cmpstr (app_id, ==, "org.kde.amarok");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.SettingsDaemon.DiskUtilityNotify-autostart.service");
+  g_assert_cmpstr (app_id, ==, "org.gnome.SettingsDaemon.DiskUtilityNotify");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Terminal-92502.slice");
+  g_assert_cmpstr (app_id, ==, "org.gnome.Terminal");
+  g_clear_pointer (&app_id, g_free);
+}
+
 int main (int argc, char **argv)
 {
   g_test_init (&argc, &argv, NULL);
@@ -135,5 +175,8 @@ int main (int argc, char **argv)
   g_test_add_func ("/parse-cgroup/systemd", test_parse_cgroup_systemd);
   g_test_add_func ("/parse-cgroup/not-snap", test_parse_cgroup_not_snap);
   g_test_add_func ("/alternate-doc-path", test_alternate_doc_path);
+#ifdef HAVE_LIBSYSTEMD
+  g_test_add_func ("/app-id-via-systemd-unit", test_app_id_via_systemd_unit);
+#endif
   return g_test_run ();
 }

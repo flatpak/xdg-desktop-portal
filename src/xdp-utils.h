@@ -183,7 +183,7 @@ gboolean  xdp_has_path_prefix (const char *str,
 /* exposed for the benefit of tests */
 int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
-
+char *_xdp_parse_app_id_from_unit_name (const char *unit);
 
 #if !GLIB_CHECK_VERSION (2, 58, 0)
 static inline gboolean

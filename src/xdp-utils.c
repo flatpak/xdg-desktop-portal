@@ -31,6 +31,11 @@
 #include <stdio.h>
 #include <sys/vfs.h>
 
+#ifdef HAVE_LIBSYSTEMD
+#include <systemd/sd-login.h>
+#include "sd-escape.h"
+#endif
+
 #include <gio/gdesktopappinfo.h>
 
 #include "xdp-utils.h"
@@ -144,11 +149,81 @@ xdp_app_info_new (XdpAppInfoKind kind)
   return app_info;
 }
 
+char *
+_xdp_parse_app_id_from_unit_name (const char *unit)
+{
+  g_autoptr(GRegex) regex = NULL;
+  g_autoptr(GMatchInfo) match = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *app_id = NULL;
+
+  g_assert (g_str_has_prefix (unit, "app-"));
+
+  /*
+   * From https://systemd.io/DESKTOP_ENVIRONMENTS/ the format is one of:
+   * app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
+   * app[-<launcher>]-<ApplicationID>-autostart.service -> no longer true since systemd v248
+   * app[-<launcher>]-<ApplicationID>[@<RANDOM>].service
+   * app[-<launcher>]-<ApplicationID>-<RANDOM>.slice
+   */
+  regex = g_regex_new ("^app-(?:[[:alnum:]]+\\-)?(.+?\\..+?\\..+?)"
+                       "(?:[@\\-][0-9]*)?(?:-autostart)?"
+                       "(?:\\.scope|\\.service|\\.slice)$",
+                       0, 0, &error);
+  g_assert (error == NULL);
+  if (g_regex_match (regex, unit, 0, &match))
+    {
+      const char *escaped_app_id;
+      /* Unescape the unit name which may have \x hex codes in it, e.g.
+       * "app-gnome-org.gnome.Evolution\x2dalarm\x2dnotify-2437.scope"
+       */
+      escaped_app_id = g_match_info_fetch (match, 1);
+      if (cunescape (escaped_app_id, UNESCAPE_RELAX, &app_id) < 0)
+        app_id = g_strdup ("");
+    }
+  else
+    {
+      app_id = g_strdup ("");
+    }
+
+  return g_steal_pointer (&app_id);
+}
+
+void
+set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
+{
+#ifdef HAVE_LIBSYSTEMD
+  g_autofree char *unit = NULL;
+  int res;
+
+  g_return_if_fail (app_info->id == NULL);
+
+  res = sd_pid_get_user_unit (pid, &unit);
+  /*
+   * The session might not be managed by systemd or there could be an error
+   * fetching our own systemd units or the unit might not be started by the
+   * desktop environment (e.g. it's a script run from terminal).
+   */
+  if (res == -ENODATA || res < 0 || !unit || !g_str_has_prefix (unit, "app-"))
+    {
+      app_info->id = g_strdup ("");
+      return;
+    }
+
+  app_info->id = _xdp_parse_app_id_from_unit_name (unit);
+  g_debug ("Assigning app ID \"%s\" to pid %ld which has unit \"%s\"",
+           app_info->id, (long) pid, unit);
+
+#else
+  app_info->id = g_strdup ("");
+#endif /* HAVE_LIBSYSTEMD */
+}
+
 static XdpAppInfo *
-xdp_app_info_new_host (void)
+xdp_app_info_new_host (pid_t pid)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
-  app_info->id = g_strdup ("");
+  set_appid_from_pid (app_info, pid);
   return app_info;
 }
 
@@ -656,7 +731,7 @@ xdp_get_app_info_from_pid (pid_t pid,
     }
 
   if (app_info == NULL)
-    app_info = xdp_app_info_new_host ();
+    app_info = xdp_app_info_new_host (pid);
 
   return g_steal_pointer (&app_info);
 }

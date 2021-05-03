@@ -125,6 +125,13 @@ xdg_desktop_portal_SOURCES = \
 	src/portal-impl.c		\
 	$(NULL)
 
+if HAVE_LIBSYSTEMD
+xdg_desktop_portal_SOURCES += \
+	src/sd-escape.c		\
+	src/sd-escape.h		\
+	$(NULL)
+endif
+
 if HAVE_PIPEWIRE
 xdg_desktop_portal_SOURCES += \
 	src/screen-cast.c		\
@@ -149,6 +156,7 @@ xdg_desktop_portal_LDADD = \
 	$(BASE_LIBS) \
 	$(PIPEWIRE_LIBS) \
 	$(GEOCLUE_LIBS) \
+	$(SYSTEMD_LIBS) \
 	$(NULL)
 xdg_desktop_portal_CFLAGS = \
 	-DDATADIR=\"$(datadir)\" \
@@ -157,6 +165,7 @@ xdg_desktop_portal_CFLAGS = \
 	$(BASE_CFLAGS) \
 	$(PIPEWIRE_CFLAGS) \
 	$(GEOCLUE_CFLAGS) \
+	$(SYSTEMD_CFLAGS) \
 	-I$(srcdir)/src \
 	-I$(builddir)/src \
 	-I$(srcdir)/document-portal \
