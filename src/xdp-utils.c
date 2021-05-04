@@ -186,12 +186,14 @@ get_app_id_from_pid (pid_t pid, XdpAppInfo *app_info)
     }
   splits = g_strsplit (unit, "-", -1);
   len = g_strv_length (splits);
-  if (g_str_has_suffix (unit, ".service"))
+  if (g_str_has_suffix (unit, ".scope") || g_str_has_suffix (unit, "-autostart.service"))
+    // format:
+    //   app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
+    //   app[-<launcher>]-<ApplicationID>-autostart.service
+    app_id = &splits[len-2];
+  else
     // format: app[-<launcher>]-<ApplicationID>[@<RANDOM>].service
     app_id = &g_strsplit (splits[len-1], "@", 2)[0];
-  else
-    // format: app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
-    app_id = &splits[len-2];
   decode_hex_escapes (app_id);
   app_info->id = g_strdup (*app_id);
 }
