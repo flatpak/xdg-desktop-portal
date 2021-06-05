@@ -1569,7 +1569,7 @@ map_pids (DIR     *proc,
       pid_t inside = 0;
       uid_t uid = 0;
       guint idx;
-      ino_t ns;
+      ino_t ns = 0;
       int r;
 
       if (de->d_type != DT_DIR)
