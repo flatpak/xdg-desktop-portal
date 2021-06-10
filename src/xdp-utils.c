@@ -331,6 +331,9 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
         return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
       else if (g_str_has_prefix (path, "/run/host/etc/"))
         return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
+      else if (g_str_has_prefix (path, "/run/flatpak/app/"))
+        return g_build_filename (g_get_user_runtime_dir (), "app",
+                                 path + strlen ("/run/flatpak/app/"), NULL);
     }
 
   return g_strdup (path);
