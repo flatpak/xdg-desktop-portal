@@ -79,15 +79,18 @@ device_get_permission_sync (const char *app_id,
 }
 
 gboolean
-device_query_permission_sync (const char *app_id,
-                              const char *device,
-                              Request    *request)
+device_query_permission_sync (const char  *app_id,
+                              const char  *device,
+                              Request     *request,
+                              const char **ids,
+                              const char **names,
+                              char       **chosen)
 {
   Permission permission;
   gboolean allowed;
 
   permission = device_get_permission_sync (app_id, device);
-  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
+  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET || ids)
     {
       GVariantBuilder opt_builder;
       g_autofree char *title = NULL;
@@ -98,6 +101,7 @@ device_query_permission_sync (const char *app_id,
       g_autoptr(GError) error = NULL;
       g_autoptr(GAppInfo) info = NULL;
       g_autoptr(XdpImplRequest) impl_request = NULL;
+      GVariant *c;
 
       if (app_id[0] != 0)
         {
@@ -148,6 +152,24 @@ device_query_permission_sync (const char *app_id,
             subtitle = g_strdup_printf (_("%s wants to use your camera."), g_app_info_get_display_name (info));
         }
 
+      if (ids && names)
+        {
+          GVariantBuilder combo;
+          GVariantBuilder choices;
+          int i;
+
+          g_variant_builder_init (&combo, G_VARIANT_TYPE ("a(ss)"));
+          for (i = 0; ids[i]; i++)
+            g_variant_builder_add (&combo, "(ss)", ids[i], names[i]);
+          g_variant_builder_init (&choices, G_VARIANT_TYPE ("a(ssa(ss)s)"));
+          g_variant_builder_add (&choices, "(ssa(ss)s)",
+                                 "device", _("Device"),
+                                 &combo, ids[0]);
+
+          g_variant_builder_add (&opt_builder, "{sv}",
+                                 "choices", g_variant_builder_end (&choices));
+        }
+
       impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                       G_DBUS_PROXY_FLAGS_NONE,
                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
@@ -178,6 +200,12 @@ device_query_permission_sync (const char *app_id,
 
       allowed = response == 0;
 
+      *chosen = NULL;
+      if (g_variant_lookup (results, "choices", "@a{sv}", &c))
+        {
+          g_variant_lookup (c, "device", "s", chosen);
+        }
+
       if (permission == PERMISSION_UNSET)
         set_permission_sync (app_id, PERMISSION_TABLE, device, allowed ? PERMISSION_YES : PERMISSION_NO);
     }
@@ -203,7 +231,7 @@ handle_access_device_in_thread (GTask *task,
   app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
   device = (const char *)g_object_get_data (G_OBJECT (request), "device");
 
-  allowed = device_query_permission_sync (app_id, device, request);
+  allowed = device_query_permission_sync (app_id, device, request, NULL, NULL, NULL);
 
   if (request->exported)
     {

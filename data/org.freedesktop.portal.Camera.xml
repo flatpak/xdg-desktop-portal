@@ -45,6 +45,19 @@
         Following the #org.freedesktop.portal.Request::Response signal, if
         granted, #org.freedesktop.org.Camera.OpenPipeWireRemote can be used to
         open a PipeWire remote.
+
+        The following results get returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>streams a(ua{sv})</term>
+            <listitem><para>
+              An array of PipeWire streams. Each stream consists of a PipeWire
+              node ID (the first element in the tuple, and a Vardict of
+              properties.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="AccessCamera">
       <arg type="a{sv}" name="options" direction="in"/>
