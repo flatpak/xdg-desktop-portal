@@ -668,8 +668,10 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          char *dir = g_path_get_dirname (path);
+          char *real_path = get_real_path_for_doc_path (path, app_id);
           g_free (path);
+          char *dir = g_path_get_dirname (real_path);
+          g_free (real_path);
           path = dir;
         }
 

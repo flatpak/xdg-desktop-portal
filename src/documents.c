@@ -200,3 +200,28 @@ register_document (const char *uri,
   doc_path = g_build_filename (documents_mountpoint, doc_id, basename, NULL);
   return g_filename_to_uri (doc_path, NULL, NULL);
 }
+
+char *
+get_real_path_for_doc_path (const char *path,
+                            const char *app_id)
+{
+  g_autofree char *doc_id = NULL;
+  gboolean ret = FALSE;
+  char *real_path = NULL;
+
+  if (app_id == NULL || *app_id == '\0')
+    return g_strdup (path);
+
+  ret = xdp_documents_call_lookup_sync (documents, path, &doc_id, NULL, NULL);
+  if (!ret)
+    return g_strdup (path);
+
+  if (!g_strcmp0 (doc_id, ""))
+    return g_strdup (path);
+
+  ret = xdp_documents_call_info_sync (documents, doc_id, &real_path, NULL, NULL, NULL);
+  if (!ret)
+    return g_strdup (path);
+
+  return real_path;
+}
