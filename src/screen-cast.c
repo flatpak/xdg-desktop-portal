@@ -338,10 +338,10 @@ validate_device_types (const char *key,
 {
   guint32 types = g_variant_get_uint32 (value);
 
-  if ((types & ~(1 | 2)) != 0)
+  if ((types & ~(1 | 2 | 4)) != 0)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Unsupported device type: %x", types & ~(1 | 2));
+                   "Unsupported device type: %x", types & ~(1 | 2 | 4));
       return FALSE;
     } 
 
