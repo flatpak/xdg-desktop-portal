@@ -233,9 +233,11 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     {
       g_autofree char *path = NULL;
 
-      path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL);
+      path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL, &error);
       if (path == NULL)
         {
+          g_debug ("Cannot get path for fd: %s", error->message);
+
           /* Reject the request */
           if (request->exported)
             {

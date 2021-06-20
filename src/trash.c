@@ -70,11 +70,11 @@ trash_file (XdpAppInfo *app_info,
   g_autoptr(GFile) file = NULL;
   g_autoptr(GError) local_error = NULL;
 
-  path = xdp_app_info_get_path_for_fd (app_info, fd, 0, NULL, &writable);
+  path = xdp_app_info_get_path_for_fd (app_info, fd, 0, NULL, &writable, &local_error);
 
   if (path == NULL)
     {
-      g_debug ("Cannot trash file with invalid fd");
+      g_debug ("Cannot trash file with invalid fd: %s", local_error->message);
       return 0;
     }
 
