@@ -22,6 +22,7 @@
 
 #include <json-glib/json-glib.h>
 
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -931,6 +932,38 @@ xdp_get_alternate_document_path (const char *path, const char *app_id)
   return g_strconcat (documents_mountpoint, "/by-app/", app_id, &path[len], NULL);
 }
 
+static gboolean
+check_same_file (const char *path,
+                 struct stat *expected_st_buf,
+                 GError **error)
+{
+  struct stat real_st_buf;
+  int saved_errno;
+
+  if (stat (path, &real_st_buf) < 0)
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "stat %s: %s", path, g_strerror (saved_errno));
+      return FALSE;
+    }
+
+  if (expected_st_buf->st_dev != real_st_buf.st_dev ||
+      expected_st_buf->st_ino != real_st_buf.st_ino)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "\"%s\" identity (%ju,%ju) does not match expected (%ju,%ju)",
+                   path,
+                   (uintmax_t) expected_st_buf->st_dev,
+                   (uintmax_t) expected_st_buf->st_ino,
+                   (uintmax_t) real_st_buf.st_dev,
+                   (uintmax_t) real_st_buf.st_ino);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 char *
 xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
                               int fd,
@@ -1028,9 +1061,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
     }
 
   /* Verify that this is the same file as the app opened */
-  if (stat (path, &real_st_buf) < 0 ||
-      st_buf->st_dev != real_st_buf.st_dev ||
-      st_buf->st_ino != real_st_buf.st_ino)
+  if (!check_same_file (path, st_buf, &local_error))
     {
       /* If the path is provided by the document portal, the inode
          number will not match, due to only a subtree being mounted in
@@ -1043,11 +1074,19 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
       g_autofree char *alt_path = NULL;
       alt_path = xdp_get_alternate_document_path (path, xdp_app_info_get_id (app_info));
 
-      if (alt_path == NULL ||
-          stat (alt_path, &real_st_buf) < 0 ||
-          st_buf->st_dev != real_st_buf.st_dev ||
-          st_buf->st_ino != real_st_buf.st_ino)
-        return NULL;
+      if (alt_path == NULL)
+        {
+          g_debug ("%s", local_error->message);
+          return NULL;
+        }
+
+      g_clear_error (&local_error);
+
+      if (!check_same_file (alt_path, st_buf, &local_error))
+        {
+          g_debug ("%s", local_error->message);
+          return NULL;
+        }
     }
 
   if (writable_out)
