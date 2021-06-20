@@ -68,15 +68,28 @@ trash_file (XdpAppInfo *app_info,
   g_autofree char *path = NULL;
   gboolean writable;
   g_autoptr(GFile) file = NULL;
+  g_autoptr(GError) local_error = NULL;
 
   path = xdp_app_info_get_path_for_fd (app_info, fd, 0, NULL, &writable);
 
-  if (path == NULL || !writable)
-    return 0;
+  if (path == NULL)
+    {
+      g_debug ("Cannot trash file with invalid fd");
+      return 0;
+    }
+
+  if (!writable)
+    {
+      g_debug ("Cannot trash file \"%s\": not opened for writing", path);
+      return 0;
+    }
 
   file = g_file_new_for_path (path);
-  if (!g_file_trash (file, NULL, NULL))
-    return 0;
+  if (!g_file_trash (file, NULL, &local_error))
+    {
+      g_debug ("Cannot trash file \"%s\": %s", path, local_error->message);
+      return 0;
+    }
 
   return 1;
 }
