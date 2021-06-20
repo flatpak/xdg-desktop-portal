@@ -646,17 +646,18 @@ handle_open_in_thread_func (GTask *task,
           (!xdp_app_info_is_host (request->app_info) && !writable && fd_is_writable))
         {
           /* Reject the request */
+          if (path == NULL)
+            {
+              g_debug ("Rejecting open request as fd has no path associated to it");
+            }
+          else
+            {
+              g_debug ("Rejecting open request for %s as opening %swritable but fd is %swritable",
+                       path, writable ? "" : "not ", fd_is_writable ? "" : "not ");
+            }
+
           if (request->exported)
             {
-              if (path == NULL)
-                {
-                  g_debug ("Rejecting open request as fd has no path associated to it");
-                }
-              else
-                {
-                  g_debug ("Rejecting open request for %s as opening %swritable but fd is %swritable",
-                           path, writable ? "" : "not ", fd_is_writable ? "" : "not ");
-                }
               g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_request_emit_response (XDP_REQUEST (request),
                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
