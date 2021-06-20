@@ -29,6 +29,11 @@
 #include <gio/gio.h>
 #include <errno.h>
 
+#ifndef G_DBUS_METHOD_INVOCATION_HANDLED
+#define G_DBUS_METHOD_INVOCATION_HANDLED TRUE
+#define G_DBUS_METHOD_INVOCATION_UNHANDLED FALSE
+#endif
+
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 #define FLATPAK_METADATA_GROUP_APPLICATION "Application"
@@ -78,7 +83,8 @@ char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
                                           int          fd,
                                           int          require_st_mode,
                                           struct stat *st_buf,
-                                          gboolean    *writable_out);
+                                          gboolean    *writable_out,
+                                          GError     **error);
 gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
