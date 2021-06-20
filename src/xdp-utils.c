@@ -857,14 +857,21 @@ xdg_desktop_portal_error_quark (void)
 
 static char *
 verify_proc_self_fd (XdpAppInfo *app_info,
-                     const char *proc_path)
+                     const char *proc_path,
+                     GError **error)
 {
   char path_buffer[PATH_MAX + 1];
   ssize_t symlink_size;
+  int saved_errno;
 
   symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
   if (symlink_size < 0)
-    return NULL;
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "readlink %s: %s", proc_path, g_strerror (saved_errno));
+      return NULL;
+    }
 
   path_buffer[symlink_size] = 0;
 
@@ -872,7 +879,11 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      don't, such as socket:[27345] or anon_inode:[eventfd].
      We don't support any of these */
   if (path_buffer[0] != '/')
-    return NULL;
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
+                   "Not a regular file or directory: %s", path_buffer);
+      return NULL;
+    }
 
   /* File descriptors to actually deleted files have " (deleted)"
      appended to them. This also happens to some fake fd types
@@ -881,7 +892,11 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      matches files with filenames that actually end in " (deleted)",
      but there is not much to do about this. */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
-    return NULL;
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
+                   "Cannot share deleted file: %s", path_buffer);
+      return NULL;
+    }
 
   /* remap from sandbox to host if needed */
   return xdp_app_info_remap_path (app_info, path_buffer);
@@ -929,6 +944,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
   struct stat real_st_buf;
   gboolean writable = FALSE;
   g_autofree char *path = NULL;
+  g_autoptr(GError) local_error = NULL;
 
   if (st_buf == NULL)
     st_buf = &st_buf_store;
@@ -954,9 +970,12 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
 
   /* Must be able to read valid path from /proc/self/fd */
   /* This is an absolute and (at least at open time) symlink-expanded path */
-  path = verify_proc_self_fd (app_info, proc_path);
+  path = verify_proc_self_fd (app_info, proc_path, &local_error);
   if (path == NULL)
-    return NULL;
+    {
+      g_debug ("%s", local_error->message);
+      return NULL;
+    }
 
   if ((fd_flags & O_PATH) == O_PATH)
     {
