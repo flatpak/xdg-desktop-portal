@@ -29,6 +29,11 @@
 #include <gio/gio.h>
 #include <errno.h>
 
+#ifndef G_DBUS_METHOD_INVOCATION_HANDLED
+#define G_DBUS_METHOD_INVOCATION_HANDLED TRUE
+#define G_DBUS_METHOD_INVOCATION_UNHANDLED FALSE
+#endif
+
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 #define FLATPAK_METADATA_GROUP_APPLICATION "Application"
