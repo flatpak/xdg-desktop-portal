@@ -483,6 +483,75 @@ test_delete5 (void)
 }
 
 static void
+test_get_permission1 (void)
+{
+  gboolean res;
+  g_autoptr(GError) error = NULL;
+  g_autofree char **out_perms = NULL;
+
+  res = xdg_permission_store_call_get_permission_sync (permissions,
+                                                       "no-such-table",
+                                                       "no-such-entry",
+                                                       "no-such-app",
+                                                       &out_perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND);
+  g_assert_false (res);
+}
+
+static void
+test_get_permission2 (void)
+{
+  gboolean res;
+  const char * in_perms[] = { "yes", NULL };
+  g_autofree char **out_perms = NULL;
+  g_autoptr(GError) error = NULL;
+
+  res = xdg_permission_store_call_set_permission_sync (permissions,
+                                                       "notifications",
+                                                       TRUE,
+                                                       "notification",
+                                                       "a",
+                                                       in_perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+
+  res = xdg_permission_store_call_get_permission_sync (permissions,
+                                                       "notifications",
+                                                       "notification",
+                                                       "a",
+                                                       &out_perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_true (res);
+  g_assert_no_error (error);
+  g_assert (g_strv_length (out_perms) == 1);
+  g_assert (g_strv_contains ((const char *const *)out_perms, "yes"));
+}
+
+static void
+test_get_permission3 (void)
+{
+  gboolean res;
+  g_autofree char **out_perms = NULL;
+  g_autoptr(GError) error = NULL;
+
+  res = xdg_permission_store_call_get_permission_sync (permissions,
+                                                       "notifications",
+                                                       "notification",
+                                                       "no-such-app",
+                                                       &out_perms,
+                                                       NULL,
+                                                       &error);
+  g_assert_true (res);
+  g_assert_no_error (error);
+  g_assert (g_strv_length (out_perms) == 0);
+}
+
+static void
 global_setup (void)
 {
   GError *error = NULL;
@@ -603,6 +672,9 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/create1", test_create1);
   g_test_add_func ("/permissions/create2", test_create2);
   g_test_add_func ("/permissions/set-value", test_set_value);
+  g_test_add_func ("/permissions/get-pemission1", test_get_permission1);
+  g_test_add_func ("/permissions/get-pemission2", test_get_permission2);
+  g_test_add_func ("/permissions/get-pemission3", test_get_permission3);
 
   global_setup ();
 

@@ -326,6 +326,38 @@ handle_delete_permission (XdgPermissionStore     *object,
 }
 
 static gboolean
+handle_get_permission (XdgPermissionStore     *object,
+                       GDBusMethodInvocation  *invocation,
+                       const char             *table_name,
+                       const char             *id,
+                       const char             *app)
+{
+  Table *table;
+
+  g_autoptr(PermissionDbEntry) entry = NULL;
+  g_autofree const char **permission = NULL;
+
+  table = lookup_table (table_name, invocation);
+  if (table == NULL)
+    return TRUE;
+
+  entry = permission_db_lookup (table->db, id);
+  if (entry == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                             "No entry for %s", id);
+      return TRUE;
+    }
+
+  permission = permission_db_entry_list_permissions (entry, app);
+
+  xdg_permission_store_complete_get_permission (object, invocation, permission);
+
+  return TRUE;
+}
+
+static gboolean
 handle_set (XdgPermissionStore     *object,
             GDBusMethodInvocation  *invocation,
             const gchar            *table_name,
@@ -496,6 +528,7 @@ xdg_permission_store_start (GDBusConnection *connection)
   g_signal_connect (store, "handle-set-value", G_CALLBACK (handle_set_value), NULL);
   g_signal_connect (store, "handle-delete", G_CALLBACK (handle_delete), NULL);
   g_signal_connect (store, "handle-delete-permission", G_CALLBACK (handle_delete_permission), NULL);
+  g_signal_connect (store, "handle-get-permission", G_CALLBACK (handle_get_permission), NULL);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (store),
                                          connection,
