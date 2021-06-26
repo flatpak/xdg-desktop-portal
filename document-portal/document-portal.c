@@ -21,8 +21,6 @@
 #include "file-transfer.h"
 #include "document-portal.h"
 
-#include <sys/eventfd.h>
-
 #define TABLE_NAME "documents"
 
 typedef struct

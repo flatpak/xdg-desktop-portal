@@ -14,9 +14,19 @@
 #include <glib/gprintf.h>
 #include <gio/gio.h>
 #include <pthread.h>
+#ifdef HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
+#endif
 #include <sys/types.h>
+#ifdef HAVE_SYS_MOUNT_H
+#include <sys/mount.h>
+#endif
+#ifdef HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
+#endif
+#ifdef HAVE_SYS_EXTATTR_H
+#include <sys/extattr.h>
+#endif
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -26,6 +36,10 @@
 
 #ifndef O_FSYNC
 #define O_FSYNC O_SYNC
+#endif
+
+#ifndef ENODATA
+#define ENODATA ENOATTR
 #endif
 
 /* Inode ownership model
@@ -286,8 +300,10 @@ open_flags_to_string (int flags)
     g_string_append (s, ",ASYNC");
   if (flags & O_FSYNC)
     g_string_append (s, ",FSYNC");
+#ifdef O_DSYNC
   if (flags & O_DSYNC)
     g_string_append (s, ",DSYNC");
+#endif
   if (flags & O_CREAT)
     g_string_append (s, ",CREAT");
   if (flags & O_TRUNC)
@@ -298,16 +314,24 @@ open_flags_to_string (int flags)
     g_string_append (s, ",CLOEXEC");
   if (flags & O_DIRECT)
     g_string_append (s, ",DIRECT");
+#ifdef O_LARGEFILE
   if (flags & O_LARGEFILE)
     g_string_append (s, ",LARGEFILE");
+#endif
+#ifdef O_NOATIME
   if (flags & O_NOATIME)
     g_string_append (s, ",NOATIME");
+#endif
   if (flags & O_NOCTTY)
     g_string_append (s, ",NOCTTY");
+#if defined(O_PATH)
   if (flags & O_PATH)
     g_string_append (s, ",PATH");
+#endif
+#ifdef O_TMPFILE
   if (flags & O_TMPFILE)
     g_string_append (s, ",TMPFILE");
+#endif
 
   return g_string_free (s, FALSE);
 }
@@ -1351,7 +1375,11 @@ xdp_fuse_getattr (fuse_req_t req,
   g_assert (domain->type == XDP_DOMAIN_DOCUMENT);
 
   if (inode->physical)
+#ifdef __linux__
     res = fstatat (inode->physical->fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
+#else
+    res = fstat (inode->physical->fd, &buf);
+#endif
   else
     {
       stat_virtual_inode (inode, &buf);
@@ -1488,9 +1516,11 @@ xdp_fuse_setattr (fuse_req_t             req,
         return xdp_reply_err (op, req, -res);
     }
 
+#ifndef __FreeBSD__
   if (inode->physical)
     res = fstatat (inode->physical->fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
   else
+#endif
     res = stat (inode->domain->doc_path, &buf); /* Follow symlinks here */
 
   if (res != 0)
@@ -1549,7 +1579,11 @@ ensure_docdir_inode (XdpInode *parent,
   struct stat buf;
   int res;
 
+#ifndef __FreeBSD__
   res = fstatat (o_path_fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
+#else
+  res = fstat (o_path_fd, &buf);
+#endif
   if (res == -1)
     return -errno;
 
@@ -1965,7 +1999,11 @@ xdp_fuse_fallocate (fuse_req_t req,
 
   g_debug ("FALLOCATE %lx", ino);
 
+#ifdef __linux__
   res = fallocate (file->fd, mode, offset, length);
+#else
+  res = posix_fallocate (file->fd, offset, length);
+#endif
 
   if (res == 0)
     xdp_reply_err (op, req, 0);
@@ -2856,7 +2894,13 @@ xdp_fuse_setxattr (fuse_req_t req,
     return;
 
   path = fd_to_path (inode->physical->fd);
+#if defined(HAVE_SYS_XATTR_H)
   res = setxattr (path, name, value, size, flags);
+#elif defined(HAVE_SYS_EXTATTR_H)
+  res = extattr_set_file (path, EXTATTR_NAMESPACE_USER, name, value, size);
+#else
+#error "Not implemented for your platform"
+#endif
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -2888,7 +2932,15 @@ xdp_fuse_getxattr (fuse_req_t req,
   if (path == NULL)
     res = ENODATA;
   else
+  {
+#if defined(HAVE_SYS_XATTR_H)
     res = getxattr (path, name, buf, size);
+#elif defined(HAVE_SYS_EXTATTR_H)
+    res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
+#else
+#error "Not implemented for your platform"
+#endif
+  }
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
@@ -2919,7 +2971,15 @@ xdp_fuse_listxattr (fuse_req_t req,
 
   path = xdp_document_inode_get_self_as_path (inode);
   if (path)
+  {
+#if defined(HAVE_SYS_XATTR_H)
     res = listxattr (path, buf, size);
+#elif defined(HAVE_SYS_EXTATTR_H)
+    res = extattr_list_file (path, EXTATTR_NAMESPACE_USER, buf, size);
+#else
+#error "Not implemented for your platform"
+#endif
+  }
   else
     res = 0;
 
@@ -2951,7 +3011,13 @@ xdp_fuse_removexattr (fuse_req_t req,
     return;
 
   path = fd_to_path (inode->physical->fd);
+#if defined(HAVE_SYS_XATTR_H)
   res = removexattr (path, name);
+#elif defined(HAVE_SYS_EXTATTR_H)
+  res = extattr_delete_file (path, EXTATTR_NAMESPACE_USER, name);
+#else
+#error "Not implemented for your platform"
+#endif
 
   if (res < 0)
     xdp_reply_err (op, req, errno);
