@@ -172,37 +172,45 @@ decode_hex_escapes (char *str[])
 void
 get_app_id_from_pid (pid_t pid, XdpAppInfo *app_info)
 {
-  char *unit, **splits, **app_id;
+  char *unit, **dash_splits, **at_splits, **app_id;
   int res, len;
 
   res = sd_pid_get_user_unit(pid, &unit);
+  /*
+   * the session might not be managed by systemd
+   * or there could be error fetching own systemd units
+   * or the unit might not be started by the the desktop environment (e.g. it's a script run from terminal)
+   */
   if (res == -ENODATA || res < 0 || !g_str_has_prefix (unit, "app-"))
-    // the session might not be managed by systemd
-    // or there could be error fetching own systemd units
-    // or the unit might not be started by the the desktop environment (e.g. it's a script run from terminal)
     {
       app_info->id = g_strdup ("");
       return;
     }
-  splits = g_strsplit (unit, "-", -1);
-  len = g_strv_length (splits);
+  dash_splits = g_strsplit (unit, "-", -1);
+  len = g_strv_length (dash_splits);
+  /*
+   * format:
+   * app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
+   * app[-<launcher>]-<ApplicationID>-autostart.service -> no longer true since systemd v248
+   */
   if (g_str_has_suffix (unit, ".scope") || g_str_has_suffix (unit, "-autostart.service"))
-    // format:
-    //   app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
-    //   app[-<launcher>]-<ApplicationID>-autostart.service
-    app_id = &splits[len-2];
-  else
-    // format: app[-<launcher>]-<ApplicationID>[@<RANDOM>].service
-    app_id = &g_strsplit (splits[len-1], "@", 2)[0];
+    app_id = &dash_splits[len-2];
+  /* format: app[-<launcher>]-<ApplicationID>[@<RANDOM>].service */
+  else {
+    at_splits = g_strsplit (dash_splits[len-1], "@", 2);
+    app_id = &at_splits[0];
+  }
   decode_hex_escapes (app_id);
   app_info->id = g_strdup (*app_id);
+  g_strfreev(at_splits);
+  g_strfreev (dash_splits);
 }
 
 static XdpAppInfo *
 xdp_app_info_new_host (pid_t pid)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
-  get_app_id_from_pid(pid, app_info);
+  get_app_id_from_pid (pid, app_info);
   return app_info;
 }
 
