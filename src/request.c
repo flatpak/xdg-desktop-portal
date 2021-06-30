@@ -295,6 +295,10 @@ get_token (GDBusMethodInvocation *invocation)
     {
       // no request objects
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Realtime") == 0)
+    {
+      // no request objects
+    }
   else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0)
     {
       // no request objects
