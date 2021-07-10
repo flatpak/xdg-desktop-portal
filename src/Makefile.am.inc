@@ -33,6 +33,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Account.xml \
 	data/org.freedesktop.portal.Email.xml \
 	data/org.freedesktop.portal.ScreenCast.xml \
+	data/org.freedesktop.portal.Realtime.xml \
 	data/org.freedesktop.portal.RemoteDesktop.xml \
 	data/org.freedesktop.portal.Location.xml \
 	data/org.freedesktop.portal.Settings.xml \
@@ -138,6 +139,8 @@ xdg_desktop_portal_SOURCES = \
         src/device.h                    \
         src/account.c                   \
         src/account.h                   \
+	src/realtime.c          \
+	src/realtime.h          \
 	src/request.c			\
 	src/request.h			\
 	src/call.c			\

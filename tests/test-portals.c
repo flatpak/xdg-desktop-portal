@@ -387,6 +387,7 @@ DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
 DEFINE_TEST_EXISTS(trash, TRASH, 1)
 DEFINE_TEST_EXISTS(wallpaper, WALLPAPER, 1)
+DEFINE_TEST_EXISTS(realtime, REALTIME, 1)
 
 int
 main (int argc, char **argv)
@@ -414,6 +415,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/wallpaper/exists", test_wallpaper_exists);
+  g_test_add_func ("/portal/realtime/exists", test_realtime_exists);
 
 #ifdef HAVE_LIBPORTAL
   g_test_add_func ("/portal/account/basic", test_account_basic);

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2021 Igalia S.L.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+    <!--
+      org.freedesktop.portal.Realtime:
+      @short_description: Portal for setting threads to realtime
+
+      Interface for setting a thread to realtime from within the
+      sandbox. It is analogous to the org.freedesktop.RealtimeKit1
+      interface and will proxy requests there but with pid mapping.
+      The latter is necessary in the case that sandbox has pid namespace
+      isolation enabled.
+
+      Note that this proxy does not bypass any limitations that
+      RealtimeKit imposes on processes which are documented here:
+      https://git.0pointer.net/rtkit.git/tree/README
+
+      This documentation describes version 1 of this interface.
+    -->
+    <interface name="org.freedesktop.portal.Realtime">
+      <!--
+          MakeThreadRealtimeWithPID:
+          @process: Process id
+          @thread: Thread id
+          @priority: Priority
+      -->
+      <method name="MakeThreadRealtimeWithPID">
+        <arg type="t" name="process" direction="in"/>
+        <arg type="t" name="thread" direction="in"/>
+        <arg type="u" name="priority" direction="in"/>
+      </method>
+
+      <!--
+          MakeThreadHighPriorityWithPID:
+          @process: Process id
+          @thread: Thread id
+          @priority: Priority
+      -->
+      <method name="MakeThreadHighPriorityWithPID">
+        <arg type="t" name="process" direction="in"/>
+        <arg type="t" name="thread" direction="in"/>
+        <arg type="i" name="priority" direction="in"/>
+      </method>
+
+      <!--
+          GetProperty:
+          @property: Property name. One of "MaxRealtimePriority", "MinNiceLevel", "RTTimeUSecMax".
+          @result: The property value
+      -->
+      <method name="GetProperty">
+        <arg type="s" name="property" direction="in"/>
+        <arg type="x" name="result" direction="out"/>
+      </method>
+
+      <property name="version" type="u" access="read"/>
+    </interface>
+</node>

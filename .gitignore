@@ -6,6 +6,7 @@
 /po/*.gmo
 /po/*.header
 /po/*.pot
+/po/*.po~
 /po/Makefile.in.in
 /po/Makevars.template
 /po/POTFILES
@@ -64,10 +65,13 @@ permission-store-dbus.h
 geoclue-dbus.c
 geoclue-dbus.h
 testdb
-/testdb.log
-/testdb.trs
-test-suite*.log
+/dbus-session-bus-*
 /test-doc-portal
-/test-doc-portal.log
-/test-doc-portal.trs
+/test-portals
+/test-xdp-utils
+/test-permission-store
+/tests/test-backends
 test-driver
+*.trs
+*.log
+/session.conf
