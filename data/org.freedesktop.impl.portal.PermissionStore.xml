@@ -146,6 +146,23 @@
     </method>
 
     <!--
+        GetPermission:
+        @table: the name of the table to use
+        @id: the resource ID to modify
+        @app: the application ID to modify
+        @permissions: permissions to get
+
+        Gets the entry for an application and a resource
+        in the given table.
+    -->
+    <method name="GetPermission">
+      <arg name='table' type='s' direction='in'/>
+      <arg name='id' type='s' direction='in'/>
+      <arg name='app' type='s' direction='in'/>
+      <arg name='permissions' type='as' direction='out'/>
+    </method>
+
+    <!--
         List:
         @table: the name of the table to use
         @ids: IDs of all resources that are present in the table
