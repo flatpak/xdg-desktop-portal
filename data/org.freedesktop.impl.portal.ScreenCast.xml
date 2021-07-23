@@ -175,7 +175,7 @@
         <simplelist>
           <member>1: MONITOR</member>
           <member>2: WINDOW</member>
-          <member>3: VIRTUAL</member>
+          <member>4: VIRTUAL</member>
         </simplelist>
     -->
     <property name="AvailableSourceTypes" type="u" access="read"/>
