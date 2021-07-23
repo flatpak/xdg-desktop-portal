@@ -179,7 +179,7 @@
               A tuple consisting of the position (x, y) in the compositor
               coordinate space. Note that the position may not be equivalent to a
               position in a pixel coordinate space. Only available for monitor
-              streams.
+              streams. Optional.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -189,7 +189,7 @@
               of the stream as it is displayed in the compositor coordinate
               space. Note that this size may not be equivalent to a size in a
               pixel coordinate space. The size may differ from the size of the
-              stream.
+              stream. Optional.
             </para></listitem>
           </varlistentry>
           <varlistentry>
