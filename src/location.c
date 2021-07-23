@@ -440,13 +440,13 @@ handle_create_session (XdpLocation *object,
         session->accuracy = GCLUE_ACCURACY_LEVEL_NONE;
       else if (accuracy == 1)
         session->accuracy = GCLUE_ACCURACY_LEVEL_COUNTRY;
-      else if (accuracy == 4)
+      else if (accuracy == 2)
         session->accuracy = GCLUE_ACCURACY_LEVEL_CITY;
-      else if (accuracy == 5)
+      else if (accuracy == 3)
         session->accuracy = GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD;
-      else if (accuracy == 6)
+      else if (accuracy == 4)
         session->accuracy = GCLUE_ACCURACY_LEVEL_STREET;
-      else if (accuracy == 8)
+      else if (accuracy == 5)
         session->accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
       else
         {
