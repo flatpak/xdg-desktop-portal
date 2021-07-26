@@ -335,6 +335,14 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
       else if (g_str_has_prefix (path, "/run/flatpak/app/"))
         return g_build_filename (g_get_user_runtime_dir (), "app",
                                  path + strlen ("/run/flatpak/app/"), NULL);
+      else if (g_str_has_prefix (path, "/var/config/"))
+        return g_build_filename (g_get_home_dir (), ".var", "app",
+                                 app_info->id, "config",
+                                 path + strlen ("/var/config/"), NULL);
+      else if (g_str_has_prefix (path, "/var/data/"))
+        return g_build_filename (g_get_home_dir (), ".var", "app",
+                                 app_info->id, "data",
+                                 path + strlen ("/var/data/"), NULL);
     }
 
   return g_strdup (path);
