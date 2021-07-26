@@ -22,6 +22,7 @@
 
 #include <json-glib/json-glib.h>
 
+#include <stdint.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -857,14 +858,21 @@ xdg_desktop_portal_error_quark (void)
 
 static char *
 verify_proc_self_fd (XdpAppInfo *app_info,
-                     const char *proc_path)
+                     const char *proc_path,
+                     GError **error)
 {
   char path_buffer[PATH_MAX + 1];
   ssize_t symlink_size;
+  int saved_errno;
 
   symlink_size = readlink (proc_path, path_buffer, PATH_MAX);
   if (symlink_size < 0)
-    return NULL;
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "readlink %s: %s", proc_path, g_strerror (saved_errno));
+      return NULL;
+    }
 
   path_buffer[symlink_size] = 0;
 
@@ -872,7 +880,11 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      don't, such as socket:[27345] or anon_inode:[eventfd].
      We don't support any of these */
   if (path_buffer[0] != '/')
-    return NULL;
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
+                   "Not a regular file or directory: %s", path_buffer);
+      return NULL;
+    }
 
   /* File descriptors to actually deleted files have " (deleted)"
      appended to them. This also happens to some fake fd types
@@ -881,7 +893,11 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      matches files with filenames that actually end in " (deleted)",
      but there is not much to do about this. */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
-    return NULL;
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
+                   "Cannot share deleted file: %s", path_buffer);
+      return NULL;
+    }
 
   /* remap from sandbox to host if needed */
   return xdp_app_info_remap_path (app_info, path_buffer);
@@ -916,45 +932,115 @@ xdp_get_alternate_document_path (const char *path, const char *app_id)
   return g_strconcat (documents_mountpoint, "/by-app/", app_id, &path[len], NULL);
 }
 
+static gboolean
+check_same_file (const char *path,
+                 struct stat *expected_st_buf,
+                 GError **error)
+{
+  struct stat real_st_buf;
+  int saved_errno;
+
+  if (stat (path, &real_st_buf) < 0)
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "stat %s: %s", path, g_strerror (saved_errno));
+      return FALSE;
+    }
+
+  if (expected_st_buf->st_dev != real_st_buf.st_dev ||
+      expected_st_buf->st_ino != real_st_buf.st_ino)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "\"%s\" identity (%ju,%ju) does not match expected (%ju,%ju)",
+                   path,
+                   (uintmax_t) expected_st_buf->st_dev,
+                   (uintmax_t) expected_st_buf->st_ino,
+                   (uintmax_t) real_st_buf.st_dev,
+                   (uintmax_t) real_st_buf.st_ino);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 char *
 xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
                               int fd,
                               int require_st_mode,
                               struct stat *st_buf,
-                              gboolean *writable_out)
+                              gboolean *writable_out,
+                              GError **error)
 {
   g_autofree char *proc_path = NULL;
   int fd_flags;
   struct stat st_buf_store;
-  struct stat real_st_buf;
   gboolean writable = FALSE;
   g_autofree char *path = NULL;
+  int saved_errno;
 
   if (st_buf == NULL)
     st_buf = &st_buf_store;
 
   if (fd == -1)
-    return NULL;
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                   "Invalid file descriptor");
+      return NULL;
+    }
 
   /* Must be able to get fd flags */
   fd_flags = fcntl (fd, F_GETFL);
   if (fd_flags == -1)
-    return NULL;
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "Cannot get file descriptor flags (fcntl F_GETFL: %s)",
+                   g_strerror (saved_errno));
+      return NULL;
+    }
 
   /* Must be able to fstat */
   if (fstat (fd, st_buf) < 0)
-    return NULL;
+    {
+      saved_errno = errno;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (saved_errno),
+                   "Cannot get file information (fstat: %s)",
+                   g_strerror (saved_errno));
+      return NULL;
+    }
 
   /* Verify mode */
   if (require_st_mode != 0 &&
       (st_buf->st_mode & S_IFMT) != require_st_mode)
-    return NULL;
+    {
+      switch (require_st_mode)
+        {
+          case S_IFDIR:
+            g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_DIRECTORY,
+                         "File type 0o%o is not a directory",
+                         (st_buf->st_mode & S_IFMT));
+            return NULL;
+
+          case S_IFREG:
+            g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_REGULAR_FILE,
+                         "File type 0o%o is not a regular file",
+                         (st_buf->st_mode & S_IFMT));
+            return NULL;
+
+          default:
+            g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                         "File type 0o%o does not match expected 0o%o",
+                         (st_buf->st_mode & S_IFMT), require_st_mode);
+            return NULL;
+        }
+    }
 
   proc_path = g_strdup_printf ("/proc/self/fd/%d", fd);
 
   /* Must be able to read valid path from /proc/self/fd */
   /* This is an absolute and (at least at open time) symlink-expanded path */
-  path = verify_proc_self_fd (app_info, proc_path);
+  path = verify_proc_self_fd (app_info, proc_path, error);
   if (path == NULL)
     return NULL;
 
@@ -975,10 +1061,19 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
 
       /* Must not be O_NOFOLLOW (because we want the target file) */
       if ((fd_flags & O_NOFOLLOW) == O_NOFOLLOW)
-        return NULL;
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                       "O_PATH fd was opened O_NOFOLLOW");
+          return NULL;
+        }
 
       if (!xdp_app_info_supports_opath (app_info))
-        return NULL;
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                       "App \"%s\" of type %d does not support O_PATH fd passing",
+                       app_info->id, app_info->kind);
+          return NULL;
+        }
 
       read_access_mode = R_OK;
       if (S_ISDIR (st_buf->st_mode))
@@ -987,7 +1082,12 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
       /* Must be able to access the path via the sandbox supplied O_PATH fd,
          which applies the sandbox side mount options (like readonly). */
       if (access (proc_path, read_access_mode) != 0)
-        return NULL;
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                       "\"%s\" not available for read access via \"%s\"",
+                       path, proc_path);
+          return NULL;
+        }
 
       if (xdp_app_info_is_host (app_info) || access (proc_path, W_OK) == 0)
         writable = TRUE;
@@ -1009,9 +1109,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
     }
 
   /* Verify that this is the same file as the app opened */
-  if (stat (path, &real_st_buf) < 0 ||
-      st_buf->st_dev != real_st_buf.st_dev ||
-      st_buf->st_ino != real_st_buf.st_ino)
+  if (!check_same_file (path, st_buf, error))
     {
       /* If the path is provided by the document portal, the inode
          number will not match, due to only a subtree being mounted in
@@ -1024,10 +1122,12 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
       g_autofree char *alt_path = NULL;
       alt_path = xdp_get_alternate_document_path (path, xdp_app_info_get_id (app_info));
 
-      if (alt_path == NULL ||
-          stat (alt_path, &real_st_buf) < 0 ||
-          st_buf->st_dev != real_st_buf.st_dev ||
-          st_buf->st_ino != real_st_buf.st_ino)
+      if (alt_path == NULL)
+        return NULL;
+
+      g_clear_error (error);
+
+      if (!check_same_file (alt_path, st_buf, error))
         return NULL;
     }
 

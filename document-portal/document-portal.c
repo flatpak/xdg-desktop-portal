@@ -362,10 +362,15 @@ validate_fd (int fd,
   g_autofree char *name = NULL;
   xdp_autofd int dir_fd = -1;
   struct stat real_st_buf;
+  g_autoptr(GError) local_error = NULL;
 
-  path = xdp_app_info_get_path_for_fd (app_info, fd, 0, st_buf, writable_out);
+  path = xdp_app_info_get_path_for_fd (app_info, fd, 0, st_buf, writable_out, &local_error);
+
   if (path == NULL)
-    goto errout;
+    {
+      g_debug ("Invalid fd passed: %s", local_error->message);
+      goto errout;
+    }
 
   if ((ensure_type == VALIDATE_FD_FILE_TYPE_REGULAR || ensure_type == VALIDATE_FD_FILE_TYPE_ANY) && S_ISREG (st_buf->st_mode))
     {
@@ -995,9 +1000,16 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
-  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL);
+  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL, &error);
   if (parent_path == NULL || parent_st_buf.st_dev == fuse_dev)
     {
+      if (parent_path == NULL)
+        g_debug ("Invalid fd passed: %s", error->message);
+      else
+        g_debug ("Invalid fd passed: \"%s\" not on FUSE device", parent_path);
+
+      /* Don't leak any info about real file path existence, etc */
+      g_clear_error (&error);
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
@@ -1082,7 +1094,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   struct stat parent_st_buf;
   const char *filename;
   gboolean reuse_existing, persistent;
-
+  g_autoptr(GError) local_error = NULL;
   g_autoptr(GVariant) filename_v = NULL;
 
   g_variant_get (parameters, "(h@aybb)", &parent_fd_id, &filename_v, &reuse_existing, &persistent);
@@ -1116,9 +1128,16 @@ portal_add_named (GDBusMethodInvocation *invocation,
       return;
     }
 
-  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL);
+  parent_path = xdp_app_info_get_path_for_fd (app_info, parent_fd, S_IFDIR, &parent_st_buf, NULL, &local_error);
   if (parent_path == NULL || parent_st_buf.st_dev == fuse_dev)
     {
+      if (parent_path == NULL)
+        g_debug ("Invalid fd passed: %s", local_error->message);
+      else
+        g_debug ("Invalid fd passed: \"%s\" not on FUSE device", parent_path);
+
+      /* Don't leak any info about real file path existence, etc */
+      g_clear_error (&local_error);
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");

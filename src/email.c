@@ -245,7 +245,19 @@ handle_compose_email (XdpEmail *object,
               return TRUE;
             }
 
-          path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL);
+          path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL, &error);
+
+          if (path == NULL)
+            {
+              g_debug ("Invalid attachment fd passed: %s", error->message);
+
+              /* Don't leak any info about real file path existence, etc */
+              g_dbus_method_invocation_return_error (invocation,
+                                                     XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                     "Invalid attachment fd passed");
+              return G_DBUS_METHOD_INVOCATION_HANDLED;
+            }
+
           g_variant_builder_add (&attachments, "s", path);
         }
 
