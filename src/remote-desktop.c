@@ -754,7 +754,7 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: pointer");
       return TRUE;
     }
 
@@ -812,7 +812,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: pointer");
       return TRUE;
     }
 
@@ -880,7 +880,7 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: pointer");
       return TRUE;
     }
 
@@ -943,7 +943,7 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: pointer");
       return TRUE;
     }
 
@@ -1001,7 +1001,7 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: pointer");
       return TRUE;
     }
 
@@ -1059,7 +1059,7 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: keyboard");
       return TRUE;
     }
 
@@ -1117,7 +1117,7 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: keyboard");
       return TRUE;
     }
 
@@ -1177,7 +1177,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: touchscreen");
       return TRUE;
     }
 
@@ -1247,7 +1247,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: touchscreen");
       return TRUE;
     }
 
@@ -1314,7 +1314,7 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Invalid call call");
+                                             "Session doesn't have access to a device of type: touchscreen");
       return TRUE;
     }
 
