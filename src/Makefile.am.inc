@@ -41,6 +41,7 @@ PORTAL_IFACE_FILES =\
 	data/org.freedesktop.portal.Camera.xml \
 	data/org.freedesktop.portal.Secret.xml \
 	data/org.freedesktop.portal.Wallpaper.xml \
+	data/org.freedesktop.portal.PowerProfileMonitor.xml \
 	$(NULL)
 
 PORTAL_IMPL_IFACE_FILES =\
@@ -126,6 +127,8 @@ xdg_desktop_portal_SOURCES = \
 	src/memory-monitor.h		\
 	src/network-monitor.c		\
 	src/network-monitor.h		\
+	src/power-profile-monitor.c	\
+	src/power-profile-monitor.h	\
 	src/proxy-resolver.c		\
 	src/proxy-resolver.h		\
 	src/screenshot.c		\
