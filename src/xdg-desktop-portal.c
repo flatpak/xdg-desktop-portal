@@ -40,6 +40,7 @@
 #include "print.h"
 #include "memory-monitor.h"
 #include "network-monitor.h"
+#include "power-profile-monitor.h"
 #include "proxy-resolver.h"
 #include "screenshot.h"
 #include "notification.h"
@@ -227,6 +228,7 @@ on_bus_acquired (GDBusConnection *connection,
     lockdown = xdp_impl_lockdown_skeleton_new ();
 
   export_portal_implementation (connection, memory_monitor_create (connection));
+  export_portal_implementation (connection, power_profile_monitor_create (connection));
   export_portal_implementation (connection, network_monitor_create (connection));
   export_portal_implementation (connection, proxy_resolver_create (connection));
   export_portal_implementation (connection, trash_create (connection));
