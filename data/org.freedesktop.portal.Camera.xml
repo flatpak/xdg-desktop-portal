@@ -57,8 +57,8 @@
 
         Open a file descriptor to the PipeWire remote where the camera nodes
         are available. The file descriptor should be used to create a
-        <classname>pw_remote</classname> object, by using
-        <function>pw_remote_connect_fd</function>.
+        <classname>pw_core</classname> object, by using
+        <function>pw_context_connect_fd</function>.
 
         This method will only succeed if the application already has permission
         to access camera devices.
