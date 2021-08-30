@@ -1,0 +1,107 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2021 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.EmulatedInput:
+      @short_description: Portal for emulating input events
+
+      The emulated input portal enables applications to emulate input events.
+  -->
+  <interface name="org.freedesktop.portal.EmulatedInput">
+    <!--
+        CreateSession:
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Create a session to emulate input. A successfully created session can at
+        any time be closed using org.freedesktop.portal.Session::Close, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via org.freedesktop.portal.Session::Closed.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>session_handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the session handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Session documentation for
+              more information about the session handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>session_handle o</term>
+            <listitem><para>
+              The session handle. An object path for the
+              #org.freedesktop.portal.Session object representing the created
+              session.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="CreateSession">
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+    <!--
+        ConnectToEIS:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @response: Zero on success or 1 on error
+        @results: Vardict with the results of the call
+
+        Request a connection to the Emulated Input Server (EIS). This method
+        is expected to complete immediately, it does not use a Request object.
+
+        This method will only succeed if the application has permission
+        to emulate input.
+
+        The following results get returned via the @results dictionary:
+        <variablelist>
+          <varlistentry>
+            <term>fd h</term>
+            <listitem><para>
+              A socket to the EIS implementation. This socket can be passed to ei_setup_backend_socket().
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="ConnectToEIS">
+      <annotation name="org.gtk.GDBus.C.Name" value="connect_to_eis"/>
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

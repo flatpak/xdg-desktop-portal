@@ -38,5 +38,6 @@
     <property name="disable-camera" type="b" access="readwrite"/>
     <property name="disable-microphone" type="b" access="readwrite"/>
     <property name="disable-sound-output" type="b" access="readwrite"/>
+    <property name="disable-emulated-input" type="b" access="readwrite"/>
   </interface>
 </node>

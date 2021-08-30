@@ -10,6 +10,7 @@
 #include "appchooser.h"
 #include "background.h"
 #include "email.h"
+#include "emulated-input.h"
 #include "filechooser.h"
 #include "inhibit.h"
 #include "lockdown.h"
@@ -34,6 +35,7 @@ on_bus_acquired (GDBusConnection *connection,
   appchooser_init (connection, BACKEND_OBJECT_PATH);
   background_init (connection, BACKEND_OBJECT_PATH);
   email_init (connection, BACKEND_OBJECT_PATH);
+  emulated_input_init (connection, BACKEND_OBJECT_PATH);
   file_chooser_init (connection, BACKEND_OBJECT_PATH);
   inhibit_init (connection, BACKEND_OBJECT_PATH);
   lockdown_init (connection, BACKEND_OBJECT_PATH);

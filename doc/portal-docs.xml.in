@@ -54,7 +54,7 @@
         ::Closed signal is emitted to inform the application.
       </para>
     </section>
-    <section id="parent_window"> 
+    <section id="parent_window">
       <title>Parent window identifiers</title>
       <para>
         Most portals interact with the user by showing dialogs. These dialogs
@@ -96,6 +96,7 @@
     <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Email.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.EmulatedInput.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileTransfer.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.UpdateMonitor.xml"/>
@@ -147,6 +148,7 @@
     <xi:include href="portal-org.freedesktop.impl.portal.AppChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Background.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Email.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.EmulatedInput.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Inhibit.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Lockdown.xml"/>

@@ -19,6 +19,8 @@ tests_test_backends_SOURCES = \
 	tests/backend/background.h \
 	tests/backend/email.c \
 	tests/backend/email.h \
+	tests/backend/emulated-input.c \
+	tests/backend/emulated-input.h \
 	tests/backend/filechooser.c \
 	tests/backend/filechooser.h \
 	tests/backend/inhibit.c \

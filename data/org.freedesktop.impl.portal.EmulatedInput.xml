@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2021 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.EmulatedInput:
+      @short_description: Emulated input backend interface
+
+      The emulated input portal enables applications to emulate input devices.
+  -->
+  <interface name="org.freedesktop.impl.portal.EmulatedInput">
+    <!--
+        CreateSession:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Create an emulated input session
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>session_id s</term>
+            <listitem><para>
+              The session id. A string representing the created screen cast session.
+            </para></listitem>
+          </varlistentry>
+      </variablelist>
+    -->
+    <method name="CreateSession">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <!--
+        ConnectToEIS:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @fd: File descriptor to be passed into libei. Only valid for a zero result.
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Request a connection to the Emulated Input Server (EIS).
+
+        The following results get returned via the @results dictionary:
+        <variablelist>
+          <varlistentry>
+            <term>fd h</term>
+            <listitem><para>
+              A socket to the EIS implementation. This socket can be passed to ei_setup_backend_socket().
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="ConnectToEIS">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

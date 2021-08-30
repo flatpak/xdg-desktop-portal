@@ -48,6 +48,7 @@
 #include "device.h"
 #include "account.h"
 #include "email.h"
+#include "emulated-input.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
 #include "trash.h"
@@ -126,6 +127,20 @@ method_needs_request (GDBusMethodInvocation *invocation)
   if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
     {
       if (strcmp (method, "OpenPipeWireRemote") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
+  if (strcmp (interface, "org.freedesktop.portal.EmulatedInput") == 0)
+    {
+      if (strcmp (method, "ConnectToEIS") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
+  if (strcmp (interface, "org.freedesktop.impl.portal.EmulatedInput") == 0)
+    {
+      if (strcmp (method, "ConnectToEIS") == 0)
         return FALSE;
       else
         return TRUE;
@@ -274,7 +289,6 @@ on_bus_acquired (GDBusConnection *connection,
                                   inhibit_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
   if (implementation != NULL)
     {
       export_portal_implementation (connection,
@@ -287,8 +301,16 @@ on_bus_acquired (GDBusConnection *connection,
 #ifdef HAVE_PIPEWIRE
       export_portal_implementation (connection, camera_create (connection, lockdown));
 #endif
-    }
 
+    }
+  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.EmulatedInput");
+  if (implementation != NULL && implementation2 != NULL) {
+      export_portal_implementation (connection, emulated_input_create (connection,
+                                                                       implementation2->dbus_name,
+                                                                       lockdown));
+  }
+
+  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
   if (implementation != NULL && implementation2 != NULL)
     export_portal_implementation (connection,
                                   background_create (connection,

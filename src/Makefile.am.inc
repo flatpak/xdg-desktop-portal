@@ -103,6 +103,8 @@ xdg_desktop_portal_SOURCES = \
 	src/permissions.h               \
 	src/email.c                     \
 	src/email.h                     \
+	src/emulated-input.c	\
+	src/emulated-input.h	\
 	src/settings.c			\
 	src/settings.h			\
 	src/session.c			\

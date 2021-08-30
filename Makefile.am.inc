@@ -5,6 +5,7 @@ PORTAL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.portal.Device.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Email.xml \
+	$(top_srcdir)/data/org.freedesktop.portal.EmulatedInput.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.FileTransfer.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.GameMode.xml \
@@ -35,6 +36,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.AppChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Background.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Email.xml \
+	$(top_srcdir)/data/org.freedesktop.impl.portal.EmulatedInput.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Lockdown.xml \

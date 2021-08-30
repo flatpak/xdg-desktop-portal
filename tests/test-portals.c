@@ -13,6 +13,7 @@
 #include "background.h"
 #include "camera.h"
 #include "email.h"
+#include "emulated-input.h"
 #include "filechooser.h"
 #include "inhibit.h"
 #include "location.h"
@@ -423,6 +424,7 @@ DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
 DEFINE_TEST_EXISTS(background, BACKGROUND, 1)
 DEFINE_TEST_EXISTS(camera, CAMERA, 1)
 DEFINE_TEST_EXISTS(email, EMAIL, 3)
+DEFINE_TEST_EXISTS(emulated_input, EMULATED_INPUT, 1)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 3)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 3)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
@@ -451,6 +453,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/background/exists", test_background_exists);
   g_test_add_func ("/portal/camera/exists", test_camera_exists);
   g_test_add_func ("/portal/email/exists", test_email_exists);
+  g_test_add_func ("/portal/emulated_input/exists", test_emulated_input_exists);
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
@@ -481,6 +484,8 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/address", test_email_address);
   g_test_add_func ("/portal/email/subject", test_email_subject);
   g_test_add_func ("/portal/email/parallel", test_email_parallel);
+
+  g_test_add_func ("/portal/emulated_input/basic", test_emulated_input_basic);
 
   g_test_add_func ("/portal/screenshot/basic", test_screenshot_basic);
   g_test_add_func ("/portal/screenshot/delay", test_screenshot_delay);

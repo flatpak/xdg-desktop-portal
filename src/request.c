@@ -189,6 +189,22 @@ get_token (GDBusMethodInvocation *invocation)
     {
       options = g_variant_get_child_value (parameters, 1);
     }
+  else if (strcmp (interface, "org.freedesktop.portal.EmulatedInput") == 0)
+    {
+      if (strcmp (method, "CreateSession") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 0);
+        }
+      else if (strcmp (method, "ConnectToEIS") == 0)
+        {
+          options = g_variant_get_child_value (parameters, 1);
+        }
+      else
+        {
+          g_warning ("Support for %s::%s missing in %s",
+                     interface, method, G_STRLOC);
+        }
+    }
   else if (strcmp (interface, "org.freedesktop.portal.FileChooser") == 0)
     {
       options = g_variant_get_child_value (parameters, 2);
@@ -321,6 +337,22 @@ get_token (GDBusMethodInvocation *invocation)
           options = g_variant_get_child_value (parameters, 0);
         }
       else if (strcmp (method, "OpenPipewireRemote") == 0)
+        {
+          // no request objects
+        }
+      else
+        {
+          g_warning ("Support for %s::%s missing in %s",
+                     interface, method, G_STRLOC);
+        }
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.EmulatedInput") == 0)
+    {
+      if (strcmp (method, "EmulateInput") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 0);
+        }
+      else if (strcmp (method, "Connect") == 0)
         {
           // no request objects
         }

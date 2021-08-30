@@ -50,6 +50,8 @@ test_portals_SOURCES += \
         tests/camera.h \
 	tests/email.c \
 	tests/email.h \
+	tests/emulated-input.c \
+	tests/emulated-input.h \
 	tests/filechooser.c \
 	tests/filechooser.h \
         tests/inhibit.c \
