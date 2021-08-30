@@ -216,8 +216,8 @@
 
         Open a file descriptor to the PipeWire remote where the screen cast
         streams are available. The file descriptor should be used to create a
-        <classname>pw_remote</classname> object, by using
-        <function>pw_remote_connect_fd</function>. Only the screen cast stream
+        <classname>pw_core</classname> object, by using
+        <function>pw_context_connect_fd</function>. Only the screen cast stream
         nodes will be available from this PipeWire node.
     -->
     <method name="OpenPipeWireRemote">
