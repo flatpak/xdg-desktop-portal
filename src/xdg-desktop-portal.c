@@ -304,7 +304,7 @@ on_bus_acquired (GDBusConnection *connection,
 
     }
   implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.EmulatedInput");
-  if (implementation != NULL && implementation2 != NULL) {
+  if (implementation2 != NULL) {
       export_portal_implementation (connection, emulated_input_create (connection,
                                                                        implementation2->dbus_name,
                                                                        lockdown));
