@@ -20,9 +20,6 @@
 
 #include <glib/gi18n.h>
 #include <gio/gunixfdlist.h>
-#include <gio/gdesktopappinfo.h>
-#include <gio/gunixsocketaddress.h>
-#include <stdio.h>
 
 #include "session.h"
 #include "request.h"
