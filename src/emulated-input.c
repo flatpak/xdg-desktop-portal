@@ -58,9 +58,9 @@ G_DEFINE_TYPE_WITH_CODE (EmulatedInput, emulated_input, XDP_TYPE_EMULATED_INPUT_
 
 typedef enum _EmulatedInputSessionState
 {
-  EMULATED_INPUT_SESSION_STATE_INIT,
-  EMULATED_INPUT_SESSION_STATE_STARTING,
-  EMULATED_INPUT_SESSION_STATE_STARTED,
+  EMULATED_INPUT_SESSION_STATE_NEW,
+  EMULATED_INPUT_SESSION_STATE_CONNECTING,
+  EMULATED_INPUT_SESSION_STATE_CONNECTED,
   EMULATED_INPUT_SESSION_STATE_CLOSED
 } EmulatedInputSessionState;
 
@@ -162,8 +162,6 @@ create_session_done (GObject *source_object,
     {
       should_close_session = TRUE;
     }
-
-  ((EmulatedInputSession*) session)->state = EMULATED_INPUT_SESSION_STATE_STARTED;
 
   g_variant_builder_add (&results_builder, "{sv}",
                          "session_handle", g_variant_new ("s", session->id));
@@ -299,19 +297,19 @@ handle_connect_to_eis (XdpEmulatedInput *object,
   emulated_input_session = (EmulatedInputSession *)session;
   switch (emulated_input_session->state)
     {
-    case EMULATED_INPUT_SESSION_STATE_STARTED:
+    case EMULATED_INPUT_SESSION_STATE_NEW:
       break;
-    case EMULATED_INPUT_SESSION_STATE_INIT:
+    case EMULATED_INPUT_SESSION_STATE_CONNECTED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session not started");
+                                             "Session already connected");
       return TRUE;
-    case EMULATED_INPUT_SESSION_STATE_STARTING:
+    case EMULATED_INPUT_SESSION_STATE_CONNECTING:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Can only start once");
+                                             "Can only connect once");
       return TRUE;
     case EMULATED_INPUT_SESSION_STATE_CLOSED:
       g_dbus_method_invocation_return_error (invocation,
@@ -324,6 +322,8 @@ handle_connect_to_eis (XdpEmulatedInput *object,
   /* We don't have any options yet on the impl */
   g_variant_builder_init (&unused, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
+
+  emulated_input_session->state = EMULATED_INPUT_SESSION_STATE_CONNECTING;
 
   if (!xdp_impl_emulated_input_call_connect_to_eis_sync (impl,
                                                          arg_session_handle,
@@ -347,12 +347,18 @@ handle_connect_to_eis (XdpEmulatedInput *object,
         {
           g_variant_builder_add (&results_builder, "{sv}",
                                  "fd", g_variant_new("h", out_fd));
-         response = 0;
+         emulated_input_session->state = EMULATED_INPUT_SESSION_STATE_CONNECTED;
         }
       else
         {
           g_error ("Key 'fd' missing in results");
+          response = 1;
         }
+    }
+
+  if (response != 0)
+    {
+        emulated_input_session->state = EMULATED_INPUT_SESSION_STATE_CLOSED;
     }
 
   xdp_emulated_input_complete_connect_to_eis (object,
