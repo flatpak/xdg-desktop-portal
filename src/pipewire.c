@@ -25,6 +25,8 @@
 
 #include "pipewire.h"
 
+#define ROUNDTRIP_TIMEOUT_SECS 10
+
 typedef struct _PipeWireSource
 {
   GSource base;
@@ -86,11 +88,38 @@ static const struct pw_registry_events registry_events = {
   .global_remove = registry_event_global_remove,
 };
 
+static void
+on_roundtrip_timeout (void *user_data,
+                      uint64_t expirations)
+{
+  PipeWireRemote *remote = user_data;
+
+  g_warning ("PipeWire roundtrip timed out waiting for events");
+  pw_main_loop_quit (remote->loop);
+}
+
 void
 pipewire_remote_roundtrip (PipeWireRemote *remote)
 {
+  struct timespec roundtrip_timeout_spec = { ROUNDTRIP_TIMEOUT_SECS, 0 };
+
   remote->sync_seq = pw_core_sync (remote->core, PW_ID_CORE, remote->sync_seq);
+
+  /* Arm the roundtrip timeout before running the main loop, then clear it
+     right afterwards. */
+  pw_loop_update_timer (pw_main_loop_get_loop (remote->loop),
+                        remote->roundtrip_timeout,
+                        &roundtrip_timeout_spec,
+                        NULL,
+                        FALSE);
+
   pw_main_loop_run (remote->loop);
+
+  pw_loop_update_timer (pw_main_loop_get_loop (remote->loop),
+                        remote->roundtrip_timeout,
+                        NULL,
+                        NULL,
+                        FALSE);
 }
 
 static gboolean
@@ -210,6 +239,12 @@ static GSourceFuncs pipewire_source_funcs =
 void
 pipewire_remote_destroy (PipeWireRemote *remote)
 {
+  if (remote->roundtrip_timeout != NULL)
+    {
+      struct pw_loop *loop = pw_main_loop_get_loop (remote->loop);
+      pw_loop_destroy_source (loop, g_steal_pointer (&remote->roundtrip_timeout));
+    }
+
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
   g_clear_pointer (&remote->core, pw_core_disconnect);
   g_clear_pointer (&remote->context, pw_context_destroy);
@@ -299,6 +334,10 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
                    "Couldn't connect to PipeWire");
       return NULL;
     }
+
+  remote->roundtrip_timeout = pw_loop_add_timer (pw_main_loop_get_loop (remote->loop),
+                                                 on_roundtrip_timeout,
+                                                 remote);
 
   remote->globals = g_hash_table_new_full (NULL, NULL, NULL, g_free);
 
