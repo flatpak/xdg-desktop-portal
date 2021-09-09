@@ -9,7 +9,7 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2020-09-14 12:22-0400\n"
 "PO-Revision-Date: 2018-03-26 20:40+0800\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
@@ -33,7 +33,6 @@ msgid "%s requests to run in the background."
 msgstr "%s 請求在後台運行。"
 
 #: src/background.c:267
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -115,7 +114,6 @@ msgid "Grant Access to Your Location?"
 msgstr "授予訪問您的位置的權限？"
 
 #: src/location.c:535
-#, fuzzy
 msgid "An application wants to use your location."
 msgstr "有個應用程式想要使用您的攝影機。"
 
@@ -125,12 +123,11 @@ msgid "Give %s Access to Your Location?"
 msgstr "授予 %s 訪問您的位置的權限？"
 
 #: src/location.c:551
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
 msgstr "%s 想要使用您的攝影機。"
 
 #: src/location.c:554
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
 
@@ -143,7 +140,6 @@ msgid "Deny"
 msgstr "否認"
 
 #: src/wallpaper.c:185
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "有個應用程式想要播放聲音。"
 
@@ -162,6 +158,5 @@ msgid "%s is requesting to be able to change the background image."
 msgstr "%s 正在請求能夠更改背景圖像。"
 
 #: src/wallpaper.c:202
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
