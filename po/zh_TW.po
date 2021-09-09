@@ -8,8 +8,8 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2020-09-14 12:22-0400\n"
-"PO-Revision-Date: 2018-03-26 20:40+0800\n"
-"Last-Translator: Cheng-Chia Tseng <pswo10680@gmail.com>\n"
+"PO-Revision-Date: 2021-10-01 23:52+0700\n"
+"Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
 "Language: zh_TW\n"
 "MIME-Version: 1.0\n"
@@ -20,32 +20,31 @@ msgstr ""
 #: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr ""
+msgstr "允許 %s 在後台運行嗎？"
 
 #: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr ""
+msgstr "%s 請求自動啟動並在後台運行。"
 
 #: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
-msgstr ""
+msgstr "%s 請求在後台運行。"
 
 #: src/background.c:267
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
-msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
+msgstr "“後台運行” 權限可以隨時從應用程序設置中更改。"
 
 #: src/background.c:272
 msgid "Don't allow"
-msgstr ""
+msgstr "不允許"
 
 #: src/background.c:273 src/wallpaper.c:179
 msgid "Allow"
-msgstr ""
+msgstr "允許"
 
 #: src/device.c:115
 msgid "Turn On Microphone?"
@@ -55,7 +54,7 @@ msgstr "啟用麥克風？"
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
-msgstr "您可以隨時從隱私權設定值中修改您的麥克風存取控制。"
+msgstr "可以隨時通過隱私設置更改對麥克風的訪問權限。"
 
 #: src/device.c:120
 msgid "An application wants to use your microphone."
@@ -68,34 +67,34 @@ msgstr "%s 想要使用您的麥克風。"
 
 #: src/device.c:128
 msgid "Turn On Speakers?"
-msgstr "啟用喇叭？"
+msgstr "打開揚聲器？"
 
 #: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
-msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
+msgstr "可以随时通过隐私设置更改对扬声器的访问权限。"
 
 #: src/device.c:133
 msgid "An application wants to play sound."
-msgstr "有個應用程式想要播放聲音。"
+msgstr "應用程序想要播放聲音。"
 
 #: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
-msgstr "%s 想要播放聲音。"
+msgstr "%s 想播放声音。"
 
 #: src/device.c:141
 msgid "Turn On Camera?"
-msgstr "啟用攝影機？"
+msgstr "打开相机？"
 
 #: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
-msgstr "您可以隨時從隱私權設定值中修改您的攝影機存取控制。"
+msgstr "可以隨時通過隱私設置更改對相機的訪問權限。"
 
 #: src/device.c:146
 msgid "An application wants to use your camera."
-msgstr "有個應用程式想要使用您的攝影機。"
+msgstr "應用程序想要使用您的相機。"
 
 #: src/device.c:148
 #, c-format
@@ -104,64 +103,60 @@ msgstr "%s 想要使用您的攝影機。"
 
 #: src/location.c:526
 msgid "Deny Access"
-msgstr ""
+msgstr "拒絕訪問"
 
 #: src/location.c:528
 msgid "Grant Access"
-msgstr ""
+msgstr "授予訪問權限"
 
 #: src/location.c:534
 msgid "Grant Access to Your Location?"
-msgstr ""
+msgstr "授予訪問您的位置的權限？"
 
 #: src/location.c:535
-#, fuzzy
 msgid "An application wants to use your location."
-msgstr "有個應用程式想要使用您的攝影機。"
+msgstr "應用程序想要使用您的位置。"
 
 #: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr ""
+msgstr "授予 %s 訪問您的位置的權限？"
 
 #: src/location.c:551
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location."
-msgstr "%s 想要使用您的攝影機。"
+msgstr "%s 想使用您的位置。"
 
 #: src/location.c:554
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
-msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
+msgstr "可以隨時從隱私設置更改位置訪問權限。"
 
 #: src/settings.c:124
 msgid "Requested setting not found"
-msgstr ""
+msgstr "未找到請求的設置"
 
 #: src/wallpaper.c:177
 msgid "Deny"
-msgstr ""
+msgstr "否定"
 
 #: src/wallpaper.c:185
-#, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "有個應用程式想要播放聲音。"
+msgstr "允許應用程序設置背景？"
 
 #: src/wallpaper.c:186
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
+msgstr "應用程序請求能夠更改背景圖像。"
 
 #: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr ""
+msgstr "允許 %s 設置背景嗎？"
 
 #: src/wallpaper.c:199
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr ""
+msgstr "%s 請求能夠更改背景圖像。"
 
 #: src/wallpaper.c:202
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr "您可以隨時從隱私權設定值中修改您的喇叭存取控制。"
+msgstr "可以隨時從隱私設置更改此權限。"
