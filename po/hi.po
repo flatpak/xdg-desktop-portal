@@ -1,9 +1,7 @@
 # Hindi translation for xdg-desktop-portal.
 # Copyright (C) 2021 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-#
 # Dmitry <dmitrydmitry761@gmail.com>, 2021.
-#
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
