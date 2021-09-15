@@ -27,7 +27,7 @@
        URIs (e.g. a http: link to the applications homepage)
        under the control of the user.
 
-       This documentation describes version 3 of this interface.
+       This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
@@ -69,6 +69,14 @@
               the portal may use a default or pick the last choice.
             </para><para>
               The ask option was introduced in version 3 of the interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>activation_token s</term>
+            <listitem><para>
+              A token that can be used to activate the chosen application.
+            </para><para>
+              The activation_token option was introduced in version 4 of the interface.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -119,6 +127,14 @@
               The ask option was introduced in version 3 of the interface.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>activation_token s</term>
+            <listitem><para>
+              A token that can be used to activate the chosen application.
+            </para><para>
+              The activation_token option was introduced in version 4 of the interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The OpenFile method was introduced in version 2 of the OpenURI portal API.
@@ -148,6 +164,14 @@
               A string that will be used as the last element of the @handle. Must be a valid
               object path element. See the #org.freedesktop.portal.Request documentation for
               more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>activation_token s</term>
+            <listitem><para>
+              A token that can be used to activate the chosen application.
+            </para><para>
+              The activation_token option was introduced in version 4 of the interface.
             </para></listitem>
           </varlistentry>
         </variablelist>

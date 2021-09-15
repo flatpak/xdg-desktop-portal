@@ -235,6 +235,7 @@ launch_application_with_uri (const char *choice_id,
                              const char *uri,
                              const char *parent_window,
                              gboolean    writable,
+                             const char *activation_token,
                              GError    **error)
 {
   g_autofree char *desktop_id = g_strconcat (choice_id, ".desktop", NULL);
@@ -270,6 +271,9 @@ launch_application_with_uri (const char *choice_id,
     ruri = g_strdup (uri);
 
   g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
+
+  if (activation_token)
+    g_app_launch_context_setenv (context, "XDG_ACTIVATION_TOKEN", activation_token);
 
   uris.data = (gpointer)ruri;
   uris.next = NULL;
@@ -363,6 +367,7 @@ send_response_in_thread_func (GTask *task,
       const char *parent_window;
       gboolean writable;
       const char *content_type;
+      const char *activation_token = NULL;
 
       g_debug ("Received choice %s", choice);
 
@@ -371,7 +376,9 @@ send_response_in_thread_func (GTask *task,
       writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
       content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
 
-      if (launch_application_with_uri (choice, uri, parent_window, writable, NULL))
+      g_variant_lookup (options, "activation_token", "&s", &activation_token);
+
+      if (launch_application_with_uri (choice, uri, parent_window, writable, activation_token, NULL))
         update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
     }
 
@@ -580,6 +587,7 @@ handle_open_in_thread_func (GTask *task,
   Request *request = (Request *)task_data;
   const char *parent_window;
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *activation_token;
   g_autofree char *uri = NULL;
   g_autoptr(XdpImplRequest) impl_request = NULL;
   g_autofree char *default_app = NULL;
@@ -607,6 +615,7 @@ handle_open_in_thread_func (GTask *task,
   writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
   ask = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "ask"));
   open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
+  activation_token = (const char *)g_object_get_data (G_OBJECT (request), "activation-token");
 
   REQUEST_AUTOLOCK (request);
 
@@ -809,7 +818,7 @@ handle_open_in_thread_func (GTask *task,
 
           g_debug ("Skipping app chooser");
 
-          gboolean result = launch_application_with_uri (app, uri, parent_window, writable, &error);
+          gboolean result = launch_application_with_uri (app, uri, parent_window, writable, activation_token, &error);
           if (request->exported)
             {
               if (!result)
@@ -839,6 +848,8 @@ handle_open_in_thread_func (GTask *task,
     g_variant_builder_add (&opts_builder, "{sv}", "filename", g_variant_new_string (basename));
   if (uri)
     g_variant_builder_add (&opts_builder, "{sv}", "uri", g_variant_new_string (uri));
+  if (activation_token)
+    g_variant_builder_add (&opts_builder, "{sv}", "activation_token", g_variant_new_string (uri));
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -874,6 +885,7 @@ handle_open_uri (XdpOpenURI *object,
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
+  const char *activation_token = NULL;
 
   if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
     {
@@ -891,11 +903,16 @@ handle_open_uri (XdpOpenURI *object,
   if (!g_variant_lookup (arg_options, "ask", "b", &ask))
     ask = FALSE;
 
+  g_variant_lookup (arg_options, "activation_token", "&s", &activation_token);
+
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
   g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
   g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (ask));
+
+  if (activation_token)
+    g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_uri (object, invocation, request->id);
@@ -920,6 +937,7 @@ handle_open_file (XdpOpenURI *object,
   gboolean writable;
   gboolean ask;
   int fd_id, fd;
+  const char *activation_token = NULL;
   g_autoptr(GError) error = NULL;
 
   if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
@@ -946,10 +964,15 @@ handle_open_file (XdpOpenURI *object,
       return TRUE;
     }
 
+  g_variant_lookup (arg_options, "activation_token", "&s", &activation_token);
+
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (writable));
   g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (ask));
+
+  if (activation_token)
+    g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_file (object, invocation, NULL, request->id);
@@ -972,6 +995,7 @@ handle_open_directory (XdpOpenURI *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
+  const char *activation_token = NULL;
   g_autoptr(GError) error = NULL;
 
   if (xdp_impl_lockdown_get_disable_application_handlers (lockdown))
@@ -992,11 +1016,16 @@ handle_open_directory (XdpOpenURI *object,
       return TRUE;
     }
 
+  g_variant_lookup (arg_options, "activation_token", "&s", &activation_token);
+
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data (G_OBJECT (request), "writable", GINT_TO_POINTER (0));
   g_object_set_data (G_OBJECT (request), "ask", GINT_TO_POINTER (0));
   g_object_set_data (G_OBJECT (request), "open-dir", GINT_TO_POINTER (1));
+
+  if (activation_token)
+    g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_open_uri_complete_open_file (object, invocation, NULL, request->id);
