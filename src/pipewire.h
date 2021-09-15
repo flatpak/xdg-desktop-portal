@@ -47,6 +47,8 @@ struct _PipeWireRemote
   struct pw_core *core;
   struct spa_hook core_listener;
 
+  struct spa_source *roundtrip_timeout;
+
   int sync_seq;
 
   struct spa_hook registry_listener;
