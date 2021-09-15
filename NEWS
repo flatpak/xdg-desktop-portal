@@ -1,3 +1,16 @@
+Changes in 1.10.0
+=================
+
+- Remap /run/flatpak/app, for Flatpak 1.11.x
+- Remap /var/config and /var/data
+- permission-store: Avoid a crash
+- permissions-store: Add GetPermission
+- screencast: Add 'virtual' source type
+- openuri: Use real path for OpenDirectory
+- location: Fix accuracy levels
+- Add power profile monitor implementation
+- Translation updates
+
 Changes in 1.8.1
 ================
 
