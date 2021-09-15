@@ -43,6 +43,12 @@
 #include "permissions.h"
 #include "documents.h"
 
+#define FILE_MANAGER_DBUS_NAME "org.freedesktop.FileManager1"
+#define FILE_MANAGER_DBUS_IFACE "org.freedesktop.FileManager1"
+#define FILE_MANAGER_DBUS_PATH "/org/freedesktop/FileManager1"
+
+#define FILE_MANAGER_SHOW_ITEMS "ShowItems"
+
 #define PERMISSION_TABLE "desktop-used-apps"
 
 #define DEFAULT_THRESHOLD 3
@@ -54,6 +60,8 @@ typedef struct _OpenURIClass OpenURIClass;
 struct _OpenURI
 {
   XdpOpenURISkeleton parent_instance;
+
+  GDBusProxy* file_manager;
 };
 
 struct _OpenURIClass
@@ -311,7 +319,7 @@ update_permissions_store (const char *app_id,
            in_permissions[PERM_APP_COUNT],
            in_permissions[PERM_APP_THRESHOLD]);
 
-  
+
   if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
                                                            PERMISSION_TABLE,
                                                            TRUE,
@@ -670,11 +678,45 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          char *real_path = get_real_path_for_doc_path (path, app_id);
+          g_autofree char *real_path = get_real_path_for_doc_path (path, app_id);
+
+          if (open_uri->file_manager != NULL)
+            {
+              /* Try opening the directory via the file manager interface, then
+                 fall back to a plain URI open */
+              g_autoptr(GError) local_error = NULL;
+              g_autoptr(GVariant) result = NULL;
+              g_autoptr(GVariantBuilder) uris_builder = NULL;
+              g_autofree char* item_uri = g_filename_to_uri (real_path, NULL, NULL);
+
+              uris_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+              g_variant_builder_add (uris_builder, "s", item_uri);
+
+              result = g_dbus_proxy_call_sync (open_uri->file_manager,
+                                               FILE_MANAGER_SHOW_ITEMS,
+                                               g_variant_new ("(ass)", uris_builder, ""),
+                                               G_DBUS_CALL_FLAGS_NONE,
+                                               -1,
+                                               NULL,
+                                               &local_error);
+              if (result == NULL)
+                {
+                  g_warning ("Failed to call " FILE_MANAGER_SHOW_ITEMS ": %s",
+                             local_error->message);
+                }
+              else
+                {
+                  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+                  xdp_request_emit_response (XDP_REQUEST (request),
+                                             XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS,
+                                             g_variant_builder_end (&opts_builder));
+                  request_unexport (request);
+                  return;
+                }
+            }
+
           g_free (path);
-          char *dir = g_path_get_dirname (real_path);
-          g_free (real_path);
-          path = dir;
+          path = g_path_get_dirname (real_path);
         }
 
       get_content_type_for_file (path, &content_type);
@@ -684,6 +726,7 @@ handle_open_in_thread_func (GTask *task,
       uri = g_filename_to_uri (path, NULL, NULL);
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
       close (fd);
+      fd = -1;
       g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
     }
 
@@ -1007,6 +1050,20 @@ open_uri_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
+  open_uri->file_manager = g_dbus_proxy_new_sync (connection,
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  NULL,
+                                                  FILE_MANAGER_DBUS_NAME,
+                                                  FILE_MANAGER_DBUS_PATH,
+                                                  FILE_MANAGER_DBUS_IFACE,
+                                                  NULL,
+                                                  &error);
+  if (!open_uri->file_manager)
+    {
+      g_debug ("Failed to create FileManager proxy: %s", error->message);
+      // Missing FileManager1 errors should be non-fatal.
+      g_clear_error (&error);
+    }
 
   monitor = g_app_info_monitor_get ();
 
