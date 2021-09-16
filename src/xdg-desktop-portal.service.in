@@ -5,3 +5,4 @@ Description=Portal service
 Type=dbus
 BusName=org.freedesktop.portal.Desktop
 ExecStart=@libexecdir@/xdg-desktop-portal
+Slice=session.slice

@@ -5,3 +5,4 @@ Description=flatpak document portal service
 BusName=org.freedesktop.portal.Documents
 ExecStart=@libexecdir@/xdg-document-portal
 Type=dbus
+Slice=session.slice
