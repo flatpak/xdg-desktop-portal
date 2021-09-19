@@ -27,9 +27,27 @@
     of host settings required for toolkits similar to XSettings.
     It is not for general purpose settings.
 
-    Currently the valid keys are entirely implementation details
-    that are undocumented. If you are a toolkit and want to use
-    this please open an issue.
+    Currently the interface provides the following keys:
+
+    <variablelist>
+      <varlistentry>
+        <term>org.freedesktop.appearance color-scheme u</term>
+        <listitem><para>
+          Indicates the system's preferred color scheme.
+          Supported values are:
+          <simplelist>
+            <member>0: No preference</member>
+            <member>1: Prefer dark appearance</member>
+            <member>2: Prefer light appearance</member>
+          </simplelist>
+          Unknown values should be treated as 0 (no preference).
+        </para></listitem>
+      </varlistentry>
+    </variablelist>
+
+    Implementations can provide other keys; they are entirely
+    implementation details that are undocumented. If you are a
+    toolkit and want to use this please open an issue.
 
     This documentation describes version 1 of this interface.
   -->
