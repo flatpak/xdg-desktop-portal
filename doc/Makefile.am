@@ -29,6 +29,7 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.portal.Wallpaper.xml		\
 	$(top_srcdir)/data/org.freedesktop.portal.MemoryMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.portal.FileTransfer.xml 	\
+	$(top_srcdir)/data/org.freedesktop.portal.PowerProfileMonitor.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Request.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Session.xml 	\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml 	\
@@ -77,6 +78,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.GameMode.xml			\
 	portal-org.freedesktop.portal.Camera.xml			\
 	portal-org.freedesktop.portal.MemoryMonitor.xml		\
+	portal-org.freedesktop.portal.PowerProfileMonitor.xml		\
 	portal-org.freedesktop.impl.portal.Background.xml 			\
 	portal-org.freedesktop.portal.FileTransfer.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
