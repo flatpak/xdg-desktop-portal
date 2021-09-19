@@ -1,128 +1,94 @@
 name: Portal CI
 
-on:
-  push:
-    branches:
-    - master
-  pull_request:
-    branches:
-    - master
+on: [push, pull_request]
+
+env:
+  DEBIAN_FRONTEND: noninteractive
 
 jobs:
   check:
-    name: Build with gcc and test
-    runs-on: ubuntu-18.04
+    name: Ubuntu 21.04 build
+    runs-on: ubuntu-latest
+    container: ubuntu:21.04
+    strategy:
+      matrix:
+        compiler: ['gcc', 'clang']
+
+    env:
+      CC: ${{ matrix.compiler }}
+      CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -Wp,-D_FORTIFY_SOURCE=2
+
     steps:
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
-        sudo add-apt-repository ppa:alexlarsson/flatpak
-        sudo add-apt-repository ppa:alexlarsson/glib260
-        sudo apt-get update
-        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
-        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
-        libjson-glib-dev libfontconfig1-dev libfuse-dev gnome-desktop-testing
+        apt-get update
+        apt-get upgrade -y
+        apt-get install -y make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
+          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing xmlto \
+          libglib2.0-dev libgeoclue-2-dev libjson-glib-dev libfontconfig1-dev libfuse-dev libportal-dev libpipewire-0.3-dev
+
     - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Build libportal dependency
-      run: |
-        git clone https://github.com/flatpak/libportal.git ./libportal
-        pushd ./libportal
-        git checkout master
-        meson setup --prefix=/usr _build
-        ninja -C _build
-        sudo ninja -C _build install
-        popd
-    - name: Create logs dir
-      run: mkdir test-logs
+      uses: actions/checkout@v2
+
     - name: Configure xdg-desktop-portal
-      # TODO: Enable gtk-doc builds
-      # Could not find a pipewire package
-      # Geoclue is in 18.04 too old
-      run: ./autogen.sh --disable-pipewire --disable-geoclue
-      env:
-        CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
+      run: ./autogen.sh --disable-dependency-tracking
+
     - name: Build xdg-desktop-portal
       run: make -j $(getconf _NPROCESSORS_ONLN)
+
     - name: Run xdg-desktop-portal tests
       # TODO: Build with -j (currently ends up with hangs in the tests)
       run: make check
       env:
         TEST_IN_CI: 1
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
-    - name: Collect overall test logs on failure
-      if: failure()
-      run: mv test-suite.log test-logs/ || true
-    - name: Collect individual test logs on cancel
-      if: failure() || cancelled()
-      run: mv tests/*.log test-logs/ || true
-    - name: Install
-      run: sudo make install
+
+    - name: Install xdg-desktop-portal
+      run: make install
+
     - name: Run xdg-desktop-portal installed-tests
       run: |
-        mkdir -p test-logs/installed
-        gnome-desktop-testing-runner --report-directory test-logs/installed xdg-desktop-portal
+        mkdir installed-test-logs/
+        gnome-desktop-testing-runner --report-directory installed-test-logs/ xdg-desktop-portal
       env:
         G_MESSAGES_DEBUG: all
         TEST_IN_CI: 1
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
+
     - name: Upload test logs
-      uses: actions/upload-artifact@v1
+      uses: actions/upload-artifact@v2
       if: failure() || cancelled()
       with:
         name: test logs
-        path: test-logs
-
-  clang:
-    name: Build with clang
-    runs-on: ubuntu-18.04
-    steps:
-    - name: Install Dependencies
-      run: |
-        sudo add-apt-repository ppa:alexlarsson/flatpak
-        sudo add-apt-repository ppa:alexlarsson/glib260
-        sudo apt-get update
-        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
-        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
-        libjson-glib-dev libfontconfig1-dev libfuse-dev
-    - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v1
-      with:
-        submodules: true
-    - name: Configure xdg-desktop-portal
-      # We disable introspection because it fails with clang: https://bugzilla.redhat.com/show_bug.cgi?id=1543295
-      # Disable libportal since it is only used for tests
-      # Disable geoclue and pipewire (need to figure out dependencies)
-      run: ./autogen.sh --disable-introspection --disable-libportal --disable-geoclue --disable-pipewire
-      env:
-        CC: clang
-        CFLAGS: -Werror=unused-variable
-    - name: Build xdg-desktop-portal
-      run: make -j $(getconf _NPROCESSORS_ONLN)
+        path: |
+          tests/*.log
+          test-suite.log
+          installed-test-logs/
 
   xenial:
-    name: Build on xenial (old glib)
-    runs-on: ubuntu-16.04
+    name: Ubuntu 16.04 build (old glib)
+    runs-on: ubuntu-latest
+    container: ubuntu:16.04
     steps:
-    - name: Install Dependencies
+    - name: Install dependencies
       run: |
-        sudo add-apt-repository ppa:alexlarsson/flatpak
-        sudo apt-get update
-        sudo apt-get install -y libglib2.0-dev automake autoconf libtool gettext autopoint dbus \
-        gtk-doc-tools shared-mime-info desktop-file-utils clang meson libdbus-1-dev libgeoclue-2-dev \
-        libjson-glib-dev libfontconfig1-dev libfuse-dev
+        apt-get update
+        apt-get update -y
+        apt-get install -y software-properties-common
+        add-apt-repository ppa:alexlarsson/flatpak
+        apt-get install -y automake autoconf libtool gettext autopoint gcc \
+          gtk-doc-tools shared-mime-info desktop-file-utils \
+          libglib2.0-dev libjson-glib-dev libfontconfig1-dev libfuse-dev
+
     - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v1
-      with:
-        submodules: true
+      uses: actions/checkout@v2
+
     - name: Configure xdg-desktop-portal
       # TODO: Enable gtk-doc builds
       # Meson to old to build libportal
       # Could not find a pipewire package
       # Geoclue is in 18.04 too old
       run: ./autogen.sh --disable-pipewire --disable-geoclue --disable-libportal
-      env:
-        CFLAGS: -fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address -O2 -Wp,-D_FORTIFY_SOURCE=2
+
     - name: Build xdg-desktop-portal
       run: make -j $(getconf _NPROCESSORS_ONLN)
