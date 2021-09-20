@@ -187,7 +187,7 @@ create_session_done (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new ("o", session->id));
+                         "session_handle", g_variant_new ("s", session->id));
 
 out:
   if (request->exported)
