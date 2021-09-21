@@ -172,6 +172,7 @@ fi
 GLIB_TESTS
 
 PKG_CHECK_MODULES(FUSE3, [fuse3 >= 3.10.0])
+AC_CHECK_FUNCS(renameat2)
 
 AC_CONFIG_FILES([
 Makefile
