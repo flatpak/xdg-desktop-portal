@@ -18,6 +18,24 @@
 
 gchar *cannot_use_fuse = NULL;
 
+static void pc_init(void *userdata,
+                    struct fuse_conn_info *conn)
+{
+  struct fuse_session **session_ptr = userdata;
+  g_autofree char *missing_features = NULL;
+
+  if (!(conn->capable & FUSE_CAP_SPLICE_READ))
+    cannot_use_fuse = g_strdup ("FUSE_CAP_SPLICE_READ");
+  else if (!(conn->capable & FUSE_CAP_SPLICE_WRITE))
+    cannot_use_fuse = g_strdup ("Missing FUSE_CAP_SPLICE_WRITE");
+  else if (!(conn->capable & FUSE_CAP_SPLICE_MOVE))
+    cannot_use_fuse = g_strdup ("Missing FUSE_CAP_SPLICE_MOVE");
+  else if (!(conn->capable & FUSE_CAP_ATOMIC_O_TRUNC))
+    cannot_use_fuse = g_strdup ("Missing FUSE_CAP_ATOMIC_O_TRUNC");
+
+  fuse_session_exit (*session_ptr);
+}
+
 /*
  * If we cannot use FUSE, set cannot_use_fuse and return %FALSE.
  */
@@ -27,7 +45,7 @@ check_fuse (void)
   g_autofree gchar *fusermount = NULL;
   g_autofree gchar *path = NULL;
   char *argv[] = { "flatpak-fuse-test" };
-  const struct fuse_lowlevel_ops pc_oper = { 0 };
+  const struct fuse_lowlevel_ops pc_oper = { .init = pc_init };
   struct fuse_args args = FUSE_ARGS_INIT (G_N_ELEMENTS (argv), argv);
   struct fuse_session *session = NULL;
   g_autoptr(GError) error = NULL;
@@ -85,8 +103,17 @@ check_fuse (void)
       return FALSE;
     }
 
-  g_test_message ("Successfully set up test FUSE fs on %s", path);
+  g_assert (cannot_use_fuse == NULL);
+  fuse_session_loop (session);
 
+  if (cannot_use_fuse != NULL)
+    {
+      fuse_opt_free_args (&args);
+      fuse_session_destroy (session);
+      return FALSE;
+    }
+
+  g_test_message ("Successfully set up test FUSE fs on %s", path);
   fuse_session_unmount (session);
 
   if (g_rmdir (path) != 0)
