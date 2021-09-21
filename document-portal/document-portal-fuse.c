@@ -88,6 +88,7 @@
 
 static GThread *fuse_thread = NULL;
 static struct fuse_session *session = NULL;
+G_LOCK_DEFINE (session);
 static char *mount_path = NULL;
 static pthread_t fuse_pthread = 0;
 static uid_t my_uid;
@@ -1692,9 +1693,10 @@ invalidate_doc_domain (gpointer user_data)
 
   parent_ino = xdp_inode_to_ino (doc_domain->parent_inode);
 
-  if (g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0 &&
-      g_atomic_pointer_get (&session) != NULL)
-    fuse_lowlevel_notify_inval_entry (session, parent_ino, doc_domain->doc_id, strlen (doc_domain->doc_id));
+  XDP_AUTOLOCK (session);
+  if (session && g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0)
+    fuse_lowlevel_notify_inval_entry (session, parent_ino, doc_domain->doc_id,
+                                      strlen (doc_domain->doc_id));
 
   return FALSE;
 }
@@ -3157,6 +3159,7 @@ xdp_fuse_thread (gpointer data)
   g_auto(XdpAutoFuseArgs) args =
     FUSE_ARGS_INIT (G_N_ELEMENTS (fusermount_argv), fusermount_argv);
   g_autoptr(GMutexLocker) locker = NULL;
+  g_autoptr(GMutexLocker) session_locker = NULL;
   const char *path;
   struct fuse_session *se;
   XdpFuseThreadData *thread_data = data;
@@ -3202,11 +3205,16 @@ xdp_fuse_thread (gpointer data)
 
   loop_config.clone_fd = opts.clone_fd;
   loop_config.max_idle_threads = opts.max_idle_threads;
+  thread_data = NULL;
+
+  session_locker = g_mutex_locker_new (&G_LOCK_NAME (session));
+  g_clear_pointer (&session_locker, g_mutex_locker_free);
   xdp_fuse_mainloop (session, &loop_config);
 
+  session_locker = g_mutex_locker_new (&G_LOCK_NAME (session));
   fuse_session_unmount (se);
-  g_atomic_pointer_set (&session, NULL);
   fuse_session_destroy (se);
+  session = NULL;
 
   return NULL;
 }
@@ -3273,6 +3281,7 @@ xdp_fuse_init (GError **error)
   g_cond_init (&thread_data.cond);
 
   g_mutex_lock (&thread_data.lock);
+  XDP_AUTOLOCK (session);
   fuse_thread = g_thread_new ("fuse mainloop", xdp_fuse_thread, &thread_data);
 
   while (session == NULL && thread_data.error == NULL)
@@ -3296,13 +3305,18 @@ xdp_fuse_init (GError **error)
 void
 xdp_fuse_exit (void)
 {
-  if (g_atomic_pointer_get (&session))
-    fuse_session_exit (session);
+  {
+    XDP_AUTOLOCK (session);
 
-  if (fuse_pthread)
-    pthread_kill (fuse_pthread, SIGHUP);
+    if (session)
+      fuse_session_exit (session);
+
+    if (fuse_pthread)
+      pthread_kill (fuse_pthread, SIGHUP);
+  }
 
   g_clear_pointer (&fuse_thread, g_thread_join);
+  g_assert (session == NULL);
 }
 
 const char *
@@ -3349,11 +3363,12 @@ xdp_fuse_invalidate_doc_app (const char *doc_id,
                              const char *opt_app_id)
 {
   g_autoptr(GArray) invalidates = NULL;
+  XDP_AUTOLOCK (session);
   int i;
 
   /* This can happen if fuse is not initialized yet for the very
      first dbus message that activated the service */
-  if (g_atomic_pointer_get (&session) == NULL)
+  if (session == NULL)
     return;
 
   g_debug ("invalidate %s/%s", doc_id, opt_app_id ? opt_app_id : "*");
