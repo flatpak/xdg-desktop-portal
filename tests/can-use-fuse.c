@@ -1,5 +1,6 @@
 /*
  * Copyright 2019-2021 Collabora Ltd.
+ * Copyright 2021 Canonical Ltd.
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
@@ -12,7 +13,7 @@
 
 #include <glib/gstdio.h>
 
-#define FUSE_USE_VERSION 26
+#define FUSE_USE_VERSION 35
 #include <fuse_lowlevel.h>
 
 gchar *cannot_use_fuse = NULL;
@@ -26,8 +27,9 @@ check_fuse (void)
   g_autofree gchar *fusermount = NULL;
   g_autofree gchar *path = NULL;
   char *argv[] = { "flatpak-fuse-test" };
+  const struct fuse_lowlevel_ops pc_oper = { 0 };
   struct fuse_args args = FUSE_ARGS_INIT (G_N_ELEMENTS (argv), argv);
-  struct fuse_chan *chan = NULL;
+  struct fuse_session *session = NULL;
   g_autoptr(GError) error = NULL;
 
   if (cannot_use_fuse != NULL)
@@ -40,11 +42,11 @@ check_fuse (void)
       return FALSE;
     }
 
-  fusermount = g_find_program_in_path ("fusermount");
+  fusermount = g_find_program_in_path ("fusermount3");
 
   if (fusermount == NULL)
     {
-      cannot_use_fuse = g_strdup ("fusermount not found in PATH");
+      cannot_use_fuse = g_strdup ("fusermount3 not found in PATH");
       return FALSE;
     }
 
@@ -56,16 +58,16 @@ check_fuse (void)
 
   if (!g_file_test ("/etc/mtab", G_FILE_TEST_EXISTS))
     {
-      cannot_use_fuse = g_strdup ("fusermount won't work without /etc/mtab");
+      cannot_use_fuse = g_strdup ("fusermount3 won't work without /etc/mtab");
       return FALSE;
     }
 
   path = g_dir_make_tmp ("flatpak-test.XXXXXX", &error);
   g_assert_no_error (error);
 
-  chan = fuse_mount (path, &args);
+  session = fuse_session_new (&args, &pc_oper, sizeof (pc_oper), &session);
 
-  if (chan == NULL)
+  if (session == NULL)
     {
       fuse_opt_free_args (&args);
       cannot_use_fuse = g_strdup_printf ("fuse_mount: %s",
@@ -73,14 +75,25 @@ check_fuse (void)
       return FALSE;
     }
 
+  if (fuse_session_mount (session, path) != 0)
+    {
+      fuse_opt_free_args (&args);
+      fuse_session_destroy (session);
+      cannot_use_fuse = g_strdup_printf ("fuse_mount: impossible to mount path "
+                                         "'%s': %s",
+                                         path, g_strerror (errno));
+      return FALSE;
+    }
+
   g_test_message ("Successfully set up test FUSE fs on %s", path);
 
-  fuse_unmount (path, chan);
+  fuse_session_unmount (session);
 
   if (g_rmdir (path) != 0)
     g_error ("rmdir %s: %s", path, g_strerror (errno));
 
   fuse_opt_free_args (&args);
+  fuse_session_destroy (session);
 
   return TRUE;
 }

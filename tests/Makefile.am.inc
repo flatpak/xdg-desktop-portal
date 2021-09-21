@@ -13,11 +13,11 @@ testdb_LDADD = \
 	$(NULL)
 testdb_SOURCES = tests/testdb.c	$(DB_SOURCES)
 
-test_doc_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(FUSE_CFLAGS)
+test_doc_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(FUSE3_CFLAGS)
 test_doc_portal_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
-	$(FUSE_LIBS) \
+	$(FUSE3_LIBS) \
 	$(NULL)
 test_doc_portal_SOURCES = \
 	tests/can-use-fuse.c \

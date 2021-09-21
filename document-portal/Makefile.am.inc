@@ -100,5 +100,5 @@ xdg_document_portal_SOURCES = \
 	$(DB_SOURCES) \
 	$(NULL)
 
-xdg_document_portal_LDADD = $(AM_LDADD) $(BASE_LIBS) $(FUSE_LIBS)
-xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
+xdg_document_portal_LDADD = $(AM_LDADD) $(BASE_LIBS) $(FUSE3_LIBS)
+xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE3_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal

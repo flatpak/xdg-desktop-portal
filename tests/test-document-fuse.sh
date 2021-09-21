@@ -7,7 +7,7 @@ skip() {
 }
 
 skip_without_fuse () {
-    fusermount --version >/dev/null 2>&1 || skip "no fusermount"
+    fusermount3 --version >/dev/null 2>&1 || skip "no fusermount3"
 
     capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin' || \
         skip "No cap_sys_admin in bounding set, can't use FUSE"
@@ -47,7 +47,7 @@ export XDG_DATA_HOME=${TEST_DATA_DIR}/home/share
 export XDG_RUNTIME_DIR=${TEST_DATA_DIR}/runtime
 
 cleanup () {
-    fusermount -u "$XDG_RUNTIME_DIR/doc" || :
+    fusermount3 -u "$XDG_RUNTIME_DIR/doc" || :
     sleep 0.1
     kill "$DBUS_SESSION_BUS_PID"
     kill $(jobs -p) &> /dev/null || true
