@@ -117,13 +117,22 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        apt-get update
         apt-get update -y
         apt-get install -y software-properties-common
         add-apt-repository ppa:alexlarsson/flatpak
         apt-get install -y automake autoconf libtool gettext autopoint gcc \
           gtk-doc-tools shared-mime-info desktop-file-utils \
-          libglib2.0-dev libjson-glib-dev libfontconfig1-dev libfuse-dev
+          libglib2.0-dev libjson-glib-dev libfontconfig1-dev
+
+    - name: Install libfuse3
+      run: |
+        # Install libfuse3 dependencies
+        apt-get install -y git python3-pip udev
+        pip3 install meson==0.56.2 ninja
+        git clone https://github.com/libfuse/libfuse.git
+        cd libfuse
+        meson _build -Dexamples=false -Dtests=false
+        ninja -C _build install
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
