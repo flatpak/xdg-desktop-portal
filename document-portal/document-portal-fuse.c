@@ -348,6 +348,31 @@ setattr_flags_to_string (int flags)
   return g_string_free (s, FALSE);
 }
 
+static char *
+renameat2_flags_to_string (int flags)
+{
+#if HAVE_RENAMEAT2
+  GString *s = g_string_new ("");
+
+  if (flags & RENAME_EXCHANGE)
+    g_string_append (s, "EXCHANGE,");
+
+  if (flags & RENAME_NOREPLACE)
+    g_string_append (s, "NOREPLACE,");
+
+  if (flags & RENAME_WHITEOUT)
+    g_string_append (s, "WHITEOUT,");
+
+  /* Remove last comma */
+  if (s->len > 0)
+    g_string_truncate (s, s->len - 1);
+
+  return g_string_free (s, FALSE);
+#else
+  return g_strdup_printf ("%#x", flags);
+#endif
+}
+
 static guint
 devino_hash  (gconstpointer  key)
 {
@@ -2460,6 +2485,28 @@ xdp_fuse_unlink (fuse_req_t  req,
   xdp_reply_err (op, req, 0);
 }
 
+static int
+try_renameat (int olddirfd,
+              const char *oldpath,
+              int newdirfd,
+              const char *newpath,
+              unsigned int flags)
+{
+#if HAVE_RENAMEAT2
+  return renameat2 (olddirfd, oldpath, newdirfd, newpath, flags);
+#else
+  if (flags)
+    {
+      g_warning ("renameat2 is not supported by this system and rename flags are set");
+      errno = EINVAL;
+      return -1;
+    }
+
+  return renameat (olddirfd, oldpath, newdirfd, newpath);
+#endif
+}
+
+
 static void
 xdp_fuse_rename (fuse_req_t  req,
                  fuse_ino_t  parent_ino,
@@ -2470,6 +2517,7 @@ xdp_fuse_rename (fuse_req_t  req,
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
   g_autoptr(XdpInode) newparent = xdp_inode_from_ino (newparent_ino);
+  g_autofree char *rename_flags_string = renameat2_flags_to_string (flags);
   XdpDomain *domain;
   int res, errsv;
   int olddirfd, newdirfd, dirfd;
@@ -2477,7 +2525,8 @@ xdp_fuse_rename (fuse_req_t  req,
   xdp_autofd int close_fd2 = -1;
   const char *op = "RENAME";
 
-  g_debug ("RENAME %lx %s -> %lx %s", parent_ino, name, newparent_ino, newname);
+  g_debug ("RENAME %lx %s -> %lx %s (flags: %s)", parent_ino, name,
+           newparent_ino, newname, rename_flags_string);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2499,7 +2548,7 @@ xdp_fuse_rename (fuse_req_t  req,
       if (newdirfd < 0)
         return xdp_reply_err (op, req, -newdirfd);
 
-      res = renameat (olddirfd, name, newdirfd, newname);
+      res = try_renameat (olddirfd, name, newdirfd, newname, flags);
       if (res != 0)
         return xdp_reply_err (op, req, errno);
 
@@ -2533,7 +2582,7 @@ xdp_fuse_rename (fuse_req_t  req,
           close (tmp_fd);
 
           g_mutex_lock (&domain->tempfile_mutex);
-          res = renameat (dirfd, name, dirfd, tmpname);
+          res = try_renameat (dirfd, name, dirfd, tmpname, flags);
           if (res == -1)
             {
               res = -errno;
@@ -2564,7 +2613,7 @@ xdp_fuse_rename (fuse_req_t  req,
             {
               XdpTempfile *tempfile = stolen_value;
 
-              res = renameat (dirfd, tempfile->tempname, dirfd, newname);
+              res = try_renameat (dirfd, tempfile->tempname, dirfd, newname, flags);
               errsv = errno;
 
               if (res == -1) /* Revert tempfile steal */
