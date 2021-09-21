@@ -1501,11 +1501,11 @@ on_name_lost (GDBusConnection *connection,
   g_main_loop_quit (loop);
 }
 
-void
+int
 on_fuse_unmount (void)
 {
   if (!g_main_loop_is_running (loop))
-    return;
+    return G_SOURCE_REMOVE;
 
   g_debug ("fuse fs unmounted externally");
 
@@ -1516,6 +1516,8 @@ on_fuse_unmount (void)
     g_set_error (&exit_error, G_IO_ERROR, G_IO_ERROR_FAILED, "Fuse filesystem unmounted");
 
   g_main_loop_quit (loop);
+
+  return G_SOURCE_REMOVE;
 }
 
 static void

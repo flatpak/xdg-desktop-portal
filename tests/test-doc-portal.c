@@ -788,7 +788,7 @@ static void
 global_teardown (void)
 {
   GError *error = NULL;
-  char *argv[] = { "fusermount", "-u", NULL, NULL };
+  char *argv[] = { "fusermount3", "-u", NULL, NULL };
   g_autofree char *by_app_dir = g_build_filename (mountpoint, "by-app", NULL);
   struct stat buf;
   g_autoptr(GFile) outdir_file = g_file_new_for_path (outdir);
