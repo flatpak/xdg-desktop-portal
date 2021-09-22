@@ -5,3 +5,4 @@ Description=sandboxed app permission store
 BusName=org.freedesktop.impl.portal.PermissionStore
 ExecStart=@libexecdir@/xdg-permission-store
 Type=dbus
+Slice=session.slice
