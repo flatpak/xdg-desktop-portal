@@ -1,5 +1,6 @@
 [Unit]
 Description=flatpak document portal service
+PartOf=graphical-session.target
 
 [Service]
 BusName=org.freedesktop.portal.Documents
