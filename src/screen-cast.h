@@ -35,6 +35,8 @@ void screen_cast_stream_get_size (ScreenCastStream *stream,
                                   int32_t *width,
                                   int32_t *height);
 
+void screen_cast_remove_transient_permissions_for_sender (const char *sender);
+
 GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
 
 GDBusInterfaceSkeleton * screen_cast_create (GDBusConnection *connection,
