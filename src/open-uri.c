@@ -60,8 +60,6 @@ typedef struct _OpenURIClass OpenURIClass;
 struct _OpenURI
 {
   XdpOpenURISkeleton parent_instance;
-
-  GDBusProxy* file_manager;
 };
 
 struct _OpenURIClass
@@ -689,7 +687,6 @@ handle_open_in_thread_func (GTask *task,
         {
           g_autofree char *real_path = get_real_path_for_doc_path (path, app_id);
 
-          if (open_uri->file_manager != NULL)
             {
               /* Try opening the directory via the file manager interface, then
                  fall back to a plain URI open */
@@ -697,21 +694,36 @@ handle_open_in_thread_func (GTask *task,
               g_autoptr(GVariant) result = NULL;
               g_autoptr(GVariantBuilder) uris_builder = NULL;
               g_autofree char* item_uri = g_filename_to_uri (real_path, NULL, NULL);
+              g_autoptr(GDBusConnection) bus = NULL;
+
+              bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &local_error);
 
               uris_builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
               g_variant_builder_add (uris_builder, "s", item_uri);
 
-              result = g_dbus_proxy_call_sync (open_uri->file_manager,
-                                               FILE_MANAGER_SHOW_ITEMS,
-                                               g_variant_new ("(ass)", uris_builder, ""),
-                                               G_DBUS_CALL_FLAGS_NONE,
-                                               -1,
-                                               NULL,
-                                               &local_error);
+              if (bus)
+                result = g_dbus_connection_call_sync (bus,
+                                                      FILE_MANAGER_DBUS_NAME,
+                                                      FILE_MANAGER_DBUS_PATH,
+                                                      FILE_MANAGER_DBUS_IFACE,
+                                                      FILE_MANAGER_SHOW_ITEMS,
+                                                      g_variant_new ("(ass)", uris_builder, ""),
+                                                      NULL,   /* ignore returned type */
+                                                      G_DBUS_CALL_FLAGS_NONE,
+                                                      -1,
+                                                      NULL,
+                                                      &local_error);
+
               if (result == NULL)
                 {
-                  g_warning ("Failed to call " FILE_MANAGER_SHOW_ITEMS ": %s",
-                             local_error->message);
+                  if (g_error_matches (local_error, G_DBUS_ERROR,
+                                       G_DBUS_ERROR_NAME_HAS_NO_OWNER) ||
+                      g_error_matches (local_error, G_DBUS_ERROR,
+                                       G_DBUS_ERROR_SERVICE_UNKNOWN))
+                    g_debug ("No " FILE_MANAGER_DBUS_NAME " available");
+                  else
+                    g_warning ("Failed to call " FILE_MANAGER_SHOW_ITEMS ": %s",
+                               local_error->message);
                 }
               else
                 {
@@ -1079,20 +1091,6 @@ open_uri_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   open_uri = g_object_new (open_uri_get_type (), NULL);
-  open_uri->file_manager = g_dbus_proxy_new_sync (connection,
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  NULL,
-                                                  FILE_MANAGER_DBUS_NAME,
-                                                  FILE_MANAGER_DBUS_PATH,
-                                                  FILE_MANAGER_DBUS_IFACE,
-                                                  NULL,
-                                                  &error);
-  if (!open_uri->file_manager)
-    {
-      g_debug ("Failed to create FileManager proxy: %s", error->message);
-      // Missing FileManager1 errors should be non-fatal.
-      g_clear_error (&error);
-    }
 
   monitor = g_app_info_monitor_get ();
 
