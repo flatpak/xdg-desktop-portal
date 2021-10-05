@@ -126,17 +126,13 @@ static gboolean
 discover_node_factory_sync (PipeWireRemote *remote,
                             GError **error)
 {
-  struct pw_registry *registry;
-
-  registry = pw_core_get_registry (remote->core, PW_VERSION_REGISTRY, 0);
-  pw_registry_add_listener (registry,
+  remote->registry = pw_core_get_registry (remote->core, PW_VERSION_REGISTRY, 0);
+  pw_registry_add_listener (remote->registry,
                             &remote->registry_listener,
                             &registry_events,
                             remote);
 
   pipewire_remote_roundtrip (remote);
-
-  pw_proxy_destroy((struct pw_proxy*)registry);
 
   if (remote->node_factory_id == 0)
     {
@@ -246,6 +242,7 @@ pipewire_remote_destroy (PipeWireRemote *remote)
     }
 
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
+  g_clear_pointer ((struct pw_proxy **)&remote->registry, pw_proxy_destroy);
   g_clear_pointer (&remote->core, pw_core_disconnect);
   g_clear_pointer (&remote->context, pw_context_destroy);
   g_clear_pointer (&remote->loop, pw_main_loop_destroy);
