@@ -25,12 +25,12 @@
 
       The Print portal allows sandboxed applications to print.
 
-      Due to the way in which printing requires bi-directional communication
-      using this portal will often require applications to make multiple requests:
-      First use org.freedesktop.portal.Print.PreparePrint() to obtain print settings,
+      Due to the way in which printing requires bi-directional communication,
+      using this portal will often require applications to make multiple requests.
+      First, use org.freedesktop.portal.Print.PreparePrint() to obtain print settings,
       use them to format your output, then use org.freedesktop.portal.Print.Print()
       to print the formatted document. It is expected that high-level toolkit
-      APIS such as GtkPrintOperation will hide most of this complexity.
+      APIs such as GtkPrintOperation will hide most of this complexity.
 
       This documentation describes version 1 of this interface.
   -->
