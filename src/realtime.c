@@ -25,8 +25,12 @@
 
 #include "realtime.h"
 #include "request.h"
+#include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+
+#define PERMISSION_TABLE "realtime"
+#define PERMISSION_ID "realtime"
 
 typedef struct _Realtime Realtime;
 typedef struct _RealtimeClass RealtimeClass;
@@ -95,6 +99,8 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
   g_autoptr (GError) error = NULL;
   Request *request = request_from_invocation (invocation);
   pid_t pids[1] = { process };
+  const char *app_id = xdp_app_info_get_id (request->app_info);
+  Permission permission;
 
   if (!realtime->rtkit_proxy)
     {
@@ -102,6 +108,15 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "RealtimeKit was not found");
+    }
+
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  if (permission == PERMISSION_NO)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Permission denied");
       return TRUE;
     }
 
@@ -133,6 +148,8 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
   g_autoptr (GError) error = NULL;
   Request *request = request_from_invocation (invocation);
   pid_t pids[1] = { process };
+  const char *app_id = xdp_app_info_get_id (request->app_info);
+  Permission permission;
 
   if (!realtime->rtkit_proxy)
     {
@@ -140,6 +157,15 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "RealtimeKit was not found");
+    }
+
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  if (permission == PERMISSION_NO)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Permission denied");
       return TRUE;
     }
 
