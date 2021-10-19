@@ -116,6 +116,7 @@
     <xi:include href="portal-org.freedesktop.portal.MemoryMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.PowerProfileMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileTransfer.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Realtime.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Flatpak.UpdateMonitor.xml"/>
   </reference>
