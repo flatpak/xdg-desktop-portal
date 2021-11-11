@@ -30,6 +30,7 @@
 
 #include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 #include <gio/gdesktopappinfo.h>
 
 #include "device.h"
@@ -38,6 +39,10 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+
+#ifdef HAVE_PIPEWIRE
+#include "pipewire.h"
+#endif
 
 #define PERMISSION_TABLE "devices"
 
@@ -188,6 +193,189 @@ device_query_permission_sync (const char *app_id,
   return allowed;
 }
 
+#ifdef HAVE_PIPEWIRE
+static struct {
+  const char *device;
+  const char *media_role;
+  gboolean (*is_disabled) (XdpDbusImplLockdown *lockdown);
+} device_checks[] = {
+  { "camera", "Camera", xdp_dbus_impl_lockdown_get_disable_camera },
+  { "microphone", "Speakers", xdp_dbus_impl_lockdown_get_disable_microphone },
+  { "speakers", "Microphone", xdp_dbus_impl_lockdown_get_disable_sound_output },
+};
+
+static PipeWireRemote *
+open_pipewire_remote (const char *app_id,
+                      GPtrArray *media_roles,
+                      GError **error)
+{
+  g_autofree char *roles = NULL;
+  PipeWireRemote *remote;
+  struct pw_permission permission_items[3];
+  struct pw_properties *pipewire_properties;
+
+  roles = g_strjoinv (",", (GStrv)media_roles->pdata);
+  pipewire_properties =
+    pw_properties_new ("pipewire.access.portal.app_id", app_id,
+                       "pipewire.access.portal.media_roles", roles,
+                       NULL);
+  remote = pipewire_remote_new_sync (pipewire_properties,
+                                     NULL, NULL, NULL, NULL,
+                                     error);
+  if (!remote)
+    return NULL;
+
+  /*
+   * Hide all existing and future nodes by default. PipeWire will use the
+   * permission store to set up permissions.
+   */
+  permission_items[0] = PW_PERMISSION_INIT (PW_ID_CORE, PW_PERM_RWX);
+  permission_items[1] = PW_PERMISSION_INIT (remote->node_factory_id, PW_PERM_R);
+  permission_items[2] = PW_PERMISSION_INIT (PW_ID_ANY, 0);
+
+  pw_client_update_permissions (pw_core_get_client (remote->core),
+                                G_N_ELEMENTS (permission_items),
+                                permission_items);
+
+  pipewire_remote_roundtrip (remote);
+
+  return remote;
+}
+#endif
+
+static gboolean
+handle_open_pipewire_remote (XdpDbusDevice *object,
+                             GDBusMethodInvocation *invocation,
+                             GUnixFDList *fd_list,
+                             GVariant *arg_options)
+{
+#ifdef HAVE_PIPEWIRE
+  g_autoptr(GUnixFDList) out_fd_list = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GPtrArray) media_roles = NULL;
+  g_autoptr(GError) error = NULL;
+  g_auto(GStrv) requested_devices = NULL;
+  PipeWireRemote *remote;
+  const char *app_id;
+  size_t i;
+  int fd_id;
+  int fd;
+
+  if (!g_variant_lookup (arg_options, "devices", "as", &requested_devices))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "No devices requested");
+      return TRUE;
+    }
+
+  if (requested_devices == NULL || requested_devices[0] == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "No devices requested");
+      return TRUE;
+    }
+
+  /* Check if any of the requested devices is invalid */
+  for (i = 0; requested_devices[i]; i++)
+    {
+      gboolean found = FALSE;
+      gsize j = 0;
+      for (j = 0; j < G_N_ELEMENTS (device_checks); j++)
+        {
+          if (g_strcmp0 (requested_devices[i], device_checks[j].device))
+            {
+              found = TRUE;
+              break;
+            }
+        }
+
+      if (!found)
+        {
+          g_dbus_method_invocation_return_error (invocation,
+                                                 XDG_DESKTOP_PORTAL_ERROR,
+                                                 XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                 "Invalid device requested");
+          return TRUE;
+        }
+    }
+
+  app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
+  app_id = xdp_app_info_get_id (app_info);
+
+  media_roles = g_ptr_array_new ();
+  for (i = 0; i < G_N_ELEMENTS (device_checks); i++)
+    {
+      Permission permission;
+
+      if (!g_strv_contains ((const char* const*)requested_devices,
+                            device_checks[i].device))
+        continue;
+
+      if (!device_checks[i].is_disabled (lockdown))
+        continue;
+
+      permission = device_get_permission_sync (app_id, device_checks[i].device);
+      if (permission != PERMISSION_YES)
+        continue;
+
+      g_ptr_array_add (media_roles, (gpointer) device_checks[i].media_role);
+    }
+  g_ptr_array_add (media_roles, NULL);
+
+  if (media_roles->len == 1)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Not allowed to access any of the requested devices");
+      return TRUE;
+    }
+
+  remote = open_pipewire_remote (app_id, media_roles, &error);
+  if (!remote)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Failed to open PipeWire remote: %s",
+                                             error->message);
+      return TRUE;
+    }
+
+  out_fd_list = g_unix_fd_list_new ();
+  fd = pw_core_steal_fd (remote->core);
+  fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+  close (fd);
+  pipewire_remote_destroy (remote);
+
+  if (fd_id == -1)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Failed to append fd: %s",
+                                             error->message);
+      return TRUE;
+    }
+
+  xdp_dbus_device_complete_open_pipewire_remote (object, invocation,
+                                                 out_fd_list,
+                                                 g_variant_new_handle (fd_id));
+  return TRUE;
+
+#else /* HAVE_PIPEWIRE */
+  g_dbus_method_invocation_return_error (invocation,
+                                         XDG_DESKTOP_PORTAL_ERROR,
+                                         XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                         "PipeWire disabled");
+  return TRUE;
+#endif /* HAVE_PIPEWIRE */
+}
+
 static void
 handle_access_device_in_thread (GTask *task,
                                 gpointer source_object,
@@ -323,12 +511,13 @@ static void
 device_iface_init (XdpDbusDeviceIface *iface)
 {
   iface->handle_access_device = handle_access_device;
+  iface->handle_open_pipewire_remote = handle_open_pipewire_remote;
 }
 
 static void
 device_init (Device *device)
 {
-  xdp_dbus_device_set_version (XDP_DBUS_DEVICE (device), 1);
+  xdp_dbus_device_set_version (XDP_DBUS_DEVICE (device), 2);
 }
 
 static void
