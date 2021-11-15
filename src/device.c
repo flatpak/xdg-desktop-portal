@@ -49,9 +49,26 @@
 typedef struct _Device Device;
 typedef struct _DeviceClass DeviceClass;
 
+enum
+{
+  CAMERA,
+  SPEAKERS,
+  MICROPHONE,
+  N_DEVICES,
+};
+
 struct _Device
 {
   XdpDbusDeviceSkeleton parent_instance;
+
+#ifdef HAVE_PIPEWIRE
+  PipeWireRemote *pipewire_remote;
+  GSource *pipewire_source;
+  GFileMonitor *pipewire_socket_monitor;
+  int64_t connect_timestamps[10];
+  int connect_timestamps_i;
+  GHashTable *devices[N_DEVICES];
+#endif
 };
 
 struct _DeviceClass
@@ -65,6 +82,11 @@ static XdpDbusImplLockdown *lockdown;
 
 GType device_get_type (void) G_GNUC_CONST;
 static void device_iface_init (XdpDbusDeviceIface *iface);
+
+#ifdef HAVE_PIPEWIRE
+static gboolean create_pipewire_remote (Device *device,
+                                        GError **error);
+#endif
 
 G_DEFINE_TYPE_WITH_CODE (Device, device, XDP_DBUS_TYPE_DEVICE_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_DEVICE,
@@ -514,15 +536,245 @@ device_iface_init (XdpDbusDeviceIface *iface)
   iface->handle_open_pipewire_remote = handle_open_pipewire_remote;
 }
 
+#ifdef HAVE_PIPEWIRE
+
+static void
+global_added_cb (PipeWireRemote *remote,
+                 uint32_t id,
+                 const char *type,
+                 const struct spa_dict *props,
+                 gpointer user_data)
+{
+  Device *device = user_data;
+  const struct spa_dict_item *media_class;
+
+  if (strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
+    return;
+
+  if (!props)
+    return;
+
+  media_class = spa_dict_lookup_item (props, PW_KEY_MEDIA_CLASS);
+  if (!media_class)
+    return;
+
+  if (g_strcmp0 (media_class->value, "Video/Source") == 0)
+    {
+      const struct spa_dict_item *media_role;
+
+      media_role = spa_dict_lookup_item (props, PW_KEY_MEDIA_ROLE);
+      if (!media_role)
+        return;
+
+      if (g_strcmp0 (media_role->value, "Camera") != 0)
+        return;
+
+      g_hash_table_add (device->devices[CAMERA], GUINT_TO_POINTER (id));
+      xdp_dbus_device_set_is_camera_present (XDP_DBUS_DEVICE (device),
+                                             g_hash_table_size (device->devices[CAMERA]) > 0);
+    }
+  else if (g_strcmp0 (media_class->value, "Audio/Source") == 0)
+    {
+      g_hash_table_add (device->devices[MICROPHONE], GUINT_TO_POINTER (id));
+      xdp_dbus_device_set_is_microphone_present (XDP_DBUS_DEVICE (device),
+                                                 g_hash_table_size (device->devices[MICROPHONE]) > 0);
+    }
+  else if (g_strcmp0 (media_class->value, "Audio/Sink") == 0)
+    {
+      g_hash_table_add (device->devices[SPEAKERS], GUINT_TO_POINTER (id));
+      xdp_dbus_device_set_is_speaker_present (XDP_DBUS_DEVICE (device),
+                                              g_hash_table_size (device->devices[SPEAKERS]) > 0);
+    }
+}
+
+static void
+global_removed_cb (PipeWireRemote *remote,
+                   uint32_t id,
+                   gpointer user_data)
+{
+  Device *device = user_data;
+
+  g_hash_table_remove (device->devices[CAMERA], GUINT_TO_POINTER (id));
+  xdp_dbus_device_set_is_camera_present (XDP_DBUS_DEVICE (device),
+                                    g_hash_table_size (device->devices[CAMERA]) > 0);
+
+  g_hash_table_remove (device->devices[SPEAKERS], GUINT_TO_POINTER (id));
+  xdp_dbus_device_set_is_speaker_present (XDP_DBUS_DEVICE (device),
+                                          g_hash_table_size (device->devices[SPEAKERS]) > 0);
+
+  g_hash_table_remove (device->devices[MICROPHONE], GUINT_TO_POINTER (id));
+  xdp_dbus_device_set_is_microphone_present (XDP_DBUS_DEVICE (device),
+                                             g_hash_table_size (device->devices[MICROPHONE]) > 0);
+}
+
+static void
+pipewire_remote_error_cb (gpointer data,
+                          gpointer user_data)
+{
+  Device *device = user_data;
+  g_autoptr(GError) error = NULL;
+
+  g_hash_table_remove_all (device->devices[CAMERA]);
+  xdp_dbus_device_set_is_camera_present (XDP_DBUS_DEVICE (device), FALSE);
+
+  g_hash_table_remove_all (device->devices[SPEAKERS]);
+  xdp_dbus_device_set_is_speaker_present (XDP_DBUS_DEVICE (device), FALSE);
+
+  g_hash_table_remove_all (device->devices[MICROPHONE]);
+  xdp_dbus_device_set_is_microphone_present (XDP_DBUS_DEVICE (device), FALSE);
+
+  g_clear_pointer (&device->pipewire_source, g_source_destroy);
+  g_clear_pointer (&device->pipewire_remote, pipewire_remote_destroy);
+
+  if (!create_pipewire_remote (device, &error))
+    g_warning ("Failed connect to PipeWire: %s", error->message);
+}
+
+static gboolean
+create_pipewire_remote (Device *device,
+                        GError **error)
+{
+  struct pw_properties *pipewire_properties;
+  const int n_connect_retries = G_N_ELEMENTS (device->connect_timestamps);
+  int64_t now;
+  int max_retries_ago_i;
+  int64_t max_retries_ago;
+
+  now = g_get_monotonic_time ();
+  device->connect_timestamps[device->connect_timestamps_i] = now;
+
+  max_retries_ago_i = (device->connect_timestamps_i + 1) % n_connect_retries;
+  max_retries_ago = device->connect_timestamps[max_retries_ago_i];
+
+  device->connect_timestamps_i =
+    (device->connect_timestamps_i + 1) % n_connect_retries;
+
+  if (max_retries_ago &&
+      now - max_retries_ago < G_USEC_PER_SEC * 10)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Tried to reconnect to PipeWire too often, giving up");
+      return FALSE;
+    }
+
+  pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
+                                           "portal.monitor", "Camera,Speakers,Microphone",
+                                           NULL);
+  device->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
+                                                      global_added_cb,
+                                                      global_removed_cb,
+                                                      pipewire_remote_error_cb,
+                                                      device,
+                                                      error);
+  if (!device->pipewire_remote)
+    return FALSE;
+
+  device->pipewire_source =
+    pipewire_remote_create_source (device->pipewire_remote);
+
+  return TRUE;
+}
+
+static void
+on_pipewire_socket_changed (GFileMonitor *monitor,
+                            GFile *file,
+                            GFile *other_file,
+                            GFileMonitorEvent event_type,
+                            Device *device)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (event_type != G_FILE_MONITOR_EVENT_CREATED)
+    return;
+
+  if (device->pipewire_remote)
+    {
+      g_debug ("PipeWire socket created after remote was created");
+      return;
+    }
+
+  g_debug ("PipeWireSocket created, tracking devices");
+
+  if (!create_pipewire_remote (device, &error))
+    g_warning ("Failed connect to PipeWire: %s", error->message);
+}
+
+static gboolean
+init_device_tracker (Device *device,
+                     GError **error)
+{
+  g_autofree char *pipewire_socket_path = NULL;
+  GFile *pipewire_socket;
+  g_autoptr(GError) local_error = NULL;
+
+  pipewire_socket_path = g_strdup_printf ("%s/pipewire-0",
+                                          g_get_user_runtime_dir ());
+  pipewire_socket = g_file_new_for_path (pipewire_socket_path);
+  device->pipewire_socket_monitor =
+    g_file_monitor_file (pipewire_socket, G_FILE_MONITOR_NONE, NULL, error);
+  if (!device->pipewire_socket_monitor)
+    return FALSE;
+
+  g_signal_connect (device->pipewire_socket_monitor,
+                    "changed",
+                    G_CALLBACK (on_pipewire_socket_changed),
+                    device);
+
+  device->devices[CAMERA] = g_hash_table_new (NULL, NULL);
+  device->devices[SPEAKERS] = g_hash_table_new (NULL, NULL);
+  device->devices[MICROPHONE] = g_hash_table_new (NULL, NULL);
+
+  if (!create_pipewire_remote (device, &local_error))
+    g_warning ("Failed connect to PipeWire: %s", local_error->message);
+
+  return TRUE;
+}
+
+#else
+
+static gboolean
+init_device_tracker (Device *device,
+                     GError **error)
+{
+  g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "PipeWire disabled");
+  return FALSE;
+}
+
+#endif /* HAVE_PIPEWIRE */
+
+static void
+device_finalize (GObject *object)
+{
+#ifdef HAVE_PIPEWIRE
+  Device *device = (Device *)object;
+
+  g_clear_pointer (&device->pipewire_source, g_source_destroy);
+  g_clear_pointer (&device->pipewire_remote, pipewire_remote_destroy);
+  g_clear_pointer (&device->devices[CAMERA], g_hash_table_unref);
+  g_clear_pointer (&device->devices[SPEAKERS], g_hash_table_unref);
+  g_clear_pointer (&device->devices[MICROPHONE], g_hash_table_unref);
+#endif
+
+  G_OBJECT_CLASS (device_parent_class)->finalize (object);
+}
+
 static void
 device_init (Device *device)
 {
+  g_autoptr(GError) error = NULL;
+
   xdp_dbus_device_set_version (XDP_DBUS_DEVICE (device), 2);
+
+  if (!init_device_tracker (device, &error))
+    g_warning ("Failed to track devices: %s", error->message);
 }
 
 static void
 device_class_init (DeviceClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = device_finalize;
 }
 
 GDBusInterfaceSkeleton *
