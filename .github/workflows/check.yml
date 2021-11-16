@@ -24,7 +24,8 @@ jobs:
       run: |
         apt-get update
         apt-get upgrade -y
-        apt-get install -y make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
+        apt-get install -y -y --no-install-recommends \
+          make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
           gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing xmlto \
           libglib2.0-dev libgeoclue-2-dev libjson-glib-dev libfontconfig1-dev libfuse-dev libportal-dev libpipewire-0.3-dev
 
