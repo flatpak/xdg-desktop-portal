@@ -40,7 +40,7 @@ test_trash_file (void)
 
   expected = FALSE;
   got_info = FALSE;
-  xdp_portal_trash_file (portal, "/etc/passwd", NULL, trash_cb, &expected);
+  xdp_portal_trash_file (portal, "/proc/cmdline", NULL, trash_cb, &expected);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);    
