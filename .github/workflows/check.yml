@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   DEBIAN_FRONTEND: noninteractive
+  TESTS_TIMEOUT: 5 # in minutes
 
 jobs:
   check:
@@ -38,7 +39,7 @@ jobs:
 
     - name: Run xdg-desktop-portal tests
       # TODO: Build with -j (currently ends up with hangs in the tests)
-      run: make check
+      run: timeout ${TESTS_TIMEOUT}m make check
       env:
         TEST_IN_CI: 1
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
@@ -49,7 +50,8 @@ jobs:
     - name: Run xdg-desktop-portal installed-tests
       run: |
         mkdir installed-test-logs/
-        gnome-desktop-testing-runner --report-directory installed-test-logs/ xdg-desktop-portal
+        gnome-desktop-testing-runner --report-directory installed-test-logs/ \
+          -t $((TESTS_TIMEOUT * 60)) xdg-desktop-portal
       env:
         G_MESSAGES_DEBUG: all
         TEST_IN_CI: 1
