@@ -661,10 +661,11 @@ def check_directory_doc_perms(doc, app_id):
     real_filepath2 = doc.real_path + "/dir/a-file2"
 
     if writable: # We can create files
-        assertRaises(PermissionError, os.open, dir + "/readonly", os.O_RDWR)
-        os.chmod(dir + "/readonly", 0o700)
-        fd = os.open (dir + "/readonly", os.O_RDWR) # Works now
-        os.close(fd)
+        if os.environ.get('TEST_IN_CI'):
+            assertRaises(PermissionError, os.open, dir + "/readonly", os.O_RDWR)
+            os.chmod(dir + "/readonly", 0o700)
+            fd = os.open (dir + "/readonly", os.O_RDWR) # Works now
+            os.close(fd)
 
         setFileContent(filepath, "filedata")
         assertFileHasContent(filepath, "filedata")
