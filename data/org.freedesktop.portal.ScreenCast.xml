@@ -152,7 +152,7 @@
 
               If the permission for the session to persist is granted, a restore token will
               be returned via the #org.freedesktop.portal.Request::Response signal of the
-              #org.freedesktop.portal.Screencast.Start method.
+              #org.freedesktop.portal.ScreenCast.Start method.
 
               This option was added in version 4 of this interface.
             </para></listitem>
