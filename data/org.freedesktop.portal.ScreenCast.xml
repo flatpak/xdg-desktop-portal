@@ -23,7 +23,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
@@ -119,6 +119,44 @@
               This option was added in version 2 of this interface.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>restore_token s</term>
+            <listitem><para>
+              The token to restore a previous session.
+
+              If the stored session cannot be restored, this value is ignored
+              and the user will be prompted normally. This may happen when, for
+              example, the session contains a monitor or a window that is not
+              available anymore, or when the stored permissions are withdrawn.
+
+              The restore token is invalidated after using it once. To restore
+              the same session again, use the new restore token sent in response
+              to starting this session.
+
+              This option was added in version 4 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>persist_mode u</term>
+            <listitem><para>
+              How this session should persist. Default is 0. Accepted values are:
+
+              <simplelist>
+                <member>0: Do not persist (default)</member>
+                <member>1: Permissions persist as long as the application is running</member>
+                <member>2: Permissions persist until explicitly revoked</member>
+              </simplelist>
+
+              Remote desktop screen cast sessions cannot persist. The only allowed
+              persist_mode for remote desktop sessions is 0.
+
+              If the permission for the session to persist is granted, a restore token will
+              be returned via the #org.freedesktop.portal.Request::Response signal of the
+              #org.freedesktop.portal.ScreenCast.Start method.
+
+              This option was added in version 4 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         For available source types, see the AvailableSourceTypes property.
@@ -169,10 +207,29 @@
               'multiple' was set to 'true' as part of the SelectSources method.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>restore_token s</term>
+            <listitem><para>
+              The restore token. This token is a single use token that can later
+              be used to restore a session. See
+              #org.freedesktop.portal.ScreenCast.SelectSources for details.
+
+              This response option was added in version 4 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         Stream properties include:
         <variablelist>
+          <varlistentry>
+            <term>id s</term>
+            <listitem><para>
+              Opaque identifier. Will be unique for this stream and local to this
+              session. Will persist with future sessions, if they are restored
+              using a restore token. This property was added in version 4 of this
+              interface. Optional.
+            </para></listitem>
+          </varlistentry>
           <varlistentry>
             <term>position (ii)</term>
             <listitem><para>
