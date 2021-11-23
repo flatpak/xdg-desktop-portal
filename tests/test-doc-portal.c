@@ -16,6 +16,7 @@
 #include "document-portal/document-portal-dbus.h"
 
 #include "can-use-fuse.h"
+#include "utils.h"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
 
@@ -708,6 +709,9 @@ global_setup (void)
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
   g_setenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS", fuse_status_file, TRUE);
+
+  /* Re-defining dbus-monitor with a custom script */
+  setup_dbus_daemon_wrapper (outdir);
 
   dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
   services = g_test_build_filename (G_TEST_BUILT, "services", NULL);

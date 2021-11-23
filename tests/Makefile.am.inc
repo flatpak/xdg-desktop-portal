@@ -23,6 +23,8 @@ test_doc_portal_SOURCES = \
 	tests/can-use-fuse.c \
 	tests/can-use-fuse.h \
 	tests/test-doc-portal.c \
+	tests/utils.c \
+	tests/utils.h \
 	$(NULL)
 nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
@@ -66,8 +68,6 @@ test_portals_SOURCES += \
 	tests/trash.h \
 	tests/wallpaper.c \
 	tests/wallpaper.h \
-	tests/utils.c \
-	tests/utils.h \
         tests/glib-backports.c \
         tests/glib-backports.h \
 	$(NULL)
@@ -77,6 +77,8 @@ nodist_test_portals_SOURCES = \
 	src/xdp-impl-dbus.c \
 	src/xdp-utils.c \
         document-portal/permission-store-dbus.c \
+		tests/utils.c \
+		tests/utils.h \
 	$(NULL)
 test_programs += test-portals
 
@@ -86,7 +88,11 @@ test_permission_store_LDADD = \
 	$(BASE_LIBS) \
 	$(NULL)
 test_permission_store_SOURCES = tests/test-permission-store.c
-nodist_test_permission_store_SOURCES = document-portal/permission-store-dbus.c src/xdp-utils.c
+nodist_test_permission_store_SOURCES = \
+	document-portal/permission-store-dbus.c src/xdp-utils.c \
+	tests/utils.c \
+	tests/utils.h \
+	$(NULL)
 
 EXTRA_test_permission_store_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
