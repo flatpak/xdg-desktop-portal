@@ -1922,13 +1922,13 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
                            GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  xdp_lockguard GMutex *guard = NULL;
+  g_autoptr(GMutexLocker) guard = NULL;
   xdp_autofd int fd = -1;
   pid_t pid;
   ino_t ns;
   int r;
 
-  guard = xdp_auto_lock_helper (app_info->u.flatpak.pidns_lock);
+  guard = g_mutex_locker_new (app_info->u.flatpak.pidns_lock);
 
   if (app_info->u.flatpak.pidns_id != 0)
     return TRUE;

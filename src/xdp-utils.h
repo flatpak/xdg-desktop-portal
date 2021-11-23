@@ -157,22 +157,10 @@ xdp_close_fd (int *fdp)
 
 #define xdp_autofd __attribute__((cleanup(xdp_close_fd)))
 
-static inline void
-xdp_auto_unlock_helper (GMutex **mutex)
-{
-  if (*mutex)
-    g_mutex_unlock (*mutex);
-}
-
-static inline GMutex *
-xdp_auto_lock_helper (GMutex *mutex)
-{
-  if (mutex)
-    g_mutex_lock (mutex);
-  return mutex;
-}
-
-#define XDP_AUTOLOCK(name) G_GNUC_UNUSED __attribute__((cleanup (xdp_auto_unlock_helper))) GMutex * G_PASTE (auto_unlock, __LINE__) = xdp_auto_lock_helper (&G_LOCK_NAME (name))
+#define XDP_AUTOLOCK(name) \
+  g_autoptr(GMutexLocker) G_PASTE (name ## locker, __LINE__) = \
+    g_mutex_locker_new (&G_LOCK_NAME (name)); \
+  (void) G_PASTE (name ## locker, __LINE__);
 
 
 char *   xdp_quote_argv (const char           *argv[]);
