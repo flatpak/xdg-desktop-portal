@@ -32,6 +32,7 @@ jobs:
           -e DEBIAN_FRONTEND \
           -e DEBCONF_NONINTERACTIVE_SEEN=true \
           -e TERM=dumb \
+          -e MAKEFLAGS="-j $(getconf _NPROCESSORS_ONLN)" \
           -e CC -e CFLAGS \
           -d ubuntu:$UBUNTU_VERSION sleep infinity
 
@@ -56,10 +57,9 @@ jobs:
       run: $RUN_CMD $AS_USER ./autogen.sh --disable-dependency-tracking --enable-installed-tests
 
     - name: Build xdg-desktop-portal
-      run: $RUN_CMD $AS_USER make -j $(getconf _NPROCESSORS_ONLN)
+      run: $RUN_CMD $AS_USER make
 
     - name: Run xdg-desktop-portal tests
-      # TODO: Build with -j (currently ends up with hangs in the tests)
       run: $RUN_CMD $AS_USER timeout ${TESTS_TIMEOUT}m make check
       env:
         TEST_IN_CI: 1
