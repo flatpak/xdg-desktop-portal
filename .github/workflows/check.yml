@@ -63,6 +63,7 @@ jobs:
       run: $RUN_CMD $AS_USER timeout ${TESTS_TIMEOUT}m make check
       env:
         TEST_IN_CI: 1
+        G_MESSAGES_DEBUG: all
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Install xdg-desktop-portal
