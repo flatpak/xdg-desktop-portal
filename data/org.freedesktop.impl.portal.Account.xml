@@ -34,6 +34,9 @@
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
         @app_id: App id of the application
         @window: Identifier for the window
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
 
         Gets information about the user.
 
