@@ -103,12 +103,48 @@ register_portal (const char *path, gboolean opt_verbose, GError **error)
   return TRUE;
 }
 
+static gboolean
+g_strv_case_contains (const gchar * const *strv,
+                      const gchar         *str)
+{
+  for (; strv && *strv != NULL; strv++)
+    {
+      if (g_ascii_strcasecmp (str, *strv) == 0)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
 static gint
-sort_impl_by_name (gconstpointer a,
-                   gconstpointer b)
+sort_impl_by_use_in_and_name (gconstpointer a,
+                              gconstpointer b)
 {
   const PortalImplementation *pa = a;
   const PortalImplementation *pb = b;
+  const char *desktops_str = NULL;
+  g_auto(GStrv) desktops = NULL;
+  int i;
+
+  desktops_str = g_getenv ("XDG_CURRENT_DESKTOP");
+
+  if (desktops_str == NULL)
+    desktops_str = "";
+
+  desktops = g_strsplit (desktops_str, ":", -1);
+
+  for (i = 0; desktops[i] != NULL; i++)
+    {
+      gboolean use_a = g_strv_case_contains ((const char **)pa->use_in, desktops[i]);
+      gboolean use_b = g_strv_case_contains ((const char **)pb->use_in, desktops[i]);
+
+      if (use_a != use_b)
+        return use_b - use_a;
+      else if (use_a)
+        break;
+      else
+        continue;
+    }
 
   return strcmp (pa->source, pb->source);
 }
@@ -159,20 +195,7 @@ load_installed_portals (gboolean opt_verbose)
         }
     }
 
-  implementations = g_list_sort (implementations, sort_impl_by_name);
-}
-
-static gboolean
-g_strv_case_contains (const gchar * const *strv,
-                      const gchar         *str)
-{
-  for (; *strv != NULL; strv++)
-    {
-      if (g_ascii_strcasecmp (str, *strv) == 0)
-        return TRUE;
-    }
-
-  return FALSE;
+  implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
 }
 
 PortalImplementation *
