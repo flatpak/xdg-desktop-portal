@@ -174,6 +174,15 @@ session_close (Session *session,
 
   SESSION_GET_CLASS (session)->close (session);
 
+  if (notify_closed)
+    {
+      GVariantBuilder details_builder;
+
+      g_variant_builder_init (&details_builder, G_VARIANT_TYPE_VARDICT);
+      g_signal_emit_by_name (session, "closed",
+                             g_variant_builder_end (&details_builder));
+    }
+
   if (session->exported)
     session_unexport (session);
 
@@ -193,14 +202,6 @@ session_close (Session *session,
 
   session->closed = TRUE;
 
-  if (notify_closed)
-    {
-      GVariantBuilder details_builder;
-
-      g_variant_builder_init (&details_builder, G_VARIANT_TYPE_VARDICT);
-      g_signal_emit_by_name (session, "closed",
-                             g_variant_builder_end (&details_builder));
-    }
 
   g_object_unref (session);
 }
