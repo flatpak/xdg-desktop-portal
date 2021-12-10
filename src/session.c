@@ -272,9 +272,9 @@ close_sessions_for_sender (const char *sender)
 }
 
 static void
-on_closed (XdpImplSession *object)
+on_closed (XdpImplSession *object, GObject *data)
 {
-  Session *session = (Session *)object;
+  Session *session = (Session *)data;
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
@@ -339,7 +339,7 @@ session_initable_init (GInitable *initable,
       if (!impl_session)
         return FALSE;
 
-      g_signal_connect (impl_session, "closed", G_CALLBACK (on_closed), NULL);
+      g_signal_connect (impl_session, "closed", G_CALLBACK (on_closed), session);
 
       session->impl_session = g_steal_pointer (&impl_session);
     }
