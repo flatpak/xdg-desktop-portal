@@ -90,7 +90,6 @@
         bus.
       </para>
     </partintro>
-    <xi:include href="portal-org.freedesktop.portal.Account.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Request.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
@@ -142,7 +141,6 @@
       by the portal frontend.
     </para>
     </partintro>
-    <xi:include href="portal-org.freedesktop.impl.portal.Account.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Request.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Session.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
