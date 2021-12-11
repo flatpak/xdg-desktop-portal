@@ -1,0 +1,43 @@
+name: Documentation
+
+on: [push, pull_request]
+
+jobs:
+  docs:
+    runs-on: ubuntu-20.04
+    container:
+      image: ubuntu:22.04
+    steps:
+      - name: Install dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get upgrade -y
+          apt-get install -y --no-install-recommends \
+          make automake autoconf libtool gettext autopoint gcc \
+          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing xmlto fuse libflatpak-dev \
+          libglib2.0-dev libgeoclue-2-dev libjson-glib-dev libfontconfig1-dev libfuse-dev libportal-dev libpipewire-0.3-dev
+
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v2
+
+      - name: Build docs
+        run: |
+          ./autogen.sh --enable-docbook-docs
+          make
+
+      - name: Prepare docs
+        working-directory: doc
+        run: |
+          mkdir published-docs
+          mv portal-docs.html ./published-docs
+          mv docbook.css ./published-docs
+
+      - name: Deploy docs
+        uses: peaceiris/actions-gh-pages@v3
+        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/master') }}
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./doc/published-docs/
+          destination_dir: ./
