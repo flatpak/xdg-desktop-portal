@@ -31,7 +31,8 @@ jobs:
         working-directory: doc
         run: |
           mkdir published-docs
-          mv portal-docs.html ./published-docs
+          mv portal-docs.html ./published-docs/index.html
+          mv redirect.html ./published-docs/portal-docs.html
           mv docbook.css ./published-docs
 
       - name: Deploy docs
