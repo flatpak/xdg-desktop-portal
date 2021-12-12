@@ -59,7 +59,7 @@ jobs:
         $RUN_CMD apt-get upgrade -y
         $RUN_CMD apt-get install -y --no-install-recommends \
           make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
-          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing xmlto fuse libflatpak-dev \
+          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing fuse libflatpak-dev \
           libglib2.0-dev libgeoclue-2-dev libjson-glib-dev libfontconfig1-dev libfuse-dev libportal-dev libpipewire-0.3-dev
 
     - name: Check out xdg-desktop-portal
@@ -71,7 +71,7 @@ jobs:
         $RUN_CMD chown tester:tester . -R
 
     - name: Configure xdg-desktop-portal
-      run: $RUN_CMD $AS_USER ./autogen.sh --disable-dependency-tracking --enable-installed-tests --enable-docbook-docs
+      run: $RUN_CMD $AS_USER ./autogen.sh --disable-dependency-tracking --enable-installed-tests
 
     - name: Build xdg-desktop-portal
       run: $RUN_CMD $AS_USER make
