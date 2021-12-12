@@ -15,7 +15,7 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y --no-install-recommends \
-          make automake autoconf libtool gettext autopoint gcc git \
+          make automake autoconf libtool gettext autopoint gcc git ca-certificates \
           gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing xmlto fuse libflatpak-dev \
           libglib2.0-dev libgeoclue-2-dev libjson-glib-dev libfontconfig1-dev libfuse-dev libportal-dev libpipewire-0.3-dev
 
