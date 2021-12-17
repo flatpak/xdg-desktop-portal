@@ -36,8 +36,7 @@ char outdir[] = "/tmp/xdp-test-XXXXXX";
 
 static GTestDBus *dbus;
 static GDBusConnection *session_bus;
-static GSubprocess *portals;
-static GSubprocess *backends;
+static GList *test_procs = NULL;
 XdpImplPermissionStore *permission_store;
 XdpImplLockdown *lockdown;
 
@@ -127,6 +126,7 @@ global_setup (void)
   g_autofree gchar *portal_dir = NULL;
   g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
+  g_autoptr(GSubprocess) subprocess = NULL;
   guint name_timeout;
   const char *argv[4];
   GQuark portal_errors G_GNUC_UNUSED;
@@ -183,8 +183,9 @@ global_setup (void)
 
   g_print ("launching test-backend\n");
 
-  backends = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
+  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch test-backends");
 
@@ -226,8 +227,9 @@ global_setup (void)
 
   g_print ("launching %s\n", argv0);
 
-  portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
+  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
   g_clear_pointer (&argv0, g_free);
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-desktop-portal");
@@ -268,8 +270,9 @@ global_setup (void)
 
   g_print ("launching %s\n", argv0);
 
-  portals = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
+  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
 
@@ -310,8 +313,8 @@ global_teardown (void)
   g_dbus_connection_close_sync (session_bus, NULL, &error);
   g_assert_no_error (error);
 
-  g_subprocess_force_exit (portals);
-  g_subprocess_force_exit (backends);
+  g_list_foreach (test_procs, (GFunc) g_subprocess_force_exit, NULL);
+  g_list_free_full (g_steal_pointer (&test_procs), g_object_unref);
 
   g_object_unref (lockdown);
   g_object_unref (permission_store);
