@@ -61,7 +61,8 @@ jobs:
           make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
           gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing \
           fuse3 libflatpak-dev libglib2.0-dev libgeoclue-2-dev libjson-glib-dev \
-          libfontconfig1-dev libfuse3-dev libportal-dev libpipewire-0.3-dev
+          libfontconfig1-dev libfuse3-dev libportal-dev libpipewire-0.3-dev \
+          llvm
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
