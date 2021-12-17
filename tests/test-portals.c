@@ -185,7 +185,9 @@ global_setup (void)
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
-  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
+  g_test_message ("Launched %s with pid %s\n", argv[0],
+                  g_subprocess_get_identifier (subprocess));
+  test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch test-backends");
 
@@ -229,7 +231,9 @@ global_setup (void)
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
-  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
+  g_test_message ("Launched %s with pid %s\n", argv[0],
+                  g_subprocess_get_identifier (subprocess));
+  test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
   g_clear_pointer (&argv0, g_free);
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-desktop-portal");
@@ -272,7 +276,9 @@ global_setup (void)
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
-  test_procs = g_list_prepend (test_procs, g_steal_pointer (&subprocess));
+  g_test_message ("Launched %s with pid %s\n", argv[0],
+                  g_subprocess_get_identifier (subprocess));
+  test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
 
@@ -303,6 +309,42 @@ global_setup (void)
 }
 
 static void
+wait_for_test_procs (void)
+{
+  GList *l;
+
+  for (l = test_procs; l; l = l->next)
+    {
+      GSubprocess *subprocess = G_SUBPROCESS (l->data);
+      GError *error = NULL;
+      g_autofree char *identifier = NULL;
+
+      identifier = g_strdup (g_subprocess_get_identifier (subprocess));
+
+      g_debug ("Terminating and waiting for process %s", identifier);
+      g_subprocess_send_signal (subprocess, SIGTERM);
+
+      /* This may lead the test to hang, we assume that the test suite or CI
+       * can handle the case at upper level, without having us async function
+       * and timeouts */
+      g_subprocess_wait (subprocess, NULL, &error);
+      g_assert_no_error (error);
+      g_assert_null (g_subprocess_get_identifier (subprocess));
+
+      if (!g_subprocess_get_if_exited (subprocess))
+        {
+          g_assert_true (g_subprocess_get_if_signaled (subprocess));
+          g_assert_cmpint (g_subprocess_get_term_sig (subprocess), ==, SIGTERM);
+        }
+      else if (!g_subprocess_get_successful (subprocess))
+        {
+          g_error ("Subprocess %s, exited with exit status %d", identifier,
+                   g_subprocess_get_exit_status (subprocess));
+        }
+    }
+}
+
+static void
 global_teardown (void)
 {
   GError *error = NULL;
@@ -313,7 +355,7 @@ global_teardown (void)
   g_dbus_connection_close_sync (session_bus, NULL, &error);
   g_assert_no_error (error);
 
-  g_list_foreach (test_procs, (GFunc) g_subprocess_force_exit, NULL);
+  wait_for_test_procs ();
   g_list_free_full (g_steal_pointer (&test_procs), g_object_unref);
 
   g_object_unref (lockdown);
