@@ -1,3 +1,15 @@
+Changes in 1.12.0, 21-12-2021
+=============================
+
+- Place portals in the systemd session.slice
+- settings: Add color-scheme key
+- open-uri: Avoid a sync call to org.freedesktop.FileManager
+- screncast: Allow restoring previous sessions
+- Add a portal for requesting realtime permissions
+- ci: Many improvements
+- Publish the docs from a ci job
+- Translation updates
+
 Changes in 1.10.0
 =================
 
