@@ -19,6 +19,7 @@ dist_introspection_DATA = \
 	data/org.freedesktop.portal.Print.xml \
 	data/org.freedesktop.portal.ProxyResolver.xml \
 	data/org.freedesktop.portal.RemoteDesktop.xml \
+	data/org.freedesktop.portal.Realtime.xml \
 	data/org.freedesktop.portal.Request.xml \
 	data/org.freedesktop.portal.ScreenCast.xml \
 	data/org.freedesktop.portal.Screenshot.xml \
