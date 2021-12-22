@@ -40,6 +40,7 @@
 #define FLATPAK_METADATA_KEY_NAME "name"
 #define FLATPAK_METADATA_GROUP_INSTANCE "Instance"
 #define FLATPAK_METADATA_KEY_APP_PATH "app-path"
+#define FLATPAK_METADATA_KEY_ORIGINAL_APP_PATH "original-app-path"
 #define FLATPAK_METADATA_KEY_RUNTIME_PATH "runtime-path"
 #define FLATPAK_METADATA_KEY_INSTANCE_ID "instance-id"
 
@@ -48,12 +49,24 @@
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
 #define SNAP_METADATA_KEY_NETWORK "HasNetworkStatus"
 
+typedef enum
+{
+  XDP_APP_INFO_KIND_HOST = 0,
+  XDP_APP_INFO_KIND_FLATPAK = 1,
+  XDP_APP_INFO_KIND_SNAP    = 2,
+} XdpAppInfoKind;
+
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
                     int    flags,
                     int    mode);
 
 gboolean xdp_is_valid_app_id (const char *string);
+
+gboolean xdp_validate_serialized_icon (GVariant  *v,
+                                       gboolean   bytes_only,
+                                       char     **out_format,
+                                       char     **out_size);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
@@ -67,6 +80,7 @@ void        xdp_app_info_unref           (XdpAppInfo  *app_info);
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
 char *      xdp_app_info_get_instance    (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
+XdpAppInfoKind xdp_app_info_get_kind     (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_supports_opath  (XdpAppInfo  *app_info);
 char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,
                                           const char  *path);
@@ -91,6 +105,7 @@ XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
 GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);
 char **     xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
                                               const char *const *commandline);
+char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 
@@ -200,4 +215,11 @@ g_hash_table_steal_extended (GHashTable    *hash_table,
   else
       return FALSE;
 }
+#endif
+
+#if !GLIB_CHECK_VERSION (2, 68, 0)
+guint g_string_replace (GString     *string,
+                        const gchar *find,
+                        const gchar *replace,
+                        guint        limit);
 #endif

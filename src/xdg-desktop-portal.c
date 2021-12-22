@@ -59,6 +59,7 @@
 #include "secret.h"
 #include "wallpaper.h"
 #include "realtime.h"
+#include "dynamic-launcher.h"
 
 static GMainLoop *loop = NULL;
 
@@ -123,12 +124,19 @@ method_needs_request (GDBusMethodInvocation *invocation)
       else
         return TRUE;
     }
-  if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
+  else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
     {
       if (strcmp (method, "OpenPipeWireRemote") == 0)
         return FALSE;
       else
         return TRUE;
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.DynamicLauncher") == 0)
+    {
+      if (strcmp (method, "PrepareInstall") == 0)
+        return TRUE;
+      else
+        return FALSE;
     }
   else
     {
@@ -317,6 +325,11 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   secret_create (connection, implementation->dbus_name));
 
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.DynamicLauncher");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  dynamic_launcher_create (connection, implementation->dbus_name));
+
 #ifdef HAVE_PIPEWIRE
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
   if (implementation != NULL)
@@ -359,6 +372,9 @@ main (int argc, char *argv[])
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
+  /* Note: if you add any more environment variables here, update
+   * handle_launch() in dynamic-launcher.c to unset them before launching apps
+   */
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
 

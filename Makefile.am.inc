@@ -4,6 +4,7 @@ PORTAL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.portal.Camera.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Device.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Documents.xml \
+	$(top_srcdir)/data/org.freedesktop.portal.DynamicLauncher.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Email.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.FileChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.FileTransfer.xml \
@@ -34,6 +35,7 @@ PORTAL_IMPL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Account.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.AppChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Background.xml \
+	$(top_srcdir)/data/org.freedesktop.impl.portal.DynamicLauncher.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Email.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.FileChooser.xml \
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Inhibit.xml \

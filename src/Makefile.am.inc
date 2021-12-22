@@ -93,6 +93,8 @@ xdg_desktop_portal_SOURCES = \
 	src/account.h                   \
 	src/realtime.c                  \
 	src/realtime.h                  \
+	src/dynamic-launcher.c          \
+	src/dynamic-launcher.h          \
 	src/request.c			\
 	src/request.h			\
 	src/call.c			\
