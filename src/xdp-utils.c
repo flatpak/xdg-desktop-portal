@@ -36,6 +36,8 @@
 #include "sd-escape.h"
 #endif
 
+#include <gio/gio.h>
+#include <gio/gunixoutputstream.h>
 #include <gio/gdesktopappinfo.h>
 
 #include "xdp-utils.h"
@@ -111,13 +113,6 @@ xdp_mkstempat (int    dir_fd,
   errno = EEXIST;
   return -1;
 }
-
-typedef enum
-{
-  XDP_APP_INFO_KIND_HOST = 0,
-  XDP_APP_INFO_KIND_FLATPAK = 1,
-  XDP_APP_INFO_KIND_SNAP    = 2,
-} XdpAppInfoKind;
 
 struct _XdpAppInfo {
   volatile gint ref_count;
@@ -276,6 +271,14 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   return app_info->id;
 }
 
+XdpAppInfoKind
+xdp_app_info_get_kind (XdpAppInfo  *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, -1);
+
+  return app_info->kind;
+}
+
 GAppInfo *
 xdp_app_info_load_app_info (XdpAppInfo *app_info)
 {
@@ -340,6 +343,56 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
       g_ptr_array_add (args, NULL);
 
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
+    }
+  else
+    return NULL;
+}
+
+char *
+xdp_app_info_get_tryexec_path (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+    {
+      g_autofree char *original_app_path = NULL;
+      g_autofree char *tryexec_path = NULL;
+      g_autofree char *app_slash = NULL;
+      g_autofree char *app_path = NULL;
+      char *app_slash_pointer;
+      char *path;
+
+      original_app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                                 FLATPAK_METADATA_GROUP_INSTANCE,
+                                                 FLATPAK_METADATA_KEY_ORIGINAL_APP_PATH, NULL);
+      app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                        FLATPAK_METADATA_GROUP_INSTANCE,
+                                        FLATPAK_METADATA_KEY_APP_PATH, NULL);
+      path = original_app_path ? original_app_path : app_path;
+
+      if (path == NULL || *path == '\0')
+        return NULL;
+
+      app_slash = g_strconcat ("app/", app_info->id, NULL);
+
+      app_slash_pointer = strstr (path, app_slash);
+      if (app_slash_pointer == NULL)
+        return NULL;
+
+      /* Terminate path after the flatpak installation path such as .local/share/flatpak/ */
+      *app_slash_pointer = '\0';
+
+      /* Find the path to the wrapper script exported by Flatpak, which can be
+       * used in a desktop file's TryExec=
+       */
+      tryexec_path = g_strconcat (path, "exports/bin/", app_info->id, NULL);
+      if (access (tryexec_path, X_OK) != 0)
+        {
+          g_debug ("Wrapper script unexpectedly not executable or nonexistent: %s", tryexec_path);
+          return NULL;
+        }
+
+      return g_steal_pointer (&tryexec_path);
     }
   else
     return NULL;
@@ -2128,3 +2181,186 @@ xdg_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
 
   return ok;
 }
+
+void
+cleanup_temp_file (void *p)
+{
+  void **pp = (void **)p;
+
+  if (*pp)
+    remove (*pp);
+  g_free (*pp);
+}
+
+#define ICON_VALIDATOR_GROUP "Icon Validator"
+
+gboolean
+xdp_validate_serialized_icon (GVariant  *v,
+                              gboolean   bytes_only,
+                              char     **out_format,
+                              char     **out_size)
+{
+  g_autoptr(GIcon) icon = NULL;
+  GBytes *bytes;
+  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
+  xdp_autofd int fd = -1;
+  g_autoptr(GOutputStream) stream = NULL;
+  int status;
+  g_autofree char *format = NULL;
+  g_autofree char *stdoutlog = NULL;
+  g_autofree char *stderrlog = NULL;
+  g_autoptr(GError) error = NULL;
+  const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
+  const char *args[6];
+  /* same allowed formats as Flatpak */
+  const char *allowed_icon_formats[] = { "png", "jpeg", "svg", NULL };
+  int size;
+  const char *MAX_ICON_SIZE = "512";
+  int MAX_ICON_SIZE_INT = 512;
+  g_auto(GStrv) parts = NULL;
+  gconstpointer bytes_data;
+  gsize bytes_len;
+  g_autoptr(GKeyFile) key_file = NULL;
+
+  icon = g_icon_deserialize (v);
+  if (!icon)
+    {
+      g_warning ("Icon deserialization failed");
+      return FALSE;
+    }
+
+  if (!bytes_only && G_IS_THEMED_ICON (icon))
+    {
+      g_autofree char *a = g_strjoinv (" ", (char **)g_themed_icon_get_names (G_THEMED_ICON (icon)));
+      g_debug ("Icon validation: themed icon (%s) is ok", a);
+      return TRUE;
+    }
+
+  if (!G_IS_BYTES_ICON (icon))
+    {
+      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
+      return FALSE;
+    }
+
+  if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
+    {
+      g_warning ("Icon validation: %s not found, rejecting icon by default.", icon_validator);
+      return FALSE;
+    }
+
+  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+  fd = g_file_open_tmp ("iconXXXXXX", &name, &error);
+  if (fd == -1)
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  stream = g_unix_output_stream_new (fd, FALSE);
+
+  /* Use write_all() instead of write_bytes() so we don't have to worry about
+   * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
+   */
+  bytes_data = g_bytes_get_data (bytes, &bytes_len);
+  if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  if (!g_output_stream_close (stream, NULL, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  args[0] = icon_validator;
+  args[1] = "--sandbox";
+  args[2] = MAX_ICON_SIZE;
+  args[3] = MAX_ICON_SIZE;
+  args[4] = name;
+  args[5] = NULL;
+
+  if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      g_warning ("stderr:\n%s\n", stderrlog);
+      return FALSE;
+    }
+
+  if (!g_spawn_check_exit_status (status, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  key_file = g_key_file_new ();
+  if (!g_key_file_load_from_data (key_file, stdoutlog, -1, G_KEY_FILE_NONE, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+  if (!(format = g_key_file_get_string (key_file, ICON_VALIDATOR_GROUP, "format", &error)) ||
+      !g_strv_contains (allowed_icon_formats, format))
+    {
+      g_warning ("Icon validation: %s", error ? error->message : "not allowed format");
+      return FALSE;
+    }
+  if (!(size = g_key_file_get_integer (key_file, ICON_VALIDATOR_GROUP, "width", &error)))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
+
+  if (out_format)
+    *out_format = g_steal_pointer (&format);
+  if (out_size)
+    *out_size = g_strdup_printf ("%d", size);
+
+  return TRUE;
+}
+
+#if !GLIB_CHECK_VERSION (2, 68, 0)
+/* All this code is backported directly from glib */
+guint
+g_string_replace (GString     *string,
+                  const gchar *find,
+                  const gchar *replace,
+                  guint        limit)
+{
+  gsize f_len, r_len, pos;
+  gchar *cur, *next;
+  guint n = 0;
+
+  g_return_val_if_fail (string != NULL, 0);
+  g_return_val_if_fail (find != NULL, 0);
+  g_return_val_if_fail (replace != NULL, 0);
+
+  f_len = strlen (find);
+  r_len = strlen (replace);
+  cur = string->str;
+
+  while ((next = strstr (cur, find)) != NULL)
+    {
+      pos = next - string->str;
+      g_string_erase (string, pos, f_len);
+      g_string_insert (string, pos, replace);
+      cur = string->str + pos + r_len;
+      n++;
+      /* Only match the empty string once at any given position, to
+       * avoid infinite loops */
+      if (f_len == 0)
+        {
+          if (cur[0] == '\0')
+            break;
+          else
+            cur++;
+        }
+      if (n == limit)
+        break;
+    }
+
+  return n;
+}
+
+#endif /* GLIB_CHECK_VERSION (2, 28, 0) */

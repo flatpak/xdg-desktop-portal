@@ -1,0 +1,148 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2022 Matthew Leeds
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Matthew Leeds <mwleeds@protonmail.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.DynamicLauncher:
+      @short_description: Dynamic launcher portal backend interface
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.DynamicLauncher">
+    <!--
+        PrepareInstall:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @app_id: App id of the application
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @name: The default name for the launcher
+        @icon_v: A #GBytesIcon as returned by g_icon_serialize()
+        @options: Vardict with optional further information
+        @response: Numeric response (0 == success)
+        @results: Vardict with the results of the call
+
+        Presents a dialog to the user to allow them to see the icon, potentially
+        change the name, and confirm installation of the launcher.
+
+        Supported keys in the @options vardict:
+        <variablelist>
+          <varlistentry>
+            <term>modal b</term>
+            <listitem><para>
+              Whether to make the dialog modal. Defaults to yes.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>launcher_type u</term>
+            <listitem><para>
+              The type of launcher being created. For supported values see the
+              SupportedLauncherTypes property. Defaults to "Application".
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>target s</term>
+            <listitem><para>
+              For a launcher of type "Webapp", this is the URL of the web app
+              being installed. This is displayed in the user-facing dialog.
+              For other launcher types, this is not needed.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>editable_name b</term>
+            <listitem><para>
+              If true, the user will be able to edit the name of the launcher.
+              Defaults to true.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>editable_icon b</term>
+            <listitem><para>
+              If true, the user will be able to edit the icon of the launcher,
+              if the implementation supports this. Defaults to false.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>name s</term>
+            <listitem><para>
+              The name chosen by the user for the launcher (or the default if
+              the editable_name option was false).
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>icon v</term>
+            <listitem><para>
+              The icon chosen by the user for the launcher (or the default if
+              the editable_icon option was false).
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="PrepareInstall">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="v" name="icon_v" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <!--
+        RequestInstallToken:
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: 0 if the caller should be allowed to do non-interactive
+          launcher installation, a nonzero number otherwise
+
+        The @response returned by this method is used to determine whether to
+        give an install token to the caller, which can be used to avoid the need
+        for a confirmation dialog; the token can be passed to the
+        org.freedesktop.portal.DynamicLauncher.Install() method just as if it
+        were acquired via the
+        org.freedesktop.portal.DynamicLauncher.PrepareInstall() method.
+
+        It is up to the portal implementation to decide whether this method is
+        allowed based on the @app_id of the caller.
+
+        The @options vardict currently has no supported entries.
+    -->
+    <method name="RequestInstallToken">
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+    </method>
+    <!--
+        SupportedLauncherTypes:
+
+        A bitmask of available launcher types. Currently defined types are:
+
+        <simplelist>
+          <member>1: Application. A launcher that represents an application.</member>
+          <member>2: Webapp. A launcher that represents a web app.</member>
+        </simplelist>
+    -->
+    <property name="SupportedLauncherTypes" type="u" access="read"/>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
