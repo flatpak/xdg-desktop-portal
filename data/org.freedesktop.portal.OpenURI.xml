@@ -92,11 +92,11 @@
     <!--
         OpenFile:
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
-        @fd: File descriptor for the file to open
+        @fd: File descriptor for the file (or directory) to open
         @options: Vardict with optional further onformation
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Asks to open a local file.
+        Asks to open a local file or directory.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -154,7 +154,7 @@
         @options: Vardict with optional further onformation
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Asks to open the directory containing a local file in the file browser.
+        Asks to open the directory containing a local file in the file browser and then select that file.
 
         Supported keys in the @options vardict include:
         <variablelist>
