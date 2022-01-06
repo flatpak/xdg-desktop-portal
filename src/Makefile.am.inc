@@ -134,26 +134,26 @@ xdg_desktop_portal_SOURCES = \
 	src/proxy-resolver.h		\
 	src/screenshot.c		\
 	src/screenshot.h		\
-        src/notification.c              \
-        src/notification.h              \
-        src/inhibit.c                   \
-        src/inhibit.h                   \
-        src/device.c                    \
-        src/device.h                    \
-        src/account.c                   \
-        src/account.h                   \
-	src/realtime.c          \
-	src/realtime.h          \
+	src/notification.c              \
+	src/notification.h              \
+	src/inhibit.c                   \
+	src/inhibit.h                   \
+	src/device.c                    \
+	src/device.h                    \
+	src/account.c                   \
+	src/account.h                   \
+	src/realtime.c                  \
+	src/realtime.h                  \
 	src/request.c			\
 	src/request.h			\
 	src/call.c			\
 	src/call.h			\
-        src/documents.c                 \
-        src/documents.h                 \
-        src/permissions.c               \
-        src/permissions.h               \
-        src/email.c                     \
-        src/email.h                     \
+	src/documents.c                 \
+	src/documents.h                 \
+	src/permissions.c               \
+	src/permissions.h               \
+	src/email.c                     \
+	src/email.h                     \
 	src/settings.c			\
 	src/settings.h			\
 	src/session.c			\
@@ -170,8 +170,8 @@ xdg_desktop_portal_SOURCES = \
 	src/gamemode.h			\
 	src/secret.c			\
 	src/secret.h			\
-        src/flatpak-instance.c          \
-        src/flatpak-instance.h          \
+	src/flatpak-instance.c          \
+	src/flatpak-instance.h          \
 	src/portal-impl.h		\
 	src/portal-impl.c		\
 	$(NULL)
