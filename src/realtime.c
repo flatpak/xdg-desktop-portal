@@ -195,9 +195,9 @@ realtime_iface_init (XdpRealtimeIface *iface)
 }
 
 static void
-realtime_init (Realtime *self)
+realtime_init (Realtime *realtime)
 {
-  xdp_realtime_set_version (XDP_REALTIME (self), 1);
+  xdp_realtime_set_version (XDP_REALTIME (realtime), 1);
 }
 
 static void

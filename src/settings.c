@@ -145,9 +145,9 @@ settings_iface_init (XdpSettingsIface *iface)
 }
 
 static void
-settings_init (Settings *self)
+settings_init (Settings *settings)
 {
-  xdp_settings_set_version (XDP_SETTINGS (self), 1);
+  xdp_settings_set_version (XDP_SETTINGS (settings), 1);
 }
 
 static void
