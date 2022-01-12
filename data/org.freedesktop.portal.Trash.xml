@@ -31,7 +31,7 @@
   <interface name="org.freedesktop.portal.Trash">
     <!--
         TrashFile:
-	@fd: file descriptor for the file to trash
+        @fd: file descriptor for the file to trash
         @result: the result. 0 if trashing failed, 1 if trashing succeeded, other values may be returned in the future
 
         Sends a file to the trashcan. Applications are allowed to

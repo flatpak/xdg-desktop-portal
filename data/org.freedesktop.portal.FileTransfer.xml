@@ -50,7 +50,7 @@
         @options: Vardict with optional further onformation
         @key: a key that needs to be passed to RetrieveFiles to obtain the files
 
-	Starts a session for a file transfer.
+        Starts a session for a file transfer.
         The caller should call AddFiles at least once, to add files to this session.
 
         Another application can then call RetrieveFiles to obtain them, if it has
