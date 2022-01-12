@@ -282,9 +282,9 @@ print_iface_init (XdpPrintIface *iface)
 }
 
 static void
-print_init (Print *fc)
+print_init (Print *print)
 {
-  xdp_print_set_version (XDP_PRINT (fc), 1);
+  xdp_print_set_version (XDP_PRINT (print), 1);
 }
 
 static void

@@ -125,9 +125,9 @@ trash_iface_init (XdpTrashIface *iface)
 }
 
 static void
-trash_init (Trash *fc)
+trash_init (Trash *trash)
 {
-  xdp_trash_set_version (XDP_TRASH (fc), 1);
+  xdp_trash_set_version (XDP_TRASH (trash), 1);
 }
 
 static void

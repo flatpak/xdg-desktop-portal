@@ -1055,9 +1055,9 @@ open_uri_iface_init (XdpOpenURIIface *iface)
 }
 
 static void
-open_uri_init (OpenURI *fc)
+open_uri_init (OpenURI *openuri)
 {
-  xdp_open_uri_set_version (XDP_OPEN_URI (fc), 3);
+  xdp_open_uri_set_version (XDP_OPEN_URI (openuri), 3);
 }
 
 static void
