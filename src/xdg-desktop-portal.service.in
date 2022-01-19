@@ -1,8 +1,12 @@
 [Unit]
 Description=Portal service
+PartOf=graphical-session-pre.target
 
 [Service]
 Type=dbus
 BusName=org.freedesktop.portal.Desktop
 ExecStart=@libexecdir@/xdg-desktop-portal
 Slice=session.slice
+
+[Install]
+WantedBy=graphical-session-pre.target
