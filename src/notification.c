@@ -29,7 +29,6 @@
 #include "request.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
-#include "xdp-dbus.h"
 #include "xdp-utils.h"
 
 #define PERMISSION_TABLE "notifications"
