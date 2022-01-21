@@ -74,6 +74,9 @@ AC_SUBST(BASE_LIBS)
 PKG_CHECK_MODULES(GLIB260, glib-2.0 >= 2.60,
                   [AC_DEFINE(GLIB_VERSION_MIN_REQUIRED, GLIB_VERSION_2_60, [Ignore massive GTimeVal deprecation warnings in 2.62])],
                   [true])
+PKG_CHECK_MODULES(GLIB266, glib-2.0 >= 2.66,
+                  [AC_DEFINE(HAVE_GLIB_2_66, 1, [Define if GLib 2.66 is available])],
+                  [true])
 
 AC_ARG_ENABLE(libportal,
 	      [AS_HELP_STRING([--enable-libportal],[Enable libportal support. Needed for tests])],
