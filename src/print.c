@@ -163,7 +163,7 @@ handle_print (XdpPrint *object,
   return TRUE;
 }
 
-XdpOptionKey response_options[] = {
+static XdpOptionKey response_options[] = {
   { "settings", G_VARIANT_TYPE_VARDICT, NULL },
   { "page-setup", G_VARIANT_TYPE_VARDICT, NULL },
   { "token", G_VARIANT_TYPE_UINT32, NULL }
