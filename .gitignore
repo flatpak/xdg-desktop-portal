@@ -32,6 +32,7 @@
 /xdg-desktop-portal-[0-9]*.tar.*
 /xdg-desktop-portal-[0-9]*/
 INSTALL
+Makecache
 Makefile
 Makefile.in
 config.*
