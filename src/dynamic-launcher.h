@@ -20,7 +20,13 @@
 
 #pragma once
 
+#include "config.h"
+
+#ifdef HAVE_GLIB_2_66
+
 #include <gio/gio.h>
 
 GDBusInterfaceSkeleton * dynamic_launcher_create (GDBusConnection *connection,
                                                   const char      *dbus_name);
+
+#endif
