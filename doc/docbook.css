@@ -1,61 +1,51 @@
-body
-{
+body {
   font-family: sans-serif;
+  max-width: 850px;
+  margin: auto;
 }
-h1.title
-{
+h1.title {
 }
-.permission
-{
+.permission {
   color: #ee0000;
   text-decoration: underline;
 }
-.synopsis, .classsynopsis
-{
+.synopsis,
+.classsynopsis {
   background: #eeeeee;
   border: solid 1px #aaaaaa;
   padding: 0.5em;
 }
-.programlisting
-{
+.programlisting {
   background: #eeeeff;
   border: solid 1px #aaaaff;
   padding: 0.5em;
 }
-.variablelist
-{
+.variablelist {
   padding: 4px;
   margin-left: 3em;
 }
-.variablelist td:first-child
-{
+.variablelist td:first-child {
   vertical-align: top;
 }
-td.shortcuts
-{
+td.shortcuts {
   color: #770000;
   font-size: 80%;
 }
-div.refnamediv
-{
+div.refnamediv {
   margin-top: 2em;
 }
-div.toc
-{
+div.toc {
   border: 2em;
 }
-a
-{
+a {
   text-decoration: none;
 }
-a:hover
-{
+a:hover {
   text-decoration: underline;
-  color: #FF0000;
+  color: #ff0000;
 }
 
-div.table table
-{
+div.table table {
   border-collapse: collapse;
   border-spacing: 0px;
   border-style: solid;
@@ -63,8 +53,8 @@ div.table table
   border-width: 1px;
 }
 
-div.table table td, div.table table th
-{
+div.table table td,
+div.table table th {
   border-style: solid;
   border-color: #777777;
   border-width: 1px;
@@ -72,7 +62,31 @@ div.table table td, div.table table th
   vertical-align: top;
 }
 
-div.table table th
-{
+div.table table th {
   background-color: #eeeeee;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    background-color: #222222;
+    color: #dddddd;
+  }
+
+  a {
+    color: #8886fa;
+  }
+
+  a:hover {
+    color: #5a57fa;
+  }
+
+  .synopsis,
+  .classsynopsis {
+    background: #161616;
+    border: solid 1px #aaaaaa;
+  }
+  .programlisting {
+    background: #161616;
+    border: solid 1px #aaaaff;
+  }
 }

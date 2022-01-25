@@ -315,7 +315,7 @@ on_bus_acquired (GDBusConnection *connection,
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Secret");
   if (implementation != NULL)
     export_portal_implementation (connection,
-				  secret_create (connection, implementation->dbus_name));
+                                  secret_create (connection, implementation->dbus_name));
 
 #ifdef HAVE_PIPEWIRE
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");

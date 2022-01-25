@@ -89,7 +89,7 @@
 
           Un-register a game from GameMode; if the call is successful
           and there are no other games or clients registered, GameMode
-	  will be deactivated. If the caller is running inside a sandbox
+          will be deactivated. If the caller is running inside a sandbox
           with pid namespace isolation, the pid will be translated to
           the respective host pid.
           Will return:
@@ -108,12 +108,13 @@
           @result: The GameMode status for @target
 
           Query the GameMode status for a process.
-	  Like org.freedesktop.portal.GameMode.QueryStatus() but @requester
+
+          Like org.freedesktop.portal.GameMode.QueryStatus() but @requester
           acting on behalf of @target.
       -->
       <method name="QueryStatusByPid">
         <arg type="i" name="target" direction="in"/>
-	<arg type="i" name="requester" direction="in"/>
+        <arg type="i" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 
@@ -124,12 +125,13 @@
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Register a game with GameMode.
-	  Like org.freedesktop.portal.GameMode.RegisterGame() but @requester
+
+          Like org.freedesktop.portal.GameMode.RegisterGame() but @requester
           acting on behalf of @target.
       -->
       <method name="RegisterGameByPid">
         <arg type="i" name="target" direction="in"/>
-	<arg type="i" name="requester" direction="in"/>
+        <arg type="i" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 
@@ -139,13 +141,14 @@
           @requester: Process id of the process requesting the un-registration
           @result: Status of the request: 0 for success, -1 indicates an error
 
-          Register a game with GameMode.
-	  Like org.freedesktop.portal.GameMode.UnregisterGame() but @requester
+          Un-register a game with GameMode.
+
+          Like org.freedesktop.portal.GameMode.UnregisterGame() but @requester
           acting on behalf of @target.
       -->
       <method name="UnregisterGameByPid">
         <arg type="i" name="target" direction="in"/>
-	<arg type="i" name="requester" direction="in"/>
+        <arg type="i" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 
@@ -157,7 +160,8 @@
           @result: The GameMode status for @target
 
           Query the GameMode status for a process.
-	  Like org.freedesktop.portal.GameMode.QueryStatusByPid() but @requester
+
+          Like org.freedesktop.portal.GameMode.QueryStatusByPid() but @requester
           and @target are pidfds representing the processes.
       -->
       <method name="QueryStatusByPIDFd">
@@ -174,13 +178,14 @@
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Register a game with GameMode.
-	  Like org.freedesktop.portal.GameMode.RegisterGameByPid() but @requester
+
+          Like org.freedesktop.portal.GameMode.RegisterGameByPid() but @requester
           and @target are pidfds representing the processes.
       -->
       <method name="RegisterGameByPIDFd">
         <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
         <arg type="h" name="target" direction="in"/>
-	<arg type="h" name="requester" direction="in"/>
+        <arg type="h" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 
@@ -190,14 +195,15 @@
           @requester: Pidfd of the process requesting the un-registration
           @result: Status of the request: 0 for success, -1 indicates an error
 
-          Register a game with GameMode.
-	  Like org.freedesktop.portal.GameMode.UnregisterGameByPid() but @requester
+          Un-register a game with GameMode.
+
+          Like org.freedesktop.portal.GameMode.UnregisterGameByPid() but @requester
           and @target are pidfds representing the processes.
       -->
       <method name="UnregisterGameByPIDFd">
         <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
         <arg type="h" name="target" direction="in"/>
-	<arg type="h" name="requester" direction="in"/>
+        <arg type="h" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
 

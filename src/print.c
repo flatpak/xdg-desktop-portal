@@ -163,7 +163,7 @@ handle_print (XdpPrint *object,
   return TRUE;
 }
 
-XdpOptionKey response_options[] = {
+static XdpOptionKey response_options[] = {
   { "settings", G_VARIANT_TYPE_VARDICT, NULL },
   { "page-setup", G_VARIANT_TYPE_VARDICT, NULL },
   { "token", G_VARIANT_TYPE_UINT32, NULL }
@@ -282,9 +282,9 @@ print_iface_init (XdpPrintIface *iface)
 }
 
 static void
-print_init (Print *fc)
+print_init (Print *print)
 {
-  xdp_print_set_version (XDP_PRINT (fc), 1);
+  xdp_print_set_version (XDP_PRINT (print), 1);
 }
 
 static void
