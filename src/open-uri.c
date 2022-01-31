@@ -405,6 +405,7 @@ app_chooser_done (GObject *source,
                                                             result,
                                                             &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
 

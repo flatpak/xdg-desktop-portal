@@ -77,7 +77,11 @@ inhibit_done (GObject *source,
   REQUEST_AUTOLOCK (request);
 
   if (!xdp_impl_inhibit_call_inhibit_finish (impl, result, &error))
-    response = 2;
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("A backend call failed: %s", error->message);
+      response = 2;
+    }
 
   if (request->exported)
     {
@@ -342,6 +346,7 @@ create_monitor_done (GObject *source_object,
 
   if (!xdp_impl_inhibit_call_create_monitor_finish (impl, &response, res, &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
       should_close_session = TRUE;
       goto out;

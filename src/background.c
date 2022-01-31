@@ -653,6 +653,7 @@ notify_background_done (GObject *source,
                                                           res,
                                                           &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Error from background backend: %s", error->message);
       notification_data_free (nd);
       return;
