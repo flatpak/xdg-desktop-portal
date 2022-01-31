@@ -90,6 +90,7 @@ handle_set_wallpaper_uri_done (GObject *source,
                                                          result,
                                                          &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
     }
 

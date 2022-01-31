@@ -113,6 +113,7 @@ add_done (GObject *source,
 
   if (!xdp_impl_notification_call_add_notification_finish (impl, result, &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
   else
@@ -522,6 +523,7 @@ remove_done (GObject *source,
 
   if (!xdp_impl_notification_call_remove_notification_finish (impl, result, &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
   else

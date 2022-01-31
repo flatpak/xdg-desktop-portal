@@ -317,6 +317,7 @@ create_session_done (GObject *source_object,
                                                         res,
                                                         &error))
     {
+      g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
       should_close_session = TRUE;
       goto out;
@@ -441,7 +442,10 @@ select_sources_done (GObject *source_object,
                                                         &results,
                                                         res,
                                                         &error))
-    g_warning ("A backend call failed: %s", error->message);
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("A backend call failed: %s", error->message);
+    }
 
   should_close_session = !request->exported || response != 0;
 
@@ -1082,7 +1086,10 @@ start_done (GObject *source_object,
                                                &results,
                                                res,
                                                &error))
-    g_warning ("A backend call failed: %s", error->message);
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("A backend call failed: %s", error->message);
+    }
 
   should_close_session = !request->exported || response != 0;
 
