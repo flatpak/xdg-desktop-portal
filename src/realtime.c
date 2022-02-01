@@ -108,6 +108,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "RealtimeKit was not found");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
@@ -157,6 +158,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "RealtimeKit was not found");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
