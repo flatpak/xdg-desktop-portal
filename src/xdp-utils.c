@@ -125,7 +125,7 @@ struct _XdpAppInfo {
         {
           GKeyFile *keyfile;
 	   /* pid namespace mapping */
-          GMutex *pidns_lock;
+          GMutex pidns_lock;
           ino_t   pidns_id;
         } flatpak;
       struct
@@ -1928,7 +1928,9 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
   ino_t ns;
   int r;
 
-  guard = g_mutex_locker_new (app_info->u.flatpak.pidns_lock);
+  g_assert (app_info->kind == XDP_APP_INFO_KIND_FLATPAK);
+
+  guard = g_mutex_locker_new (&(app_info->u.flatpak.pidns_lock));
 
   if (app_info->u.flatpak.pidns_id != 0)
     return TRUE;
