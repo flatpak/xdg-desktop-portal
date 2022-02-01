@@ -476,7 +476,7 @@ handle_open_file (XdpFileChooser *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -487,7 +487,7 @@ handle_open_file (XdpFileChooser *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   dir_option = g_variant_lookup_value (arg_options,
@@ -511,7 +511,7 @@ handle_open_file (XdpFileChooser *object,
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static XdpOptionKey save_file_options[] = {
@@ -577,7 +577,7 @@ handle_save_file (XdpFileChooser *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "File saving disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   REQUEST_AUTOLOCK (request);
@@ -588,7 +588,7 @@ handle_save_file (XdpFileChooser *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -599,7 +599,7 @@ handle_save_file (XdpFileChooser *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (TRUE));
@@ -619,7 +619,7 @@ handle_save_file (XdpFileChooser *object,
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static XdpOptionKey save_files_options[] = {
@@ -681,7 +681,7 @@ handle_save_files (XdpFileChooser *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "File saving disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   REQUEST_AUTOLOCK (request);
@@ -692,7 +692,7 @@ handle_save_files (XdpFileChooser *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -703,7 +703,7 @@ handle_save_files (XdpFileChooser *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (TRUE));
@@ -723,7 +723,7 @@ handle_save_files (XdpFileChooser *object,
 
   xdp_file_chooser_complete_open_file (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

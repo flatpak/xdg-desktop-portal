@@ -115,7 +115,7 @@ handle_access_camera (XdpCamera *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Camera access disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   REQUEST_AUTOLOCK (request);
@@ -133,7 +133,7 @@ handle_access_camera (XdpCamera *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_access_camera_in_thread_func);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static PipeWireRemote *
@@ -193,7 +193,7 @@ handle_open_pipewire_remote (XdpCamera *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Camera access disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
@@ -205,7 +205,7 @@ handle_open_pipewire_remote (XdpCamera *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Permission denied");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   remote = open_pipewire_camera_remote (app_id, &error);
@@ -216,7 +216,7 @@ handle_open_pipewire_remote (XdpCamera *object,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "Failed to open PipeWire remote: %s",
                                              error->message);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   out_fd_list = g_unix_fd_list_new ();
@@ -232,13 +232,13 @@ handle_open_pipewire_remote (XdpCamera *object,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "Failed to append fd: %s",
                                              error->message);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   xdp_camera_complete_open_pipewire_remote (object, invocation,
                                             out_fd_list,
                                             g_variant_new_handle (fd_id));
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

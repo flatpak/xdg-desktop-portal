@@ -425,7 +425,7 @@ handle_query_status (XdpGameMode           *object,
                      gint                   pid)
 {
   handle_call_in_thread (object, "QueryStatus", invocation, pid, 0);
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -434,7 +434,7 @@ handle_register_game (XdpGameMode           *object,
                       gint                   pid)
 {
   handle_call_in_thread (object, "RegisterGame", invocation, pid, 0);
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static  gboolean
@@ -443,7 +443,7 @@ handle_unregister_game (XdpGameMode *object,
                         gint pid)
 {
   handle_call_in_thread (object, "UnregisterGame", invocation, pid, 0);
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -457,8 +457,7 @@ handle_query_status_by_pid (XdpGameMode *object,
                          invocation,
                          target,
                          requester);
-  return TRUE;
-
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -472,7 +471,7 @@ handle_register_game_by_pid (XdpGameMode *object,
                          invocation,
                          target,
                          requester);
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -486,7 +485,7 @@ handle_unregister_game_by_pid (XdpGameMode *object,
                          invocation,
                          target,
                          requester);
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 /* pidfd based APIs */
@@ -502,7 +501,7 @@ handle_query_status_by_pidfd (XdpGameMode *object,
                              invocation,
                              fd_list);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -517,7 +516,7 @@ handle_register_game_by_pidfd (XdpGameMode *object,
                              invocation,
                              fd_list);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -532,7 +531,7 @@ handle_unregister_game_by_pidfd (XdpGameMode *object,
                              invocation,
                              fd_list);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 /* public API */

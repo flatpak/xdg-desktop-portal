@@ -264,7 +264,7 @@ handle_create_session (XdpRemoteDesktop *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -274,7 +274,7 @@ handle_create_session (XdpRemoteDesktop *object,
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -296,7 +296,7 @@ handle_create_session (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_create_session (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
@@ -402,7 +402,7 @@ handle_select_devices (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -420,20 +420,20 @@ handle_select_devices (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Sources already selected");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case REMOTE_DESKTOP_SESSION_STATE_STARTING:
     case REMOTE_DESKTOP_SESSION_STATE_STARTED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Can only select devices before starting");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case REMOTE_DESKTOP_SESSION_STATE_CLOSED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   impl_request =
@@ -445,7 +445,7 @@ handle_select_devices (XdpRemoteDesktop *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -458,7 +458,7 @@ handle_select_devices (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_qdata_full (G_OBJECT (request),
@@ -478,7 +478,7 @@ handle_select_devices (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_select_devices (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -596,7 +596,7 @@ handle_start (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -613,26 +613,26 @@ handle_start (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Sources not selected");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case REMOTE_DESKTOP_SESSION_STATE_SELECTING_DEVICES:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Devices not selected");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case REMOTE_DESKTOP_SESSION_STATE_STARTING:
     case REMOTE_DESKTOP_SESSION_STATE_STARTED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Can only start once");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case REMOTE_DESKTOP_SESSION_STATE_CLOSED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data_full (G_OBJECT (request),
@@ -647,7 +647,7 @@ handle_start (XdpRemoteDesktop *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -674,7 +674,7 @@ handle_start (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_start (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -751,7 +751,7 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -762,7 +762,7 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: pointer");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -772,7 +772,7 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -784,7 +784,7 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_pointer_motion (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -809,7 +809,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -820,7 +820,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: pointer");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!check_position (session, stream, x, y))
@@ -829,7 +829,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid position");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -839,7 +839,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   options = g_variant_builder_end (&options_builder);
@@ -853,7 +853,7 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_pointer_motion_absolute (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -877,7 +877,7 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -888,7 +888,7 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: pointer");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -898,7 +898,7 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   options = g_variant_builder_end (&options_builder);
@@ -912,7 +912,7 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_pointer_button (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static XdpOptionKey remote_desktop_notify_pointer_axis_options[] = {
@@ -940,7 +940,7 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -951,7 +951,7 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: pointer");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -961,7 +961,7 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   options = g_variant_builder_end (&options_builder);
@@ -974,7 +974,7 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_pointer_axis (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -998,7 +998,7 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1009,7 +1009,7 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: pointer");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1019,7 +1019,7 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1032,7 +1032,7 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_pointer_axis_discrete (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -1056,7 +1056,7 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1067,7 +1067,7 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: keyboard");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1077,7 +1077,7 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1090,7 +1090,7 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_keyboard_keycode (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -1114,7 +1114,7 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1125,7 +1125,7 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: keyboard");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1135,7 +1135,7 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1148,7 +1148,7 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_keyboard_keysym (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -1174,7 +1174,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1185,7 +1185,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: touchscreen");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!check_position (session, stream, x, y))
@@ -1194,7 +1194,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid position");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1204,7 +1204,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1218,7 +1218,7 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_touch_down (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -1244,7 +1244,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1255,7 +1255,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: touchscreen");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!check_position (session, stream, x, y))
@@ -1264,7 +1264,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid position");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1274,7 +1274,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1288,7 +1288,7 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_touch_motion (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -1311,7 +1311,7 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -1322,7 +1322,7 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Session doesn't have access to a device of type: touchscreen");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -1332,7 +1332,7 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   options = g_variant_builder_end (&options_builder);
 
@@ -1344,7 +1344,7 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
 
   xdp_remote_desktop_complete_notify_touch_up (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

@@ -220,7 +220,7 @@ handle_compose_email (XdpEmail *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -243,7 +243,7 @@ handle_compose_email (XdpEmail *object,
           if (fd == -1)
             {
               g_dbus_method_invocation_return_gerror (invocation, error);
-              return TRUE;
+              return G_DBUS_METHOD_INVOCATION_HANDLED;
             }
 
           path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL, &error);
@@ -271,7 +271,7 @@ handle_compose_email (XdpEmail *object,
     {
       g_debug ("Returning an error from option filtering");
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -288,7 +288,7 @@ handle_compose_email (XdpEmail *object,
                                      compose_email_done,
                                      g_object_ref (request));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

@@ -72,7 +72,7 @@ handle_get_available (XdpNetworkMonitor     *object,
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", available));
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -96,7 +96,7 @@ handle_get_metered (XdpNetworkMonitor     *object,
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", metered));
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -120,7 +120,7 @@ handle_get_connectivity (XdpNetworkMonitor     *object,
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(u)", connectivity));
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -156,7 +156,7 @@ handle_get_status (XdpNetworkMonitor     *object,
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a{sv})", &status));
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
@@ -197,7 +197,7 @@ handle_can_reach (XdpNetworkMonitor     *object,
       g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation)); 
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

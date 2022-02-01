@@ -184,7 +184,7 @@ handle_screenshot (XdpScreenshot *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -206,7 +206,7 @@ handle_screenshot (XdpScreenshot *object,
 
   xdp_screenshot_complete_screenshot (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
@@ -264,7 +264,7 @@ handle_pick_color (XdpScreenshot *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -286,7 +286,7 @@ handle_pick_color (XdpScreenshot *object,
 
   xdp_screenshot_complete_pick_color (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

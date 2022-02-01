@@ -501,7 +501,7 @@ notification_handle_add_notification (XdpNotification *object,
     {
       g_prefix_error (&error, "invalid notification: ");
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   task = g_task_new (object, NULL, NULL, NULL);
@@ -510,7 +510,7 @@ notification_handle_add_notification (XdpNotification *object,
 
   xdp_notification_complete_add_notification (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
@@ -556,7 +556,7 @@ notification_handle_remove_notification (XdpNotification *object,
 
   xdp_notification_complete_remove_notification (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
