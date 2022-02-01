@@ -96,6 +96,7 @@ xdg_desktop_portal_sources = files(
   'settings.c',
   'trash.c',
   'wallpaper.c',
+  'web-extensions.c',
   'xdg-desktop-portal.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
