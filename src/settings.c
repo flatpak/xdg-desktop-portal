@@ -88,7 +88,7 @@ settings_handle_read_all (XdpSettings           *object,
 
   g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (builder));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -114,7 +114,7 @@ settings_handle_read (XdpSettings           *object,
       else
         {
           g_dbus_method_invocation_return_value (invocation, g_variant_new ("(v)", impl_value));
-          return TRUE;
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
     }
 
@@ -123,7 +123,7 @@ settings_handle_read (XdpSettings           *object,
                                                  XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                  _("Requested setting not found"));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

@@ -76,7 +76,7 @@ handle_close (XdpRequest *object,
         {
           if (invocation)
             g_dbus_method_invocation_return_gerror (invocation, error);
-          return TRUE;
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
 
       request_unexport (request);
@@ -85,7 +85,7 @@ handle_close (XdpRequest *object,
   if (invocation)
     xdp_request_complete_close (XDP_REQUEST (request), invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

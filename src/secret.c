@@ -141,7 +141,7 @@ handle_retrieve_secret (XdpSecret *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
@@ -151,7 +151,7 @@ handle_retrieve_secret (XdpSecret *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -169,7 +169,7 @@ handle_retrieve_secret (XdpSecret *object,
 					retrieve_secret_done,
 					g_object_ref (request));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

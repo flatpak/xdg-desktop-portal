@@ -209,7 +209,7 @@ handle_inhibit (XdpInhibit *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid flags");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
@@ -231,7 +231,7 @@ handle_inhibit (XdpInhibit *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -243,7 +243,7 @@ handle_inhibit (XdpInhibit *object,
 
   xdp_inhibit_complete_inhibit (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 typedef struct _InhibitSession
@@ -412,7 +412,7 @@ handle_create_monitor (XdpInhibit *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -422,7 +422,7 @@ handle_create_monitor (XdpInhibit *object,
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data_full (G_OBJECT (request), "session", g_object_ref (session), g_object_unref);
@@ -438,7 +438,7 @@ handle_create_monitor (XdpInhibit *object,
 
   xdp_inhibit_complete_create_monitor (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -454,13 +454,13 @@ handle_query_end_response (XdpInhibit            *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   xdp_impl_inhibit_call_query_end_response (impl, session->id, NULL, NULL, NULL);
   xdp_inhibit_complete_query_end_response (object, invocation);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 

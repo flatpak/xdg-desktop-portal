@@ -411,7 +411,7 @@ handle_request_background (XdpBackground *object,
                            &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
@@ -427,7 +427,7 @@ handle_request_background (XdpBackground *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -439,7 +439,7 @@ handle_request_background (XdpBackground *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_request_background_in_thread_func);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

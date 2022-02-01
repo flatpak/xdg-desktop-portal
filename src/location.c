@@ -420,14 +420,14 @@ handle_create_session (XdpLocation *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Location services disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   session = location_session_new (arg_options, invocation, &error);
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (g_variant_lookup (arg_options, "distance-threshold", "u", &threshold))
@@ -454,7 +454,7 @@ handle_create_session (XdpLocation *object,
                                                  XDG_DESKTOP_PORTAL_ERROR,
                                                  XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                                  "Invalid accuracy level");
-          return TRUE;
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
     }
 
@@ -471,7 +471,7 @@ handle_create_session (XdpLocation *object,
 
   xdp_location_complete_create_session (object, invocation, ((Session *)session)->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 /*** Start ***/
@@ -638,7 +638,7 @@ handle_start (XdpLocation *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Location services disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   REQUEST_AUTOLOCK (request);
@@ -650,7 +650,7 @@ handle_start (XdpLocation *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   SESSION_AUTOLOCK_UNREF (session);
@@ -666,13 +666,13 @@ handle_start (XdpLocation *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Can only start once");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     case LOCATION_SESSION_STATE_CLOSED:
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
                                              "Invalid session");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
@@ -692,7 +692,7 @@ handle_start (XdpLocation *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_start_in_thread_func);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 /************/

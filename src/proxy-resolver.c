@@ -79,7 +79,7 @@ proxy_resolver_handle_lookup (XdpProxyResolver *object,
                                                g_variant_new ("(^as)", proxies));
     }
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

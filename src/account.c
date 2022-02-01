@@ -191,7 +191,7 @@ handle_get_user_information (XdpAccount *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -215,7 +215,7 @@ handle_get_user_information (XdpAccount *object,
 
   xdp_account_complete_get_user_information (object, invocation, request->id);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

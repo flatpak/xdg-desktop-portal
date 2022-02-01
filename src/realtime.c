@@ -118,13 +118,13 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Permission denied");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!map_pid_if_needed (request->app_info, pids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
@@ -136,7 +136,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
                      on_call_ready,
                      g_object_ref (invocation));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -168,13 +168,13 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Permission denied");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!map_pid_if_needed (request->app_info, pids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
@@ -186,7 +186,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
                      on_call_ready,
                      g_object_ref (invocation));
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

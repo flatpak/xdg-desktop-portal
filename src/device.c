@@ -236,7 +236,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid devices requested");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (g_str_equal (devices[0], "microphone") &&
@@ -247,7 +247,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Microphone access disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   if (g_str_equal (devices[0], "camera") &&
       xdp_impl_lockdown_get_disable_camera (lockdown))
@@ -257,7 +257,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Camera access disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   if (g_str_equal (devices[0], "speakers") &&
       xdp_impl_lockdown_get_disable_sound_output (lockdown))
@@ -267,7 +267,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Speaker access disabled");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   REQUEST_AUTOLOCK (request);
@@ -278,7 +278,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "This call is not available inside the sandbox");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   app_info = xdp_get_app_info_from_pid (pid, &error);
@@ -288,7 +288,7 @@ handle_access_device (XdpDevice *object,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid pid requested");
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (xdp_app_info_get_id (app_info)), g_free);
@@ -302,7 +302,7 @@ handle_access_device (XdpDevice *object,
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
@@ -314,7 +314,7 @@ handle_access_device (XdpDevice *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_access_device_in_thread);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

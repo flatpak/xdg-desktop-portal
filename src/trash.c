@@ -115,7 +115,7 @@ handle_trash_file (XdpTrash *object,
 
   xdp_trash_complete_trash_file (object, invocation, NULL, result);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void

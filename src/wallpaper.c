@@ -307,7 +307,7 @@ handle_set_wallpaper_uri (XdpWallpaper *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 
-  return TRUE;  
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
@@ -330,7 +330,7 @@ handle_set_wallpaper_file (XdpWallpaper *object,
   if (fd == -1)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
@@ -347,7 +347,7 @@ handle_set_wallpaper_file (XdpWallpaper *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 
-  return TRUE;
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 static void
 wallpaper_iface_init (XdpWallpaperIface *iface)
