@@ -366,7 +366,7 @@ validate_icon_more (GVariant *v)
   int status;
   g_autofree char *err = NULL;
   g_autoptr(GError) error = NULL;
-  const char *icon_validator = LIBEXECDIR "/flatpak-validate-icon";
+  const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
   const char *args[6];
 
   if (G_IS_THEMED_ICON (icon))
@@ -384,8 +384,8 @@ validate_icon_more (GVariant *v)
 
   if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
     {
-      g_debug ("Icon validation: %s not found, accepting icon without further validation.", icon_validator);
-      return TRUE;
+      g_debug ("Icon validation: %s not found, rejecting icon by default.", icon_validator);
+      return FALSE;
     }
 
   bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
