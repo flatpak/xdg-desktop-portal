@@ -43,6 +43,7 @@
 #include "gamemode.h"
 #include "global-shortcuts.h"
 #include "inhibit.h"
+#include "input-capture.h"
 #include "location.h"
 #include "memory-monitor.h"
 #include "network-monitor.h"
@@ -147,6 +148,16 @@ method_needs_request (GDBusMethodInvocation *invocation)
   else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
     {
       if (strcmp (method, "SetStatus") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.InputCapture") == 0)
+    {
+      if (strcmp (method, "ConnectToEIS") == 0 ||
+          strcmp (method, "Enable") == 0 ||
+          strcmp (method, "Disable") == 0 ||
+          strcmp (method, "Release") == 0)
         return FALSE;
       else
         return TRUE;
@@ -367,6 +378,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (
         connection, clipboard_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.InputCapture");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  input_capture_create (connection, implementation->dbus_name));
 }
 
 static void

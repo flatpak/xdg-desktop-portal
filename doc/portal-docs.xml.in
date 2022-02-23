@@ -105,6 +105,7 @@
     <xi:include href="portal-org.freedesktop.portal.GameMode.xml"/>
     <xi:include href="portal-org.freedesktop.portal.GlobalShortcuts.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Inhibit.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.InputCapture.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Location.xml"/>
     <xi:include href="portal-org.freedesktop.portal.MemoryMonitor.xml"/>
     <xi:include href="portal-org.freedesktop.portal.NetworkMonitor.xml"/>
@@ -154,6 +155,7 @@
     <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.GlobalShortcuts.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Inhibit.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.InputCapture.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Lockdown.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Notification.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.PermissionStore.xml"/>
