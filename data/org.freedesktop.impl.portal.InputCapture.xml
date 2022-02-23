@@ -1,0 +1,436 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2022 Red Hat, Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.InputCapture:
+      @short_description: Capture input portal backend interface
+
+      The Capture Input portal allows clients to capture input from local
+      devices. This portal is mostly a 1:1 mapping of the
+      #org.freedesktop.portal.InputCapture portal, see that portal's
+      documentation for details on methods, signals and arguments.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.InputCapture">
+    <!--
+        CreateSession:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
+        @app_id: App id of the application
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Create a capture input session.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>capabilities u</term>
+            <listitem><para>
+              Bitmask of requested capabilities, see the
+              SupportedCapabilities property. This value is required.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned in the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>session_id s</term>
+            <listitem><para>
+              The session id. A string representing the created capture input session.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>capabilities u</term>
+            <listitem><para>
+              The capabilities available to this session. This is always a
+              subset of the requested capabilities.
+            </para></listitem>
+          </varlistentry>
+      </variablelist>
+    -->
+    <method name="CreateSession">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+    <!--
+        GetZones:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Return the current zones for this session.
+
+        The following results get returned in the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>zones a(uuii)</term>
+            <listitem><para>
+              An array of zones with width, height, x-offset, y-offset.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>zone_set u</term>
+            <listitem><para>
+             The zone_set ID required in
+             org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="GetZones">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        SetPointerBarriers:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @barriers: An array of vardicts, each specifying one barrier
+        @zone_set: A unique ID referring to the zone set
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Set up zero or more pointer barriers.
+
+        Supported keys in the @barriers vardicts include:
+        <variablelist>
+          <varlistentry>
+            <term>barrier_id u</term>
+            <listitem><para>
+              The non-zero id of this barrier. This id is used in the
+              #org.freedesktop.portal.impl.InputCapture::Activated signal to inform
+              which barrier triggered input capture.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>position (iiii)</term>
+            <listitem><para>
+              The x1/y1 x2/y2 position of the pointer barrier. A horizontal
+              pointer barrier must have y1 == y2, a vertical pointer barrier
+              must have x1 == x2. Diagonal pointer barriers are not supported.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned in the @results vardict:
+        <variablelist>
+          <varlistentry>
+            <term>failed_barriers au</term>
+            <listitem><para>
+              An array of barrier_ids of pointer barriers that have been denied. The
+              id matches the barrier_id of the entries in the @barriers argument.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="SetPointerBarriers">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="aa{sv}" name="barriers" direction="in"/>
+      <arg type="u" name="zone_set" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        Enable:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+
+        Enable input capturing.
+    -->
+    <method name="Enable">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        Disable:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+
+        Disable input capturing.
+    -->
+    <method name="Disable">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        Release:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+
+        Release ongoing input capturing.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>activation_id u</term>
+            <listitem><para>
+              The same activation_id number as in the
+              #org.freedesktop.impl.portal.InputCapture::Activated signal.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>cursor_position (dd)</term>
+            <listitem><para>
+              The suggested cursor position within the Zones available in
+              this session.
+
+              This is a suggestion to the compositor to place the cursor in
+              the correct position to allow for fluent movement between virtual
+              screens. The compositor is not required to honor this suggestion.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="Release">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        ConnectToEIS:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @fd: A file descriptor to an EIS implementation that can be passed to a passive libei context
+
+        Set up the connection to an EIS implementation. Once input capturing starts,
+        input events are sent via the EI protocol between the compositor and the application.
+        This call must be invoked before org.freedesktop.portal.InputCapture.Enable().
+
+        A session only needs to set this up once, the EIS implementation is not affected by
+        calls to Disable() and org.freedesktop.portal.InputCapture.Enable() -
+        the same context can be re-used until the session is closed.
+    -->
+    <method name="ConnectToEIS">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="h" name="fd" direction="out"/>
+    </method>
+    <!--
+        Disabled:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @options: Vardict with optional further information
+
+        The Disabled signal is emitted when the application will no longer
+        receive captured input. If input capturing is currently ongoing, the
+        #org.freedesktop.impl.portal.InputCapture::Deactivated signal is emitted
+        before this signal.
+    -->
+    <signal name="Disabled">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="options" direction="out"/>
+    </signal>
+
+    <!--
+        Activated:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @options: Vardict with optional further information
+
+        The Activated signal is emitted when input capture starts and input events
+        are about to be sent to the application.
+
+        This signal is only emitted after a prior call
+        to org.freedesktop.impl.portal.InputCapture.Enable().
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>activation_id u</term>
+            <listitem><para>
+                A number that can be used to synchronize with the
+                transport-layer. This number has no intrinsic meaning but
+                is guaranteed to increase by an unspecified amount on each call.
+
+                In particular: if the compositor sends an activation_id of N as
+                part of this request it will also set the sequence in EIS'
+                start_emulating event the same value N on the EIS connection
+                before the first event from a device is sent.
+                This allows an application to have a synchronization point and
+                attribute an event sequence to the portal interaction.
+
+                Applications must be able to handle the activation_id number wrapping
+                around. Implementations of this portal must to increase the
+                activation_id number by an sensible amount to allow for wrapping
+                detection.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>cursor_position (dd)</term>
+            <listitem><para>
+              The current cursor position. Note that this position may be
+              outside the Zones available to this session - this indicates
+              movement larger than a single pixel.
+
+              For example, a fast movement against a barrier on the right edge
+              of a screen may logically put the cursor dozens of pixels into
+              the (non-existing) screen on the other side of the barrier.
+              It is the application's responsibility to adjust the cursor
+              position as necessary.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>barrier_id u</term>
+            <listitem><para>
+              The barrier id of the barrier that triggered. If the value is
+              nonzero, it matches the barrier id as specified in
+              org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+
+              If the id is zero, the pointer barrier could be determined.
+              If the id is missing, the input capture was not triggered by a
+              pointer barrier.
+
+              Where more than one pointer barrier are triggered by the same
+              movement it is up to the compositor to choose one barrier (or use
+              a barrier id of zero).
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <signal name="Activated">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="options" direction="out"/>
+    </signal>
+
+    <!--
+        Deactivated:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @options: Vardict with optional further information
+
+        The Deactivated signal is emitted when input capture stopped and input events
+        are no longer sent to the application. To prevent future input
+        capture, an application must call org.freedesktop.portal.InputCapture.Disable().
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>activation_id u</term>
+            <listitem><para>
+                The same activation_id as in the corresponding
+                #org.freedesktop.impl.portal.InputCapture::Activated signal.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>cursor_position (dd)</term>
+            <listitem><para>
+              The current cursor position. Note that this position may be
+              outside the Zones available to this session - this indicates
+              movement larger than a single pixel.
+
+              For example, a fast movement against a barrier on the right edge
+              of a screen may logically put the cursor dozens of pixels into
+              the (non-existing) screen on the other side of the barrier.
+              It is the application's responsibility to adjust the cursor
+              position as necessary.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <signal name="Deactivated">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="options" direction="out"/>
+    </signal>
+
+    <!--
+        ZonesChanged:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @options: Vardict with optional further information
+
+        The ZonesChanged signal is emitted when one or more of the zones
+        available **to this session** change. An application should immediately call
+        org.freedesktop.portal.InputCapture.GetZones() to update its state of the zones.
+    -->
+    <signal name="ZonesChanged">
+      <arg type="o" name="session_handle" direction="out"/>
+      <arg type="a{sv}" name="options" direction="out"/>
+    </signal>
+
+    <!--
+        SupportedCapabilities:
+
+        A bitmask of supported capabilities. This list is constant, it is not the list of
+        capabilities currently available but rather which capabilies are
+        implemented by the portal.
+
+        Applications must ignore unknown capabilities.
+
+        Currently defined types are:
+
+        <simplelist>
+          <member>1: KEYBOARD</member>
+          <member>2: POINTER</member>
+          <member>4: TOUCHSCREEN</member>
+        </simplelist>
+    -->
+    <property name="SupportedCapabilities" type="u" access="read"/>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

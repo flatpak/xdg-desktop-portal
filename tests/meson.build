@@ -292,6 +292,7 @@ if enable_pytest
     'test_clipboard.py',
     'test_email.py',
     'test_globalshortcuts.py',
+    'test_inputcapture.py',
     'test_remotedesktop.py',
     'test_trash.py',
   ]

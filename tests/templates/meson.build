@@ -3,6 +3,7 @@ template_files = [
   'clipboard.py',
   'email.py',
   'globalshortcuts.py',
+  'inputcapture.py',
   'remotedesktop.py',
 ]
 foreach template_file : template_files
