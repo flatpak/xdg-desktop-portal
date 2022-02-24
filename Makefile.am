@@ -12,6 +12,24 @@ DISTCLEANFILES= $(NULL)
 BUILT_SOURCES = $(NULL)
 EXTRA_DIST = tap-driver.sh tap-test
 
+# All files meson needs
+EXTRA_DIST += meson.build \
+              meson_options.txt \
+              data/meson.build \
+              doc/meson.build \
+              document-portal/meson.build \
+              meson.build \
+              po/meson.build \
+              src/meson.build \
+              tests/dbs/meson.build \
+              tests/meson.build \
+              tests/portals/meson.build \
+              tests/services/meson.build \
+              tests/share/applications/meson.build \
+              tests/share/meson.build \
+              tests/template.test.in \
+              $(NULL)
+
 include $(top_srcdir)/glib-tap.mk
 include $(top_srcdir)/Makefile.am.inc
 

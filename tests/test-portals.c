@@ -25,6 +25,16 @@
 #include "wallpaper.h"
 #endif
 
+/* required while we support meson + autotools. Autotools builds everything in
+   the root dir ('.'), meson builds in each subdir nested and overrides these for
+   g_test_build_filename */
+#ifndef XDG_DP_BUILDDIR
+#define XDG_DP_BUILDDIR "."
+#endif
+#ifndef XDG_PS_BUILDDIR
+#define XDG_PS_BUILDDIR "."
+#endif
+
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
@@ -216,7 +226,7 @@ global_setup (void)
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", XDG_PS_BUILDDIR, "xdg-permission-store", NULL);
   else
     argv0 = g_strdup (LIBEXECDIR "/xdg-permission-store");
 
@@ -263,7 +273,7 @@ global_setup (void)
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-desktop-portal", NULL);
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", XDG_DP_BUILDDIR, "xdg-desktop-portal", NULL);
   else
     argv0 = g_strdup (LIBEXECDIR "/xdg-desktop-portal");
 

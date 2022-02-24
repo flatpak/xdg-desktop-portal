@@ -1,0 +1,44 @@
+option('dbus-service-dir',
+       type: 'string',
+       value: '',
+       description: 'directory for dbus service files (default: PREFIX/share/dbus-1/services)')
+option('flatpak-interfaces-dir',
+       type: 'string',
+       value: '',
+       description: 'directory for Flatpak interface files (default: PREFIX/share/dbus-1/interfaces)')
+option('systemd-user-unit-dir',
+       type: 'string',
+       value: '',
+       description: 'directory for systemd user service files (default: PREFIX/lib/systemd/user)')
+option('libportal',
+       type: 'feature',
+       value: 'auto',
+       description: 'Enable libportal support. Needed for tests')
+option('geoclue',
+       type: 'feature',
+       value: 'auto',
+       description: 'Enable Geoclue support. Needed for location portal')
+option('pipewire',
+       type: 'feature',
+       value: 'auto',
+       description: 'Enable PipeWire support. Needed for screen cast portal')
+option('systemd',
+       type: 'feature',
+       value: 'auto',
+       description: 'Enable systemd support')
+option('docbook-docs',
+       type: 'feature',
+       value: 'auto',
+       description: 'Build documentation (requires xmlto)')
+option('xmlto-flags',
+       type: 'array',
+       value: [],
+       description: 'Define/override "xmlto" options, like "--skip-validation"')
+option('datarootdir',
+        type: 'string',
+        value: '',
+        description: 'Define the datarootdir for the pkgconf file')
+option('installed-tests',
+        type: 'boolean',
+        value: false,
+        description: 'Enable installation of some test cases')
