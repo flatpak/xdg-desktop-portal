@@ -13,6 +13,7 @@ BUILT_SOURCES = $(NULL)
 EXTRA_DIST = tap-driver.sh tap-test
 
 include $(top_srcdir)/glib-tap.mk
+include $(top_srcdir)/Makefile.am.inc
 
 SUBDIRS = doc po
 
