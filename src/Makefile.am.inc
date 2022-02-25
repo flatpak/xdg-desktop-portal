@@ -15,58 +15,6 @@ xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
 geoclue_built_sources = src/geoclue-dbus.c src/geoclue-dbus.h
 BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources) $(geoclue_built_sources)
 
-PORTAL_IFACE_FILES =\
-	data/org.freedesktop.portal.Account.xml \
-	data/org.freedesktop.portal.Background.xml \
-	data/org.freedesktop.portal.Camera.xml \
-	data/org.freedesktop.portal.Device.xml \
-	data/org.freedesktop.portal.Documents.xml \
-	data/org.freedesktop.portal.Email.xml \
-	data/org.freedesktop.portal.FileChooser.xml \
-	data/org.freedesktop.portal.GameMode.xml \
-	data/org.freedesktop.portal.Inhibit.xml \
-	data/org.freedesktop.portal.Location.xml \
-	data/org.freedesktop.portal.MemoryMonitor.xml \
-	data/org.freedesktop.portal.NetworkMonitor.xml \
-	data/org.freedesktop.portal.Notification.xml \
-	data/org.freedesktop.portal.OpenURI.xml \
-	data/org.freedesktop.portal.PowerProfileMonitor.xml \
-	data/org.freedesktop.portal.Print.xml \
-	data/org.freedesktop.portal.ProxyResolver.xml \
-	data/org.freedesktop.portal.Realtime.xml \
-	data/org.freedesktop.portal.RemoteDesktop.xml \
-	data/org.freedesktop.portal.Request.xml \
-	data/org.freedesktop.portal.ScreenCast.xml \
-	data/org.freedesktop.portal.Screenshot.xml \
-	data/org.freedesktop.portal.Secret.xml \
-	data/org.freedesktop.portal.Session.xml \
-	data/org.freedesktop.portal.Settings.xml \
-	data/org.freedesktop.portal.Trash.xml \
-	data/org.freedesktop.portal.Wallpaper.xml \
-	$(NULL)
-
-PORTAL_IMPL_IFACE_FILES =\
-	data/org.freedesktop.impl.portal.Access.xml \
-	data/org.freedesktop.impl.portal.Account.xml \
-	data/org.freedesktop.impl.portal.AppChooser.xml \
-	data/org.freedesktop.impl.portal.Background.xml \
-	data/org.freedesktop.impl.portal.Email.xml \
-	data/org.freedesktop.impl.portal.FileChooser.xml \
-	data/org.freedesktop.impl.portal.Inhibit.xml \
-	data/org.freedesktop.impl.portal.Lockdown.xml \
-	data/org.freedesktop.impl.portal.Notification.xml \
-	data/org.freedesktop.impl.portal.PermissionStore.xml \
-	data/org.freedesktop.impl.portal.Print.xml \
-	data/org.freedesktop.impl.portal.RemoteDesktop.xml \
-	data/org.freedesktop.impl.portal.Request.xml \
-	data/org.freedesktop.impl.portal.ScreenCast.xml \
-	data/org.freedesktop.impl.portal.Screenshot.xml \
-	data/org.freedesktop.impl.portal.Secret.xml \
-	data/org.freedesktop.impl.portal.Session.xml \
-	data/org.freedesktop.impl.portal.Settings.xml \
-	data/org.freedesktop.impl.portal.Wallpaper.xml \
-	$(NULL)
-
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.portal.      \
