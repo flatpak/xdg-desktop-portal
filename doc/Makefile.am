@@ -54,56 +54,9 @@ portal_files = 								\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Wallpaper.xml		\
 	$(NULL)
 
-xml_files = 								\
-	portal-org.freedesktop.portal.Account.xml 			\
-	portal-org.freedesktop.portal.Background.xml			\
-	portal-org.freedesktop.portal.Camera.xml			\
-	portal-org.freedesktop.portal.Device.xml			\
-	portal-org.freedesktop.portal.Documents.xml			\
-	portal-org.freedesktop.portal.Email.xml 			\
-	portal-org.freedesktop.portal.FileChooser.xml 			\
-	portal-org.freedesktop.portal.FileTransfer.xml			\
-	portal-org.freedesktop.portal.Flatpak.UpdateMonitor.xml 			\
-	portal-org.freedesktop.portal.Flatpak.xml 			\
-	portal-org.freedesktop.portal.GameMode.xml			\
-	portal-org.freedesktop.portal.Inhibit.xml			\
-	portal-org.freedesktop.portal.Location.xml			\
-	portal-org.freedesktop.portal.MemoryMonitor.xml		\
-	portal-org.freedesktop.portal.NetworkMonitor.xml		\
-	portal-org.freedesktop.portal.Notification.xml			\
-	portal-org.freedesktop.portal.OpenURI.xml 			\
-	portal-org.freedesktop.portal.PowerProfileMonitor.xml		\
-	portal-org.freedesktop.portal.Print.xml 			\
-	portal-org.freedesktop.portal.ProxyResolver.xml			\
-	portal-org.freedesktop.portal.Realtime.xml		\
-	portal-org.freedesktop.portal.RemoteDesktop.xml 		\
-	portal-org.freedesktop.portal.Request.xml 			\
-	portal-org.freedesktop.portal.ScreenCast.xml 			\
-	portal-org.freedesktop.portal.Screenshot.xml 			\
-	portal-org.freedesktop.portal.Secret.xml			\
-	portal-org.freedesktop.portal.Session.xml 			\
-	portal-org.freedesktop.portal.Settings.xml			\
-	portal-org.freedesktop.portal.Trash.xml 			\
-	portal-org.freedesktop.portal.Wallpaper.xml			\
-	portal-org.freedesktop.impl.portal.Access.xml	 		\
-	portal-org.freedesktop.impl.portal.AppChooser.xml 		\
-	portal-org.freedesktop.impl.portal.Background.xml 			\
-	portal-org.freedesktop.impl.portal.Email.xml 			\
-	portal-org.freedesktop.impl.portal.FileChooser.xml		\
-	portal-org.freedesktop.impl.portal.Inhibit.xml	 		\
-	portal-org.freedesktop.impl.portal.Lockdown.xml	 		\
-	portal-org.freedesktop.impl.portal.Notification.xml 		\
-	portal-org.freedesktop.impl.portal.PermissionStore.xml		\
-	portal-org.freedesktop.impl.portal.Print.xml 			\
-	portal-org.freedesktop.impl.portal.RemoteDesktop.xml 		\
-	portal-org.freedesktop.impl.portal.Request.xml 			\
-	portal-org.freedesktop.impl.portal.ScreenCast.xml 		\
-	portal-org.freedesktop.impl.portal.Screenshot.xml 		\
-	portal-org.freedesktop.impl.portal.Secret.xml	 		\
-	portal-org.freedesktop.impl.portal.Session.xml 			\
-	portal-org.freedesktop.impl.portal.Settings.xml	 		\
-	portal-org.freedesktop.impl.portal.Wallpaper.xml			\
-	$(NULL)
+# Sub-interface of org.freedesktop.portal.Flatpak.xml
+extra_xml_files = org.freedesktop.portal.Flatpak.UpdateMonitor.xml
+xml_files = $(addprefix portal-, $(notdir $(portal_files) $(extra_xml_files)))
 
 EXTRA_DIST = \
 	org.freedesktop.portal.Flatpak.xml \
