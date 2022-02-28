@@ -1,4 +1,4 @@
-tests_test_backends_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)
+tests_test_backends_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) -I$(top_builddir)/src
 tests_test_backends_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \

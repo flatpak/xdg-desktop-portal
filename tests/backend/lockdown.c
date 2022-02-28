@@ -5,7 +5,7 @@
 
 #include <gio/gio.h>
 
-#include "src/xdp-impl-dbus.h"
+#include "xdp-impl-dbus.h"
 
 #include "lockdown.h"
 

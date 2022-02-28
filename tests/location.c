@@ -2,7 +2,7 @@
 
 #include "location.h"
 
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 #include <libportal/portal.h>
 
 extern char outdir[];

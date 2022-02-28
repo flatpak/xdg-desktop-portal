@@ -12,7 +12,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 #include "document-portal/permission-store-dbus.h"
 #include "utils.h"
 

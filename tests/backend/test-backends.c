@@ -3,7 +3,7 @@
 
 #include <gio/gio.h>
 
-#include "src/xdp-impl-dbus.h"
+#include "xdp-impl-dbus.h"
 
 #include "access.h"
 #include "account.h"

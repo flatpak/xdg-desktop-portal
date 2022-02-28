@@ -4,9 +4,9 @@
 
 #include <gio/gio.h>
 
-#include "src/xdp-dbus.h"
-#include "src/xdp-utils.h"
-#include "src/xdp-impl-dbus.h"
+#include "xdp-dbus.h"
+#include "xdp-utils.h"
+#include "xdp-impl-dbus.h"
 
 #ifdef HAVE_LIBPORTAL
 #include "account.h"

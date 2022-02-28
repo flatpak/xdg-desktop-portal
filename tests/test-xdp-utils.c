@@ -2,7 +2,7 @@
 
 #include <glib.h>
 
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 
 static void
 test_parse_cgroup_unified (void)

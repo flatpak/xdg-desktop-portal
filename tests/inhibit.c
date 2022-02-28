@@ -3,7 +3,7 @@
 #include "inhibit.h"
 
 #include <libportal/portal.h>
-#include "src/xdp-impl-dbus.h"
+#include "xdp-impl-dbus.h"
 
 extern char outdir[];
 
