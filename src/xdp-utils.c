@@ -487,7 +487,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
     group = "Runtime";
 
   id = g_key_file_get_string (metadata, group, "name", error);
-  if (id == NULL)
+  if (id == NULL || !xdp_is_valid_app_id (id))
     {
       close (info_fd);
       return NULL;
