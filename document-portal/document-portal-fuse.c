@@ -230,7 +230,7 @@ app_can_write_doc (PermissionDbEntry *entry, const char *app_id)
   if (app_id == NULL)
     return TRUE;
 
-  if (document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_WRITE))
+  if (document_entry_has_permissions_by_app_id (entry, app_id, DOCUMENT_PERMISSION_FLAGS_WRITE))
     return TRUE;
 
   return FALSE;
@@ -242,7 +242,7 @@ app_can_see_doc (PermissionDbEntry *entry, const char *app_id)
   if (app_id == NULL)
     return TRUE;
 
-  if (document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_READ))
+  if (document_entry_has_permissions_by_app_id (entry, app_id, DOCUMENT_PERMISSION_FLAGS_READ))
     return TRUE;
 
   return FALSE;

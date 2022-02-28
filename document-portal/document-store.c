@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <gio/gio.h>
 #include "document-store.h"
-#include "src/xdp-utils.h"
 
 const char **
 xdg_unparse_permissions (DocumentPermissionFlags permissions)
@@ -56,8 +55,8 @@ xdp_parse_permissions (const char **permissions,
 }
 
 DocumentPermissionFlags
-document_entry_get_permissions (PermissionDbEntry *entry,
-                                const char     *app_id)
+document_entry_get_permissions_by_app_id (PermissionDbEntry *entry,
+                                          const char        *app_id)
 {
   g_autofree const char **permissions = NULL;
 
@@ -68,14 +67,39 @@ document_entry_get_permissions (PermissionDbEntry *entry,
   return xdp_parse_permissions (permissions, NULL);
 }
 
+DocumentPermissionFlags
+document_entry_get_permissions (PermissionDbEntry *entry,
+                                XdpAppInfo        *app_info)
+{
+  g_autofree const char **permissions = NULL;
+  const char *app_id = xdp_app_info_get_id (app_info);
+
+  if (xdp_app_info_is_host (app_info))
+    return DOCUMENT_PERMISSION_FLAGS_ALL;
+
+  return document_entry_get_permissions_by_app_id (entry, app_id);
+}
+
 gboolean
-document_entry_has_permissions (PermissionDbEntry    *entry,
-                                const char        *app_id,
-                                DocumentPermissionFlags perms)
+document_entry_has_permissions_by_app_id (PermissionDbEntry       *entry,
+                                          const char              *app_id,
+                                          DocumentPermissionFlags  perms)
 {
   DocumentPermissionFlags current_perms;
 
-  current_perms = document_entry_get_permissions (entry, app_id);
+  current_perms = document_entry_get_permissions_by_app_id (entry, app_id);
+
+  return (current_perms & perms) == perms;
+}
+
+gboolean
+document_entry_has_permissions (PermissionDbEntry       *entry,
+                                XdpAppInfo              *app_info,
+                                DocumentPermissionFlags  perms)
+{
+  DocumentPermissionFlags current_perms;
+
+  current_perms = document_entry_get_permissions (entry, app_info);
 
   return (current_perms & perms) == perms;
 }

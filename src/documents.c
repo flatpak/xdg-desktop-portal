@@ -74,8 +74,7 @@ register_document (const char *uri,
   gboolean handled_permissions = FALSE;
   DocumentAddFullFlags full_flags;
 
-  if (app_id == NULL || *app_id == 0)
-    return g_strdup (uri);
+  g_return_val_if_fail (app_id != NULL && *app_id != '\0', NULL);
 
   file = g_file_new_for_uri (uri);
   path = g_file_get_path (file);
@@ -203,13 +202,13 @@ register_document (const char *uri,
 
 char *
 get_real_path_for_doc_path (const char *path,
-                            const char *app_id)
+                            XdpAppInfo *app_info)
 {
   g_autofree char *doc_id = NULL;
   gboolean ret = FALSE;
   char *real_path = NULL;
 
-  if (app_id == NULL || *app_id == '\0')
+  if (xdp_app_info_is_host (app_info))
     return g_strdup (path);
 
   ret = xdp_documents_call_lookup_sync (documents, path, &doc_id, NULL, NULL);

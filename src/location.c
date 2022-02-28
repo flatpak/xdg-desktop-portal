@@ -322,13 +322,14 @@ gclue_accuracy_level_to_string (GClueAccuracyLevel level)
 }
 
 static gboolean
-get_location_permissions (const char *app_id,
+get_location_permissions (XdpAppInfo *app_info,
                           GClueAccuracyLevel *accuracy,
                           gint64 *last_used)
 {
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_auto(GStrv) perms = NULL;
 
-  if (app_id == NULL || app_id[0] == '\0')
+  if (xdp_app_info_is_host (app_info))
     {
       /* unsandboxed */
       *accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
@@ -503,7 +504,7 @@ handle_start_in_thread_func (GTask *task,
 
   app_id = xdp_app_info_get_id (request->app_info);
 
-  if (!get_location_permissions (app_id, &accuracy, &last_used))
+  if (!get_location_permissions (request->app_info, &accuracy, &last_used))
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
