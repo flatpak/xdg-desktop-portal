@@ -1,5 +1,4 @@
-#ifndef XDP_ENUMS_H
-#define XDP_ENUMS_H
+#pragma once
 
 G_BEGIN_DECLS
 
@@ -22,5 +21,3 @@ typedef enum {
 } DocumentAddFullFlags;
 
 G_END_DECLS
-
-#endif /* XDP_ENUMS_H */
