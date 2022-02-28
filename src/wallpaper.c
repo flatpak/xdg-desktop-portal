@@ -184,6 +184,10 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
       if (g_str_equal (app_id, ""))
         {
+          /* Note: this will set the wallpaper permission for all unsandboxed
+           * apps for which an app ID can't be determined.
+           */
+          g_assert (xdp_app_info_is_host (request->app_info));
           title = g_strdup (_("Allow Applications to Set Backgrounds?"));
           subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
         }

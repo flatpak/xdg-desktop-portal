@@ -113,7 +113,11 @@ send_response_in_thread_func (GTask        *task,
           g_autofree char *ruri = NULL;
           g_autoptr(GError) error = NULL;
 
-          ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), for_save, writable, directory, &error);
+          if (xdp_app_info_is_host (request->app_info))
+            ruri = g_strdup (uris[i]);
+          else
+            ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), for_save, writable, directory, &error);
+
           if (ruri == NULL)
             {
               g_warning ("Failed to register %s: %s", uris[i], error->message);

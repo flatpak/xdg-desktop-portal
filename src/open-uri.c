@@ -686,7 +686,7 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          g_autofree char *real_path = get_real_path_for_doc_path (path, app_id);
+          g_autofree char *real_path = get_real_path_for_doc_path (path, request->app_info);
           /* Try opening the directory via the file manager interface, then
              fall back to a plain URI open */
           g_autoptr(GError) local_error = NULL;

@@ -109,7 +109,6 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
                           GVariant              *parameters,
                           XdpAppInfo            *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
@@ -148,7 +147,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
       }
 
     /* Must have grant-permissions and all the newly granted permissions */
-    if (!document_entry_has_permissions (entry, app_id,
+    if (!document_entry_has_permissions (entry, app_info,
                                     DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS | perms))
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -158,7 +157,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
       }
 
     do_set_permissions (entry, id, target_app_id,
-                        perms | document_entry_get_permissions (entry, target_app_id));
+                        perms | document_entry_get_permissions_by_app_id (entry, target_app_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
@@ -211,7 +210,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
       }
 
     /* Must have grant-permissions, or be itself */
-    if (!document_entry_has_permissions (entry, app_id,
+    if (!document_entry_has_permissions (entry, app_info,
                                     DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS) ||
         strcmp (app_id, target_app_id) == 0)
       {
@@ -222,7 +221,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
       }
 
     do_set_permissions (entry, id, target_app_id,
-                        ~perms & document_entry_get_permissions (entry, target_app_id));
+                        ~perms & document_entry_get_permissions_by_app_id (entry, target_app_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
@@ -237,7 +236,6 @@ portal_delete (GDBusMethodInvocation *invocation,
                XdpAppInfo            *app_info)
 {
   const char *id;
-  const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree const char **old_apps = NULL;
   int i;
@@ -258,7 +256,7 @@ portal_delete (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!document_entry_has_permissions (entry, app_id, DOCUMENT_PERMISSION_FLAGS_DELETE))
+    if (!document_entry_has_permissions (entry, app_info, DOCUMENT_PERMISSION_FLAGS_DELETE))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -422,7 +420,7 @@ static char *
 verify_existing_document (struct stat *st_buf,
                           gboolean     reuse_existing,
                           gboolean     directory,
-                          const char  *app_id,
+                          XdpAppInfo  *app_info,
                           gboolean     allow_write,
                           char       **real_path_out)
 {
@@ -452,8 +450,7 @@ verify_existing_document (struct stat *st_buf,
 
   /* Don't allow re-exposing non-writable document as writable */
   if (allow_write &&
-      app_id != NULL &&
-      !document_entry_has_permissions (old_entry, app_id, DOCUMENT_PERMISSION_FLAGS_WRITE))
+      !document_entry_has_permissions (old_entry, app_info, DOCUMENT_PERMISSION_FLAGS_WRITE))
     return NULL;
 
   return g_steal_pointer (&id);
@@ -818,7 +815,7 @@ document_add_full (int                      *fd,
           g_autofree char *id = NULL;
 
           /* The passed in fd is on the fuse filesystem itself */
-          id = verify_existing_document (&st_buf, reuse_existing, is_dir, app_id, allow_write, &real_path);
+          id = verify_existing_document (&st_buf, reuse_existing, is_dir, app_info, allow_write, &real_path);
           if (id == NULL)
             {
               g_set_error (error,
@@ -952,7 +949,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   filename = g_variant_get_bytestring (filename_v);
 
   /* This is only allowed from the host, or else we could leak existence of files */
-  if (*app_id != 0)
+  if (!xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -1083,7 +1080,6 @@ portal_add_named (GDBusMethodInvocation *invocation,
                   GVariant              *parameters,
                   XdpAppInfo            *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
   g_autofree char *id = NULL;
@@ -1101,7 +1097,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   filename = g_variant_get_bytestring (filename_v);
 
   /* This is only allowed from the host, or else we could leak existence of files */
-  if (*app_id != 0)
+  if (!xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
