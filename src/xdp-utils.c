@@ -929,6 +929,9 @@ xdp_get_alternate_document_path (const char *path, const char *app_id)
 {
   int len;
 
+  if (g_str_equal (app_id, ""))
+    return NULL;
+
   /* If we don't know where the document portal is mounted, then there
    * is no alternate path */
   if (documents_mountpoint == NULL)
