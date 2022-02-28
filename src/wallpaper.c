@@ -143,7 +143,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
   if (uri != NULL && fd != -1)
     {
-      g_warning ("Rejecting invalid open-uri request (both URI and fd are set)");
+      g_warning ("Rejecting invalid set-wallpaper request (both URI and fd are set)");
       if (request->exported)
         {
           g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
