@@ -30,7 +30,7 @@ nodist_test_doc_portal_SOURCES = document-portal/document-portal-dbus.c
 
 EXTRA_test_doc_portal_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
-test_portals_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS) $(SYSTEMD_LIBS)
+test_portals_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(LIBPORTAL_CFLAGS) $(SYSTEMD_LIBS) -I$(top_builddir)/src
 test_portals_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
@@ -85,7 +85,7 @@ nodist_test_portals_SOURCES = \
 	$(NULL)
 test_programs += test-portals
 
-test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS)
+test_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS) -I$(top_builddir)/src
 test_permission_store_LDADD = \
 	$(AM_LDADD) \
 	$(BASE_LIBS) \
@@ -104,7 +104,7 @@ nodist_test_permission_store_SOURCES = \
 EXTRA_test_permission_store_DEPENDENCIES = tests/services/org.freedesktop.impl.portal.PermissionStore.service tests/services/org.freedesktop.portal.Documents.service
 
 test_programs += test-xdp-utils
-test_xdp_utils_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS)
+test_xdp_utils_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS) -I$(top_builddir)/src
 test_xdp_utils_LDADD = $(AM_LD_ADD) $(BASE_LIBS) $(SYSTEMD_LIBS)
 test_xdp_utils_SOURCES = \
 	tests/test-xdp-utils.c \

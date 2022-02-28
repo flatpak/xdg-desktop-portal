@@ -3,8 +3,8 @@
 #include "camera.h"
 
 #include <libportal/portal.h>
-#include "src/xdp-utils.h"
-#include "src/xdp-impl-dbus.h"
+#include "xdp-utils.h"
+#include "xdp-impl-dbus.h"
 
 #include "utils.h"
 

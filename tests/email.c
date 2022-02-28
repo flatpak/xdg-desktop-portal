@@ -3,7 +3,7 @@
 #include "email.h"
 
 #include <libportal/portal.h>
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 
 extern char outdir[];
 
