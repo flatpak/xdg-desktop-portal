@@ -1,5 +1,4 @@
-#ifndef XDP_UTIL_H
-#define XDP_UTIL_H
+#pragma once
 
 #include <gio/gio.h>
 #include "permission-db.h"
@@ -31,5 +30,3 @@ char *  xdp_name_from_id (guint32 doc_id);
 
 
 G_END_DECLS
-
-#endif /* XDP_UTIL_H */

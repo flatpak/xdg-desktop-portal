@@ -18,9 +18,6 @@
  *       Alexander Larsson <alexl@redhat.com>
  */
 
-#ifndef __FLATPAK_PERMISSION_STORE_H__
-#define __FLATPAK_PERMISSION_STORE_H__
+#pragma once
 
 void xdg_permission_store_start (GDBusConnection *connection);
-
-#endif /* __FLATPAK_PERMISSION_STORE_H__ */
