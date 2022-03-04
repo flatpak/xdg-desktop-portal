@@ -103,8 +103,9 @@ gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
 XdpAppInfo *xdp_get_app_info_from_pid    (pid_t        pid,
                                           GError     **error);
 GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);
-char **     xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
-                                              const char *const *commandline);
+char **     xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
+                                              const char *const *commandline,
+                                              gboolean           quote_escape);
 char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)

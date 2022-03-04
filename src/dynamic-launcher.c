@@ -253,9 +253,22 @@ save_icon_and_get_desktop_entry (const char  *desktop_file_id,
   if (exec == NULL)
     return NULL;
 
-  exec_strv = g_strsplit (exec, " ", -1);
+  if (!g_shell_parse_argv (exec, NULL, &exec_strv, error))
+    return NULL;
+
+  /* Don't let the app give itself access to host files */
+  if (xdp_app_info_get_kind (xdp_app_info) == XDP_APP_INFO_KIND_FLATPAK &&
+      g_strv_contains ((const char * const *)exec_strv, "--file-forwarding"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   _("Desktop entry given to Install() must not use --file-forwarding"));
+      return NULL;
+    }
+
   prefixed_exec_strv = xdp_app_info_rewrite_commandline (xdp_app_info,
-                                                         (const char * const *)exec_strv);
+                                                         (const char * const *)exec_strv,
+                                                         TRUE /* quote escape */);
   if (prefixed_exec_strv == NULL)
     {
       g_set_error (error,
