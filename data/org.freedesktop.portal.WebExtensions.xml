@@ -95,6 +95,7 @@
         @options: Vardict with optional further information
         @stdin: File descriptor representing the server's stdin.
         @stdout: File descriptor representing the server's stdout.
+        @stderr: File descriptor representing the server's stderr.
 
         Retrieve file descriptors for the native messaging server
         identified by the session.
@@ -105,6 +106,7 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="h" name="stdin" direction="out"/>
       <arg type="h" name="stdout" direction="out"/>
+      <arg type="h" name="stderr" direction="out"/>
     </method>
     <property name="version" type="u" access="read"/>
   </interface>
