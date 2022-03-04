@@ -301,7 +301,8 @@ handle_request_background_in_thread_func (GTask *task,
 
   autostart_enabled = FALSE;
 
-  commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec);
+  commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec,
+                                                  FALSE /* don't quote escape */);
   if (commandline == NULL)
     {
       g_debug ("Autostart not supported for: %s", app_id);

@@ -311,20 +311,52 @@ xdp_app_info_load_app_info (XdpAppInfo *app_info)
   return G_APP_INFO (g_desktop_app_info_new (desktop_id));
 }
 
+static gboolean
+needs_quoting (const char *arg)
+{
+  while (*arg != 0)
+    {
+      char c = *arg;
+      if (!g_ascii_isalnum (c) &&
+          !(c == '-' || c == '/' || c == '~' ||
+            c == ':' || c == '.' || c == '_' ||
+            c == '=' || c == '@'))
+        return TRUE;
+      arg++;
+    }
+  return FALSE;
+}
+
+static char *
+maybe_quote (const char *arg,
+             gboolean quote_escape)
+{
+  if (!quote_escape || !needs_quoting (arg))
+    return g_strdup (arg);
+  else
+    return g_shell_quote (arg);
+}
+
 char **
 xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
-                                  const char * const *commandline)
+                                  const char * const *commandline,
+                                  gboolean quote_escape)
 {
+  g_autoptr(GPtrArray) args = NULL;
+
   g_return_val_if_fail (app_info != NULL, NULL);
 
   if (app_info->kind == XDP_APP_INFO_KIND_HOST)
     {
-      return g_strdupv ((char **)commandline);
+      int i;
+      args = g_ptr_array_new_with_free_func (g_free);
+      for (i = 0; commandline && commandline[i]; i++)
+        g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
+      g_ptr_array_add (args, NULL);
+      return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
     }
   else if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
-      g_autoptr(GPtrArray) args = NULL;
-
       args = g_ptr_array_new_with_free_func (g_free);
 
       g_ptr_array_add (args, g_strdup ("flatpak"));
@@ -332,14 +364,21 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
       if (commandline && commandline[0])
         {
           int i;
+          g_autofree char *quoted_command = NULL;
 
-          g_ptr_array_add (args, g_strdup_printf ("--command=%s", commandline[0]));
-          g_ptr_array_add (args, g_strdup (app_info->id));
+          quoted_command = maybe_quote (commandline[0], quote_escape);
+
+          g_ptr_array_add (args, g_strdup_printf ("--command=%s", quoted_command));
+
+          /* Always quote the app ID to make rewriting the file simpler in case
+           * the app is renamed.
+           */
+          g_ptr_array_add (args, g_shell_quote (app_info->id));
           for (i = 1; commandline[i]; i++)
-            g_ptr_array_add (args, g_strdup (commandline[i]));
+            g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
         }
       else
-        g_ptr_array_add (args, g_strdup (app_info->id));
+        g_ptr_array_add (args, g_shell_quote (app_info->id));
       g_ptr_array_add (args, NULL);
 
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
@@ -1344,22 +1383,6 @@ xdp_is_valid_app_id (const char *string)
   return TRUE;
 }
 
-
-static gboolean
-needs_quoting (const char *arg)
-{
-  while (*arg != 0)
-    {
-      char c = *arg;
-      if (!g_ascii_isalnum (c) &&
-          !(c == '-' || c == '/' || c == '~' ||
-            c == ':' || c == '.' || c == '_' ||
-            c == '='))
-        return TRUE;
-      arg++;
-    }
-  return FALSE;
-}
 
 char *
 xdp_quote_argv (const char *argv[])
