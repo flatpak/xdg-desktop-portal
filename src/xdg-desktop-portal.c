@@ -252,7 +252,6 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, trash_create (connection));
   export_portal_implementation (connection, game_mode_create (connection));
   export_portal_implementation (connection, realtime_create (connection));
-  export_portal_implementation (connection, web_extensions_create (connection));
 
   impls = find_all_portal_implementations ("org.freedesktop.impl.portal.Settings");
   if (impls->len > 0)
@@ -288,6 +287,10 @@ on_bus_acquired (GDBusConnection *connection,
   if (access_impl != NULL)
     {
       XdpPortalImplementation *tmp;
+
+      export_portal_implementation (connection,
+                                    web_extensions_create (connection,
+                                                           access_impl->dbus_name));
 
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,

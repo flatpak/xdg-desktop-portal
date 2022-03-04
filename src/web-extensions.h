@@ -20,4 +20,5 @@
 
 #include <gio/gio.h>
 
-GDBusInterfaceSkeleton * web_extensions_create (GDBusConnection *connection);
+GDBusInterfaceSkeleton *web_extensions_create (GDBusConnection *connection,
+                                               const char *access_dbus_name);

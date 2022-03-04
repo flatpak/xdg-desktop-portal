@@ -21,6 +21,7 @@
 #include <stdint.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <glib/gi18n.h>
 #include <gio/gunixfdlist.h>
 #include <json-glib/json-glib.h>
 
@@ -31,6 +32,8 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+
+#define PERMISSION_TABLE "webextensions"
 
 typedef struct _WebExtensions WebExtensions;
 typedef struct _WebExtensionsClass WebExtensionsClass;
@@ -45,6 +48,7 @@ struct _WebExtensionsClass
   XdpDbusWebExtensionsSkeletonClass parent_class;
 };
 
+static XdpDbusImplAccess *access_impl;
 static WebExtensions *web_extensions;
 
 GType web_extensions_get_type (void);
@@ -57,6 +61,7 @@ G_DEFINE_TYPE_WITH_CODE (WebExtensions, web_extensions, XDP_DBUS_TYPE_WEB_EXTENS
 typedef enum _WebExtensionsSessionState
 {
   WEB_EXTENSIONS_SESSION_STATE_INIT,
+  WEB_EXTENSIONS_SESSION_STATE_STARTING,
   WEB_EXTENSIONS_SESSION_STATE_STARTED,
   WEB_EXTENSIONS_SESSION_STATE_CLOSED,
 } WebExtensionsSessionState;
@@ -168,7 +173,7 @@ web_extensions_session_new (GVariant *options,
                             NULL);
 
   if (session)
-    g_debug ("screen cast session owned by '%s' created", session->sender);
+    g_debug ("webextensions session owned by '%s' created", session->sender);
 
   return (WebExtensionsSession *)session;
 }
@@ -242,6 +247,7 @@ is_valid_name (const char *name)
 static char *
 find_server (const char *server_name,
              const char *extension_or_origin,
+             char **server_description,
              GError **error)
 {
   const char *hosts_path_str;
@@ -296,12 +302,146 @@ find_server (const char *server_name,
           !array_contains (json_object_get_array_member (metadata_root, "allowed_origins"), extension_or_origin))
         continue;
 
-      /* Server matches: return its executable path */
+      /* Server matches: return its executable path and description */
+      if (server_description != NULL)
+          *server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
       return g_strdup (json_object_get_string_member (metadata_root, "path"));
     }
 
   g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND, "cannot find native messaging server");
   return NULL;
+}
+
+static void
+handle_start_in_thread (GTask *task,
+                        gpointer source_object,
+                        gpointer task_data,
+                        GCancellable *cancellable)
+{
+  XdpRequest *request = (XdpRequest *)task_data;
+  XdpSession *session;
+  WebExtensionsSession *we_session;
+  const char *arg_name;
+  const char *arg_extension_or_origin;
+  const char *app_id;
+  g_autofree char *server_path = NULL;
+  g_autofree char *server_description = NULL;
+  guint response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+  gboolean should_close_session;
+  XdpPermission permission;
+  gboolean allowed;
+  char *argv[] = {NULL, NULL};
+  g_autoptr(GError) error = NULL;
+
+  REQUEST_AUTOLOCK (request);
+  session = g_object_get_data (G_OBJECT (request), "session");
+  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+  g_object_set_data (G_OBJECT (request), "session", NULL);
+  we_session = (WebExtensionsSession *)session;
+
+  if (!request->exported)
+    goto out;
+
+  arg_name = g_object_get_data (G_OBJECT (request), "name");
+  arg_extension_or_origin = g_object_get_data (G_OBJECT (request), "extension-or-origin");
+
+  server_path = find_server (arg_name, arg_extension_or_origin, &server_description, &error);
+  if (server_path == NULL)
+    {
+      g_warning ("Could not find WebExtensions backend: %s", error->message);
+      goto out;
+    }
+
+  app_id = xdp_app_info_get_id (request->app_info);
+  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, arg_name);
+  if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
+    {
+      guint access_response = 2;
+      g_autoptr(GVariant) access_results = NULL;
+      GVariantBuilder opt_builder;
+      GAppInfo *info = NULL;
+      const char *display_name;
+      g_autofree gchar *title = NULL;
+      g_autofree gchar *subtitle = NULL;
+      g_autofree gchar *body = NULL;
+
+      info = xdp_app_info_get_gappinfo (request->app_info);
+      display_name = info ? g_app_info_get_display_name (info) : app_id;
+      title = g_strdup_printf (_("Allow %s to start WebExtension backend?"), display_name);
+      subtitle = g_strdup_printf (_("%s is requesting to launch \"%s\" (%s)."), display_name, server_description, arg_name);
+      /* This UI does not currently exist */
+      body = g_strdup (_("This permission can be changed at any time from the privacy settings."));
+
+      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
+      g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                         request->id,
+                                                         app_id,
+                                                         "",
+                                                         title,
+                                                         subtitle,
+                                                         body,
+                                                         g_variant_builder_end (&opt_builder),
+                                                         &access_response,
+                                                         &access_results,
+                                                         NULL,
+                                                         &error))
+        {
+          g_warning ("AccessDialog call failed: %s", error->message);
+          g_clear_error (&error);
+        }
+      allowed = access_response == 0;
+
+      if (permission == XDP_PERMISSION_UNSET)
+        xdp_set_permission_sync (app_id, PERMISSION_TABLE, arg_name, allowed ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+    }
+  else
+    allowed = permission == XDP_PERMISSION_YES ? TRUE : FALSE;
+
+  if (!allowed)
+    {
+      response = XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
+      goto out;
+    }
+
+  argv[0] = server_path;
+  if (!g_spawn_async_with_pipes (NULL, /* working_directory */
+                                 argv,
+                                 NULL, /* envp */
+                                 G_SPAWN_DO_NOT_REAP_CHILD,
+                                 NULL, /* child_setup */
+                                 NULL, /* user_data */
+                                 &we_session->child_pid,
+                                 &we_session->standard_input,
+                                 &we_session->standard_output,
+                                 NULL, /* standard_error */
+                                 &error))
+    {
+      we_session->child_pid = -1;
+      goto out;
+    }
+
+  we_session->child_watch_id = g_child_watch_add (
+    we_session->child_pid, on_server_exited, we_session);
+  we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
+
+  response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+
+out:
+  should_close_session = !request->exported || response != XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+
+  if (request->exported)
+    {
+      GVariantBuilder results;
+
+      g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, g_variant_builder_end (&results));
+      xdp_request_unexport (request);
+    }
+
+  if (should_close_session)
+    xdp_session_close (session, TRUE);
 }
 
 static gboolean
@@ -312,14 +452,14 @@ handle_start (XdpDbusWebExtensions *object,
               const char *arg_extension_or_origin,
               GVariant *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   XdpSession *session;
   WebExtensionsSession *we_session;
-  g_autofree char *server_path = NULL;
-  char *argv[] = {NULL, NULL};
-  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  REQUEST_AUTOLOCK (request);
+
+  session = xdp_session_from_request (arg_session_handle, request);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -341,41 +481,21 @@ handle_start (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  server_path = find_server (arg_name, arg_extension_or_origin, &error);
-  if (server_path == NULL)
-    {
-      xdp_session_close(session, TRUE);
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
+  we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTING;
+  g_object_set_data_full (G_OBJECT (request), "session", g_object_ref (session), g_object_unref);
+  g_object_set_data_full (G_OBJECT (request), "name", g_strdup (arg_name), g_free);
+  g_object_set_data_full (G_OBJECT (request), "extension-or-origin", g_strdup (arg_extension_or_origin), g_free);
 
-  argv[0] = server_path;
-  if (!g_spawn_async_with_pipes (NULL, /* working_directory */
-                                 argv,
-                                 NULL, /* envp */
-                                 G_SPAWN_DO_NOT_REAP_CHILD,
-                                 NULL, /* child_setup */
-                                 NULL, /* user_data */
-                                 &we_session->child_pid,
-                                 &we_session->standard_input,
-                                 &we_session->standard_output,
-                                 NULL, /* standard_error */
-                                 &error))
-    {
-      we_session->child_pid = -1;
-      xdp_session_close(session, TRUE);
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return TRUE;
-    }
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_dbus_web_extensions_complete_start (object, invocation, request->id);
 
-  we_session->child_watch_id = g_child_watch_add (
-    we_session->child_pid, on_server_exited, we_session);
-  we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
-
-  xdp_dbus_web_extensions_complete_start (object, invocation);
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, handle_start_in_thread);
 
   return TRUE;
 }
+
 
 static gboolean
 handle_get_pipes (XdpDbusWebExtensions *object,
@@ -464,8 +584,19 @@ web_extensions_class_init (WebExtensionsClass *klass)
 }
 
 GDBusInterfaceSkeleton *
-web_extensions_create (GDBusConnection *connection)
+web_extensions_create (GDBusConnection *connection,
+                       const char *dbus_name_access)
 {
+  g_autoptr(GError) error = NULL;
+
   web_extensions = g_object_new (web_extensions_get_type (), NULL);
+
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     dbus_name_access,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error);
+
   return G_DBUS_INTERFACE_SKELETON (web_extensions);
 }
