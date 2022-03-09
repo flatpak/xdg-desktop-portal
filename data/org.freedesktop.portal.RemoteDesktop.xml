@@ -35,12 +35,12 @@
 
         A remote desktop session is used to allow remote controlling a desktop
         session. It can also be used together with a screen cast session (see
-        org.freedesktop.portal.ScreenCast), but may only be started and stopped
+        #org.freedesktop.portal.ScreenCast), but may only be started and stopped
         with this interface.
 
         To also get a screen content, call the
-        #org.freedesktop.ScreenCast.SelectSources with the
-        #org.freedesktop.Session object created with this method.
+        org.freedesktop.portal.ScreenCast.SelectSources() with the
+        #org.freedesktop.portal.Session object created with this method.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -61,7 +61,7 @@
             </para></listitem>
           </varlistentry>
         </variablelist>
-        
+
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>

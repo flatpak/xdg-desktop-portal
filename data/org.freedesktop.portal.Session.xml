@@ -31,8 +31,8 @@
       The duration of the session is defined by the interface that creates it.
       For convenience, the interface contains a method
       org.freedesktop.portal.Session.Close(), and a signal
-      org.freedesktop.portal.Session::Closed. Whether it is allowed to directly
-      call Close() depends on the interface.
+      #org.freedesktop.portal.Session::Closed. Whether it is allowed to directly
+      call org.freedesktop.portal.Session.Close() depends on the interface.
 
       The handle of a session will be of the form
       /org/freedesktop/portal/desktop/session/SENDER/TOKEN, where SENDER is the

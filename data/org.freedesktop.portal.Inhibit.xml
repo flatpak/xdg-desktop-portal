@@ -84,7 +84,7 @@
         A successfully created session can at any time be closed using
         org.freedesktop.portal.Session::Close, or may at any time be closed
         by the portal implementation, which will be signalled via
-        org.freedesktop.portal.Session::Closed.
+        #org.freedesktop.portal.Session::Closed.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -135,7 +135,7 @@
         the session state changes.
 
         When the session state changes to 'Query End', clients with active monitoring
-        sessions are expected to respond by calling 
+        sessions are expected to respond by calling
         org.freedesktop.portal.Inhibit.QueryEndResponse() within a second
         of receiving the StateChanged signal. They may call org.freedesktop.portal.Inhibit.Inhibit()
         first to inhibit logout, to prevent the session from proceeding to the Ending state.
