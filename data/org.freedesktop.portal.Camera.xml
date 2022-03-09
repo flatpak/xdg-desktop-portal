@@ -43,7 +43,7 @@
         </variablelist>
 
         Following the #org.freedesktop.portal.Request::Response signal, if
-        granted, #org.freedesktop.org.Camera.OpenPipeWireRemote can be used to
+        granted, org.freedesktop.portal.Camera.OpenPipeWireRemote() can be used to
         open a PipeWire remote.
     -->
     <method name="AccessCamera">

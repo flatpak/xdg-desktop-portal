@@ -49,7 +49,7 @@
       The D-Bus interface for the document portal is available under the
       bus name org.freedesktop.portal.Documents and the object path
       /org/freedesktop/portal/documents.
- 
+
       This documentation describes version 4 of this interface.
   -->
   <interface name='org.freedesktop.portal.Documents'>
@@ -123,15 +123,15 @@
         contain an empty string.
 
         Additionally, if app_id is specified, it will be given the permissions
-        listed in GrantPermission.
+        listed in org.freedesktop.portal.Documents.GrantPermissions().
 
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
 
-        This method was added in version 2 of the org.freedesktop.portal.Documents interface.
+        This method was added in version 2 of the #org.freedesktop.portal.Documents interface.
 
-        Support for exporting directories were added in version 4 of the org.freedesktop.portal.Documents interface.
+        Support for exporting directories were added in version 4 of the #org.freedesktop.portal.Documents interface.
     -->
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -161,13 +161,13 @@
         contain an empty string.
 
         Additionally, if app_id is specified, it will be given the permissions
-        listed in GrantPermission.
+        listed in org.freedesktop.portal.Documents.GrantPermissions().
 
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
 
-        This method was added in version 3 of the org.freedesktop.portal.Documents interface.
+        This method was added in version 3 of the #org.freedesktop.portal.Documents interface.
     -->
     <method name="AddNamedFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
