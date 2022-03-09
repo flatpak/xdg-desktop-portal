@@ -31,8 +31,7 @@
   <interface name="org.freedesktop.portal.Wallpaper">
     <!--
         SetWallpaperURI:
-        @parent_window: Identifier for the application window, see
-            <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @uri: The picture file uri
         @options: Options that influence the behavior of the portal
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -40,12 +39,24 @@
         Asks to set a given picture as the desktop background picture.
 
         Note that file: uris are explicitly not supported here. To use a local image file as
-        background, use the SetWallpaperFile method.
+        background, use the org.freedesktop.portal.Wallpaper.SetWallpaperFile() method.
 
-        The following options are supported:
-        show-preview: (b) whether to show a preview of the picture. Note that the portal may
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>show-preview b</term>
+            <listitem><para>
+             whether to show a preview of the picture. Note that the portal may
              decide to show a preview even if this option is not set
-        set-on: (s) where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>set-on s</term>
+            <listitem><para>
+              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="SetWallpaperURI">
       <arg type="s" name="parent_window" direction="in"/>
@@ -56,18 +67,29 @@
 
     <!--
         SetWallpaperFile:
-        @parent_window: Identifier for the application window, see
-            <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @fd: File descriptor for the file to open
         @options: Options that influence the behavior of the portal
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Asks to set a given local file as the desktop background picture.
 
-        The following options are supported:
-        show-preview: (b) whether to show a preview of the picture. Note that the portal may
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>show-preview b</term>
+            <listitem><para>
+             whether to show a preview of the picture. Note that the portal may
              decide to show a preview even if this option is not set
-        set-on: (s) where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>set-on s</term>
+            <listitem><para>
+              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="SetWallpaperFile">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>

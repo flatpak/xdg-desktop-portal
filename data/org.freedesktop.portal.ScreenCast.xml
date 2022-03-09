@@ -32,9 +32,9 @@
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Create a screen cast session. A successfully created session can at
-        any time be closed using org.freedesktop.portal.Session::Close, or may
+        any time be closed using org.freedesktop.portal.Session.Close(), or may
         at any time be closed by the portal implementation, which will be
-        signalled via org.freedesktop.portal.Session::Closed.
+        signalled via #org.freedesktop.portal.Session::Closed.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -111,7 +111,7 @@
             <term>cursor_mode u</term>
             <listitem><para>
               Determines how the cursor will be drawn in the screen cast stream. It must be
-              one of the curosr modes advertised in
+              one of the cursor modes advertised in
               #org.freedesktop.portal.ScreenCast.AvailableCursorModes. Setting a cursor mode
               not advertised will cause the screen cast session to be closed. The default
               cursor mode is 'Hidden'.
@@ -175,10 +175,11 @@
 
         Start the screen cast session. This will typically result the portal
         presenting a dialog letting the user do the selection set up by
-        SelectSources. An application can only attempt start a session once.
+        org.freedesktop.portal.ScreenCast.SelectSources(). An application can
+        only attempt start a session once.
 
         A screen cast session may only be started after having selected sources
-        using org.freedesktop.portal.ScreenCast::SelectSources.
+        using org.freedesktop.portal.ScreenCast.SelectSources().
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -203,8 +204,10 @@
               properties.
 
               The array will contain a single stream if 'multiple' (see
-              SelectSources) was set to 'false', or at least one stream if
-              'multiple' was set to 'true' as part of the SelectSources method.
+              org.freedesktop.portal.ScreenCast.SelectSources())
+              was set to 'false', or at least one stream if
+              'multiple' was set to 'true' as part of the
+              org.freedesktop.portal.ScreenCast.SelectSources() method.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -212,7 +215,7 @@
             <listitem><para>
               The restore token. This token is a single use token that can later
               be used to restore a session. See
-              #org.freedesktop.portal.ScreenCast.SelectSources for details.
+              org.freedesktop.portal.ScreenCast.SelectSources() for details.
 
               This response option was added in version 4 of this interface.
             </para></listitem>

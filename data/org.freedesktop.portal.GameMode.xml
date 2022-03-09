@@ -30,17 +30,18 @@
       separate process  ids (pids) within two different namespaces
       that both identify same process. One id from the pid namespace
       inside the sandbox and one id from the host pid namespace.
-      Since GameMode expects pids from the host pid namespace but
-      programs inside the sandbox can only know pids from the sandbox
-      namespace, process ids need to be translated from the portal to
-      the host namespace. The portal will do that transparently for
-      all calls where this is necessary.
+      Since org.freedesktop.portal.GameMode expects pids from the host
+      pid namespace but programs inside the sandbox can only know pids
+      from the sandbox namespace, process ids need to be translated from
+      the portal to the host namespace. The portal will do that transparently
+      for all calls where this is necessary.
 
-      Note: GameMode will monitor active clients, i.e. games and
-      other programs that have successfully called 'RegisterGame'.
+      Note: #org.freedesktop.portal.GameMode will monitor active clients,
+      i.e. games and other programs that have successfully called
+      org.freedesktop.portal.GameMode.RegisterGame().
       In the event that a client terminates without a call to the
-      'UnregisterGame' method, GameMode will automatically un-register
-      the client. This might happen with a (small) delay.
+      org.freedesktop.portal.GameMode.UnregisterGame() method, GameMode will
+      automatically un-register the client. This might happen with a (small) delay.
 
       This documentation describes version 3 of this interface.
     -->
