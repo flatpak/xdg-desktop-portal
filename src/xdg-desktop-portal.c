@@ -40,6 +40,7 @@
 #include "email.h"
 #include "file-chooser.h"
 #include "gamemode.h"
+#include "globalshortcuts.h"
 #include "inhibit.h"
 #include "location.h"
 #include "memory-monitor.h"
@@ -326,6 +327,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   secret_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.GlobalShortcuts");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  global_shortcuts_create (connection, implementation->dbus_name));
 
 #ifdef HAVE_GLIB_2_66
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.DynamicLauncher");
