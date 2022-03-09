@@ -22,6 +22,11 @@
       @short_description: Portal for emulating input events
 
       The emulated input portal enables applications to emulate input events.
+      The portal's functionality is limited to session management and
+      establishing a side-channel used as the transport layer for the actual
+      input events. Once that side-channel is established, the emulating
+      application communicates directly with the compositor without involvement
+      of the portal.
   -->
   <interface name="org.freedesktop.portal.EmulatedInput">
     <!--
@@ -29,10 +34,11 @@
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Create a session to emulate input. A successfully created session can at
-        any time be closed using org.freedesktop.portal.Session::Close, or may
+        Create a session to emulate input events. A successfully created
+        session can at any time be closed using
+        org.freedesktop.portal.Session.Close(), or may
         at any time be closed by the portal implementation, which will be
-        signalled via org.freedesktop.portal.Session::Closed.
+        signalled via #org.freedesktop.portal.Session::Closed.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -77,8 +83,17 @@
         @response: Zero on success or 1 on error
         @results: Vardict with the results of the call
 
-        Request a connection to the Emulated Input Server (EIS). This method
-        is expected to complete immediately, it does not use a Request object.
+        Request a connection to an
+        <ulink url="https://libinput.pages.freedesktop.org/libei/"> Emulated Input Server (EIS)</ulink>
+        implementation. This method is expected to complete immediately, it does not use a Request object.
+        The returned file descriptor serves as the transport layer for input events in this session.
+
+        When the Session is #org.freedesktop.portal.Session::Closed, the EIS
+        implementation closes the file descriptor. For technical reasons it
+        cannot be guaranteed that the #org.freedesktop.portal.Session::Closed
+        signal arrives before the first error on the file descriptor occurs.
+        An application must handle read or write errors on the file descriptor
+        correctly.
 
         This method will only succeed if the application has permission
         to emulate input.
