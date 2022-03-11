@@ -975,7 +975,7 @@ verify_proc_self_fd (XdpAppInfo *app_info,
   /* File descriptors to actually deleted files have " (deleted)"
      appended to them. This also happens to some fake fd types
      like shmem which are "/<name> (deleted)". All such
-     files are considered invalid. Unfortunatelly this also
+     files are considered invalid. Unfortunately this also
      matches files with filenames that actually end in " (deleted)",
      but there is not much to do about this. */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
