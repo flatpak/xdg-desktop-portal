@@ -2239,7 +2239,6 @@ xdp_validate_serialized_icon (GVariant  *v,
   const char *allowed_icon_formats[] = { "png", "jpeg", "svg", NULL };
   int size;
   const char *MAX_ICON_SIZE = "512";
-  int MAX_ICON_SIZE_INT = 512;
   g_auto(GStrv) parts = NULL;
   gconstpointer bytes_data;
   gsize bytes_len;
