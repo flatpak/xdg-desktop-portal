@@ -998,11 +998,9 @@ replace_restore_data_by_token (ScreenCastSession *screen_cast_session,
     {
       if (g_strcmp0 (key, "restore_data") == 0)
         {
-          GVariant *child = g_variant_get_child_value (value, 0);
-
-          if (g_variant_check_format_string (child, RESTORE_DATA_TYPE, FALSE))
+          if (g_variant_check_format_string (value, RESTORE_DATA_TYPE, FALSE))
             {
-              screen_cast_session->restore_data = g_variant_ref_sink (child);
+              screen_cast_session->restore_data = g_variant_ref_sink (value);
               found_restore_data = TRUE;
             }
           else
