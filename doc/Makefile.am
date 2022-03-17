@@ -84,6 +84,7 @@ xml_files = 								\
 	portal-org.freedesktop.portal.MemoryMonitor.xml		\
 	portal-org.freedesktop.portal.PowerProfileMonitor.xml		\
 	portal-org.freedesktop.portal.Realtime.xml		\
+	portal-org.freedesktop.impl.portal.Account.xml 			\
 	portal-org.freedesktop.impl.portal.Background.xml 			\
 	portal-org.freedesktop.portal.FileTransfer.xml			\
 	portal-org.freedesktop.impl.portal.Request.xml 			\
