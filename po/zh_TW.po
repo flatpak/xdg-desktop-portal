@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-17 11:27-0700\n"
 "PO-Revision-Date: 2021-10-01 23:52+0700\n"
 "Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -42,7 +42,7 @@ msgstr "“後台運行” 權限可以隨時從應用程序設置中更改。"
 msgid "Don't allow"
 msgstr "不允許"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:180
 msgid "Allow"
 msgstr "允許"
 
@@ -135,28 +135,28 @@ msgstr "可以隨時從隱私設置更改位置訪問權限。"
 msgid "Requested setting not found"
 msgstr "未找到請求的設置"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:178
 msgid "Deny"
 msgstr "否定"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:186
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "允許應用程序設置背景？"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:187
 msgid "An application is requesting to be able to change the background image."
 msgstr "應用程序請求能夠更改背景圖像。"
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:199
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "允許 %s 設置背景嗎？"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:200
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s 請求能夠更改背景圖像。"
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:203
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "可以隨時從隱私設置更改此權限。"
