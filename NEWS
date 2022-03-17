@@ -1,3 +1,32 @@
+Changes in 1.14.0
+=================
+Released: 2022-03-17
+
+- Add a new "dynamic launcher" portal, which can install .desktop files and
+  accompanying icons after user confirmation.
+- Rework handling of empty app IDs: In case an empty string app ID is stored in
+  the permission store, this permission is now shared only by apps whose app ID
+  couldn't be determined, rather than all unsandboxed apps.
+- Use libsystemd (when available) to try to determine the app ID of unsandboxed
+  processes. This is useful since some portals otherwise can't be used by host
+  apps.
+- Make x-d-p start on session start, which is needed for the dynamic launcher
+  portal to handle rewriting launchers for apps that have been renamed.
+- Bring back the copy of Flatpak's icon-validator, which was dropped many
+  releases ago.
+- Icon validation is now required for the notification and dynamic launcher
+  portals (previously it was only done if the "flatpak-validate-icon" binary
+  could be found).
+- document-portal: Move to the libfuse3 API
+- document-portal: Use renameat2 sys call
+- document-portal: Use mutex to fix concurrency bug
+- realtime: Fix error code paths
+- realtime: Fix MakeThreadHighPriorityWithPID method
+- screencast: Fix an error when restoring streams
+- ci: Various improvements
+- Documentation improvements
+- New translations: pt, ro
+
 Changes in 1.12.1
 =================
 Released: 2021-12-22
