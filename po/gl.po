@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2020-01-06 00:03+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -44,7 +44,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Non permitir"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr "Permitir"
 
@@ -109,33 +109,33 @@ msgstr "Unha aplicación quere usar a súa cámara."
 msgid "%s wants to use your camera."
 msgstr "%s quere uar a súa cámara."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Denegar acceso"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Conceder acceso"
 
-#: src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Desexa acceder acceso á súa localización?"
 
-#: src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr "Unha aplicación quere usar a súa localización."
 
-#: src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Desexa darlle acceso a %s á súa localización?"
 
-#: src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s quere usar a súa localización."
 
-#: src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso á súa localización pode cambiarse en calquera momento desde as "
@@ -145,29 +145,29 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Non se atopou a configuración solicitada"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr "Denegar"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:191
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo"
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitirlle a %s configurar o fondo de pantalla?"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s está solicitando poder cambiar o fondo de pantalla."
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Este permiso pode cambiarse en calquera momento desde as preferencias de "

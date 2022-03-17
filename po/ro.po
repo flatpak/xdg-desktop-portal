@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-02-18 10:43+0000\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2022-02-18 10:51+0000\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian\n"
@@ -14,162 +14,162 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 <"
-" 20)) ? 1 : 2;\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
 "X-Generator: Lokalize 21.12.2\n"
 
-#: ../src/background.c:260
+#: src/background.c:260
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permiteți %s să ruleze în fundal?"
 
-#: ../src/background.c:264
+#: src/background.c:264
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s cere să fie pornit automat și să ruleze în fundal."
 
-#: ../src/background.c:266
+#: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s cere să ruleze în fundal."
 
-#: ../src/background.c:267
+#: src/background.c:267
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"Permisiunea „rulează în fundal” poate fi schimbată în orice moment din"
-" configurările aplicației."
+"Permisiunea „rulează în fundal” poate fi schimbată în orice moment din "
+"configurările aplicației."
 
-#: ../src/background.c:272
+#: src/background.c:272
 msgid "Don't allow"
 msgstr "Nu permite"
 
-#: ../src/background.c:273 ../src/wallpaper.c:181
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr "Permite"
 
-#: ../src/device.c:115
+#: src/device.c:115
 msgid "Turn On Microphone?"
 msgstr "Porniți microfonul?"
 
-#: ../src/device.c:116
+#: src/device.c:116
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Accesul la microfon poate fi schimbat oricând din configurările de"
-" confidențialitate."
+"Accesul la microfon poate fi schimbat oricând din configurările de "
+"confidențialitate."
 
-#: ../src/device.c:120
+#: src/device.c:120
 msgid "An application wants to use your microphone."
 msgstr "O aplicație vrea să vă folosească microfonul."
 
-#: ../src/device.c:122
+#: src/device.c:122
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s vrea să vă folosească microfonul."
 
-#: ../src/device.c:128
+#: src/device.c:128
 msgid "Turn On Speakers?"
 msgstr "Porniți difuzoarele?"
 
-#: ../src/device.c:129
+#: src/device.c:129
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"Accesul la difuzoare poate fi schimbat oricând din configurările de"
-" confidențialitate."
+"Accesul la difuzoare poate fi schimbat oricând din configurările de "
+"confidențialitate."
 
-#: ../src/device.c:133
+#: src/device.c:133
 msgid "An application wants to play sound."
 msgstr "O aplicație dorește să redea sunet."
 
-#: ../src/device.c:135
+#: src/device.c:135
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s dorește să redea sunet."
 
-#: ../src/device.c:141
+#: src/device.c:141
 msgid "Turn On Camera?"
 msgstr "Porniți camera?"
 
-#: ../src/device.c:142
+#: src/device.c:142
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Accesul la cameră poate fi schimbat oricând din configurările de"
-" confidențialitate."
+"Accesul la cameră poate fi schimbat oricând din configurările de "
+"confidențialitate."
 
-#: ../src/device.c:146
+#: src/device.c:146
 msgid "An application wants to use your camera."
 msgstr "O aplicație vrea să vă folosească camera."
 
-#: ../src/device.c:148
+#: src/device.c:148
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s vrea să vă folosească camera."
 
-#: ../src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Refuză accesul"
 
-#: ../src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Permite accesul"
 
-#: ../src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Permiteți accesul la localizare?"
 
-#: ../src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr "O aplicație vrea să vă folosească localizarea."
 
-#: ../src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Permiteți accesul %s la localizare?"
 
-#: ../src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vrea să vă folosească localizarea."
 
-#: ../src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
-"Accesul la localizare poate fi schimbat oricând din configurările de"
-" confidențialitate."
+"Accesul la localizare poate fi schimbat oricând din configurările de "
+"confidențialitate."
 
-#: ../src/settings.c:124
+#: src/settings.c:124
 msgid "Requested setting not found"
 msgstr "Configurarea cerută nu a fost găsită"
 
-#: ../src/wallpaper.c:179
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr "Refuză"
 
-#: ../src/wallpaper.c:187
+#: src/wallpaper.c:191
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Permiteți aplicațiilor să stabilească fundaluri?"
 
-#: ../src/wallpaper.c:188
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr "O aplicație cere să poată schimba imaginea de fundal."
 
-#: ../src/wallpaper.c:200
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permiteți %s să stabilească fundaluri?"
 
-#: ../src/wallpaper.c:201
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s cere să poată schimba imaginea de fundal."
 
-#: ../src/wallpaper.c:204
+#: src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
-"Această permisiune poate fi schimbată oricând din configurările de"
-" confidențialitate."
+"Această permisiune poate fi schimbată oricând din configurările de "
+"confidențialitate."

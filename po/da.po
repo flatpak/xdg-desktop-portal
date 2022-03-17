@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2020-10-12 01:25+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -43,7 +43,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Tillad ikke"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr "Tillad"
 
@@ -56,8 +56,7 @@ msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Adgang til din mikrofon kan når som helst ændres i "
-"privatlivsindstillingerne."
+"Adgang til din mikrofon kan når som helst ændres i privatlivsindstillingerne."
 
 #: src/device.c:120
 msgid "An application wants to use your microphone."
@@ -107,33 +106,33 @@ msgstr "Et program anmoder om at bruge dit kamera."
 msgid "%s wants to use your camera."
 msgstr "%s anmoder om at bruge dit kamera."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Nægt adgang"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Giv adgang"
 
-#: src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Giv adgang til din placering?"
 
-#: src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr "Et program anmoder om at bruge din placering."
 
-#: src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
 
-#: src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s anmoder om at bruge din placering."
 
-#: src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til din placering kan når som helst ændres i "
@@ -143,28 +142,28 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Den anmodede indstilling blev ikke fundet"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr "Nægt"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:191
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Tillad programmer at indstille baggrunde?"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr "Et program anmoder om at være i stand til at ændre baggrundsbilledet."
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Tillad %s at indstille baggrunde?"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s anmoder om at være i stand til at ændre baggrundsbilledet."
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Tilladelsen kan når som helst ændres i privatlivsindstillingerne."
