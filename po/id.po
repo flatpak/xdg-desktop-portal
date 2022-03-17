@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-17 11:27-0700\n"
 "PO-Revision-Date: 2020-01-26 17:23+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
@@ -45,7 +45,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Jangan izinkan"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:180
 msgid "Allow"
 msgstr "Izinkan"
 
@@ -141,28 +141,28 @@ msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 msgid "Requested setting not found"
 msgstr "Pengaturan yang diminta tidak ditemukan"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:178
 msgid "Deny"
 msgstr "Tolak"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:186
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:187
 msgid "An application is requesting to be able to change the background image."
 msgstr "Aplikasi meminta untuk dapat mengubah gambar latar belakang."
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:199
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:200
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s meminta untuk dapat mengubah gambar latar belakang."
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:203
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
