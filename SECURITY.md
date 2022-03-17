@@ -1,12 +1,12 @@
 # Security policy for xdg-desktop-portal
 
-See the [Flatpak security policy](https://github.com/flatpak/flatpak/blob/master/SECURITY.md)
+See the [Flatpak security policy](https://github.com/flatpak/flatpak/blob/main/SECURITY.md)
 
 ## Supported Versions
 
 In stable branches and released packages, this table is likely to be outdated;
 please check
-[the latest version](https://github.com/flatpak/xdg-desktop-portal/blob/master/SECURITY.md).
+[the latest version](https://github.com/flatpak/xdg-desktop-portal/blob/main/SECURITY.md).
 
 | Version   | Supported          | Status
 | --------  | ------------------ | ------------------------------------------------------------- |
