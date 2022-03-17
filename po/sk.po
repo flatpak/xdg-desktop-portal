@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-15 03:43+0000\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2020-09-22 14:32+0200\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
@@ -45,7 +45,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Nepovoliť"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr "Povoliť"
 
@@ -108,33 +108,33 @@ msgstr "Aplikácia sa pokúša použiť vašu kameru."
 msgid "%s wants to use your camera."
 msgstr "Aplikácia %s sa pokúša použiť vašu kameru."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Zamietnuť prístup"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Udeliť prístup"
 
-#: src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Udeliť prístup k vašej polohe?"
 
-#: src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr "Aplikácia sa pokúša použiť vašu polohu."
 
-#: src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Umožniť aplikácii %s prístup k vašej polohe?"
 
-#: src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Aplikácia %s sa pokúša použiť vašu polohu."
 
-#: src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Prístup k vašej polohe môže byť kedykoľvek zmenený z nastavení súkromia."
@@ -143,28 +143,28 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Požadované nastavenie sa nenašlo"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr "Odmietnuť"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:191
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Umožniť aplikáciám nastavovať pozadia?"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr "Aplikácia požaduje povolenie na zmenu obrázku pozadia."
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Umožniť aplikácii %s nastavovať pozadia?"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikácia %s požaduje povolenie na zmenu obrázku pozadia."
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Toto oprávnenie môže byť kedykoľvek zmenené z nastavení súkromia."

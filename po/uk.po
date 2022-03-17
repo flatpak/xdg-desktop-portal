@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2019-11-10 13:03+0200\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Не дозволяти"
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr "Дозволити"
 
@@ -111,35 +111,35 @@ msgstr "Програмі потрібен доступ до використан
 msgid "%s wants to use your camera."
 msgstr "%s потрібен доступ до використання відеокамери."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Заборонити доступ"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Надати доступ"
 
-#: src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Надати доступ до даних щодо вашого перебування?"
 
-#: src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr ""
 "Програмі потрібен доступ до використання даних щодо вашого місця перебування."
 
-#: src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Надати %s доступ до даних щодо вашого перебування?"
 
-#: src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr ""
 "%s потрібен доступ до використання даних щодо вашого місця перебування."
 
-#: src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Параметри доступу до даних щодо вашого місця перебування може бути будь-коли "
@@ -149,29 +149,29 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Потрібного вам параметра не знайдено"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr "Заборонити"
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:191
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Дозволити програмам встановлювати фонове зображення?"
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr "Програмою надіслано запит щодо доступу до зміни фонового зображення."
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Дозволити %s встановлювати фонове зображення?"
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s надіслано запит щодо доступу до зміни фонового зображення."
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Параметри цього доступу може бути будь-коли змінено за допомогою налаштувань "

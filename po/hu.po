@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2020-09-14 12:22-0400\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
 "PO-Revision-Date: 2019-02-12 21:18+0100\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:273 src/wallpaper.c:179
+#: src/background.c:273 src/wallpaper.c:181
 msgid "Allow"
 msgstr ""
 
@@ -111,33 +111,33 @@ msgstr "Egy alkalmazás használni szeretné a kameráját."
 msgid "%s wants to use your camera."
 msgstr "%s használni szeretné a kameráját."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:534
+#: src/location.c:535
 msgid "Grant Access to Your Location?"
 msgstr "Hozzáférést ad a tartózkodási helyéhez?"
 
-#: src/location.c:535
+#: src/location.c:536
 msgid "An application wants to use your location."
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:547
+#: src/location.c:548
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:551
+#: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:554
+#: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
@@ -147,30 +147,30 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 
-#: src/wallpaper.c:177
+#: src/wallpaper.c:179
 msgid "Deny"
 msgstr ""
 
-#: src/wallpaper.c:185
+#: src/wallpaper.c:191
 #, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Egy alkalmazás hangot szeretne lejátszani."
 
-#: src/wallpaper.c:186
+#: src/wallpaper.c:192
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:204
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr ""
 
-#: src/wallpaper.c:199
+#: src/wallpaper.c:205
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:202
+#: src/wallpaper.c:208
 #, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
