@@ -1,10 +1,12 @@
-Changes in 1.12.1, 22-12-2021
-=============================
+Changes in 1.12.1
+=================
+Released: 2021-12-22
 
 - Fix a crash in the device portal
 
-Changes in 1.12.0, 21-12-2021
-=============================
+Changes in 1.12.0
+=================
+Released: 2021-12-21
 
 - Place portals in the systemd session.slice
 - settings: Add color-scheme key
