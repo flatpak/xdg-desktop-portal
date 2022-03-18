@@ -243,7 +243,7 @@ save_icon_and_get_desktop_entry (const char  *desktop_file_id,
     else
       subdir = g_strdup_printf ("%sx%s", icon_size, icon_size);
 
-    icon_subdir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "icons", subdir, NULL);
+    icon_subdir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_ICONS_DIR, subdir, NULL);
     icon_path = g_build_filename (icon_subdir, icon_name, NULL);
 
     g_key_file_set_string (key_file, G_KEY_FILE_DESKTOP_GROUP, "Icon", icon_path);
@@ -375,7 +375,7 @@ handle_install (XdpDynamicLauncher    *object,
   /* Put the desktop file in ~/.local/share/xdg-desktop-portal/applications/ so
    * there's no ambiguity about which launchers were created by this portal.
    */
-  desktop_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
+  desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
   g_mkdir_with_parents (desktop_dir, 0700);
   desktop_path = g_build_filename (desktop_dir, arg_desktop_file_id, NULL);
   if (!g_key_file_save_to_file (desktop_keyfile, desktop_path, &error))
@@ -386,7 +386,7 @@ handle_install (XdpDynamicLauncher    *object,
    */
   link_path = g_build_filename (g_get_user_data_dir (), "applications", arg_desktop_file_id, NULL);
   link_file = g_file_new_for_path (link_path);
-  relative_path = g_build_filename ("..", "xdg-desktop-portal", "applications", arg_desktop_file_id, NULL);
+  relative_path = g_build_filename ("..", XDG_PORTAL_APPLICATIONS_DIR, arg_desktop_file_id, NULL);
   g_file_delete (link_file, NULL, NULL);
   if (!g_file_make_symbolic_link (link_file, relative_path, NULL, &error))
     goto error;
@@ -751,8 +751,8 @@ handle_uninstall (XdpDynamicLauncher    *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  icon_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "icons", NULL);
-  desktop_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
+  icon_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_ICONS_DIR, NULL);
+  desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
 
   link_file = g_file_new_build_filename (g_get_user_data_dir (), "applications", arg_desktop_file_id, NULL);
   if (!g_file_delete (link_file, NULL, &error))
@@ -803,7 +803,7 @@ handle_get_desktop_entry (XdpDynamicLauncher    *object,
   if (!validate_desktop_file_id (app_id, arg_desktop_file_id, &error))
     goto error;
 
-  desktop_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
+  desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
 
   desktop_path = g_build_filename (desktop_dir, arg_desktop_file_id, NULL);
   if (!g_file_get_contents (desktop_path, &contents, &length, &error))
@@ -852,8 +852,8 @@ handle_get_icon (XdpDynamicLauncher    *object,
   if (!validate_desktop_file_id (app_id, arg_desktop_file_id, &error))
     goto error;
 
-  desktop_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
-  icon_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "icons", NULL);
+  desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
+  icon_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_ICONS_DIR, NULL);
 
   desktop_path = g_build_filename (desktop_dir, arg_desktop_file_id, NULL);
   if (!g_file_get_contents (desktop_path, &contents, &length, &error))
@@ -957,7 +957,7 @@ handle_launch (XdpDynamicLauncher    *object,
   if (!validate_desktop_file_id (app_id, arg_desktop_file_id, &error))
     goto error;
 
-  desktop_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
+  desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
 
   desktop_path = g_build_filename (desktop_dir, arg_desktop_file_id, NULL);
   if (!g_file_test (desktop_path, G_FILE_TEST_EXISTS))
@@ -1041,7 +1041,7 @@ migrate_renamed_app_launchers (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *icon_dir = NULL;
 
-  desktop_dir = g_file_new_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "applications", NULL);
+  desktop_dir = g_file_new_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
   children = g_file_enumerate_children (desktop_dir, "standard::name", G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS, NULL, &error);
   if (children == NULL)
     {
@@ -1050,7 +1050,7 @@ migrate_renamed_app_launchers (void)
       return;
     }
 
-  icon_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "icons", NULL);
+  icon_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_ICONS_DIR, NULL);
   for (;;)
     {
       g_autoptr(GFileInfo) info = g_file_enumerator_next_file (children, NULL, NULL);
@@ -1185,7 +1185,7 @@ migrate_renamed_app_launchers (void)
           /* Fix symlink */
           link_path = g_build_filename (g_get_user_data_dir (), "applications", desktop_name, NULL);
           link_file = g_file_new_for_path (link_path);
-          relative_path = g_build_filename ("..", "xdg-desktop-portal", "applications", new_desktop, NULL);
+          relative_path = g_build_filename ("..", XDG_PORTAL_APPLICATIONS_DIR, new_desktop, NULL);
           g_file_delete (link_file, NULL, NULL);
           if (!g_file_make_symbolic_link (link_file, relative_path, NULL, &error))
             {
