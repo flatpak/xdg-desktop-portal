@@ -31,6 +31,10 @@ static char *
 find_renamed_app_id (const char *old_app_id)
 {
   g_autofree char *renamed_to = NULL;
+  g_autofree char *desktop_id = NULL;
+
+  desktop_id = g_strconcat (old_app_id, ".desktop", NULL);
+
   GList *app_infos = g_app_info_get_all ();
   for (GList *l = app_infos; l; l = l->next)
     {
@@ -39,7 +43,7 @@ find_renamed_app_id (const char *old_app_id)
       renamed_from = g_desktop_app_info_get_string_list (info, "X-Flatpak-RenamedFrom", NULL);
       if (renamed_from == NULL)
         continue;
-      if (!g_strv_contains ((const char * const *)renamed_from, old_app_id))
+      if (!g_strv_contains ((const char * const *)renamed_from, desktop_id))
         continue;
 
       renamed_to = g_desktop_app_info_get_string (info, "X-Flatpak");
