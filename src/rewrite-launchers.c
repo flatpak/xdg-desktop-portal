@@ -116,6 +116,7 @@ migrate_renamed_app_launchers (void)
                                       &error))
         {
           g_warning ("Error encountered loading key file %s: %s", desktop_path, error->message);
+          g_clear_error (&error);
           success = FALSE;
           continue;
         }
@@ -209,6 +210,7 @@ migrate_renamed_app_launchers (void)
             {
               g_warning ("Cannot load desktop file %s after rewrite: %s", desktop_path, error->message);
               g_warning ("Key file contents:\n%s\n", (const char *)data_string->str);
+              g_clear_error (&error);
               success = FALSE;
               continue;
             }
@@ -222,6 +224,7 @@ migrate_renamed_app_launchers (void)
             {
               g_warning ("Couldn't rewrite desktop file %s to %s: %s",
                          desktop_path, new_desktop_path, error->message);
+              g_clear_error (&error);
               success = FALSE;
               continue;
             }
@@ -235,6 +238,7 @@ migrate_renamed_app_launchers (void)
             {
               g_warning ("Unable to rename desktop file link %s -> %s: %s",
                          desktop_name, new_desktop, error->message);
+              g_clear_error (&error);
               success = FALSE;
               continue;
             }
@@ -253,7 +257,9 @@ migrate_renamed_app_launchers (void)
               new_icon = g_strconcat (renamed_to, icon_suffix, NULL);
               if (!g_file_set_display_name (icon_file, new_icon, NULL, &error))
                 {
-                  g_warning ("Unable to rename icon file %s -> %s: %s", icon_basename, new_icon, error->message);
+                  g_warning ("Unable to rename icon file %s -> %s: %s",
+                             icon_basename, new_icon, error->message);
+                  g_clear_error (&error);
                   success = FALSE;
                   continue;
                 }
