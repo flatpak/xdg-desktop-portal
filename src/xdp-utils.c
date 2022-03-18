@@ -33,13 +33,13 @@
 
 #ifdef HAVE_LIBSYSTEMD
 #include <systemd/sd-login.h>
-#include "sd-escape.h"
 #endif
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
 #include <gio/gdesktopappinfo.h>
 
+#include "sd-escape.h"
 #include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
