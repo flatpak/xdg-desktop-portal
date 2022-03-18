@@ -184,6 +184,7 @@ migrate_renamed_app_launchers (void)
       else /* renamed_to != NULL */
         {
           g_autoptr(GFile) link_file = NULL;
+          g_autoptr(GFile) new_link_file = NULL;
           g_autoptr(GString) data_string = NULL;
           g_autoptr(GKeyFile) new_key_file = NULL;
           g_autofree char *new_desktop = NULL;
@@ -234,7 +235,8 @@ migrate_renamed_app_launchers (void)
           link_file = g_file_new_for_path (link_path);
           relative_path = g_build_filename ("..", XDG_PORTAL_APPLICATIONS_DIR, new_desktop, NULL);
           g_file_delete (link_file, NULL, NULL);
-          if (!g_file_make_symbolic_link (link_file, relative_path, NULL, &error))
+          new_link_file = g_file_new_build_filename (g_get_user_data_dir (), "applications", new_desktop, NULL);
+          if (!g_file_make_symbolic_link (new_link_file, relative_path, NULL, &error))
             {
               g_warning ("Unable to rename desktop file link %s -> %s: %s",
                          desktop_name, new_desktop, error->message);
