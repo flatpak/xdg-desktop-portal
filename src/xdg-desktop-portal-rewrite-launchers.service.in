@@ -1,0 +1,13 @@
+[Unit]
+Description=Rewrite dynamic launcher portal entries
+# Do it before the graphical session in case the launchers we need to rewrite
+# are configured to launch automatically
+PartOf=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=@libexecdir@/xdg-desktop-portal-rewrite-launchers
+Slice=session.slice
+
+[Install]
+WantedBy=graphical-session-pre.target
