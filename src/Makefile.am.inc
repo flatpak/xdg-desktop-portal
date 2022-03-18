@@ -1,15 +1,18 @@
 libexec_PROGRAMS += \
 	xdg-desktop-portal \
 	xdg-desktop-portal-validate-icon \
+	xdg-desktop-portal-rewrite-launchers \
 	$(NULL)
 
 service_in_files += \
 	src/org.freedesktop.portal.Desktop.service.in \
 	src/xdg-desktop-portal.service.in \
+	src/xdg-desktop-portal-rewrite-launchers.service.in \
 	${NULL}
 
 dbus_service_DATA += src/org.freedesktop.portal.Desktop.service
 systemduserunit_DATA += src/xdg-desktop-portal.service
+systemduserunit_DATA += src/xdg-desktop-portal-rewrite-launchers.service
 
 xdp_dbus_built_sources = src/xdp-dbus.c src/xdp-dbus.h
 xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
@@ -180,3 +183,8 @@ xdg_desktop_portal_CPPFLAGS = \
 xdg_desktop_portal_validate_icon_SOURCES = src/validate-icon.c
 xdg_desktop_portal_validate_icon_LDADD = $(GDK_PIXBUF_LIBS)
 xdg_desktop_portal_validate_icon_CFLAGS = $(GDK_PIXBUF_CFLAGS) -DHELPER=\"$(BWRAP)\" -D_GNU_SOURCE=1
+
+xdg_desktop_portal_rewrite_launchers_SOURCES = src/rewrite-launchers.c
+nodist_xdg_desktop_portal_rewrite_launchers_SOURCES = src/dynamic-launcher.h
+xdg_desktop_portal_rewrite_launchers_LDADD = $(BASE_LIBS)
+xdg_desktop_portal_rewrite_launchers_CFLAGS = $(BASE_CFLAGS)

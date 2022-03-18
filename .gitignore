@@ -53,6 +53,7 @@ compile
 *.service
 xdg-desktop-portal
 xdg-desktop-portal-validate-icon
+xdg-desktop-portal-rewrite-launchers
 xdg-document-portal
 xdg-permission-store
 xdp-dbus.[ch]
