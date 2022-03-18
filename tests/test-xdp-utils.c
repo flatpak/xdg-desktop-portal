@@ -127,6 +127,7 @@ test_alternate_doc_path (void)
   xdp_set_documents_mountpoint (NULL);
 }
 
+#ifdef HAVE_LIBSYSTEMD
 static void
 test_app_id_via_systemd_unit (void)
 {
@@ -166,6 +167,7 @@ test_app_id_via_systemd_unit (void)
   g_assert_cmpstr (app_id, ==, "org.gnome.Terminal");
   g_clear_pointer (&app_id, g_free);
 }
+#endif /* HAVE_LIBSYSTEMD */
 
 int main (int argc, char **argv)
 {
