@@ -125,9 +125,14 @@ xdg_desktop_portal_SOURCES = \
 	src/flatpak-instance.h          \
 	src/portal-impl.h		\
 	src/portal-impl.c		\
+	$(NULL)
+
+if HAVE_LIBSYSTEMD
+xdg_desktop_portal_SOURCES += \
 	src/sd-escape.c		\
 	src/sd-escape.h		\
 	$(NULL)
+endif
 
 if HAVE_PIPEWIRE
 xdg_desktop_portal_SOURCES += \
