@@ -144,6 +144,7 @@ xdp_app_info_new (XdpAppInfoKind kind)
   return app_info;
 }
 
+#ifdef HAVE_LIBSYSTEMD
 char *
 _xdp_parse_app_id_from_unit_name (const char *unit)
 {
@@ -183,6 +184,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 
   return g_steal_pointer (&app_id);
 }
+#endif /* HAVE_LIBSYSTEMD */
 
 void
 set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
