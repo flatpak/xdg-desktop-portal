@@ -1,3 +1,16 @@
+Changes in 1.14.1
+=================
+Released: 2022-03-18
+
+- Fix an issue in 1.14.0 where xdg-desktop-portal.service starting before
+  graphical-session-pre.target would cause the GNOME session to deadlock by
+  moving code to a new libexec binary which handles deleting or migrating
+  .desktop files (and icons) from the dynamic launcher portal for apps which
+  have been uninstalled or renamed.
+- Fix some bugs in the aforementioned launcher migration implementation,
+  "xdg-desktop-portal-rewrite-launchers".
+- Fix build without libsystemd
+
 Changes in 1.14.0
 =================
 Released: 2022-03-17
