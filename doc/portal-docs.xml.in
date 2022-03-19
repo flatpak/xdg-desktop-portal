@@ -95,6 +95,7 @@
     <xi:include href="portal-org.freedesktop.portal.Camera.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.DynamicLauncher.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Email.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.portal.FileTransfer.xml"/>

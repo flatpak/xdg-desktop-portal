@@ -95,8 +95,7 @@
         PrepareInstall:
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @name: The default name for the launcher
-        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be
-          a png or jpeg no larger than 512x512, or an svg
+        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be a png or jpeg no larger than 512x512, or an svg
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
@@ -177,8 +176,7 @@
     <!--
         RequestInstallToken:
         @name: The name that will be used in the desktop file
-        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be
-          a png or jpeg no larger than 512x512, or an svg
+        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be a png or jpeg no larger than 512x512, or an svg
         @options: Vardict with optional further information
         @token: the token to be used with the Install() method
 
