@@ -1,0 +1,175 @@
+# Occitan translation for xdg-desktop-portal.
+# Copyright (C) 2019 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal master\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2022-03-16 22:02-0700\n"
+"PO-Revision-Date: 2022-03-20 15:11+0100\n"
+"Last-Translator: Quentin PAGÈS\n"
+"Language-Team: Occitan\n"
+"Language: oc\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.0.1\n"
+
+#: src/background.c:260
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Permetre a %s de s’executar en rèireplan ?"
+
+#: src/background.c:264
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr ""
+"%s demanda de poder s’aviar automaticament e de s’executar en rèireplan."
+
+#: src/background.c:266
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s demanda de s’executar en rèireplan."
+
+#: src/background.c:267
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"La permission d’execucion en rèireplan se pòt modificar a tot moment als "
+"paramètres d’aplicacion."
+
+#: src/background.c:272
+msgid "Don't allow"
+msgstr "Permetre pas"
+
+#: src/background.c:273 src/wallpaper.c:181
+msgid "Allow"
+msgstr "Permetre"
+
+#: src/device.c:115
+msgid "Turn On Microphone?"
+msgstr "Alucar lo microfòn ?"
+
+#: src/device.c:116
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr ""
+"L’accès al microfòn se pòt modificar a tot moment als paramètres de "
+"confidencialitat."
+
+#: src/device.c:120
+msgid "An application wants to use your microphone."
+msgstr "Una aplicacion vòl utilizar lo microfòn."
+
+#: src/device.c:122
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s vòl utilizar lo microfòn."
+
+#: src/device.c:128
+msgid "Turn On Speakers?"
+msgstr "Alucar los nautparlaires ?"
+
+#: src/device.c:129
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr ""
+"L’accès als nautparlaires se pòt modificar a tot moment als paramètres de "
+"confidencialitat."
+
+#: src/device.c:133
+msgid "An application wants to play sound."
+msgstr "Una aplicacion vòl legir de son."
+
+#: src/device.c:135
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s vòl legir de son."
+
+#: src/device.c:141
+msgid "Turn On Camera?"
+msgstr "Alucar la camèra ?"
+
+#: src/device.c:142
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr ""
+"L’accès a la camèra se pòt modificar a tot moment als paramètres de "
+"confidencialitat."
+
+#: src/device.c:146
+msgid "An application wants to use your camera."
+msgstr "Una aplicacion vòl utilizar la camèra."
+
+#: src/device.c:148
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s vòl utilizar la camèra."
+
+#: src/location.c:527
+msgid "Deny Access"
+msgstr "Refusar l’accès"
+
+#: src/location.c:529
+msgid "Grant Access"
+msgstr "Acordar l’accès"
+
+#: src/location.c:535
+msgid "Grant Access to Your Location?"
+msgstr "Donar accès a vòstre localizacion ?"
+
+#: src/location.c:536
+msgid "An application wants to use your location."
+msgstr "Una aplicacion vòl utilizar vòstra localizacion."
+
+#: src/location.c:548
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Donar accès a %s a vòstra localizacion ?"
+
+#: src/location.c:552
+#, c-format
+msgid "%s wants to use your location."
+msgstr "%s vòl utilizar vòstra localizacion."
+
+#: src/location.c:555
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Las règlas d’accès a la localizacion se pòdon a tot moment modificar als "
+"paramètres de confidencialitat."
+
+#: src/settings.c:124
+msgid "Requested setting not found"
+msgstr "Paramètre demandat pas trobat"
+
+#: src/wallpaper.c:179
+msgid "Deny"
+msgstr "Refusar"
+
+#: src/wallpaper.c:191
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Permetre a las aplicacions de definir los fonzes d’ecran ?"
+
+#: src/wallpaper.c:192
+msgid "An application is requesting to be able to change the background image."
+msgstr "Una aplicacion demanda de poder modificar l’imatge de rèireplan."
+
+#: src/wallpaper.c:204
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Permetre a %s de definir de fonzes d’ecran ?"
+
+#: src/wallpaper.c:205
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "%s demanda de poder modificar l’imatge de rèireplan."
+
+#: src/wallpaper.c:208
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Las permissions se pòdon modificar a tot moment als paramètres de "
+"confidencialitat."
