@@ -513,7 +513,7 @@ This call is not available inside the sandbox.
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>app_id</code></em></code>:</span></dt><dd><p>
 an application ID, or '' to list all documents
 </p></dd><dt><span class="term"><code class="literal">OUT a{say} <em class="parameter"><code>docs</code></em></code>:</span></dt><dd><p>
-a dictonary mapping document IDs to their filesystem path
+a dictionary mapping document IDs to their filesystem path
 </p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.portal.Documents"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-Documents.version"></a><h3>The "version" property</h3><a id="idm744" class="indexterm"></a><pre class="programlisting">
 version  readable   u
 </pre><p>
@@ -791,7 +791,7 @@ The activation_token option was introduced in version 1 of the interface.
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>desktop_file_id</code></em></code>:</span></dt><dd><p>
 The .desktop file name
 </p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.portal.DynamicLauncher"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-DynamicLauncher.SupportedLauncherTypes"></a><h3>The "SupportedLauncherTypes" property</h3><a id="idm1073" class="indexterm"></a><pre class="programlisting">
 SupportedLauncherTypes  readable   u
 </pre><p>
@@ -1145,7 +1145,7 @@ Whether to stop the transfer automatically after the first
 <a class="link" href="#gdbus-method-org-freedesktop-portal-FileTransfer.RetrieveFiles" title="The RetrieveFiles() method">RetrieveFiles()</a> call. Default: True
 </p></dd></dl></div><p>
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">OUT s <em class="parameter"><code>key</code></em></code>:</span></dt><dd><p>
 a key that needs to be passed to <a class="link" href="#gdbus-method-org-freedesktop-portal-FileTransfer.RetrieveFiles" title="The RetrieveFiles() method">RetrieveFiles()</a> to obtain the files
 </p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileTransfer.AddFiles"></a><h3>The AddFiles() method</h3><a id="idm1574" class="indexterm"></a><pre class="programlisting">
@@ -1181,7 +1181,7 @@ the session will be closed by the portal, unless <em class="parameter"><code>aut
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>key</code></em></code>:</span></dt><dd><p>
 A key returned by <a class="link" href="#gdbus-method-org-freedesktop-portal-FileTransfer.StartTransfer" title="The StartTransfer() method">StartTransfer()</a>
 </p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">OUT as <em class="parameter"><code>files</code></em></code>:</span></dt><dd><p>
 list of paths
 </p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-FileTransfer.StopTransfer"></a><h3>The StopTransfer() method</h3><a id="idm1633" class="indexterm"></a><pre class="programlisting">
@@ -2270,7 +2270,7 @@ Identifier for the application window, see <a class="link" href="#parent_window"
 </p></dd><dt><span class="term"><code class="literal">IN s <em class="parameter"><code>uri</code></em></code>:</span></dt><dd><p>
 The uri to open
 </p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>
 Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call
 </p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-OpenURI.OpenFile"></a><h3>The OpenFile() method</h3><a id="idm3225" class="indexterm"></a><pre class="programlisting">
@@ -2309,7 +2309,7 @@ Identifier for the application window, see <a class="link" href="#parent_window"
 </p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>
 File descriptor for the file to open
 </p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>
 Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call
 </p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-OpenURI.OpenDirectory"></a><h3>The OpenDirectory() method</h3><a id="idm3284" class="indexterm"></a><pre class="programlisting">
@@ -2337,7 +2337,7 @@ Identifier for the application window, see <a class="link" href="#parent_window"
 </p></dd><dt><span class="term"><code class="literal">IN h <em class="parameter"><code>fd</code></em></code>:</span></dt><dd><p>
 File descriptor for a file
 </p></dd><dt><span class="term"><code class="literal">IN a{sv} <em class="parameter"><code>options</code></em></code>:</span></dt><dd><p>
-Vardict with optional further onformation
+Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">OUT o <em class="parameter"><code>handle</code></em></code>:</span></dt><dd><p>
 Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Request.top_of_page">org.freedesktop.portal.Request</a> object representing this call
 </p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.portal.OpenURI"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-portal-OpenURI.version"></a><h3>The "version" property</h3><a id="idm3335" class="indexterm"></a><pre class="programlisting">
@@ -3334,7 +3334,7 @@ more information about the <em class="parameter"><code>handle</code></em>.
 </p></dd><dt><span class="term">modal b</span></dt><dd><p>
 Whether the dialog should be modal. Default is yes.
 </p></dd><dt><span class="term">interactive b</span></dt><dd><p>
-Hint shether the dialog should offer customization before taking a screenshot.
+Hint whether the dialog should offer customization before taking a screenshot.
 Default is no. Since version 2.
 </p></dd></dl></div><p>
 </p><p>
@@ -5462,7 +5462,7 @@ version  readable   u
                  OUT u     response);
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Wallpaper"></a><h2>Description</h2><p>
 This simple interface lets sandboxed applications set the user's
-desktop background picutre.
+desktop background picture.
 </p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Wallpaper"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Wallpaper.SetWallpaperURI"></a><h3>The SetWallpaperURI() method</h3><a id="idm8372" class="indexterm"></a><pre class="programlisting">
 SetWallpaperURI (IN  o     handle,
                  IN  s     app_id,
