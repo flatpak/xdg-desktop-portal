@@ -24,7 +24,7 @@
       @short_description: Portal for setting the desktop's Wallpaper
 
       This simple interface lets sandboxed applications set the user's
-      desktop background picutre.
+      desktop background picture.
   -->
   <interface name="org.freedesktop.impl.portal.Wallpaper">
     <!--
