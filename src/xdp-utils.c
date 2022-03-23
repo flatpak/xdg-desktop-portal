@@ -586,14 +586,25 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
         {
           struct statfs buf;
 
-          /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
-           * filesystem, such as in a toolbox container. We will never have a fuse rootfs
-           * in the flatpak case, so in that case its safe to ignore this and
-           * continue to detect other types of apps.
-           */
-          if (statfs (root_path, &buf) == 0 &&
-              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-            return NULL;
+          if (statfs (root_path, &buf) != 0)
+            {
+              /* Access to `statfs` on the root dir isn't allowed. This can happen with
+               * sandboxes like Firejail. In this case, sandboxing D-Bus (and granting
+               * permission to it) it handled by Firejail itself, so we can ignore
+               * these; they are definitely not Flatpaks.
+               */
+              if (errno == EACCES)
+                return NULL;
+            }
+          else if (buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
+            {
+              /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
+               * filesystem, such as in a toolbox container. We will never have a fuse rootfs
+               * in the flatpak case, so in that case its safe to ignore this and
+               * continue to detect other types of apps.
+               */
+              return NULL;
+            }
         }
 
       /* Otherwise, we should be able to open the root dir. Probably the app died and
