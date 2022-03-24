@@ -36,6 +36,20 @@ static XdpImplLockdown *lockdown;
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;
 
+typedef struct {
+  char *name;
+  guint id;
+} CameraInfo;
+
+static void
+camera_info_free (gpointer data)
+{
+  CameraInfo *info = data;
+
+  g_free (info->name);
+  g_free (info);
+}
+
 struct _Camera
 {
   XdpCameraSkeleton parent_instance;
@@ -75,10 +89,45 @@ handle_access_camera_in_thread_func (GTask *task,
   Request *request = (Request *)task_data;
   const char *app_id;
   gboolean allowed;
+  char **id_array;
+  char **name_array;
+  char *choice;
 
   app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
 
-  allowed = device_query_permission_sync (app_id, "camera", request);
+  if (g_hash_table_size (camera->cameras) > 1)
+    {
+      GPtrArray *ids = g_ptr_array_new ();
+      GPtrArray *names = g_ptr_array_new ();
+      GHashTableIter iter;
+      gpointer key, value;
+
+      g_hash_table_iter_init (&iter, camera->cameras);
+      while (g_hash_table_iter_next (&iter, (gpointer *)&key, (gpointer *)&value))
+        {
+          CameraInfo *info = value;
+          char *id = g_strdup_printf ("%u", info->id);
+          g_ptr_array_add (ids, id);
+          g_ptr_array_add (names, g_strdup (info->name));
+        }
+      g_ptr_array_add (ids, NULL);
+      g_ptr_array_add (names, NULL);
+
+      id_array = (char **)g_ptr_array_free (ids, FALSE);
+      name_array = (char **)g_ptr_array_free (names, FALSE);
+    }
+  else
+    {
+      id_array = name_array = NULL;
+    }
+
+  choice = NULL;
+  allowed = device_query_permission_sync (app_id, "camera", request,
+                                          (const char **)id_array,
+                                          (const char **)name_array,
+                                          &choice);
+  g_strfreev (id_array);
+  g_strfreev (name_array);
 
   REQUEST_AUTOLOCK (request);
 
@@ -88,6 +137,18 @@ handle_access_camera_in_thread_func (GTask *task,
       guint32 response;
 
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
+
+      if (choice)
+        {
+          GVariantBuilder streaminfo;
+          GVariantBuilder streams;
+
+          g_variant_builder_init (&streaminfo, G_VARIANT_TYPE_VARDICT);
+          g_variant_builder_init (&streams, G_VARIANT_TYPE ("a(ua{sv})"));
+          g_variant_builder_add (&streams, "(ua{sv})", atoi (choice), &streaminfo);
+
+          g_variant_builder_add (&results, "{sv}", "streams", g_variant_builder_end (&streams));
+        }
 
       response = allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS
                          : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
@@ -121,7 +182,6 @@ handle_access_camera (XdpCamera *object,
   REQUEST_AUTOLOCK (request);
 
   app_id = xdp_app_info_get_id (request->app_info);
-
 
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (app_id), g_free);
 
@@ -258,6 +318,8 @@ global_added_cb (PipeWireRemote *remote,
   Camera *camera = user_data;
   const struct spa_dict_item *media_class;
   const struct spa_dict_item *media_role;
+  const struct spa_dict_item *description;
+  CameraInfo *info;
 
   if (strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
     return;
@@ -279,7 +341,15 @@ global_added_cb (PipeWireRemote *remote,
   if (g_strcmp0 (media_role->value, "Camera") != 0)
     return;
 
-  g_hash_table_add (camera->cameras, GINT_TO_POINTER (id));
+  description = spa_dict_lookup_item (props, PW_KEY_NODE_DESCRIPTION);
+  if (!description)
+    return;
+
+  info = g_new0 (CameraInfo, 1);
+  info->id = id;
+  info->name = g_strdup (description->value);
+
+  g_hash_table_insert (camera->cameras, GINT_TO_POINTER (id), info);
 
   xdp_camera_set_is_camera_present (XDP_CAMERA (camera),
                                     g_hash_table_size (camera->cameras) > 0);
@@ -404,7 +474,7 @@ init_camera_tracker (Camera *camera,
                     G_CALLBACK (on_pipewire_socket_changed),
                     camera);
 
-  camera->cameras = g_hash_table_new (NULL, NULL);
+  camera->cameras = g_hash_table_new_full (NULL, NULL, NULL, camera_info_free);
 
   if (!create_pipewire_remote (camera, &local_error))
     g_warning ("Failed connect to PipeWire: %s", local_error->message);
