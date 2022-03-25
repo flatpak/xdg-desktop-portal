@@ -1838,7 +1838,11 @@ xdg_app_info_load_brwap_info (XdpAppInfo *app_info,
   instance = xdp_app_info_get_instance (app_info);
 
   if (instance == NULL)
-    return 0;
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "Could not find instance-id in process's /.flatpak-info");
+      return 0;
+    }
 
   path = g_build_filename (g_get_user_runtime_dir (),
                            ".flatpak",
