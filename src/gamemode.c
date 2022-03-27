@@ -294,7 +294,7 @@ handle_call_thread (GTask        *task,
       for (guint i = 0; i < n_pids; i++)
         pids[0] = (pid_t) call->ids[i];
 
-      ok = xdg_app_info_map_pids (call->app_info, pids, n_pids, &error);
+      ok = xdp_app_info_map_pids (call->app_info, pids, n_pids, &error);
 
       if (!ok)
         {
@@ -321,7 +321,7 @@ handle_call_thread (GTask        *task,
       /* verify fds are actually pidfds */
       fds = g_unix_fd_list_peek_fds (fdlist, &n_pids);
 
-      ok = xdg_app_info_pidfds_to_pids (call->app_info, fds, pids, n_pids, &error);
+      ok = xdp_app_info_pidfds_to_pids (call->app_info, fds, pids, n_pids, &error);
 
       if (!ok || !check_pids (pids, n_pids, &error))
         {
