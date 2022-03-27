@@ -26,6 +26,7 @@
 #include <gio/gdesktopappinfo.h>
 
 #include "dynamic-launcher.h"
+#include "xdp-utils.h"
 
 static char *
 find_renamed_app_id (const char *old_app_id)
