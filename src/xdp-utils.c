@@ -1979,7 +1979,7 @@ pidfd_to_pid (int fdinfo, const int pidfd, pid_t *pid, GError **error)
 }
 
 static JsonNode *
-xdg_app_info_load_brwap_info (XdpAppInfo *app_info,
+xdp_app_info_load_brwap_info (XdpAppInfo *app_info,
                               GError    **error)
 {
   g_autoptr(JsonParser) parser = NULL;
@@ -2042,7 +2042,7 @@ xdp_app_info_get_pid_namespace (JsonNode *root,
   JsonObject *cpo;
   gint64 nsid;
 
-  /* xdg_app_info_load_brwap_info assures root is of type object */
+  /* xdp_app_info_load_brwap_info assures root is of type object */
   cpo = json_node_get_object (root);
   node = json_object_get_member (cpo, "pid-namespace");
 
@@ -2077,7 +2077,7 @@ xdp_app_info_get_child_pid (JsonNode *root,
 #define xdp_lockguard G_GNUC_UNUSED __attribute__((cleanup(xdp_auto_unlock_helper)))
 
 static gboolean
-xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
+xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
                            DIR         *proc,
                            GError     **error)
 {
@@ -2095,7 +2095,7 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
   if (app_info->u.flatpak.pidns_id != 0)
     return TRUE;
 
-  root = xdg_app_info_load_brwap_info (app_info, error);
+  root = xdp_app_info_load_brwap_info (app_info, error);
   if (root == NULL)
     return FALSE;
 
@@ -2136,7 +2136,7 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
 
 
 gboolean
-xdg_app_info_map_pids (XdpAppInfo  *app_info,
+xdp_app_info_map_pids (XdpAppInfo  *app_info,
                        pid_t       *pids,
                        guint        n_pids,
                        GError     **error)
@@ -2165,7 +2165,7 @@ xdg_app_info_map_pids (XdpAppInfo  *app_info,
     }
 
   /* Make sure we know the pid namespace the app is running in */
-  ok = xdg_app_info_ensure_pidns (app_info, proc, error);
+  ok = xdp_app_info_ensure_pidns (app_info, proc, error);
   if (!ok)
     {
       g_prefix_error (error, "Could not determine pid namespace: ");
@@ -2186,7 +2186,7 @@ xdg_app_info_map_pids (XdpAppInfo  *app_info,
 }
 
 gboolean
-xdg_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
+xdp_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
                              const int   *fds,
                              pid_t       *pids,
                              gint         count,

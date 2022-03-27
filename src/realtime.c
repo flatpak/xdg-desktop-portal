@@ -59,7 +59,7 @@ map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, GError **error)
 {
   if (!xdp_app_info_is_host (app_info))
   {
-    if (!xdg_app_info_map_pids (app_info, pid, 1, error))
+    if (!xdp_app_info_map_pids (app_info, pid, 1, error))
     {
       g_prefix_error (error, "Could not map pid: ");
       g_warning ("Realtime error: %s", (*error)->message);
