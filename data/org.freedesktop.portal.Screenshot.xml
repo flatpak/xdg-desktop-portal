@@ -60,7 +60,7 @@
           <varlistentry>
             <term>interactive b</term>
             <listitem><para>
-              Hint shether the dialog should offer customization before taking a screenshot.
+              Hint whether the dialog should offer customization before taking a screenshot.
               Default is no. Since version 2.
             </para></listitem>
           </varlistentry>

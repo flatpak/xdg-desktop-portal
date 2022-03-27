@@ -48,7 +48,7 @@
   <interface name="org.freedesktop.portal.FileTransfer">
     <!--
         StartTransfer:
-        @options: Vardict with optional further onformation
+        @options: Vardict with optional further information
         @key: a key that needs to be passed to org.freedesktop.portal.FileTransfer.RetrieveFiles() to obtain the files
 
         Starts a session for a file transfer.
@@ -109,7 +109,7 @@
     <!--
         RetrieveFiles:
         @key: A key returned by org.freedesktop.portal.FileTransfer.StartTransfer()
-        @options: Vardict with optional further onformation
+        @options: Vardict with optional further information
         @files: list of paths
 
         Retrieves files that were previously added to the session with

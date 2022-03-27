@@ -21,8 +21,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.DynamicLauncher:
-      @short_description: Portal for installing application launchers onto the
-        desktop
+      @short_description: Portal for installing application launchers onto the desktop
 
       The DynamicLauncher portal allows sandboxed (or unsandboxed) applications
       to install launchers (.desktop files) which have an icon associated with them
@@ -287,7 +286,7 @@
     <!--
         Launch:
         @desktop_file_id: The .desktop file name
-        @options: Vardict with optional further onformation
+        @options: Vardict with optional further information
 
         This function launches the app specified by @desktop_file_id.
 
