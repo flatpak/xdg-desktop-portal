@@ -1979,7 +1979,7 @@ pidfd_to_pid (int fdinfo, const int pidfd, pid_t *pid, GError **error)
 }
 
 static JsonNode *
-xdp_app_info_load_brwap_info (XdpAppInfo *app_info,
+xdp_app_info_load_bwrap_info (XdpAppInfo *app_info,
                               GError    **error)
 {
   g_autoptr(JsonParser) parser = NULL;
@@ -2042,7 +2042,7 @@ xdp_app_info_get_pid_namespace (JsonNode *root,
   JsonObject *cpo;
   gint64 nsid;
 
-  /* xdp_app_info_load_brwap_info assures root is of type object */
+  /* xdp_app_info_load_bwrap_info assures root is of type object */
   cpo = json_node_get_object (root);
   node = json_object_get_member (cpo, "pid-namespace");
 
@@ -2095,7 +2095,7 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
   if (app_info->u.flatpak.pidns_id != 0)
     return TRUE;
 
-  root = xdp_app_info_load_brwap_info (app_info, error);
+  root = xdp_app_info_load_bwrap_info (app_info, error);
   if (root == NULL)
     return FALSE;
 
