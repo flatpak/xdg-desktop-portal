@@ -72,6 +72,8 @@ xdg_desktop_portal_SOURCES = \
 	src/xdg-desktop-portal.c	\
 	src/file-chooser.c		\
 	src/file-chooser.h		\
+	src/glib-backports.c		\
+	src/glib-backports.h		\
 	src/open-uri.c			\
 	src/open-uri.h			\
 	src/print.c			\
