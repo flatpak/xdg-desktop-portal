@@ -1,3 +1,8 @@
+Changes in 1.12.3, 28-03-2022
+=============================
+
+- realtime: Fix a frequent crash with WebKit processes
+
 Changes in 1.12.2, 17-03-2022
 =============================
 
