@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2022-03-16 22:02-0700\n"
-"PO-Revision-Date: 2020-01-26 17:23+0700\n"
+"PO-Revision-Date: 2022-03-28 18:31+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 3.0.1\n"
 
 #: src/background.c:260
 #, c-format
@@ -26,12 +26,12 @@ msgstr "Izinkan %s berjalan di latar belakang?"
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
-"%s permintaan untuk dimulai secara otomatis dan dijalankan di latar belakang."
+"%s meminta untuk dimulai secara otomatis dan dijalankan di latar belakang."
 
 #: src/background.c:266
 #, c-format
 msgid "%s requests to run in the background."
-msgstr "%s permintaan untuk berjalan di latar belakang."
+msgstr "%s meminta untuk berjalan di latar belakang."
 
 #: src/background.c:267
 msgid ""
@@ -51,7 +51,7 @@ msgstr "Izinkan"
 
 #: src/device.c:115
 msgid "Turn On Microphone?"
-msgstr "Menyalakan Mikrofon?"
+msgstr "Hidupkan Mikrofon?"
 
 #: src/device.c:116
 msgid ""
@@ -71,7 +71,7 @@ msgstr "%s ingin menggunakan mikrofon Anda."
 
 #: src/device.c:128
 msgid "Turn On Speakers?"
-msgstr "Menyalakan Speaker?"
+msgstr "Hidupkan Speaker?"
 
 #: src/device.c:129
 msgid ""
@@ -90,7 +90,7 @@ msgstr "%s ingin memutar suara."
 
 #: src/device.c:141
 msgid "Turn On Camera?"
-msgstr "Menyalakan Kamera?"
+msgstr "Hidupkan Kamera?"
 
 #: src/device.c:142
 msgid ""
