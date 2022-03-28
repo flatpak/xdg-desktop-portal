@@ -163,7 +163,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
    * app[-<launcher>]-<ApplicationID>-<RANDOM>.slice
    */
   regex = g_regex_new ("^app-(?:[[:alnum:]]+\\-)?(.+?\\..+?\\..+?)"
-                       "(?:[@\\-][0-9]*)?(?:-autostart)?"
+                       "(?:[@\\-][[:alnum:]]*)?(?:-autostart)?"
                        "(?:\\.scope|\\.service|\\.slice)$",
                        0, 0, &error);
   g_assert (error == NULL);

@@ -166,6 +166,10 @@ test_app_id_via_systemd_unit (void)
   app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Terminal-92502.slice");
   g_assert_cmpstr (app_id, ==, "org.gnome.Terminal");
   g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-com.obsproject.Studio-d70acc38b5154a3a8b4a60accc4b15f4.scope");
+  g_assert_cmpstr (app_id, ==, "com.obsproject.Studio");
+  g_clear_pointer (&app_id, g_free);
 }
 #endif /* HAVE_LIBSYSTEMD */
 
