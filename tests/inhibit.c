@@ -7,32 +7,32 @@
 
 extern char outdir[];
 
-extern XdpImplPermissionStore *permission_store;
+extern XdpDbusImplPermissionStore *permission_store;
 
 static void
 set_inhibit_permissions (const char **permissions)
 {
   g_autoptr(GError) error = NULL;
 
-  xdp_impl_permission_store_call_set_permission_sync (permission_store,
-                                                      "inhibit",
-                                                      TRUE,
-                                                      "inhibit",
-                                                      "",
-                                                      permissions,
-                                                      NULL,
-                                                      &error);
+  xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           "inhibit",
+                                                           TRUE,
+                                                           "inhibit",
+                                                           "",
+                                                           permissions,
+                                                           NULL,
+                                                           &error);
   g_assert_no_error (error);
 }
 
 static void
 unset_inhibit_permissions (void)
 {
-  xdp_impl_permission_store_call_delete_sync (permission_store,
-                                              "inhibit",
-                                              "inhibit",
-                                              NULL,
-                                              NULL);
+  xdp_dbus_impl_permission_store_call_delete_sync (permission_store,
+                                                   "inhibit",
+                                                   "inhibit",
+                                                   NULL,
+                                                   NULL);
   /* Ignore the error here, since this fails if the table doesn't exist */
 }
 

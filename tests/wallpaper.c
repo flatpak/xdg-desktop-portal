@@ -9,7 +9,7 @@ extern char outdir[];
 
 static int got_info = 0;
 
-extern XdpImplPermissionStore *permission_store;
+extern XdpDbusImplPermissionStore *permission_store;
 
 static void
 set_wallpaper_permissions (const char *permission)
@@ -18,14 +18,14 @@ set_wallpaper_permissions (const char *permission)
   g_autoptr(GError) error = NULL;
 
   permissions[0] = permission;
-  xdp_impl_permission_store_call_set_permission_sync (permission_store,
-                                                      "wallpaper",
-                                                      TRUE,
-                                                      "wallpaper",
-                                                      "",
-                                                      permissions,
-                                                      NULL,
-                                                      &error);
+  xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           "wallpaper",
+                                                           TRUE,
+                                                           "wallpaper",
+                                                           "",
+                                                           permissions,
+                                                           NULL,
+                                                           &error);
   g_assert_no_error (error);
 }
 

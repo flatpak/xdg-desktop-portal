@@ -32,10 +32,10 @@ static GParamSpec *obj_props[PROP_LAST];
 
 static GHashTable *sessions;
 
-static void session_skeleton_iface_init (XdpImplSessionIface *iface);
+static void session_skeleton_iface_init (XdpDbusImplSessionIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Session, session, XDP_IMPL_TYPE_SESSION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_IMPL_TYPE_SESSION,
+G_DEFINE_TYPE_WITH_CODE (Session, session, XDP_DBUS_IMPL_TYPE_SESSION_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_IMPL_TYPE_SESSION,
                                                 session_skeleton_iface_init))
 
 #define SESSION_GET_CLASS(o) \
@@ -86,7 +86,7 @@ session_close (Session *session)
 }
 
 static gboolean
-handle_close (XdpImplSession *object,
+handle_close (XdpDbusImplSession *object,
               GDBusMethodInvocation *invocation)
 {
   Session *session = (Session *)object;
@@ -94,13 +94,13 @@ handle_close (XdpImplSession *object,
   if (!session->closed)
     session_close (session);
 
-  xdp_impl_session_complete_close (object, invocation);
+  xdp_dbus_impl_session_complete_close (object, invocation);
 
   return TRUE;
 }
 
 static void
-session_skeleton_iface_init (XdpImplSessionIface *iface)
+session_skeleton_iface_init (XdpDbusImplSessionIface *iface)
 {
   iface->handle_close = handle_close;
 }

@@ -22,7 +22,7 @@ BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources) $(geoc
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.portal.      \
-		--c-namespace Xdp                               \
+		--c-namespace XdpDbus                           \
 		--generate-c-code $(builddir)/src/xdp-dbus      \
 		$^ \
 		$(NULL)
@@ -30,7 +30,7 @@ $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
 $(xdp_impl_dbus_built_sources) : $(PORTAL_IMPL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
 		--interface-prefix org.freedesktop.impl.portal. \
-		--c-namespace XdpImpl                           \
+		--c-namespace XdpDbusImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
 		$^ \
 		$(NULL)

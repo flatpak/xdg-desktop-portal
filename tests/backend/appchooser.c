@@ -10,7 +10,7 @@
 #include "appchooser.h"
 
 typedef struct {
-  XdpImplAppChooser *impl;
+  XdpDbusImplAppChooser *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -63,10 +63,10 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_app_chooser_complete_choose_application (handle->impl,
-                                                    handle->invocation,
-                                                    response,
-                                                    g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_app_chooser_complete_choose_application (handle->impl,
+                                                         handle->invocation,
+                                                         response,
+                                                         g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -76,17 +76,17 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               AppChooserHandle *handle)
 {
   GVariantBuilder opt_builder;
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-  xdp_impl_app_chooser_complete_choose_application (handle->impl,
-                                                    handle->invocation,
-                                                    2,
-                                                    g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_app_chooser_complete_choose_application (handle->impl,
+                                                         handle->invocation,
+                                                         2,
+                                                         g_variant_builder_end (&opt_builder));
   app_chooser_handle_free (handle);
 
   return FALSE;
@@ -94,7 +94,7 @@ handle_close (XdpImplRequest *object,
 
 
 static gboolean
-handle_choose_application (XdpImplAppChooser *object,
+handle_choose_application (XdpDbusImplAppChooser *object,
                            GDBusMethodInvocation *invocation,
                            const char *arg_handle,
                            const char *arg_app_id,
@@ -167,7 +167,7 @@ appchooser_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_app_chooser_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_app_chooser_skeleton_new ());
 
   g_signal_connect (helper, "handle-choose-application", G_CALLBACK (handle_choose_application), NULL);
 

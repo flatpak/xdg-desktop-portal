@@ -33,26 +33,28 @@ typedef struct _ProxyResolverClass ProxyResolverClass;
 
 struct _ProxyResolver
 {
-  XdpProxyResolverSkeleton parent_instance;
+  XdpDbusProxyResolverSkeleton parent_instance;
 
   GProxyResolver *resolver;
 };
 
 struct _ProxyResolverClass
 {
-  XdpProxyResolverSkeletonClass parent_class;
+  XdpDbusProxyResolverSkeletonClass parent_class;
 };
 
 static ProxyResolver *proxy_resolver;
 
 GType proxy_resolver_get_type (void) G_GNUC_CONST;
-static void proxy_resolver_iface_init (XdpProxyResolverIface *iface);
+static void proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (ProxyResolver, proxy_resolver, XDP_TYPE_PROXY_RESOLVER_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_PROXY_RESOLVER, proxy_resolver_iface_init));
+G_DEFINE_TYPE_WITH_CODE (ProxyResolver, proxy_resolver,
+                         XDP_DBUS_TYPE_PROXY_RESOLVER_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_PROXY_RESOLVER,
+                                                proxy_resolver_iface_init));
 
 static gboolean
-proxy_resolver_handle_lookup (XdpProxyResolver *object,
+proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
                               GDBusMethodInvocation *invocation,
                               const char *arg_uri)
 {
@@ -83,7 +85,7 @@ proxy_resolver_handle_lookup (XdpProxyResolver *object,
 }
 
 static void
-proxy_resolver_iface_init (XdpProxyResolverIface *iface)
+proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface)
 {
   iface->handle_lookup = proxy_resolver_handle_lookup;
 }
@@ -93,7 +95,7 @@ proxy_resolver_init (ProxyResolver *resolver)
 {
   resolver->resolver = g_proxy_resolver_get_default ();
 
-  xdp_proxy_resolver_set_version (XDP_PROXY_RESOLVER (resolver), 1);
+  xdp_dbus_proxy_resolver_set_version (XDP_DBUS_PROXY_RESOLVER (resolver), 1);
 }
 
 static void

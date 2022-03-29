@@ -8,7 +8,7 @@
 
 #include "utils.h"
 
-extern XdpImplLockdown *lockdown;
+extern XdpDbusImplLockdown *lockdown;
 
 extern char outdir[];
 

@@ -10,7 +10,7 @@
 #include "request.h"
 
 typedef struct {
-  XdpImplEmail *impl;
+  XdpDbusImplEmail *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -103,10 +103,10 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_email_complete_compose_email (handle->impl,
-                                         handle->invocation,
-                                         response,
-                                         g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_email_complete_compose_email (handle->impl,
+                                              handle->invocation,
+                                              response,
+                                              g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -116,7 +116,7 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               EmailHandle *handle)
 {
@@ -124,17 +124,17 @@ handle_close (XdpImplRequest *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("send response 2");
-  xdp_impl_email_complete_compose_email (handle->impl,
-                                         handle->invocation,
-                                         2,
-                                         g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_email_complete_compose_email (handle->impl,
+                                              handle->invocation,
+                                              2,
+                                              g_variant_builder_end (&opt_builder));
   email_handle_free (handle);
 
   return FALSE;
 }
 
 static gboolean
-handle_compose_email (XdpImplEmail *object,
+handle_compose_email (XdpDbusImplEmail *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_handle,
                       const char *arg_app_id,
@@ -196,7 +196,7 @@ email_init (GDBusConnection *bus,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_email_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_email_skeleton_new ());
 
   g_signal_connect (helper, "handle-compose-email", G_CALLBACK (handle_compose_email), NULL);
 

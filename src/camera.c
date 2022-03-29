@@ -31,14 +31,14 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-static XdpImplLockdown *lockdown;
+static XdpDbusImplLockdown *lockdown;
 
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;
 
 struct _Camera
 {
-  XdpCameraSkeleton parent_instance;
+  XdpDbusCameraSkeleton parent_instance;
 
   PipeWireRemote *pipewire_remote;
   GSource *pipewire_source;
@@ -50,16 +50,16 @@ struct _Camera
 
 struct _CameraClass
 {
-  XdpCameraSkeletonClass parent_class;
+  XdpDbusCameraSkeletonClass parent_class;
 };
 
 static Camera *camera;
 
 GType camera_get_type (void);
-static void camera_iface_init (XdpCameraIface *iface);
+static void camera_iface_init (XdpDbusCameraIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_TYPE_CAMERA_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_CAMERA,
+G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_DBUS_TYPE_CAMERA_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CAMERA,
                                                 camera_iface_init))
 
 static gboolean
@@ -92,15 +92,15 @@ handle_access_camera_in_thread_func (GTask *task,
       response = allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS
                          : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
       g_debug ("Camera: sending response %d", response);
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&results));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
       request_unexport (request);
     }
 }
 
 static gboolean
-handle_access_camera (XdpCamera *object,
+handle_access_camera (XdpDbusCamera *object,
                       GDBusMethodInvocation *invocation,
                       GVariant *arg_options)
 {
@@ -108,7 +108,7 @@ handle_access_camera (XdpCamera *object,
   const char *app_id;
   g_autoptr(GTask) task = NULL;
 
-  if (xdp_impl_lockdown_get_disable_camera (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_camera (lockdown))
     {
       g_debug ("Camera access disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -127,7 +127,7 @@ handle_access_camera (XdpCamera *object,
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_camera_complete_access_camera (object, invocation, request->id);
+  xdp_dbus_camera_complete_access_camera (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
@@ -172,7 +172,7 @@ open_pipewire_camera_remote (const char *app_id,
 }
 
 static gboolean
-handle_open_pipewire_remote (XdpCamera *object,
+handle_open_pipewire_remote (XdpDbusCamera *object,
                              GDBusMethodInvocation *invocation,
                              GUnixFDList *in_fd_list,
                              GVariant *arg_options)
@@ -186,7 +186,7 @@ handle_open_pipewire_remote (XdpCamera *object,
   g_autoptr(GError) error = NULL;
   PipeWireRemote *remote;
 
-  if (xdp_impl_lockdown_get_disable_camera (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_camera (lockdown))
     {
       g_debug ("Camera access disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -235,14 +235,14 @@ handle_open_pipewire_remote (XdpCamera *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_camera_complete_open_pipewire_remote (object, invocation,
-                                            out_fd_list,
-                                            g_variant_new_handle (fd_id));
+  xdp_dbus_camera_complete_open_pipewire_remote (object, invocation,
+                                                 out_fd_list,
+                                                 g_variant_new_handle (fd_id));
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-camera_iface_init (XdpCameraIface *iface)
+camera_iface_init (XdpDbusCameraIface *iface)
 {
   iface->handle_access_camera = handle_access_camera;
   iface->handle_open_pipewire_remote = handle_open_pipewire_remote;
@@ -281,8 +281,8 @@ global_added_cb (PipeWireRemote *remote,
 
   g_hash_table_add (camera->cameras, GINT_TO_POINTER (id));
 
-  xdp_camera_set_is_camera_present (XDP_CAMERA (camera),
-                                    g_hash_table_size (camera->cameras) > 0);
+  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera),
+                                         g_hash_table_size (camera->cameras) > 0);
 }
 
 static void global_removed_cb (PipeWireRemote *remote,
@@ -293,8 +293,8 @@ static void global_removed_cb (PipeWireRemote *remote,
 
   g_hash_table_remove (camera->cameras, GINT_TO_POINTER (id));
 
-  xdp_camera_set_is_camera_present (XDP_CAMERA (camera),
-                                    g_hash_table_size (camera->cameras) > 0);
+  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera),
+                                         g_hash_table_size (camera->cameras) > 0);
 }
 
 static void
@@ -305,7 +305,7 @@ pipewire_remote_error_cb (gpointer data,
   g_autoptr(GError) error = NULL;
 
   g_hash_table_remove_all (camera->cameras);
-  xdp_camera_set_is_camera_present (XDP_CAMERA (camera), FALSE);
+  xdp_dbus_camera_set_is_camera_present (XDP_DBUS_CAMERA (camera), FALSE);
 
   g_clear_pointer (&camera->pipewire_source, g_source_destroy);
   g_clear_pointer (&camera->pipewire_remote, pipewire_remote_destroy);
@@ -429,7 +429,7 @@ camera_init (Camera *camera)
 {
   g_autoptr(GError) error = NULL;
 
-  xdp_camera_set_version (XDP_CAMERA (camera), 1);
+  xdp_dbus_camera_set_version (XDP_DBUS_CAMERA (camera), 1);
 
   if (!init_camera_tracker (camera, &error))
     g_warning ("Failed to track cameras: %s", error->message);

@@ -68,24 +68,26 @@ typedef struct _BackgroundClass BackgroundClass;
 
 struct _Background
 {
-  XdpBackgroundSkeleton parent_instance;
+  XdpDbusBackgroundSkeleton parent_instance;
 };
 
 struct _BackgroundClass
 {
-  XdpBackgroundSkeletonClass parent_class;
+  XdpDbusBackgroundSkeletonClass parent_class;
 };
 
-static XdpImplAccess *access_impl;
-static XdpImplBackground *background_impl;
+static XdpDbusImplAccess *access_impl;
+static XdpDbusImplBackground *background_impl;
 static Background *background;
 static GFileMonitor *instance_monitor;
 
 GType background_get_type (void) G_GNUC_CONST;
-static void background_iface_init (XdpBackgroundIface *iface);
+static void background_iface_init (XdpDbusBackgroundIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Background, background, XDP_TYPE_BACKGROUND_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_BACKGROUND, background_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Background, background,
+                         XDP_DBUS_TYPE_BACKGROUND_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_BACKGROUND,
+                                                background_iface_init));
 
 
 static GVariant *
@@ -95,13 +97,13 @@ get_all_permissions (void)
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
 
-  if (!xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   PERMISSION_ID,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
+  if (!xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+                                                        PERMISSION_TABLE,
+                                                        PERMISSION_ID,
+                                                        &out_perms,
+                                                        &out_data,
+                                                        NULL,
+                                                        &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_debug ("No background permissions found: %s", error->message);
@@ -185,14 +187,14 @@ set_permission (const char *app_id,
     }
   permissions[1] = NULL;
 
-  if (!xdp_impl_permission_store_call_set_permission_sync (get_permission_store (),
-                                                           PERMISSION_TABLE,
-                                                           TRUE,
-                                                           PERMISSION_ID,
-                                                           app_id,
-                                                           (const char * const*)permissions,
-                                                           NULL,
-                                                           &error))
+  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (get_permission_store (),
+                                                                PERMISSION_TABLE,
+                                                                TRUE,
+                                                                PERMISSION_ID,
+                                                                app_id,
+                                                                (const char * const*)permissions,
+                                                                NULL,
+                                                                &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Error updating permission store: %s", error->message);
@@ -271,18 +273,18 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
-      if (!xdp_impl_access_call_access_dialog_sync (access_impl,
-                                                    request->id,
-                                                    app_id,
-                                                    "",
-                                                    title,
-                                                    subtitle,
-                                                    body,
-                                                    g_variant_builder_end (&opt_builder),
-                                                    &response,
-                                                    &results,
-                                                    NULL,
-                                                    &error))
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                         request->id,
+                                                         app_id,
+                                                         "",
+                                                         title,
+                                                         subtitle,
+                                                         body,
+                                                         g_variant_builder_end (&opt_builder),
+                                                         &response,
+                                                         &results,
+                                                         NULL,
+                                                         &error))
         {
           g_warning ("AccessDialog call failed: %s", error->message);
           g_clear_error (&error);
@@ -307,14 +309,14 @@ handle_request_background_in_thread_func (GTask *task,
     {
       g_debug ("Autostart not supported for: %s", app_id);
     }
-  else if (!xdp_impl_background_call_enable_autostart_sync (background_impl,
-                                                            app_id,
-                                                            allowed && autostart_requested,
-                                                            (const char * const *)commandline,
-                                                            autostart_flags,
-                                                            &autostart_enabled,
-                                                            NULL,
-                                                            &error))
+  else if (!xdp_dbus_impl_background_call_enable_autostart_sync (background_impl,
+                                                                 app_id,
+                                                                 allowed && autostart_requested,
+                                                                 (const char * const *)commandline,
+                                                                 autostart_flags,
+                                                                 &autostart_enabled,
+                                                                 NULL,
+                                                                 &error))
     {
       g_warning ("EnableAutostart call failed: %s", error->message);
       g_clear_error (&error);
@@ -327,7 +329,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
       g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
-      xdp_request_emit_response (XDP_REQUEST (request),
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                  allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED,
                                  g_variant_builder_end (&results));
       request_unexport (request);
@@ -392,14 +394,14 @@ static XdpOptionKey background_options[] = {
 };
 
 static gboolean
-handle_request_background (XdpBackground *object,
+handle_request_background (XdpDbusBackground *object,
                            GDBusMethodInvocation *invocation,
                            const char *arg_window,
                            GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GTask) task = NULL;
   GVariantBuilder opt_builder;
   g_autoptr(GVariant) options = NULL;
@@ -420,11 +422,12 @@ handle_request_background (XdpBackground *object,
   g_object_set_data_full (G_OBJECT (request), "window", g_strdup (arg_window), g_free);
   g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -434,7 +437,7 @@ handle_request_background (XdpBackground *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_background_complete_request_background (object, invocation, request->id);
+  xdp_dbus_background_complete_request_background (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
@@ -444,7 +447,7 @@ handle_request_background (XdpBackground *object,
 }
 
 static void
-background_iface_init (XdpBackgroundIface *iface)
+background_iface_init (XdpDbusBackgroundIface *iface)
 {
   iface->handle_request_background = handle_request_background;
 }
@@ -452,7 +455,7 @@ background_iface_init (XdpBackgroundIface *iface)
 static void
 background_init (Background *background)
 {
-  xdp_background_set_version (XDP_BACKGROUND (background), 1);
+  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 1);
 }
 
 static void
@@ -489,7 +492,7 @@ get_app_states (void)
   GVariant *value;
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_impl_background_call_get_app_state_sync (background_impl, &apps, NULL, &error))
+  if (!xdp_dbus_impl_background_call_get_app_state_sync (background_impl, &apps, NULL, &error))
     {
       static int warned = 0;
 
@@ -648,11 +651,11 @@ notify_background_done (GObject *source,
   guint result;
   InstanceData *idata;
 
-  if (!xdp_impl_background_call_notify_background_finish (background_impl,
-                                                          &response,
-                                                          &results,
-                                                          res,
-                                                          &error))
+  if (!xdp_dbus_impl_background_call_notify_background_finish (background_impl,
+                                                               &response,
+                                                               &results,
+                                                               res,
+                                                               &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Error from background backend: %s", error->message);
@@ -829,13 +832,13 @@ check_background_apps (void)
 
       g_debug ("Notify background for %s", nd->app_id);
 
-      xdp_impl_background_call_notify_background (background_impl,
-                                                  nd->handle,
-                                                  nd->app_id,
-                                                  nd->name,
-                                                  NULL,
-                                                  notify_background_done,
-                                                  nd);
+      xdp_dbus_impl_background_call_notify_background (background_impl,
+                                                       nd->handle,
+                                                       nd->app_id,
+                                                       nd->name,
+                                                       NULL,
+                                                       notify_background_done,
+                                                       nd);
     }
 
   remove_outdated_instances (stamp);
@@ -900,12 +903,12 @@ background_create (GDBusConnection *connection,
   g_autoptr(GFile) instance_dir = NULL;
   g_autoptr(GError) error = NULL;
 
-  access_impl = xdp_impl_access_proxy_new_sync (connection,
-                                                G_DBUS_PROXY_FLAGS_NONE,
-                                                dbus_name_access,
-                                                DESKTOP_PORTAL_OBJECT_PATH,
-                                                NULL,
-                                                &error);
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     dbus_name_access,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error);
   if (access_impl == NULL)
     {
       g_warning ("Failed to create access proxy: %s", error->message);
@@ -914,12 +917,12 @@ background_create (GDBusConnection *connection,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
-  background_impl = xdp_impl_background_proxy_new_sync (connection,
-                                                        G_DBUS_PROXY_FLAGS_NONE,
-                                                        dbus_name_background,
-                                                        DESKTOP_PORTAL_OBJECT_PATH,
-                                                        NULL,
-                                                        &error);
+  background_impl = xdp_dbus_impl_background_proxy_new_sync (connection,
+                                                             G_DBUS_PROXY_FLAGS_NONE,
+                                                             dbus_name_background,
+                                                             DESKTOP_PORTAL_OBJECT_PATH,
+                                                             NULL,
+                                                             &error);
   if (background_impl == NULL)
     {
       g_warning ("Failed to create background proxy: %s", error->message);

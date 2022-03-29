@@ -44,21 +44,22 @@ typedef struct _TrashClass TrashClass;
 
 struct _Trash
 {
-  XdpTrashSkeleton parent_instance;
+  XdpDbusTrashSkeleton parent_instance;
 };
 
 struct _TrashClass
 {
-  XdpTrashSkeletonClass parent_class;
+  XdpDbusTrashSkeletonClass parent_class;
 };
 
 static Trash *trash;
 
 GType trash_get_type (void) G_GNUC_CONST;
-static void trash_iface_init (XdpTrashIface *iface);
+static void trash_iface_init (XdpDbusTrashIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Trash, trash, XDP_TYPE_TRASH_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_TRASH, trash_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Trash, trash, XDP_DBUS_TYPE_TRASH_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_TRASH,
+                                                trash_iface_init));
 
 static guint
 trash_file (XdpAppInfo *app_info,
@@ -95,7 +96,7 @@ trash_file (XdpAppInfo *app_info,
 }
 
 static gboolean
-handle_trash_file (XdpTrash *object,
+handle_trash_file (XdpDbusTrash *object,
                    GDBusMethodInvocation *invocation,
                    GUnixFDList *fd_list,
                    GVariant *arg_fd)
@@ -113,13 +114,13 @@ handle_trash_file (XdpTrash *object,
 
   result = trash_file (request->app_info, request->sender, fd);
 
-  xdp_trash_complete_trash_file (object, invocation, NULL, result);
+  xdp_dbus_trash_complete_trash_file (object, invocation, NULL, result);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-trash_iface_init (XdpTrashIface *iface)
+trash_iface_init (XdpDbusTrashIface *iface)
 {
   iface->handle_trash_file = handle_trash_file;
 }
@@ -127,7 +128,7 @@ trash_iface_init (XdpTrashIface *iface)
 static void
 trash_init (Trash *trash)
 {
-  xdp_trash_set_version (XDP_TRASH (trash), 1);
+  xdp_dbus_trash_set_version (XDP_DBUS_TRASH (trash), 1);
 }
 
 static void

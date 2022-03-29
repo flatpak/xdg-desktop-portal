@@ -17,7 +17,7 @@ settings_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_settings_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_settings_skeleton_new ());
 
   if (!g_dbus_interface_skeleton_export (helper, connection, object_path, &error))
     {

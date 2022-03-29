@@ -384,28 +384,28 @@ set_location_permissions (const char *app_id,
 
 typedef struct
 {
-  XdpLocationSkeleton parent_instance;
+  XdpDbusLocationSkeleton parent_instance;
 } Location;
 
 typedef struct 
 {
-  XdpLocationSkeletonClass parent_class;
+  XdpDbusLocationSkeletonClass parent_class;
 } LocationClass;
 
 static Location *location;
-static XdpImplAccess *access_impl;
-static XdpImplLockdown *lockdown;
+static XdpDbusImplAccess *access_impl;
+static XdpDbusImplLockdown *lockdown;
 
 GType location_get_type (void) G_GNUC_CONST;
-static void location_iface_init (XdpLocationIface *iface);
+static void location_iface_init (XdpDbusLocationIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_TYPE_LOCATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_LOCATION, location_iface_init))
+G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
 
 /*** CreateSession ***/
 
 static gboolean
-handle_create_session (XdpLocation *object,
+handle_create_session (XdpDbusLocation *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
@@ -414,7 +414,7 @@ handle_create_session (XdpLocation *object,
   guint threshold;
   guint accuracy;
 
-  if (xdp_impl_lockdown_get_disable_location (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_location (lockdown))
     {
       g_debug ("Location services disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -470,7 +470,7 @@ handle_create_session (XdpLocation *object,
       session_register ((Session *)session);
     }
 
-  xdp_location_complete_create_session (object, invocation, ((Session *)session)->id);
+  xdp_dbus_location_complete_create_session (object, invocation, ((Session *)session)->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -508,17 +508,17 @@ handle_start_in_thread_func (GTask *task,
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
-      g_autoptr(XdpImplRequest) impl_request = NULL;
+      g_autoptr(XdpDbusImplRequest) impl_request = NULL;
       GVariantBuilder access_opt_builder;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
       const char *body;
 
-      impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
-                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                      g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
-                                                      request->id,
-                                                      NULL, NULL);
+      impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
+                                                           G_DBUS_PROXY_FLAGS_NONE,
+                                                           g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
+                                                           request->id,
+                                                           NULL, NULL);
 
       request_set_impl_request (request, impl_request);
 
@@ -554,18 +554,18 @@ handle_start_in_thread_func (GTask *task,
 
       body = _("Location access can be changed at any time from the privacy settings.");
 
-      if (!xdp_impl_access_call_access_dialog_sync (access_impl,
-                                                    request->id,
-                                                    app_id,
-                                                    parent_window,
-                                                    title,
-                                                    subtitle,
-                                                    body,
-                                                    g_variant_builder_end (&access_opt_builder),
-                                                    &access_response,
-                                                    &access_results,
-                                                    NULL,
-                                                    &error))
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                         request->id,
+                                                         app_id,
+                                                         parent_window,
+                                                         title,
+                                                         subtitle,
+                                                         body,
+                                                         g_variant_builder_end (&access_opt_builder),
+                                                         &access_response,
+                                                         &access_results,
+                                                         NULL,
+                                                         &error))
         {
           g_warning ("Failed to show access dialog: %s", error->message);
           goto out;
@@ -607,9 +607,9 @@ out:
 
       g_debug ("sending response: %d", response);
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&opt_builder));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&opt_builder));
       request_unexport (request);
     }  
 
@@ -621,7 +621,7 @@ out:
 }
 
 static gboolean
-handle_start (XdpLocation *object,
+handle_start (XdpDbusLocation *object,
               GDBusMethodInvocation *invocation,
               const char *arg_session_handle,
               const char *arg_parent_window,
@@ -632,7 +632,7 @@ handle_start (XdpLocation *object,
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;
 
-  if (xdp_impl_lockdown_get_disable_location (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_location (lockdown))
     {
       g_debug ("Location services disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -687,7 +687,7 @@ handle_start (XdpLocation *object,
 
   loc_session->state = LOCATION_SESSION_STATE_STARTING;
 
-  xdp_location_complete_start (object, invocation, request->id);
+  xdp_dbus_location_complete_start (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
@@ -699,7 +699,7 @@ handle_start (XdpLocation *object,
 /************/
 
 static void
-location_iface_init (XdpLocationIface *iface)
+location_iface_init (XdpDbusLocationIface *iface)
 {
   iface->handle_create_session = handle_create_session;
   iface->handle_start = handle_start;
@@ -708,7 +708,7 @@ location_iface_init (XdpLocationIface *iface)
 static void
 location_init (Location *location)
 {
-  xdp_location_set_version (XDP_LOCATION (location), 1);
+  xdp_dbus_location_set_version (XDP_DBUS_LOCATION (location), 1);
 }
 
 static void
@@ -726,11 +726,11 @@ location_create (GDBusConnection *connection,
 
   lockdown = lockdown_proxy;
 
-  access_impl = xdp_impl_access_proxy_new_sync (connection,
-                                                G_DBUS_PROXY_FLAGS_NONE,
-                                                dbus_name,
-                                                DESKTOP_PORTAL_OBJECT_PATH,
-                                                NULL, &error);
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     dbus_name,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL, &error);
   if (access_impl == NULL)
     {
       g_warning ("Failed to create access proxy: %s", error->message);

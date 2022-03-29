@@ -11,7 +11,7 @@
 #include "account.h"
 
 typedef struct {
-  XdpImplFileChooser *impl;
+  XdpDbusImplFileChooser *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -120,15 +120,15 @@ send_response (gpointer data)
   g_debug ("send response %d", response);
 
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
-    xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                              handle->invocation,
-                                              response,
-                                              g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_file_chooser_complete_open_file (handle->impl,
+                                                   handle->invocation,
+                                                   response,
+                                                   g_variant_builder_end (&opt_builder));
   else
-    xdp_impl_file_chooser_complete_save_file (handle->impl,
-                                              handle->invocation,
-                                              response,
-                                              g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_file_chooser_complete_save_file (handle->impl,
+                                                   handle->invocation,
+                                                   response,
+                                                   g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -138,7 +138,7 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               FileChooserHandle *handle)
 {
@@ -147,22 +147,22 @@ handle_close (XdpImplRequest *object,
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("send response 2");
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "OpenFile") == 0)
-    xdp_impl_file_chooser_complete_open_file (handle->impl,
-                                              handle->invocation,
-                                              2,
-                                              g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_file_chooser_complete_open_file (handle->impl,
+                                                   handle->invocation,
+                                                   2,
+                                                   g_variant_builder_end (&opt_builder));
   else
-    xdp_impl_file_chooser_complete_save_file (handle->impl,
-                                              handle->invocation,
-                                              2,
-                                              g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_file_chooser_complete_save_file (handle->impl,
+                                                   handle->invocation,
+                                                   2,
+                                                   g_variant_builder_end (&opt_builder));
   file_chooser_handle_free (handle);
 
   return FALSE;
 }
 
 static gboolean
-handle_open_file (XdpImplFileChooser *object,
+handle_open_file (XdpDbusImplFileChooser *object,
                   GDBusMethodInvocation *invocation,
                   const char *arg_handle,
                   const char *arg_app_id,
@@ -226,7 +226,7 @@ file_chooser_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_file_chooser_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_file_chooser_skeleton_new ());
 
   g_signal_connect (helper, "handle-open-file", G_CALLBACK (handle_open_file), NULL);
   g_signal_connect (helper, "handle-save-file", G_CALLBACK (handle_open_file), NULL);

@@ -28,7 +28,7 @@ typedef struct _RequestClass RequestClass;
 
 struct _Request
 {
-  XdpImplRequestSkeleton parent_instance;
+  XdpDbusImplRequestSkeleton parent_instance;
 
   gboolean exported;
   char *sender;
@@ -38,7 +38,7 @@ struct _Request
 
 struct _RequestClass
 {
-  XdpImplRequestSkeletonClass parent_class;
+  XdpDbusImplRequestSkeletonClass parent_class;
 };
 
 GType request_get_type (void) G_GNUC_CONST;

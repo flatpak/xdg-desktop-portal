@@ -37,22 +37,23 @@ typedef struct _RealtimeClass RealtimeClass;
 
 struct _Realtime
 {
-  XdpRealtimeSkeleton parent_instance;
+  XdpDbusRealtimeSkeleton parent_instance;
   GDBusProxy *rtkit_proxy;
 };
 
 struct _RealtimeClass
 {
-  XdpRealtimeSkeletonClass parent_class;
+  XdpDbusRealtimeSkeletonClass parent_class;
 };
 
 static Realtime *realtime;
 
 GType realtime_get_type (void) G_GNUC_CONST;
-static void realtime_iface_init (XdpRealtimeIface *iface);
+static void realtime_iface_init (XdpDbusRealtimeIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_TYPE_REALTIME_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_REALTIME, realtime_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_DBUS_TYPE_REALTIME_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REALTIME,
+                                                realtime_iface_init));
 
 static gboolean
 map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, GError **error)
@@ -90,7 +91,7 @@ on_call_ready (GObject      *source_object,
 }
 
 static gboolean
-handle_make_thread_realtime_with_pid (XdpRealtime           *object,
+handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
                                       GDBusMethodInvocation *invocation,
                                       guint64                process,
                                       guint64                thread,
@@ -140,7 +141,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
 }
 
 static gboolean
-handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
+handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
                                            GDBusMethodInvocation *invocation,
                                            guint64                process,
                                            guint64                thread,
@@ -190,7 +191,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
 }
 
 static void
-realtime_iface_init (XdpRealtimeIface *iface)
+realtime_iface_init (XdpDbusRealtimeIface *iface)
 {
   iface->handle_make_thread_realtime_with_pid = handle_make_thread_realtime_with_pid;
   iface->handle_make_thread_high_priority_with_pid = handle_make_thread_high_priority_with_pid;
@@ -199,7 +200,7 @@ realtime_iface_init (XdpRealtimeIface *iface)
 static void
 realtime_init (Realtime *realtime)
 {
-  xdp_realtime_set_version (XDP_REALTIME (realtime), 1);
+  xdp_dbus_realtime_set_version (XDP_DBUS_REALTIME (realtime), 1);
 }
 
 static void
@@ -252,11 +253,14 @@ load_all_properties (GDBusProxy *proxy)
           g_variant_get (result, "(v)", &value);
 
           if (i == MAX_REALTIME_PRIORITY)
-            xdp_realtime_set_max_realtime_priority (XDP_REALTIME (realtime), g_variant_get_int32 (value));
+            xdp_dbus_realtime_set_max_realtime_priority (XDP_DBUS_REALTIME (realtime),
+                                                         g_variant_get_int32 (value));
           else if (i == MIN_NICE_LEVEL)
-            xdp_realtime_set_min_nice_level (XDP_REALTIME (realtime), g_variant_get_int32 (value));
+            xdp_dbus_realtime_set_min_nice_level (XDP_DBUS_REALTIME (realtime),
+                                                  g_variant_get_int32 (value));
           else if (i == RTTIME_USEC_MAX)
-            xdp_realtime_set_rttime_usec_max (XDP_REALTIME (realtime), g_variant_get_int64 (value));
+            xdp_dbus_realtime_set_rttime_usec_max (XDP_DBUS_REALTIME (realtime),
+                                                   g_variant_get_int64 (value));
           else
             g_assert_not_reached ();
 

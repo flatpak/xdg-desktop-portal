@@ -35,24 +35,25 @@ typedef struct _RemoteDesktopClass RemoteDesktopClass;
 
 struct _RemoteDesktop
 {
-  XdpRemoteDesktopSkeleton parent_instance;
+  XdpDbusRemoteDesktopSkeleton parent_instance;
 };
 
 struct _RemoteDesktopClass
 {
-  XdpRemoteDesktopSkeletonClass parent_class;
+  XdpDbusRemoteDesktopSkeletonClass parent_class;
 };
 
-static XdpImplRemoteDesktop *impl;
+static XdpDbusImplRemoteDesktop *impl;
 static RemoteDesktop *remote_desktop;
 
 GType remote_desktop_get_type (void) G_GNUC_CONST;
-static void remote_desktop_iface_init (XdpRemoteDesktopIface *iface);
+static void remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface);
 
 static GQuark quark_request_session;
 
-G_DEFINE_TYPE_WITH_CODE (RemoteDesktop, remote_desktop, XDP_TYPE_REMOTE_DESKTOP_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_REMOTE_DESKTOP,
+G_DEFINE_TYPE_WITH_CODE (RemoteDesktop, remote_desktop,
+                         XDP_DBUS_TYPE_REMOTE_DESKTOP_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REMOTE_DESKTOP,
                                                 remote_desktop_iface_init))
 
 typedef enum _RemoteDesktopSessionState
@@ -192,11 +193,11 @@ create_session_done (GObject *source_object,
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
-  if (!xdp_impl_remote_desktop_call_create_session_finish (impl,
-                                                           &response,
-                                                           NULL,
-                                                           res,
-                                                           &error))
+  if (!xdp_dbus_impl_remote_desktop_call_create_session_finish (impl,
+                                                                &response,
+                                                                NULL,
+                                                                res,
+                                                                &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -227,9 +228,9 @@ create_session_done (GObject *source_object,
 out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&results_builder));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results_builder));
       request_unexport (request);
     }
   else
@@ -242,13 +243,13 @@ out:
 }
 
 static gboolean
-handle_create_session (XdpRemoteDesktop *object,
+handle_create_session (XdpDbusRemoteDesktop *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   Session *session;
   GVariantBuilder options_builder;
   GVariant *options;
@@ -256,11 +257,11 @@ handle_create_session (XdpRemoteDesktop *object,
   REQUEST_AUTOLOCK (request);
 
   impl_request =
-    xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                     G_DBUS_PROXY_FLAGS_NONE,
-                                     g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                     request->id,
-                                     NULL, &error);
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -285,16 +286,16 @@ handle_create_session (XdpRemoteDesktop *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_impl_remote_desktop_call_create_session (impl,
-                                               request->id,
-                                               session->id,
-                                               xdp_app_info_get_id (request->app_info),
-                                               options,
-                                               NULL,
-                                               create_session_done,
-                                               g_object_ref (request));
+  xdp_dbus_impl_remote_desktop_call_create_session (impl,
+                                                    request->id,
+                                                    session->id,
+                                                    xdp_app_info_get_id (request->app_info),
+                                                    options,
+                                                    NULL,
+                                                    create_session_done,
+                                                    g_object_ref (request));
 
-  xdp_remote_desktop_complete_create_session (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_create_session (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -317,11 +318,11 @@ select_devices_done (GObject *source_object,
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
-  if (!xdp_impl_remote_desktop_call_select_devices_finish (impl,
-                                                           &response,
-                                                           &results,
-                                                           res,
-                                                           &error))
+  if (!xdp_dbus_impl_remote_desktop_call_select_devices_finish (impl,
+                                                                &response,
+                                                                &results,
+                                                                res,
+                                                                &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -339,7 +340,8 @@ select_devices_done (GObject *source_object,
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
-      xdp_request_emit_response (XDP_REQUEST (request), response, results);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response, results);
       request_unexport (request);
     }
 
@@ -381,7 +383,7 @@ static XdpOptionKey remote_desktop_select_devices_options[] = {
 };
 
 static gboolean
-handle_select_devices (XdpRemoteDesktop *object,
+handle_select_devices (XdpDbusRemoteDesktop *object,
                        GDBusMethodInvocation *invocation,
                        const char *arg_session_handle,
                        GVariant *arg_options)
@@ -390,7 +392,7 @@ handle_select_devices (XdpRemoteDesktop *object,
   Session *session;
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
 
   REQUEST_AUTOLOCK (request);
@@ -437,11 +439,11 @@ handle_select_devices (XdpRemoteDesktop *object,
     }
 
   impl_request =
-    xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                     G_DBUS_PROXY_FLAGS_NONE,
-                                     g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                     request->id,
-                                     NULL, &error);
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -467,16 +469,16 @@ handle_select_devices (XdpRemoteDesktop *object,
                            g_object_unref);
   remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_SELECTING_DEVICES;
 
-  xdp_impl_remote_desktop_call_select_devices (impl,
-                                               request->id,
-                                               arg_session_handle,
-                                               xdp_app_info_get_id (request->app_info),
-                                               g_variant_builder_end (&options_builder),
-                                               NULL,
-                                               select_devices_done,
-                                               g_object_ref (request));
+  xdp_dbus_impl_remote_desktop_call_select_devices (impl,
+                                                    request->id,
+                                                    arg_session_handle,
+                                                    xdp_app_info_get_id (request->app_info),
+                                                    g_variant_builder_end (&options_builder),
+                                                    NULL,
+                                                    select_devices_done,
+                                                    g_object_ref (request));
 
-  xdp_remote_desktop_complete_select_devices (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_select_devices (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -521,11 +523,11 @@ start_done (GObject *source_object,
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
-  if (!xdp_impl_remote_desktop_call_start_finish (impl,
-                                                  &response,
-                                                  &results,
-                                                  res,
-                                                  &error))
+  if (!xdp_dbus_impl_remote_desktop_call_start_finish (impl,
+                                                       &response,
+                                                       &results,
+                                                       res,
+                                                       &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -555,7 +557,8 @@ start_done (GObject *source_object,
           results = g_variant_builder_end (&results_builder);
         }
 
-      xdp_request_emit_response (XDP_REQUEST (request), response, results);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response, results);
       request_unexport (request);
     }
 
@@ -573,7 +576,7 @@ start_done (GObject *source_object,
 }
 
 static gboolean
-handle_start (XdpRemoteDesktop *object,
+handle_start (XdpDbusRemoteDesktop *object,
               GDBusMethodInvocation *invocation,
               const char *arg_session_handle,
               const char *arg_parent_window,
@@ -583,7 +586,7 @@ handle_start (XdpRemoteDesktop *object,
   Session *session;
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
   GVariant *options;
 
@@ -639,11 +642,11 @@ handle_start (XdpRemoteDesktop *object,
                           "window", g_strdup (arg_parent_window), g_free);
 
   impl_request =
-    xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                     G_DBUS_PROXY_FLAGS_NONE,
-                                     g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                     request->id,
-                                     NULL, &error);
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -662,17 +665,17 @@ handle_start (XdpRemoteDesktop *object,
                            g_object_unref);
   remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_STARTING;
 
-  xdp_impl_remote_desktop_call_start (impl,
-                                      request->id,
-                                      arg_session_handle,
-                                      xdp_app_info_get_id (request->app_info),
-                                      arg_parent_window,
-                                      options,
-                                      NULL,
-                                      start_done,
-                                      g_object_ref (request));
+  xdp_dbus_impl_remote_desktop_call_start (impl,
+                                           request->id,
+                                           arg_session_handle,
+                                           xdp_app_info_get_id (request->app_info),
+                                           arg_parent_window,
+                                           options,
+                                           NULL,
+                                           start_done,
+                                           g_object_ref (request));
 
-  xdp_remote_desktop_complete_start (object, invocation, request->id);
+  xdp_dbus_remote_desktop_complete_start (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -731,7 +734,7 @@ static XdpOptionKey remote_desktop_notify_options[] = {
 };
 
 static gboolean
-handle_notify_pointer_motion (XdpRemoteDesktop *object,
+handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
                               GDBusMethodInvocation *invocation,
                               const char *arg_session_handle,
                               GVariant *arg_options,
@@ -776,19 +779,19 @@ handle_notify_pointer_motion (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_pointer_motion (impl,
-                                                      session->id,
-                                                      options,
-                                                      dx, dy,
-                                                      NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion (impl,
+                                                           session->id,
+                                                           options,
+                                                           dx, dy,
+                                                           NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_pointer_motion (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_pointer_motion (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
+handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
                                        GDBusMethodInvocation *invocation,
                                        const char *arg_session_handle,
                                        GVariant *arg_options,
@@ -844,20 +847,20 @@ handle_notify_pointer_motion_absolute (XdpRemoteDesktop *object,
 
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_pointer_motion_absolute (impl,
-                                                               session->id,
-                                                               options,
-                                                               stream,
-                                                               x, y,
-                                                               NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion_absolute (impl,
+                                                                    session->id,
+                                                                    options,
+                                                                    stream,
+                                                                    x, y,
+                                                                    NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_pointer_motion_absolute (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_pointer_motion_absolute (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_pointer_button (XdpRemoteDesktop *object,
+handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
                               GDBusMethodInvocation *invocation,
                               const char *arg_session_handle,
                               GVariant *arg_options,
@@ -903,14 +906,14 @@ handle_notify_pointer_button (XdpRemoteDesktop *object,
 
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_pointer_button (impl,
-                                                      session->id,
-                                                      options,
-                                                      button,
-                                                      state,
-                                                      NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_button (impl,
+                                                           session->id,
+                                                           options,
+                                                           button,
+                                                           state,
+                                                           NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_pointer_button (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_pointer_button (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -920,7 +923,7 @@ static XdpOptionKey remote_desktop_notify_pointer_axis_options[] = {
 };
 
 static gboolean
-handle_notify_pointer_axis (XdpRemoteDesktop *object,
+handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
                             GDBusMethodInvocation *invocation,
                             const char *arg_session_handle,
                             GVariant *arg_options,
@@ -966,19 +969,19 @@ handle_notify_pointer_axis (XdpRemoteDesktop *object,
 
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_pointer_axis (impl,
-                                                    session->id,
-                                                    options,
-                                                    dx, dy,
-                                                    NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis (impl,
+                                                         session->id,
+                                                         options,
+                                                         dx, dy,
+                                                         NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_pointer_axis (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_pointer_axis (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
+handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
                                      GDBusMethodInvocation *invocation,
                                      const char *arg_session_handle,
                                      GVariant *arg_options,
@@ -1023,20 +1026,20 @@ handle_notify_pointer_axis_discrete (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_pointer_axis_discrete (impl,
-                                                             session->id,
-                                                             options,
-                                                             axis,
-                                                             steps,
-                                                             NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis_discrete (impl,
+                                                                  session->id,
+                                                                  options,
+                                                                  axis,
+                                                                  steps,
+                                                                  NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_pointer_axis_discrete (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_pointer_axis_discrete (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
+handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
                                 GDBusMethodInvocation *invocation,
                                 const char *arg_session_handle,
                                 GVariant *arg_options,
@@ -1081,20 +1084,20 @@ handle_notify_keyboard_keycode (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_keyboard_keycode (impl,
-                                                        session->id,
-                                                        options,
-                                                        keycode,
-                                                        state,
-                                                        NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keycode (impl,
+                                                             session->id,
+                                                             options,
+                                                             keycode,
+                                                             state,
+                                                             NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_keyboard_keycode (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_keyboard_keycode (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
+handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
                                GDBusMethodInvocation *invocation,
                                const char *arg_session_handle,
                                GVariant *arg_options,
@@ -1139,20 +1142,20 @@ handle_notify_keyboard_keysym (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_keyboard_keysym (impl,
-                                                       session->id,
-                                                       options,
-                                                       keysym,
-                                                       state,
-                                                       NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keysym (impl,
+                                                            session->id,
+                                                            options,
+                                                            keysym,
+                                                            state,
+                                                            NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_keyboard_keysym (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_keyboard_keysym (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_touch_down (XdpRemoteDesktop *object,
+handle_notify_touch_down (XdpDbusRemoteDesktop *object,
                           GDBusMethodInvocation *invocation,
                           const char *arg_session_handle,
                           GVariant *arg_options,
@@ -1208,21 +1211,21 @@ handle_notify_touch_down (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_touch_down (impl,
-                                                  session->id,
-                                                  options,
-                                                  stream,
-                                                  slot,
-                                                  x, y,
-                                                  NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_touch_down (impl,
+                                                       session->id,
+                                                       options,
+                                                       stream,
+                                                       slot,
+                                                       x, y,
+                                                       NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_touch_down (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_touch_down (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_touch_motion (XdpRemoteDesktop *object,
+handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
                             GDBusMethodInvocation *invocation,
                             const char *arg_session_handle,
                             GVariant *arg_options,
@@ -1278,21 +1281,21 @@ handle_notify_touch_motion (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_touch_motion (impl,
-                                                    session->id,
-                                                    options,
-                                                    stream,
-                                                    slot,
-                                                    x, y,
-                                                    NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_touch_motion (impl,
+                                                         session->id,
+                                                         options,
+                                                         stream,
+                                                         slot,
+                                                         x, y,
+                                                         NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_touch_motion (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_touch_motion (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_notify_touch_up (XdpRemoteDesktop *object,
+handle_notify_touch_up (XdpDbusRemoteDesktop *object,
                         GDBusMethodInvocation *invocation,
                         const char *arg_session_handle,
                         GVariant *arg_options,
@@ -1336,19 +1339,19 @@ handle_notify_touch_up (XdpRemoteDesktop *object,
     }
   options = g_variant_builder_end (&options_builder);
 
-  xdp_impl_remote_desktop_call_notify_touch_up (impl,
-                                                session->id,
-                                                options,
-                                                slot,
-                                                NULL, NULL, NULL);
+  xdp_dbus_impl_remote_desktop_call_notify_touch_up (impl,
+                                                     session->id,
+                                                     options,
+                                                     slot,
+                                                     NULL, NULL, NULL);
 
-  xdp_remote_desktop_complete_notify_touch_up (object, invocation);
+  xdp_dbus_remote_desktop_complete_notify_touch_up (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-remote_desktop_iface_init (XdpRemoteDesktopIface *iface)
+remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface)
 {
   iface->handle_create_session = handle_create_session;
   iface->handle_select_devices = handle_select_devices;
@@ -1372,9 +1375,9 @@ sync_supported_device_types (RemoteDesktop *remote_desktop)
   unsigned int available_device_types;
 
   available_device_types =
-    xdp_impl_remote_desktop_get_available_device_types (impl);
-  xdp_remote_desktop_set_available_device_types (XDP_REMOTE_DESKTOP (remote_desktop),
-                                                 available_device_types);
+    xdp_dbus_impl_remote_desktop_get_available_device_types (impl);
+  xdp_dbus_remote_desktop_set_available_device_types (XDP_DBUS_REMOTE_DESKTOP (remote_desktop),
+                                                      available_device_types);
 }
 
 static void
@@ -1388,7 +1391,7 @@ on_supported_device_types_changed (GObject *gobject,
 static void
 remote_desktop_init (RemoteDesktop *remote_desktop)
 {
-  xdp_remote_desktop_set_version (XDP_REMOTE_DESKTOP (remote_desktop), 1);
+  xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 1);
 
   g_signal_connect (impl, "notify::supported-device-types",
                     G_CALLBACK (on_supported_device_types_changed),
@@ -1407,12 +1410,12 @@ remote_desktop_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_remote_desktop_proxy_new_sync (connection,
-                                                 G_DBUS_PROXY_FLAGS_NONE,
-                                                 dbus_name,
-                                                 DESKTOP_PORTAL_OBJECT_PATH,
-                                                 NULL,
-                                                 &error);
+  impl = xdp_dbus_impl_remote_desktop_proxy_new_sync (connection,
+                                                      G_DBUS_PROXY_FLAGS_NONE,
+                                                      dbus_name,
+                                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                                      NULL,
+                                                      &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create remote desktop proxy: %s", error->message);

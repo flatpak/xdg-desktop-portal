@@ -36,7 +36,7 @@ typedef struct _RequestClass RequestClass;
 
 struct _Request
 {
-  XdpRequestSkeleton parent_instance;
+  XdpDbusRequestSkeleton parent_instance;
 
   gboolean exported;
   char *id;
@@ -44,12 +44,12 @@ struct _Request
   GMutex mutex;
   XdpAppInfo *app_info;
 
-  XdpImplRequest *impl_request;
+  XdpDbusImplRequest *impl_request;
 };
 
 struct _RequestClass
 {
-  XdpRequestSkeletonClass parent_class;
+  XdpDbusRequestSkeletonClass parent_class;
 };
 
 GType request_get_type (void) G_GNUC_CONST;
@@ -63,10 +63,10 @@ void request_export (Request *request,
 void request_unexport (Request *request);
 void close_requests_for_sender (const char *sender);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpImplRequest, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDbusImplRequest, g_object_unref)
 
 void request_set_impl_request (Request *request,
-                               XdpImplRequest *impl_request);
+                               XdpDbusImplRequest *impl_request);
 
 static inline void
 auto_unlock_helper (GMutex **mutex)

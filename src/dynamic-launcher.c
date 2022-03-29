@@ -51,25 +51,27 @@ typedef struct _DynamicLauncherClass DynamicLauncherClass;
 
 struct _DynamicLauncher
 {
-  XdpDynamicLauncherSkeleton parent_instance;
+  XdpDbusDynamicLauncherSkeleton parent_instance;
 };
 
 struct _DynamicLauncherClass
 {
-  XdpDynamicLauncherSkeletonClass parent_class;
+  XdpDbusDynamicLauncherSkeletonClass parent_class;
 };
 
-static XdpImplDynamicLauncher *impl;
+static XdpDbusImplDynamicLauncher *impl;
 static DynamicLauncher *dynamic_launcher;
 
 static GMutex transient_permissions_lock;
 static GHashTable *transient_permissions;
 
 GType dynamic_launcher_get_type (void) G_GNUC_CONST;
-static void dynamic_launcher_iface_init (XdpDynamicLauncherIface *iface);
+static void dynamic_launcher_iface_init (XdpDbusDynamicLauncherIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (DynamicLauncher, dynamic_launcher, XDP_TYPE_DYNAMIC_LAUNCHER_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_DYNAMIC_LAUNCHER, dynamic_launcher_iface_init));
+G_DEFINE_TYPE_WITH_CODE (DynamicLauncher, dynamic_launcher,
+                         XDP_DBUS_TYPE_DYNAMIC_LAUNCHER_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_DYNAMIC_LAUNCHER,
+                                                dynamic_launcher_iface_init));
 
 typedef enum {
   DYNAMIC_LAUNCHER_TYPE_APPLICATION = 1,
@@ -312,12 +314,12 @@ save_icon_and_get_desktop_entry (const char  *desktop_file_id,
 }
 
 static gboolean
-handle_install (XdpDynamicLauncher    *object,
-                GDBusMethodInvocation *invocation,
-                const gchar           *arg_token,
-                const gchar           *arg_desktop_file_id,
-                const gchar           *arg_desktop_entry,
-                GVariant              *arg_options)
+handle_install (XdpDbusDynamicLauncher *object,
+                GDBusMethodInvocation  *invocation,
+                const gchar            *arg_token,
+                const gchar            *arg_desktop_file_id,
+                const gchar            *arg_desktop_entry,
+                GVariant               *arg_options)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -391,7 +393,7 @@ handle_install (XdpDynamicLauncher    *object,
   if (!g_file_make_symbolic_link (link_file, relative_path, NULL, &error))
     goto error;
 
-  xdp_dynamic_launcher_complete_install (object, invocation);
+  xdp_dbus_dynamic_launcher_complete_install (object, invocation);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 
 error:
@@ -463,11 +465,11 @@ prepare_install_done (GObject      *source,
 
   g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
-  if (!xdp_impl_dynamic_launcher_call_prepare_install_finish (XDP_IMPL_DYNAMIC_LAUNCHER (source),
-                                                              &response,
-                                                              &results,
-                                                              result,
-                                                              &error))
+  if (!xdp_dbus_impl_dynamic_launcher_call_prepare_install_finish (XDP_DBUS_IMPL_DYNAMIC_LAUNCHER (source),
+                                                                   &response,
+                                                                   &results,
+                                                                   result,
+                                                                   &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -510,9 +512,9 @@ prepare_install_done (GObject      *source,
 out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&results_builder));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results_builder));
 
       request_unexport (request);
     }
@@ -555,8 +557,8 @@ validate_launcher_type (const char  *key,
   guint32 supported_launcher_types;
 
   supported_launcher_types =
-    xdp_dynamic_launcher_get_supported_launcher_types
-    (XDP_DYNAMIC_LAUNCHER (dynamic_launcher));
+    xdp_dbus_dynamic_launcher_get_supported_launcher_types
+    (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher));
 
   if (__builtin_popcount (launcher_type) != 1)
     {
@@ -584,17 +586,17 @@ static XdpOptionKey prepare_install_options[] = {
 };
 
 static gboolean
-handle_prepare_install (XdpDynamicLauncher    *object,
-                        GDBusMethodInvocation *invocation,
-                        const gchar           *arg_parent_window,
-                        const gchar           *arg_name,
-                        GVariant              *arg_icon_v,
-                        GVariant              *arg_options)
+handle_prepare_install (XdpDbusDynamicLauncher *object,
+                        GDBusMethodInvocation  *invocation,
+                        const gchar            *arg_parent_window,
+                        const gchar            *arg_name,
+                        GVariant               *arg_icon_v,
+                        GVariant               *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
   g_autofree char *token = NULL;
   g_autofree char *icon_format = NULL;
@@ -603,11 +605,11 @@ handle_prepare_install (XdpDynamicLauncher    *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                       G_DBUS_PROXY_FLAGS_NONE,
+                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                       request->id,
+                                                       NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -640,28 +642,28 @@ handle_prepare_install (XdpDynamicLauncher    *object,
   g_object_set_data_full (G_OBJECT (request), "icon-format", g_steal_pointer (&icon_format), g_free);
   g_object_set_data_full (G_OBJECT (request), "icon-size", g_steal_pointer (&icon_size), g_free);
 
-  xdp_impl_dynamic_launcher_call_prepare_install (impl,
-                                                  request->id,
-                                                  app_id,
-                                                  arg_parent_window,
-                                                  arg_name,
-                                                  arg_icon_v,
-                                                  g_variant_builder_end (&opt_builder),
-                                                  NULL, /* cancellable */
-                                                  prepare_install_done,
-                                                  g_object_ref (request));
+  xdp_dbus_impl_dynamic_launcher_call_prepare_install (impl,
+                                                       request->id,
+                                                       app_id,
+                                                       arg_parent_window,
+                                                       arg_name,
+                                                       arg_icon_v,
+                                                       g_variant_builder_end (&opt_builder),
+                                                       NULL, /* cancellable */
+                                                       prepare_install_done,
+                                                       g_object_ref (request));
 
-  xdp_dynamic_launcher_complete_prepare_install (object, invocation, request->id);
+  xdp_dbus_dynamic_launcher_complete_prepare_install (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_request_install_token (XdpDynamicLauncher    *object,
-                              GDBusMethodInvocation *invocation,
-                              const gchar           *arg_name,
-                              GVariant              *arg_icon_v,
-                              GVariant              *arg_options)
+handle_request_install_token (XdpDbusDynamicLauncher *object,
+                              GDBusMethodInvocation  *invocation,
+                              const gchar            *arg_name,
+                              GVariant               *arg_icon_v,
+                              GVariant               *arg_options)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -682,12 +684,12 @@ handle_request_install_token (XdpDynamicLauncher    *object,
     {
       response = 0;
     }
-  else if (!xdp_impl_dynamic_launcher_call_request_install_token_sync (impl,
-                                                                       app_id,
-                                                                       arg_options,
-                                                                       &response,
-                                                                       NULL, /* cancellable */
-                                                                       &error))
+  else if (!xdp_dbus_impl_dynamic_launcher_call_request_install_token_sync (impl,
+                                                                            app_id,
+                                                                            arg_options,
+                                                                            &response,
+                                                                            NULL, /* cancellable */
+                                                                            &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -714,7 +716,7 @@ handle_request_install_token (XdpDynamicLauncher    *object,
       /* Save the token in memory and return it to the caller */
       set_launcher_data_for_token (token, launcher_data);
 
-      xdp_dynamic_launcher_complete_request_install_token (object, invocation, token);
+      xdp_dbus_dynamic_launcher_complete_request_install_token (object, invocation, token);
     }
   else
     {
@@ -728,10 +730,10 @@ handle_request_install_token (XdpDynamicLauncher    *object,
 }
 
 static gboolean
-handle_uninstall (XdpDynamicLauncher    *object,
-                  GDBusMethodInvocation *invocation,
-                  const gchar           *arg_desktop_file_id,
-                  GVariant              *arg_options)
+handle_uninstall (XdpDbusDynamicLauncher *object,
+                  GDBusMethodInvocation  *invocation,
+                  const gchar            *arg_desktop_file_id,
+                  GVariant               *arg_options)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -779,7 +781,7 @@ handle_uninstall (XdpDynamicLauncher    *object,
   if (desktop_file_error)
     goto error;
 
-  xdp_dynamic_launcher_complete_uninstall (object, invocation);
+  xdp_dbus_dynamic_launcher_complete_uninstall (object, invocation);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 
 error:
@@ -788,9 +790,9 @@ error:
 }
 
 static gboolean
-handle_get_desktop_entry (XdpDynamicLauncher    *object,
-                          GDBusMethodInvocation *invocation,
-                          const gchar           *arg_desktop_file_id)
+handle_get_desktop_entry (XdpDbusDynamicLauncher *object,
+                          GDBusMethodInvocation  *invocation,
+                          const gchar            *arg_desktop_file_id)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -817,7 +819,7 @@ handle_get_desktop_entry (XdpDynamicLauncher    *object,
       goto error;
     }
 
-  xdp_dynamic_launcher_complete_get_desktop_entry (object, invocation, contents);
+  xdp_dbus_dynamic_launcher_complete_get_desktop_entry (object, invocation, contents);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 
 error:
@@ -826,9 +828,9 @@ error:
 }
 
 static gboolean
-handle_get_icon (XdpDynamicLauncher    *object,
-                 GDBusMethodInvocation *invocation,
-                 const gchar           *arg_desktop_file_id)
+handle_get_icon (XdpDbusDynamicLauncher *object,
+                 GDBusMethodInvocation  *invocation,
+                 const gchar            *arg_desktop_file_id)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -929,9 +931,9 @@ handle_get_icon (XdpDynamicLauncher    *object,
       goto error;
     }
 
-  xdp_dynamic_launcher_complete_get_icon (object, invocation,
-                                          g_variant_new_variant (icon_v),
-                                          icon_format, icon_size);
+  xdp_dbus_dynamic_launcher_complete_get_icon (object, invocation,
+                                               g_variant_new_variant (icon_v),
+                                               icon_format, icon_size);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 
 error:
@@ -940,10 +942,10 @@ error:
 }
 
 static gboolean
-handle_launch (XdpDynamicLauncher    *object,
-               GDBusMethodInvocation *invocation,
-               const gchar           *arg_desktop_file_id,
-               GVariant              *arg_options)
+handle_launch (XdpDbusDynamicLauncher *object,
+               GDBusMethodInvocation  *invocation,
+               const gchar            *arg_desktop_file_id,
+               GVariant               *arg_options)
 {
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -991,7 +993,7 @@ handle_launch (XdpDynamicLauncher    *object,
   if (!g_app_info_launch (G_APP_INFO (app_info), NULL, launch_context, &error))
     goto error;
 
-  xdp_dynamic_launcher_complete_launch (object, invocation);
+  xdp_dbus_dynamic_launcher_complete_launch (object, invocation);
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 
 error:
@@ -1000,7 +1002,7 @@ error:
 }
 
 static void
-dynamic_launcher_iface_init (XdpDynamicLauncherIface *iface)
+dynamic_launcher_iface_init (XdpDbusDynamicLauncherIface *iface)
 {
   iface->handle_install = handle_install;
   iface->handle_prepare_install = handle_prepare_install;
@@ -1014,7 +1016,7 @@ dynamic_launcher_iface_init (XdpDynamicLauncherIface *iface)
 static void
 dynamic_launcher_init (DynamicLauncher *dl)
 {
-  xdp_dynamic_launcher_set_version (XDP_DYNAMIC_LAUNCHER (dl), 1);
+  xdp_dbus_dynamic_launcher_set_version (XDP_DBUS_DYNAMIC_LAUNCHER (dl), 1);
   g_object_bind_property (G_OBJECT (impl), "supported-launcher-types",
                           G_OBJECT (dl), "supported-launcher-types",
                           G_BINDING_SYNC_CREATE);
@@ -1031,12 +1033,12 @@ dynamic_launcher_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_dynamic_launcher_proxy_new_sync (connection,
-                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                   dbus_name,
-                                                   DESKTOP_PORTAL_OBJECT_PATH,
-                                                   NULL,
-                                                   &error);
+  impl = xdp_dbus_impl_dynamic_launcher_proxy_new_sync (connection,
+                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                        dbus_name,
+                                                        DESKTOP_PORTAL_OBJECT_PATH,
+                                                        NULL,
+                                                        &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create dynamic_launcher proxy: %s", error->message);

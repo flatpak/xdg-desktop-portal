@@ -9,7 +9,7 @@
 #include "notification.h"
 
 typedef struct {
-  XdpImplNotification *impl;
+  XdpDbusImplNotification *impl;
   char *app_id;
   char *id;
   char *action;
@@ -24,11 +24,11 @@ invoke_action (gpointer data)
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
   g_print ("emitting ActionInvoked\n");
-  xdp_impl_notification_emit_action_invoked (adata->impl,
-                                             adata->app_id,
-                                             adata->id,
-                                             adata->action,
-                                             g_variant_builder_end (&builder));
+  xdp_dbus_impl_notification_emit_action_invoked (adata->impl,
+                                                  adata->app_id,
+                                                  adata->id,
+                                                  adata->action,
+                                                  g_variant_builder_end (&builder));
 
   g_free (adata->app_id);
   g_free (adata->id);
@@ -39,7 +39,7 @@ invoke_action (gpointer data)
 }
 
 static gboolean
-handle_add_notification (XdpImplNotification *object,
+handle_add_notification (XdpDbusImplNotification *object,
                          GDBusMethodInvocation *invocation,
                          const gchar *arg_app_id,
                          const gchar *arg_id,
@@ -80,18 +80,18 @@ handle_add_notification (XdpImplNotification *object,
       g_timeout_add (delay, invoke_action, data);
     }
 
-  xdp_impl_notification_complete_add_notification (object, invocation);
+  xdp_dbus_impl_notification_complete_add_notification (object, invocation);
 
   return TRUE;
 }
 
 static gboolean
-handle_remove_notification (XdpImplNotification *object,
+handle_remove_notification (XdpDbusImplNotification *object,
                             GDBusMethodInvocation *invocation,
                             const gchar *arg_app_id,
                             const gchar *arg_id)
 {
-  xdp_impl_notification_complete_remove_notification (object, invocation);
+  xdp_dbus_impl_notification_complete_remove_notification (object, invocation);
 
   return TRUE;
 }
@@ -103,7 +103,7 @@ notification_init (GDBusConnection *bus,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_notification_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_notification_skeleton_new ());
 
   g_signal_connect (helper, "handle-add-notification", G_CALLBACK (handle_add_notification), NULL);
   g_signal_connect (helper, "handle-remove-notification", G_CALLBACK (handle_remove_notification), NULL);

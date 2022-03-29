@@ -11,7 +11,7 @@
 
 
 static gboolean
-handle_get_app_state (XdpImplBackground *object,
+handle_get_app_state (XdpDbusImplBackground *object,
                       GDBusMethodInvocation *invocation)
 {
   GVariantBuilder builder;
@@ -19,7 +19,7 @@ handle_get_app_state (XdpImplBackground *object,
   g_debug ("background: handle GetAppState");
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
-  xdp_impl_background_complete_get_app_state (object,
+  xdp_dbus_impl_background_complete_get_app_state (object,
                                               invocation,
                                               g_variant_builder_end (&builder));
 
@@ -27,7 +27,7 @@ handle_get_app_state (XdpImplBackground *object,
 }
 
 static gboolean
-handle_notify_background (XdpImplBackground *object,
+handle_notify_background (XdpDbusImplBackground *object,
                           GDBusMethodInvocation *invocation,
                           const char *arg_handle,
                           const char *arg_app_id,
@@ -38,16 +38,16 @@ handle_notify_background (XdpImplBackground *object,
   g_debug ("background: handle NotifyBackground");
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-  xdp_impl_background_complete_notify_background (object,
-                                                  invocation,
-                                                  2,
-                                                  g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_background_complete_notify_background (object,
+                                                       invocation,
+                                                       2,
+                                                       g_variant_builder_end (&opt_builder));
 
   return TRUE;
 }
 
 static gboolean
-handle_enable_autostart (XdpImplBackground *object,
+handle_enable_autostart (XdpDbusImplBackground *object,
                          GDBusMethodInvocation *invocation,
                          const char *arg_app_id,
                          gboolean arg_enable,
@@ -69,7 +69,7 @@ handle_enable_autostart (XdpImplBackground *object,
 
   g_assert (arg_enable == g_key_file_get_boolean (keyfile, "background", "autostart", NULL));
 
-  xdp_impl_background_complete_enable_autostart (object, invocation, TRUE);
+  xdp_dbus_impl_background_complete_enable_autostart (object, invocation, TRUE);
 
   return TRUE;
 }
@@ -81,7 +81,7 @@ background_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_background_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_background_skeleton_new ());
 
   g_signal_connect (helper, "handle-get-app-state", G_CALLBACK (handle_get_app_state), NULL);
   g_signal_connect (helper, "handle-notify-background", G_CALLBACK (handle_notify_background), NULL);
