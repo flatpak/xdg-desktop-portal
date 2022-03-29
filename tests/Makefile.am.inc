@@ -47,20 +47,20 @@ test_portals_SOURCES += \
 	tests/account.h \
 	tests/background.c \
 	tests/background.h \
-        tests/camera.c \
-        tests/camera.h \
+	tests/camera.c \
+	tests/camera.h \
 	tests/email.c \
 	tests/email.h \
 	tests/filechooser.c \
 	tests/filechooser.h \
-        tests/inhibit.c \
-        tests/inhibit.h \
-        tests/location.c \
-        tests/location.h \
-        tests/notification.c \
-        tests/notification.h \
-        tests/openuri.c \
-        tests/openuri.h \
+	tests/inhibit.c \
+	tests/inhibit.h \
+	tests/location.c \
+	tests/location.h \
+	tests/notification.c \
+	tests/notification.h \
+	tests/openuri.c \
+	tests/openuri.h \
 	tests/print.c \
 	tests/print.h \
 	tests/screenshot.c \
@@ -69,8 +69,8 @@ test_portals_SOURCES += \
 	tests/trash.h \
 	tests/wallpaper.c \
 	tests/wallpaper.h \
-        tests/glib-backports.c \
-        tests/glib-backports.h \
+	tests/glib-backports.c \
+	tests/glib-backports.h \
 	$(NULL)
 endif
 nodist_test_portals_SOURCES = \
@@ -79,9 +79,9 @@ nodist_test_portals_SOURCES = \
 	src/xdp-utils.c \
 	src/sd-escape.c \
 	src/sd-escape.h \
-        document-portal/permission-store-dbus.c \
-		tests/utils.c \
-		tests/utils.h \
+	document-portal/permission-store-dbus.c \
+	tests/utils.c \
+	tests/utils.h \
 	$(NULL)
 test_programs += test-portals
 
@@ -162,9 +162,9 @@ test_programs += \
 DISTCLEANFILES += \
 	tests/services/org.freedesktop.portal.Documents.service \
 	tests/services/org.freedesktop.impl.portal.PermissionStore.service \
-        session.conf \
-        dbus-session-bus-address \
-        dbus-session-bus-pid \
+	session.conf \
+	dbus-session-bus-address \
+	dbus-session-bus-pid \
 	$(NULL)
 
 EXTRA_DIST += \
