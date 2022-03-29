@@ -42,22 +42,23 @@ typedef struct _ScreenshotClass ScreenshotClass;
 
 struct _Screenshot
 {
-  XdpScreenshotSkeleton parent_instance;
+  XdpDbusScreenshotSkeleton parent_instance;
 };
 
 struct _ScreenshotClass
 {
-  XdpScreenshotSkeletonClass parent_class;
+  XdpDbusScreenshotSkeletonClass parent_class;
 };
 
-static XdpImplScreenshot *impl;
+static XdpDbusImplScreenshot *impl;
 static Screenshot *screenshot;
 
 GType screenshot_get_type (void) G_GNUC_CONST;
-static void screenshot_iface_init (XdpScreenshotIface *iface);
+static void screenshot_iface_init (XdpDbusScreenshotIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_TYPE_SCREENSHOT_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_SCREENSHOT, screenshot_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREENSHOT,
+                                                screenshot_iface_init));
 
 static void
 send_response_in_thread_func (GTask *task,
@@ -124,9 +125,9 @@ send_response_in_thread_func (GTask *task,
 out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&results));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
       request_unexport (request);
     }
 }
@@ -142,11 +143,11 @@ screenshot_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_screenshot_call_screenshot_finish (XDP_IMPL_SCREENSHOT (source),
-                                                   &response,
-                                                   &options,
-                                                   result,
-                                                   &error))
+  if (!xdp_dbus_impl_screenshot_call_screenshot_finish (XDP_DBUS_IMPL_SCREENSHOT (source),
+                                                        &response,
+                                                        &options,
+                                                        result,
+                                                        &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -168,23 +169,24 @@ static XdpOptionKey screenshot_options[] = {
 };
 
 static gboolean
-handle_screenshot (XdpScreenshot *object,
+handle_screenshot (XdpDbusScreenshot *object,
                    GDBusMethodInvocation *invocation,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -199,16 +201,16 @@ handle_screenshot (XdpScreenshot *object,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
                       NULL);
 
-  xdp_impl_screenshot_call_screenshot (impl,
-                                       request->id,
-                                       xdp_app_info_get_id (request->app_info),
-                                       arg_parent_window,
-                                       g_variant_builder_end (&opt_builder),
-                                       NULL,
-                                       screenshot_done,
-                                       g_object_ref (request));
+  xdp_dbus_impl_screenshot_call_screenshot (impl,
+                                            request->id,
+                                            xdp_app_info_get_id (request->app_info),
+                                            arg_parent_window,
+                                            g_variant_builder_end (&opt_builder),
+                                            NULL,
+                                            screenshot_done,
+                                            g_object_ref (request));
 
-  xdp_screenshot_complete_screenshot (object, invocation, request->id);
+  xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -224,11 +226,11 @@ pick_color_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_screenshot_call_pick_color_finish (XDP_IMPL_SCREENSHOT (source),
-                                                   &response,
-                                                   &options,
-                                                   result,
-                                                   &error))
+  if (!xdp_dbus_impl_screenshot_call_pick_color_finish (XDP_DBUS_IMPL_SCREENSHOT (source),
+                                                        &response,
+                                                        &options,
+                                                        result,
+                                                        &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -248,23 +250,24 @@ static XdpOptionKey pick_color_options[] = {
 };
 
 static gboolean
-handle_pick_color (XdpScreenshot *object,
+handle_pick_color (XdpDbusScreenshot *object,
                    GDBusMethodInvocation *invocation,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -279,22 +282,22 @@ handle_pick_color (XdpScreenshot *object,
                       pick_color_options, G_N_ELEMENTS (pick_color_options),
                       NULL);
 
-  xdp_impl_screenshot_call_pick_color (impl,
-                                       request->id,
-                                       xdp_app_info_get_id (request->app_info),
-                                       arg_parent_window,
-                                       g_variant_builder_end (&opt_builder),
-                                       NULL,
-                                       pick_color_done,
-                                       g_object_ref (request));
+  xdp_dbus_impl_screenshot_call_pick_color (impl,
+                                            request->id,
+                                            xdp_app_info_get_id (request->app_info),
+                                            arg_parent_window,
+                                            g_variant_builder_end (&opt_builder),
+                                            NULL,
+                                            pick_color_done,
+                                            g_object_ref (request));
 
-  xdp_screenshot_complete_pick_color (object, invocation, request->id);
+  xdp_dbus_screenshot_complete_pick_color (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-screenshot_iface_init (XdpScreenshotIface *iface)
+screenshot_iface_init (XdpDbusScreenshotIface *iface)
 {
   iface->handle_screenshot = handle_screenshot;
   iface->handle_pick_color = handle_pick_color;
@@ -303,7 +306,7 @@ screenshot_iface_init (XdpScreenshotIface *iface)
 static void
 screenshot_init (Screenshot *screenshot)
 {
-  xdp_screenshot_set_version (XDP_SCREENSHOT (screenshot), 2);
+  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot), 2);
 }
 
 static void
@@ -317,12 +320,12 @@ screenshot_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_screenshot_proxy_new_sync (connection,
-                                             G_DBUS_PROXY_FLAGS_NONE,
-                                             dbus_name,
-                                             DESKTOP_PORTAL_OBJECT_PATH,
-                                             NULL,
-                                             &error);
+  impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
+                                                  G_DBUS_PROXY_FLAGS_NONE,
+                                                  dbus_name,
+                                                  DESKTOP_PORTAL_OBJECT_PATH,
+                                                  NULL,
+                                                  &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create screenshot proxy: %s", error->message);

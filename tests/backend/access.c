@@ -10,7 +10,7 @@
 #include "access.h"
 
 typedef struct {
-  XdpImplAccess *impl;
+  XdpDbusImplAccess *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -57,10 +57,10 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_access_complete_access_dialog (handle->impl,
-                                          handle->invocation,
-                                          response,
-                                          g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_access_complete_access_dialog (handle->impl,
+                                               handle->invocation,
+                                               response,
+                                               g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -70,7 +70,7 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               AccessHandle *handle)
 {
@@ -78,17 +78,17 @@ handle_close (XdpImplRequest *object,
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("AccessDialog handling Close");
-  xdp_impl_access_complete_access_dialog (handle->impl,
-                                          handle->invocation,
-                                          2,
-                                          g_variant_builder_end (&opt_builder));
+  xdp_dbus_impl_access_complete_access_dialog (handle->impl,
+                                               handle->invocation,
+                                               2,
+                                               g_variant_builder_end (&opt_builder));
   access_handle_free (handle);
 
   return FALSE;
 }
 
 static gboolean
-handle_access_dialog (XdpImplAccess *object,
+handle_access_dialog (XdpDbusImplAccess *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_handle,
                       const char *arg_app_id,
@@ -155,7 +155,7 @@ access_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_access_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_access_skeleton_new ());
 
   g_signal_connect (helper, "handle-access-dialog", G_CALLBACK (handle_access_dialog), NULL);
 

@@ -23,13 +23,14 @@
 
 #include <string.h>
 
-static void request_skeleton_iface_init (XdpImplRequestIface *iface);
+static void request_skeleton_iface_init (XdpDbusImplRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_IMPL_TYPE_REQUEST_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_IMPL_TYPE_REQUEST, request_skeleton_iface_init))
+G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_DBUS_IMPL_TYPE_REQUEST_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_IMPL_TYPE_REQUEST,
+                                                request_skeleton_iface_init))
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation)
 {
   Request *request = (Request *)object;
@@ -37,13 +38,14 @@ handle_close (XdpImplRequest *object,
   if (request->exported)
     request_unexport (request);
 
-  xdp_impl_request_complete_close (XDP_IMPL_REQUEST (request), invocation);
+  xdp_dbus_impl_request_complete_close (XDP_DBUS_IMPL_REQUEST (request),
+                                        invocation);
 
   return TRUE;
 }
 
 static void
-request_skeleton_iface_init (XdpImplRequestIface *iface)
+request_skeleton_iface_init (XdpDbusImplRequestIface *iface)
 {
   iface->handle_close = handle_close;
 }

@@ -39,15 +39,15 @@ typedef struct _NotificationClass NotificationClass;
 
 struct _Notification
 {
-  XdpNotificationSkeleton parent_instance;
+  XdpDbusNotificationSkeleton parent_instance;
 };
 
 struct _NotificationClass
 {
-  XdpNotificationSkeletonClass parent_class;
+  XdpDbusNotificationSkeletonClass parent_class;
 };
 
-static XdpImplNotification *impl;
+static XdpDbusImplNotification *impl;
 static Notification *notification;
 G_LOCK_DEFINE (active);
 static GHashTable *active;
@@ -98,10 +98,12 @@ pair_copy (Pair *o)
 }
 
 GType notification_get_type (void) G_GNUC_CONST;
-static void notification_iface_init (XdpNotificationIface *iface);
+static void notification_iface_init (XdpDbusNotificationIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Notification, notification, XDP_TYPE_NOTIFICATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_NOTIFICATION, notification_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Notification, notification,
+                         XDP_DBUS_TYPE_NOTIFICATION_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_NOTIFICATION,
+                                                notification_iface_init));
 
 static void
 add_done (GObject *source,
@@ -111,7 +113,7 @@ add_done (GObject *source,
   g_autoptr(Request) request = data;
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_impl_notification_call_add_notification_finish (impl, result, &error))
+  if (!xdp_dbus_impl_notification_call_add_notification_finish (impl, result, &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -385,17 +387,17 @@ handle_add_in_thread_func (GTask *task,
   notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
 
   notification2 = maybe_remove_icon (notification);
-  xdp_impl_notification_call_add_notification (impl,
-                                               xdp_app_info_get_id (request->app_info),
-                                               id,
-                                               notification2,
-                                               NULL,
-                                               add_done,
-                                               g_object_ref (request));
+  xdp_dbus_impl_notification_call_add_notification (impl,
+                                                    xdp_app_info_get_id (request->app_info),
+                                                    id,
+                                                    notification2,
+                                                    NULL,
+                                                    add_done,
+                                                    g_object_ref (request));
 }
 
 static gboolean
-notification_handle_add_notification (XdpNotification *object,
+notification_handle_add_notification (XdpDbusNotification *object,
                                       GDBusMethodInvocation *invocation,
                                       const char *arg_id,
                                       GVariant *notification)
@@ -418,7 +420,7 @@ notification_handle_add_notification (XdpNotification *object,
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
 
-  xdp_notification_complete_add_notification (object, invocation);
+  xdp_dbus_notification_complete_add_notification (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -431,7 +433,7 @@ remove_done (GObject *source,
   g_autoptr(Request) request = data;
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_impl_notification_call_remove_notification_finish (impl, result, &error))
+  if (!xdp_dbus_impl_notification_call_remove_notification_finish (impl, result, &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -450,7 +452,7 @@ remove_done (GObject *source,
 }
 
 static gboolean
-notification_handle_remove_notification (XdpNotification *object,
+notification_handle_remove_notification (XdpDbusNotification *object,
                                          GDBusMethodInvocation *invocation,
                                          const char *arg_id)
 {
@@ -458,13 +460,13 @@ notification_handle_remove_notification (XdpNotification *object,
 
   g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
 
-  xdp_impl_notification_call_remove_notification (impl,
-                                                  xdp_app_info_get_id (request->app_info),
-                                                  arg_id,
-                                                  NULL,
-                                                  remove_done, g_object_ref (request));
+  xdp_dbus_impl_notification_call_remove_notification (impl,
+                                                       xdp_app_info_get_id (request->app_info),
+                                                       arg_id,
+                                                       NULL,
+                                                       remove_done, g_object_ref (request));
 
-  xdp_notification_complete_remove_notification (object, invocation);
+  xdp_dbus_notification_complete_remove_notification (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -535,7 +537,7 @@ name_owner_changed (GDBusConnection *connection,
 }
 
 static void
-notification_iface_init (XdpNotificationIface *iface)
+notification_iface_init (XdpDbusNotificationIface *iface)
 {
   iface->handle_add_notification = notification_handle_add_notification;
   iface->handle_remove_notification = notification_handle_remove_notification;
@@ -544,7 +546,7 @@ notification_iface_init (XdpNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_notification_set_version (XDP_NOTIFICATION (notification), 1);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 1);
 }
 
 static void
@@ -558,11 +560,11 @@ notification_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_notification_proxy_new_sync (connection,
-                                               G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
-                                               DESKTOP_PORTAL_OBJECT_PATH,
-                                               NULL, &error);
+  impl = xdp_dbus_impl_notification_proxy_new_sync (connection,
+                                                    G_DBUS_PROXY_FLAGS_NONE,
+                                                    dbus_name,
+                                                    DESKTOP_PORTAL_OBJECT_PATH,
+                                                    NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create notification proxy: %s", error->message);

@@ -38,7 +38,7 @@ typedef struct _MemoryMonitorClass MemoryMonitorClass;
 
 struct _MemoryMonitor
 {
-  XdpMemoryMonitorSkeleton parent_instance;
+  XdpDbusMemoryMonitorSkeleton parent_instance;
 
 #ifdef HAS_MEMORY_MONITOR
   GMemoryMonitor *monitor;
@@ -47,19 +47,21 @@ struct _MemoryMonitor
 
 struct _MemoryMonitorClass
 {
-  XdpMemoryMonitorSkeletonClass parent_class;
+  XdpDbusMemoryMonitorSkeletonClass parent_class;
 };
 
 static MemoryMonitor *memory_monitor;
 
 GType memory_monitor_get_type (void) G_GNUC_CONST;
-static void memory_monitor_iface_init (XdpMemoryMonitorIface *iface);
+static void memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (MemoryMonitor, memory_monitor, XDP_TYPE_MEMORY_MONITOR_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_MEMORY_MONITOR, memory_monitor_iface_init));
+G_DEFINE_TYPE_WITH_CODE (MemoryMonitor, memory_monitor,
+                         XDP_DBUS_TYPE_MEMORY_MONITOR_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_MEMORY_MONITOR, 
+                                                memory_monitor_iface_init));
 
 static void
-memory_monitor_iface_init (XdpMemoryMonitorIface *iface)
+memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface)
 {
 }
 
@@ -69,7 +71,8 @@ low_memory_warning_cb (GObject *object,
                        GMemoryMonitorWarningLevel level,
                        MemoryMonitor *mm)
 {
-  xdp_memory_monitor_emit_low_memory_warning (XDP_MEMORY_MONITOR (mm), level);
+  xdp_dbus_memory_monitor_emit_low_memory_warning (XDP_DBUS_MEMORY_MONITOR (mm),
+                                                   level);
 }
 #endif /* HAS_MEMORY_MONITOR */
 
@@ -81,7 +84,7 @@ memory_monitor_init (MemoryMonitor *mm)
   g_signal_connect (mm->monitor, "low-memory-warning", G_CALLBACK (low_memory_warning_cb), mm);
 #endif /* HAS_MEMORY_MONITOR */
 
-  xdp_memory_monitor_set_version (XDP_MEMORY_MONITOR (mm), 1);
+  xdp_dbus_memory_monitor_set_version (XDP_DBUS_MEMORY_MONITOR (mm), 1);
 }
 
 static void

@@ -37,7 +37,7 @@ typedef struct _PowerProfileMonitorClass PowerProfileMonitorClass;
 
 struct _PowerProfileMonitor
 {
-  XdpPowerProfileMonitorSkeleton parent_instance;
+  XdpDbusPowerProfileMonitorSkeleton parent_instance;
 
 #ifdef HAS_POWER_PROFILE_MONITOR
   GPowerProfileMonitor *monitor;
@@ -46,19 +46,21 @@ struct _PowerProfileMonitor
 
 struct _PowerProfileMonitorClass
 {
-  XdpPowerProfileMonitorSkeletonClass parent_class;
+  XdpDbusPowerProfileMonitorSkeletonClass parent_class;
 };
 
 static PowerProfileMonitor *power_profile_monitor;
 
 GType power_profile_monitor_get_type (void) G_GNUC_CONST;
-static void power_profile_monitor_iface_init (XdpPowerProfileMonitorIface *iface);
+static void power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (PowerProfileMonitor, power_profile_monitor, XDP_TYPE_POWER_PROFILE_MONITOR_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_POWER_PROFILE_MONITOR, power_profile_monitor_iface_init));
+G_DEFINE_TYPE_WITH_CODE (PowerProfileMonitor, power_profile_monitor,
+                         XDP_DBUS_TYPE_POWER_PROFILE_MONITOR_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_POWER_PROFILE_MONITOR,
+                                                power_profile_monitor_iface_init));
 
 static void
-power_profile_monitor_iface_init (XdpPowerProfileMonitorIface *iface)
+power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface)
 {
 }
 
@@ -68,8 +70,8 @@ power_saver_enabled_changed_cb (GObject             *gobject,
                                 GParamSpec          *pspec,
                                 PowerProfileMonitor *ppm)
 {
-  xdp_power_profile_monitor_set_power_saver_enabled (XDP_POWER_PROFILE_MONITOR (ppm),
-                                                     g_power_profile_monitor_get_power_saver_enabled (ppm->monitor));
+  xdp_dbus_power_profile_monitor_set_power_saver_enabled (XDP_DBUS_POWER_PROFILE_MONITOR (ppm),
+                                                          g_power_profile_monitor_get_power_saver_enabled (ppm->monitor));
 }
 #endif /* HAS_POWER_PROFILE_MONITOR */
 
@@ -81,7 +83,7 @@ power_profile_monitor_init (PowerProfileMonitor *ppm)
   g_signal_connect (ppm->monitor, "notify::power-saver-enabled", G_CALLBACK (power_saver_enabled_changed_cb), ppm);
 #endif /* HAS_POWER_PROFILE_MONITOR */
 
-  xdp_power_profile_monitor_set_version (XDP_POWER_PROFILE_MONITOR (ppm), 1);
+  xdp_dbus_power_profile_monitor_set_version (XDP_DBUS_POWER_PROFILE_MONITOR (ppm), 1);
 }
 
 static void

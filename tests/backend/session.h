@@ -25,7 +25,7 @@ typedef struct _SessionClass SessionClass;
 
 struct _Session
 {
-  XdpImplSessionSkeleton parent;
+  XdpDbusImplSessionSkeleton parent;
 
   gboolean exported;
   gboolean closed;
@@ -34,7 +34,7 @@ struct _Session
 
 struct _SessionClass
 {
-  XdpImplSessionSkeletonClass parent_class;
+  XdpDbusImplSessionSkeletonClass parent_class;
 
   void (*close) (Session *session);
 };

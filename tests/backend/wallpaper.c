@@ -10,7 +10,7 @@
 #include "wallpaper.h"
 
 typedef struct {
-  XdpImplWallpaper *impl;
+  XdpDbusImplWallpaper *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -62,9 +62,9 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
-  xdp_impl_wallpaper_complete_set_wallpaper_uri (handle->impl,
-                                                 handle->invocation,
-                                                 response);
+  xdp_dbus_impl_wallpaper_complete_set_wallpaper_uri (handle->impl,
+                                                      handle->invocation,
+                                                      response);
 
   handle->timeout = 0;
 
@@ -74,15 +74,15 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               WallpaperHandle *handle)
 {
 
   g_debug ("send response 2");
-  xdp_impl_wallpaper_complete_set_wallpaper_uri (handle->impl,
-                                                 handle->invocation,
-                                                 2);
+  xdp_dbus_impl_wallpaper_complete_set_wallpaper_uri (handle->impl,
+                                                      handle->invocation,
+                                                      2);
   wallpaper_handle_free (handle);
 
   return FALSE;
@@ -90,7 +90,7 @@ handle_close (XdpImplRequest *object,
 
 
 static gboolean
-handle_set_wallpaper_uri (XdpImplWallpaper *object,
+handle_set_wallpaper_uri (XdpDbusImplWallpaper *object,
                           GDBusMethodInvocation *invocation,
                           const char *arg_handle,
                           const char *arg_app_id,
@@ -154,7 +154,7 @@ wallpaper_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_wallpaper_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_wallpaper_skeleton_new ());
 
   g_signal_connect (helper, "handle-set-wallpaper-uri", G_CALLBACK (handle_set_wallpaper_uri), NULL);
 

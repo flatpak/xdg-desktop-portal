@@ -24,18 +24,19 @@
 
 #include <string.h>
 
-static void request_skeleton_iface_init (XdpRequestIface *iface);
+static void request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_TYPE_REQUEST_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_REQUEST, request_skeleton_iface_init))
+G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_DBUS_TYPE_REQUEST_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
+                                                request_skeleton_iface_init))
 
 static void
-request_on_signal_response (XdpRequest *object,
+request_on_signal_response (XdpDbusRequest *object,
                             guint arg_response,
                             GVariant *arg_results)
 {
   Request *request = (Request *)object;
-  XdpRequestSkeleton *skeleton = XDP_REQUEST_SKELETON (object);
+  XdpDbusRequestSkeleton *skeleton = XDP_DBUS_REQUEST_SKELETON (object);
   GList      *connections, *l;
   GVariant   *signal_variant;
 
@@ -60,7 +61,7 @@ request_on_signal_response (XdpRequest *object,
 }
 
 static gboolean
-handle_close (XdpRequest *object,
+handle_close (XdpDbusRequest *object,
               GDBusMethodInvocation *invocation)
 {
   Request *request = (Request *)object;
@@ -72,7 +73,8 @@ handle_close (XdpRequest *object,
   if (request->exported)
     {
       if (request->impl_request &&
-          !xdp_impl_request_call_close_sync (request->impl_request, NULL, &error))
+          !xdp_dbus_impl_request_call_close_sync (request->impl_request,
+                                                  NULL, &error))
         {
           if (invocation)
             g_dbus_method_invocation_return_gerror (invocation, error);
@@ -83,13 +85,13 @@ handle_close (XdpRequest *object,
     }
 
   if (invocation)
-    xdp_request_complete_close (XDP_REQUEST (request), invocation);
+    xdp_dbus_request_complete_close (XDP_DBUS_REQUEST (request), invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-request_skeleton_iface_init (XdpRequestIface *iface)
+request_skeleton_iface_init (XdpDbusRequestIface *iface)
 {
   iface->handle_close = handle_close;
   iface->response = request_on_signal_response;
@@ -441,7 +443,7 @@ request_unexport (Request *request)
 
 void
 request_set_impl_request (Request *request,
-                          XdpImplRequest *impl_request)
+                          XdpDbusImplRequest *impl_request)
 {
   g_set_object (&request->impl_request, impl_request);
 }
@@ -479,7 +481,7 @@ close_requests_in_thread_func (GTask        *task,
       if (request->exported)
         {
           if (request->impl_request)
-            xdp_impl_request_call_close_sync (request->impl_request, NULL, NULL);
+            xdp_dbus_impl_request_call_close_sync (request->impl_request, NULL, NULL);
 
           request_unexport (request);
         }

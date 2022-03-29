@@ -43,22 +43,23 @@ typedef struct _SecretClass SecretClass;
 
 struct _Secret
 {
-  XdpSecretSkeleton parent_instance;
+  XdpDbusSecretSkeleton parent_instance;
 };
 
 struct _SecretClass
 {
-  XdpSecretSkeletonClass parent_class;
+  XdpDbusSecretSkeletonClass parent_class;
 };
 
-static XdpImplSecret *impl;
+static XdpDbusImplSecret *impl;
 static Secret *secret;
 
 GType secret_get_type (void) G_GNUC_CONST;
-static void secret_iface_init (XdpSecretIface *iface);
+static void secret_iface_init (XdpDbusSecretIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Secret, secret, XDP_TYPE_SECRET_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_SECRET, secret_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Secret, secret, XDP_DBUS_TYPE_SECRET_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SECRET,
+                                                secret_iface_init));
 
 static XdpOptionKey retrieve_secret_options[] = {
   { "token", G_VARIANT_TYPE_STRING, NULL },
@@ -82,9 +83,9 @@ send_response_in_thread_func (GTask *task,
 
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&new_results));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&new_results));
       request_unexport (request);
     }
 }
@@ -100,12 +101,12 @@ retrieve_secret_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_secret_call_retrieve_secret_finish (XDP_IMPL_SECRET (source),
-						    &response,
-						    &results,
-						    NULL,
-						    result,
-						    &error))
+  if (!xdp_dbus_impl_secret_call_retrieve_secret_finish (XDP_DBUS_IMPL_SECRET (source),
+                                                         &response,
+                                                         &results,
+                                                         NULL,
+                                                         result,
+                                                         &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -119,7 +120,7 @@ retrieve_secret_done (GObject *source,
 }
 
 static gboolean
-handle_retrieve_secret (XdpSecret *object,
+handle_retrieve_secret (XdpDbusSecret *object,
 			GDBusMethodInvocation *invocation,
 			GUnixFDList *fd_list,
 			GVariant *arg_fd,
@@ -128,16 +129,17 @@ handle_retrieve_secret (XdpSecret *object,
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options;
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -157,23 +159,23 @@ handle_retrieve_secret (XdpSecret *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_secret_complete_retrieve_secret (object, invocation, NULL, request->id);
+  xdp_dbus_secret_complete_retrieve_secret (object, invocation, NULL, request->id);
 
-  xdp_impl_secret_call_retrieve_secret (impl,
-					request->id,
-					app_id,
-					arg_fd,
-					g_variant_builder_end (&options),
-					fd_list,
-					NULL,
-					retrieve_secret_done,
-					g_object_ref (request));
+  xdp_dbus_impl_secret_call_retrieve_secret (impl,
+                                             request->id,
+                                             app_id,
+                                             arg_fd,
+                                             g_variant_builder_end (&options),
+                                             fd_list,
+                                             NULL,
+                                             retrieve_secret_done,
+                                             g_object_ref (request));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-secret_iface_init (XdpSecretIface *iface)
+secret_iface_init (XdpDbusSecretIface *iface)
 {
   iface->handle_retrieve_secret = handle_retrieve_secret;
 }
@@ -181,7 +183,7 @@ secret_iface_init (XdpSecretIface *iface)
 static void
 secret_init (Secret *secret)
 {
-  xdp_secret_set_version (XDP_SECRET (secret), 1);
+  xdp_dbus_secret_set_version (XDP_DBUS_SECRET (secret), 1);
 }
 
 static void
@@ -195,12 +197,12 @@ secret_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_secret_proxy_new_sync (connection,
-					 G_DBUS_PROXY_FLAGS_NONE,
-					 dbus_name,
-					 DESKTOP_PORTAL_OBJECT_PATH,
-					 NULL,
-					 &error);
+  impl = xdp_dbus_impl_secret_proxy_new_sync (connection,
+                                              G_DBUS_PROXY_FLAGS_NONE,
+                                              dbus_name,
+                                              DESKTOP_PORTAL_OBJECT_PATH,
+                                              NULL,
+                                              &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create secret proxy: %s", error->message);

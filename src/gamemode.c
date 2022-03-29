@@ -51,46 +51,46 @@
 typedef struct _GameMode GameMode;
 typedef struct _GameModeClass GameModeClass;
 
-static gboolean handle_query_status (XdpGameMode *object,
+static gboolean handle_query_status (XdpDbusGameMode *object,
                                      GDBusMethodInvocation *invocation,
                                      gint pid);
 
-static gboolean handle_register_game (XdpGameMode *object,
+static gboolean handle_register_game (XdpDbusGameMode *object,
                                       GDBusMethodInvocation *invocation,
                                       gint pid);
 
-static  gboolean handle_unregister_game (XdpGameMode *object,
+static  gboolean handle_unregister_game (XdpDbusGameMode *object,
                                          GDBusMethodInvocation *invocation,
                                          gint pid);
 
-static gboolean handle_query_status_by_pid (XdpGameMode *object,
+static gboolean handle_query_status_by_pid (XdpDbusGameMode *object,
                                             GDBusMethodInvocation *invocation,
                                             gint target,
                                             gint requester);
 
-static gboolean handle_register_game_by_pid (XdpGameMode *object,
+static gboolean handle_register_game_by_pid (XdpDbusGameMode *object,
                                              GDBusMethodInvocation *invocation,
                                              gint target,
                                              gint requester);
 
-static gboolean handle_unregister_game_by_pid (XdpGameMode *object,
+static gboolean handle_unregister_game_by_pid (XdpDbusGameMode *object,
                                                GDBusMethodInvocation *invocation,
                                                gint target,
                                                gint requester);
 
-static gboolean handle_query_status_by_pidfd (XdpGameMode *object,
+static gboolean handle_query_status_by_pidfd (XdpDbusGameMode *object,
                                               GDBusMethodInvocation *invocation,
                                               GUnixFDList *fd_list,
                                               GVariant *arg_target,
                                               GVariant *arg_requester);
 
-static gboolean handle_register_game_by_pidfd (XdpGameMode *object,
+static gboolean handle_register_game_by_pidfd (XdpDbusGameMode *object,
                                                GDBusMethodInvocation *invocation,
                                                GUnixFDList *fd_list,
                                                GVariant *arg_target,
                                                GVariant *arg_requester);
 
-static gboolean handle_unregister_game_by_pidfd (XdpGameMode *object,
+static gboolean handle_unregister_game_by_pidfd (XdpDbusGameMode *object,
                                                  GDBusMethodInvocation *invocation,
                                                  GUnixFDList *fd_list,
                                                  GVariant *arg_target,
@@ -105,7 +105,7 @@ static GameMode *gamemode;
 
 struct _GameMode
 {
-  XdpGameModeSkeleton parent_instance;
+  XdpDbusGameModeSkeleton parent_instance;
 
   /*  */
   GDBusProxy *client;
@@ -113,17 +113,18 @@ struct _GameMode
 
 struct _GameModeClass
 {
-  XdpGameModeSkeletonClass parent_class;
+  XdpDbusGameModeSkeletonClass parent_class;
 };
 
 GType game_mode_get_type (void) G_GNUC_CONST;
-static void game_mode_iface_init (XdpGameModeIface *iface);
+static void game_mode_iface_init (XdpDbusGameModeIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GameMode, game_mode, XDP_TYPE_GAME_MODE_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_GAME_MODE, game_mode_iface_init));
+G_DEFINE_TYPE_WITH_CODE (GameMode, game_mode, XDP_DBUS_TYPE_GAME_MODE_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_GAME_MODE,
+                                                game_mode_iface_init));
 
 static void
-game_mode_iface_init (XdpGameModeIface *iface)
+game_mode_iface_init (XdpDbusGameModeIface *iface)
 {
   iface->handle_query_status = handle_query_status;
   iface->handle_register_game = handle_register_game;
@@ -143,7 +144,7 @@ game_mode_iface_init (XdpGameModeIface *iface)
 static void
 game_mode_init (GameMode *gamemode)
 {
-  xdp_game_mode_set_version (XDP_GAME_MODE (gamemode), 3);
+  xdp_dbus_game_mode_set_version (XDP_DBUS_GAME_MODE (gamemode), 3);
 }
 
 static void
@@ -162,13 +163,13 @@ game_mode_is_allowed_for_app (const char *app_id, GError **error)
   const char **stored;
   gboolean ok;
 
-  ok = xdp_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                   PERMISSION_TABLE,
-                                                   PERMISSION_ID,
-                                                   &perms,
-                                                   &data,
-                                                   NULL,
-                                                   &err);
+  ok = xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+                                                        PERMISSION_TABLE,
+                                                        PERMISSION_ID,
+                                                        &perms,
+                                                        &data,
+                                                        NULL,
+                                                        &err);
 
   if (!ok)
     {
@@ -357,7 +358,7 @@ handle_call_thread (GTask        *task,
 }
 
 static void
-handle_call_in_thread_fds (XdpGameMode           *object,
+handle_call_in_thread_fds (XdpDbusGameMode       *object,
                            const char            *method,
                            GDBusMethodInvocation *invocation,
                            GUnixFDList           *fdlist)
@@ -387,7 +388,7 @@ handle_call_in_thread_fds (XdpGameMode           *object,
 }
 
 static void
-handle_call_in_thread (XdpGameMode           *object,
+handle_call_in_thread (XdpDbusGameMode       *object,
                        const char            *method,
                        GDBusMethodInvocation *invocation,
                        gint                   target,
@@ -420,7 +421,7 @@ handle_call_in_thread (XdpGameMode           *object,
 
 /* dbus */
 static gboolean
-handle_query_status (XdpGameMode           *object,
+handle_query_status (XdpDbusGameMode       *object,
                      GDBusMethodInvocation *invocation,
                      gint                   pid)
 {
@@ -429,7 +430,7 @@ handle_query_status (XdpGameMode           *object,
 }
 
 static gboolean
-handle_register_game (XdpGameMode           *object,
+handle_register_game (XdpDbusGameMode       *object,
                       GDBusMethodInvocation *invocation,
                       gint                   pid)
 {
@@ -438,7 +439,7 @@ handle_register_game (XdpGameMode           *object,
 }
 
 static  gboolean
-handle_unregister_game (XdpGameMode *object,
+handle_unregister_game (XdpDbusGameMode *object,
                         GDBusMethodInvocation *invocation,
                         gint pid)
 {
@@ -447,7 +448,7 @@ handle_unregister_game (XdpGameMode *object,
 }
 
 static gboolean
-handle_query_status_by_pid (XdpGameMode *object,
+handle_query_status_by_pid (XdpDbusGameMode *object,
                             GDBusMethodInvocation *invocation,
                             gint target,
                             gint requester)
@@ -461,7 +462,7 @@ handle_query_status_by_pid (XdpGameMode *object,
 }
 
 static gboolean
-handle_register_game_by_pid (XdpGameMode *object,
+handle_register_game_by_pid (XdpDbusGameMode *object,
                              GDBusMethodInvocation *invocation,
                              gint target,
                              gint requester)
@@ -475,7 +476,7 @@ handle_register_game_by_pid (XdpGameMode *object,
 }
 
 static gboolean
-handle_unregister_game_by_pid (XdpGameMode *object,
+handle_unregister_game_by_pid (XdpDbusGameMode *object,
                                GDBusMethodInvocation *invocation,
                                gint target,
                                gint requester)
@@ -490,7 +491,7 @@ handle_unregister_game_by_pid (XdpGameMode *object,
 
 /* pidfd based APIs */
 static gboolean
-handle_query_status_by_pidfd (XdpGameMode *object,
+handle_query_status_by_pidfd (XdpDbusGameMode *object,
                               GDBusMethodInvocation *invocation,
                               GUnixFDList *fd_list,
                               GVariant *arg_target,
@@ -505,7 +506,7 @@ handle_query_status_by_pidfd (XdpGameMode *object,
 }
 
 static gboolean
-handle_register_game_by_pidfd (XdpGameMode *object,
+handle_register_game_by_pidfd (XdpDbusGameMode *object,
                                GDBusMethodInvocation *invocation,
                                GUnixFDList *fd_list,
                                GVariant *arg_target,
@@ -520,7 +521,7 @@ handle_register_game_by_pidfd (XdpGameMode *object,
 }
 
 static gboolean
-handle_unregister_game_by_pidfd (XdpGameMode *object,
+handle_unregister_game_by_pidfd (XdpDbusGameMode *object,
                                  GDBusMethodInvocation *invocation,
                                  GUnixFDList *fd_list,
                                  GVariant *arg_target,

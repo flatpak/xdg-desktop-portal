@@ -28,7 +28,7 @@ typedef struct _SessionClass SessionClass;
 
 struct _Session
 {
-  XdpSessionSkeleton parent;
+  XdpDbusSessionSkeleton parent;
 
   GMutex mutex;
 
@@ -44,12 +44,12 @@ struct _Session
 
   char *impl_dbus_name;
   GDBusConnection *impl_connection;
-  XdpImplSession *impl_session;
+  XdpDbusImplSession *impl_session;
 };
 
 struct _SessionClass
 {
-  XdpSessionSkeletonClass parent_class;
+  XdpDbusSessionSkeletonClass parent_class;
 
   void (*close) (Session *session);
 };
@@ -57,7 +57,7 @@ struct _SessionClass
 GType session_get_type (void);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpImplSession, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDbusImplSession, g_object_unref)
 
 const char * lookup_session_token (GVariant *options);
 

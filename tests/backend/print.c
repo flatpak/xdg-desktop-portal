@@ -11,7 +11,7 @@
 #include "print.h"
 
 typedef struct {
-  XdpImplPrint *impl;
+  XdpDbusImplPrint *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -77,16 +77,16 @@ send_response (gpointer data)
   g_debug ("send response %d", response);
  
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "Print") == 0)
-    xdp_impl_print_complete_print (handle->impl,
-                                   handle->invocation,
-                                   NULL,
-                                   response,
-                                   g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_print_complete_print (handle->impl,
+                                        handle->invocation,
+                                        NULL,
+                                        response,
+                                        g_variant_builder_end (&opt_builder));
   else
-    xdp_impl_print_complete_prepare_print (handle->impl,
-                                           handle->invocation,
-                                           response,
-                                           g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_print_complete_prepare_print (handle->impl,
+                                                handle->invocation,
+                                                response,
+                                                g_variant_builder_end (&opt_builder));
 
   handle->timeout = 0;
 
@@ -96,7 +96,7 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_close (XdpImplRequest *object,
+handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation,
               PrintHandle *handle)
 {
@@ -105,16 +105,16 @@ handle_close (XdpImplRequest *object,
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   g_debug ("send response 2");
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "Print") == 0)
-    xdp_impl_print_complete_print (handle->impl,
-                                   handle->invocation,
-                                   NULL,
-                                   2,
-                                   g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_print_complete_print (handle->impl,
+                                        handle->invocation,
+                                        NULL,
+                                        2,
+                                        g_variant_builder_end (&opt_builder));
   else
-    xdp_impl_print_complete_prepare_print (handle->impl,
-                                           handle->invocation,
-                                           2,
-                                           g_variant_builder_end (&opt_builder));
+    xdp_dbus_impl_print_complete_prepare_print (handle->impl,
+                                                handle->invocation,
+                                                2,
+                                                g_variant_builder_end (&opt_builder));
   print_handle_free (handle);
 
   return FALSE;
@@ -122,7 +122,7 @@ handle_close (XdpImplRequest *object,
 
 
 static gboolean
-handle_print (XdpImplPrint *object,
+handle_print (XdpDbusImplPrint *object,
               GDBusMethodInvocation *invocation,
 	      GUnixFDList *fd_list,
               const char *arg_handle,
@@ -180,7 +180,7 @@ handle_print (XdpImplPrint *object,
 }
 
 static gboolean
-handle_prepare_print (XdpImplPrint *object,
+handle_prepare_print (XdpDbusImplPrint *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_handle,
                       const char *arg_app_id,
@@ -243,7 +243,7 @@ print_init (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
-  helper = G_DBUS_INTERFACE_SKELETON (xdp_impl_print_skeleton_new ());
+  helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_print_skeleton_new ());
 
   g_signal_connect (helper, "handle-print", G_CALLBACK (handle_print), NULL);
   g_signal_connect (helper, "handle-prepare-print", G_CALLBACK (handle_prepare_print), NULL);

@@ -13,7 +13,7 @@
 static GDBusInterfaceSkeleton *inhibit;
 
 typedef struct {
-  XdpImplInhibit *impl;
+  XdpDbusImplInhibit *impl;
   GDBusMethodInvocation *invocation;
   Request *request;
   GKeyFile *keyfile;
@@ -48,7 +48,7 @@ handle_close (Request *object,
   if (object->exported)
     request_unexport (object);
 
-  xdp_impl_request_complete_close (XDP_IMPL_REQUEST (object), invocation);
+  xdp_dbus_impl_request_complete_close (XDP_DBUS_IMPL_REQUEST (object), invocation);
 
   g_debug ("Handling Close");
 
@@ -73,7 +73,7 @@ send_response (gpointer data)
 
   if (response == 0)
     {
-      xdp_impl_inhibit_complete_inhibit (handle->impl, handle->invocation);
+      xdp_dbus_impl_inhibit_complete_inhibit (handle->impl, handle->invocation);
       g_object_set_data (G_OBJECT (handle->request), "handle", NULL);
       handle->request = NULL;
     }
@@ -88,7 +88,7 @@ send_response (gpointer data)
 }
 
 static gboolean
-handle_inhibit (XdpImplInhibit *object,
+handle_inhibit (XdpDbusImplInhibit *object,
                 GDBusMethodInvocation *invocation,
                 const char *arg_handle,
                 const char *arg_app_id,
@@ -363,7 +363,7 @@ change_session_state (gpointer data)
 }
 
 static gboolean
-handle_create_monitor (XdpImplInhibit *object,
+handle_create_monitor (XdpDbusImplInhibit *object,
                        GDBusMethodInvocation *invocation,
                        const char *arg_handle,
                        const char *arg_session_handle,
@@ -409,7 +409,7 @@ handle_create_monitor (XdpImplInhibit *object,
     g_timeout_add (delay, change_session_state, g_key_file_ref (keyfile));
 
 out:
-  xdp_impl_inhibit_complete_create_monitor (object, invocation, response);
+  xdp_dbus_impl_inhibit_complete_create_monitor (object, invocation, response);
   if (session)
     emit_state_changed (session);
 
@@ -417,7 +417,7 @@ out:
 }
 
 static gboolean
-handle_query_end_response (XdpImplInhibit *object,
+handle_query_end_response (XdpDbusImplInhibit *object,
                            GDBusMethodInvocation *invocation,
                            const char *arg_session_handle)
 {
@@ -431,7 +431,7 @@ handle_query_end_response (XdpImplInhibit *object,
       maybe_send_quit_response ();
     }
 
-  xdp_impl_inhibit_complete_query_end_response (object, invocation);
+  xdp_dbus_impl_inhibit_complete_query_end_response (object, invocation);
 
   return TRUE;
 }
@@ -442,7 +442,7 @@ inhibit_init (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  inhibit = G_DBUS_INTERFACE_SKELETON (xdp_impl_inhibit_skeleton_new ());
+  inhibit = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_inhibit_skeleton_new ());
 
   g_signal_connect (inhibit, "handle-inhibit", G_CALLBACK (handle_inhibit), NULL);
   g_signal_connect (inhibit, "handle-create-monitor", G_CALLBACK (handle_create_monitor), NULL);

@@ -42,12 +42,12 @@ G_LOCK_DEFINE (sessions);
 static GHashTable *sessions;
 
 static void g_initable_iface_init (GInitableIface *iface);
-static void session_skeleton_iface_init (XdpSessionIface *iface);
+static void session_skeleton_iface_init (XdpDbusSessionIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Session, session, XDP_TYPE_SESSION_SKELETON,
+G_DEFINE_TYPE_WITH_CODE (Session, session, XDP_DBUS_TYPE_SESSION_SKELETON,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_initable_iface_init)
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_SESSION,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SESSION,
                                                 session_skeleton_iface_init))
 
 #define SESSION_GET_CLASS(o) \
@@ -192,8 +192,8 @@ session_close (Session *session,
     {
       g_autoptr(GError) error = NULL;
 
-      if (!xdp_impl_session_call_close_sync (session->impl_session,
-                                             NULL, &error))
+      if (!xdp_dbus_impl_session_call_close_sync (session->impl_session,
+                                                  NULL, &error))
         g_warning ("Failed to close session implementation: %s",
                    error->message);
 
@@ -207,7 +207,7 @@ session_close (Session *session,
 }
 
 static gboolean
-handle_close (XdpSession *object,
+handle_close (XdpDbusSession *object,
               GDBusMethodInvocation *invocation)
 {
   Session *session = (Session *)object;
@@ -216,13 +216,13 @@ handle_close (XdpSession *object,
 
   session_close (session, FALSE);
 
-  xdp_session_complete_close (object, invocation);
+  xdp_dbus_session_complete_close (object, invocation);
 
   return TRUE;
 }
 
 static void
-session_skeleton_iface_init (XdpSessionIface *iface)
+session_skeleton_iface_init (XdpDbusSessionIface *iface)
 {
   iface->handle_close = handle_close;
 }
@@ -273,7 +273,7 @@ close_sessions_for_sender (const char *sender)
 }
 
 static void
-on_closed (XdpImplSession *object, GObject *data)
+on_closed (XdpDbusImplSession *object, GObject *data)
 {
   Session *session = (Session *)data;
 
@@ -311,7 +311,7 @@ session_initable_init (GInitable *initable,
   Session *session = (Session *)initable;
   g_autofree char *sender_escaped = NULL;
   g_autofree char *id = NULL;
-  g_autoptr(XdpImplSession) impl_session = NULL;
+  g_autoptr(XdpDbusImplSession) impl_session = NULL;
   int i;
 
   sender_escaped = g_strdup (session->sender + 1);
@@ -332,11 +332,12 @@ session_initable_init (GInitable *initable,
 
   if (session->impl_dbus_name)
     {
-      impl_session = xdp_impl_session_proxy_new_sync (session->impl_connection,
-                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                      session->impl_dbus_name,
-                                                      id,
-                                                      NULL, error);
+      impl_session =
+        xdp_dbus_impl_session_proxy_new_sync (session->impl_connection,
+                                              G_DBUS_PROXY_FLAGS_NONE,
+                                              session->impl_dbus_name,
+                                              id,
+                                              NULL, error);
       if (!impl_session)
         return FALSE;
 

@@ -12,8 +12,8 @@ extern char outdir[];
 
 static int got_info;
 
-extern XdpImplPermissionStore *permission_store;
-extern XdpImplLockdown *lockdown;
+extern XdpDbusImplPermissionStore *permission_store;
+extern XdpDbusImplLockdown *lockdown;
 
 static void
 set_camera_permissions (const char *permission)
@@ -22,14 +22,14 @@ set_camera_permissions (const char *permission)
   g_autoptr(GError) error = NULL;
 
   permissions[0] = permission;
-  xdp_impl_permission_store_call_set_permission_sync (permission_store,
-                                                      "devices",
-                                                      TRUE,
-                                                      "camera",
-                                                      "",
-                                                      permissions,
-                                                      NULL,
-                                                      &error);
+  xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           "devices",
+                                                           TRUE,
+                                                           "camera",
+                                                           "",
+                                                           permissions,
+                                                           NULL,
+                                                           &error);
   g_assert_no_error (error);
 }
 

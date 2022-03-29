@@ -43,22 +43,23 @@ typedef struct _AccountClass AccountClass;
 
 struct _Account
 {
-  XdpAccountSkeleton parent_instance;
+  XdpDbusAccountSkeleton parent_instance;
 };
 
 struct _AccountClass
 {
-  XdpAccountSkeletonClass parent_class;
+  XdpDbusAccountSkeletonClass parent_class;
 };
 
-static XdpImplAccount *impl;
+static XdpDbusImplAccount *impl;
 static Account *account;
 
 GType account_get_type (void) G_GNUC_CONST;
-static void account_iface_init (XdpAccountIface *iface);
+static void account_iface_init (XdpDbusAccountIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Account, account, XDP_TYPE_ACCOUNT_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_ACCOUNT, account_iface_init));
+G_DEFINE_TYPE_WITH_CODE (Account, account, XDP_DBUS_TYPE_ACCOUNT_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_ACCOUNT,
+                                                account_iface_init));
 
 static void
 send_response_in_thread_func (GTask        *task,
@@ -112,9 +113,9 @@ send_response_in_thread_func (GTask        *task,
 out:
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&new_results));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&new_results));
       request_unexport (request);
     }
 }
@@ -130,11 +131,11 @@ get_user_information_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_account_call_get_user_information_finish (XDP_IMPL_ACCOUNT (source),
-                                                          &response,
-                                                          &results,
-                                                          result,
-                                                          &error))
+  if (!xdp_dbus_impl_account_call_get_user_information_finish (XDP_DBUS_IMPL_ACCOUNT (source),
+                                                               &response,
+                                                               &results,
+                                                               result,
+                                                               &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -172,7 +173,7 @@ static XdpOptionKey user_information_options[] = {
 };
 
 static gboolean
-handle_get_user_information (XdpAccount *object,
+handle_get_user_information (XdpDbusAccount *object,
                              GDBusMethodInvocation *invocation,
                              const gchar *arg_parent_window,
                              GVariant *arg_options)
@@ -180,18 +181,18 @@ handle_get_user_information (XdpAccount *object,
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options;
 
   g_debug ("Handling GetUserInformation");
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                                       G_DBUS_PROXY_FLAGS_NONE,
+                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                       request->id,
+                                                       NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -208,22 +209,23 @@ handle_get_user_information (XdpAccount *object,
 
   g_debug ("options filtered");
 
-  xdp_impl_account_call_get_user_information (impl,
-                                              request->id,
-                                              app_id,
-                                              arg_parent_window,
-                                              g_variant_builder_end (&options),
-                                              NULL,
-                                              get_user_information_done,
-                                              g_object_ref (request));
+  xdp_dbus_impl_account_call_get_user_information (impl,
+                                                   request->id,
+                                                   app_id,
+                                                   arg_parent_window,
+                                                   g_variant_builder_end (&options),
+                                                   NULL,
+                                                   get_user_information_done,
+                                                   g_object_ref (request));
 
-  xdp_account_complete_get_user_information (object, invocation, request->id);
+  xdp_dbus_account_complete_get_user_information (object, invocation,
+                                                 request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-account_iface_init (XdpAccountIface *iface)
+account_iface_init (XdpDbusAccountIface *iface)
 {
   iface->handle_get_user_information = handle_get_user_information;
 }
@@ -231,7 +233,7 @@ account_iface_init (XdpAccountIface *iface)
 static void
 account_init (Account *account)
 {
-  xdp_account_set_version (XDP_ACCOUNT (account), 1);
+  xdp_dbus_account_set_version (XDP_DBUS_ACCOUNT (account), 1);
 }
 
 static void
@@ -245,12 +247,12 @@ account_create (GDBusConnection *connection,
 {
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_impl_account_proxy_new_sync (connection,
-                                          G_DBUS_PROXY_FLAGS_NONE,
-                                          dbus_name,
-                                          DESKTOP_PORTAL_OBJECT_PATH,
-                                          NULL,
-                                          &error);
+  impl = xdp_dbus_impl_account_proxy_new_sync (connection,
+                                               G_DBUS_PROXY_FLAGS_NONE,
+                                               dbus_name,
+                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               NULL,
+                                               &error);
 
   if (impl == NULL)
     {

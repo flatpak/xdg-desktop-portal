@@ -24,7 +24,7 @@
 
 #include "permissions.h"
 
-static XdpImplPermissionStore *permission_store = NULL;
+static XdpDbusImplPermissionStore *permission_store = NULL;
 
 char **
 get_permissions_sync (const char *app_id,
@@ -36,13 +36,13 @@ get_permissions_sync (const char *app_id,
   g_autoptr(GVariant) out_data = NULL;
   g_autofree char **permissions = NULL;
 
-  if (!xdp_impl_permission_store_call_lookup_sync (permission_store,
-                                                   table,
-                                                   id,
-                                                   &out_perms,
-                                                   &out_data,
-                                                   NULL,
-                                                   &error))
+  if (!xdp_dbus_impl_permission_store_call_lookup_sync (permission_store,
+                                                        table,
+                                                        id,
+                                                        &out_perms,
+                                                        &out_data,
+                                                        NULL,
+                                                        &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_debug ("No '%s' permissions found: %s", table, error->message);
@@ -122,14 +122,14 @@ set_permissions_sync (const char *app_id,
 {
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_impl_permission_store_call_set_permission_sync (permission_store,
-                                                           table,
-                                                           TRUE,
-                                                           id,
-                                                           app_id,
-                                                           permissions,
-                                                           NULL,
-                                                           &error))
+  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                                table,
+                                                                TRUE,
+                                                                id,
+                                                                app_id,
+                                                                permissions,
+                                                                NULL,
+                                                                &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Error updating permission store: %s", error->message);
@@ -166,16 +166,16 @@ init_permission_store (GDBusConnection *connection)
 {
   g_autoptr(GError) error = NULL;
 
-  permission_store = xdp_impl_permission_store_proxy_new_sync (connection,
-                                                               G_DBUS_PROXY_FLAGS_NONE,
-                                                               "org.freedesktop.impl.portal.PermissionStore",
-                                                               "/org/freedesktop/impl/portal/PermissionStore",
-                                                               NULL, &error);
+  permission_store = xdp_dbus_impl_permission_store_proxy_new_sync (connection,
+                                                                    G_DBUS_PROXY_FLAGS_NONE,
+                                                                    "org.freedesktop.impl.portal.PermissionStore",
+                                                                    "/org/freedesktop/impl/portal/PermissionStore",
+                                                                    NULL, &error);
   if (permission_store == NULL)
     g_warning ("No permission store: %s", error->message);
 }
 
-XdpImplPermissionStore *
+XdpDbusImplPermissionStore *
 get_permission_store (void)
 {
   return permission_store;

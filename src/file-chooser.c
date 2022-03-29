@@ -44,23 +44,25 @@ typedef struct _FileChooserClass FileChooserClass;
 
 struct _FileChooser
 {
-  XdpFileChooserSkeleton parent_instance;
+  XdpDbusFileChooserSkeleton parent_instance;
 };
 
 struct _FileChooserClass
 {
-  XdpFileChooserSkeletonClass parent_class;
+  XdpDbusFileChooserSkeletonClass parent_class;
 };
 
-static XdpImplLockdown *lockdown;
-static XdpImplFileChooser *impl;
+static XdpDbusImplLockdown *lockdown;
+static XdpDbusImplFileChooser *impl;
 static FileChooser *file_chooser;
 
 GType file_chooser_get_type (void) G_GNUC_CONST;
-static void file_chooser_iface_init (XdpFileChooserIface *iface);
+static void file_chooser_iface_init (XdpDbusFileChooserIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser, XDP_TYPE_FILE_CHOOSER_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_TYPE_FILE_CHOOSER, file_chooser_iface_init));
+G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser,
+                         XDP_DBUS_TYPE_FILE_CHOOSER_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_FILE_CHOOSER,
+                                                file_chooser_iface_init));
 
 static void
 send_response_in_thread_func (GTask        *task,
@@ -133,9 +135,9 @@ out:
 
   if (request->exported)
     {
-      xdp_request_emit_response (XDP_REQUEST (request),
-                                 response,
-                                 g_variant_builder_end (&results));
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
       request_unexport (request);
     }
 }
@@ -151,11 +153,11 @@ open_file_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_file_chooser_call_open_file_finish (XDP_IMPL_FILE_CHOOSER (source),
-                                                    &response,
-                                                    &options,
-                                                    result,
-                                                    &error))
+  if (!xdp_dbus_impl_file_chooser_call_open_file_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
+                                                         &response,
+                                                         &options,
+                                                         result,
+                                                         &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -457,7 +459,7 @@ static XdpOptionKey open_file_options[] = {
 };
 
 static gboolean
-handle_open_file (XdpFileChooser *object,
+handle_open_file (XdpDbusFileChooser *object,
                   GDBusMethodInvocation *invocation,
                   const gchar *arg_parent_window,
                   const gchar *arg_title,
@@ -466,7 +468,7 @@ handle_open_file (XdpFileChooser *object,
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options;
   g_autoptr(GVariant) dir_option = NULL;
 
@@ -483,11 +485,12 @@ handle_open_file (XdpFileChooser *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -503,17 +506,17 @@ handle_open_file (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_impl_file_chooser_call_open_file (impl,
-                                        request->id,
-                                        app_id,
-                                        arg_parent_window,
-                                        arg_title,
-                                        g_variant_builder_end (&options),
-                                        NULL,
-                                        open_file_done,
-                                        g_object_ref (request));
+  xdp_dbus_impl_file_chooser_call_open_file (impl,
+                                             request->id,
+                                             app_id,
+                                             arg_parent_window,
+                                             arg_title,
+                                             g_variant_builder_end (&options),
+                                             NULL,
+                                             open_file_done,
+                                             g_object_ref (request));
 
-  xdp_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -540,11 +543,11 @@ save_file_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_file_chooser_call_save_file_finish (XDP_IMPL_FILE_CHOOSER (source),
-                                                    &response,
-                                                    &options,
-                                                    result,
-                                                    &error))
+  if (!xdp_dbus_impl_file_chooser_call_save_file_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
+                                                         &response,
+                                                         &options,
+                                                         result,
+                                                         &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -560,7 +563,7 @@ save_file_done (GObject *source,
 }
 
 static gboolean
-handle_save_file (XdpFileChooser *object,
+handle_save_file (XdpDbusFileChooser *object,
                   GDBusMethodInvocation *invocation,
                   const gchar *arg_parent_window,
                   const gchar *arg_title,
@@ -569,12 +572,12 @@ handle_save_file (XdpFileChooser *object,
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  XdpImplRequest *impl_request;
+  XdpDbusImplRequest *impl_request;
   GVariantBuilder options;
 
   g_debug ("Handling SaveFile");
 
-  if (xdp_impl_lockdown_get_disable_save_to_disk (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_save_to_disk (lockdown))
     {
       g_debug ("File saving disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -595,11 +598,12 @@ handle_save_file (XdpFileChooser *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -611,17 +615,17 @@ handle_save_file (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_impl_file_chooser_call_save_file (impl,
-                                        request->id,
-                                        app_id,
-                                        arg_parent_window,
-                                        arg_title,
-                                        g_variant_builder_end (&options),
-                                        NULL,
-                                        save_file_done,
-                                        g_object_ref (request));
+  xdp_dbus_impl_file_chooser_call_save_file (impl,
+                                             request->id,
+                                             app_id,
+                                             arg_parent_window,
+                                             arg_title,
+                                             g_variant_builder_end (&options),
+                                             NULL,
+                                             save_file_done,
+                                             g_object_ref (request));
 
-  xdp_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -646,11 +650,11 @@ save_files_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_impl_file_chooser_call_save_files_finish (XDP_IMPL_FILE_CHOOSER (source),
-                                                     &response,
-                                                     &options,
-                                                     result,
-                                                     &error))
+  if (!xdp_dbus_impl_file_chooser_call_save_files_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
+                                                          &response,
+                                                          &options,
+                                                          result,
+                                                          &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
@@ -666,7 +670,7 @@ save_files_done (GObject *source,
 }
 
 static gboolean
-handle_save_files (XdpFileChooser *object,
+handle_save_files (XdpDbusFileChooser *object,
                    GDBusMethodInvocation *invocation,
                    const gchar *arg_parent_window,
                    const gchar *arg_title,
@@ -675,10 +679,10 @@ handle_save_files (XdpFileChooser *object,
   Request *request = request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  XdpImplRequest *impl_request;
+  XdpDbusImplRequest *impl_request;
   GVariantBuilder options;
 
-  if (xdp_impl_lockdown_get_disable_save_to_disk (lockdown))
+  if (xdp_dbus_impl_lockdown_get_disable_save_to_disk (lockdown))
     {
       g_debug ("File saving disabled");
       g_dbus_method_invocation_return_error (invocation,
@@ -699,11 +703,12 @@ handle_save_files (XdpFileChooser *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request = xdp_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                  G_DBUS_PROXY_FLAGS_NONE,
-                                                  g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                  request->id,
-                                                  NULL, &error);
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -715,23 +720,23 @@ handle_save_files (XdpFileChooser *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_impl_file_chooser_call_save_files (impl,
-                                         request->id,
-                                         app_id,
-                                         arg_parent_window,
-                                         arg_title,
-                                         g_variant_builder_end (&options),
-                                         NULL,
-                                         save_files_done,
-                                         g_object_ref (request));
+  xdp_dbus_impl_file_chooser_call_save_files (impl,
+                                              request->id,
+                                              app_id,
+                                              arg_parent_window,
+                                              arg_title,
+                                              g_variant_builder_end (&options),
+                                              NULL,
+                                              save_files_done,
+                                              g_object_ref (request));
 
-  xdp_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
-file_chooser_iface_init (XdpFileChooserIface *iface)
+file_chooser_iface_init (XdpDbusFileChooserIface *iface)
 {
   iface->handle_open_file = handle_open_file;
   iface->handle_save_file = handle_save_file;
@@ -741,7 +746,7 @@ file_chooser_iface_init (XdpFileChooserIface *iface)
 static void
 file_chooser_init (FileChooser *fc)
 {
-  xdp_file_chooser_set_version (XDP_FILE_CHOOSER (fc), 3);
+  xdp_dbus_file_chooser_set_version (XDP_DBUS_FILE_CHOOSER (fc), 3);
 }
 
 static void
@@ -758,12 +763,12 @@ file_chooser_create (GDBusConnection *connection,
 
   lockdown = lockdown_proxy;
 
-  impl = xdp_impl_file_chooser_proxy_new_sync (connection,
-                                               G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
-                                               DESKTOP_PORTAL_OBJECT_PATH,
-                                               NULL,
-                                               &error);
+  impl = xdp_dbus_impl_file_chooser_proxy_new_sync (connection,
+                                                    G_DBUS_PROXY_FLAGS_NONE,
+                                                    dbus_name,
+                                                    DESKTOP_PORTAL_OBJECT_PATH,
+                                                    NULL,
+                                                    &error);
 
   if (impl == NULL)
     {

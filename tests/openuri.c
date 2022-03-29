@@ -8,8 +8,8 @@
 
 #include "utils.h"
 
-extern XdpImplLockdown *lockdown;
-extern XdpImplPermissionStore *permission_store;
+extern XdpDbusImplLockdown *lockdown;
+extern XdpDbusImplPermissionStore *permission_store;
 
 extern char outdir[];
 
@@ -31,31 +31,31 @@ set_openuri_permissions (const char *type,
   permissions[2] = threshold_s;
   permissions[3] = NULL;
 
-  xdp_impl_permission_store_call_delete_sync (permission_store,
-                                              "desktop-used-apps",
-                                              type,
-                                              NULL,
-                                              NULL);
+  xdp_dbus_impl_permission_store_call_delete_sync (permission_store,
+                                                   "desktop-used-apps",
+                                                   type,
+                                                   NULL,
+                                                   NULL);
 
-  xdp_impl_permission_store_call_set_permission_sync (permission_store,
-                                                      "desktop-used-apps",
-                                                      TRUE,
-                                                      type,
-                                                      "",
-                                                      permissions,
-                                                      NULL,
-                                                      &error);
+  xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           "desktop-used-apps",
+                                                           TRUE,
+                                                           type,
+                                                           "",
+                                                           permissions,
+                                                           NULL,
+                                                           &error);
   g_assert_no_error (error);
 }
 
 static void
 unset_openuri_permissions (const char *type)
 {
-  xdp_impl_permission_store_call_delete_sync (permission_store,
-                                              "desktop-used-apps",
-                                              type,
-                                              NULL,
-                                              NULL);
+  xdp_dbus_impl_permission_store_call_delete_sync (permission_store,
+                                                   "desktop-used-apps",
+                                                   type,
+                                                   NULL,
+                                                   NULL);
   /* Ignore the error here, since this fails if the table doesn't exist */
 }
 
@@ -67,13 +67,13 @@ enable_paranoid_mode (const char *type)
   /* turn on paranoid mode to ensure we get a backend call */
   g_variant_builder_init (&data_builder, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_add (&data_builder, "{sv}", "always-ask", g_variant_new_boolean (TRUE));
-  xdp_impl_permission_store_call_set_value_sync (permission_store,
-                                                 "desktop-used-apps",
-                                                 TRUE,
-                                                 type,
-                                                 g_variant_new_variant (g_variant_builder_end (&data_builder)),
-                                                 NULL,
-                                                 NULL);
+  xdp_dbus_impl_permission_store_call_set_value_sync (permission_store,
+                                                      "desktop-used-apps",
+                                                      TRUE,
+                                                      type,
+                                                      g_variant_new_variant (g_variant_builder_end (&data_builder)),
+                                                      NULL,
+                                                      NULL);
 }
 
 static void

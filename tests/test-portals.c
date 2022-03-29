@@ -37,8 +37,8 @@ char outdir[] = "/tmp/xdp-test-XXXXXX";
 static GTestDBus *dbus;
 static GDBusConnection *session_bus;
 static GList *test_procs = NULL;
-XdpImplPermissionStore *permission_store;
-XdpImplLockdown *lockdown;
+XdpDbusImplPermissionStore *permission_store;
+XdpDbusImplLockdown *lockdown;
 
 int
 xdup (int oldfd)
@@ -288,20 +288,20 @@ global_setup (void)
   g_source_remove (name_timeout);
   g_bus_unwatch_name (watch);
 
-  permission_store = xdp_impl_permission_store_proxy_new_sync (session_bus,
-                                                               0,
-                                                               "org.freedesktop.impl.portal.PermissionStore",
-                                                               "/org/freedesktop/impl/portal/PermissionStore",
-                                                               NULL,
-                                                               &error);
+  permission_store = xdp_dbus_impl_permission_store_proxy_new_sync (session_bus,
+                                                                    0,
+                                                                    "org.freedesktop.impl.portal.PermissionStore",
+                                                                    "/org/freedesktop/impl/portal/PermissionStore",
+                                                                    NULL,
+                                                                    &error);
   g_assert_no_error (error);
 
-  lockdown = xdp_impl_lockdown_proxy_new_sync (session_bus,
-                                               0,
-                                               BACKEND_BUS_NAME,
-                                               BACKEND_OBJECT_PATH,
-                                               NULL,
-                                               &error);
+  lockdown = xdp_dbus_impl_lockdown_proxy_new_sync (session_bus,
+                                                    0,
+                                                    BACKEND_BUS_NAME,
+                                                    BACKEND_OBJECT_PATH,
+                                                    NULL,
+                                                    &error);
   g_assert_no_error (error);
 
   /* make sure errors are registered */
@@ -405,18 +405,18 @@ test_##pp##_exists (void) \
  check_pipewire ( #pp ) \
  check_geoclue ( #pp ) \
  \
-  proxy = G_DBUS_PROXY (xdp_##pp##_proxy_new_sync (session_bus, \
-                                                   0, \
-                                                   PORTAL_BUS_NAME, \
-                                                   PORTAL_OBJECT_PATH, \
-                                                   NULL, \
-                                                   &error)); \
+  proxy = G_DBUS_PROXY (xdp_dbus_##pp##_proxy_new_sync (session_bus, \
+                                                        0, \
+                                                        PORTAL_BUS_NAME, \
+                                                        PORTAL_OBJECT_PATH, \
+                                                        NULL, \
+                                                        &error)); \
   g_assert_no_error (error); \
  \
   owner = g_dbus_proxy_get_name_owner (proxy); \
   g_assert_nonnull (owner); \
  \
-  g_assert_cmpuint (xdp_##pp##_get_version (XDP_##PP (proxy)), ==, version); \
+  g_assert_cmpuint (xdp_dbus_##pp##_get_version (XDP_DBUS_##PP (proxy)), ==, version); \
 }
 
 DEFINE_TEST_EXISTS(account, ACCOUNT, 1)
