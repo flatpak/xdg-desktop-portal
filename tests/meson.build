@@ -199,6 +199,28 @@ test(
   protocol: 'tap',
 )
 
+pytest = find_program('pytest-3', 'pytest', required: false)
+pymod = import('python')
+python = pymod.find_installation(
+  'python3',
+  modules: ['dbus', 'dbusmock', 'gi'],
+  required: false,
+)
+
+if pytest.found() and python.found()
+  test_env = environment()
+  test_env.set('XDP_UNINSTALLED', '1')
+
+  test(
+    'pytest',
+    pytest,
+    args: ['--verbose', '--log-level=DEBUG'],
+    env: test_env,
+    workdir: meson.project_source_root(),
+    suite: ['pytest'],
+  )
+endif
+
 if enable_installed_tests
   # autotools used to symlink to the host files, here we just install our version
   install_data(
