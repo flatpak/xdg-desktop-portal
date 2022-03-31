@@ -347,7 +347,7 @@ handle_start_in_thread (GTask *task,
   g_object_set_data (G_OBJECT (request), "session", NULL);
   we_session = (WebExtensionsSession *)session;
 
-  if (!request->exported)
+  if (!request->exported || we_session->state != WEB_EXTENSIONS_SESSION_STATE_STARTING)
     goto out;
 
   arg_name = g_object_get_data (G_OBJECT (request), "name");
