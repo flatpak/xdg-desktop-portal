@@ -430,8 +430,9 @@ handle_start_in_thread (GTask *task,
       goto out;
     }
 
-  we_session->child_watch_id = g_child_watch_add (
-    we_session->child_pid, on_server_exited, we_session);
+  we_session->child_watch_id = g_child_watch_add_full (
+    G_PRIORITY_DEFAULT, we_session->child_pid, on_server_exited,
+    g_object_ref (we_session), g_object_unref);
   we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
 
   response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
