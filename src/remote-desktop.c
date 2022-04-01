@@ -28,6 +28,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
+#include <gio/gunixfdlist.h>
 #include <stdint.h>
 
 typedef struct _RemoteDesktop RemoteDesktop;
@@ -88,6 +89,8 @@ typedef struct _RemoteDesktopSession
   gboolean sources_selected;
 
   gboolean clipboard_enabled;
+
+  gboolean uses_eis;
 } RemoteDesktopSession;
 
 typedef struct _RemoteDesktopSessionClass
@@ -695,7 +698,7 @@ check_notify (Session *session,
 {
   RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)session;
 
-  if (!remote_desktop_session->devices_selected)
+  if (!remote_desktop_session->devices_selected || remote_desktop_session->uses_eis)
     return FALSE;
 
   switch (remote_desktop_session->state)
@@ -1357,6 +1360,105 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static XdpOptionKey remote_desktop_connect_to_eis_options[] = {
+};
+
+static gboolean
+handle_connect_to_eis (XdpDbusRemoteDesktop *object,
+                       GDBusMethodInvocation *invocation,
+                       GUnixFDList *in_fd_list,
+                       const char *arg_session_handle,
+                       GVariant *arg_options)
+{
+  Call *call = call_from_invocation (invocation);
+  Session *session;
+  RemoteDesktopSession *remote_desktop_session;
+  g_autoptr(GUnixFDList) out_fd_list = NULL;
+  g_autoptr(GError) error = NULL;
+  GVariantBuilder options_builder;
+  GVariant *fd;
+
+  session = acquire_session_from_call (arg_session_handle, call);
+  if (!session)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  SESSION_AUTOLOCK_UNREF (session);
+
+  if (!is_remote_desktop_session (session))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  remote_desktop_session = (RemoteDesktopSession *)session;
+
+  if (remote_desktop_session->uses_eis)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_FAILED,
+                                             "Session is already connected");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  switch (remote_desktop_session->state)
+    {
+    case REMOTE_DESKTOP_SESSION_STATE_STARTED:
+      break;
+    case REMOTE_DESKTOP_SESSION_STATE_INIT:
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_FAILED,
+                                             "Session is not ready");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    case REMOTE_DESKTOP_SESSION_STATE_CLOSED:
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_FAILED,
+                                             "Session is already closed");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           remote_desktop_connect_to_eis_options,
+                           G_N_ELEMENTS (remote_desktop_connect_to_eis_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_dbus_impl_remote_desktop_call_connect_to_eis_sync (impl,
+                                                             arg_session_handle,
+                                                             xdp_app_info_get_id (call->app_info),
+                                                             g_variant_builder_end (&options_builder),
+                                                             in_fd_list,
+                                                             &fd,
+                                                             &out_fd_list,
+                                                             NULL,
+                                                             &error))
+    {
+      g_warning ("Failed to ConnectToEIS: %s", error->message);
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  remote_desktop_session->uses_eis = TRUE;
+
+  xdp_dbus_remote_desktop_complete_connect_to_eis (object, invocation, out_fd_list, fd);
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
 static void
 remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface)
 {
@@ -1374,6 +1476,8 @@ remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface)
   iface->handle_notify_touch_down = handle_notify_touch_down;
   iface->handle_notify_touch_motion = handle_notify_touch_motion;
   iface->handle_notify_touch_up = handle_notify_touch_up;
+
+  iface->handle_connect_to_eis = handle_connect_to_eis;
 }
 
 static void

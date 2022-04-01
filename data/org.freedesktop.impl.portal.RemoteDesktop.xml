@@ -351,6 +351,26 @@
       <arg type="u" name="slot" direction="in"/>
     </method>
     <!--
+        ConnectToEIS:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @fd: A file descriptor to an EIS implementation that can be passed to a
+        sender libei context
+
+        Request a connection to an EIS implementation.
+
+        This method is available in version 2 of this interface.
+    -->
+    <method name="ConnectToEIS">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="h" name="fd" direction="out"/>
+    </method>
+    <!--
         AvailableDeviceTypes:
 
         A bitmask of available source types. Currently defined types are:
