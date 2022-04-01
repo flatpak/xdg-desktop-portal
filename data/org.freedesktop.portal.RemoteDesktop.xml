@@ -396,6 +396,37 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="slot" direction="in"/>
     </method>
+
+    <!--
+        ConnectToEIS:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @fd: A file descriptor to an EIS implementation that can be passed to a libei sender context
+
+        Request a connection to an EIS implementation. The returned handle can
+        be passed to ei_setup_backend_fd() for a libei sender context to
+        complete the connection. All information about available devices and the
+        event flow is subject to libei. Please see the libei documentation for details.
+
+        This method may only be called once per session, where the EIS
+        implementation disconnects the session should be closed.
+
+        This method must be called after #org.freedesktop.portal.RemoteDesktop.Start()
+
+        Once an EIS connection is established, input events must be sent exclusively via
+        the EIS connection. Any events submitted via NotifyPointerMotion,
+        NotifyKeyboardKeycode and other Notify* methods will return an error.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="ConnectToEIS">
+      <annotation name="org.gtk.GDBus.C.Name" value="connect_to_eis"/>
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="h" name="fd" direction="out"/>
+    </method>
+
     <!--
         AvailableDeviceTypes:
 

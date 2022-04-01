@@ -121,7 +121,7 @@ method_needs_request (GDBusMethodInvocation *invocation)
     }
   else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
     {
-      if (strstr (method, "Notify") == method)
+      if (strstr (method, "Notify") == method || strcmp (method, "ConnectToEIS") == 0)
         return FALSE;
       else
         return TRUE;
