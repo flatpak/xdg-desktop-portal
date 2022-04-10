@@ -1497,8 +1497,8 @@ on_name_lost (GDBusConnection *connection,
   g_main_loop_quit (loop);
 }
 
-int
-on_fuse_unmount (void)
+gboolean
+on_fuse_unmount (void *unused)
 {
   if (!g_main_loop_is_running (loop))
     return G_SOURCE_REMOVE;
