@@ -3067,7 +3067,7 @@ xdp_fuse_init_cb (void                  *userdata,
   conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
 }
 
-extern int on_fuse_unmount (void);
+extern gboolean on_fuse_unmount (void *);
 
 static void
 xdp_fuse_destroy_cb (void *userdata)
