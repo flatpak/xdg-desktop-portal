@@ -39,9 +39,21 @@
         Asks to set a given picture as the desktop background picture.
 
         The following options are supported:
-        show-preview: (b) whether to show a preview of the picture. Note that the portal may
+        <variablelist>
+          <varlistentry>
+            <term>show-preview b</term>
+            <listitem><para>
+             whether to show a preview of the picture. Note that the portal may
              decide to show a preview even if this option is not set
-        set-on: (s) where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>set-on s</term>
+            <listitem><para>
+              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="SetWallpaperURI">
       <arg type="o" name="handle" direction="in"/>
