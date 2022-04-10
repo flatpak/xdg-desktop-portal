@@ -147,7 +147,7 @@ test_account_reason (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  got_info = FALSE;
+  got_info = 0;
   xdp_portal_get_user_information (portal, NULL, "yy", 0, NULL, account_cb_fail, NULL);
 
   while (!got_info)
