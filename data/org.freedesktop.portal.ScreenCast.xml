@@ -260,6 +260,23 @@
               This property was added in version 3 of this interface.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>app_id s</term>
+            <listitem><para>
+              The ID of the application which is being screen casted.
+              This property is relevant only when an application window is screen casted.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>window_title s</term>
+            <listitem><para>
+              The window title of the window which is being screen casted.
+              Note that this is the window title used at the time when screen cast was
+              initiated and may be different from the window title at the time when
+              stream parameters are received.
+              This property is relevant only when an application window is screen casted.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="Start">
