@@ -517,8 +517,6 @@ handle_get_pipes (XdpDbusWebExtensions *object,
   XdpSession *session;
   WebExtensionsSession *we_session;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
-  int stdin_id, stdout_id, stderr_id;
-  g_autoptr(GError) error = NULL;
 
   session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
@@ -542,47 +540,32 @@ handle_get_pipes (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  out_fd_list = g_unix_fd_list_new ();
-  stdin_id = g_unix_fd_list_append (
-    out_fd_list, we_session->standard_input, &error);
-  if (stdin_id == -1)
+  if (we_session->standard_input < 0 ||
+      we_session->standard_output < 0 ||
+      we_session->standard_error < 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
-                                             G_DBUS_ERROR_ACCESS_DENIED,
-                                             "Failed to append fd: %s",
-                                             error->message);
+                                             G_DBUS_ERROR_FAILED,
+                                             "GetPipes already called");
       return TRUE;
     }
 
-  stdout_id = g_unix_fd_list_append (
-    out_fd_list, we_session->standard_output, &error);
-  if (stdout_id == -1)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_ACCESS_DENIED,
-                                             "Failed to append fd: %s",
-                                             error->message);
-      return TRUE;
-    }
-
-  stderr_id = g_unix_fd_list_append (
-    out_fd_list, we_session->standard_error, &error);
-  if (stderr_id == -1)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             G_DBUS_ERROR,
-                                             G_DBUS_ERROR_ACCESS_DENIED,
-                                             "Failed to append fd: %s",
-                                             error->message);
-      return TRUE;
-    }
+  int fds[3] = {
+    we_session->standard_input,
+    we_session->standard_output,
+    we_session->standard_error,
+  };
+  out_fd_list = g_unix_fd_list_new_from_array (fds, G_N_ELEMENTS (fds));
+  /* out_fd_list now owns the file descriptors */
+  we_session->standard_input = -1;
+  we_session->standard_output = -1;
+  we_session->standard_error = -1;
 
   xdp_dbus_web_extensions_complete_get_pipes (object, invocation, out_fd_list,
-                                              g_variant_new_handle (stdin_id),
-                                              g_variant_new_handle (stdout_id),
-                                              g_variant_new_handle (stderr_id));
+                                              g_variant_new_handle (0),
+                                              g_variant_new_handle (1),
+                                              g_variant_new_handle (2));
   return TRUE;
 }
 
