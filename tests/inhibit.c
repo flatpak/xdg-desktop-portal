@@ -387,7 +387,7 @@ test_inhibit_monitor (void)
   g_signal_handler_disconnect (portal, id);
 
   /* now wait for the query-end state */
-  g_print ("waiting for query-end state\n");
+  g_debug ("waiting for query-end state\n");
   got_info = 0;
   g_signal_connect (portal, "session-state-changed", G_CALLBACK (session_state_changed_cb2), NULL);
 

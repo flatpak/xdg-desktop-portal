@@ -137,7 +137,7 @@ global_setup (void)
   update_data_dirs ();
 
   g_mkdtemp (outdir);
-  g_print ("outdir: %s\n", outdir);
+  g_debug ("outdir: %s\n", outdir);
 
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
@@ -181,7 +181,7 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  g_print ("launching test-backend\n");
+  g_debug ("launching test-backend\n");
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
@@ -227,7 +227,7 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  g_print ("launching %s\n", argv0);
+  g_debug ("launching %s\n", argv0);
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
@@ -272,7 +272,7 @@ global_setup (void)
   argv[2] = g_test_verbose () ? "--verbose" : NULL;
   argv[3] = NULL;
 
-  g_print ("launching %s\n", argv0);
+  g_debug ("launching %s\n", argv0);
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
