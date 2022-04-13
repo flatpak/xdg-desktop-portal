@@ -368,10 +368,6 @@ global_teardown (void)
   g_object_unref (dbus);
 }
 
-/* Just check that the portal is there, and has the
- * expected version. This will fail if the backend
- * is not found.
- */
 #ifdef HAVE_PIPEWIRE
 #define check_pipewire(name)
 #else
@@ -394,6 +390,10 @@ global_teardown (void)
    }
 #endif
 
+/* Just check that the portal is there, and has the
+ * expected version. This will fail if the backend
+ * is not found.
+ */
 #define DEFINE_TEST_EXISTS(pp,PP,version) \
 static void \
 test_##pp##_exists (void) \
