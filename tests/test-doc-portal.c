@@ -475,7 +475,7 @@ test_recursive_doc (void)
   assert_doc_has_contents (id, basename, NULL, "recursive-content");
 
   path = make_doc_path (id, basename, NULL);
-  g_print ("path: %s\n", path);
+  g_debug ("path: %s\n", path);
 
   id2 = export_file (path, FALSE);
 
@@ -701,7 +701,7 @@ global_setup (void)
     }
 
   g_mkdtemp (outdir);
-  g_print ("outdir: %s\n", outdir);
+  g_debug ("outdir: %s\n", outdir);
 
   fd = g_mkstemp (fuse_status_file);
   close (fd);
