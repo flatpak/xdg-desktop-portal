@@ -577,25 +577,31 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
 };
 
 static gboolean
-replace_restore_token_with_data (ScreenCastSession *screen_cast_session,
+replace_restore_token_with_data (Session *session,
                                  GVariant **in_out_options,
                                  GError **error)
 {
-  Session *session = (Session *)screen_cast_session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
+  PersistMode persist_mode;
   gsize i;
 
   options = *in_out_options;
 
-  if (!g_variant_lookup (options, "persist_mode", "u", &screen_cast_session->persist_mode))
-    screen_cast_session->persist_mode = PERSIST_MODE_NONE;
+  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+    persist_mode = PERSIST_MODE_NONE;
 
-  if (is_remote_desktop_session (session) && screen_cast_session->persist_mode != PERSIST_MODE_NONE)
+  if (is_remote_desktop_session (session) && persist_mode != PERSIST_MODE_NONE)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Remote desktop sessions cannot persist");
       return FALSE;
+    }
+
+  if (is_screen_cast_session (session))
+    {
+      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+      screen_cast_session->persist_mode = persist_mode;
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
@@ -612,6 +618,7 @@ replace_restore_token_with_data (ScreenCastSession *screen_cast_session,
 
       if (g_strcmp0 (screen_cast_select_sources_options[i].key, "restore_token") == 0)
         {
+          ScreenCastSession *screen_cast_session;
           g_autoptr(GVariant) restore_data = NULL;
           g_autofree char *restore_token = NULL;
 
@@ -656,6 +663,8 @@ replace_restore_token_with_data (ScreenCastSession *screen_cast_session,
            * apps can pass random UUIDs and yet predict what the next token will
            * be.
            */
+          g_assert (is_screen_cast_session (session));
+          screen_cast_session = (ScreenCastSession *)session;
           screen_cast_session->restore_token = g_steal_pointer (&restore_token);
 
           g_debug ("Replacing 'restore_token' with portal-specific data");
@@ -682,7 +691,6 @@ handle_select_sources (XdpDbusScreenCast *object,
 {
   Request *request = request_from_invocation (invocation);
   Session *session;
-  ScreenCastSession *screen_cast_session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
@@ -786,8 +794,7 @@ handle_select_sources (XdpDbusScreenCast *object,
    * permission store and / or the GHashTable with transient permissions.
    * Portal implementations do not have access to the restore token.
    */
-  screen_cast_session = (ScreenCastSession *) session;
-  if (!replace_restore_token_with_data (screen_cast_session, &options, &error))
+  if (!replace_restore_token_with_data (session, &options, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
