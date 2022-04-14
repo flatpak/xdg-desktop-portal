@@ -34,13 +34,16 @@
         Create a remote desktop session.
 
         A remote desktop session is used to allow remote controlling a desktop
-        session. It can also be used together with a screen cast session (see
-        #org.freedesktop.portal.ScreenCast), but may only be started and stopped
-        with this interface.
+        session.
 
-        To also get a screen content, call the
-        org.freedesktop.portal.ScreenCast.SelectSources() with the
-        #org.freedesktop.portal.Session object created with this method.
+        A remote desktop session may only be started and stopped with this interface,
+        but you can use the #org.freedesktop.portal.Session object created with this
+        method together with certain methods on the #org.freedesktop.portal.ScreenCast
+        interface. Specifically, you can call
+        org.freedesktop.portal.ScreenCast.SelectSources() to also get screen content,
+        and org.freedesktop.portal.ScreenCast.OpenPipewireRemote() to acquire a file
+        descriptor for a PipeWire remote. See #org.freedesktop.portal.ScreenCast for
+        more information on how to use those methods.
 
         Supported keys in the @options vardict include:
         <variablelist>
