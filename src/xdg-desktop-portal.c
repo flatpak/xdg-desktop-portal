@@ -380,6 +380,11 @@ main (int argc, char *argv[])
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
 
+  /* GSlice is crashy, disable it. See
+   * https://github.com/flatpak/xdg-desktop-portal/issues/771
+   */
+  g_setenv ("G_SLICE", "always-malloc", TRUE);
+
   /* Avoid pointless and confusing recursion */
   g_unsetenv ("GTK_USE_PORTAL");
 
