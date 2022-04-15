@@ -1,3 +1,8 @@
+Changes in 1.12.4, 14-04-2022
+=============================
+
+- remote-desktop: Fix a memory corruption that was causing seg faults
+
 Changes in 1.12.3, 28-03-2022
 =============================
 
