@@ -372,10 +372,14 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
 
           g_ptr_array_add (args, g_strdup_printf ("--command=%s", quoted_command));
 
-          /* Always quote the app ID to make rewriting the file simpler in case
-           * the app is renamed.
+          /* Always quote the app ID if quote_escape is enabled to make
+           * rewriting the file simpler in case the app is renamed.
            */
-          g_ptr_array_add (args, g_shell_quote (app_info->id));
+          if (quote_escape)
+            g_ptr_array_add (args, g_shell_quote (app_info->id));
+          else
+            g_ptr_array_add (args, g_strdup (app_info->id));
+
           for (i = 1; commandline[i]; i++)
             g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
         }
