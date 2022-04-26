@@ -35,13 +35,13 @@
 #define PERMISSION_ID "inhibit"
 
 enum {
-  INHIBIT_LOGOUT  = 1,
-  INHIBIT_SWITCH  = 2,
-  INHIBIT_SUSPEND = 4,
-  INHIBIT_IDLE    = 8
+  INHIBIT_LOGOUT       = 1,
+  INHIBIT_USER_SWITCH  = 2,
+  INHIBIT_SUSPEND      = 4,
+  INHIBIT_IDLE         = 8
 };
 
-#define INHIBIT_ALL (INHIBIT_LOGOUT|INHIBIT_SWITCH|INHIBIT_SUSPEND|INHIBIT_IDLE)
+#define INHIBIT_ALL (INHIBIT_LOGOUT|INHIBIT_USER_SWITCH|INHIBIT_SUSPEND|INHIBIT_IDLE)
 
 typedef struct _Inhibit Inhibit;
 typedef struct _InhibitClass InhibitClass;
@@ -113,7 +113,7 @@ get_allowed_inhibit (const char *app_id)
           if (strcmp (perms[i], "logout") == 0)
             ret |= INHIBIT_LOGOUT;
           else if (strcmp (perms[i], "switch") == 0)
-            ret |= INHIBIT_SWITCH;
+            ret |= INHIBIT_USER_SWITCH;
           else if (strcmp (perms[i], "suspend") == 0)
             ret |= INHIBIT_SUSPEND;
           else if (strcmp (perms[i], "idle") == 0)
