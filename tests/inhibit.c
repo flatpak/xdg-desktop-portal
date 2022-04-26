@@ -58,13 +58,13 @@ inhibit_cb (GObject *object,
 
   if (response == 0)
     {
-      g_assert_cmpint (id, >, 0);
       g_assert_no_error (error);
+      g_assert_cmpint (id, >, 0);
     }
   else
     {
-      g_assert_cmpint (id, ==, -1);
       g_assert_nonnull (error);
+      g_assert_cmpint (id, ==, -1);
     }
 
   g_assert (0 <= got_info && got_info < 3);
