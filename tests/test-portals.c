@@ -197,6 +197,50 @@ global_setup (void)
   g_source_remove (name_timeout);
   g_bus_unwatch_name (watch);
 
+  /* start permission store */
+  name_appeared = FALSE;
+  watch = g_bus_watch_name_on_connection (session_bus,
+                                          "org.freedesktop.impl.portal.PermissionStore",
+                                          0,
+                                          name_appeared_cb,
+                                          name_disappeared_cb,
+                                          &name_appeared,
+                                          NULL);
+
+  g_clear_object (&launcher);
+  launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
+  g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
+  g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
+  g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
+  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
+
+  if (g_getenv ("XDP_UNINSTALLED") != NULL)
+    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
+  else
+    argv0 = g_strdup (LIBEXECDIR "/xdg-permission-store");
+
+  argv[0] = argv0;
+  argv[1] = "--replace";
+  argv[2] = g_test_verbose () ? "--verbose" : NULL;
+  argv[3] = NULL;
+
+  g_debug ("launching %s\n", argv0);
+
+  subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
+  g_assert_no_error (error);
+  g_test_message ("Launched %s with pid %s\n", argv[0],
+                  g_subprocess_get_identifier (subprocess));
+  test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
+
+  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
+
+  while (!name_appeared)
+    g_main_context_iteration (NULL, TRUE);
+
+  g_source_remove (name_timeout);
+  g_bus_unwatch_name (watch);
+
   /* start portals */
   name_appeared = FALSE;
   watch = g_bus_watch_name_on_connection (session_bus,
@@ -237,50 +281,6 @@ global_setup (void)
   g_clear_pointer (&argv0, g_free);
 
   name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-desktop-portal");
-
-  while (!name_appeared)
-    g_main_context_iteration (NULL, TRUE);
-
-  g_source_remove (name_timeout);
-  g_bus_unwatch_name (watch);
-
-  /* start permission store */
-  name_appeared = FALSE;
-  watch = g_bus_watch_name_on_connection (session_bus,
-                                          "org.freedesktop.impl.portal.PermissionStore",
-                                          0,
-                                          name_appeared_cb,
-                                          name_disappeared_cb,
-                                          &name_appeared,
-                                          NULL);
-
-  g_clear_object (&launcher);
-  launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
-  g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
-  g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
-  g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
-  g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
-  g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
-
-  if (g_getenv ("XDP_UNINSTALLED") != NULL)
-    argv0 = g_test_build_filename (G_TEST_BUILT, "..", "xdg-permission-store", NULL);
-  else
-    argv0 = g_strdup (LIBEXECDIR "/xdg-permission-store");
-
-  argv[0] = argv0;
-  argv[1] = "--replace";
-  argv[2] = g_test_verbose () ? "--verbose" : NULL;
-  argv[3] = NULL;
-
-  g_debug ("launching %s\n", argv0);
-
-  subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
-  g_assert_no_error (error);
-  g_test_message ("Launched %s with pid %s\n", argv[0],
-                  g_subprocess_get_identifier (subprocess));
-  test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
-
-  name_timeout = g_timeout_add (1000 * timeout_mult, timeout_cb, "Failed to launch xdg-permission-store");
 
   while (!name_appeared)
     g_main_context_iteration (NULL, TRUE);
