@@ -142,7 +142,7 @@ global_setup (void)
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
 
-  /* Re-defining dbus-monitor with a custom script */
+  /* Re-defining dbus-daemon with a custom script */
   setup_dbus_daemon_wrapper (outdir);
 
   dbus = g_test_dbus_new (G_TEST_DBUS_NONE);
