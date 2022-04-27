@@ -74,7 +74,7 @@ lookup_table (const char            *name,
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                             "Unable to load db file: %s", error->message);
+                                             "Unable to load db file %s: %s", name, error->message);
       return NULL;
     }
 
