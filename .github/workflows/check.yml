@@ -58,11 +58,29 @@ jobs:
         $RUN_CMD apt-get update
         $RUN_CMD apt-get upgrade -y
         $RUN_CMD apt-get install -y --no-install-recommends \
-          make automake autoconf libtool gettext autopoint ${{ matrix.compiler }} \
-          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing \
-          fuse3 libflatpak-dev libglib2.0-dev libgeoclue-2-dev libjson-glib-dev \
-          libfontconfig1-dev libfuse3-dev libportal-dev libpipewire-0.3-dev \
-          llvm libgdk-pixbuf-2.0-dev libsystemd-dev
+          ${{ matrix.compiler }} \
+          autoconf \
+          automake \
+          autopoint \
+          desktop-file-utils \
+          fuse3 \
+          gettext \
+          gnome-desktop-testing \
+          gtk-doc-tools \
+          libflatpak-dev \
+          libfontconfig1-dev \
+          libfuse3-dev \
+          libgdk-pixbuf-2.0-dev \
+          libgeoclue-2-dev \
+          libglib2.0-dev \
+          libjson-glib-dev \
+          libpipewire-0.3-dev \
+          libportal-dev \
+          libsystemd-dev \
+          libtool \
+          llvm \
+          make \
+          shared-mime-info
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
@@ -121,10 +139,21 @@ jobs:
         apt-get update -y
         apt-get install -y software-properties-common
         add-apt-repository ppa:alexlarsson/flatpak
-        apt-get install -y automake autoconf libtool gettext autopoint gcc \
-          gtk-doc-tools shared-mime-info desktop-file-utils \
-          libglib2.0-dev libjson-glib-dev libfontconfig1-dev \
-          libgdk-pixbuf2.0-dev libsystemd-dev
+        apt-get install -y \
+          automake \
+          autoconf \
+          libtool \
+          gettext \
+          autopoint \
+          gcc \
+          gtk-doc-tools \
+          shared-mime-info \
+          desktop-file-utils \
+          libglib2.0-dev \
+          libjson-glib-dev \
+          libfontconfig1-dev \
+          libgdk-pixbuf2.0-dev \
+          libsystemd-dev
 
     - name: Install libfuse3
       run: |
