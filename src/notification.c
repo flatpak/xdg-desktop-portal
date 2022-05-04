@@ -191,6 +191,27 @@ check_priority (GVariant *value,
 }
 
 static gboolean
+check_persistence (GVariant *value,
+                   GError **error)
+{
+  const char *persistence[] = { "normal", "transient", NULL };
+
+  if (!check_value_type ("persistence", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  if (!g_strv_contains (persistence, g_variant_get_string (value, NULL)))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "%s not a persistence", g_variant_get_string (value, NULL));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 check_button (GVariant *button,
               GError **error)
 {
@@ -324,6 +345,11 @@ check_notification (GVariant *notification,
       else if (strcmp (key, "default-action") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "persistence") == 0)
+        {
+          if (!check_persistence (value, error))
             return FALSE;
         }
       else if (strcmp (key, "default-action-target") == 0)

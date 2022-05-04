@@ -95,6 +95,13 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>persistence s</term>
+            <listitem><para>
+              The persistence of the notification, if server supports it.
+              Supported values: normal, transient.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>default-action s</term>
             <listitem><para>
               Name of an action that is exported by the application. This

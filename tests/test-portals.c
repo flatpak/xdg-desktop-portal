@@ -576,9 +576,11 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/background/reason", test_background_reason);
 
   g_test_add_func ("/portal/notification/basic", test_notification_basic);
+  g_test_add_func ("/portal/notification/persistence/transient", test_notification_persistence_transient);
   g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
   g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
+  g_test_add_func ("/portal/notification/bad-persistence", test_notification_bad_persistence);
   g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
 #endif
 
