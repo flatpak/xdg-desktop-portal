@@ -8,7 +8,7 @@ env:
 
 jobs:
   check:
-    name: Ubuntu 21.10 build
+    name: Ubuntu 22.04 build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,7 +19,7 @@ jobs:
             sanitizer: ['thread']
 
     env:
-      UBUNTU_VERSION: impish
+      UBUNTU_VERSION: jammy
       CC: ${{ matrix.compiler }}
       BASE_CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
       BUILD_CONTAINER: ${{ matrix.compiler }}-build-container
