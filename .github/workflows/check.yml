@@ -67,6 +67,7 @@ jobs:
           gettext \
           gnome-desktop-testing \
           gtk-doc-tools \
+          libcap2-bin \
           libflatpak-dev \
           libfontconfig1-dev \
           libfuse3-dev \
