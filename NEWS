@@ -1,3 +1,10 @@
+Changes in 1.14.4
+=================
+Released: 2022-05-04
+
+- background: Fix a regression introduced in 1.14.0 which caused invalid
+  autostart files to be generated.
+
 Changes in 1.14.3
 =================
 Released: 2022-04-14
