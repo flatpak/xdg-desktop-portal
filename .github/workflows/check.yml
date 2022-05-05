@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 env:
   DEBIAN_FRONTEND: noninteractive
-  TESTS_TIMEOUT: 5 # in minutes
+  TESTS_TIMEOUT: 10 # in minutes
 
 jobs:
   check:
@@ -99,7 +99,7 @@ jobs:
       run: $RUN_CMD $AS_USER make
 
     - name: Run xdg-desktop-portal tests
-      run: $RUN_CMD $AS_USER timeout ${TESTS_TIMEOUT}m make check
+      run: $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m make check
       env:
         TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
