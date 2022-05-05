@@ -88,8 +88,6 @@ for i in $(seq 20); do
     PIDS+=( "$PID" )
 done
 
-for PID in "${PIDS[@]}"; do
-    echo waiting for pid "${PID}"
-    wait "${PID}"
-done
+echo waiting for pids "${PIDS[@]}"
+wait "${PIDS[@]}"
 echo "ok load-test"
