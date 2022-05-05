@@ -13,6 +13,7 @@ typedef struct {
   char *app_id;
   char *id;
   char *action;
+  GVariant *platform_data;
 } ActionData;
 
 static gboolean
@@ -23,16 +24,18 @@ invoke_action (gpointer data)
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
-  g_print ("emitting ActionInvoked\n");
-  xdp_dbus_impl_notification_emit_action_invoked (adata->impl,
-                                                  adata->app_id,
-                                                  adata->id,
-                                                  adata->action,
-                                                  g_variant_builder_end (&builder));
+  g_message ("emitting ActionInvoked2");
+  xdp_dbus_impl_notification_emit_action_invoked2 (adata->impl,
+                                                   adata->app_id,
+                                                   adata->id,
+                                                   adata->action,
+                                                   adata->platform_data,
+                                                   g_variant_builder_end (&builder));
 
   g_free (adata->app_id);
   g_free (adata->id);
   g_free (adata->action);
+  g_variant_unref (adata->platform_data);
   g_free (adata);
 
   return G_SOURCE_REMOVE;
@@ -70,11 +73,29 @@ handle_add_notification (XdpDbusImplNotification *object,
   delay = g_key_file_get_integer (keyfile, "backend", "delay", NULL);
   if (delay != 0)
     {
+      g_autofree char *platform_data_s = NULL;
+      g_autoptr(GVariant) platform_data = NULL;
       ActionData *data;
+
+      platform_data_s = g_key_file_get_string (keyfile, "notification", "platform_data", NULL);
+      if (platform_data_s)
+        {
+          platform_data = g_variant_parse (G_VARIANT_TYPE_VARDICT, platform_data_s, NULL, NULL, &error);
+          g_assert_no_error (error);
+        }
+      else
+        {
+          GVariantBuilder builder;
+
+          g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
+          platform_data = g_variant_ref_sink (g_variant_builder_end (&builder));
+        }
+
       data = g_new (ActionData, 1);
       data->impl = object;
       data->app_id = g_strdup (arg_app_id);
       data->id = g_strdup (arg_id);
+      data->platform_data = g_steal_pointer (&platform_data);
       data->action = g_key_file_get_string (keyfile, "notification", "action", NULL);
 
       g_timeout_add (delay, invoke_action, data);

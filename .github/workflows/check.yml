@@ -71,13 +71,21 @@ jobs:
           libglib2.0-dev \
           libjson-glib-dev \
           libpipewire-0.3-dev \
-          libportal-dev \
           libsystemd-dev \
           libtool \
           llvm \
           make \
           python3-gi \
           shared-mime-info
+
+    - name: Install libportal
+      run: |
+        git clone https://github.com/3v1n0/libportal.git -b activation-token
+        $RUN_CMD apt-get install -y --no-install-recommends meson
+        $RUN_CMD env -u CFLAGS meson libportal libportal/_build --prefix=/usr --libdir=lib \
+          $meson_options -Dbackends=[] -Dintrospection=false -Dvapi=false -Ddocs=false
+        $RUN_CMD ninja -C libportal/_build install
+        $RUN_CMD rm -rf libportal
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
@@ -181,7 +189,6 @@ jobs:
           libglib2.0-dev \
           libjson-glib-dev \
           libpipewire-0.3-dev \
-          libportal-dev \
           libsystemd-dev \
           libtool \
           llvm \
@@ -192,6 +199,15 @@ jobs:
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
+
+    - name: Install libportal
+      run: |
+        $RUN_CMD apt-get install -y --no-install-recommends meson git
+        $RUN_CMD git clone https://github.com/3v1n0/libportal.git -b activation-token
+        $RUN_CMD env -u CFLAGS meson libportal libportal/_build --prefix=/usr --libdir=lib \
+          $meson_options -Dbackends=[] -Dintrospection=false -Dvapi=false -Ddocs=false
+        $RUN_CMD ninja -C libportal/_build install
+        $RUN_CMD rm -rf libportal
 
     - name: Setup test user
       run: |
@@ -287,3 +303,4 @@ jobs:
 
     - name: Build xdg-desktop-portal
       run: make -j $(getconf _NPROCESSORS_ONLN)
+

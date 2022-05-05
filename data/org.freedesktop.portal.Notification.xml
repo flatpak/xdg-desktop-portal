@@ -167,6 +167,42 @@
       <arg type="s" name="action"/>
       <arg type="av" name="parameter"/>
     </signal>
+
+    <!--
+        ActionInvoked2:
+        @id: the application-provided ID for the notification
+        @action: the name of the action
+        @platform_data: array which will contain the platform data
+          such as desktop-startup-id.
+        @parameter: array which will contain the target parameter
+          for the action, if one was specified
+
+        Send to the application when a non-exported action is
+        activated.
+
+        Supported keys in the @platform_data vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>activation_token s</term>
+            <listitem>
+              <para>
+              A token that can be used to activate windows or applications
+              when action is invoked.
+              </para>
+              <para>
+              This can be either an X11-style startup ID or a Wayland
+              xdg-activation token.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <signal name="ActionInvoked2">
+      <arg type="s" name="id"/>
+      <arg type="s" name="action"/>
+      <arg type="a{sv}" name="platform_data"/>
+      <arg type="av" name="parameter"/>
+    </signal>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>

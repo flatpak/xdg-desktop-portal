@@ -14,15 +14,33 @@ static void
 notification_action_invoked (XdpPortal *portal,
                              const char *id,
                              const char *action,
+                             GVariant *platform_data,
                              GVariant *parameter,
                              gpointer data)
 {
   GKeyFile *keyfile = data;
+  g_autoptr(GVariant) exp_platform_data = NULL;
+  g_autoptr(GError) error = NULL;
   g_autofree char *exp_id = NULL;
   g_autofree char *exp_action = NULL;
+  g_autofree char *platform_data_s = NULL;
 
   exp_id = g_key_file_get_string (keyfile, "notification", "id", NULL);
   exp_action = g_key_file_get_string (keyfile, "notification", "action", NULL);
+  platform_data_s = g_key_file_get_string (keyfile, "notification", "platform_data", NULL);
+
+  if (platform_data_s)
+    {
+      exp_platform_data = g_variant_parse (G_VARIANT_TYPE_VARDICT,
+                                           platform_data_s, NULL, NULL, &error);
+      g_assert_no_error (error);
+      g_assert_true (g_variant_equal (platform_data, exp_platform_data));
+    }
+  else
+    {
+      g_assert_true (g_variant_is_of_type (platform_data, G_VARIANT_TYPE_VARDICT));
+      g_assert_cmpuint (g_variant_n_children (platform_data), ==, 0);
+    }
 
   g_assert_cmpstr (exp_id, ==, id);
   g_assert_cmpstr (exp_action, ==, action);
@@ -85,6 +103,7 @@ test_notification_buttons (void)
   g_autofree char *path = NULL;
   g_autoptr(GVariant) notification = NULL;
   const char *notification_s;
+  const char *platform_data_s;
   gulong id;
 
   notification_s = "{ 'title': <'test notification 2'>, "
@@ -100,6 +119,11 @@ test_notification_buttons (void)
 
   keyfile = g_key_file_new ();
 
+  platform_data_s = "{ 'activation_token': <'token-123'> }";
+  g_variant_unref (g_variant_parse (G_VARIANT_TYPE_VARDICT, platform_data_s, NULL, NULL, &error));
+  g_assert_no_error (error);
+
+  g_key_file_set_string (keyfile, "notification", "platform_data", platform_data_s);
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
