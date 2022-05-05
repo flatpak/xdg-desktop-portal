@@ -1,4 +1,0 @@
-[Test]
-Type=session
-Exec=/usr/local/libexec/installed-tests/xdg-desktop-portal/test-document-fuse.sh --tap
-Output=TAP

@@ -33,6 +33,7 @@
 
 #define PERMISSION_TABLE "notifications"
 #define PERMISSION_ID "notification"
+#define PERMISSION_RESIDENT_ID "resident"
 
 typedef struct _Notification Notification;
 typedef struct _NotificationClass NotificationClass;
@@ -132,23 +133,39 @@ add_done (GObject *source,
 }
 
 static gboolean
-get_notification_allowed (const char *app_id)
+check_permission (const char *app_id,
+                  const char *permission_id,
+                  Permission  default_value)
 {
   Permission permission;
 
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, permission_id);
 
   if (permission == PERMISSION_NO)
     return FALSE;
 
   if (permission == PERMISSION_UNSET)
     {
-      g_debug ("No notification permissions stored for %s: allowing", app_id);
+      g_debug ("No notifications '%s' permissions stored for %s: allowing",
+               app_id, permission_id);
 
-      set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, PERMISSION_YES);
+      permission = default_value;
+      set_permission_sync (app_id, PERMISSION_TABLE, permission_id, permission);
     }
 
-  return TRUE;
+  return permission == PERMISSION_YES;
+}
+
+static gboolean
+get_notification_allowed (const char *app_id)
+{
+  return check_permission (app_id, PERMISSION_ID, PERMISSION_YES);
+}
+
+static gboolean
+get_resident_notification_allowed (const char *app_id)
+{
+  return check_permission (app_id, PERMISSION_RESIDENT_ID, PERMISSION_YES);
 }
 
 static gboolean
@@ -194,7 +211,7 @@ static gboolean
 check_persistence (GVariant *value,
                    GError **error)
 {
-  const char *persistence[] = { "normal", "transient", NULL };
+  const char *persistence[] = { "normal", "transient", "resident", NULL };
 
   if (!check_value_type ("persistence", value, G_VARIANT_TYPE_STRING, error))
     return FALSE;
@@ -373,7 +390,8 @@ check_notification (GVariant *notification,
 }
 
 static GVariant *
-maybe_remove_icon (GVariant *notification)
+maybe_sanitize_notification (Request  *request,
+                             GVariant *notification)
 {
   GVariantBuilder n;
   int i;
@@ -385,6 +403,17 @@ maybe_remove_icon (GVariant *notification)
       g_autoptr(GVariant) value = NULL;
 
       g_variant_get_child (notification, i, "{&sv}", &key, &value);
+
+      if (g_str_equal (key, "persistence") &&
+          g_str_equal (g_variant_get_string (value, NULL), "resident"))
+        {
+          const char *app_id = xdp_app_info_get_id (request->app_info);
+
+          if (!xdp_app_info_is_host (request->app_info) &&
+              !get_resident_notification_allowed (app_id))
+            continue;
+        }
+
       if (strcmp (key, "icon") != 0 || xdp_validate_serialized_icon (value, FALSE, NULL, NULL))
         g_variant_builder_add (&n, "{sv}", key, value);
     }
@@ -412,7 +441,7 @@ handle_add_in_thread_func (GTask *task,
   id = (const char *)g_object_get_data (G_OBJECT (request), "id");
   notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
 
-  notification2 = maybe_remove_icon (notification);
+  notification2 = maybe_sanitize_notification (request, notification);
   xdp_dbus_impl_notification_call_add_notification (impl,
                                                     xdp_app_info_get_id (request->app_info),
                                                     id,

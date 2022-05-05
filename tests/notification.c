@@ -123,6 +123,51 @@ test_notification_persistence_transient (void)
 }
 
 void
+test_notification_persistence_resident (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GVariant) notification = NULL;
+  const char *notification_s;
+  gulong id;
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'body': <'test notification body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'persistence': <'resident'>, "
+                   "  'default-action': <'test-action'> }";
+
+  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, NULL);
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile, "notification", "data", notification_s);
+  g_key_file_set_string (keyfile, "notification", "id", "test");
+  g_key_file_set_string (keyfile, "notification", "action", "test-action");
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+
+  path = g_build_filename (outdir, "notification", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
+
+  got_info = 0;
+  xdp_portal_add_notification (portal, "test", notification, 0, NULL, NULL, NULL);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
+  g_signal_handler_disconnect (portal, id);
+
+  xdp_portal_remove_notification (portal, "test");
+}
+
+void
 test_notification_buttons (void)
 {
   g_autoptr(XdpPortal) portal = NULL;

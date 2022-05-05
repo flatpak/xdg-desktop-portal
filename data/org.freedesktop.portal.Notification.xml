@@ -98,7 +98,7 @@
             <term>persistence s</term>
             <listitem><para>
               The persistence of the notification, if server supports it.
-              Supported values: normal, transient.
+              Supported values: normal, transient, resident.
             </para></listitem>
           </varlistentry>
           <varlistentry>
