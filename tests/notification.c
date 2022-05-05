@@ -263,7 +263,7 @@ test_notification_bad_arg (void)
   portal = xdp_portal_new ();
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test3", notification, 0, NULL, notification_fail, NULL);
+  xdp_portal_add_notification (portal, "test2", notification, 0, NULL, notification_fail, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
