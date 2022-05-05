@@ -81,7 +81,8 @@ jobs:
           libtool \
           llvm \
           make \
-          shared-mime-info
+          shared-mime-info \
+          python3-gi
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
