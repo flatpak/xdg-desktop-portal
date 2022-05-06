@@ -55,6 +55,15 @@ cleanup () {
 }
 trap cleanup EXIT
 
+ITERATIONS=3
+PARALLEL_TESTS=20
+PARALLEL_ITERATIONS=10
+
+if [ -n "$TEST_IN_CI" ]; then
+    PARALLEL_TESTS=10
+    PARALLEL_ITERATIONS=5
+fi
+
 sed "s#@testdir@#${test_builddir}#" "${test_srcdir}/session.conf.in" > session.conf
 
 dbus-daemon --fork --config-file=session.conf --print-address=3 --print-pid=4 \
@@ -76,14 +85,14 @@ fi
 
 # First run a basic single-thread test
 echo Testing single-threaded
-"${test_srcdir}/test-document-fuse.py" --iterations 3 -v
+"${test_srcdir}/test-document-fuse.py" --iterations ${ITERATIONS} -v
 echo "ok single-threaded"
 
 # Then a bunch of copies in parallel to stress-test
 echo Testing in parallel
 PIDS=()
-for i in $(seq 20); do
-    "${test_srcdir}/test-document-fuse.py" --iterations 10 --prefix "$i" &
+for i in $(seq ${PARALLEL_TESTS}); do
+    "${test_srcdir}/test-document-fuse.py" --iterations ${PARALLEL_ITERATIONS} --prefix "$i" &
     PID="$!"
     PIDS+=( "$PID" )
 done
