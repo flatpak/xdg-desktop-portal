@@ -588,6 +588,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/background/reason", test_background_reason);
 
   g_test_add_func ("/portal/notification/basic", test_notification_basic);
+  g_test_add_func ("/portal/notification/action-invocation-v1", test_notification_action_invocation_v1);
   g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
   g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);

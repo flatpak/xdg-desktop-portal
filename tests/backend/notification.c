@@ -13,6 +13,7 @@ typedef struct {
   char *app_id;
   char *id;
   char *action;
+  gint force_version;
   GVariant *platform_data;
 } ActionData;
 
@@ -24,13 +25,25 @@ invoke_action (gpointer data)
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("av"));
 
-  g_message ("emitting ActionInvoked2");
-  xdp_dbus_impl_notification_emit_action_invoked2 (adata->impl,
-                                                   adata->app_id,
-                                                   adata->id,
-                                                   adata->action,
-                                                   adata->platform_data,
-                                                   g_variant_builder_end (&builder));
+  if (adata->force_version == 1)
+    {
+      g_message ("emitting ActionInvoked");
+      xdp_dbus_impl_notification_emit_action_invoked (adata->impl,
+                                                      adata->app_id,
+                                                      adata->id,
+                                                      adata->action,
+                                                      g_variant_builder_end (&builder));
+    }
+  else
+    {
+      g_message ("emitting ActionInvoked2");
+      xdp_dbus_impl_notification_emit_action_invoked2 (adata->impl,
+                                                       adata->app_id,
+                                                       adata->id,
+                                                       adata->action,
+                                                       adata->platform_data,
+                                                       g_variant_builder_end (&builder));
+    }
 
   g_free (adata->app_id);
   g_free (adata->id);
@@ -97,6 +110,7 @@ handle_add_notification (XdpDbusImplNotification *object,
       data->id = g_strdup (arg_id);
       data->platform_data = g_steal_pointer (&platform_data);
       data->action = g_key_file_get_string (keyfile, "notification", "action", NULL);
+      data->force_version = g_key_file_get_integer (keyfile, "notification", "force-version", NULL);
 
       g_timeout_add (delay, invoke_action, data);
     }
