@@ -56,6 +56,7 @@ register_document (const char *uri,
                    gboolean for_save,
                    gboolean writable,
                    gboolean directory,
+                   gboolean deletable,
                    GError **error)
 {
   g_autofree char *doc_id = NULL;
@@ -104,6 +105,8 @@ register_document (const char *uri,
   if (writable || for_save)
     permissions[i++] = "write";
   permissions[i++] = "grant-permissions";
+  if (deletable)
+    permissions[i++] = "delete";
   permissions[i++] = NULL;
 
   version = xdp_dbus_documents_get_version (documents);
