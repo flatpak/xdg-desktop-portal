@@ -29,6 +29,7 @@ char *register_document (const char *uri,
                          gboolean for_save,
                          gboolean writable,
                          gboolean directory,
+                         gboolean deletable,
                          GError **error);
 
 char *get_real_path_for_doc_path (const char *path,

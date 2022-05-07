@@ -258,7 +258,7 @@ launch_application_with_uri (const char *choice_id,
 
       g_debug ("Registering %s for %s", uri, choice_id);
 
-      ruri = register_document (uri, choice_id, FALSE, writable, FALSE, &local_error);
+      ruri = register_document (uri, choice_id, FALSE, writable, FALSE, FALSE, &local_error);
       if (ruri == NULL)
         {
           g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);
