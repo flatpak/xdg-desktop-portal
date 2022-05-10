@@ -32,7 +32,7 @@ Different backends are available see:
 
 - GTK [xdg-desktop-portal-gtk](http://github.com/flatpak/xdg-desktop-portal-gtk)
 - GNOME [xdg-desktop-portal-gnome](https://gitlab.gnome.org/GNOME/xdg-desktop-portal-gnome/)
-- KDE [xdg-desktop-portal-kde](https://github.com/KDE/xdg-desktop-portal-kde)
+- KDE [xdg-desktop-portal-kde](https://invent.kde.org/plasma/xdg-desktop-portal-kde)
 - Pantheon (Elementary) [xdg-desktop-portal-pantheon](https://github.com/elementary/portals)
 - wlroots [xdg-desktop-portal-wlr](https://github.com/emersion/xdg-desktop-portal-wlr)
 
