@@ -26,6 +26,55 @@
 
 static XdpDbusImplPermissionStore *permission_store = NULL;
 
+static gboolean
+maybe_check_base_snap_permissions (const char   *app_id,
+                                   const char   *table,
+                                   const char   *id,
+                                   char       ***out_permissions)
+{
+  const char *app_name_part;
+
+  /* We used to check permissions for the base snap, so if those were granted
+   * already we should just return those, migrating to the new name.
+   * But we do it only for the main application.
+   */
+  if (g_str_has_prefix (app_id, "snap.") &&
+      (app_name_part = strrchr (app_id, '_')))
+    {
+      g_autofree char *base_app_id = NULL;
+      const char *app_name = app_name_part + 1;
+      size_t app_name_part_len = strlen (app_name_part);
+      size_t app_len;
+
+      if (app_name_part_len < 2)
+        return FALSE;
+
+      app_len = strlen (app_id) - app_name_part_len;
+      if (!app_len)
+        return FALSE;
+
+      g_assert (strchr (app_id, '_') == app_name_part);
+      base_app_id = g_strndup (app_id, app_len);
+
+      if (!g_str_equal (app_name, base_app_id + strlen ("snap.")))
+        return FALSE;
+
+      *out_permissions = get_permissions_sync (base_app_id, table, id);
+
+      if (*out_permissions)
+        {
+          static const char **empty = { NULL };
+
+          set_permissions_sync (app_id, table, id, *out_permissions);
+          set_permissions_sync (base_app_id, table, id, empty);
+        }
+
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
 char **
 get_permissions_sync (const char *app_id,
                       const char *table,
@@ -46,12 +95,19 @@ get_permissions_sync (const char *app_id,
     {
       g_dbus_error_strip_remote_error (error);
       g_debug ("No '%s' permissions found: %s", table, error->message);
+
+      if (maybe_check_base_snap_permissions (app_id, table, id, &permissions))
+          return g_steal_pointer (&permissions);
+
       return NULL;
     }
 
   if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
     {
       g_debug ("No permissions stored for: %s %s, app %s", table, id, app_id);
+
+      if (maybe_check_base_snap_permissions (app_id, table, id, &permissions))
+          return g_steal_pointer (&permissions);
 
       return NULL;
     }
@@ -142,12 +198,13 @@ get_permission_sync (const char *app_id,
                      const char *id)
 {
   g_auto(GStrv) perms = NULL;
+  Permission ret = PERMISSION_UNSET;
 
   perms = get_permissions_sync (app_id, table, id);
   if (perms)
-    return permissions_to_tristate (perms);
+    ret = permissions_to_tristate (perms);
 
-  return PERMISSION_UNSET;
+  return ret;
 }
 
 void set_permission_sync (const char *app_id,
