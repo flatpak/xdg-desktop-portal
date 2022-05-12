@@ -394,6 +394,44 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
 
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
     }
+  else if (app_info->kind == XDP_APP_INFO_KIND_SNAP)
+    {
+      g_autofree char *instance_name = NULL;
+      g_autofree char *app_name = NULL;
+
+      args = g_ptr_array_new_with_free_func (g_free);
+
+      g_ptr_array_add (args, g_strdup ("snap"));
+      g_ptr_array_add (args, g_strdup ("run"));
+
+      if (commandline && commandline[0])
+        g_ptr_array_add (args, g_strdup ("--shell"));
+
+      instance_name = g_key_file_get_string (app_info->u.snap.keyfile,
+                                             SNAP_METADATA_GROUP_INFO,
+                                             SNAP_METADATA_KEY_INSTANCE_NAME,
+                                             NULL);
+      app_name = g_key_file_get_string (app_info->u.snap.keyfile,
+                                        SNAP_METADATA_GROUP_INFO,
+                                        SNAP_METADATA_KEY_APP_NAME,
+                                        NULL);
+
+      g_ptr_array_add (args, g_strdup_printf ("%s.%s", instance_name, app_name));
+
+      if (commandline && commandline[0])
+        {
+          g_autofree char *joined_commands = NULL;
+
+          g_ptr_array_add (args, g_strdup ("-c"));
+
+          joined_commands = g_strjoinv (" ", (GStrv) commandline);
+          g_ptr_array_add (args, g_shell_quote (joined_commands));
+        }
+
+      g_ptr_array_add (args, NULL);
+
+      return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
+    }
   else
     return NULL;
 }
