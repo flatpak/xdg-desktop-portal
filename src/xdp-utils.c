@@ -775,6 +775,7 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   g_autoptr(GKeyFile) metadata = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autofree char *snap_name = NULL;
+  g_autofree char *app_name = NULL;
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
   if (!pid_is_snap (pid, error)) return NULL;
@@ -801,8 +802,15 @@ parse_app_info_from_snap (pid_t pid, GError **error)
       return NULL;
     }
 
+  app_name = g_key_file_get_string (metadata, SNAP_METADATA_GROUP_INFO,
+                                    SNAP_METADATA_KEY_APP_NAME, error);
+  if (app_name == NULL)
+    {
+      return NULL;
+    }
+
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
-  app_info->id = g_strconcat ("snap.", snap_name, NULL);
+  app_info->id = g_strconcat ("snap.", snap_name, "_", app_name, NULL);
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
 
   return g_steal_pointer (&app_info);
