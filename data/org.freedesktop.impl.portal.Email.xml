@@ -81,6 +81,12 @@
               The uris for files to attach.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>activation_token s</term>
+            <listitem><para>
+              A token that can be used to activate the chosen application.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="ComposeEmail">

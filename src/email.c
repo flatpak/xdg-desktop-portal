@@ -192,7 +192,8 @@ static XdpOptionKey compose_email_options[] = {
   { "cc", G_VARIANT_TYPE_STRING_ARRAY, validate_email_addresses },
   { "bcc", G_VARIANT_TYPE_STRING_ARRAY, validate_email_addresses },
   { "subject", G_VARIANT_TYPE_STRING, validate_email_subject },
-  { "body", G_VARIANT_TYPE_STRING, NULL }
+  { "body", G_VARIANT_TYPE_STRING, NULL },
+  { "activation_token", G_VARIANT_TYPE_STRING, NULL },
 };
 
 static gboolean
@@ -301,7 +302,7 @@ email_iface_init (XdpDbusEmailIface *iface)
 static void
 email_init (Email *email)
 {
-  xdp_dbus_email_set_version (XDP_DBUS_EMAIL (email), 3);
+  xdp_dbus_email_set_version (XDP_DBUS_EMAIL (email), 4);
 }
 
 static void
