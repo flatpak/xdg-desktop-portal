@@ -20,7 +20,7 @@ def portal_has_impl():
 
 class TestEmail:
     def test_version(self, portal_mock):
-        portal_mock.check_version(3)
+        portal_mock.check_version(4)
 
     def test_email_basic(self, portal_mock):
         addresses = ["mclasen@redhat.com"]
