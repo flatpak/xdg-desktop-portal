@@ -1751,7 +1751,7 @@ lookup_ns_from_pid_fd (int    pid_fd,
   struct stat st;
   int r;
 
-  g_return_val_if_fail (ns != NULL, FALSE);
+  g_return_val_if_fail (ns != NULL, -1);
 
   r = fstatat (pid_fd, "ns/pid", &st, 0);
   if (r == -1)
