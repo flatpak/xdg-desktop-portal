@@ -2078,8 +2078,6 @@ xdp_app_info_get_child_pid (JsonNode *root,
   return pid;
 }
 
-#define xdp_lockguard G_GNUC_UNUSED __attribute__((cleanup(xdp_auto_unlock_helper)))
-
 static gboolean
 xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
                            DIR         *proc,
