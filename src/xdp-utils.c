@@ -2349,3 +2349,67 @@ xdp_validate_serialized_icon (GVariant  *v,
 
   return TRUE;
 }
+
+GVariant *
+xdp_transform_remote_uris_into_local (GVariant *options)
+{
+  GVariantBuilder out_options;
+  GVariantBuilder uri_list;
+  GVariant *odata = NULL;
+  GVariant *name = NULL;
+  GVariant *uri_value = NULL;
+  GVariant *uris = NULL;
+  GVariant *uri = NULL;
+  gchar *pathtext = NULL;
+  GFile *urifile = NULL;
+  GVfs *gvfs;
+  gchar *uritext = NULL;
+  GString *uristring = NULL;
+  int i, j;
+
+  gvfs = g_vfs_get_default();
+  g_variant_builder_init (&out_options, (const GVariantType *)"a{sv}");
+  g_variant_builder_init (&uri_list, (const GVariantType *)"as");
+  for (i=0; i < g_variant_n_children(options); i ++)
+    {
+      odata = g_variant_get_child_value(options, i);
+      name = g_variant_get_child_value (odata, 0);
+      if (0 != g_strcmp0 ("uris", g_variant_get_string (name, NULL)))
+        {
+          g_variant_builder_add_value (&out_options, odata);
+        }
+      else
+        {
+          uri_value = g_variant_get_child_value (odata, 1);
+          uris = g_variant_get_child_value (uri_value, 0);
+          g_variant_unref (uri_value);
+          for (j=0; j < g_variant_n_children(uris); j++) {
+            uri = g_variant_get_child_value (uris, j);
+            uritext = (gchar *)g_variant_get_string(uri, NULL);
+            if (!g_str_has_prefix (uritext, "file://"))
+              {
+                urifile = g_vfs_get_file_for_uri (gvfs, uritext);
+                pathtext = g_file_get_path (urifile);
+                if (pathtext != NULL)
+                  {
+                    g_variant_unref (uri);
+                    uristring = g_string_new ("");
+                    g_string_printf (uristring, "file://%s", pathtext);
+                    g_free (pathtext);
+                    uri = g_variant_new_string (uristring->str);
+                    g_string_free (uristring, TRUE);
+                  }
+              }
+            g_variant_builder_add_value (&uri_list, uri);
+          }
+          g_variant_unref (uris);
+          uris = g_variant_builder_end (&uri_list);
+          uri_value = g_variant_new ("{sv}", "uris", uris);
+          g_variant_builder_add_value (&out_options, uri_value);
+        }
+      g_variant_unref (name);
+      g_variant_unref (odata);
+    }
+
+  return g_variant_builder_end (&out_options);;
+}

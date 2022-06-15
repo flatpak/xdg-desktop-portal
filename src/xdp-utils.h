@@ -196,6 +196,10 @@ gboolean  xdp_has_path_prefix (const char *str,
 /* exposed for the benefit of tests */
 int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
+
+GVariant *
+xdp_transform_remote_uris_into_local (GVariant *options);
+
 #ifdef HAVE_LIBSYSTEMD
 char *_xdp_parse_app_id_from_unit_name (const char *unit);
 #endif

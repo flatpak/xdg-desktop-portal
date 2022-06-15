@@ -152,6 +152,7 @@ open_file_done (GObject *source,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
+  g_autoptr(GVariant) new_options = NULL;
 
   if (!xdp_dbus_impl_file_chooser_call_open_file_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
                                                          &response,
@@ -161,6 +162,12 @@ open_file_done (GObject *source,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
+    }
+  else
+    {
+      new_options = xdp_transform_remote_uris_into_local (options);
+      g_variant_unref (options);
+      options = g_variant_ref (new_options);
     }
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
@@ -542,6 +549,7 @@ save_file_done (GObject *source,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
+  g_autoptr(GVariant) new_options = NULL;
 
   if (!xdp_dbus_impl_file_chooser_call_save_file_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
                                                          &response,
@@ -551,6 +559,12 @@ save_file_done (GObject *source,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
+    }
+  else
+    {
+      new_options = xdp_transform_remote_uris_into_local (options);
+      g_variant_unref (options);
+      options = g_variant_ref (new_options);
     }
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
@@ -649,6 +663,7 @@ save_files_done (GObject *source,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
+  g_autoptr(GVariant) new_options = NULL;
 
   if (!xdp_dbus_impl_file_chooser_call_save_files_finish (XDP_DBUS_IMPL_FILE_CHOOSER (source),
                                                           &response,
@@ -658,6 +673,12 @@ save_files_done (GObject *source,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
+    }
+  else
+    {
+      new_options = xdp_transform_remote_uris_into_local (options);
+      g_variant_unref (options);
+      options = g_variant_ref (new_options);
     }
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
