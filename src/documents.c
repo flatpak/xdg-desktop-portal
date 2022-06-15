@@ -61,6 +61,7 @@ register_document (const char *uri,
   g_autofree char *doc_id = NULL;
   g_auto(GStrv) doc_ids = NULL;
   g_autofree char *path = NULL;
+  g_autofree char *translated_uri = NULL;
   g_autofree char *basename = NULL;
   g_autofree char *dirname = NULL;
   GUnixFDList *fd_list = NULL;
@@ -78,6 +79,15 @@ register_document (const char *uri,
 
   file = g_file_new_for_uri (uri);
   path = g_file_get_path (file);
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
+  if (path == NULL)
+    {
+      g_object_unref (file);
+      translated_uri = xdp_transform_remote_uri_into_local (uri);
+      file = g_file_new_for_uri (translated_uri);
+      path = g_file_get_path (file);
+    }
+#endif
   basename = g_path_get_basename (path);
   dirname = g_path_get_dirname (path);
 

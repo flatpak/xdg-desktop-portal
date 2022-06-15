@@ -2349,3 +2349,67 @@ xdp_validate_serialized_icon (GVariant  *v,
 
   return TRUE;
 }
+
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
+gchar *
+xdp_transform_remote_uri_into_local (const gchar *uri)
+{
+  gchar *pathtext = NULL;
+  gchar *uristring = NULL;
+  gchar *fuse_mountpoint = NULL;
+  GUri *file_uri = NULL;
+  GString *gvfs_folder = NULL;
+
+  file_uri = g_uri_parse (uri, G_URI_FLAGS_NONE, NULL);
+  if (file_uri == NULL)
+    {
+      return g_strdup(uri);
+    }
+  if ((0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file")) &&
+      (g_uri_get_host (file_uri) != NULL))
+    {
+      if (g_get_user_runtime_dir() == g_get_user_cache_dir ())
+        fuse_mountpoint = g_build_filename (g_get_home_dir(), ".gvfs", NULL);
+      else
+        fuse_mountpoint = g_build_filename (g_get_user_runtime_dir(), "gvfs", NULL);
+      gvfs_folder = g_string_new ("");
+      g_string_printf (gvfs_folder,
+                       "%s:host=%s",
+                       g_uri_get_scheme (file_uri),
+                       g_uri_get_host (file_uri));
+      if (g_uri_get_port (file_uri) != -1)
+        {
+          g_string_append_printf (gvfs_folder,
+                                  ",port=%d",
+                                  g_uri_get_port (file_uri));
+        }
+      if (g_uri_get_user (file_uri) != NULL)
+        {
+          g_string_append_printf (gvfs_folder,
+                                  ",user=%s",
+                                  g_uri_get_user (file_uri));
+        }
+      pathtext = g_build_filename (fuse_mountpoint,
+                                   gvfs_folder->str,
+                                   g_uri_get_path (file_uri),
+                                   NULL);
+      g_string_free (gvfs_folder, TRUE);
+      uristring = g_uri_join (G_URI_FLAGS_NONE,
+                              "file",
+                              NULL,
+                              NULL,
+                              -1,
+                                pathtext,
+                              NULL,
+                              NULL);
+      g_free (pathtext);
+    }
+  else
+    {
+      uristring = g_strdup (uri);
+    }
+  g_uri_unref (file_uri);
+
+  return uristring;
+}
+#endif
