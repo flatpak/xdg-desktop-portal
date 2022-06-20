@@ -12,6 +12,7 @@
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include "glib-backports.h"
 #include "document-portal-dbus.h"
 #include "document-store.h"
 #include "src/xdp-utils.h"
@@ -1606,6 +1607,8 @@ main (int    argc,
   GDBusConnection *session_bus;
   g_autoptr(GOptionContext) context = NULL;
   GDBusMethodInvocation *invocation;
+
+  g_log_writer_default_set_use_stderr (TRUE);
 
   setlocale (LC_ALL, "");
 

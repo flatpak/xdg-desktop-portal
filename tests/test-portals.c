@@ -453,6 +453,8 @@ main (int argc, char **argv)
 {
   int res;
 
+  g_log_writer_default_set_use_stderr (TRUE);
+
   setlocale (LC_ALL, NULL);
 
   g_test_init (&argc, &argv, NULL);

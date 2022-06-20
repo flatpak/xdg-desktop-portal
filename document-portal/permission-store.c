@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <gio/gio.h>
+#include "glib-backports.h"
 #include "permission-store-dbus.h"
 #include "xdg-permission-store.h"
 
@@ -90,6 +91,8 @@ main (int    argc,
   GMainLoop *loop;
   GOptionContext *context;
   g_autoptr(GError) error = NULL;
+
+  g_log_writer_default_set_use_stderr (TRUE);
 
   setlocale (LC_ALL, "");
 
