@@ -76,7 +76,7 @@ xdg_permission_store_SOURCES = \
 	$(NULL)
 
 xdg_permission_store_LDADD = $(AM_LDADD) $(BASE_LIBS) $(SYSTEMD_LIBS)
-xdg_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
+xdg_permission_store_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal -I$(srcdir)/src
 
 nodist_xdg_document_portal_SOURCES = \
 	$(nodist_xdg_permission_store_SOURCES) \
@@ -105,4 +105,4 @@ xdg_document_portal_SOURCES = \
 	$(NULL)
 
 xdg_document_portal_LDADD = $(AM_LDADD) $(BASE_LIBS) $(FUSE3_LIBS) $(SYSTEMD_LIBS)
-xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE3_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal
+xdg_document_portal_CFLAGS = $(AM_CFLAGS) $(BASE_CFLAGS)  $(FUSE3_CFLAGS) $(SYSTEMD_CFLAGS) -I$(srcdir)/document-portal -I$(builddir)/document-portal -I$(srcdir)/src

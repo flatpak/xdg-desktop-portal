@@ -51,3 +51,14 @@ guint g_string_replace (GString     *string,
                         const gchar *replace,
                         guint        limit);
 #endif
+
+#if !GLIB_CHECK_VERSION (2, 68, 0)
+static void
+g_log_writer_default_set_use_stderr (gboolean use_stderr)
+{
+  /* Does nothing because outside of the tests we don't really care that it
+   * doesn't work correctly after this call and those tests can run on newer
+   * GLibs
+   */
+}
+#endif

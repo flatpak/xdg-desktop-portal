@@ -700,6 +700,8 @@ global_setup (void)
       return;
     }
 
+  g_log_writer_default_set_use_stderr (TRUE);
+
   g_mkdtemp (outdir);
   g_debug ("outdir: %s\n", outdir);
 

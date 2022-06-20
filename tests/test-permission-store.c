@@ -663,6 +663,7 @@ main (int argc, char **argv)
 {
   int res;
 
+  g_log_writer_default_set_use_stderr (TRUE);
   g_test_init (&argc, &argv, NULL);
 
   g_test_add_func ("/permissions/version", test_version);

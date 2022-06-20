@@ -103,6 +103,8 @@ main (int argc, char *argv[])
   g_autoptr(GDBusConnection) session_bus = NULL;
   g_autoptr(GOptionContext) context = NULL;
 
+  g_log_writer_default_set_use_stderr (TRUE);
+
   g_setenv ("GIO_USE_VFS", "local", TRUE);
 
   g_set_prgname (argv[0]);
