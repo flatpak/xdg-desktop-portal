@@ -2395,7 +2395,8 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                 g_variant_builder_add_value (&out_options, odata);
                 continue;
               }
-            if (0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file"))
+            if ((0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file")) &&
+                (g_uri_get_host (file_uri) != NULL))
               {
                 if (fuse_mountpoint == NULL)
                   {
@@ -2425,7 +2426,6 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                                              gvfs_folder->str,
                                              g_uri_get_path (file_uri),
                                              NULL);
-                g_uri_unref (file_uri);
                 g_string_free (gvfs_folder, TRUE);
                 uristring = g_uri_join (G_URI_FLAGS_NONE,
                                         "file",
@@ -2439,6 +2439,7 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                 uri_variant = g_variant_new_string (uristring);
                 g_free (uristring);
               }
+            g_uri_unref (file_uri);
             g_variant_builder_add_value (&uri_list, uri_variant);
           }
           g_variant_unref (uris);
