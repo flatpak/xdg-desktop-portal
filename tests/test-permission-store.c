@@ -676,9 +676,9 @@ main (int argc, char **argv)
   g_test_add_func ("/permissions/create1", test_create1);
   g_test_add_func ("/permissions/create2", test_create2);
   g_test_add_func ("/permissions/set-value", test_set_value);
-  g_test_add_func ("/permissions/get-pemission1", test_get_permission1);
-  g_test_add_func ("/permissions/get-pemission2", test_get_permission2);
-  g_test_add_func ("/permissions/get-pemission3", test_get_permission3);
+  g_test_add_func ("/permissions/get-permission1", test_get_permission1);
+  g_test_add_func ("/permissions/get-permission2", test_get_permission2);
+  g_test_add_func ("/permissions/get-permission3", test_get_permission3);
 
   global_setup ();
 
