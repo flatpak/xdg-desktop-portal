@@ -2426,7 +2426,6 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                                              g_uri_get_path (file_uri),
                                              NULL);
                 g_uri_unref (file_uri);
-                g_free (fuse_mountpoint);
                 g_string_free (gvfs_folder, TRUE);
                 uristring = g_uri_join (G_URI_FLAGS_NONE,
                                         "file",
@@ -2450,6 +2449,7 @@ xdp_transform_remote_uris_into_local (GVariant *options)
       g_variant_unref (name);
       g_variant_unref (odata);
     }
+  g_free (fuse_mountpoint);
 
   return g_variant_builder_end (&out_options);;
 }
