@@ -145,16 +145,6 @@ jobs:
       BUILDDIR: builddir
 
     steps:
-    - name: Prepare environment
-      id: env-setup
-      run: |
-        if [ "${{ matrix.sanitizer }}" == "address" ]; then
-          echo "::set-output name=cflags::$BASE_CFLAGS" \
-            "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address";
-        else
-          echo "::set-output name=cflags::$BASE_CFLAGS";
-        fi
-
     - name: Prepare container
       run: |
         docker run --name $BUILD_CONTAINER \
@@ -209,7 +199,10 @@ jobs:
         $RUN_CMD chown tester:tester . -R
 
     - name: Configure xdg-desktop-portal with meson
-      run: $RUN_CMD $AS_USER meson setup ${BUILDDIR} -Dinstalled-tests=true
+      run: |
+        $RUN_CMD $AS_USER meson setup ${BUILDDIR} $MESON_OPTIONS
+      env:
+        MESON_OPTIONS: -Dinstalled-tests=true -Db_sanitize=${{ matrix.sanitizer }}
 
     - name: Build xdg-desktop-portal with meson
       run: $RUN_CMD $AS_USER meson compile -C ${BUILDDIR}
