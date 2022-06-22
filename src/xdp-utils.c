@@ -2350,6 +2350,7 @@ xdp_validate_serialized_icon (GVariant  *v,
   return TRUE;
 }
 
+
 GVariant *
 xdp_transform_remote_uris_into_local (GVariant *options)
 {
@@ -2359,15 +2360,17 @@ xdp_transform_remote_uris_into_local (GVariant *options)
   GVariant *name = NULL;
   GVariant *uri_value = NULL;
   GVariant *uris = NULL;
-  GVariant *uri = NULL;
+  GVariant *uri_variant = NULL;
   gchar *pathtext = NULL;
-  GFile *urifile = NULL;
-  GVfs *gvfs;
+  GFile *filelocal = NULL;
   gchar *uritext = NULL;
-  GString *uristring = NULL;
+  gchar *uristring = NULL;
+  gchar *fuse_mountpoint = NULL;
+  GUri *file_uri = NULL;
+  GString *gvfs_folder = NULL;
   int i, j;
+  GError *error = NULL;
 
-  gvfs = g_vfs_get_default();
   g_variant_builder_init (&out_options, (const GVariantType *)"a{sv}");
   g_variant_builder_init (&uri_list, (const GVariantType *)"as");
   for (i=0; i < g_variant_n_children(options); i ++)
@@ -2384,23 +2387,62 @@ xdp_transform_remote_uris_into_local (GVariant *options)
           uris = g_variant_get_child_value (uri_value, 0);
           g_variant_unref (uri_value);
           for (j=0; j < g_variant_n_children(uris); j++) {
-            uri = g_variant_get_child_value (uris, j);
-            uritext = (gchar *)g_variant_get_string(uri, NULL);
-            if (!g_str_has_prefix (uritext, "file://"))
+            uri_variant = g_variant_get_child_value (uris, j);
+            uritext = (gchar *)g_variant_get_string(uri_variant, NULL);
+            file_uri = g_uri_parse (uritext, G_URI_FLAGS_NONE, &error);
+            if (file_uri == NULL)
               {
-                urifile = g_vfs_get_file_for_uri (gvfs, uritext);
-                pathtext = g_file_get_path (urifile);
-                if (pathtext != NULL)
-                  {
-                    g_variant_unref (uri);
-                    uristring = g_string_new ("");
-                    g_string_printf (uristring, "file://%s", pathtext);
-                    g_free (pathtext);
-                    uri = g_variant_new_string (uristring->str);
-                    g_string_free (uristring, TRUE);
-                  }
+                g_variant_builder_add_value (&out_options, odata);
+                g_variant_unref (uri_variant);
+                continue;
               }
-            g_variant_builder_add_value (&uri_list, uri);
+#if 1
+            if (0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file"))
+              {
+                if (fuse_mountpoint == NULL)
+                  {
+                    if (g_get_user_runtime_dir() == g_get_user_cache_dir ())
+                      fuse_mountpoint = g_build_filename (g_get_home_dir(), ".gvfs", NULL);
+                    else
+                      fuse_mountpoint = g_build_filename (g_get_user_runtime_dir(), "gvfs", NULL);
+                  }
+                gvfs_folder = g_string_new (fuse_mountpoint);
+                g_string_append_printf (gvfs_folder,
+                                 "/%s:host=%s",
+                                 g_uri_get_scheme (file_uri),
+                                 g_uri_get_host (file_uri));
+                if (g_uri_get_port (file_uri) != -1)
+                  {
+                    g_string_append_printf (gvfs_folder,
+                                            ",port=%d",
+                                            g_uri_get_port (file_uri));
+                  }
+                if (g_uri_get_user (file_uri) != NULL)
+                  {
+                    g_string_append_printf (gvfs_folder,
+                                            ",user=%s",
+                                            g_uri_get_user (file_uri));
+                  }
+                pathtext = g_uri_get_path (file_uri);
+                if (pathtext[0] == '/')
+                  {
+                    g_string_append (gvfs_folder, pathtext);
+                  }
+                else
+                  {
+                    g_string_append_printf (gvfs_folder,
+                                            "/%s",
+                                            pathtext);
+                  }
+                g_variant_unref (uri_variant);
+                filelocal = g_file_new_for_path (gvfs_folder->str);
+                g_string_free (gvfs_folder, TRUE);
+                uristring = g_file_get_uri (filelocal);
+                uri_variant = g_variant_new_string (uristring);
+                g_free (uristring);
+              }
+#endif
+            g_variant_builder_add_value (&uri_list, uri_variant);
           }
           g_variant_unref (uris);
           uris = g_variant_builder_end (&uri_list);

@@ -377,6 +377,8 @@ main (int argc, char *argv[])
   /* Note: if you add any more environment variables here, update
    * handle_launch() in dynamic-launcher.c to unset them before launching apps
    */
+  /* Avoid even loading gvfs to avoid accidental confusion */
+  g_setenv ("GIO_USE_VFS", "local", TRUE);
 
   /* Avoid pointless and confusing recursion */
   g_unsetenv ("GTK_USE_PORTAL");
