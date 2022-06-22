@@ -16,7 +16,7 @@ jobs:
         sanitizer: ['address']
         include:
           - compiler: gcc
-            sanitizer: ['thread']
+            sanitizer: 'thread'
 
     env:
       UBUNTU_VERSION: impish
