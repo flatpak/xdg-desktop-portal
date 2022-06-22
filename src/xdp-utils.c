@@ -2350,7 +2350,7 @@ xdp_validate_serialized_icon (GVariant  *v,
   return TRUE;
 }
 
-
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
 GVariant *
 xdp_transform_remote_uris_into_local (GVariant *options)
 {
@@ -2421,7 +2421,10 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                                             ",user=%s",
                                             g_uri_get_user (file_uri));
                   }
-                pathtext = g_build_filename (fuse_mountpoint, gvfs_folder->str, g_uri_get_path (file_uri), NULL);
+                pathtext = g_build_filename (fuse_mountpoint,
+                                             gvfs_folder->str,
+                                             g_uri_get_path (file_uri),
+                                             NULL);
                 g_uri_unref (file_uri);
                 g_free (fuse_mountpoint);
                 g_string_free (gvfs_folder, TRUE);
@@ -2450,3 +2453,4 @@ xdp_transform_remote_uris_into_local (GVariant *options)
 
   return g_variant_builder_end (&out_options);;
 }
+#endif

@@ -163,12 +163,14 @@ open_file_done (GObject *source,
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
   else
     {
       new_options = xdp_transform_remote_uris_into_local (options);
       g_variant_unref (options);
       options = g_variant_ref (new_options);
     }
+#endif
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
   if (options)
@@ -560,12 +562,14 @@ save_file_done (GObject *source,
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
   else
     {
       new_options = xdp_transform_remote_uris_into_local (options);
       g_variant_unref (options);
       options = g_variant_ref (new_options);
     }
+#endif
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
   if (options)
@@ -674,12 +678,14 @@ save_files_done (GObject *source,
       g_dbus_error_strip_remote_error (error);
       g_warning ("Backend call failed: %s", error->message);
     }
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
   else
     {
       new_options = xdp_transform_remote_uris_into_local (options);
       g_variant_unref (options);
       options = g_variant_ref (new_options);
     }
+#endif
 
   g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
   if (options)

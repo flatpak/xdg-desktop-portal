@@ -197,8 +197,10 @@ gboolean  xdp_has_path_prefix (const char *str,
 int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
 
+#if G_ENCODE_VERSION (GLIB_MAJOR_VERSION, GLIB_MINOR_VERSION) >= G_ENCODE_VERSION (2, 66)
 GVariant *
 xdp_transform_remote_uris_into_local (GVariant *options);
+#endif
 
 #ifdef HAVE_LIBSYSTEMD
 char *_xdp_parse_app_id_from_unit_name (const char *unit);
