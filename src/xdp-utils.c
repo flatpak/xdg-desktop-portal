@@ -2392,7 +2392,7 @@ xdp_transform_remote_uris_into_local (GVariant *options)
             g_variant_unref (uri_variant);
             if (file_uri == NULL)
               {
-                g_variant_builder_add_value (&out_options, odata);
+                g_variant_builder_add_value (&uri_list, uri_variant);
                 continue;
               }
             if ((0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file")) &&
