@@ -43,6 +43,7 @@ xdg_desktop_portal_sources = files(
   'call.c',
   'device.c',
   'documents.c',
+  'dynamic-launcher.c',
   'email.c',
   'file-chooser.c',
   'flatpak-instance.c',
@@ -165,7 +166,6 @@ configure_file(
 executable(
   'xdg-desktop-portal-rewrite-launchers',
   'rewrite-launchers.c',
-  'dynamic-launcher.c',
   'glib-backports.c',
   dependencies: common_deps,
   include_directories: common_includes,

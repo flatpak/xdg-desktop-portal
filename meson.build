@@ -109,6 +109,10 @@ if glib_dep.version().version_compare('>= 2.60')
   )
 endif
 
+if glib_dep.version().version_compare('>= 2.66')
+  config_h.set('HAVE_GLIB_2_66', 1)
+endif
+
 have_libportal = libportal_dep.found()
 if have_libportal
   config_h.set('HAVE_LIBPORTAL', 1)
