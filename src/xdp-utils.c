@@ -2362,7 +2362,6 @@ xdp_transform_remote_uris_into_local (GVariant *options)
   GVariant *uris = NULL;
   GVariant *uri_variant = NULL;
   gchar *pathtext = NULL;
-  GFile *filelocal = NULL;
   gchar *uritext = NULL;
   gchar *uristring = NULL;
   gchar *fuse_mountpoint = NULL;
@@ -2390,10 +2389,10 @@ xdp_transform_remote_uris_into_local (GVariant *options)
             uri_variant = g_variant_get_child_value (uris, j);
             uritext = (gchar *)g_variant_get_string(uri_variant, NULL);
             file_uri = g_uri_parse (uritext, G_URI_FLAGS_NONE, &error);
+            g_variant_unref (uri_variant);
             if (file_uri == NULL)
               {
                 g_variant_builder_add_value (&out_options, odata);
-                g_variant_unref (uri_variant);
                 continue;
               }
 #if 1
@@ -2406,9 +2405,9 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                     else
                       fuse_mountpoint = g_build_filename (g_get_user_runtime_dir(), "gvfs", NULL);
                   }
-                gvfs_folder = g_string_new (fuse_mountpoint);
-                g_string_append_printf (gvfs_folder,
-                                 "/%s:host=%s",
+                gvfs_folder = g_string_new ("");
+                g_string_printf (gvfs_folder,
+                                 "%s:host=%s",
                                  g_uri_get_scheme (file_uri),
                                  g_uri_get_host (file_uri));
                 if (g_uri_get_port (file_uri) != -1)
@@ -2423,21 +2422,19 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                                             ",user=%s",
                                             g_uri_get_user (file_uri));
                   }
-                pathtext = g_uri_get_path (file_uri);
-                if (pathtext[0] == '/')
-                  {
-                    g_string_append (gvfs_folder, pathtext);
-                  }
-                else
-                  {
-                    g_string_append_printf (gvfs_folder,
-                                            "/%s",
-                                            pathtext);
-                  }
-                g_variant_unref (uri_variant);
-                filelocal = g_file_new_for_path (gvfs_folder->str);
+                pathtext = g_build_filename (fuse_mountpoint, gvfs_folder->str, g_uri_get_path (file_uri), NULL);
+                g_uri_unref (file_uri);
+                g_free (fuse_mountpoint);
                 g_string_free (gvfs_folder, TRUE);
-                uristring = g_file_get_uri (filelocal);
+                uristring = g_uri_join (G_URI_FLAGS_NONE,
+                                        "file",
+                                        NULL,
+                                        NULL,
+                                        -1,
+                                         pathtext,
+                                        NULL,
+                                        NULL);
+                g_free (pathtext);
                 uri_variant = g_variant_new_string (uristring);
                 g_free (uristring);
               }
