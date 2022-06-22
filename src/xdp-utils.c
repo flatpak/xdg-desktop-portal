@@ -2395,7 +2395,6 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                 g_variant_builder_add_value (&out_options, odata);
                 continue;
               }
-#if 1
             if (0 != g_strcmp0 (g_uri_get_scheme (file_uri), "file"))
               {
                 if (fuse_mountpoint == NULL)
@@ -2438,7 +2437,6 @@ xdp_transform_remote_uris_into_local (GVariant *options)
                 uri_variant = g_variant_new_string (uristring);
                 g_free (uristring);
               }
-#endif
             g_variant_builder_add_value (&uri_list, uri_variant);
           }
           g_variant_unref (uris);
