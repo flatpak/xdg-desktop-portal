@@ -86,6 +86,12 @@
               See org.freedesktop.portal.FileChooser.OpenFile() for details.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>writable b</term>
+            <listitem><para>
+              Whether the requested file will have write permission. This only affect directories which are read-only by default.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:

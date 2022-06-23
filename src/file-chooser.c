@@ -455,7 +455,8 @@ static XdpOptionKey open_file_options[] = {
   { "directory", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
   { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
-  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices }
+  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices },
+  { "writable", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
 static gboolean
