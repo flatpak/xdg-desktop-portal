@@ -75,8 +75,8 @@ jobs:
           libtool \
           llvm \
           make \
-          shared-mime-info \
-          python3-gi
+          python3-gi \
+          shared-mime-info
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v2
@@ -136,20 +136,20 @@ jobs:
         apt-get install -y software-properties-common
         add-apt-repository ppa:alexlarsson/flatpak
         apt-get install -y \
-          automake \
           autoconf \
-          libtool \
-          gettext \
+          automake \
           autopoint \
-          gcc \
-          gtk-doc-tools \
-          shared-mime-info \
           desktop-file-utils \
-          libglib2.0-dev \
-          libjson-glib-dev \
+          gcc \
+          gettext \
+          gtk-doc-tools \
           libfontconfig1-dev \
           libgdk-pixbuf2.0-dev \
-          libsystemd-dev
+          libglib2.0-dev \
+          libjson-glib-dev \
+          libsystemd-dev \
+          libtool \
+          shared-mime-info
 
     - name: Install libfuse3
       run: |
