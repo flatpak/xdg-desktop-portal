@@ -93,6 +93,12 @@ xdp_register_document (const char        *uri,
 
   file = g_file_new_for_uri (uri);
   path = g_file_get_path (file);
+  if (path == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                   "URI %s not supported by the document portal", uri);
+      return NULL;
+    }
   basename = g_path_get_basename (path);
   dirname = g_path_get_dirname (path);
 
