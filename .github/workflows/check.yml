@@ -14,9 +14,6 @@ jobs:
       matrix:
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
-        include:
-          - compiler: gcc
-            sanitizer: 'thread'
 
     env:
       UBUNTU_VERSION: impish
@@ -33,9 +30,6 @@ jobs:
         if [ "${{ matrix.sanitizer }}" == "address" ]; then
           echo "::set-output name=cflags::$BASE_CFLAGS" \
             "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address";
-        elif [ "${{ matrix.sanitizer }}" == "thread" ]; then
-          echo "::set-output name=cflags::$BASE_CFLAGS" \
-            "-fsanitize=thread";
         else
           echo "::set-output name=cflags::$BASE_CFLAGS";
         fi
