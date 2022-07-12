@@ -260,6 +260,17 @@
               This property was added in version 3 of this interface.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>output_name</term>
+            <listitem><para>
+              If a monitor is being screencasted, then this property contains
+              the output name i.e. a unique identifier among all outputs. For
+              X11, this can be the xrandr name and for Wayland this will be the
+              same name string that a wayland compositor would provide to its
+              clients that bind to wayland_output interface.
+              Only available for monitor streams. Optional.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="Start">
