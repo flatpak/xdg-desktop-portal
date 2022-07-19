@@ -180,7 +180,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
 
   g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
                      "MakeThreadHighPriorityWithPID",
-                     g_variant_new ("(ttu)", pids[0], thread, priority),
+                     g_variant_new ("(tti)", pids[0], thread, priority),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
