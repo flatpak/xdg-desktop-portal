@@ -1,3 +1,9 @@
+Changes in 1.14.5
+=================
+Released: 2022-07-19
+
+- realtime: Fix realtime: fix priority type in MakeThreadHighPriority
+
 Changes in 1.14.4
 =================
 Released: 2022-05-04
