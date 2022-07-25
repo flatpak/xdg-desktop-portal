@@ -115,43 +115,43 @@
         The following results may get returned via the @location:
         <variablelist>
           <varlistentry>
-            <term>latitude d</term>
+            <term>Latitude d</term>
             <listitem><para>
               The latitude, in degrees.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>longitude d</term>
+            <term>Longitude d</term>
             <listitem><para>
               The longitude, in degrees.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>altitude d</term>
+            <term>Altitude d</term>
             <listitem><para>
               The altitude, in meters.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>accuracy d</term>
+            <term>Accuracy d</term>
             <listitem><para>
               The accuracy, in meters.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>speed d</term>
+            <term>Speed d</term>
             <listitem><para>
               The speed, in meters per second.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>heading d</term>
+            <term>Heading d</term>
             <listitem><para>
               The heading, in degrees, going clockwise. North 0, East 90, South 180, West 270.
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>timestamp (tt)</term>
+            <term>Timestamp (tt)</term>
             <listitem><para>
               The timestamp, as seconds and microsections since the Unix epoch.
             </para></listitem>
