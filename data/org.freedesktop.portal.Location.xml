@@ -153,7 +153,7 @@
           <varlistentry>
             <term>Timestamp (tt)</term>
             <listitem><para>
-              The timestamp, as seconds and microsections since the Unix epoch.
+              The timestamp, as seconds and microseconds since the Unix epoch.
             </para></listitem>
           </varlistentry>
         </variablelist>
