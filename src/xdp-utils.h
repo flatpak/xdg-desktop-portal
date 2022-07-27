@@ -71,9 +71,14 @@ gboolean    xdp_app_info_supports_opath  (XdpAppInfo  *app_info);
 char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,
                                           const char  *path);
 gboolean    xdg_app_info_map_pids        (XdpAppInfo  *app_info,
-					  pid_t       *pids,
-					  guint        n_pids,
-					  GError     **error);
+                                          pid_t       *pids,
+                                          guint        n_pids,
+                                          GError     **error);
+gboolean    xdg_app_info_map_tids        (XdpAppInfo  *app_info,
+                                          pid_t        owner_pid,
+                                          pid_t       *tids,
+                                          guint        n_tids,
+                                          GError     **error);
 gboolean    xdg_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
                                          const int   *fds,
                                          pid_t       *pids,

@@ -55,13 +55,19 @@ G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_TYPE_REALTIME_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_TYPE_REALTIME, realtime_iface_init));
 
 static gboolean
-map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, GError **error)
+map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
 {
   if (!xdp_app_info_is_host (app_info))
   {
     if (!xdg_app_info_map_pids (app_info, pid, 1, error))
     {
       g_prefix_error (error, "Could not map pid: ");
+      g_warning ("Realtime error: %s", (*error)->message);
+      return FALSE;
+    }
+    if (!xdg_app_info_map_tids (app_info, *pid, tid, 1, error))
+    {
+      g_prefix_error (error, "Could not map tid: ");
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
@@ -99,6 +105,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
   g_autoptr (GError) error = NULL;
   Request *request = request_from_invocation (invocation);
   pid_t pids[1] = { process };
+  pid_t tids[1] = { thread };
   const char *app_id = xdp_app_info_get_id (request->app_info);
   Permission permission;
 
@@ -121,7 +128,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
       return TRUE;
     }
 
-  if (!map_pid_if_needed (request->app_info, pids, &error))
+  if (!map_pid_if_needed (request->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
@@ -129,7 +136,7 @@ handle_make_thread_realtime_with_pid (XdpRealtime           *object,
 
   g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
                      "MakeThreadRealtimeWithPID",
-                     g_variant_new ("(ttu)", pids[0], thread, priority),
+                     g_variant_new ("(ttu)", pids[0], tids[0], priority),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,
@@ -149,6 +156,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
   g_autoptr (GError) error = NULL;
   Request *request = request_from_invocation (invocation);
   pid_t pids[1] = { process };
+  pid_t tids[1] = { thread };
   const char *app_id = xdp_app_info_get_id (request->app_info);
   Permission permission;
 
@@ -171,7 +179,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
       return TRUE;
     }
 
-  if (!map_pid_if_needed (request->app_info, pids, &error))
+  if (!map_pid_if_needed (request->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
@@ -179,7 +187,7 @@ handle_make_thread_high_priority_with_pid (XdpRealtime           *object,
 
   g_dbus_proxy_call (G_DBUS_PROXY (realtime->rtkit_proxy),
                      "MakeThreadHighPriorityWithPID",
-                     g_variant_new ("(tti)", pids[0], thread, priority),
+                     g_variant_new ("(tti)", pids[0], tids[0], priority),
                      G_DBUS_CALL_FLAGS_NONE,
                      -1,
                      NULL,

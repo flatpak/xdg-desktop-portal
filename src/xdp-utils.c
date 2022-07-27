@@ -1975,13 +1975,13 @@ xdg_app_info_ensure_pidns (XdpAppInfo  *app_info,
   return TRUE;
 }
 
-
-
-gboolean
-xdg_app_info_map_pids (XdpAppInfo  *app_info,
-                       pid_t       *pids,
-                       guint        n_pids,
-                       GError     **error)
+/* This is the trunk for xdg_app_info_map_pids()/xdg_app_info_map_tids() */
+static gboolean
+app_info_map_pids (XdpAppInfo  *app_info,
+                   const char  *proc_dir,
+                   pid_t       *pids,
+                   guint        n_pids,
+                   GError     **error)
 {
   gboolean ok;
   DIR *proc;
@@ -1998,11 +1998,11 @@ xdg_app_info_map_pids (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  proc = opendir ("/proc");
+  proc = opendir (proc_dir);
   if (proc == NULL)
     {
       g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Could not open '/proc: %s", g_strerror (errno));
+                   "Could not open '%s': %s", proc_dir, g_strerror (errno));
       return FALSE;
     }
 
@@ -2025,6 +2025,26 @@ xdg_app_info_map_pids (XdpAppInfo  *app_info,
  out:
   closedir (proc);
   return ok;
+}
+
+gboolean
+xdg_app_info_map_tids (XdpAppInfo  *app_info,
+                       pid_t        owner_pid,
+                       pid_t       *tids,
+                       guint        n_tids,
+                       GError     **error)
+{
+  g_autofree char *proc_dir = g_strdup_printf ("/proc/%u/task", (guint) owner_pid);
+  return app_info_map_pids (app_info, proc_dir, tids, n_tids, error);
+}
+
+gboolean
+xdg_app_info_map_pids (XdpAppInfo  *app_info,
+                       pid_t       *pids,
+                       guint        n_pids,
+                       GError     **error)
+{
+  return app_info_map_pids (app_info, "/proc", pids, n_pids, error);
 }
 
 gboolean
