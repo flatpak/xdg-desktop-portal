@@ -2135,65 +2135,13 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
   return TRUE;
 }
 
-
-gboolean
-xdg_app_info_map_tids (XdpAppInfo  *app_info,
-                       pid_t        owner_pid,
-                       pid_t       *tids,
-                       guint        n_tids,
-                       GError     **error)
-{
-  char proc_dir[31] = {0, };
-  gboolean ok;
-  DIR *proc;
-  uid_t uid;
-  ino_t ns;
-
-  g_return_val_if_fail (app_info != NULL, FALSE);
-  g_return_val_if_fail (tids != NULL, FALSE);
-
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
-    {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                           "Mapping pids is not supported.");
-      return FALSE;
-    }
-
-  snprintf (proc_dir, sizeof(proc_dir), "/proc/%u/task", (guint) owner_pid);
-  proc = opendir (proc_dir);
-  if (proc == NULL)
-    {
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Could not open '/proc/%u/task: %s", (guint) owner_pid, g_strerror (errno));
-      return FALSE;
-    }
-
-  /* Make sure we know the pid namespace the app is running in */
-  ok = xdp_app_info_ensure_pidns (app_info, proc, error);
-  if (!ok)
-    {
-      g_prefix_error (error, "Could not determine pid namespace: ");
-      goto out;
-    }
-
-  /* we also make sure the real user id matches
-   * to the process owner we are trying to resolve
-   */
-  uid = getuid ();
-
-  ns = app_info->u.flatpak.pidns_id;
-  ok = map_pids (proc, ns, tids, n_tids, uid, error);
-
- out:
-  closedir (proc);
-  return ok;
-}
-
-gboolean
-xdp_app_info_map_pids (XdpAppInfo  *app_info,
-                       pid_t       *pids,
-                       guint        n_pids,
-                       GError     **error)
+/* This is the trunk for xdp_app_info_map_pids()/xdp_app_info_map_tids() */
+static gboolean
+app_info_map_pids (XdpAppInfo  *app_info,
+                   const char  *proc_dir,
+                   pid_t       *pids,
+                   guint        n_pids,
+                   GError     **error)
 {
   gboolean ok;
   DIR *proc;
@@ -2210,11 +2158,11 @@ xdp_app_info_map_pids (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  proc = opendir ("/proc");
+  proc = opendir (proc_dir);
   if (proc == NULL)
     {
       g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Could not open '/proc: %s", g_strerror (errno));
+                   "Could not open '%s': %s", proc_dir, g_strerror (errno));
       return FALSE;
     }
 
@@ -2237,6 +2185,28 @@ xdp_app_info_map_pids (XdpAppInfo  *app_info,
  out:
   closedir (proc);
   return ok;
+}
+
+
+gboolean
+xdg_app_info_map_tids (XdpAppInfo  *app_info,
+                       pid_t        owner_pid,
+                       pid_t       *tids,
+                       guint        n_tids,
+                       GError     **error)
+{
+  char proc_dir[31] = {0, };
+  snprintf (proc_dir, sizeof(proc_dir), "/proc/%u/task", (guint) owner_pid);
+  return app_info_map_pids (app_info, proc_dir, tids, n_tids, error);
+}
+
+gboolean
+xdp_app_info_map_pids (XdpAppInfo  *app_info,
+                       pid_t       *pids,
+                       guint        n_pids,
+                       GError     **error)
+{
+  return app_info_map_pids (app_info, "/proc", pids, n_pids, error);
 }
 
 gboolean
