@@ -2195,8 +2195,7 @@ xdg_app_info_map_tids (XdpAppInfo  *app_info,
                        guint        n_tids,
                        GError     **error)
 {
-  char proc_dir[31] = {0, };
-  snprintf (proc_dir, sizeof(proc_dir), "/proc/%u/task", (guint) owner_pid);
+  g_autofree char *proc_dir = g_strdup_printf ("/proc/%u/task", (guint) owner_pid);
   return app_info_map_pids (app_info, proc_dir, tids, n_tids, error);
 }
 
