@@ -66,7 +66,7 @@ map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
-    if (!xdg_app_info_map_tids (app_info, *pid, tid, 1, error))
+    if (!xdp_app_info_map_tids (app_info, *pid, tid, 1, error))
     {
       g_prefix_error (error, "Could not map tid: ");
       g_warning ("Realtime error: %s", (*error)->message);
