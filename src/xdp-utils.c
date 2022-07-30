@@ -2189,7 +2189,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
 
 
 gboolean
-xdg_app_info_map_tids (XdpAppInfo  *app_info,
+xdp_app_info_map_tids (XdpAppInfo  *app_info,
                        pid_t        owner_pid,
                        pid_t       *tids,
                        guint        n_tids,
