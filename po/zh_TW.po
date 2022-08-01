@@ -155,7 +155,7 @@ msgstr "允許《%s》設定背景嗎？"
 #: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "《%s》請求能變更背景圖片的許可權。
+msgstr "《%s》請求能變更背景圖片的許可權。"
 
 #: src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
