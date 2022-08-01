@@ -56,9 +56,9 @@
         <arg type="i" name="priority" direction="in"/>
       </method>
 
-      <property name="MaxRealtimePriority" type="x" access="read"/>
+      <property name="MaxRealtimePriority" type="i" access="read"/>
       <property name="MinNiceLevel" type="i" access="read"/>
-      <property name="RTTimeUSecMax" type="i" access="read"/>
+      <property name="RTTimeUSecMax" type="x" access="read"/>
 
       <property name="version" type="u" access="read"/>
     </interface>
