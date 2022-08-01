@@ -8,8 +8,8 @@ env:
 
 jobs:
   check:
-    name: Ubuntu 21.10 build
-    runs-on: ubuntu-latest
+    name: Ubuntu 22.04 build
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: ['gcc', 'clang']
@@ -19,7 +19,7 @@ jobs:
             sanitizer: ['thread']
 
     env:
-      UBUNTU_VERSION: impish
+      UBUNTU_VERSION: '22.04'
       CC: ${{ matrix.compiler }}
       BASE_CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
       BUILD_CONTAINER: ${{ matrix.compiler }}-build-container
@@ -111,7 +111,7 @@ jobs:
 
   xenial:
     name: Ubuntu 16.04 build (old glib)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ubuntu:16.04
     steps:
     - name: Install dependencies
