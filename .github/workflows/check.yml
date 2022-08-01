@@ -9,15 +9,15 @@ env:
 jobs:
   # identical to the meson job but for the autotools commands
   check-autotools:
-    name: Ubuntu 21.10 autotools build
-    runs-on: ubuntu-latest
+    name: Ubuntu 22.04 autotools build
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
 
     env:
-      UBUNTU_VERSION: impish
+      UBUNTU_VERSION: '22.04'
       CC: ${{ matrix.compiler }}
       BASE_CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
       BUILD_CONTAINER: ${{ matrix.compiler }}-build-container
@@ -128,15 +128,15 @@ jobs:
 
   # identical to the autotools job but for the meson commands
   check-meson:
-    name: Ubuntu 21.10 meson build
-    runs-on: ubuntu-latest
+    name: Ubuntu 22.04 meson build
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
 
     env:
-      UBUNTU_VERSION: impish
+      UBUNTU_VERSION: '22.04'
       CC: ${{ matrix.compiler }}
       BASE_CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
       BUILD_CONTAINER: ${{ matrix.compiler }}-build-container
@@ -241,7 +241,7 @@ jobs:
 
   xenial:
     name: Ubuntu 16.04 build (old glib)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container: ubuntu:16.04
     steps:
     - name: Install dependencies
