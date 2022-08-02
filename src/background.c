@@ -697,7 +697,7 @@ handle_request_background_in_thread_func (GTask *task,
 {
   Request *request = (Request *)task_data;
   GVariant *options;
-  const char *app_id;
+  const char *id;
   Permission permission;
   const char *reason = NULL;
   gboolean autostart_requested = FALSE;
@@ -720,18 +720,19 @@ handle_request_background_in_thread_func (GTask *task,
   if (activatable)
     autostart_flags |= AUTOSTART_FLAGS_ACTIVATABLE;
 
-  app_id = xdp_app_info_get_id (request->app_info);
+  id = xdp_app_info_get_id (request->app_info);
 
   if (xdp_app_info_is_host (request->app_info))
     permission = PERMISSION_YES;
   else
-    permission = get_permission (app_id);
+    permission = get_permission (id);
 
-  g_debug ("Handle RequestBackground for '%s'", app_id);
+  g_debug ("Handle RequestBackground for '%s'", id);
 
   if (permission == PERMISSION_ASK)
     {
       GVariantBuilder opt_builder;
+      g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
       g_autofree char *body = NULL;
@@ -741,17 +742,18 @@ handle_request_background_in_thread_func (GTask *task,
       g_autoptr(GAppInfo) info = NULL;
 
       info = xdp_app_info_load_app_info (request->app_info);
+      app_id = info ? xdp_get_app_id_from_desktop_id (g_app_info_get_id (info)) : g_strdup (id);
 
-      title = g_strdup_printf (_("Allow %s to run in the background?"), info ? g_app_info_get_display_name (info) : app_id);
+      title = g_strdup_printf (_("Allow %s to run in the background?"), info ? g_app_info_get_display_name (info) : id);
       if (reason)
         subtitle = g_strdup (reason);
       else if (autostart_requested)
-        subtitle = g_strdup_printf (_("%s requests to be started automatically and run in the background."), info ? g_app_info_get_display_name (info) : app_id);
+        subtitle = g_strdup_printf (_("%s requests to be started automatically and run in the background."), info ? g_app_info_get_display_name (info) : id);
       else
-        subtitle = g_strdup_printf (_("%s requests to run in the background."), info ? g_app_info_get_display_name (info) : app_id);
+        subtitle = g_strdup_printf (_("%s requests to run in the background."), info ? g_app_info_get_display_name (info) : id);
       body = g_strdup (_("The ‘run in background’ permission can be changed at any time from the application settings."));
 
-      g_debug ("Calling backend for background access for: %s", app_id);
+      g_debug ("Calling backend for background access for: %s", id);
 
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
@@ -779,10 +781,10 @@ handle_request_background_in_thread_func (GTask *task,
     {
       allowed = permission != PERMISSION_NO;
       if (permission == PERMISSION_UNSET)
-        set_permission (app_id, PERMISSION_YES);
+        set_permission (id, PERMISSION_YES);
     }
 
-  g_debug ("Setting autostart for %s to %s", app_id,
+  g_debug ("Setting autostart for %s to %s", id,
            allowed && autostart_requested ? "enabled" : "disabled");
 
   autostart_enabled = FALSE;
@@ -791,10 +793,10 @@ handle_request_background_in_thread_func (GTask *task,
                                                   FALSE /* don't quote escape */);
   if (commandline == NULL)
     {
-      g_debug ("Autostart not supported for: %s", app_id);
+      g_debug ("Autostart not supported for: %s", id);
     }
   else if (!xdp_dbus_impl_background_call_enable_autostart_sync (background_impl,
-                                                                 app_id,
+                                                                 id,
                                                                  allowed && autostart_requested,
                                                                  (const char * const *)commandline,
                                                                  autostart_flags,

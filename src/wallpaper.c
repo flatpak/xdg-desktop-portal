@@ -125,7 +125,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 {
   Request *request = (Request *)task_data;
   const char *parent_window;
-  const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *uri = NULL;
   GVariantBuilder opt_builder;
@@ -157,7 +157,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     }
 
 
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = get_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID);
 
   if (permission == PERMISSION_NO)
     {
@@ -171,6 +171,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
       GVariantBuilder access_opt_builder;
+      g_autofree gchar *app_id = NULL;
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
       const gchar *body;
@@ -183,7 +184,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
 
-      if (g_strcmp0 (app_id, "") != 0)
+      if (g_strcmp0 (id, "") != 0)
         {
           g_autoptr(GAppInfo) info = NULL;
           const gchar *name = NULL;
@@ -191,9 +192,15 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           info = xdp_app_info_load_app_info (request->app_info);
 
           if (info)
-            name = g_app_info_get_display_name (G_APP_INFO (info));
+            {
+              name = g_app_info_get_display_name (G_APP_INFO (info));
+              app_id = xdp_get_app_id_from_desktop_id (g_app_info_get_id (info));
+            }
           else
-            name = app_id;
+            {
+              name = id;
+              app_id = g_strdup (id);
+            }
 
           title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
           subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
@@ -204,10 +211,10 @@ handle_set_wallpaper_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
+          app_id = g_strdup ("");
           title = g_strdup (_("Allow Applications to Set Backgrounds?"));
           subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
         }
-
       body = _("This permission can be changed at any time from the privacy settings.");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
@@ -229,7 +236,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
         }
 
       if (permission == PERMISSION_UNSET)
-        set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
+        set_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
 
       if (access_response != 0)
         {
@@ -288,7 +295,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   g_debug ("Calling SetWallpaperURI with %s", uri);
   xdp_dbus_impl_wallpaper_call_set_wallpaper_uri (impl,
                                                   request->id,
-                                                  app_id,
+                                                  id,
                                                   parent_window,
                                                   uri,
                                                   g_variant_builder_end (&opt_builder),
