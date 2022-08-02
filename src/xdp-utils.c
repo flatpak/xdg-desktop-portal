@@ -1418,6 +1418,15 @@ xdp_is_valid_app_id (const char *string)
   return TRUE;
 }
 
+char *
+xdp_get_app_id_from_desktop_id (const char *desktop_id)
+{
+  const gchar *suffix = ".desktop";
+  if (g_str_has_suffix (desktop_id, suffix))
+    return g_strndup (desktop_id, strlen (desktop_id) - strlen (suffix));
+  else
+    return g_strdup (desktop_id);
+}
 
 char *
 xdp_quote_argv (const char *argv[])
