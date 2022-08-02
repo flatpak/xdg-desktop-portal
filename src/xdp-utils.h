@@ -60,6 +60,8 @@ gint xdp_mkstempat (int    dir_fd,
 
 gboolean xdp_is_valid_app_id (const char *string);
 
+char *xdp_get_app_id_from_desktop_id (const char *desktop_id);
+
 gboolean xdp_validate_serialized_icon (GVariant  *v,
                                        gboolean   bytes_only,
                                        char     **out_format,

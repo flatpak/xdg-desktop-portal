@@ -484,7 +484,7 @@ handle_start_in_thread_func (GTask *task,
 {
   Request *request = (Request *)task_data;
   const char *parent_window;
-  const char *app_id;
+  const char *id;
   gint64 last_used = 0;
   g_autoptr(GError) error = NULL;
   guint response = 2;
@@ -501,7 +501,7 @@ handle_start_in_thread_func (GTask *task,
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
 
-  app_id = xdp_app_info_get_id (request->app_info);
+  id = xdp_app_info_get_id (request->app_info);
 
   if (!get_location_permissions (request->app_info, &accuracy, &last_used))
     {
@@ -509,6 +509,7 @@ handle_start_in_thread_func (GTask *task,
       g_autoptr(GVariant) access_results = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
       GVariantBuilder access_opt_builder;
+      g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
       const char *body;
@@ -529,7 +530,7 @@ handle_start_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("find-location-symbolic"));
 
-      if (g_strcmp0 (app_id, "") != 0)
+      if (g_strcmp0 (id, "") != 0)
         {
           g_autoptr(GAppInfo) info = NULL;
           const gchar *name = NULL;
@@ -537,9 +538,15 @@ handle_start_in_thread_func (GTask *task,
           info = xdp_app_info_load_app_info (request->app_info);
 
           if (info)
-            name = g_app_info_get_display_name (G_APP_INFO (info));
+            {
+              name = g_app_info_get_display_name (G_APP_INFO (info));
+              app_id = xdp_get_app_id_from_desktop_id (g_app_info_get_id (info));
+            }
           else
-            name = app_id;
+            {
+              name = app_id;
+              app_id = g_strdup (id);
+            }
 
           title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
 
@@ -554,6 +561,7 @@ handle_start_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
+          app_id = g_strdup ("");
           title = g_strdup (_("Grant Access to Your Location?"));
           subtitle = g_strdup (_("An application wants to use your location."));
         }
@@ -585,7 +593,7 @@ handle_start_in_thread_func (GTask *task,
   if (accuracy != GCLUE_ACCURACY_LEVEL_NONE)
     last_used = g_get_monotonic_time ();
 
-  set_location_permissions (app_id, accuracy, last_used);
+  set_location_permissions (id, accuracy, last_used);
 
   if (accuracy == GCLUE_ACCURACY_LEVEL_NONE)
     {
