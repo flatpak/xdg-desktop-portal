@@ -213,7 +213,7 @@ get_app_id (GAppInfo *info)
 
   desktop_id = g_app_info_get_id (info);
 
-  return g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+  return xdp_get_app_id_from_desktop_id (desktop_id);
 }
 
 static gboolean
