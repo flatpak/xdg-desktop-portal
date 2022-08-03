@@ -241,6 +241,7 @@ launch_application_with_uri (const char *choice_id,
   g_autoptr(GDesktopAppInfo) info = g_desktop_app_info_new (desktop_id);
   g_autoptr(GAppLaunchContext) context = g_app_launch_context_new ();
   g_autofree char *ruri = NULL;
+  DocumentFlags flags = DOCUMENT_FLAG_NONE;
   GList uris;
 
   if (info == NULL)
@@ -257,8 +258,10 @@ launch_application_with_uri (const char *choice_id,
       g_autoptr(GError) local_error = NULL;
 
       g_debug ("Registering %s for %s", uri, choice_id);
+      if (writable)
+        flags |= DOCUMENT_FLAG_WRITABLE;
 
-      ruri = register_document (uri, choice_id, FALSE, writable, FALSE, FALSE, &local_error);
+      ruri = register_document (uri, choice_id, flags, &local_error);
       if (ruri == NULL)
         {
           g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);

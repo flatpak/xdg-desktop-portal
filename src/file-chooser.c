@@ -75,11 +75,9 @@ send_response_in_thread_func (GTask        *task,
   GVariantBuilder ruris;
   guint response;
   GVariant *options;
-  gboolean writable = TRUE;
-  gboolean directory = TRUE;
+  DocumentFlags flags = DOCUMENT_FLAG_WRITABLE | DOCUMENT_FLAG_DIRECTORY;
   const char **uris;
   GVariant *choices;
-  gboolean for_save;
   GVariant *current_filter;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
@@ -87,16 +85,18 @@ send_response_in_thread_func (GTask        *task,
 
   REQUEST_AUTOLOCK (request);
 
-  for_save = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save"));
-  directory = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory"));
+  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save")) == TRUE)
+    flags |= DOCUMENT_FLAG_FOR_SAVE;
+  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory")) == FALSE)
+    flags &= ~DOCUMENT_FLAG_DIRECTORY;
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
   if (response != 0)
     goto out;
 
-  if (!g_variant_lookup (options, "writable", "b",  &writable))
-    writable = FALSE;
+  if (!g_variant_lookup_value (options, "writable", G_VARIANT_TYPE("b")))
+    flags &= ~DOCUMENT_FLAG_WRITABLE;
 
   choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
   if (choices)
@@ -118,7 +118,7 @@ send_response_in_thread_func (GTask        *task,
           if (xdp_app_info_is_host (request->app_info))
             ruri = g_strdup (uris[i]);
           else
-            ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), for_save, writable, directory, FALSE, &error);
+            ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), flags, &error);
 
           if (ruri == NULL)
             {

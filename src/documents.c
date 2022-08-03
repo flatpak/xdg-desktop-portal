@@ -32,6 +32,7 @@
 
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+#include "documents.h"
 #include "document-enums.h"
 
 static XdpDbusDocuments *documents = NULL;
@@ -53,10 +54,7 @@ init_document_proxy (GDBusConnection *connection)
 char *
 register_document (const char *uri,
                    const char *app_id,
-                   gboolean for_save,
-                   gboolean writable,
-                   gboolean directory,
-                   gboolean deletable,
+                   DocumentFlags flags,
                    GError **error)
 {
   g_autofree char *doc_id = NULL;
@@ -82,7 +80,7 @@ register_document (const char *uri,
   basename = g_path_get_basename (path);
   dirname = g_path_get_dirname (path);
 
-  if (for_save)
+  if (flags & DOCUMENT_FLAG_FOR_SAVE)
     fd = open (dirname, O_PATH | O_CLOEXEC);
   else
     fd = open (path, O_PATH | O_CLOEXEC);
@@ -102,19 +100,19 @@ register_document (const char *uri,
 
   i = 0;
   permissions[i++] = "read";
-  if (writable || for_save)
+  if ((flags & DOCUMENT_FLAG_WRITABLE) || (flags & DOCUMENT_FLAG_FOR_SAVE))
     permissions[i++] = "write";
   permissions[i++] = "grant-permissions";
-  if (deletable)
+  if (flags & DOCUMENT_FLAG_DELETABLE)
     permissions[i++] = "delete";
   permissions[i++] = NULL;
 
   version = xdp_dbus_documents_get_version (documents);
   full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
-  if (directory)
+  if (flags & DOCUMENT_FLAG_DIRECTORY)
     full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
-  if (for_save)
+  if (flags & DOCUMENT_FLAG_FOR_SAVE)
     {
       if (version >= 3)
         {
