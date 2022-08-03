@@ -98,7 +98,7 @@ send_response_in_thread_func (GTask *task,
       if (xdp_app_info_is_host (request->app_info))
         ruri = g_strdup (uri);
       else
-        ruri = register_document (uri, xdp_app_info_get_id (request->app_info), FALSE, FALSE, FALSE, TRUE, &error);
+        ruri = register_document (uri, xdp_app_info_get_id (request->app_info), DOCUMENT_FLAG_DELETABLE, &error);
 
       if (ruri == NULL)
         g_warning ("Failed to register %s: %s", uri, error->message);

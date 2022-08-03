@@ -22,14 +22,19 @@
 
 #include <gio/gio.h>
 
+typedef enum {
+  DOCUMENT_FLAG_NONE      = 0,
+  DOCUMENT_FLAG_FOR_SAVE  = (1 << 0),
+  DOCUMENT_FLAG_WRITABLE  = (1 << 1),
+  DOCUMENT_FLAG_DIRECTORY = (1 << 2),
+  DOCUMENT_FLAG_DELETABLE = (1 << 3),
+} DocumentFlags;
+
 void init_document_proxy (GDBusConnection *connection);
 
 char *register_document (const char *uri,
                          const char *app_id,
-                         gboolean for_save,
-                         gboolean writable,
-                         gboolean directory,
-                         gboolean deletable,
+                         DocumentFlags flags,
                          GError **error);
 
 char *get_real_path_for_doc_path (const char *path,
