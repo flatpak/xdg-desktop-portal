@@ -29,7 +29,7 @@
       via the document portal, and the returned URI will point
       into the document portal fuse filesystem in /run/user/$UID/doc/.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
