@@ -318,6 +318,7 @@ query_impl:
                              g_variant_new_boolean (TRUE));
     }
 
+  g_debug ("Calling Screenshot with interactive=%d", interactive);
   xdp_dbus_impl_screenshot_call_screenshot (impl,
                                             request->id,
                                             app_id,
