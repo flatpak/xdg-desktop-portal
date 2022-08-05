@@ -175,18 +175,23 @@ static XdpOptionKey screenshot_options[] = {
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
-static gboolean
-handle_screenshot (XdpDbusScreenshot *object,
-                   GDBusMethodInvocation *invocation,
-                   const gchar *arg_parent_window,
-                   GVariant *arg_options)
+static void
+handle_screenshot_in_thread_func (GTask *task,
+                                  gpointer source_object,
+                                  gpointer task_data,
+                                  GCancellable *cancellable)
 {
-  Request *request = request_from_invocation (invocation);
+  Request *request = (Request *)task_data;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
+  GVariant *options;
+  const char *parent_window;
 
   REQUEST_AUTOLOCK (request);
+
+  parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
+  options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -196,28 +201,53 @@ handle_screenshot (XdpDbusScreenshot *object,
                                           NULL, &error);
   if (!impl_request)
     {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
+      g_warning ("Failed to to create screencast implementation proxy: %s", error->message);
+      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      send_response (request, 2, g_variant_builder_end (&opt_builder));
+      return;
     }
 
   request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-  xdp_filter_options (arg_options, &opt_builder,
+  xdp_filter_options (options, &opt_builder,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
                       NULL);
 
   xdp_dbus_impl_screenshot_call_screenshot (impl,
                                             request->id,
                                             xdp_app_info_get_id (request->app_info),
-                                            arg_parent_window,
+                                            parent_window,
                                             g_variant_builder_end (&opt_builder),
                                             NULL,
                                             screenshot_done,
                                             g_object_ref (request));
 
+}
+
+static gboolean
+handle_screenshot (XdpDbusScreenshot *object,
+                   GDBusMethodInvocation *invocation,
+                   const gchar *arg_parent_window,
+                   GVariant *arg_options)
+{
+  Request *request = request_from_invocation (invocation);
+  g_autoptr(GTask) task = NULL;
+
+  g_debug ("Handle Screenshot");
+
+  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
+  g_object_set_data_full (G_OBJECT (request),
+                          "options",
+                          g_variant_ref (arg_options),
+                          (GDestroyNotify)g_variant_unref);
+
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
+
+  task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, handle_screenshot_in_thread_func);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
