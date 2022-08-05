@@ -23,4 +23,5 @@
 #include <gio/gio.h>
 
 GDBusInterfaceSkeleton * screenshot_create (GDBusConnection *connection,
-                                            const char      *dbus_name);
+                                            const char      *dbus_name_access,
+                                            const char      *dbus_name_screenshot);
