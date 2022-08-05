@@ -28,14 +28,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
+#include <glib/gi18n.h>
 #include <gio/gio.h>
+#include <gio/gdesktopappinfo.h>
 
 #include "screenshot.h"
+#include "permissions.h"
 #include "request.h"
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+
+#define PERMISSION_TABLE "screenshot"
+#define PERMISSION_ID "screenshot"
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -186,13 +192,107 @@ handle_screenshot_in_thread_func (GTask *task,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
+  Permission permission;
   GVariant *options;
+  gboolean permission_store_checked = FALSE;
+  gboolean interactive;
   const char *parent_window;
+  const char *app_id;
 
   REQUEST_AUTOLOCK (request);
 
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+
+  app_id = xdp_app_info_get_id (request->app_info);
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
+
+  if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
+    goto query_impl;
+
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+
+  if (!g_variant_lookup (options, "interactive", "b", &interactive))
+    interactive = FALSE;
+
+  if (!interactive && permission != PERMISSION_YES)
+    {
+      g_autoptr(GVariant) access_results = NULL;
+      GVariantBuilder access_opt_builder;
+      g_autofree gchar *subtitle = NULL;
+      g_autofree gchar *title = NULL;
+      const gchar *body;
+      guint access_response = 2;
+
+      if (permission == PERMISSION_NO)
+        {
+          send_response (request, 2, g_variant_builder_end (&opt_builder));
+          return;
+        }
+
+      g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&access_opt_builder, "{sv}",
+                             "deny_label", g_variant_new_string (_("Deny")));
+      g_variant_builder_add (&access_opt_builder, "{sv}",
+                             "grant_label", g_variant_new_string (_("Allow")));
+      g_variant_builder_add (&access_opt_builder, "{sv}",
+                             "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
+
+      if (g_strcmp0 (app_id, "") != 0)
+        {
+          g_autoptr(GDesktopAppInfo) info = NULL;
+          g_autofree gchar *id = NULL;
+          const gchar *name;
+
+          id = g_strconcat (app_id, ".desktop", NULL);
+          info = g_desktop_app_info_new (id);
+          name = g_app_info_get_display_name (G_APP_INFO (info));
+
+          title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
+          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+        }
+      else
+        {
+          /* Note: this will set the wallpaper permission for all unsandboxed
+           * apps for which an app ID can't be determined.
+           */
+          g_assert (xdp_app_info_is_host (request->app_info));
+          title = g_strdup (_("Allow Applications to Take Screenshots?"));
+          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+        }
+
+      body = _("This permission can be changed at any time from the privacy settings.");
+
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                         request->id,
+                                                         app_id,
+                                                         parent_window,
+                                                         title,
+                                                         subtitle,
+                                                         body,
+                                                         g_variant_builder_end (&access_opt_builder),
+                                                         &access_response,
+                                                         &access_results,
+                                                         NULL,
+                                                         &error))
+        {
+          g_warning ("Failed to show access dialog: %s", error->message);
+          return;
+        }
+
+      if (permission == PERMISSION_UNSET)
+        set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
+
+      if (access_response != 0)
+        {
+          send_response (request, 2, g_variant_builder_end (&opt_builder));
+          return;
+        }
+    }
+
+  permission_store_checked = TRUE;
+
+query_impl:
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -202,22 +302,25 @@ handle_screenshot_in_thread_func (GTask *task,
                                           NULL, &error);
   if (!impl_request)
     {
-      g_warning ("Failed to to create screencast implementation proxy: %s", error->message);
-      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      g_warning ("Failed to to create screenshot implementation proxy: %s", error->message);
       send_response (request, 2, g_variant_builder_end (&opt_builder));
       return;
     }
 
   request_set_impl_request (request, impl_request);
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (options, &opt_builder,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
                       NULL);
+  if (permission_store_checked)
+    {
+      g_variant_builder_add (&opt_builder, "{sv}", "permission_store_checked",
+                             g_variant_new_boolean (TRUE));
+    }
 
   xdp_dbus_impl_screenshot_call_screenshot (impl,
                                             request->id,
-                                            xdp_app_info_get_id (request->app_info),
+                                            app_id,
                                             parent_window,
                                             g_variant_builder_end (&opt_builder),
                                             NULL,

@@ -24,6 +24,8 @@
       @short_description: Screenshot portal backend interface
 
       This screenshot portal lets sandboxed applications request a screenshot.
+
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Screenshot">
     <!--
@@ -50,6 +52,15 @@
             <listitem><para>
               Hint whether the dialog should offer customization before taking a screenshot.
               Defaults to no.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>permission_store_checked b</term>
+            <listitem><para>
+              Hint whether the screenshot portal has checked the 'screenshot' permission for
+              the requesting app. Defaults to no.
+
+              This option was added in version 2 of this interface.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -103,5 +114,7 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>

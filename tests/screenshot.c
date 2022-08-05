@@ -3,10 +3,37 @@
 #include "screenshot.h"
 
 #include <libportal/portal.h>
+#include "xdp-impl-dbus.h"
 
 extern char outdir[];
 
 static int got_info;
+
+extern XdpDbusImplPermissionStore *permission_store;
+
+static void
+set_screenshot_permissions (const char *permission)
+{
+  const char *permissions[2] = { NULL, NULL };
+  g_autoptr(GError) error = NULL;
+
+  permissions[0] = permission;
+  xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
+                                                           "screenshot",
+                                                           TRUE,
+                                                           "screenshot",
+                                                           "",
+                                                           permissions,
+                                                           NULL,
+                                                           &error);
+  g_assert_no_error (error);
+}
+
+static void
+reset_screenshot_permissions (void)
+{
+  set_screenshot_permissions (NULL);
+}
 
 static void
 screenshot_cb (GObject *obj,
@@ -54,6 +81,15 @@ test_screenshot_basic (void)
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+  g_free (path);
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
   g_key_file_set_string (keyfile, "result", "uri", "file://test/image");
   g_key_file_set_integer (keyfile, "result", "response", 0);
 
@@ -83,7 +119,19 @@ test_screenshot_delay (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
+  reset_screenshot_permissions ();
+
   keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+  g_free (path);
+
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
   g_key_file_set_integer (keyfile, "result", "response", 0);
@@ -115,7 +163,19 @@ test_screenshot_cancel (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
+  reset_screenshot_permissions ();
+
   keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+  g_free (path);
+
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 1);
   g_key_file_set_integer (keyfile, "result", "response", 1);
@@ -159,7 +219,19 @@ test_screenshot_close (void)
   g_autofree char *path = NULL;
   g_autoptr(GCancellable) cancellable = NULL;
 
+  reset_screenshot_permissions ();
+
   keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+  g_free (path);
+
   g_key_file_set_integer (keyfile, "backend", "delay", 200);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
   g_key_file_set_boolean (keyfile, "backend", "expect-close", 1);
@@ -190,7 +262,18 @@ test_screenshot_parallel (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
+  reset_screenshot_permissions ();
+
   keyfile = g_key_file_new ();
+
+  g_key_file_set_integer (keyfile, "backend", "delay", 0);
+  g_key_file_set_integer (keyfile, "backend", "response", 0);
+  g_key_file_set_integer (keyfile, "result", "response", 0);
+
+  path = g_build_filename (outdir, "access", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+  g_free (path);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
@@ -392,6 +475,8 @@ test_color_parallel (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+
+  set_screenshot_permissions ("no");
 
   keyfile = g_key_file_new ();
 
