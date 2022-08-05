@@ -51,6 +51,7 @@ struct _ScreenshotClass
 };
 
 static XdpDbusImplScreenshot *impl;
+static XdpDbusImplAccess *access_impl;
 static Screenshot *screenshot;
 
 GType screenshot_get_type (void) G_GNUC_CONST;
@@ -353,13 +354,14 @@ screenshot_class_init (ScreenshotClass *klass)
 
 GDBusInterfaceSkeleton *
 screenshot_create (GDBusConnection *connection,
-                   const char *dbus_name)
+                   const char *dbus_name_access,
+                   const char *dbus_name_screenshot)
 {
   g_autoptr(GError) error = NULL;
 
   impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                  dbus_name,
+                                                  dbus_name_screenshot,
                                                   DESKTOP_PORTAL_OBJECT_PATH,
                                                   NULL,
                                                   &error);
@@ -372,6 +374,13 @@ screenshot_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
+
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     dbus_name_access,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error);
 
   return G_DBUS_INTERFACE_SKELETON (screenshot);
 }
