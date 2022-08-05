@@ -61,6 +61,19 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELET
                                                 screenshot_iface_init));
 
 static void
+send_response (Request *request,
+               guint response,
+               GVariant *results)
+{
+  if (request->exported)
+    {
+      g_debug ("sending response: %d", response);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
+      request_unexport (request);
+    }
+}
+
+static void
 send_response_in_thread_func (GTask *task,
                               gpointer source_object,
                               gpointer task_data,
@@ -123,13 +136,7 @@ send_response_in_thread_func (GTask *task,
     }
 
 out:
-  if (request->exported)
-    {
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                      response,
-                                      g_variant_builder_end (&results));
-      request_unexport (request);
-    }
+  send_response (request, response, g_variant_builder_end (&results));
 }
 
 static void
