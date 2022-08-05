@@ -267,6 +267,14 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                                        request->id,
                                                        NULL, &error);
+
+  if (!impl_request)
+    {
+      g_warning ("Failed to to create wallpaper implementation proxy: %s", error->message);
+      send_response (request, 2);
+      return;
+    }
+
   request_set_impl_request (request, impl_request);
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
