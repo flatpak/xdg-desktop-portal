@@ -305,6 +305,7 @@ handle_screenshot_in_thread_func (GTask *task,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
                       NULL);
 
+  g_debug ("Calling Screenshot with interactive=%d", interactive);
   xdp_dbus_impl_screenshot_call_screenshot (impl,
                                             request->id,
                                             app_id,
