@@ -182,6 +182,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                              "grant_label", g_variant_new_string (_("Allow")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
+      g_variant_builder_add (&access_opt_builder, "{sv}",
+                             "permission", g_variant_new ("(ss)", PERMISSION_TABLE, PERMISSION_ID));
 
       if (g_str_equal (app_id, ""))
         {

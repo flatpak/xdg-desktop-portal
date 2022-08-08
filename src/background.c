@@ -273,6 +273,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
+      g_variant_builder_add (&opt_builder, "{sv}", "permission", g_variant_new ("(ss)", PERMISSION_TABLE, PERMISSION_ID));
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
                                                          app_id,

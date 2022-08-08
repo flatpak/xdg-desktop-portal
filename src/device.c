@@ -108,6 +108,7 @@ device_query_permission_sync (const char *app_id,
         }
 
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&opt_builder, "{sv}", "permission", g_variant_new ("(ss)", PERMISSION_TABLE, device));
 
       if (strcmp (device, "microphone") == 0)
         {
