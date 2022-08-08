@@ -45,6 +45,10 @@
         Supported keys in the @options include:
         <variablelist>
           <varlistentry>
+            <term>permission (ss)</term>
+            <listitem><para>The permission table and id that this request is operating on. Optional.</para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>modal b</term>
             <listitem><para>Whether to make the dialog modal. Defaults to true.</para></listitem>
           </varlistentry>
