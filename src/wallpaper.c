@@ -182,8 +182,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                              "grant_label", g_variant_new_string (_("Allow")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "permission", g_variant_new ("(ss)", PERMISSION_TABLE, PERMISSION_ID));
 
       if (g_str_equal (app_id, ""))
         {
@@ -269,14 +267,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                                        request->id,
                                                        NULL, &error);
-
-  if (!impl_request)
-    {
-      g_warning ("Failed to to create wallpaper implementation proxy: %s", error->message);
-      send_response (request, 2);
-      return;
-    }
-
   request_set_impl_request (request, impl_request);
 
   g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);

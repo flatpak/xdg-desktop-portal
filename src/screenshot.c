@@ -28,20 +28,14 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-#include <glib/gi18n.h>
 #include <gio/gio.h>
-#include <gio/gdesktopappinfo.h>
 
 #include "screenshot.h"
-#include "permissions.h"
 #include "request.h"
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
-
-#define PERMISSION_TABLE "screenshot"
-#define PERMISSION_ID "screenshot"
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -57,7 +51,6 @@ struct _ScreenshotClass
 };
 
 static XdpDbusImplScreenshot *impl;
-static XdpDbusImplAccess *access_impl;
 static Screenshot *screenshot;
 
 GType screenshot_get_type (void) G_GNUC_CONST;
@@ -66,19 +59,6 @@ static void screenshot_iface_init (XdpDbusScreenshotIface *iface);
 G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREENSHOT,
                                                 screenshot_iface_init));
-
-static void
-send_response (Request *request,
-               guint response,
-               GVariant *results)
-{
-  if (request->exported)
-    {
-      g_debug ("sending response: %d", response);
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
-    }
-}
 
 static void
 send_response_in_thread_func (GTask *task,
@@ -143,7 +123,13 @@ send_response_in_thread_func (GTask *task,
     }
 
 out:
-  send_response (request, response, g_variant_builder_end (&results));
+  if (request->exported)
+    {
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results));
+      request_unexport (request);
+    }
 }
 
 static void
@@ -182,111 +168,18 @@ static XdpOptionKey screenshot_options[] = {
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
-static void
-handle_screenshot_in_thread_func (GTask *task,
-                                  gpointer source_object,
-                                  gpointer task_data,
-                                  GCancellable *cancellable)
+static gboolean
+handle_screenshot (XdpDbusScreenshot *object,
+                   GDBusMethodInvocation *invocation,
+                   const gchar *arg_parent_window,
+                   GVariant *arg_options)
 {
-  Request *request = (Request *)task_data;
+  Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
-  Permission permission;
-  GVariant *options;
-  gboolean interactive;
-  const char *parent_window;
-  const char *app_id;
 
   REQUEST_AUTOLOCK (request);
-
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
-
-  app_id = xdp_app_info_get_id (request->app_info);
-  parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
-  options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
-
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
-
-  if (!g_variant_lookup (options, "interactive", "b", &interactive))
-    interactive = FALSE;
-
-  if (!interactive && permission != PERMISSION_YES)
-    {
-      g_autoptr(GVariant) access_results = NULL;
-      GVariantBuilder access_opt_builder;
-      g_autofree gchar *subtitle = NULL;
-      g_autofree gchar *title = NULL;
-      const gchar *body;
-      guint access_response = 2;
-
-      if (permission == PERMISSION_NO)
-        {
-          send_response (request, 2, g_variant_builder_end (&opt_builder));
-          return;
-        }
-
-      g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "deny_label", g_variant_new_string (_("Deny")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "grant_label", g_variant_new_string (_("Allow")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "permission", g_variant_new ("(ss)", PERMISSION_TABLE, PERMISSION_ID));
-
-      if (g_strcmp0 (app_id, "") != 0)
-        {
-          g_autoptr(GDesktopAppInfo) info = NULL;
-          const gchar *id;
-          const gchar *name;
-
-          id = g_strconcat (app_id, ".desktop", NULL);
-          info = g_desktop_app_info_new (id);
-          name = g_app_info_get_display_name (G_APP_INFO (info));
-
-          title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
-        }
-      else
-        {
-          /* Note: this will set the wallpaper permission for all unsandboxed
-           * apps for which an app ID can't be determined.
-           */
-          g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
-        }
-
-      body = _("This permission can be changed at any time from the privacy settings.");
-
-      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
-                                                         request->id,
-                                                         app_id,
-                                                         parent_window,
-                                                         title,
-                                                         subtitle,
-                                                         body,
-                                                         g_variant_builder_end (&access_opt_builder),
-                                                         &access_response,
-                                                         &access_results,
-                                                         NULL,
-                                                         &error))
-        {
-          g_warning ("Failed to show access dialog: %s", error->message);
-          return;
-        }
-
-      if (permission == PERMISSION_UNSET)
-        set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
-
-      if (access_response != 0)
-        {
-          send_response (request, 2, g_variant_builder_end (&opt_builder));
-          return;
-        }
-    }
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -296,52 +189,28 @@ handle_screenshot_in_thread_func (GTask *task,
                                           NULL, &error);
   if (!impl_request)
     {
-      g_warning ("Failed to to create screenshot implementation proxy: %s", error->message);
-      send_response (request, 2, g_variant_builder_end (&opt_builder));
-      return;
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   request_set_impl_request (request, impl_request);
+  request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_filter_options (options, &opt_builder,
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  xdp_filter_options (arg_options, &opt_builder,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
                       NULL);
 
-  g_debug ("Calling Screenshot with interactive=%d", interactive);
   xdp_dbus_impl_screenshot_call_screenshot (impl,
                                             request->id,
-                                            app_id,
-                                            parent_window,
+                                            xdp_app_info_get_id (request->app_info),
+                                            arg_parent_window,
                                             g_variant_builder_end (&opt_builder),
                                             NULL,
                                             screenshot_done,
                                             g_object_ref (request));
 
-}
-
-static gboolean
-handle_screenshot (XdpDbusScreenshot *object,
-                   GDBusMethodInvocation *invocation,
-                   const gchar *arg_parent_window,
-                   GVariant *arg_options)
-{
-  Request *request = request_from_invocation (invocation);
-  g_autoptr(GTask) task = NULL;
-
-  g_debug ("Handle Screenshot");
-
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
-  g_object_set_data_full (G_OBJECT (request),
-                          "options",
-                          g_variant_ref (arg_options),
-                          (GDestroyNotify)g_variant_unref);
-
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
-
-  task = g_task_new (object, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_screenshot_in_thread_func);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -437,7 +306,7 @@ screenshot_iface_init (XdpDbusScreenshotIface *iface)
 static void
 screenshot_init (Screenshot *screenshot)
 {
-  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot), 3);
+  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot), 2);
 }
 
 static void
@@ -447,14 +316,13 @@ screenshot_class_init (ScreenshotClass *klass)
 
 GDBusInterfaceSkeleton *
 screenshot_create (GDBusConnection *connection,
-                   const char *dbus_name_access,
-                   const char *dbus_name_screenshot)
+                   const char *dbus_name)
 {
   g_autoptr(GError) error = NULL;
 
   impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                  dbus_name_screenshot,
+                                                  dbus_name,
                                                   DESKTOP_PORTAL_OBJECT_PATH,
                                                   NULL,
                                                   &error);
@@ -467,13 +335,6 @@ screenshot_create (GDBusConnection *connection,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
-
-  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
-                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                     dbus_name_access,
-                                                     DESKTOP_PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error);
 
   return G_DBUS_INTERFACE_SKELETON (screenshot);
 }

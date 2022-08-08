@@ -49,9 +49,7 @@
             <term>interactive b</term>
             <listitem><para>
               Hint whether the dialog should offer customization before taking a screenshot.
-              Defaults to no. Since version 3 of #org.freedesktop.portal.Screenshot,
-              non-interactive screenshots are mediated by the permission store, so
-              implementations should not show any additional interaction.
+              Defaults to no.
             </para></listitem>
           </varlistentry>
         </variablelist>

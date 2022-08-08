@@ -266,6 +266,11 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   print_create (connection, implementation->dbus_name, lockdown));
 
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  screenshot_create (connection, implementation->dbus_name));
+
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Notification");
   if (implementation != NULL)
     export_portal_implementation (connection,
@@ -277,13 +282,6 @@ on_bus_acquired (GDBusConnection *connection,
                                   inhibit_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
-  if (implementation != NULL && implementation2 != NULL)
-    export_portal_implementation (connection,
-                                  screenshot_create (connection,
-                                                     implementation->dbus_name,
-                                                     implementation2->dbus_name));
-
   implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
   if (implementation != NULL)
     {
