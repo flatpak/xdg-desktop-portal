@@ -5262,9 +5262,13 @@ version  readable   u
             IN  a{sv} options,
             OUT u     response,
             OUT a{sv} results);
+</pre></div><div class="refsect1"><a id="idm7987"></a><h2>Properties</h2><pre class="synopsis">
+<a class="link" href="#gdbus-property-org-freedesktop-impl-portal-Screenshot.version" title="The &quot;version&quot; property">version</a>  readable   u
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Screenshot"></a><h2>Description</h2><p>
 This screenshot portal lets sandboxed applications request a screenshot.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm7994" class="indexterm"></a><pre class="programlisting">
+</p><p>
+This documentation describes version 2 of this interface.
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Screenshot"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.Screenshot"></a><h3>The Screenshot() method</h3><a id="idm7999" class="indexterm"></a><pre class="programlisting">
 Screenshot (IN  o     handle,
             IN  s     app_id,
             IN  s     parent_window,
@@ -5280,6 +5284,11 @@ Whether the dialog should be modal. Defaults to yes.
 </p></dd><dt><span class="term">interactive b</span></dt><dd><p>
 Hint whether the dialog should offer customization before taking a screenshot.
 Defaults to no.
+</p></dd><dt><span class="term">permission_store_checked b</span></dt><dd><p>
+Hint whether the screenshot portal has checked the 'screenshot' permission for
+the requesting app. Defaults to no.
+</p><p>
+This option was added in version 2 of this interface.
 </p></dd></dl></div><p>
 </p><p>
 The following results get returned via the <em class="parameter"><code>results</code></em> vardict:
@@ -5296,7 +5305,7 @@ Vardict with optional further information
 Numeric response
 </p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>
 Vardict with the results of the call
-</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.PickColor"></a><h3>The PickColor() method</h3><a id="idm8057" class="indexterm"></a><pre class="programlisting">
+</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Screenshot.PickColor"></a><h3>The PickColor() method</h3><a id="idm8067" class="indexterm"></a><pre class="programlisting">
 PickColor (IN  o     handle,
            IN  s     app_id,
            IN  s     parent_window,
@@ -5320,19 +5329,23 @@ Vardict with optional further information
 Numeric response
 </p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>
 Vardict with the results of the call
-</p></dd></dl></div></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Secret"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Secret — Secret portal backend interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
+</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Screenshot"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Screenshot.version"></a><h3>The "version" property</h3><a id="idm8121" class="indexterm"></a><pre class="programlisting">
+version  readable   u
+</pre><p>
+</p><p>
+</p></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Secret"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Secret — Secret portal backend interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Secret.RetrieveSecret" title="The RetrieveSecret() method">RetrieveSecret</a> (IN  o     handle,
                 IN  s     app_id,
                 IN  h     fd,
                 IN  a{sv} options,
                 OUT u     response,
                 OUT a{sv} results);
-</pre></div><div class="refsect1"><a id="idm8119"></a><h2>Properties</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm8138"></a><h2>Properties</h2><pre class="synopsis">
 <a class="link" href="#gdbus-property-org-freedesktop-impl-portal-Secret.version" title="The &quot;version&quot; property">version</a>  readable   u
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Secret"></a><h2>Description</h2><p>
 The Secret portal allows sandboxed applications to retrieve a
 per-application master secret.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Secret"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Secret.RetrieveSecret"></a><h3>The RetrieveSecret() method</h3><a id="idm8130" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Secret"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Secret.RetrieveSecret"></a><h3>The RetrieveSecret() method</h3><a id="idm8149" class="indexterm"></a><pre class="programlisting">
 RetrieveSecret (IN  o     handle,
                 IN  s     app_id,
                 IN  h     fd,
@@ -5358,15 +5371,15 @@ Vardict with optional further information
 Numeric response
 </p></dd><dt><span class="term"><code class="literal">OUT a{sv} <em class="parameter"><code>results</code></em></code>:</span></dt><dd><p>
 Vardict with the results of the call
-</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Secret"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Secret.version"></a><h3>The "version" property</h3><a id="idm8183" class="indexterm"></a><pre class="programlisting">
+</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Secret"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Secret.version"></a><h3>The "version" property</h3><a id="idm8202" class="indexterm"></a><pre class="programlisting">
 version  readable   u
 </pre><p>
 </p><p>
 </p></div></div></div><div class="refentry"><div class="refentry.separator"><hr /></div><a id="gdbus-org.freedesktop.impl.portal.Session"></a><div class="titlepage"></div><div class="refnamediv"><h2>Name</h2><p>org.freedesktop.impl.portal.Session — Shared session interface</p></div><div class="refsynopsisdiv"><h2>Methods</h2><pre class="synopsis">
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Session.Close" title="The Close() method">Close</a> ();
-</pre></div><div class="refsect1"><a id="idm8200"></a><h2>Signals</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm8219"></a><h2>Signals</h2><pre class="synopsis">
 <a class="link" href="#gdbus-signal-org-freedesktop-impl-portal-Session.Closed" title="The &quot;Closed&quot; signal">Closed</a> ();
-</pre></div><div class="refsect1"><a id="idm8204"></a><h2>Properties</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm8223"></a><h2>Properties</h2><pre class="synopsis">
 <a class="link" href="#gdbus-property-org-freedesktop-impl-portal-Session.version" title="The &quot;version&quot; property">version</a>  readable   u
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Session"></a><h2>Description</h2><p>
 The Session interface is shared by all portal interfaces that involve
@@ -5376,15 +5389,15 @@ object, which will stay alive for the duration of the session.
 </p><p>
 The portal can abort the interaction by calling
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Session.Close" title="The Close() method">Close()</a> on the Session object.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Session"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Session.Close"></a><h3>The Close() method</h3><a id="idm8217" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Session"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Session.Close"></a><h3>The Close() method</h3><a id="idm8236" class="indexterm"></a><pre class="programlisting">
 Close ();
 </pre><p>
 Close the session.
-</p></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.impl.portal.Session"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-impl-portal-Session.Closed"></a><h3>The "Closed" signal</h3><a id="idm8225" class="indexterm"></a><pre class="programlisting">
+</p></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.impl.portal.Session"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-impl-portal-Session.Closed"></a><h3>The "Closed" signal</h3><a id="idm8244" class="indexterm"></a><pre class="programlisting">
 Closed ();
 </pre><p>
 The session was closed by the portal implementation.
-</p></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Session"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Session.version"></a><h3>The "version" property</h3><a id="idm8233" class="indexterm"></a><pre class="programlisting">
+</p></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Session"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Session.version"></a><h3>The "version" property</h3><a id="idm8252" class="indexterm"></a><pre class="programlisting">
 version  readable   u
 </pre><p>
 </p><p>
@@ -5394,11 +5407,11 @@ version  readable   u
 <a class="link" href="#gdbus-method-org-freedesktop-impl-portal-Settings.Read" title="The Read() method">Read</a>    (IN  s         namespace,
          IN  s         key,
          OUT v         value);
-</pre></div><div class="refsect1"><a id="idm8251"></a><h2>Signals</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm8270"></a><h2>Signals</h2><pre class="synopsis">
 <a class="link" href="#gdbus-signal-org-freedesktop-impl-portal-Settings.SettingChanged" title="The &quot;SettingChanged&quot; signal">SettingChanged</a> (s namespace,
                 s key,
                 v value);
-</pre></div><div class="refsect1"><a id="idm8255"></a><h2>Properties</h2><pre class="synopsis">
+</pre></div><div class="refsect1"><a id="idm8274"></a><h2>Properties</h2><pre class="synopsis">
 <a class="link" href="#gdbus-property-org-freedesktop-impl-portal-Settings.version" title="The &quot;version&quot; property">version</a>  readable   u
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Settings"></a><h2>Description</h2><p>
 This interface provides read-only access to a small number
@@ -5420,7 +5433,7 @@ toolkit and want to use this please open an issue.
 </p><p>
 Note that the Settings portal can operate without this backend,
 implementing it is optional.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Settings"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Settings.ReadAll"></a><h3>The ReadAll() method</h3><a id="idm8279" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Settings"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Settings.ReadAll"></a><h3>The ReadAll() method</h3><a id="idm8298" class="indexterm"></a><pre class="programlisting">
 ReadAll (IN  as        namespaces,
          OUT a{sa{sv}} value);
 </pre><p>
@@ -5430,7 +5443,7 @@ trailing sections, e.g. "org.example.*".
 List of namespaces to filter results by, supports simple globbing explained below.
 </p></dd><dt><span class="term"><code class="literal">OUT a{sa{sv}} <em class="parameter"><code>value</code></em></code>:</span></dt><dd><p>
 Dictionary of namespaces to its keys and values.
-</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Settings.Read"></a><h3>The Read() method</h3><a id="idm8299" class="indexterm"></a><pre class="programlisting">
+</p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Settings.Read"></a><h3>The Read() method</h3><a id="idm8318" class="indexterm"></a><pre class="programlisting">
 Read (IN  s namespace,
       IN  s key,
       OUT v value);
@@ -5442,7 +5455,7 @@ Namespace to look up <em class="parameter"><code>key</code></em> in.
 The key to get.
 </p></dd><dt><span class="term"><code class="literal">OUT v <em class="parameter"><code>value</code></em></code>:</span></dt><dd><p>
 The value <em class="parameter"><code>key</code></em> is set to.
-</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.impl.portal.Settings"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-impl-portal-Settings.SettingChanged"></a><h3>The "SettingChanged" signal</h3><a id="idm8328" class="indexterm"></a><pre class="programlisting">
+</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-signals-org.freedesktop.impl.portal.Settings"></a><h2>Signal Details</h2><div class="refsect2"><a id="gdbus-signal-org-freedesktop-impl-portal-Settings.SettingChanged"></a><h3>The "SettingChanged" signal</h3><a id="idm8347" class="indexterm"></a><pre class="programlisting">
 SettingChanged (s namespace,
                 s key,
                 v value);
@@ -5454,7 +5467,7 @@ Namespace of changed setting.
 The key of changed setting.
 </p></dd><dt><span class="term"><code class="literal">v <em class="parameter"><code>value</code></em></code>:</span></dt><dd><p>
 The new value.
-</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Settings"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Settings.version"></a><h3>The "version" property</h3><a id="idm8355" class="indexterm"></a><pre class="programlisting">
+</p></dd></dl></div></div></div><div class="refsect1"><a id="gdbus-properties-org.freedesktop.impl.portal.Settings"></a><h2>Property Details</h2><div class="refsect2"><a id="gdbus-property-org-freedesktop-impl-portal-Settings.version"></a><h3>The "version" property</h3><a id="idm8374" class="indexterm"></a><pre class="programlisting">
 version  readable   u
 </pre><p>
 </p><p>
@@ -5468,7 +5481,7 @@ version  readable   u
 </pre></div><div class="refsect1"><a id="gdbus-interface-org-freedesktop-impl-portal-Wallpaper"></a><h2>Description</h2><p>
 This simple interface lets sandboxed applications set the user's
 desktop background picture.
-</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Wallpaper"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Wallpaper.SetWallpaperURI"></a><h3>The SetWallpaperURI() method</h3><a id="idm8379" class="indexterm"></a><pre class="programlisting">
+</p></div><div class="refsect1"><a id="gdbus-methods-org.freedesktop.impl.portal.Wallpaper"></a><h2>Method Details</h2><div class="refsect2"><a id="gdbus-method-org-freedesktop-impl-portal-Wallpaper.SetWallpaperURI"></a><h3>The SetWallpaperURI() method</h3><a id="idm8398" class="indexterm"></a><pre class="programlisting">
 SetWallpaperURI (IN  o     handle,
                  IN  s     app_id,
                  IN  s     parent_window,
