@@ -195,7 +195,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       else
         {
           g_autoptr(GDesktopAppInfo) info = NULL;
-          const gchar *id;
+          g_autofree gchar *id = NULL;
           const gchar *name;
 
           id = g_strconcat (app_id, ".desktop", NULL);
