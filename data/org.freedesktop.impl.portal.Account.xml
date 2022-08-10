@@ -24,7 +24,7 @@
       @short_description: Backend for the portal for obtaining user information
 
       This Account portal lets sandboxed applications query basic
-      information about the user, like his name and avatar photo.
+      information about the user, like their name and avatar photo.
       The portal backend will present the user with a dialog to confirm
       which (if any) information to share.
   -->

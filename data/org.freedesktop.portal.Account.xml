@@ -24,7 +24,7 @@
       @short_description: Portal for obtaining information about the user
 
       This simple interface lets sandboxed applications query basic
-      information about the user, like his name and avatar photo.
+      information about the user, like their name and avatar photo.
 
       This documentation describes version 1 of this interface.
   -->
