@@ -1,3 +1,23 @@
+Changes in 1.15.0
+=================
+Released: 2022-08-11
+
+- Add Meson build files. For now, both Autotools and Meson are available
+  in the source tree. Starting from next release, tarballs will be generated
+  using Meson. There is no set date to delete Autotools files, but it will
+  happen at some point in the future. The removal of Autotools will be
+  communicated in advance.
+- Make the Screenshot portal request permission to take screenshots. Frontends
+  that implement the version 2 of org.freedesktop.portal.impl.Screenshot portal
+  can now be aware that the screenshot permission was granted through the new
+  'permission_store_checked' option, and skip any kind of dialog when that is
+  the case.
+- Stop sending the app id quoted in the Background portal
+- Fix a bug in cgroup name parsing
+- Various fixes to the Realtime portal
+- Various CI improvements
+- Translation updates
+
 Changes in 1.14.1
 =================
 Released: 2022-03-18
