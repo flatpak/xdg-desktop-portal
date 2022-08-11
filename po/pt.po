@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-03-16 22:02-0700\n"
+"POT-Creation-Date: 2022-08-11 16:07-0300\n"
 "PO-Revision-Date: 2022-01-20 10:40-0300\n"
 "Last-Translator: Juliano de Souza Camargo <julianosc@protonmail.com>\n"
 "Language-Team: Portuguese < https://l10n.gnome.org/teams/pt/>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 40.0\n"
 
-#: src/background.c:260
+#: src/background.c:262
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir a %s correr em segundo plano?"
 
-#: src/background.c:264
+#: src/background.c:266
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s requisita iniciar automaticamente e correr em segundo plano."
 
-#: src/background.c:266
+#: src/background.c:268
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s requisita correr em segundo plano."
 
-#: src/background.c:267
+#: src/background.c:269
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,19 +41,19 @@ msgstr ""
 "Pode alterar, em qualquer altura, a permissão para “correr em segundo plano” "
 "pelas definições da aplicação."
 
-#: src/background.c:272
+#: src/background.c:274
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:273 src/wallpaper.c:181
+#: src/background.c:275 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Permitir"
 
-#: src/device.c:115
+#: src/device.c:116
 msgid "Turn On Microphone?"
 msgstr "Ligar o microfone?"
 
-#: src/device.c:116
+#: src/device.c:117
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -61,51 +61,51 @@ msgstr ""
 "Pode alterar, em qualquer altura, o acesso ao microfone pelas definições de "
 "privacidade."
 
-#: src/device.c:120
+#: src/device.c:121
 msgid "An application wants to use your microphone."
 msgstr "Uma aplicação requisita o uso de seu microfone."
 
-#: src/device.c:122
+#: src/device.c:123
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s requisita o uso de seu microfone."
 
-#: src/device.c:128
+#: src/device.c:129
 msgid "Turn On Speakers?"
 msgstr "Ligar os altifalantes?"
 
-#: src/device.c:129
+#: src/device.c:130
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Pode alterar, em qualquer altura, o acesso aos altifalantes pelas definições "
 "de privacidade."
 
-#: src/device.c:133
+#: src/device.c:134
 msgid "An application wants to play sound."
 msgstr "Uma aplicação requisita reproduzir som."
 
-#: src/device.c:135
+#: src/device.c:136
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s requisita reproduzir som."
 
-#: src/device.c:141
+#: src/device.c:142
 msgid "Turn On Camera?"
 msgstr "Ligar a câmara?"
 
-#: src/device.c:142
+#: src/device.c:143
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Pode alterar, em qualquer altura, o acesso à câmara pelas definições de "
 "privacidade."
 
-#: src/device.c:146
+#: src/device.c:147
 msgid "An application wants to use your camera."
 msgstr "Uma aplicação requisita o uso de sua câmara."
 
-#: src/device.c:148
+#: src/device.c:149
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s requisita o uso de sua câmara."
@@ -142,33 +142,33 @@ msgstr ""
 "Pode alterar, em qualquer altura, o acesso à localização pelas definições de "
 "privacidade."
 
-#: src/settings.c:124
+#: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Definição solicitada não encontrada"
 
-#: src/wallpaper.c:179
+#: src/wallpaper.c:180
 msgid "Deny"
 msgstr "Negar"
 
-#: src/wallpaper.c:191
+#: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Permitir que aplicações definam o fundo?"
 
-#: src/wallpaper.c:192
+#: src/wallpaper.c:193
 msgid "An application is requesting to be able to change the background image."
 msgstr "Uma aplicação requisita poder alterar a imagem de fundo."
 
-#: src/wallpaper.c:204
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitir que %s defina o fundo?"
 
-#: src/wallpaper.c:205
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s requisita poder alterar a imagem de fundo."
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Pode alterar, em qualquer altura, esta permissão pelas definições de "

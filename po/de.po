@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-03-16 22:02-0700\n"
+"POT-Creation-Date: 2022-08-11 16:07-0300\n"
 "PO-Revision-Date: 2016-09-23 19:17+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: src/background.c:260
+#: src/background.c:262
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:264
+#: src/background.c:266
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:266
+#: src/background.c:268
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:267
+#: src/background.c:269
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -43,19 +43,19 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/background.c:272
+#: src/background.c:274
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:273 src/wallpaper.c:181
+#: src/background.c:275 src/wallpaper.c:182
 msgid "Allow"
 msgstr ""
 
-#: src/device.c:115
+#: src/device.c:116
 msgid "Turn On Microphone?"
 msgstr "Mikrofon einschalten?"
 
-#: src/device.c:116
+#: src/device.c:117
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -63,51 +63,51 @@ msgstr ""
 "Der Zugriff auf Ihr Mikrofon kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/device.c:120
+#: src/device.c:121
 msgid "An application wants to use your microphone."
 msgstr "Eine Anwendung möchte auf Ihr Mikrofon zugreifen."
 
-#: src/device.c:122
+#: src/device.c:123
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s möchte auf Ihr Mikrofon zugreifen."
 
-#: src/device.c:128
+#: src/device.c:129
 msgid "Turn On Speakers?"
 msgstr "Lautsprecher einschalten?"
 
-#: src/device.c:129
+#: src/device.c:130
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/device.c:133
+#: src/device.c:134
 msgid "An application wants to play sound."
 msgstr "Eine Anwendung möchte Ton wiedergeben."
 
-#: src/device.c:135
+#: src/device.c:136
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s möchte Ton wiedergeben."
 
-#: src/device.c:141
+#: src/device.c:142
 msgid "Turn On Camera?"
 msgstr "Kamera einschalten?"
 
-#: src/device.c:142
+#: src/device.c:143
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "Der Zugriff auf Ihre Kamera kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/device.c:146
+#: src/device.c:147
 msgid "An application wants to use your camera."
 msgstr "Eine Anwendung möchte Ihre Kamera nutzen."
 
-#: src/device.c:148
+#: src/device.c:149
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s möchte Ihre Kamera nutzen."
@@ -146,34 +146,34 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/settings.c:124
+#: src/settings.c:127
 msgid "Requested setting not found"
 msgstr ""
 
-#: src/wallpaper.c:179
+#: src/wallpaper.c:180
 msgid "Deny"
 msgstr ""
 
-#: src/wallpaper.c:191
+#: src/wallpaper.c:192
 #, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Eine Anwendung möchte Ton wiedergeben."
 
-#: src/wallpaper.c:192
+#: src/wallpaper.c:193
 msgid "An application is requesting to be able to change the background image."
-msgstr ""
-
-#: src/wallpaper.c:204
-#, c-format
-msgid "Allow %s to Set Backgrounds?"
 msgstr ""
 
 #: src/wallpaper.c:205
 #, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr ""
+
+#: src/wallpaper.c:206
+#, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:209
 #, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""

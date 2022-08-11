@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-03-16 22:02-0700\n"
+"POT-Creation-Date: 2022-08-11 16:07-0300\n"
 "PO-Revision-Date: 2021-09-09 00:42+0700\n"
 "Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
@@ -18,86 +18,86 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
 
-#: src/background.c:260
+#: src/background.c:262
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "अनुमति देना %s पृष्ठभूमि में चलाने के लिए?"
 
-#: src/background.c:264
+#: src/background.c:266
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s अनुरोध स्वचालित रूप से शुरू होने और पृष्ठभूमि में चलाने का अनुरोध करता है।"
 
-#: src/background.c:266
+#: src/background.c:268
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s पृष्ठभूमि में चलाने के लिए अनुरोध।"
 
-#: src/background.c:267
+#: src/background.c:269
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "एप्लिकेशन सेटिंग से किसी भी समय 'रन इन बैकग्राउंड' अनुमति को बदला जा सकता है।"
 
-#: src/background.c:272
+#: src/background.c:274
 msgid "Don't allow"
 msgstr "अनुमति न दें"
 
-#: src/background.c:273 src/wallpaper.c:181
+#: src/background.c:275 src/wallpaper.c:182
 msgid "Allow"
 msgstr "अनुमति"
 
-#: src/device.c:115
+#: src/device.c:116
 msgid "Turn On Microphone?"
 msgstr "माइक्रोफ़ोन चालू करें?"
 
-#: src/device.c:116
+#: src/device.c:117
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr "गोपनीयता सेटिंग्स से आपके माइक्रोफ़ोन तक पहुंच को किसी भी समय बदला जा सकता है।"
 
-#: src/device.c:120
+#: src/device.c:121
 msgid "An application wants to use your microphone."
 msgstr "एक एप्लिकेशन आपके माइक्रोफ़ोन का उपयोग करना चाहता है।"
 
-#: src/device.c:122
+#: src/device.c:123
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s आपके माइक्रोफ़ोन का उपयोग करना चाहता है।"
 
-#: src/device.c:128
+#: src/device.c:129
 msgid "Turn On Speakers?"
 msgstr "स्पीकर चालू करें?"
 
-#: src/device.c:129
+#: src/device.c:130
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से आपके स्पीकर तक पहुंच को किसी भी समय बदला जा सकता है।"
 
-#: src/device.c:133
+#: src/device.c:134
 msgid "An application wants to play sound."
 msgstr "एक एप्लिकेशन ध्वनि बजाना चाहता है।"
 
-#: src/device.c:135
+#: src/device.c:136
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s ध्वनि बजाना चाहता है।"
 
-#: src/device.c:141
+#: src/device.c:142
 msgid "Turn On Camera?"
 msgstr "कैमरा चालू करें?"
 
-#: src/device.c:142
+#: src/device.c:143
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से आपके कैमरे तक पहुंच को किसी भी समय बदला जा सकता है।"
 
-#: src/device.c:146
+#: src/device.c:147
 msgid "An application wants to use your camera."
 msgstr "एक एप्लिकेशन आपके कैमरे का उपयोग करना चाहता है।"
 
-#: src/device.c:148
+#: src/device.c:149
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s अपने कैमरे का उपयोग करना चाहता है।"
@@ -132,32 +132,32 @@ msgstr "%s आपके स्थान का उपयोग करना च�
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान का उपयोग बदला जा सकता है।"
 
-#: src/settings.c:124
+#: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "अनुरोधित सेटिंग नहीं मिली"
 
-#: src/wallpaper.c:179
+#: src/wallpaper.c:180
 msgid "Deny"
 msgstr "मना"
 
-#: src/wallpaper.c:191
+#: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "एप्‍लिकेशन को पृष्‍ठभूमि सेट करने की अनुमति दें?"
 
-#: src/wallpaper.c:192
+#: src/wallpaper.c:193
 msgid "An application is requesting to be able to change the background image."
 msgstr "एक एप्लिकेशन पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
 
-#: src/wallpaper.c:204
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "परमिट %s पृष्ठभूमि सेट करने के लिए?"
 
-#: src/wallpaper.c:205
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
