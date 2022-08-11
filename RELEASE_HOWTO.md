@@ -4,7 +4,6 @@
  - ./autogen.sh && make -C po/ update-po
  - git add po/*po &&  git commit -m "Update po files"
  - git clean -fxd
- - bump version in configure.ac and meson.build
  - add content to NEWS
  - git commit -m <version>
  - git push origin main
@@ -16,3 +15,6 @@
  - upload tarball to github as release
  - edit release, copy NEWS section in
  - update portal api docs in the gh-pages branch
+ - bump version in configure.ac and meson.build
+ - git commit -m "Post-release version bump"
+ - git push origin main
