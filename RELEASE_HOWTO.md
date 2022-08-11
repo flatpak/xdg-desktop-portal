@@ -4,7 +4,7 @@
  - ./autogen.sh && make -C po/ update-po
  - git add po/*po &&  git commit -m "Update po files"
  - git clean -fxd
- - bump version in configure.ac
+ - bump version in configure.ac and meson.build
  - add content to NEWS
  - git commit -m <version>
  - git push origin main
