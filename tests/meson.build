@@ -234,7 +234,6 @@ if enable_installed_tests
     'test-doc-portal',
     'test-document-fuse.sh',
     'test-permission-store',
-    'test-portals',
     'test-xdp-utils',
   ]
   foreach tf : testfiles
@@ -244,6 +243,19 @@ if enable_installed_tests
       configure_file(
         input: 'template.test.in',
         output: '@0@.test'.format(tf),
+        configuration: data,
+        install: true,
+        install_dir: installed_tests_data_dir,
+      )
+  endforeach
+
+  foreach p : portal_tests
+      data = configuration_data()
+      data.set('installed_testdir', installed_tests_dir)
+      data.set('exec', 'test-portals -p /portal/@0@'.format(p))
+      configure_file(
+        input: 'template.test.in',
+        output: 'test-portals-@0@.test'.format(p),
         configuration: data,
         install: true,
         install_dir: installed_tests_data_dir,
