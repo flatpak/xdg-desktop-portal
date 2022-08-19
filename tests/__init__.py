@@ -27,6 +27,7 @@ from typing import Any, Dict, Optional, NamedTuple
 from pathlib import Path
 
 import dbus
+import dbus.proxies
 import dbusmock
 import fcntl
 import logging
