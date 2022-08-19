@@ -407,5 +407,9 @@ class PortalTest(dbusmock.DBusTestCase):
         """
         self.start_xdp()
         properties_intf = self.get_dbus_interface("org.freedesktop.DBus.Properties")
-        portal_version = properties_intf.Get(self.INTERFACE_NAME, "version")
-        assert int(portal_version) == expected_version
+        try:
+            portal_version = properties_intf.Get(self.INTERFACE_NAME, "version")
+            assert int(portal_version) == expected_version
+        except dbus.exceptions.DBusException as e:
+            logger.critical(e);
+            assert e is None, str(e)
