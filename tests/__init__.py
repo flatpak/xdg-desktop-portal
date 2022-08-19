@@ -302,15 +302,20 @@ class PortalTest(dbusmock.DBusTestCase):
         # This roughly resembles test-portals.c and glib's test behavior
         if os.getenv("XDP_UNINSTALLED", None):
             builddir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / ".."
+            # meson has x-d-p in a different build directory than the autotools build...
+            xdp_path = builddir / "xdg-desktop-portal"
+            if not xdp_path.exists():
+                xdp_path = builddir / "src" / "xdg-desktop-portal"
         else:
             builddir = os.getenv("LIBEXECDIR")
             if not builddir:
                 raise NotImplementedError("LIBEXECDIR is not set")
+            xdp_path = Path(builddir) / "xdg-desktop-portal"
 
         distdir = os.getenv("G_TEST_SRCDIR") or "tests"
         portal_dir = Path(distdir) / "portals"
 
-        argv = [Path(builddir) / "xdg-desktop-portal"]
+        argv = [xdp_path]
         env = os.environ.copy()
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
