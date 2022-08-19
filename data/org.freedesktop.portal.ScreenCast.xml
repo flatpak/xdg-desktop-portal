@@ -23,7 +23,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes version 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
@@ -52,6 +52,17 @@
               A string that will be used as the last element of the session handle. Must be a valid
               object path element. See the #org.freedesktop.portal.Session documentation for
               more information about the session handle.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>session_handle o</term>
+            <listitem><para>
+              Object path for the #org.freedesktop.portal.Session object. See the
+              #org.freedesktop.portal.SessionFactory documentation for more information
+              about creating a session. If a session_handle is present,
+              the session_handle_token SHOULD not be present and is ignored.
+
+              This option was added in version 5 of this interface.
             </para></listitem>
           </varlistentry>
         </variablelist>

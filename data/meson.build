@@ -28,6 +28,7 @@ portal_sources = files(
   'org.freedesktop.portal.Screenshot.xml',
   'org.freedesktop.portal.Secret.xml',
   'org.freedesktop.portal.Session.xml',
+  'org.freedesktop.portal.SessionFactory.xml',
   'org.freedesktop.portal.Settings.xml',
   'org.freedesktop.portal.Trash.xml',
   'org.freedesktop.portal.Wallpaper.xml',

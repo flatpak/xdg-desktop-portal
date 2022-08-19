@@ -50,6 +50,17 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>session_handle o</term>
+            <listitem><para>
+              Object path for the #org.freedesktop.portal.Session object. See the
+              #org.freedesktop.portal.SessionFactory documentation for more information
+              about creating a session. If a session_handle is present,
+              the session_handle_token SHOULD not be present and is ignored.
+
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>distance-threshold u</term>
             <listitem><para>
               Distance threshold in meters. Default is 0.

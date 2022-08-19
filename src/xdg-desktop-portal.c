@@ -57,6 +57,7 @@
 #include "gamemode.h"
 #include "camera.h"
 #include "secret.h"
+#include "session-factory.h"
 #include "wallpaper.h"
 #include "realtime.h"
 #include "dynamic-launcher.h"
@@ -137,6 +138,13 @@ method_needs_request (GDBusMethodInvocation *invocation)
         return TRUE;
       else
         return FALSE;
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.SessionFactory") == 0)
+    {
+        if (strcmp (method, "CreateSession") == 0)
+          return TRUE;
+        else
+          return FALSE;
     }
   else
     {
@@ -239,6 +247,7 @@ on_bus_acquired (GDBusConnection *connection,
   else
     lockdown = xdp_dbus_impl_lockdown_skeleton_new ();
 
+  export_portal_implementation (connection, session_factory_create (connection));
   export_portal_implementation (connection, memory_monitor_create (connection));
   export_portal_implementation (connection, power_profile_monitor_create (connection));
   export_portal_implementation (connection, network_monitor_create (connection));

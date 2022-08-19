@@ -25,6 +25,7 @@ PORTAL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.portal.Screenshot.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Secret.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Session.xml \
+	$(top_srcdir)/data/org.freedesktop.portal.SessionFactory.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Settings.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Trash.xml \
 	$(top_srcdir)/data/org.freedesktop.portal.Wallpaper.xml \

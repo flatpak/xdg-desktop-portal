@@ -443,6 +443,7 @@ DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 3)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
+DEFINE_TEST_EXISTS(session_factory, SESSION_FACTORY, 1)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 1)
 DEFINE_TEST_EXISTS(trash, TRASH, 1)
 DEFINE_TEST_EXISTS(wallpaper, WALLPAPER, 1)
@@ -474,6 +475,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/proxyresolver/exists", test_proxy_resolver_exists);
   g_test_add_func ("/portal/screenshot/exists", test_screenshot_exists);
   g_test_add_func ("/portal/settings/exists", test_settings_exists);
+  g_test_add_func ("/portal/sessionfactory/exists", test_session_factory_exists);
   g_test_add_func ("/portal/trash/exists", test_trash_exists);
   g_test_add_func ("/portal/wallpaper/exists", test_wallpaper_exists);
   g_test_add_func ("/portal/realtime/exists", test_realtime_exists);

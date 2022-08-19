@@ -126,6 +126,8 @@ xdg_desktop_portal_SOURCES = \
 	src/gamemode.h			\
 	src/secret.c			\
 	src/secret.h			\
+	src/session-factory.c		\
+	src/session-factory.h		\
 	src/flatpak-instance.c          \
 	src/flatpak-instance.h          \
 	src/portal-impl.h		\

@@ -64,6 +64,7 @@ xdg_desktop_portal_sources = files(
   'screenshot.c',
   'secret.c',
   'session.c',
+  'session-factory.c',
   'settings.c',
   'trash.c',
   'wallpaper.c',

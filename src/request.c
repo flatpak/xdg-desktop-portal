@@ -249,6 +249,13 @@ get_token (GDBusMethodInvocation *invocation)
                      interface, method, G_STRLOC);
         }
     }
+  else if (strcmp (interface, "org.freedesktop.portal.SessionFactory") == 0)
+    {
+      if (strcmp (method, "CreateSession") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 0);
+        }
+    }
   else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
     {
       if (strcmp (method, "CreateSession") == 0 )

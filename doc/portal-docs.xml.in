@@ -118,6 +118,7 @@
     <xi:include href="portal-org.freedesktop.portal.Screenshot.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Secret.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Session.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.SessionFactory.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Settings.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Trash.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Wallpaper.xml"/>
