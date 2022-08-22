@@ -323,7 +323,7 @@ class PortalTest(dbusmock.DBusTestCase):
 
         xdp = subprocess.Popen(argv, env=env)
 
-        for _ in range(500):
+        for _ in range(50):
             if self.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
                 break
             time.sleep(0.1)
