@@ -63,8 +63,6 @@ class ImplRequest:
 
         bus = mock.connection
         proxy = bus.get_object(busname, handle)
-        intf = dbus.Interface(proxy, "org.freedesktop.impl.portal.Request")
-        self.proxy = proxy
         mock_interface = dbus.Interface(proxy, dbusmock.MOCK_IFACE)
 
         # Register for the Close() call on the impl.Request. If it gets
@@ -87,7 +85,7 @@ class ImplRequest:
 
         mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
 
-    def export(self, close_callback: Callable = None):
+    def export(self, close_callback: Optional[Callable] = None):
         """
         Create the object on the bus. If close_callback is not None, that
         callback will be invoked in response to the Close() method called on
@@ -107,6 +105,7 @@ class ImplRequest:
             ],
         )
         self._close_callback = close_callback
+        return self
 
     def __str__(self):
         return f"ImplRequest {self.handle}"
