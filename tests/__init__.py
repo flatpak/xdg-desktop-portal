@@ -273,6 +273,60 @@ class Request(Closable):
         return self.response
 
 
+class Session(Closable):
+    """
+    Helper class for a Session created by a portal. This class takes care of
+    subscribing to the `Closed` signals. A typical invocation is:
+
+        >>> response = Request(connection, interface).call("CreateSession")
+        >>> session = Session.from_response(response)
+        # Now run the main loop and do other stuff
+        # Check if the session was closed
+        >>> if session.closed:
+        ...    pass
+        # or close the session explicitly
+        >>> session.close()  # to close the session or
+    """
+
+    def __init__(self, bus: dbus.Bus, handle: str):
+        assert handle
+        super().__init__(bus, handle)
+
+        self.handle = handle
+        self.details = None
+        # GLib makes assertions in callbacks impossible, so we wrap all
+        # callbacks into a try: except and store the error on the request to
+        # be raised later when we're back in the main context
+        self.error = None
+        self._closed_sig_received = False
+
+        def cb_closed(details: ASV) -> None:
+            try:
+                logger.debug(f"Session.Closed received on {self.handle}")
+                assert not self._closed_sig_received
+                self._closed_sig_received = True
+                self.details = details
+                if self._mainloop:
+                    self._mainloop.quit()
+            except Exception as e:
+                self.error = e
+
+        proxy = bus.get_object("org.freedesktop.portal.Desktop", handle)
+        self.session_interface = dbus.Interface(proxy, "org.freedesktop.portal.Session")
+        self.session_interface.connect_to_signal("Closed", cb_closed)
+
+    @property
+    def closed(self):
+        """
+        Returns True if the session was closed by the backend
+        """
+        return self._closed_sig_received or super().closed
+
+    @classmethod
+    def from_response(cls, bus: dbus.Bus, response: Response) -> "Session":
+        return cls(bus, response.results["session_handle"])
+
+
 class PortalTest(dbusmock.DBusTestCase):
     """
     Parent class for portal tests.
