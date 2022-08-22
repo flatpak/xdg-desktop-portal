@@ -9,9 +9,9 @@
 # your portal's name (e.g. TestEmail). This will auto-fill your portal
 # name into some of the functions.
 #
-# Make sure you have a dbusmock template for the impl.portal of your portal in
-# tests/templates. See the dbusmock documentation for details on those
-# templates.
+# Make sure the portal is listed in tests/portals/test.portal  and you have a
+# dbusmock template for the impl.portal of your portal in tests/templates. See
+# the dbusmock documentation for details on those templates.
 #
 # Environment variables:
 #   XDP_UNINSTALLED: run from $PWD (with an emulation of the glib test behavior)
