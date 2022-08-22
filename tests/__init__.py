@@ -37,6 +37,9 @@ import time
 
 DBusGMainLoop(set_as_default=True)
 
+# Anything that takes longer than 5s needs to fail
+MAX_TIMEOUT = 5000
+
 _counter = count()
 
 ASV = Dict[str, Any]
@@ -62,7 +65,73 @@ class ResponseTimeout(Exception):
     pass
 
 
-class Request:
+class Closable:
+    """
+    Parent class for both Session and Request. Both of these have a Close()
+    method.
+    """
+
+    def __init__(self, bus: dbus.Bus, objpath: str):
+        self.objpath = objpath
+        # GLib makes assertions in callbacks impossible, so we wrap all
+        # callbacks into a try: except and store the error on the request to
+        # be raised later when we're back in the main context
+        self.error = None
+
+        self._mainloop: Optional[GLib.MainLoop] = None
+        self._impl_closed = False
+        self._bus = bus
+
+        self._closable = type(self).__name__
+        assert self._closable in ("Request", "Session")
+        proxy = bus.get_object("org.freedesktop.portal.Desktop", objpath)
+        self._closable_interface = dbus.Interface(
+            proxy, f"org.freedesktop.portal.{self._closable}"
+        )
+
+    @property
+    def bus(self) -> dbus.Bus:
+        return self._bus
+
+    @property
+    def closed(self) -> bool:
+        """
+        True if the impl.portal was closed
+        """
+        return self._impl_closed
+
+    def close(self) -> None:
+        signal_match = None
+
+        def cb_impl_closed_by_portal(handle) -> None:
+            if handle == self.objpath:
+                logger.debug(f"Impl{self._closable} {self.objpath} was closed")
+                signal_match.remove()  # type: ignore
+                self._impl_closed = True
+                if self.closed and self._mainloop:
+                    self._mainloop.quit()
+
+        # See :class:`ImplRequest`, this signal is a side-channel for the
+        # impl.portal template to notify us when the impl.Request was really
+        # closed by the portal.
+        signal_match = self._bus.add_signal_receiver(
+            cb_impl_closed_by_portal,
+            f"{self._closable}Closed",
+            dbus_interface="org.freedesktop.impl.portal.Test",
+        )
+
+        logger.debug(f"Closing {self._closable} {self.objpath}")
+        self._closable_interface.Close()
+
+    def schedule_close(self, timeout_ms=300):
+        """
+        Schedule an automatic Close() on the given timeout in milliseconds.
+        """
+        assert 0 < timeout_ms < MAX_TIMEOUT
+        GLib.timeout_add(timeout_ms, self.close)
+
+
+class Request(Closable):
     """
     Helper class for executing methods that use Requests. This calls takes
     care of subscribing to the signals and invokes the method on the
@@ -76,6 +145,15 @@ class Request:
     """
 
     def __init__(self, bus: dbus.Bus, interface: dbus.Interface):
+        def sanitize(name):
+            return name.lstrip(":").replace(".", "_")
+
+        sender_token = sanitize(bus.get_unique_name())
+        self._handle_token = f"request{next(_counter)}"
+        self.handle = f"/org/freedesktop/portal/desktop/request/{sender_token}/{self._handle_token}"
+        # The Closable
+        super().__init__(bus, self.handle)
+
         self.interface = interface
         self.response: Optional[Response] = None
         self.used = False
@@ -84,18 +162,6 @@ class Request:
         # be raised later when we're back in the main context
         self.error = None
 
-        self._handle_token = f"request{next(_counter)}"
-        self._mainloop: Optional[GLib.MainLoop] = None
-        self._close_after_ms = 0
-        self._closed = False
-        self._impl_request_closed = False
-        self._bus = bus
-
-        def sanitize(name):
-            return name.lstrip(":").replace(".", "_")
-
-        sender_token = sanitize(bus.get_unique_name())
-        self.handle = f"/org/freedesktop/portal/desktop/request/{sender_token}/{self._handle_token}"
         proxy = bus.get_object("org.freedesktop.portal.Desktop", self.handle)
         self.mock_interface = dbus.Interface(proxy, dbusmock.MOCK_IFACE)
         self._proxy = bus.get_object("org.freedesktop.portal.Desktop", self.handle)
@@ -103,7 +169,7 @@ class Request:
         def cb_response(response: int, results: ASV) -> None:
             try:
                 logger.debug(f"Response received on {self.handle}")
-                assert not self._closed
+                assert self.response is None
                 self.response = Response(response, results)
                 if self._mainloop:
                     self._mainloop.quit()
@@ -112,37 +178,6 @@ class Request:
 
         self.request_interface = dbus.Interface(proxy, "org.freedesktop.portal.Request")
         self.request_interface.connect_to_signal("Response", cb_response)
-
-    @property
-    def closed(self) -> bool:
-        """
-        True if both this request and the impl.Request were closed
-        """
-        return self._closed and self._impl_request_closed
-
-    def close(self) -> None:
-        signal_match = None
-
-        def cb_impl_request_closed_by_portal(handle) -> None:
-            if handle == self.handle:
-                logger.debug(f"ImplRequest {self.handle} was closed")
-                signal_match.remove()  # type: ignore
-                self._impl_request_closed = True
-                if self.closed and self._mainloop:
-                    self._mainloop.quit()
-
-        # See :class:`ImplRequest`, this signal is a side-channel for the
-        # impl.portal template to notify us when the impl.Request was really
-        # closed by the portal.
-        signal_match = self._bus.add_signal_receiver(
-            cb_impl_request_closed_by_portal,
-            "RequestClosed",
-            dbus_interface="org.freedesktop.impl.portal.Test",
-        )
-
-        logger.debug(f"Closing request {self.handle}")
-        self._closed = True
-        self.request_interface.Close()
 
     @property
     def handle_token(self) -> dbus.String:
@@ -173,9 +208,6 @@ class Request:
         assert not self.used
         self.used = True
 
-        # Anything that takes longer than 5s needs to fail
-        MAX_TIMEOUT = 5000
-
         # Make sure options exists and has the handle_token set
         try:
             options = kwargs["options"]
@@ -188,12 +220,6 @@ class Request:
         # Anything that takes longer than 5s needs to fail
         self._mainloop = GLib.MainLoop()
         GLib.timeout_add(MAX_TIMEOUT, self._mainloop.quit)
-
-        if self._close_after_ms > 0:
-            assert (
-                self._close_after_ms < MAX_TIMEOUT
-            ), "Cannot schedule Close() after the request timeout"
-            GLib.timeout_add(self._close_after_ms, self.close)
 
         method = getattr(self.interface, methodname)
         assert method
@@ -245,14 +271,6 @@ class Request:
             raise ResponseTimeout(f"Timed out waiting for response from {methodname}")
 
         return self.response
-
-    def schedule_close(self, timeout_ms=300):
-        """
-        Schedule an automatic Close() on the Request after the given timeout
-        in milliseconds.
-        """
-        assert timeout_ms > 0
-        self._close_after_ms = timeout_ms
 
 
 class PortalTest(dbusmock.DBusTestCase):
