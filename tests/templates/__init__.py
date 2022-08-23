@@ -7,7 +7,25 @@ import dbus
 import dbusmock
 import logging
 
-logger: Optional[logging.Logger] = None
+
+def init_template_logger(name: str):
+    """
+    Common logging setup for the impl.portal templates. Use as:
+
+        >>> from tests.templates import init_template_logger
+        >>> logger = init_template_logger(__name__)
+        >>> logger.debug("foo")
+
+    """
+    logging.basicConfig(
+        format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
+    )
+    logger = logging.getLogger(f"templates.{name}")
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = init_template_logger("request")
 
 
 class Response(NamedTuple):
@@ -92,23 +110,3 @@ class ImplRequest:
 
     def __str__(self):
         return f"ImplRequest {self.handle}"
-
-
-def init_template_logger(name: str):
-    """
-    Common logging setup for the impl.portal templates. Use as:
-
-        >>> from tests.templates import init_template_logger
-        >>> logger = init_template_logger(__name__)
-        >>> logger.debug("foo")
-
-    """
-    logging.basicConfig(
-        format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
-    )
-    logger = logging.getLogger(f"templates.{name}")
-    logger.setLevel(logging.DEBUG)
-    return logger
-
-
-logger = init_template_logger("request")
