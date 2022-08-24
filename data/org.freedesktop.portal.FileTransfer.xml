@@ -57,7 +57,7 @@
 
         Another application can then call
         org.freedesktop.portal.FileTransfer.RetrieveFiles() to obtain them, if
-        it has the @session and @secret.
+        it has the @key.
 
         Supported keys in the @options vardict include:
         <variablelist>
