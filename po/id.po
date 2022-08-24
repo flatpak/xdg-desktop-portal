@@ -1,21 +1,21 @@
 # Indonesian translation for xdg-desktop-portal.
 # Copyright (C) 2017 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017-2020.
+# Kukuh Syafaat <kukuhsyafaat@gnome.org>, 2017-2020, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2022-08-11 16:07-0300\n"
-"PO-Revision-Date: 2022-03-28 18:31+0700\n"
+"PO-Revision-Date: 2022-08-24 11:24+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: src/background.c:262
 #, c-format
@@ -51,7 +51,7 @@ msgstr "Izinkan"
 
 #: src/device.c:116
 msgid "Turn On Microphone?"
-msgstr "Hidupkan Mikrofon?"
+msgstr "Nyalakan Mikrofon?"
 
 #: src/device.c:117
 msgid ""
@@ -71,7 +71,7 @@ msgstr "%s ingin menggunakan mikrofon Anda."
 
 #: src/device.c:129
 msgid "Turn On Speakers?"
-msgstr "Hidupkan Speaker?"
+msgstr "Nyalakan Speaker?"
 
 #: src/device.c:130
 msgid ""
@@ -90,7 +90,7 @@ msgstr "%s ingin memutar suara."
 
 #: src/device.c:142
 msgid "Turn On Camera?"
-msgstr "Hidupkan Kamera?"
+msgstr "Nyalakan Kamera?"
 
 #: src/device.c:143
 msgid ""
