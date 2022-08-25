@@ -18,12 +18,10 @@ jobs:
             autoconf \
             automake \
             autopoint \
-            ca-certificates \
             desktop-file-utils \
             fuse3 \
             gcc \
             gettext \
-            git \
             gnome-desktop-testing \
             gtk-doc-tools \
             libflatpak-dev \
@@ -39,6 +37,14 @@ jobs:
             libtool \
             make \
             shared-mime-info \
+
+      - name: Install dependencies for doc builds
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get install -y --no-install-recommends \
+            ca-certificates \
+            git \
             xmlto
 
       - name: Check out xdg-desktop-portal
