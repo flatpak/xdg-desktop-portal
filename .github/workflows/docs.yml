@@ -15,28 +15,27 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y --no-install-recommends \
-            autoconf \
-            automake \
-            autopoint \
             desktop-file-utils \
             fuse3 \
             gcc \
             gettext \
             gnome-desktop-testing \
             gtk-doc-tools \
+            libcap2-bin \
             libflatpak-dev \
             libfontconfig1-dev \
             libfuse3-dev \
-            libgdk-pixbuf2.0-dev \
+            libgdk-pixbuf-2.0-dev \
             libgeoclue-2-dev \
             libglib2.0-dev \
             libjson-glib-dev \
             libpipewire-0.3-dev \
             libportal-dev \
             libsystemd-dev \
-            libtool \
-            make \
-            shared-mime-info \
+            llvm \
+            meson \
+            python3-gi \
+            shared-mime-info
 
       - name: Install dependencies for doc builds
         env:
@@ -52,11 +51,11 @@ jobs:
 
       - name: Build docs
         run: |
-          ./autogen.sh --enable-docbook-docs
-          make
+          meson setup builddir -Ddocbook-docs=enabled
+          meson compile -C builddir
 
       - name: Prepare docs
-        working-directory: doc
+        working-directory: builddir/doc
         run: |
           mkdir published-docs
           mv portal-docs.html ./published-docs/index.html
@@ -68,5 +67,5 @@ jobs:
         if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./doc/published-docs/
+          publish_dir: ./builddir/doc/published-docs/
           destination_dir: ./
