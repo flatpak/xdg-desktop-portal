@@ -15,11 +15,31 @@ jobs:
           apt-get update
           apt-get upgrade -y
           apt-get install -y --no-install-recommends \
-          make automake autoconf libtool gettext autopoint gcc git ca-certificates \
-          gtk-doc-tools shared-mime-info desktop-file-utils gnome-desktop-testing \
-          xmlto fuse3 libflatpak-dev libglib2.0-dev libgeoclue-2-dev libjson-glib-dev \
-          libfontconfig1-dev libfuse3-dev libportal-dev libpipewire-0.3-dev \
-          libgdk-pixbuf2.0-dev libsystemd-dev
+            autoconf \
+            automake \
+            autopoint \
+            ca-certificates \
+            desktop-file-utils \
+            fuse3 \
+            gcc \
+            gettext \
+            git \
+            gnome-desktop-testing \
+            gtk-doc-tools \
+            libflatpak-dev \
+            libfontconfig1-dev \
+            libfuse3-dev \
+            libgdk-pixbuf2.0-dev \
+            libgeoclue-2-dev \
+            libglib2.0-dev \
+            libjson-glib-dev \
+            libpipewire-0.3-dev \
+            libportal-dev \
+            libsystemd-dev \
+            libtool \
+            make \
+            shared-mime-info \
+            xmlto
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v2
