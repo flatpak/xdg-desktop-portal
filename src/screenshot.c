@@ -485,7 +485,7 @@ screenshot_create (GDBusConnection *connection,
 
   /* Set the version if supported; otherwise fallback to hardcoded version 2 */
   version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
-  impl_version = (version != NULL)? g_variant_get_uint32 (version) : 2;
+  impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 2;
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
 
