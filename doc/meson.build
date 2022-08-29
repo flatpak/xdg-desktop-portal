@@ -23,5 +23,17 @@ if build_docbook
     install: true,
     install_dir: docs_dir,
   )
-  install_data('docbook.css', install_dir: docs_dir)
+  doc_extra = files(
+      'docbook.css',
+      'redirect.html'
+  )
+  foreach f : doc_extra
+      configure_file(
+        input: f,
+        output: '@PLAINNAME@',
+        copy: true,
+        install: true,
+        install_dir: docs_dir,
+      )
+  endforeach
 endif

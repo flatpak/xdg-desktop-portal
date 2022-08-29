@@ -30,6 +30,8 @@
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
+        Request to gain access to the camera.
+
         Supported keys in the @options vardict include:
         <variablelist>
           <varlistentry>
@@ -62,6 +64,8 @@
 
         This method will only succeed if the application already has permission
         to access camera devices.
+
+        There are currently no supported keys in the @options vardict.
     -->
     <method name="OpenPipeWireRemote">
       <annotation name="org.gtk.GDBus.C.Name" value="open_pipewire_remote"/>
