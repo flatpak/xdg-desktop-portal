@@ -182,6 +182,7 @@ screenshot_init (GDBusConnection *connection,
 
   helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_screenshot_skeleton_new ());
 
+  xdp_dbus_impl_screenshot_set_version (XDP_DBUS_IMPL_SCREENSHOT (helper), 2);
   g_signal_connect (helper, "handle-screenshot", G_CALLBACK (handle_screenshot), NULL);
   g_signal_connect (helper, "handle-pick-color", G_CALLBACK (handle_screenshot), NULL);
 

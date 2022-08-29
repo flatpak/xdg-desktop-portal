@@ -58,6 +58,7 @@ struct _ScreenshotClass
 
 static XdpDbusImplScreenshot *impl;
 static XdpDbusImplAccess *access_impl;
+static guint32 impl_version;
 static Screenshot *screenshot;
 
 GType screenshot_get_type (void) G_GNUC_CONST;
@@ -448,7 +449,11 @@ screenshot_iface_init (XdpDbusScreenshotIface *iface)
 static void
 screenshot_init (Screenshot *screenshot)
 {
-  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot), 2);
+  /* Before there was a version property, the version was hardcoded to 2, so
+   * make sure we retain that behaviour */
+  impl_version = 2;
+  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
+                                   impl_version);
 }
 
 static void
@@ -462,6 +467,7 @@ screenshot_create (GDBusConnection *connection,
                    const char *dbus_name_screenshot)
 {
   g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) version = NULL;
 
   impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
                                                   G_DBUS_PROXY_FLAGS_NONE,
@@ -476,6 +482,10 @@ screenshot_create (GDBusConnection *connection,
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
+
+  /* Set the version if supported; otherwise fallback to hardcoded version 2 */
+  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
+  impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 2;
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
 
