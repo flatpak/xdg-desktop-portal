@@ -118,6 +118,12 @@
               Whether the file is opened with write access. Default is no.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>current_folder ay</term>
+            <listitem><para>
+              A suggested folder to open the files from.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
     -->
     <method name="OpenFile">

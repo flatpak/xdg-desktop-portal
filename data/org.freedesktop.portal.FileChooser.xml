@@ -273,6 +273,15 @@
             </para>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>current_folder ay</term>
+          <listitem>
+            <para>
+              Suggested folder to select the files from. The byte array is
+              expected to be null-terminated.
+            </para>
+          </listitem>
+        </varlistentry>
       </variablelist>
     -->
     <method name="SaveFile">
