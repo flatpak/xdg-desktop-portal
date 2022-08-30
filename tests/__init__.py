@@ -483,5 +483,5 @@ class PortalTest(dbusmock.DBusTestCase):
             portal_version = properties_intf.Get(self.INTERFACE_NAME, "version")
             assert int(portal_version) == expected_version
         except dbus.exceptions.DBusException as e:
-            logger.critical(e);
+            logger.critical(e)
             assert e is None, str(e)
