@@ -129,6 +129,42 @@ settings_handle_read (XdpDbusSettings       *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static gboolean
+settings_handle_read_one (XdpDbusSettings       *object,
+                          GDBusMethodInvocation *invocation,
+                          const char            *arg_namespace,
+                          const char            *arg_key)
+{
+  int i;
+
+  g_debug ("ReadOne %s %s", arg_namespace, arg_key);
+
+  for (i = 0; i < n_impls; i++)
+    {
+      g_autoptr(GError) error = NULL;
+      g_autoptr(GVariant) impl_value = NULL;
+
+      if (!xdp_dbus_impl_settings_call_read_sync (impls[i], arg_namespace,
+                                                  arg_key, &impl_value, NULL, &error))
+        {
+          /* A key not being found is expected, continue to our implementation */
+          g_debug ("Failed to Read() from Settings implementation: %s", error->message);
+        }
+      else
+        {
+          g_dbus_method_invocation_return_value (invocation, g_variant_new_tuple (&impl_value, 1));
+          return G_DBUS_METHOD_INVOCATION_HANDLED;
+        }
+    }
+
+  g_debug ("Attempted to read unknown namespace/key pair: %s %s", arg_namespace, arg_key);
+  g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+                                                 XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+                                                 _("Requested setting not found"));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
 static void
 on_impl_settings_changed (XdpDbusImplSettings *impl,
                           const char          *arg_namespace,
@@ -145,13 +181,14 @@ static void
 settings_iface_init (XdpDbusSettingsIface *iface)
 {
   iface->handle_read = settings_handle_read;
+  iface->handle_read_one = settings_handle_read_one;
   iface->handle_read_all = settings_handle_read_all;
 }
 
 static void
 settings_init (Settings *settings)
 {
-  xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (settings), 1);
+  xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (settings), 2);
 }
 
 static void
