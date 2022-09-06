@@ -2,5 +2,6 @@
 src/background.c
 src/device.c
 src/location.c
+src/screenshot.c
 src/settings.c
 src/wallpaper.c
