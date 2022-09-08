@@ -1,5 +1,8 @@
 # This file is built into the GDbus sources but does not get installed by us
-flatpak_intf_sources = files(flatpak_intf_dir / 'org.freedesktop.portal.Flatpak.xml')
+flatpak_intf_sources = []
+if flatpak_intf_dir != ''
+  flatpak_intf_sources = files(flatpak_intf_dir / 'org.freedesktop.portal.Flatpak.xml')
+endif
 
 portal_sources = files(
   'org.freedesktop.portal.Account.xml',
