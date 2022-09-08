@@ -113,7 +113,8 @@ pipewire_dep = dependency('libpipewire-0.3',
                           required: get_option('pipewire'))
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
-bwrap = find_program('bwrap')
+bwrap_required = host_machine.system() in ['linux']
+bwrap = find_program('bwrap', required: bwrap_required)
 
 if glib_dep.version().version_compare('>= 2.60')
   config_h.set(

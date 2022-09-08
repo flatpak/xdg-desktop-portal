@@ -135,7 +135,11 @@ flatpak_get_bwrap (void)
 
   if (e != NULL)
     return e;
+#ifdef HELPER
   return HELPER;
+#else
+  return NULL;
+#endif
 }
 
 
@@ -269,8 +273,10 @@ main (int argc, char *argv[])
       return 1;
     }
 
+#ifdef HELPER
   if (opt_sandbox)
     return rerun_in_sandbox (argv[1], argv[2], argv[3]);
   else
+#endif
     return validate_icon (argv[1], argv[2], argv[3]);
 }
