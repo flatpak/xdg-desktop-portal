@@ -29,6 +29,10 @@
 #include <errno.h>
 #include <unistd.h>
 
+#ifdef __FreeBSD__
+#define execvpe exect
+#endif
+
 #define ICON_VALIDATOR_GROUP "Icon Validator"
 
 static int
