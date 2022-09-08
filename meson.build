@@ -20,8 +20,11 @@ endif
 
 flatpak_intf_dir = get_option('flatpak-interfaces-dir')
 if flatpak_intf_dir == ''
-    flatpak_dep = dependency('flatpak', version: '>= 1.5.0')
-    flatpak_intf_dir = flatpak_dep.get_variable(pkgconfig: 'interfaces_dir')
+    flatpak_required = host_machine.system() in ['linux']
+    flatpak_dep = dependency('flatpak', version: '>= 1.5.0', required : flatpak_required)
+    if flatpak_dep.found()
+      flatpak_intf_dir = flatpak_dep.get_variable(pkgconfig: 'interfaces_dir')
+    endif
 endif
 
 systemd_userunit_dir = get_option('systemd-user-unit-dir')
