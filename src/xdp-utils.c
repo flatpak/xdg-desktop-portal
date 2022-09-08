@@ -2151,7 +2151,29 @@ app_info_map_pids (XdpAppInfo  *app_info,
   g_return_val_if_fail (app_info != NULL, FALSE);
   g_return_val_if_fail (pids != NULL, FALSE);
 
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+  if (app_info->kind == XDP_APP_INFO_KIND_SNAP)
+    {
+      for (int i = 0; i < n_pids; i++)
+        {
+          g_autoptr(GError) local_error = NULL;
+          XdpAppInfo *info = xdp_get_app_info_from_pid (pids[i], &local_error);
+          if (!info)
+            {
+              g_propagate_prefixed_error (error, g_steal_pointer (&local_error),
+                                          "Can't find app for pid %i: ", pids[i]);
+              return FALSE;
+            }
+
+          if (info->kind != app_info->kind || g_strcmp0 (info->id, app_info->id) != 0)
+            {
+              g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                                   "App info from pid does not match.");
+              return FALSE;
+            }
+        }
+      return TRUE;
+    }
+  else if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                            "Mapping pids is not supported.");
