@@ -1,15 +1,15 @@
 # Polish translation for xdg-desktop-portal.
-# Copyright © 2016-2019 the xdg-desktop-portal authors.
+# Copyright © 2016-2022 the xdg-desktop-portal authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2016-2019.
-# Aviary.pl <community-poland@mozilla.org>, 2016-2019.
+# Piotr Drąg <piotrdrag@gmail.com>, 2016-2022.
+# Aviary.pl <community-poland@mozilla.org>, 2016-2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
-"PO-Revision-Date: 2019-10-24 16:30+0200\n"
+"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"PO-Revision-Date: 2022-09-11 15:05+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Nie zezwalaj"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Zezwól"
 
@@ -139,13 +139,40 @@ msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Odmów"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Pozwolić programowi „%s” na wykonywanie zrzutów ekranu?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+"Program „%s” potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
+"czasie."
+
+#: src/screenshot.c:261
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Pozwolić programowi na wykonywanie zrzutów ekranu?"
+
+#: src/screenshot.c:262
+msgid "An application wants to be able to take screenshots at any time."
+msgstr ""
+"Program potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
+"czasie."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Nie odnaleziono żądanego ustawienia"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Odmów"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -164,8 +191,3 @@ msgstr "Pozwolić programowi „%s” na ustawianie tła?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Program „%s” potrzebuje mieć możliwość zmiany obrazu tła."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
