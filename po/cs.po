@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
-"PO-Revision-Date: 2019-10-24 16:06+0200\n"
+"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"PO-Revision-Date: 2022-09-20 23:38+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: src/background.c:262
 #, c-format
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Povolit"
 
@@ -121,7 +121,7 @@ msgstr "Schválit přístup k vaší poloze?"
 
 #: src/location.c:536
 msgid "An application wants to use your location."
-msgstr "Aplikace chce přistupovat k vaší poloze."
+msgstr "Nějaká aplikace chce použít vaši polohu."
 
 #: src/location.c:548
 #, c-format
@@ -131,7 +131,7 @@ msgstr "Schválit pro %s přístup k vaší poloze?"
 #: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
-msgstr "Aplikace %s chce přistupovat k vaší poloze."
+msgstr "Aplikace %s chce použít vaši polohu."
 
 #: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
@@ -139,13 +139,35 @@ msgstr ""
 "Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
 "soukromí."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Zamítnout"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Povolit aplikaci %s pořizovat snímky obrazovky?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "Aplikace %s chce mít možnost kdykoliv pořizovat snímky obrazovky."
+
+#: src/screenshot.c:261
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
+
+#: src/screenshot.c:262
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Nějaká aplikace chce mít možnost kdykoliv pořizovat snímky obrazovky."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Zamítnout"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -164,7 +186,3 @@ msgstr "Povolit aplikaci %s možnost nastavit pozadí?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikace %s požaduje mít možnost změnit obrázek na pozadí."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
