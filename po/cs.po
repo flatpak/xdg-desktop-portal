@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2022-07-19 12:04-0300\n"
-"PO-Revision-Date: 2019-10-24 16:06+0200\n"
+"PO-Revision-Date: 2022-09-20 23:48+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: src/background.c:260
 #, c-format
@@ -121,7 +121,7 @@ msgstr "Schválit přístup k vaší poloze?"
 
 #: src/location.c:536
 msgid "An application wants to use your location."
-msgstr "Aplikace chce přistupovat k vaší poloze."
+msgstr "Nějaká aplikace chce použít vaši polohu."
 
 #: src/location.c:548
 #, c-format
@@ -131,7 +131,7 @@ msgstr "Schválit pro %s přístup k vaší poloze?"
 #: src/location.c:552
 #, c-format
 msgid "%s wants to use your location."
-msgstr "Aplikace %s chce přistupovat k vaší poloze."
+msgstr "Aplikace %s chce použít vaši polohu."
 
 #: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
