@@ -135,9 +135,9 @@ global_shortcuts_session_new (GVariant *options,
 }
 
 static void
-create_session_done (GObject *source_object,
-                     GAsyncResult *res,
-                     gpointer data)
+session_created_cb (GObject *source_object,
+                    GAsyncResult *res,
+                    gpointer data)
 {
   g_autoptr(Request) request = data;
   Session *session;
@@ -253,7 +253,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
                                                  xdp_app_info_get_id (request->app_info),
                                                  arg_options,
                                                  NULL,
-                                                 create_session_done,
+                                                 session_created_cb,
                                                  g_object_ref (request));
 
   xdp_dbus_global_shortcuts_complete_create_session (object, invocation, request->id);
@@ -262,9 +262,9 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
 }
 
 void
-bind_shortcuts_done (GObject *source_object,
-                     GAsyncResult *res,
-                     gpointer data)
+shortcuts_bound_cb (GObject *source_object,
+                    GAsyncResult *res,
+                    gpointer data)
 {
   g_autoptr(Request) request = data;
   Session *session;
@@ -353,7 +353,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                                                       arg_parent_window,
                                                       arg_options,
                                                       NULL,
-                                                      bind_shortcuts_done,
+                                                      shortcuts_bound_cb,
                                                       g_object_ref (request));
 
   xdp_dbus_global_shortcuts_complete_bind_shortcuts (object, invocation, request->id);
@@ -362,7 +362,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
 }
 
 static void
-list_shortcuts_done (GObject *source_object,
+shortcuts_listed_cb (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
@@ -445,7 +445,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
                                                       request->id,
                                                       arg_session_handle,
                                                       NULL,
-                                                      list_shortcuts_done,
+                                                      shortcuts_listed_cb,
                                                       g_object_ref (request));
 
   xdp_dbus_global_shortcuts_complete_list_shortcuts (object, invocation, request->id);
@@ -511,10 +511,10 @@ deactivated_cb (XdpDbusImplGlobalShortcuts *impl,
 }
 
 static void
-shortcutschanged_cb (XdpDbusImplGlobalShortcuts *impl,
-                     const char *session_id,
-                     GVariant *shortcuts,
-                     gpointer data)
+shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
+                      const char *session_id,
+                      GVariant *shortcuts,
+                      gpointer data)
 {
   g_autoptr(Session) session = lookup_session (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
@@ -547,7 +547,7 @@ global_shortcuts_create (GDBusConnection *connection,
 
   g_signal_connect (impl, "activated", G_CALLBACK (activated_cb), global_shortcuts);
   g_signal_connect (impl, "deactivated", G_CALLBACK (deactivated_cb), global_shortcuts);
-  g_signal_connect (impl, "shortcuts-changed", G_CALLBACK (shortcutschanged_cb), global_shortcuts);
+  g_signal_connect (impl, "shortcuts-changed", G_CALLBACK (shortcuts_changed_cb), global_shortcuts);
 
   return G_DBUS_INTERFACE_SKELETON (global_shortcuts);
 }
