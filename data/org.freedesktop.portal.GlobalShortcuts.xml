@@ -23,27 +23,26 @@
       org.freedesktop.portal.GlobalShortcut:
       @short_description: GlobalShortcut portal backend interface
 
-      This portal lets applications register global shortcuts. These shortcuts can be
-      used by apps to react to the user input, regardless of the input focus state.
+      This portal lets applications create global shortcuts sessions, and
+      register shortcuts to them. These shortcuts are activated regardless of
+      the focused state of the application window.
 
-      To use this, an app has to create a session under which its actions
-      will be collected. Then shortcuts can be bound (see Bind), listed (see ListShortcuts).
-      The portal implementation performs the registration and tracks the shortcuts throughout
-      the session's lifespan.
+      To use this portal, applications have to create a session under which its
+      actions will be collected. Then shortcuts can be bound (see
+      org.freedesktop.portal.GlobalShortcuts.Bind), and listed (see
+      org.freedesktop.portal.GlobalShortcuts.ListShortcuts).
 
-      When a shortcut triggers, Activated is emitted. When it is not triggered anymore, then
-      Deactivated is issued.
+      All global shortcuts are bound to a session, and all sessions are bound to
+      the application that created them.
 
-      Shortcuts a(sa{sv}) are defined as a map with a set of properties that are always the same:
-      <term>shortcuts a(sa{sv})</term>
-      <para>
-          - description: User-readable text describing what the shortcut does.
-          - shortcut: A string that contains a suggestion to the portal of a default shortcut, defined as described in the "shortcuts" xdg-spec.
-          - trigger: User-readable text describing how to trigger the shortcut for the client to render.
-      </para>
+      The #org.freedesktop.portal.GlobalShortcuts::Activated and
+      #org.freedesktop.portal.GlobalShortcuts::Deactivated signals are emitted,
+      respecitvely, whenever a shortcut is activated and deactivated.
+
+      This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.GlobalShortcuts">
-      <!--
+    <!--
         CreateSession:
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -55,8 +54,8 @@
           <varlistentry>
             <term>shortcuts a(sa{sv})</term>
             <listitem><para>
-              The different shortcut ids that are supported by the app.
-              See org.freedesktop.portal.GlobalShortcuts
+              A list of shortcuts. Each shortcut contains the shortcut id, and a
+              vardict of shortcut properties.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -88,6 +87,30 @@
             </para></listitem>
           </varlistentry>
         </variablelist>
+
+        Shortcuts contain the following properties:
+        <variablelist>
+          <varlistentry>
+            <term>trigger s</term>
+            <listitem><para>
+              User-readable text describing how to trigger the shortcut for the
+              client to render.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>description s</term>
+            <listitem><para>
+              User-readable text describing what the shortcut does.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>shortcut s</term>
+            <listitem><para>
+              The suggested shortcut trigger, defined as described by the "shortcuts"
+              XDG specification. Optional.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="CreateSession">
       <arg type="a{sv}" name="options" direction="in"/>
@@ -100,15 +123,17 @@
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @options: Unused so far
 
-        List all the shortcuts with their invocation descriptions.
+        Lists all shortcuts.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>
             <term>shortcuts a(sa{sv})</term>
             <listitem><para>
-              The registered shortcuts.
-              See org.freedesktop.portal.GlobalShortcuts.
+              A list of shortcuts.
+
+              See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
+              list of supported properties of shortcuts.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -125,10 +150,13 @@
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @request_handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Shows a dialog with all shortcuts to configure and offers them back to the app when done.
+        Bind the shortcuts. This will typically result the portal presenting a
+        dialog showing the shortcuts and allowing users to configure the shortcuts.
+        An application can only attempt bind shortcuts of a session once.
 
-        The results get returned via the #org.freedesktop.portal.Request::Response signal. See ListShortcuts results format.
-        </variablelist>
+        The results get returned via the #org.freedesktop.portal.Request::Response signal.
+        See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
+        list of supported properties of shortcuts.
     -->
     <method name="BindShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
@@ -142,12 +170,12 @@
 
     <!--
         Activated:
-        Notifies about a shortcut becoming active.
-
         @session_handle: Session that requested the shortcut
         @shortcut_id: the application-provided ID for the notification
         @timestamp: The timestamp, as seconds and microseconds since the Unix epoch.
-        @options: unused
+        @options: Vardict with optional further information
+
+        Notifies about a shortcut becoming active.
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="in"/>
@@ -159,12 +187,12 @@
 
     <!--
         Deactivated:
-        Notifies that a shortcut is not active anymore.
-
         @session_handle: Session that requested the shortcut
         @shortcut_id: the application-provided ID for the notification
         @timestamp: The timestamp, as seconds and microseconds since the Unix epoch.
-        @options: unused
+        @options: Vardict with optional further information
+
+        Notifies that a shortcut is not active anymore.
     -->
     <signal name="Deactivated">
       <arg type="o" name="session_handle" direction="in"/>
@@ -176,10 +204,10 @@
 
     <!--
         ShortcutsChanged:
-        Indicates that the information associated with some of the shortcuts has changed.
-
         @session_handle: Session that requested the shortcut
         @shortcuts: The different shortcuts that have been registered. See org.freedesktop.portal.GlobalShortcuts.
+
+        Indicates that the information associated with some of the shortcuts has changed.
     -->
     <signal name="ShortcutsChanged">
       <arg type="o" name="session_handle" direction="out"/>
