@@ -156,10 +156,10 @@ session_created_cb (GObject *source_object,
   g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_global_shortcuts_call_create_session_finish (impl,
-                                                             &response,
-                                                             &opts,
-                                                             res,
-                                                             &error))
+                                                                  &response,
+                                                                  &opts,
+                                                                  res,
+                                                                  &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -187,7 +187,7 @@ session_created_cb (GObject *source_object,
 
   GVariantDict *dict = g_variant_dict_new (opts);
   g_variant_builder_add (&results_builder, "{sv}",
-                         "shortcuts", g_variant_dict_lookup_value(dict, "shortcuts", 0));
+                         "shortcuts", g_variant_dict_lookup_value (dict, "shortcuts", 0));
   g_variant_builder_add (&results_builder, "{sv}",
                          "session_handle", g_variant_new ("s", session->id));
 
@@ -248,13 +248,13 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
                            g_object_unref);
 
   xdp_dbus_impl_global_shortcuts_call_create_session (impl,
-                                                 request->id,
-                                                 session->id,
-                                                 xdp_app_info_get_id (request->app_info),
-                                                 arg_options,
-                                                 NULL,
-                                                 session_created_cb,
-                                                 g_object_ref (request));
+                                                      request->id,
+                                                      session->id,
+                                                      xdp_app_info_get_id (request->app_info),
+                                                      arg_options,
+                                                      NULL,
+                                                      session_created_cb,
+                                                      g_object_ref (request));
 
   xdp_dbus_global_shortcuts_complete_create_session (object, invocation, request->id);
 
@@ -486,9 +486,8 @@ activated_cb (XdpDbusImplGlobalShortcuts *impl,
 
   g_debug ("Received activated %s for %s", session_id, shortcut_id);
 
-  if (global_shortcuts_session && !global_shortcuts_session->closed) {
+  if (global_shortcuts_session && !global_shortcuts_session->closed)
     xdp_dbus_global_shortcuts_emit_activated (data, session_id, shortcut_id, timestamp, options);
-  }
 }
 
 static void
@@ -505,9 +504,7 @@ deactivated_cb (XdpDbusImplGlobalShortcuts *impl,
   g_debug ("Received deactivated %s for %s", session_id, shortcut_id);
 
   if (global_shortcuts_session && !global_shortcuts_session->closed)
-    {
-      xdp_dbus_global_shortcuts_emit_deactivated (data, session_id, shortcut_id, timestamp, options);
-    }
+    xdp_dbus_global_shortcuts_emit_deactivated (data, session_id, shortcut_id, timestamp, options);
 }
 
 static void
@@ -532,10 +529,10 @@ global_shortcuts_create (GDBusConnection *connection,
   g_autoptr(GError) error = NULL;
 
   impl = xdp_dbus_impl_global_shortcuts_proxy_new_sync (connection,
-                                          G_DBUS_PROXY_FLAGS_NONE,
-                                          dbus_name,
-                                          "/org/freedesktop/portal/desktop",
-                                          NULL, &error);
+                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                        dbus_name,
+                                                        "/org/freedesktop/portal/desktop",
+                                                        NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create global_shortcuts proxy: %s", error->message);
