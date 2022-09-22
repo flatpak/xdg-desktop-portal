@@ -23,7 +23,7 @@
 #include <string.h>
 #include <glib-object.h>
 
-#include "globalshortcuts.h"
+#include "global-shortcuts.h"
 #include "request.h"
 #include "session.h"
 #include "permissions.h"

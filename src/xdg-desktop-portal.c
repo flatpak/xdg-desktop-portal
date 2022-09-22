@@ -40,7 +40,7 @@
 #include "email.h"
 #include "file-chooser.h"
 #include "gamemode.h"
-#include "globalshortcuts.h"
+#include "global-shortcuts.h"
 #include "inhibit.h"
 #include "location.h"
 #include "memory-monitor.h"

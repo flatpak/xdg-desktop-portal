@@ -58,7 +58,7 @@ xdg_desktop_portal_sources = files(
   'flatpak-instance.c',
   'gamemode.c',
   'glib-backports.c',
-  'globalshortcuts.c',
+  'global-shortcuts.c',
   'inhibit.c',
   'memory-monitor.c',
   'network-monitor.c',
