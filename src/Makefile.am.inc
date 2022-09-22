@@ -142,8 +142,8 @@ xdg_desktop_portal_SOURCES = \
 	src/flatpak-instance.h          \
 	src/portal-impl.h		\
 	src/portal-impl.c		\
-	src/globalshortcuts.h		\
-	src/globalshortcuts.c		\
+	src/global-shortcuts.h		\
+	src/global-shortcuts.c		\
 	$(NULL)
 
 if HAVE_LIBSYSTEMD
