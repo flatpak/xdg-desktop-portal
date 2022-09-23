@@ -43,13 +43,9 @@
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>
-            <term>shortcuts a(sa{sv})</term>
+            <term>session_id s</term>
             <listitem><para>
-              A list of shortcuts. Each shortcut contains the shortcut id, and a
-              vardict of shortcut properties.
-
-              See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
-              list of supported properties of shortcuts.
+              The session id. A string representing the created global shortcuts session.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -80,7 +76,7 @@
             <listitem><para>
               A list of shortcuts.
 
-              See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
+              See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
               list of supported properties of shortcuts.
             </para></listitem>
           </varlistentry>
@@ -97,6 +93,7 @@
         BindShortcuts:
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @shortcuts: The list of shortcuts to bind. See @org.freedesktop.portal.GlobalShortcuts.BindShortcuts
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @shortcuts: The identifier of the shortcuts we intend to register, empty for all shortcuts
         @results: Vardict with the results of the call
@@ -105,13 +102,13 @@
         presenting a dialog letting the user configure shortcut triggers.
 
         The results get returned via the #org.freedesktop.portal.Request::Response
-        signal. See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
+        signal. See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
         list of supported properties of shortcuts.
     -->
     <method name="BindShortcuts">
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
-      <arg type="as" name="shortcuts" direction="in"/>
+      <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="a{sv}" name="results" direction="out"/>
@@ -161,7 +158,7 @@
         Emitted when shortcuts are changed.
 
         The results get returned via the #org.freedesktop.portal.Request::Response
-        signal. See org.freedesktop.portal.GlobalShortcuts.CreateSession() for the
+        signal. See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
         list of supported properties of shortcuts.
     -->
     <signal name="ShortcutsChanged">

@@ -303,7 +303,7 @@ static gboolean
 handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                        GDBusMethodInvocation *invocation,
                        const gchar *arg_session_handle,
-                       const gchar *const *arg_shortcuts,
+                       GVariant *arg_shortcuts,
                        const gchar *arg_parent_window,
                        GVariant *arg_options)
 {
