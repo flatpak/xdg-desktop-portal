@@ -88,31 +88,6 @@
     </method>
 
     <!--
-        ListShortcuts:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
-        @options: Unused so far
-
-        Lists all shortcuts.
-
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>shortcuts a(sa{sv})</term>
-            <listitem><para>
-              A list of shortcuts.
-
-              See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
-              list of supported properties of shortcuts.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
-    -->
-    <method name="ListShortcuts">
-      <arg type="o" name="session_handle" direction="in"/>
-      <arg type="o" name="request_handle" direction="out"/>
-    </method>
-
-    <!--
         BindShortcuts:
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @shortcuts: The list of shortcuts to bind
@@ -157,6 +132,31 @@
       <arg type="o" name="request_handle" direction="out"/>
 
       <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+    </method>
+
+    <!--
+        ListShortcuts:
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @options: Unused so far
+
+        Lists all shortcuts.
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>shortcuts a(sa{sv})</term>
+            <listitem><para>
+              A list of shortcuts.
+
+              See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
+              list of supported properties of shortcuts.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="ListShortcuts">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="o" name="request_handle" direction="out"/>
     </method>
 
     <!--
