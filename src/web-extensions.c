@@ -393,14 +393,18 @@ handle_start_in_thread (GTask *task,
       g_autoptr(GVariant) access_results = NULL;
       GVariantBuilder opt_builder;
       GAppInfo *info = NULL;
-      g_auto(GStrv) app_id_components = NULL;
       const char *display_name;
+      g_autofree gchar *app_info_id = NULL;
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
       g_autofree gchar *body = NULL;
 
       info = xdp_app_info_get_gappinfo (request->app_info);
-      app_id_components = g_strsplit (g_app_info_get_id (info), ".desktop", 2);
+      if (info)
+        {
+          g_auto(GStrv) app_id_components = g_strsplit (g_app_info_get_id (info), ".desktop", 2);
+          app_info_id = g_strdup (app_id_components[0]);
+        }
       display_name = info ? g_app_info_get_display_name (info) : app_id;
       title = g_strdup_printf (_("Allow %s to start WebExtension backend?"), display_name);
       subtitle = g_strdup_printf (_("%s is requesting to launch \"%s\" (%s)."), display_name, server_description, arg_name);
@@ -412,7 +416,7 @@ handle_start_in_thread (GTask *task,
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
-                                                         app_id_components[0],
+                                                         app_info_id ? app_info_id : app_id,
                                                          "",
                                                          title,
                                                          subtitle,
