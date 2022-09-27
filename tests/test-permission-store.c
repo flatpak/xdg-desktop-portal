@@ -14,6 +14,7 @@
 
 #include "xdp-utils.h"
 #include "document-portal/permission-store-dbus.h"
+#include "src/glib-backports.h"
 #include "utils.h"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";

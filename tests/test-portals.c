@@ -4,6 +4,7 @@
 
 #include <gio/gio.h>
 
+#include "src/glib-backports.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 #include "xdp-impl-dbus.h"
