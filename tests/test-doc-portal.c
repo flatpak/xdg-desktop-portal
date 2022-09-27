@@ -16,6 +16,7 @@
 #include "document-portal/document-portal-dbus.h"
 
 #include "can-use-fuse.h"
+#include "src/glib-backports.h"
 #include "utils.h"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";

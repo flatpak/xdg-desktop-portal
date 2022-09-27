@@ -19,6 +19,8 @@
 #include "settings.h"
 #include "wallpaper.h"
 
+#include "src/glib-backports.h"
+
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
