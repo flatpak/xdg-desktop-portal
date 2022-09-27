@@ -288,6 +288,7 @@ static char *
 find_server (const char *server_name,
              const char *extension_or_origin,
              char **server_description,
+             char **json_manifest,
              GError **error)
 {
   g_auto(GStrv) search_path;
@@ -338,11 +339,61 @@ find_server (const char *server_name,
       /* Server matches: return its executable path and description */
       if (server_description != NULL)
           *server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
+      if (json_manifest != NULL)
+          *json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
       return g_strdup (json_object_get_string_member (metadata_root, "path"));
     }
 
   g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND, "cannot find native messaging server");
   return NULL;
+}
+
+static gboolean
+handle_get_manifest (XdpDbusWebExtensions *object,
+                     GDBusMethodInvocation *invocation,
+                     const char *arg_session_handle,
+                     const char *arg_name,
+                     const char *arg_extension_or_origin)
+{
+  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpSession *session;
+  WebExtensionsSession *we_session;
+  g_autofree char *server_path = NULL;
+  g_autofree char *json_manifest = NULL;
+  g_autoptr(GError) error = NULL;
+
+  session = xdp_session_from_call (arg_session_handle, call);
+  if (!session)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return TRUE;
+    }
+
+  SESSION_AUTOLOCK_UNREF (session);
+  we_session = (WebExtensionsSession *)session;
+
+  if (we_session->state != WEB_EXTENSIONS_SESSION_STATE_INIT)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_FAILED,
+                                             "Session already started");
+      return TRUE;
+    }
+
+  server_path = find_server (arg_name, arg_extension_or_origin,
+                             NULL, &json_manifest, &error);
+  if (!server_path)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  xdp_dbus_web_extensions_complete_get_manifest (object, invocation, json_manifest);
+  return TRUE;
 }
 
 static void
@@ -378,7 +429,7 @@ handle_start_in_thread (GTask *task,
   arg_name = g_object_get_data (G_OBJECT (request), "name");
   arg_extension_or_origin = g_object_get_data (G_OBJECT (request), "extension-or-origin");
 
-  server_path = find_server (arg_name, arg_extension_or_origin, &server_description, &error);
+  server_path = find_server (arg_name, arg_extension_or_origin, &server_description, NULL, &error);
   if (server_path == NULL)
     {
       g_warning ("Could not find WebExtensions backend: %s", error->message);
@@ -604,6 +655,7 @@ static void
 web_extensions_iface_init (XdpDbusWebExtensionsIface *iface)
 {
   iface->handle_create_session = handle_create_session;
+  iface->handle_get_manifest = handle_get_manifest;
   iface->handle_start = handle_start;
   iface->handle_get_pipes = handle_get_pipes;
 }

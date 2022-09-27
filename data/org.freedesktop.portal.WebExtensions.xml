@@ -59,6 +59,22 @@
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @name: name of the native messaging server
         @extension_or_origin: extension ID or origin URI identifying the extension
+        @json_manifest: the JSON manifest for the native messaging server
+
+        Return the JSON manifest of the native messaging server that
+        would Start would invoke.
+    -->
+    <method name="GetManifest">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="name" direction="in"/>
+      <arg type="s" name="extension_or_origin" direction="in"/>
+      <arg type="s" name="json_manifest" direction="out"/>
+    </method>
+    <!--
+        Start:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @name: name of the native messaging server
+        @extension_or_origin: extension ID or origin URI identifying the extension
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
