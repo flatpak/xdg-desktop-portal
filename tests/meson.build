@@ -85,6 +85,7 @@ test_backends = executable(
 
 test_portals_sources = files(
   'test-portals.c',
+  'utils.c',
 )
 
 if have_libportal
@@ -101,7 +102,6 @@ if have_libportal
     'print.c',
     'screenshot.c',
     'trash.c',
-    'utils.c',
     'wallpaper.c',
     'glib-backports.c',
   )

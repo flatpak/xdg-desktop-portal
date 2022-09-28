@@ -21,9 +21,10 @@
 #include "print.h"
 #include "screenshot.h"
 #include "trash.h"
-#include "utils.h"
 #include "wallpaper.h"
 #endif
+
+#include "utils.h"
 
 /* required while we support meson + autotools. Autotools builds everything in
    the root dir ('.'), meson builds in each subdir nested and overrides these for
