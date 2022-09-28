@@ -5,6 +5,12 @@ env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())
 env_tests.set('G_TEST_BUILDDIR', meson.current_build_dir())
 env_tests.set('G_DEBUG', 'gc-friendly')  # from glib-tap.mk
 
+if glib_dep.version().version_compare('>= 2.68')
+  test_protocol = 'tap'
+else
+  test_protocol = 'exitcode'
+endif
+
 subdir('dbs')
 subdir('portals')
 subdir('services')
@@ -23,7 +29,7 @@ test(
   test_db,
   env: env_tests,
   is_parallel: false,
-  protocol: 'tap',
+  protocol: test_protocol,
 )
 
 if enable_installed_tests
@@ -46,7 +52,7 @@ test(
   test_doc_portal,
   env: env_tests,
   is_parallel: false,
-  protocol: 'tap'
+  protocol: test_protocol,
 )
 
 test_backends_sources = files(
@@ -146,7 +152,7 @@ foreach p : portal_tests
       depends: [test_backends, test_portals],
       env: env_tests,
       is_parallel: false,
-      protocol: 'tap',
+      protocol: test_protocol,
       suite: 'portals',
     )
 endforeach
@@ -177,7 +183,7 @@ test(
   test_permission_store,
   env: env_tests,
   is_parallel: false,
-  protocol: 'tap',
+  protocol: test_protocol,
 )
 
 test_xdp_utils = executable(
@@ -196,7 +202,7 @@ test(
   test_xdp_utils,
   env: env_tests,
   is_parallel: false,
-  protocol: 'tap',
+  protocol: test_protocol,
 )
 
 pytest = find_program('pytest-3', 'pytest', required: false)
