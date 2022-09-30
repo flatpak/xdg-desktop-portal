@@ -1,0 +1,9 @@
+{
+  "name": "org.example.testing",
+  "description": "Test native messaging host",
+  "path": "/bin/cat",
+  "type": "stdio",
+  "allowed_extensions": [
+    "some-extension@example.org"
+  ]
+}
