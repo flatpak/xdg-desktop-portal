@@ -1,15 +1,15 @@
 # Swedish translation for xdg-desktop-portal.
-# Copyright © 2016, 2020 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright © 2016, 2020, 2022 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Sebastian Rasmussen <sebras@gmail.com>, 2016.
-# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
-"PO-Revision-Date: 2020-09-20 00:11+0200\n"
+"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"PO-Revision-Date: 2022-09-10 15:25+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.4.1\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: src/background.c:262
 #, c-format
@@ -46,7 +46,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Tillåt"
 
@@ -141,13 +141,36 @@ msgstr "%s vill använda din plats."
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Neka"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Tillåt %s att ta skärmbilder?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "%s vill kunna ta skärmbilder när som helst."
+
+#: src/screenshot.c:261
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Tillåt program att ta skärmbilder?"
+
+#: src/screenshot.c:262
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Ett program vill kunna ta skärmbilder när som helst."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Denna rättighet kan ändras när som helst från sekretessinställningarna."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Begärd inställning hittades inte"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Neka"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -166,8 +189,3 @@ msgstr "Tillåt %s att ställa in bakgrunder?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s begär att kunna ändra bakgrundsbilden."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Denna rättighet kan ändras när som helst från sekretessinställningarna."
