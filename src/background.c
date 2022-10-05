@@ -202,7 +202,7 @@ set_permission (const char *app_id,
 }
 
 typedef enum {
-  AUTOSTART_FLAGS_NONE        = 0,
+  AUTOSTART_FLAGS_NONE = 0,
   AUTOSTART_FLAGS_ACTIVATABLE = 1 << 0,
 } AutostartFlags;
 
@@ -481,7 +481,11 @@ background_class_init (BackgroundClass *klass)
  * did our check.
  */
 
-typedef enum { BACKGROUND, RUNNING, ACTIVE } AppState;
+typedef enum {
+  BACKGROUND = 0,
+  RUNNING = 1,
+  ACTIVE = 2,
+} AppState;
 
 static GHashTable *
 get_app_states (void)
