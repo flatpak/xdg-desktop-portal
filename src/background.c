@@ -477,7 +477,7 @@ background_class_init (BackgroundClass *klass)
  * more than once, we check the permissions, and kill or notify if warranted.
  *
  * We require an application to be in background state for more than once check
- * to avoid killing an unlucky application that just happend to start up as we
+ * to avoid killing an unlucky application that just happened to start up as we
  * did our check.
  */
 
