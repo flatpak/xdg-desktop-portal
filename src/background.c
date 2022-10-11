@@ -600,6 +600,46 @@ remove_outdated_instances (int stamp)
     }
 }
 
+static void
+update_background_monitor_properties (void)
+{
+  GVariantBuilder builder;
+  GHashTableIter iter;
+  InstanceData *data;
+  char *id;
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("aa{sv}"));
+
+  G_LOCK (applications);
+  g_hash_table_iter_init (&iter, applications);
+  while (g_hash_table_iter_next (&iter, (gpointer *)&id, (gpointer *)&data))
+    {
+      GVariantBuilder app_builder;
+      const char *app_id;
+      const char *id;
+
+      if (data->state != BACKGROUND)
+        continue;
+
+      if (!flatpak_instance_is_running (data->instance))
+        continue;
+
+      id = flatpak_instance_get_id (data->instance);
+      app_id = flatpak_instance_get_app (data->instance);
+      g_assert (app_id != NULL);
+
+      g_variant_builder_init (&app_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&app_builder, "{sv}", "app_id", g_variant_new_string (app_id));
+      g_variant_builder_add (&app_builder, "{sv}", "instance", g_variant_new_string (id));
+
+      g_variant_builder_add_value (&builder, g_variant_builder_end (&app_builder));
+    }
+  G_UNLOCK (applications);
+
+  xdp_dbus_background_monitor_set_background_apps (XDP_DBUS_BACKGROUND_MONITOR (background->monitor),
+                                                   g_variant_builder_end (&builder));
+}
+
 static char *
 flatpak_instance_get_display_name (FlatpakInstance *instance)
 {
@@ -849,6 +889,7 @@ check_background_apps (void)
     }
 
   remove_outdated_instances (stamp);
+  update_background_monitor_properties ();
 }
 
 static GMainContext *monitor_context;

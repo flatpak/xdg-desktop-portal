@@ -49,6 +49,12 @@
             The Flatpak instance of the application.
           </para></listitem>
         </varlistentry>
+        <varlistentry>
+          <term>message s</term>
+          <listitem><para>
+            Status message reported by the application. Optional.
+          </para></listitem>
+        </varlistentry>
       </variablelist>
     -->
     <property name="BackgroundApps" type="aa{sv}" access="read"/>
