@@ -144,7 +144,7 @@ game_mode_iface_init (XdpDbusGameModeIface *iface)
 static void
 game_mode_init (GameMode *gamemode)
 {
-  xdp_dbus_game_mode_set_version (XDP_DBUS_GAME_MODE (gamemode), 3);
+  xdp_dbus_game_mode_set_version (XDP_DBUS_GAME_MODE (gamemode), 4);
 }
 
 static void
@@ -535,6 +535,41 @@ handle_unregister_game_by_pidfd (XdpDbusGameMode *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+
+/* properties */
+static void
+update_active_state (GVariant *client_count)
+{
+  gboolean enabled = g_variant_get_int32 (client_count) > 0;
+  xdp_dbus_game_mode_set_active (XDP_DBUS_GAME_MODE (gamemode), enabled);
+}
+
+static void
+update_active_state_from_cache (GDBusProxy *proxy)
+{
+  g_autoptr(GVariant) client_count = NULL;
+
+  client_count = g_dbus_proxy_get_cached_property (proxy, "ClientCount");
+
+  if (client_count != NULL)
+    update_active_state (client_count);
+}
+
+static void
+client_properties_changed (GDBusProxy *proxy,
+                           GVariant *changed_properties,
+                           char **invalidated_properties)
+{
+  g_autoptr(GVariant) value = NULL;
+
+  value = g_variant_lookup_value (changed_properties, "ClientCount",
+                                  G_VARIANT_TYPE_INT32);
+
+  if (value != NULL)
+    update_active_state (value);
+}
+
+
 /* public API */
 GDBusInterfaceSkeleton *
 game_mode_create (GDBusConnection *connection)
@@ -543,7 +578,8 @@ game_mode_create (GDBusConnection *connection)
   GDBusProxy *client;
   GDBusProxyFlags flags;
 
-  flags = G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START_AT_CONSTRUCTION;
+  flags = G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START_AT_CONSTRUCTION |
+          G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES;
   client = g_dbus_proxy_new_sync (connection,
                                   flags,
                                   NULL,
@@ -561,6 +597,11 @@ game_mode_create (GDBusConnection *connection)
 
   gamemode = g_object_new (game_mode_get_type (), NULL);
   gamemode->client = client;
+
+  g_signal_connect (client, "g-properties-changed",
+                    G_CALLBACK (client_properties_changed), NULL);
+
+  update_active_state_from_cache (client);
 
   return G_DBUS_INTERFACE_SKELETON (gamemode);;
 }

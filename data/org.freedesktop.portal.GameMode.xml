@@ -43,7 +43,7 @@
       org.freedesktop.portal.GameMode.UnregisterGame() method, GameMode will
       automatically un-register the client. This might happen with a (small) delay.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes version 4 of this interface.
     -->
     <interface name="org.freedesktop.portal.GameMode">
       <!--
@@ -207,6 +207,13 @@
         <arg type="h" name="requester" direction="in"/>
         <arg type="i" name="result" direction="out"/>
       </method>
+
+      <!--
+          Active:
+
+          Whether any pid on the system has enabled Game Mode.
+      -->
+      <property name="Active" type="b" access="read"/>
 
       <property name="version" type="u" access="read"/>
     </interface>
