@@ -9,6 +9,7 @@ portal_files = 								\
 	org.freedesktop.portal.Flatpak.xml		 		\
 	$(PORTAL_IFACE_FILES) \
 	$(PORTAL_IMPL_IFACE_FILES) \
+	$(BACKGROUND_MONITOR_IFACE_FILES) \
 	$(NULL)
 
 # Sub-interface of org.freedesktop.portal.Flatpak.xml

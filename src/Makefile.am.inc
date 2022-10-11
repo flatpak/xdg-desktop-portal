@@ -16,8 +16,9 @@ systemduserunit_DATA += src/xdg-desktop-portal-rewrite-launchers.service
 
 xdp_dbus_built_sources = src/xdp-dbus.c src/xdp-dbus.h
 xdp_impl_dbus_built_sources = src/xdp-impl-dbus.c src/xdp-impl-dbus.h
+xdp_background_dbus_built_sources = src/xdp-background-dbus.c src/xdp-background-dbus.h
 geoclue_built_sources = src/geoclue-dbus.c src/geoclue-dbus.h
-BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources) $(geoclue_built_sources)
+BUILT_SOURCES += $(xdp_dbus_built_sources) $(xdp_impl_dbus_built_sources) $(xdp_background_dbus_built_sources) $(geoclue_built_sources)
 
 $(xdp_dbus_built_sources) : $(PORTAL_IFACE_FILES)
 	$(AM_V_GEN) $(GDBUS_CODEGEN)                            \
@@ -32,6 +33,14 @@ $(xdp_impl_dbus_built_sources) : $(PORTAL_IMPL_IFACE_FILES)
 		--interface-prefix org.freedesktop.impl.portal. \
 		--c-namespace XdpDbusImpl                           \
 		--generate-c-code $(builddir)/src/xdp-impl-dbus \
+		$^ \
+		$(NULL)
+
+$(xdp_background_dbus_built_sources) : $(BACKGROUND_MONITOR_IFACE_FILES)
+	$(AM_V_GEN) $(GDBUS_CODEGEN)                                  \
+		--interface-prefix org.freedesktop.background.        \
+		--c-namespace XdpDbusBackground                       \
+		--generate-c-code $(builddir)/src/xdp-background-dbus \
 		$^ \
 		$(NULL)
 
@@ -64,6 +73,7 @@ CLEANFILES += \
 nodist_xdg_desktop_portal_SOURCES = \
 	$(xdp_dbus_built_sources)		\
 	$(xdp_impl_dbus_built_sources)		\
+	$(xdp_background_dbus_built_sources)	\
 	$(geoclue_built_sources)		\
 	src/xdg-desktop-resources.c		\
 	$(NULL)
@@ -122,6 +132,8 @@ xdg_desktop_portal_SOURCES = \
 	src/xdp-utils.h			\
 	src/background.c		\
 	src/background.h		\
+	src/background-monitor.c	\
+	src/background-monitor.h	\
 	src/gamemode.c			\
 	src/gamemode.h			\
 	src/secret.c			\
