@@ -16,6 +16,14 @@ impl_built_sources = gnome.gdbus_codegen(
   docbook: 'portal',
   autocleanup: 'none',
 )
+background_monitor_sources = gnome.gdbus_codegen(
+  'xdp-background-dbus',
+  sources: background_monitor_sources,
+  interface_prefix: 'org.freedesktop.background',
+  namespace: 'XdpDbusBackground',
+  docbook: 'portal',
+  autocleanup: 'all',
+)
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
     'geoclue-dbus',
@@ -40,6 +48,7 @@ sd_escape_sources = files('sd-escape.c')
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
+  'background-monitor.c',
   'call.c',
   'device.c',
   'documents.c',
@@ -75,6 +84,7 @@ xdg_desktop_portal_sources = files(
 xdg_desktop_portal_sources += [
   portal_built_sources,
   impl_built_sources,
+  background_monitor_sources,
   geoclue_built_sources,
   built_resources,
 ]

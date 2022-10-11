@@ -55,3 +55,6 @@ PORTAL_IMPL_IFACE_FILES =\
 	$(top_srcdir)/data/org.freedesktop.impl.portal.Wallpaper.xml \
 	$(NULL)
 
+BACKGROUND_MONITOR_IFACE_FILES =\
+	$(top_srcdir)/data/org.freedesktop.background.Monitor.xml \
+	$(NULL)

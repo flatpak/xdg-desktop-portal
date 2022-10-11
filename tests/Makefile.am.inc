@@ -76,6 +76,7 @@ endif
 nodist_test_portals_SOURCES = \
 	src/xdp-dbus.c \
 	src/xdp-impl-dbus.c \
+	src/xdp-background-dbus.c \
 	src/xdp-utils.c \
 	src/sd-escape.c \
 	src/sd-escape.h \

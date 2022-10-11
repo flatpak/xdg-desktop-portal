@@ -163,4 +163,20 @@
     <xi:include href="portal-org.freedesktop.impl.portal.Settings.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Wallpaper.xml"/>
   </reference>
+  <reference>
+    <title>Background Apps Monitoring API</title>
+    <partintro>
+    <para>
+       In addition to managing the regular interfaces that sandboxed
+       applications use to interfact with the host system, xdg-desktop-portals
+       also monitors running applications without an active window - if the
+       portal backend provides an implementation of the Background portal.
+    </para>
+    <para>
+       This API can be used by host system services to provide rich interfaces
+       to manage background running applications.
+    </para>
+    </partintro>
+    <xi:include href="portal-org.freedesktop.background.Monitor.xml"/>
+  </reference>
 </book>
