@@ -779,7 +779,9 @@ handle_request_background_in_thread_func (GTask *task,
         set_permission (app_id, allowed ? PERMISSION_YES : PERMISSION_NO);
     }
   else
-    allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+    {
+      allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+    }
 
   g_debug ("Setting autostart for %s to %s", app_id,
            allowed && autostart_requested ? "enabled" : "disabled");
@@ -807,14 +809,21 @@ handle_request_background_in_thread_func (GTask *task,
 
   if (request->exported)
     {
+      XdgDesktopPortalResponseEnum portal_response;
       GVariantBuilder results;
 
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
       g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
+
+      if (allowed)
+        portal_response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+      else
+        portal_response =  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
+
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                 allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED,
-                                 g_variant_builder_end (&results));
+                                      portal_response,
+                                      g_variant_builder_end (&results));
       request_unexport (request);
     }
 }
