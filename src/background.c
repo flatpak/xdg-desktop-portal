@@ -620,10 +620,6 @@ check_background_apps (void)
     {
       NotificationData *nd = g_ptr_array_index (notifications, i);
 
-      g_debug ("Tentatively allow background for %s", nd->app_id);
-
-      set_permission (nd->app_id, PERMISSION_YES);
-
       g_debug ("Notify background for %s", nd->app_id);
 
       xdp_dbus_impl_background_call_notify_background (background_impl,
