@@ -647,9 +647,9 @@ background_monitor (gpointer data)
     {
       g_main_context_iteration (monitor_context, TRUE);
       /* We check twice, to avoid killing unlucky apps hit at a bad time */
-      sleep (30);
+      sleep (5);
       check_background_apps ();
-      sleep (30);
+      sleep (5);
       check_background_apps ();
     }
 
