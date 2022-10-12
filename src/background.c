@@ -25,6 +25,7 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
+#include "call.h"
 #include "background.h"
 #include "background-monitor.h"
 #include "request.h"
@@ -284,6 +285,7 @@ typedef struct {
   char *handle;
   gboolean notified;
   Permission permission;
+  char *status_message;
 } InstanceData;
 
 static void
@@ -292,6 +294,7 @@ instance_data_free (gpointer data)
   InstanceData *idata = data;
 
   g_object_unref (idata->instance);
+  g_free (idata->status_message);
   g_free (idata->handle);
 
   g_free (idata);
@@ -379,6 +382,8 @@ update_background_monitor_properties (void)
       g_variant_builder_init (&app_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&app_builder, "{sv}", "app_id", g_variant_new_string (app_id));
       g_variant_builder_add (&app_builder, "{sv}", "instance", g_variant_new_string (id));
+      if (data->status_message)
+        g_variant_builder_add (&app_builder, "{sv}", "message", g_variant_new_string (data->status_message));
 
       g_variant_builder_add_value (&builder, g_variant_builder_end (&app_builder));
     }
@@ -925,15 +930,209 @@ handle_request_background (XdpDbusBackground *object,
 }
 
 static void
+set_status_finished_cb (GObject      *source_object,
+                        GAsyncResult *result,
+                        gpointer      user_data)
+{
+  GDBusMethodInvocation *invocation;
+  g_autoptr(GError) error = NULL;
+
+  g_assert (g_task_is_valid (result, source_object));
+
+  invocation = g_task_get_task_data (G_TASK (result));
+  g_assert (invocation != NULL);
+
+  if (g_task_propagate_boolean (G_TASK (result), &error))
+    {
+      xdp_dbus_background_complete_set_status (XDP_DBUS_BACKGROUND (source_object),
+                                               invocation);
+    }
+  else
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+    }
+}
+
+static void
+handle_set_status_in_thread_func (GTask        *task,
+                                  gpointer      source_object,
+                                  gpointer      task_data,
+                                  GCancellable *cancellable)
+{
+  GDBusMethodInvocation *invocation = task_data;
+  g_autofree char *message = NULL;
+  InstanceData *data;
+  const char *id = NULL;
+  GVariant *options;
+  Call *call;
+
+  call = call_from_invocation (invocation);
+  id = xdp_app_info_get_instance (call->app_info);
+
+  options = g_object_get_data (G_OBJECT (invocation), "options");
+  g_variant_lookup (options, "message", "s", &message);
+
+  G_LOCK (applications);
+  data = g_hash_table_lookup (applications, id);
+
+  if (!data)
+    {
+      g_autoptr(GHashTable) app_states = NULL;
+      g_autoptr(GPtrArray) instances = NULL;
+      FlatpakInstance *instance = NULL;
+
+      instances = flatpak_instance_get_all ();
+      for (guint i = 0; i < instances->len; i++)
+        {
+          FlatpakInstance *aux = g_ptr_array_index (instances, i);
+          if (g_strcmp0 (id, flatpak_instance_get_id (aux)) == 0)
+            {
+              instance = aux;
+              break;
+            }
+        }
+
+      if (!instance)
+        {
+          G_UNLOCK (applications);
+          g_task_return_new_error (task,
+                                   XDG_DESKTOP_PORTAL_ERROR,
+                                   XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                   "No sandboxed instance of the application found");
+          return;
+        }
+
+      app_states = get_app_states ();
+      if (app_states == NULL)
+        {
+          G_UNLOCK (applications);
+          g_task_return_new_error (task,
+                                   XDG_DESKTOP_PORTAL_ERROR,
+                                   XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                   "Could not fetch app state from backend");
+          return;
+        }
+
+      data = g_new0 (InstanceData, 1);
+      data->instance = g_object_ref (instance);
+      data->state = get_one_app_state (xdp_app_info_get_id (call->app_info), app_states);
+      g_hash_table_insert (applications, g_strdup (id), data);
+    }
+
+  g_assert (data != NULL);
+  g_clear_pointer (&data->status_message, g_free);
+  data->status_message = g_steal_pointer (&message);
+
+  G_UNLOCK (applications);
+
+  update_background_monitor_properties ();
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static gboolean
+validate_message (const char  *key,
+                  GVariant    *value,
+                  GVariant    *options,
+                  GError     **error)
+{
+  const char *string = g_variant_get_string (value, NULL);
+
+  if (g_utf8_strlen (string, -1) > 96)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Status message is longer than 96 characters");
+      return FALSE;
+    }
+
+  if (strstr (string, "\n"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Status message must not have newlines");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static XdpOptionKey set_status_options[] = {
+  { "message", G_VARIANT_TYPE_STRING, validate_message },
+};
+
+static gboolean
+handle_set_status (XdpDbusBackground     *object,
+                   GDBusMethodInvocation *invocation,
+                   GVariant              *arg_options)
+{
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+  GVariantBuilder opt_builder;
+  const char *id = NULL;
+  Call *call;
+
+  call = call_from_invocation (invocation);
+
+  g_debug ("Handling SetStatus call from %s", xdp_app_info_get_id (call->app_info));
+
+  if (xdp_app_info_is_host (call->app_info))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Only sandboxed applications can set background status");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  id = xdp_app_info_get_instance (call->app_info);
+  if (!id)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "No sandboxed instance of the application found");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+  if (!xdp_filter_options (arg_options, &opt_builder,
+                           set_status_options,
+                           G_N_ELEMENTS (set_status_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
+
+  g_object_set_data_full (G_OBJECT (invocation),
+                          "options",
+                          g_steal_pointer (&options),
+                          (GDestroyNotify) g_variant_unref);
+
+  task = g_task_new (object, NULL, set_status_finished_cb, NULL);
+  g_task_set_task_data (task, g_object_ref (invocation), g_object_unref);
+  g_task_run_in_thread (task, handle_set_status_in_thread_func);
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static void
 background_iface_init (XdpDbusBackgroundIface *iface)
 {
   iface->handle_request_background = handle_request_background;
+  iface->handle_set_status = handle_set_status;
 }
 
 static void
 background_init (Background *background)
 {
-  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 1);
+  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 2);
 }
 
 static void

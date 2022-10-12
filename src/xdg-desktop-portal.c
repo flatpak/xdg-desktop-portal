@@ -139,6 +139,13 @@ method_needs_request (GDBusMethodInvocation *invocation)
       else
         return FALSE;
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
+    {
+      if (strcmp (method, "SetStatus") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
   else
     {
       return TRUE;
