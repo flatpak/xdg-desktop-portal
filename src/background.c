@@ -729,7 +729,7 @@ handle_request_background_in_thread_func (GTask *task,
 
   g_debug ("Handle RequestBackground for '%s'", app_id);
 
-  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
+  if (permission == PERMISSION_ASK)
     {
       GVariantBuilder opt_builder;
       g_autofree char *title = NULL;
@@ -774,13 +774,12 @@ handle_request_background_in_thread_func (GTask *task,
         }
 
       allowed = response == 0;
-
-      if (permission == PERMISSION_UNSET)
-        set_permission (app_id, allowed ? PERMISSION_YES : PERMISSION_NO);
     }
   else
     {
-      allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+      allowed = permission != PERMISSION_NO;
+      if (permission == PERMISSION_UNSET)
+        set_permission (app_id, PERMISSION_YES);
     }
 
   g_debug ("Setting autostart for %s to %s", app_id,
