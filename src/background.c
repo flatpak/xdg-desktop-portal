@@ -230,8 +230,8 @@ set_permission (const char *app_id,
  * file monitoring to learn about flatpak instances appearing and disappearing.
  *
  * When either of these changes happens, we wake up the background monitor
- * thread, and it will do a check the state of applications a few times, with
- * a few seconds of wait in between. When we find an application in the background
+ * thread, and it will check the state of applications a few times, with a
+ * few seconds of wait in between. When we find an application in the background
  * more than once, we check the permissions, and kill or notify if warranted.
  *
  * We require an application to be in background state for more than once check
