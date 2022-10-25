@@ -103,8 +103,9 @@
             <listitem><para>
               A list of shortcuts.
 
-              See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
-              list of supported properties of shortcuts.
+              See the #org.freedesktop.portal.Request::Response signal of the
+              org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for
+              the list of supported properties of shortcuts.
             </para></listitem>
           </varlistentry>
       </variablelist>
