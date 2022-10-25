@@ -98,17 +98,9 @@
         dialog showing the shortcuts and allowing users to configure the shortcuts.
         An application can only attempt bind shortcuts of a session once.
 
-        The results get returned via the #org.freedesktop.portal.Request::Response signal.
         Each element of the @shortcuts array is a tuple composed of a shortcut id,
         and a vardict with the following keys:
         <variablelist>
-          <varlistentry>
-            <term>trigger s</term>
-            <listitem><para>
-              User-readable text describing how to trigger the shortcut for the
-              client to render.
-            </para></listitem>
-          </varlistentry>
           <varlistentry>
             <term>description s</term>
             <listitem><para>
@@ -116,10 +108,40 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
-            <term>shortcut s</term>
+            <term>preferred_trigger s</term>
             <listitem><para>
-              The suggested shortcut trigger, defined as described by the "shortcuts"
+              The preferred shortcut trigger, defined as described by the "shortcuts"
               XDG specification. Optional.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>shortcuts a(sa{sv})</term>
+            <listitem><para>
+              A list of shortcuts. The list of keys it may contain is described
+              below, and is different from the @shortcuts variable of this method.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        Each element of the @shortcuts array returned by the
+        #org.freedesktop.portal.Request::Response signal is a tuple composed of
+        a shortcut id, and a vardict with the following keys:
+        <variablelist>
+          <varlistentry>
+            <term>description s</term>
+            <listitem><para>
+              User-readable text describing what the shortcut does.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>trigger_description s</term>
+            <listitem><para>
+              User-readable text describing how to trigger the shortcut for the
+              client to render.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -148,8 +170,9 @@
             <listitem><para>
               A list of shortcuts.
 
-              See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
-              list of supported properties of shortcuts.
+              See the #org.freedesktop.portal.Request::Response signal of the
+              org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for
+              the list of supported properties of shortcuts.
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -199,6 +222,10 @@
         @shortcuts: The different shortcuts that have been registered. See org.freedesktop.portal.GlobalShortcuts.
 
         Indicates that the information associated with some of the shortcuts has changed.
+
+        See the #org.freedesktop.portal.Request::Response signal of the
+        org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for the
+        list of supported properties of shortcuts.
     -->
     <signal name="ShortcutsChanged">
       <arg type="o" name="session_handle" direction="out"/>
