@@ -198,13 +198,12 @@ get_permission_sync (const char *app_id,
                      const char *id)
 {
   g_auto(GStrv) perms = NULL;
-  Permission ret = PERMISSION_UNSET;
 
   perms = get_permissions_sync (app_id, table, id);
   if (perms)
-    ret = permissions_to_tristate (perms);
+    return permissions_to_tristate (perms);
 
-  return ret;
+  return PERMISSION_UNSET;
 }
 
 void set_permission_sync (const char *app_id,
