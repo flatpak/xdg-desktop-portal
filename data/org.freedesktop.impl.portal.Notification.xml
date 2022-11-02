@@ -40,7 +40,19 @@
         the notification is replaced by the new one.
 
         The format of the @notification is the same as for
-        org.freedesktop.portal.Notification.AddNotification().
+        org.freedesktop.portal.Notification.AddNotification() plus
+        these private meta-data keys (all optional):
+        <variablelist>
+          <varlistentry>
+            <term>desktop-id s</term>
+            <listitem>
+              <para>
+              The desktop ID of the application sending the notification.
+              This may me omitted in case the provided @app_id is matching it.
+              </para>
+            </listitem>
+          </varlistentry>
+        </variablelist>
     -->
     <method name="AddNotification">
       <arg type="s" name="app_id" direction="in"/>

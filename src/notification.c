@@ -347,12 +347,19 @@ check_notification (GVariant *notification,
 }
 
 static GVariant *
-maybe_remove_icon (GVariant *notification)
+sanitize_notification (XdpAppInfo *app_info,
+                       GVariant   *notification)
 {
+  const char *desktop_id;
   GVariantBuilder n;
   int i;
 
   g_variant_builder_init (&n, G_VARIANT_TYPE_VARDICT);
+
+  desktop_id = xdp_app_info_get_desktop_id (app_info);
+  if (desktop_id && g_strcmp0 (xdp_app_info_get_id (app_info), desktop_id) != 0)
+    g_variant_builder_add (&n, "{sv}", "desktop-id", g_variant_new_string (desktop_id));
+
   for (i = 0; i < g_variant_n_children (notification); i++)
     {
       const char *key;
@@ -386,7 +393,7 @@ handle_add_in_thread_func (GTask *task,
   id = (const char *)g_object_get_data (G_OBJECT (request), "id");
   notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
 
-  notification2 = maybe_remove_icon (notification);
+  notification2 = sanitize_notification (request->app_info, notification);
   xdp_dbus_impl_notification_call_add_notification (impl,
                                                     xdp_app_info_get_id (request->app_info),
                                                     id,
