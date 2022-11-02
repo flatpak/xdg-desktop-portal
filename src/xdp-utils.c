@@ -136,6 +136,7 @@ struct _XdpAppInfo {
       struct
         {
           GKeyFile *keyfile;
+          char *desktop_id;
         } snap;
     } u;
 };
@@ -242,6 +243,7 @@ xdp_app_info_free (XdpAppInfo *app_info)
 
     case XDP_APP_INFO_KIND_SNAP:
       g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
+      g_clear_pointer (&app_info->u.snap.desktop_id, g_free);
       break;
 
     case XDP_APP_INFO_KIND_HOST:
@@ -775,6 +777,7 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   g_autoptr(GKeyFile) metadata = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autofree char *snap_name = NULL;
+  g_autofree char *desktop_file = NULL;
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
   if (!pid_is_snap (pid, error)) return NULL;
@@ -801,9 +804,16 @@ parse_app_info_from_snap (pid_t pid, GError **error)
       return NULL;
     }
 
+  desktop_file = g_key_file_get_string (metadata, SNAP_METADATA_GROUP_INFO,
+                                        SNAP_METADATA_KEY_DESKTOP_FILE, NULL);
+
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
   app_info->id = g_strconcat ("snap.", snap_name, NULL);
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
+
+  if (desktop_file && g_str_has_suffix (desktop_file, ".desktop"))
+    app_info->u.snap.desktop_id =
+      g_strndup (desktop_file, strlen (desktop_file) - 8);
 
   return g_steal_pointer (&app_info);
 }
