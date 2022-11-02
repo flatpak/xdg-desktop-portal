@@ -75,6 +75,7 @@ G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
 XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
 void        xdp_app_info_unref           (XdpAppInfo  *app_info);
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
+const char *xdp_app_info_get_desktop_id  (XdpAppInfo  *app_info);
 char *      xdp_app_info_get_instance    (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
 XdpAppInfoKind xdp_app_info_get_kind     (XdpAppInfo  *app_info);

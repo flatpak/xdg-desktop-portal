@@ -280,6 +280,25 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   return app_info->id;
 }
 
+const char *
+xdp_app_info_get_desktop_id (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      return app_info->id;
+
+    case XDP_APP_INFO_KIND_SNAP:
+      return app_info->u.snap.desktop_id;
+
+    case XDP_APP_INFO_KIND_HOST:
+    default:
+      return NULL;
+    }
+}
+
 XdpAppInfoKind
 xdp_app_info_get_kind (XdpAppInfo  *app_info)
 {
@@ -295,24 +314,8 @@ xdp_app_info_load_app_info (XdpAppInfo *app_info)
 
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  switch (app_info->kind)
-    {
-    case XDP_APP_INFO_KIND_FLATPAK:
-      desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
-      break;
-
-    case XDP_APP_INFO_KIND_SNAP:
-      desktop_id = g_key_file_get_string (app_info->u.snap.keyfile,
-                                          SNAP_METADATA_GROUP_INFO,
-                                          SNAP_METADATA_KEY_DESKTOP_FILE,
-                                          NULL);
-      break;
-
-    case XDP_APP_INFO_KIND_HOST:
-    default:
-      desktop_id = NULL;
-      break;
-    }
+  if (xdp_app_info_get_desktop_id (app_info))
+    desktop_id = g_strconcat (xdp_app_info_get_desktop_id (app_info), ".desktop", NULL);
 
   if (desktop_id == NULL)
     return NULL;
