@@ -51,6 +51,7 @@ test(
   'test-doc-portal',
   test_doc_portal,
   env: env_tests,
+  depends: xdg_desktop_portal,
   is_parallel: false,
   protocol: test_protocol,
 )
@@ -149,7 +150,7 @@ foreach p : portal_tests
       'test-portals-@0@'.format(p),
       test_portals,
       args: ['--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
-      depends: [test_backends, test_portals],
+      depends: [xdg_desktop_portal, test_backends, test_portals],
       env: env_tests,
       is_parallel: false,
       protocol: test_protocol,
