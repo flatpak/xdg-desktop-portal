@@ -2,7 +2,7 @@ test_programs =
 
 TESTS_ENVIRONMENT = \
 	PATH=$$(cd $(top_builddir) && pwd):$${PATH} \
-	XDG_DATA_DIRS=$(top_srcdir)/tests/share/:$${XDG_DATA_DIRS} \
+	XDG_DATA_DIRS=$(abs_top_srcdir)/tests/share/:$${XDG_DATA_DIRS} \
 	XDP_UNINSTALLED=1 \
 	$(NULL)
 

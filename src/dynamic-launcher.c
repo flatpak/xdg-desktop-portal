@@ -680,7 +680,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
    * app was launched from the CLI:
    * https://github.com/flatpak/xdg-desktop-portal/pull/719#issuecomment-1057412221
    */
-  if (xdp_app_info_is_host (call->app_info) && g_str_equal (app_id, ""))
+  if (xdp_app_info_get_kind (call->app_info) == XDP_APP_INFO_KIND_TEST)
     {
       response = 0;
     }

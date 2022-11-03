@@ -41,7 +41,7 @@ set_openuri_permissions (const char *type,
                                                            "desktop-used-apps",
                                                            TRUE,
                                                            type,
-                                                           "",
+                                                           tests_get_expected_app_id (),
                                                            permissions,
                                                            NULL,
                                                            &error);

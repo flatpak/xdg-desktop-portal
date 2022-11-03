@@ -1243,11 +1243,11 @@ xdp_set_documents_mountpoint (const char *path)
 
 /* alternate_document_path converts a file path  */
 char *
-xdp_get_alternate_document_path (const char *path, const char *app_id)
+xdp_get_alternate_document_path (const char *path, const char *app_id, XdpAppInfoKind kind)
 {
   int len;
 
-  if (g_str_equal (app_id, ""))
+  if (g_str_equal (app_id, "") || kind == XDP_APP_INFO_KIND_TEST)
     return NULL;
 
   /* If we don't know where the document portal is mounted, then there
@@ -1452,7 +1452,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo *app_info,
          as a failure.
       */
       g_autofree char *alt_path = NULL;
-      alt_path = xdp_get_alternate_document_path (path, xdp_app_info_get_id (app_info));
+      alt_path = xdp_get_alternate_document_path (path, app_info->id, app_info->kind);
 
       if (alt_path == NULL)
         return NULL;

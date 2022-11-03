@@ -3,10 +3,12 @@
 #include <locale.h>
 
 #include <gio/gio.h>
+#include <glib/gstdio.h>
 
 #include "src/glib-backports.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+#include "xdp-test-utils.h"
 #include "xdp-impl-dbus.h"
 
 #ifdef HAVE_LIBPORTAL
@@ -42,6 +44,8 @@
 #define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
+#define DEFAULT_APP_ID "org.freedesktop.xdp.destkop.portal.tests"
+
 #include "document-portal/permission-store-dbus.h"
 
 char outdir[] = "/tmp/xdp-test-XXXXXX";
@@ -49,6 +53,8 @@ char outdir[] = "/tmp/xdp-test-XXXXXX";
 static GTestDBus *dbus;
 static GDBusConnection *session_bus;
 static GList *test_procs = NULL;
+static const char *saved_app_id = DEFAULT_APP_ID;
+static const char *saved_desktop_id;
 XdpDbusImplPermissionStore *permission_store;
 XdpDbusImplLockdown *lockdown;
 
@@ -129,6 +135,89 @@ update_data_dirs (void)
   /* new_val is leaked */
 }
 
+static GKeyFile *
+try_loading_app_info_file (GError **error)
+{
+  g_autoptr (GError) local_error = NULL;
+  g_autoptr (GKeyFile) app_info = NULL;
+
+  app_info = g_key_file_new ();
+
+  if (g_key_file_load_from_file (app_info, TEST_METADATA_FILE_NAME,
+                                 G_KEY_FILE_NONE, &local_error))
+    return g_steal_pointer (&app_info);
+
+  if (g_error_matches (local_error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_NOT_FOUND))
+    return g_steal_pointer (&app_info);
+
+  if (g_error_matches (local_error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
+    return g_steal_pointer (&app_info);
+
+  g_propagate_error (error, g_steal_pointer (&local_error));
+  return NULL;
+}
+
+gboolean
+tests_set_app_id (const char *app_id, GError **error)
+{
+  g_autoptr (GKeyFile) app_info = NULL;
+
+  app_info = try_loading_app_info_file (error);
+  if (!app_info)
+    return FALSE;
+
+  if (!app_id)
+    app_id = DEFAULT_APP_ID;
+
+  g_key_file_set_string (app_info, TEST_METADATA_GROUP_INFO,
+                         TEST_METADATA_KEY_APP_ID, app_id);
+
+  if (!g_key_file_save_to_file (app_info, TEST_METADATA_FILE_NAME, error))
+    return FALSE;
+
+  saved_app_id = app_id;
+  return TRUE;
+}
+
+gboolean
+tests_set_app_desktop_id (const char *desktop_id, GError **error)
+{
+  g_autoptr (GKeyFile) app_info = NULL;
+
+  app_info = try_loading_app_info_file (error);
+  if (!app_info)
+    return FALSE;
+
+  if (desktop_id)
+    {
+      g_key_file_set_string (app_info, TEST_METADATA_GROUP_INFO,
+                             TEST_METADATA_KEY_DESKTOP_ID, desktop_id);
+    }
+  else
+    {
+      g_key_file_remove_key (app_info, TEST_METADATA_GROUP_INFO,
+                             TEST_METADATA_KEY_DESKTOP_ID, NULL);
+    }
+
+  if (!g_key_file_save_to_file (app_info, TEST_METADATA_FILE_NAME, error))
+    return FALSE;
+
+  saved_desktop_id = desktop_id;
+  return TRUE;
+}
+
+const char *
+tests_get_expected_app_id (void)
+{
+  return saved_app_id;
+}
+
+const char *
+tests_get_expected_desktop_id (void)
+{
+  return saved_desktop_id;
+}
+
 static void
 global_setup (void)
 {
@@ -151,8 +240,17 @@ global_setup (void)
   g_mkdtemp (outdir);
   g_debug ("outdir: %s\n", outdir);
 
+  /* FIXME: Instead of this we should really use G_TEST_OPTION_ISOLATE_DIRS
+   * but it would require more rework to ensure that some desktop files are
+   * still found.
+   */
+  g_assert_no_errno (g_chdir (outdir));
+
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
+
+  tests_set_app_id (NULL, &error);
+  g_assert_no_error (error);
 
   /* Re-defining dbus-daemon with a custom script */
   setup_dbus_daemon_wrapper (outdir);
@@ -186,6 +284,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_setenv (launcher, "XDP_TESTS_MODE", "1", TRUE);
+  g_subprocess_launcher_set_cwd (launcher, outdir);
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
@@ -193,7 +293,7 @@ global_setup (void)
   argv[1] = g_test_verbose () ? "--verbose" : NULL;
   argv[2] = NULL;
 
-  g_debug ("launching test-backend\n");
+  g_debug ("launching test-backend %s", backends_executable);
 
   subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
   g_assert_no_error (error);
@@ -225,6 +325,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_setenv (launcher, "XDP_TESTS_MODE", "1", TRUE);
+  g_subprocess_launcher_set_cwd (launcher, outdir);
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
@@ -272,6 +374,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
+  g_subprocess_launcher_setenv (launcher, "XDP_TESTS_MODE", "1", TRUE);
+  g_subprocess_launcher_set_cwd (launcher, outdir);
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
