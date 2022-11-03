@@ -507,6 +507,7 @@ handle_start_in_thread_func (GTask *task,
   if (!get_location_permissions (request->app_info, &accuracy, &last_used))
     {
       guint access_response = 2;
+      g_autoptr(GAppInfo) info = NULL;
       g_autoptr(GVariant) access_results = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
       GVariantBuilder access_opt_builder;
@@ -530,24 +531,21 @@ handle_start_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("find-location-symbolic"));
 
-      if (g_str_equal (app_id, ""))
+      info = xdp_app_info_load_app_info (request->app_info);
+      if (info == NULL)
         {
           title = g_strdup (_("Grant Access to Your Location?"));
           subtitle = g_strdup (_("An application wants to use your location."));
         }
       else
         {
-          g_autofree char *id = NULL;
-          g_autoptr(GDesktopAppInfo) info = NULL;
           const char *name;
 
-          id = g_strconcat (app_id, ".desktop", NULL);
-          info = g_desktop_app_info_new (id);
-          name = g_app_info_get_display_name (G_APP_INFO (info));
-
+          name = g_app_info_get_display_name (info);
           title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
-          if (g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
-            subtitle = g_desktop_app_info_get_string (info, "X-Geoclue-Reason");
+          if (G_DESKTOP_APP_INFO (info) &&
+              g_desktop_app_info_has_key (G_DESKTOP_APP_INFO (info), "X-Geoclue-Reason"))
+            subtitle = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (info), "X-Geoclue-Reason");
           else
             subtitle = g_strdup_printf (_("%s wants to use your location."), name);
         }
