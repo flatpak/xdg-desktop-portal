@@ -51,6 +51,7 @@ typedef enum
   XDP_APP_INFO_KIND_HOST = 0,
   XDP_APP_INFO_KIND_FLATPAK = 1,
   XDP_APP_INFO_KIND_SNAP    = 2,
+  XDP_APP_INFO_KIND_TEST    = 3,
 } XdpAppInfoKind;
 
 gint xdp_mkstempat (int    dir_fd,

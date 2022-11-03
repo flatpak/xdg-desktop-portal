@@ -46,6 +46,7 @@
 #include <gio/gdesktopappinfo.h>
 
 #include "xdp-utils.h"
+#include "xdp-test-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
@@ -138,6 +139,13 @@ struct _XdpAppInfo {
           GKeyFile *keyfile;
           char *desktop_id;
         } snap;
+      struct
+        {
+          GKeyFile *keyfile;
+          char *keyfile_path;
+          char *app_id;
+          char *desktop_id;
+        } test;
     } u;
 };
 
@@ -246,6 +254,13 @@ xdp_app_info_free (XdpAppInfo *app_info)
       g_clear_pointer (&app_info->u.snap.desktop_id, g_free);
       break;
 
+    case XDP_APP_INFO_KIND_TEST:
+      g_clear_pointer (&app_info->u.test.keyfile, g_key_file_free);
+      g_clear_pointer (&app_info->u.test.keyfile_path, g_free);
+      g_clear_pointer (&app_info->u.test.app_id, g_free);
+      g_clear_pointer (&app_info->u.test.desktop_id, g_free);
+      break;
+
     case XDP_APP_INFO_KIND_HOST:
     default:
       break;
@@ -277,6 +292,28 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, NULL);
 
+  if G_UNLIKELY (app_info->kind == XDP_APP_INFO_KIND_TEST)
+    {
+      g_autofree char *app_id = NULL;
+
+      G_LOCK (app_infos);
+
+      g_key_file_load_from_file (app_info->u.test.keyfile,
+                                 app_info->u.test.keyfile_path,
+                                 G_KEY_FILE_NONE, NULL);
+      app_id =
+        g_key_file_get_string (app_info->u.test.keyfile,
+                               TEST_METADATA_GROUP_INFO,
+                               TEST_METADATA_KEY_APP_ID, NULL);
+      if (app_id && !g_str_equal (app_id, app_info->id))
+        {
+          g_clear_pointer (&app_info->id, g_free);
+          app_info->id = g_steal_pointer (&app_id);
+        }
+
+      G_UNLOCK (app_infos);
+    }
+
   return app_info->id;
 }
 
@@ -292,6 +329,32 @@ xdp_app_info_get_desktop_id (XdpAppInfo *app_info)
 
     case XDP_APP_INFO_KIND_SNAP:
       return app_info->u.snap.desktop_id;
+
+    case XDP_APP_INFO_KIND_TEST:
+    {
+      g_autofree char *desktop_id = NULL;
+
+      G_LOCK (app_infos);
+
+      g_clear_pointer (&app_info->u.test.desktop_id, g_free);
+      g_key_file_load_from_file (app_info->u.test.keyfile,
+                                 app_info->u.test.keyfile_path,
+                                 G_KEY_FILE_NONE, NULL);
+      desktop_id =
+        g_key_file_get_string (app_info->u.test.keyfile,
+                               TEST_METADATA_GROUP_INFO,
+                               TEST_METADATA_KEY_DESKTOP_ID, NULL);
+
+      if (g_strcmp0 (desktop_id, app_info->u.test.desktop_id) != 0)
+        {
+          g_clear_pointer (&app_info->u.test.desktop_id, g_free);
+          app_info->u.test.desktop_id = g_steal_pointer (&desktop_id);
+        }
+
+      G_UNLOCK (app_infos);
+
+      return app_info->u.test.desktop_id;
+    }
 
     case XDP_APP_INFO_KIND_HOST:
     default:
@@ -358,7 +421,8 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
 
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+  if (app_info->kind == XDP_APP_INFO_KIND_HOST ||
+      app_info->kind == XDP_APP_INFO_KIND_TEST)
     {
       int i;
       args = g_ptr_array_new_with_free_func (g_free);
@@ -472,7 +536,8 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, FALSE);
 
-  return app_info->kind == XDP_APP_INFO_KIND_HOST;
+  return app_info->kind == XDP_APP_INFO_KIND_HOST ||
+         app_info->kind == XDP_APP_INFO_KIND_TEST;
 }
 
 gboolean
@@ -480,7 +545,8 @@ xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
   return
     app_info->kind == XDP_APP_INFO_KIND_FLATPAK ||
-    app_info->kind == XDP_APP_INFO_KIND_HOST;
+    app_info->kind == XDP_APP_INFO_KIND_HOST ||
+    app_info->kind == XDP_APP_INFO_KIND_TEST;
 }
 
 char *
@@ -537,6 +603,7 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
 gboolean
 xdp_app_info_has_network (XdpAppInfo *app_info)
 {
+  g_autoptr (GError) error = NULL;
   gboolean has_network;
 
   switch (app_info->kind)
@@ -557,6 +624,13 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
       has_network = g_key_file_get_boolean (app_info->u.snap.keyfile,
                                             SNAP_METADATA_GROUP_INFO,
                                             SNAP_METADATA_KEY_NETWORK, NULL);
+      break;
+
+    case XDP_APP_INFO_KIND_TEST:
+      has_network =
+        g_key_file_get_boolean (app_info->u.test.keyfile,
+                                TEST_METADATA_GROUP_STATE,
+                                TEST_METADATA_KEY_HAS_NETWORK, &error) || error;
       break;
 
     case XDP_APP_INFO_KIND_HOST:
@@ -821,6 +895,48 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   return g_steal_pointer (&app_info);
 }
 
+XdpAppInfo *
+xdp_app_info_new_test (pid_t pid,
+                       GError **error)
+{
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GKeyFile) key_file = NULL;
+  g_autofree char *test_file_app_info = NULL;
+  g_autofree char *key_data = NULL;
+  size_t key_data_len;
+
+  g_assert (g_get_user_data_dir () != NULL);
+
+  test_file_app_info =
+    g_build_filename (g_get_user_data_dir (), TEST_METADATA_FILE_NAME, NULL);
+
+  if (!g_file_get_contents (test_file_app_info, &key_data, &key_data_len, NULL))
+    return NULL;
+
+  key_file = g_key_file_new ();
+  if (!g_key_file_load_from_data (key_file, key_data, key_data_len, G_KEY_FILE_NONE, error))
+    return NULL;
+
+  g_test_message ("Test appInfo %s loaded", test_file_app_info);
+
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_TEST);
+  app_info->id = g_key_file_get_string (key_file, TEST_METADATA_GROUP_INFO,
+                                        TEST_METADATA_KEY_APP_ID, error);
+
+  if (!app_info->id)
+    return NULL;
+
+  g_test_message ("Created test App %s", app_info->id);
+
+  app_info->u.test.desktop_id =
+    g_key_file_get_string (key_file, TEST_METADATA_GROUP_INFO,
+                           TEST_METADATA_KEY_DESKTOP_ID, NULL);
+
+  app_info->u.test.keyfile_path = g_steal_pointer (&test_file_app_info);
+  app_info->u.test.keyfile = g_steal_pointer (&key_file);
+
+  return g_steal_pointer (&app_info);
+}
 
 XdpAppInfo *
 xdp_get_app_info_from_pid (pid_t pid,
@@ -839,6 +955,17 @@ xdp_get_app_info_from_pid (pid_t pid,
   if (app_info == NULL)
     {
       app_info = parse_app_info_from_snap (pid, &local_error);
+      if (app_info == NULL && local_error)
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
+    }
+
+  if (g_strcmp0 (g_getenv ("XDP_TESTS_MODE"), "1") == 0)
+    {
+      app_info = xdp_app_info_new_test (pid, &local_error);
+
       if (app_info == NULL && local_error)
         {
           g_propagate_error (error, g_steal_pointer (&local_error));
