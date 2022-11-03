@@ -38,6 +38,30 @@ invoke_action (gpointer data)
   return G_SOURCE_REMOVE;
 }
 
+GVariant *
+notification_remove_private_parameters (GVariant *notification)
+{
+  GVariantBuilder n;
+  int i;
+
+  g_variant_builder_init (&n, G_VARIANT_TYPE_VARDICT);
+
+  for (i = 0; i < g_variant_n_children (notification); i++)
+    {
+      const char *key;
+      g_autoptr(GVariant) value = NULL;
+
+      g_variant_get_child (notification, i, "{&sv}", &key, &value);
+
+      if (g_str_equal (key, "desktop-id"))
+        continue;
+
+      g_variant_builder_add (&n, "{sv}", key, value);
+    }
+
+  return g_variant_ref_sink (g_variant_builder_end (&n));
+}
+
 static gboolean
 handle_add_notification (XdpDbusImplNotification *object,
                          GDBusMethodInvocation *invocation,
@@ -50,7 +74,10 @@ handle_add_notification (XdpDbusImplNotification *object,
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *notification_s = NULL;
   g_autofree char *app_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autofree char *notification_desktop_id = NULL;
   g_autoptr(GVariant) notification = NULL;
+  g_autoptr(GVariant) expected_notification = NULL;
   g_autoptr(GError) error = NULL;
   int delay;
 
@@ -61,11 +88,16 @@ handle_add_notification (XdpDbusImplNotification *object,
   g_assert_no_error (error);
 
   app_id = g_key_file_get_string (keyfile, "notification", "app-id", NULL);
+  desktop_id = g_key_file_get_string (keyfile, "notification", "desktop-id", NULL);
+  g_print("Expecting %s\n", desktop_id);
   notification_s = g_key_file_get_string (keyfile, "notification", "data", NULL);
   notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
   g_assert_no_error (error);
-  g_assert_true (g_variant_equal (notification, arg_notification));
+  expected_notification = notification_remove_private_parameters (arg_notification);
+  g_variant_lookup (arg_notification, "desktop-id", "s", &notification_desktop_id);
+  g_assert_true (g_variant_equal (notification, expected_notification));
   g_assert_cmpstr (app_id, ==, arg_app_id);
+  g_assert_cmpstr (desktop_id, ==, notification_desktop_id);
 
   if (g_key_file_get_boolean (keyfile, "backend", "expect-no-call", NULL))
     g_assert_not_reached ();
