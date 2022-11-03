@@ -49,6 +49,7 @@ handle_add_notification (XdpDbusImplNotification *object,
   g_autofree char *path = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autofree char *notification_s = NULL;
+  g_autofree char *app_id = NULL;
   g_autoptr(GVariant) notification = NULL;
   g_autoptr(GError) error = NULL;
   int delay;
@@ -59,10 +60,12 @@ handle_add_notification (XdpDbusImplNotification *object,
   g_key_file_load_from_file (keyfile, path, 0, &error);
   g_assert_no_error (error);
 
+  app_id = g_key_file_get_string (keyfile, "notification", "app-id", NULL);
   notification_s = g_key_file_get_string (keyfile, "notification", "data", NULL);
   notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
   g_assert_no_error (error);
   g_assert_true (g_variant_equal (notification, arg_notification));
+  g_assert_cmpstr (app_id, ==, arg_app_id);
 
   if (g_key_file_get_boolean (keyfile, "backend", "expect-no-call", NULL))
     g_assert_not_reached ();
