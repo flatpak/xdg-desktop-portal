@@ -103,25 +103,25 @@ test_alternate_doc_path (void)
   xdp_set_documents_mountpoint (NULL);
 
   /* If no documents mount point is set, there is no alternate path */
-  path = xdp_get_alternate_document_path ("/whatever", "app-id");
+  path = xdp_get_alternate_document_path ("/whatever", "app-id", XDP_APP_INFO_KIND_HOST);
   g_assert_cmpstr (path, ==, NULL);
 
   xdp_set_documents_mountpoint ("/doc/portal");
 
   /* Paths outside of the document portal do not have an alternate path */
-  path = xdp_get_alternate_document_path ("/whatever", "app-id");
+  path = xdp_get_alternate_document_path ("/whatever", "app-id", XDP_APP_INFO_KIND_HOST);
   g_assert_cmpstr (path, ==, NULL);
 
   /* The doc portal mount point itself does not have an alternate path */
-  path = xdp_get_alternate_document_path ("/doc/portal", "app-id");
+  path = xdp_get_alternate_document_path ("/doc/portal", "app-id", XDP_APP_INFO_KIND_HOST);
   g_assert_cmpstr (path, ==, NULL);
 
   /* Paths under the doc portal mount point have an alternate path */
-  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "app-id");
+  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "app-id", XDP_APP_INFO_KIND_HOST);
   g_assert_cmpstr (path, ==, "/doc/portal/by-app/app-id/foo/bar");
 
   g_clear_pointer (&path, g_free);
-  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "second-app");
+  path = xdp_get_alternate_document_path ("/doc/portal/foo/bar", "second-app", XDP_APP_INFO_KIND_HOST);
   g_assert_cmpstr (path, ==, "/doc/portal/by-app/second-app/foo/bar");
 
   xdp_set_documents_mountpoint (NULL);

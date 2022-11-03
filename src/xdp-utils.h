@@ -114,7 +114,7 @@ char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 
 void  xdp_set_documents_mountpoint    (const char *path);
-char *xdp_get_alternate_document_path (const char *path, const char *app_id);
+char *xdp_get_alternate_document_path (const char *path, const char *app_id, XdpAppInfoKind kind);
 
 XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
                                                  GCancellable          *cancellable,
