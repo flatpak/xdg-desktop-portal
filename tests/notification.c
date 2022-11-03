@@ -2,9 +2,11 @@
 #include <config.h>
 
 #include "account.h"
+#include "utils.h"
 
 #include <libportal/portal.h>
 #include "xdp-utils.h"
+#include "xdp-test-utils.h"
 
 extern char outdir[];
 
@@ -52,6 +54,7 @@ test_notification_basic (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test");
   g_key_file_set_string (keyfile, "notification", "action", "test-action");
@@ -100,6 +103,7 @@ test_notification_buttons (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -160,6 +164,7 @@ test_notification_bad_arg (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -198,6 +203,7 @@ test_notification_bad_priority (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -237,6 +243,7 @@ test_notification_bad_button (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
