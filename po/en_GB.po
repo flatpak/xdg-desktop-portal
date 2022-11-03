@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2019-08-24 23:48+0100\n"
 "Last-Translator: Zander Brown <zbrown@gnome.org>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 3.32.1\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Allow %s to run in the background?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s requests to be started automatically and run in the background."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s requests to run in the background."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Don't allow"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Allow"
 
@@ -117,34 +117,61 @@ msgid "Grant Access"
 msgstr "Grant Access"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Grant Access to Your Location?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "An application wants to use your location."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "Give %s Access to Your Location?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "%s wants to use your location."
 
 #: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Location access can be changed at any time from the privacy settings."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr ""
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Allow %s to run in the background?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Allow %s to run in the background?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "An application wants to use your microphone."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Location access can be changed at any time from the privacy settings."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Requested setting not found"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr ""
 
 #: src/wallpaper.c:192
 #, fuzzy
@@ -164,8 +191,3 @@ msgstr "Allow %s to run in the background?"
 #, fuzzy, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s requests to run in the background."
-
-#: src/wallpaper.c:209
-#, fuzzy
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Location access can be changed at any time from the privacy settings."

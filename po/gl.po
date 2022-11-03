@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2020-01-06 00:03+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -17,22 +17,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir a %s executarse en segundo plano?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita iniciarse automaticamente e en segundo plano."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita executarse en segundo plano."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -40,11 +40,11 @@ msgstr ""
 "Pode cambiar o permiso «executarse en segundo plano» en calquera momento "
 "desde as preferencias da aplicación."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Non permitir"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Permitir"
 
@@ -118,21 +118,23 @@ msgid "Grant Access"
 msgstr "Conceder acceso"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Desexa acceder acceso á súa localización?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "Unha aplicación quere usar a súa localización."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "Desexa darlle acceso a %s á súa localización?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "%s quere usar a súa localización."
 
 #: src/location.c:555
@@ -141,13 +143,39 @@ msgstr ""
 "O acceso á súa localización pode cambiarse en calquera momento desde as "
 "preferencias de privacidade."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Denegar"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Permitirlle a %s configurar o fondo de pantalla?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Unha aplicación quere usar o seu micrófono."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Este permiso pode cambiarse en calquera momento desde as preferencias de "
+"privacidade."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Non se atopou a configuración solicitada"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Denegar"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -166,9 +194,3 @@ msgstr "Permitirlle a %s configurar o fondo de pantalla?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s está solicitando poder cambiar o fondo de pantalla."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Este permiso pode cambiarse en calquera momento desde as preferencias de "
-"privacidade."

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2022-07-03 04:00+0800\n"
 "Last-Translator: Freddy Cheng <freddy4212@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -17,32 +17,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "允許《%s》於背景執行嗎？"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "《%s》請求自動啟動並於背景執行。"
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "《%s》請求於背景執行。"
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "背景執行許可權可隨時從應用程式設定中更改。"
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "不允許"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "允許"
 
@@ -110,34 +110,60 @@ msgid "Grant Access"
 msgstr "允許"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "允許取用您的位置資訊？"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "應用程式想要使用您的位置資訊。"
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "允許《%s》取用您的位置資訊嗎？"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "《%s》想使用您的位置資訊。"
 
 #: src/location.c:555
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "位置資訊取用權可隨時從隱私設定中更改。"
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "不允許"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "允許《%s》設定背景嗎？"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "允許應用程式設定背景？"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "應用程式想要使用您的麥克風。"
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "該許可權可隨時從隱私設定中更改。"
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "找不到請求的設定"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "不允許"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -156,7 +182,3 @@ msgstr "允許《%s》設定背景嗎？"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "《%s》請求能變更背景圖片的許可權。"
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "該許可權可隨時從隱私設定中更改。"

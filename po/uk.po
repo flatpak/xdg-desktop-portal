@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2022-10-04 23:10+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -15,26 +15,26 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
-"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 20.12.0\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Дозволити запуск %s у фоновому режимі?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s надіслано запит щодо автоматичного запуску у фоновому режимі."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s надіслано запит щодо запуску у фоновому режимі."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,11 +42,11 @@ msgstr ""
 "Параметри запуску у фоновому режимі може бути будь-коли змінено за допомогою "
 "налаштовування параметрів програми."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Не дозволяти"
 
-#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Дозволити"
 
@@ -120,22 +120,24 @@ msgid "Grant Access"
 msgstr "Надати доступ"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Надати доступ до даних щодо вашого перебування?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr ""
 "Програмі потрібен доступ до використання даних щодо вашого місця перебування."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "Надати %s доступ до даних щодо вашого перебування?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr ""
 "%s потрібен доступ до використання даних щодо вашого місця перебування."
 
@@ -151,7 +153,6 @@ msgstr "Заборонити"
 
 #: src/screenshot.c:252
 #, c-format
-#| msgid "Allow %s to Set Backgrounds?"
 msgid "Allow %s to Take Screenshots?"
 msgstr "Дозволити %s робити знімки вікон?"
 
@@ -161,12 +162,10 @@ msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s потрібна можливість будь-коли створювати знімки вікон."
 
 #: src/screenshot.c:261
-#| msgid "Allow Applications to Set Backgrounds?"
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Дозволити програмам робити знімки вікон?"
 
 #: src/screenshot.c:262
-#| msgid "An application wants to use your microphone."
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Програмі потрібна можливість будь-коли створювати знімки вікон."
 
@@ -185,8 +184,7 @@ msgid "Allow Applications to Set Backgrounds?"
 msgstr "Дозволити програмам встановлювати фонове зображення?"
 
 #: src/wallpaper.c:193
-msgid ""
-"An application is requesting to be able to change the background image."
+msgid "An application is requesting to be able to change the background image."
 msgstr "Програмою надіслано запит щодо доступу до зміни фонового зображення."
 
 #: src/wallpaper.c:205

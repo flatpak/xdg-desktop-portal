@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2020-02-27 21:57+0300\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
@@ -22,22 +22,22 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 2.0.6\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "%s, arka planda çalışsın mı?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s, kendiliğinden başlamayı ve arka planda çalışmayı istiyor."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s, arka planda çalışmak istiyor."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -45,11 +45,11 @@ msgstr ""
 "‘Arka planda çalış’ ayarı, uygulama ayarlarından istediğiniz zaman "
 "değiştirilebilir."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "İzin verme"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "İzin ver"
 
@@ -123,21 +123,23 @@ msgid "Grant Access"
 msgstr "Erişim Verildi"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Konumunuza Erişim Verilsin Mi?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "Bir uygulama, konumunuzu kullanmak istiyor."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "%s, Bulunduğunuz Konuma Erişsin Mi?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "%s, konumunuzu kullanmak istiyor."
 
 #: src/location.c:555
@@ -145,13 +147,37 @@ msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Konum erişimini, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Reddet"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "%s, Arka Planı Belirlemesine İzin Verilsin Mi?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Uygulamaların Arka Planı Belirlemesine İzin Verilsin Mi?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Bir uygulama, mikrofonunuzu kullanmak istiyor."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Bu izin, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "İstenen ayar bulunamadı"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Reddet"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -170,7 +196,3 @@ msgstr "%s, Arka Planı Belirlemesine İzin Verilsin Mi?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s, arka planı değiştirme yetkisi istiyor."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Bu izin, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."

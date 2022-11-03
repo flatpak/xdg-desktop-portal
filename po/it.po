@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2020-02-10 16:11+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
@@ -18,24 +18,24 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "L'applicazione %s richiede di essere avviata automaticamente e di essere "
 "eseguita sullo sfondo."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -43,11 +43,11 @@ msgstr ""
 "Il permesso «esegui sullo sfondo» può essere modificato in qualsiasi momento "
 "attraverso le impostazioni dell'applicazione."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Non consentire"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Consenti"
 
@@ -121,21 +121,23 @@ msgid "Grant Access"
 msgstr "Consenti accesso"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Consentire l'accesso alla propria posizione?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "Un'applicazione vuole utilizzare la propria posizione."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "Consentire a %s di accedere alla propria posizione?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "%s vuole utilizzare la propria posizione."
 
 #: src/location.c:555
@@ -144,13 +146,39 @@ msgstr ""
 "L'accesso alla posizione può essere modificato in qualsiasi momento "
 "attraverso le impostazioni della privacy."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Nega"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Consentire a %s di impostare lo sfondo?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Consentire alle applicazioni di impostare lo sfondo?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Un'applicazione vuole utilizzare il microfono."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Questa impostazione può essere modificata in qualsiasi momento attraverso le "
+"impostazioni della privacy."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "La risorsa richiesta non è stata trovata"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Nega"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -169,9 +197,3 @@ msgstr "Consentire a %s di impostare lo sfondo?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "L'applicazione %s richiede di poter cambiare l'immagine di sfondo."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Questa impostazione può essere modificata in qualsiasi momento attraverso le "
-"impostazioni della privacy."

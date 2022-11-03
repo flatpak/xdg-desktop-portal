@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"POT-Creation-Date: 2022-11-03 10:11+0100\n"
 "PO-Revision-Date: 2020-10-12 01:25+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -16,22 +16,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillad %s at køre i baggrunden?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s anmoder om at starte automatisk og køre i baggrunden."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s anmoder om at køre i baggrunden."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -39,11 +39,11 @@ msgstr ""
 "‘Kør i baggrunden’-tilladelsen kan når som helst ændres i "
 "programindstillingerne."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Tillad ikke"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Tillad"
 
@@ -115,21 +115,23 @@ msgid "Grant Access"
 msgstr "Giv adgang"
 
 #: src/location.c:535
-msgid "Grant Access to Your Location?"
+#, fuzzy
+msgid "Allow Access to Your Location?"
 msgstr "Giv adgang til din placering?"
 
 #: src/location.c:536
-msgid "An application wants to use your location."
+#, fuzzy
+msgid "An application wants to known the location of this device."
 msgstr "Et program anmoder om at bruge din placering."
 
 #: src/location.c:548
-#, c-format
-msgid "Give %s Access to Your Location?"
+#, fuzzy, c-format
+msgid "Allow %s to Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
 
 #: src/location.c:552
-#, c-format
-msgid "%s wants to use your location."
+#, fuzzy, c-format
+msgid "%s wants to known the location of this device."
 msgstr "%s anmoder om at bruge din placering."
 
 #: src/location.c:555
@@ -138,13 +140,37 @@ msgstr ""
 "Adgang til din placering kan når som helst ændres i "
 "privatlivsindstillingerne."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Nægt"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Tillad %s at indstille baggrunde?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Tillad programmer at indstille baggrunde?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Et program anmoder om at bruge din mikrofon."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Tilladelsen kan når som helst ændres i privatlivsindstillingerne."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Den anmodede indstilling blev ikke fundet"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Nægt"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -163,7 +189,3 @@ msgstr "Tillad %s at indstille baggrunde?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s anmoder om at være i stand til at ændre baggrundsbilledet."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Tilladelsen kan når som helst ændres i privatlivsindstillingerne."
