@@ -280,12 +280,12 @@
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @options: Vardict with optional further information
         @keycode: Keyboard code that was pressed or released
-        @state: New state of keyboard keysym
+        @state: New state of keyboard keycode
 
         May only be called if KEYBOARD access was provided after starting the
         session.
 
-        Available keyboard keysym states:
+        Available keyboard keycode states:
         <simplelist>
           <member>0: Released</member>
           <member>1: Pressed</member>
