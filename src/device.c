@@ -100,12 +100,7 @@ device_query_permission_sync (const char *app_id,
       g_autoptr(GAppInfo) info = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
 
-      if (app_id[0] != 0)
-        {
-          g_autofree char *desktop_id;
-          desktop_id = g_strconcat (app_id, ".desktop", NULL);
-          info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
-        }
+      info = xdp_app_info_load_app_info (request->app_info);
 
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
 
