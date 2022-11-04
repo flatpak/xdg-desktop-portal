@@ -545,7 +545,7 @@ handle_start_in_thread_func (GTask *task,
           info = g_desktop_app_info_new (id);
           name = g_app_info_get_display_name (G_APP_INFO (info));
 
-          title = g_strdup_printf (_("Allow %s to Access to Your Location?"), name);
+          title = g_strdup_printf (_("Allow %s to Access Your Location?"), name);
           if (g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
             subtitle = g_desktop_app_info_get_string (info, "X-Geoclue-Reason");
           else
