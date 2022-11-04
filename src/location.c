@@ -533,7 +533,7 @@ handle_start_in_thread_func (GTask *task,
       if (g_str_equal (app_id, ""))
         {
           title = g_strdup (_("Allow Access to Your Location?"));
-          subtitle = g_strdup (_("An application wants to known the location of this device."));
+          subtitle = g_strdup (_("An application wants to know the location of this device."));
         }
       else
         {
