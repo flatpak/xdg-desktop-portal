@@ -549,7 +549,7 @@ handle_start_in_thread_func (GTask *task,
           if (g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
             subtitle = g_desktop_app_info_get_string (info, "X-Geoclue-Reason");
           else
-            subtitle = g_strdup_printf (_("%s wants to known the location of this device."), name);
+            subtitle = g_strdup_printf (_("%s wants to know the location of this device."), name);
         }
 
       body = _("Location access can be changed at any time from the privacy settings.");
