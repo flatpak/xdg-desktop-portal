@@ -3110,7 +3110,7 @@ NotifyKeyboardKeycode (IN  o     session_handle,
 May only be called if KEYBOARD access was provided after starting the
 session.
 </p><p>
-Available keyboard keysym states:
+Available keyboard keycode states:
 </p><table border="0" summary="Simple list" class="simplelist"><tr><td>0: Released</td></tr><tr><td>1: Pressed</td></tr></table><p>
 </p><div class="variablelist"><dl class="variablelist"><dt><span class="term"><code class="literal">IN o <em class="parameter"><code>session_handle</code></em></code>:</span></dt><dd><p>
 Object path for the <a class="link" href="#gdbus-interface-org-freedesktop-portal-Session.top_of_page">org.freedesktop.portal.Session</a> object
@@ -3119,7 +3119,7 @@ Vardict with optional further information
 </p></dd><dt><span class="term"><code class="literal">IN i <em class="parameter"><code>keycode</code></em></code>:</span></dt><dd><p>
 Keyboard code that was pressed or released
 </p></dd><dt><span class="term"><code class="literal">IN u <em class="parameter"><code>state</code></em></code>:</span></dt><dd><p>
-New state of keyboard keysym
+New state of keyboard keycode
 </p></dd></dl></div></div><div class="refsect2"><a id="gdbus-method-org-freedesktop-portal-RemoteDesktop.NotifyKeyboardKeysym"></a><h3>The NotifyKeyboardKeysym() method</h3><a id="idm4567" class="indexterm"></a><pre class="programlisting">
 NotifyKeyboardKeysym (IN  o     session_handle,
                       IN  a{sv} options,
