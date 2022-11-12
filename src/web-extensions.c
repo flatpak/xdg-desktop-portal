@@ -277,8 +277,14 @@ get_manifest_search_path (void)
 
   /* Add system wide directories */
   g_ptr_array_add (search_path, g_strdup ("/usr/lib/mozilla/native-messaging-hosts"));
+  g_ptr_array_add (search_path, g_strdup ("/usr/lib64/mozilla/native-messaging-hosts"));
   g_ptr_array_add (search_path, g_strdup ("/etc/opt/chrome/native-messaging-hosts"));
   g_ptr_array_add (search_path, g_strdup ("/etc/chromium/native-messaging-hosts"));
+
+  /* And the same for xdg-desktop-portal's configured prefix */
+  g_ptr_array_add (search_path, g_strdup (LIBDIR "mozilla/native-messaging-hosts"));
+  g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "opt/chrome/native-messaging-hosts"));
+  g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "chromium/native-messaging-hosts"));
 
   g_ptr_array_add (search_path, NULL);
   return (GStrv)g_ptr_array_free (g_steal_pointer (&search_path), FALSE);
