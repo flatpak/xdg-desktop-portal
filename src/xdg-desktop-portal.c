@@ -224,7 +224,8 @@ on_bus_acquired (GDBusConnection *connection,
                  gpointer         user_data)
 {
   PortalImplementation *implementation;
-  PortalImplementation *implementation2;
+  PortalImplementation *lockdown_impl;
+  PortalImplementation *access_impl;
   g_autoptr(GError) error = NULL;
   XdpDbusImplLockdown *lockdown;
   GQuark portal_errors G_GNUC_UNUSED;
@@ -237,11 +238,11 @@ on_bus_acquired (GDBusConnection *connection,
   init_document_proxy (connection);
   init_permission_store (connection);
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Lockdown");
-  if (implementation != NULL)
+  lockdown_impl = find_portal_implementation ("org.freedesktop.impl.portal.Lockdown");
+  if (lockdown_impl != NULL)
     lockdown = xdp_dbus_impl_lockdown_proxy_new_sync (connection,
                                                       G_DBUS_PROXY_FLAGS_NONE,
-                                                      implementation->dbus_name,
+                                                      lockdown_impl->dbus_name,
                                                       DESKTOP_PORTAL_OBJECT_PATH,
                                                       NULL, &error);
   else
@@ -284,41 +285,47 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   inhibit_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
-  if (implementation != NULL && implementation2 != NULL)
-    export_portal_implementation (connection,
-                                  screenshot_create (connection,
-                                                     implementation->dbus_name,
-                                                     implementation2->dbus_name));
-
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
-  if (implementation != NULL)
+  access_impl = find_portal_implementation ("org.freedesktop.impl.portal.Access");
+  if (access_impl != NULL)
     {
+      PortalImplementation *tmp;
+
       export_portal_implementation (connection,
-                                    device_create (connection, implementation->dbus_name, lockdown));
+                                    device_create (connection,
+                                                   access_impl->dbus_name,
+                                                   lockdown));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
-                                    location_create (connection, implementation->dbus_name, lockdown));
+                                    location_create (connection,
+                                                     access_impl->dbus_name,
+                                                     lockdown));
 #endif
-
 #ifdef HAVE_PIPEWIRE
-      export_portal_implementation (connection, camera_create (connection, lockdown));
+      export_portal_implementation (connection,
+                                    camera_create (connection, lockdown));
 #endif
+
+      tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
+      if (tmp != NULL)
+        export_portal_implementation (connection,
+                                      screenshot_create (connection,
+                                                         access_impl->dbus_name,
+                                                         tmp->dbus_name));
+
+      tmp = find_portal_implementation ("org.freedesktop.impl.portal.Background");
+      if (tmp != NULL)
+        export_portal_implementation (connection,
+                                      background_create (connection,
+                                                         access_impl->dbus_name,
+                                                         tmp->dbus_name));
+
+      tmp = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
+      if (tmp != NULL)
+        export_portal_implementation (connection,
+                                      wallpaper_create (connection,
+                                                        access_impl->dbus_name,
+                                                        tmp->dbus_name));
     }
-
-  if (implementation != NULL && implementation2 != NULL)
-    export_portal_implementation (connection,
-                                  background_create (connection,
-                                                     implementation->dbus_name,
-                                                     implementation2->dbus_name));
-
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
-  if (implementation != NULL && implementation2 != NULL)
-    export_portal_implementation (connection,
-                                  wallpaper_create (connection,
-                                                    implementation->dbus_name,
-                                                    implementation2->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
   if (implementation != NULL)
