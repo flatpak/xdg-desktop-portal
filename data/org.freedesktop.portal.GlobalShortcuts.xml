@@ -153,6 +153,7 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
 
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QMap&lt;QString,QVariantMap&gt;"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
     </method>
 
@@ -196,7 +197,7 @@
       <arg type="s" name="shortcut_id" direction="in"/>
       <arg type="t" name="timestamp" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
     </signal>
 
     <!--
