@@ -39,6 +39,16 @@
         org.freedesktop.portal.ScreenCast), but may only be started and stopped
         with this interface.
 
+        The following results get passed via the options argument:
+        <variablelist>
+          <varlistentry>
+            <term>pid t</term>
+            <listitem><para>
+              The process id of the process that is creating the session.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
         <variablelist>
           <varlistentry>

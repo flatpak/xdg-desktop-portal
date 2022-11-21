@@ -279,6 +279,8 @@ handle_create_session (XdpDbusRemoteDesktop *object,
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&options_builder, "{sv}",
+                         "pid", g_variant_new ("t", xdp_app_info_get_pid (request->app_info)));
   options = g_variant_builder_end (&options_builder);
 
   g_object_set_qdata_full (G_OBJECT (request),

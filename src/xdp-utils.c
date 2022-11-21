@@ -122,6 +122,7 @@ xdp_mkstempat (int    dir_fd,
 struct _XdpAppInfo {
   volatile gint ref_count;
   char *id;
+  pid_t pid;
   XdpAppInfoKind kind;
 
   union
@@ -141,11 +142,12 @@ struct _XdpAppInfo {
 };
 
 static XdpAppInfo *
-xdp_app_info_new (XdpAppInfoKind kind)
+xdp_app_info_new (XdpAppInfoKind kind, pid_t pid)
 {
   XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
   app_info->ref_count = 1;
   app_info->kind = kind;
+  app_info->pid = pid;
   return app_info;
 }
 
@@ -224,7 +226,7 @@ set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 static XdpAppInfo *
 xdp_app_info_new_host (pid_t pid)
 {
-  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST, pid);
   set_appid_from_pid (app_info, pid);
   return app_info;
 }
@@ -276,6 +278,14 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
   g_return_val_if_fail (app_info != NULL, NULL);
 
   return app_info->id;
+}
+
+pid_t
+xdp_app_info_get_pid (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  return app_info->pid;
 }
 
 XdpAppInfoKind
@@ -673,7 +683,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
 
   close (info_fd);
 
-  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_FLATPAK);
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_FLATPAK, pid);
   app_info->id = g_steal_pointer (&id);
   app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
@@ -801,7 +811,7 @@ parse_app_info_from_snap (pid_t pid, GError **error)
       return NULL;
     }
 
-  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP, pid);
   app_info->id = g_strconcat ("snap.", snap_name, NULL);
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
 
