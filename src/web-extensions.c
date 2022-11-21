@@ -103,39 +103,39 @@ web_extensions_session_init (WebExtensionsSession *session)
 static void
 web_extensions_session_close (XdpSession *session)
 {
-  WebExtensionsSession *we_session = (WebExtensionsSession *)session;
+  WebExtensionsSession *web_extensions_session = (WebExtensionsSession *)session;
 
-  if (we_session->state == WEB_EXTENSIONS_SESSION_STATE_CLOSED) return;
+  if (web_extensions_session->state == WEB_EXTENSIONS_SESSION_STATE_CLOSED) return;
 
-  we_session->state = WEB_EXTENSIONS_SESSION_STATE_CLOSED;
-  if (we_session->child_watch_id != 0)
+  web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_CLOSED;
+  if (web_extensions_session->child_watch_id != 0)
     {
-      g_source_remove (we_session->child_watch_id);
-      we_session->child_watch_id = 0;
+      g_source_remove (web_extensions_session->child_watch_id);
+      web_extensions_session->child_watch_id = 0;
     }
 
-  if (we_session->child_pid > 0)
+  if (web_extensions_session->child_pid > 0)
     {
-      kill (we_session->child_pid, SIGTERM);
-      waitpid (we_session->child_pid, NULL, 0);
-      g_spawn_close_pid (we_session->child_pid);
-      we_session->child_pid = -1;
+      kill (web_extensions_session->child_pid, SIGTERM);
+      waitpid (web_extensions_session->child_pid, NULL, 0);
+      g_spawn_close_pid (web_extensions_session->child_pid);
+      web_extensions_session->child_pid = -1;
     }
 
-  if (we_session->standard_input >= 0)
+  if (web_extensions_session->standard_input >= 0)
     {
-      close (we_session->standard_input);
-      we_session->standard_input = -1;
+      close (web_extensions_session->standard_input);
+      web_extensions_session->standard_input = -1;
     }
-  if (we_session->standard_output >= 0)
+  if (web_extensions_session->standard_output >= 0)
     {
-      close (we_session->standard_output);
-      we_session->standard_output = -1;
+      close (web_extensions_session->standard_output);
+      web_extensions_session->standard_output = -1;
     }
-  if (we_session->standard_error >= 0)
+  if (web_extensions_session->standard_error >= 0)
     {
-      close (we_session->standard_error);
-      we_session->standard_error = -1;
+      close (web_extensions_session->standard_error);
+      web_extensions_session->standard_error = -1;
     }
 }
 
@@ -219,11 +219,11 @@ on_server_exited (GPid pid,
                   gpointer user_data)
 {
   XdpSession *session = user_data;
-  WebExtensionsSession *we_session = (WebExtensionsSession *)session;
+  WebExtensionsSession *web_extensions_session = (WebExtensionsSession *)session;
 
   SESSION_AUTOLOCK (session);
-  we_session->child_pid = -1;
-  we_session->child_watch_id = 0;
+  web_extensions_session->child_pid = -1;
+  web_extensions_session->child_watch_id = 0;
   xdp_session_close (session, TRUE);
 }
 
@@ -249,6 +249,14 @@ array_contains (JsonArray *array,
 static gboolean
 is_valid_name (const char *name)
 {
+  /* This regexp comes from the Mozilla documentation on valid native
+     messaging server names:
+
+     https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#native_messaging_manifests
+
+     That is, one or more dot-separated groups composed of
+     alphanumeric characters and underscores.
+  */
   return g_regex_match_simple ("^\\w+(\\.\\w+)*$", name, 0, 0);
 }
 
@@ -293,11 +301,11 @@ get_manifest_search_path (void)
 static char *
 find_server (const char *server_name,
              const char *extension_or_origin,
-             char **server_description,
-             char **json_manifest,
+             char **out_server_description,
+             char **out_json_manifest,
              GError **error)
 {
-  g_auto(GStrv) search_path;
+  g_auto(GStrv) search_path = NULL;
   g_autoptr(JsonParser) parser = NULL;
   g_autofree char *metadata_basename = NULL;
   int i;
@@ -305,7 +313,10 @@ find_server (const char *server_name,
   /* Check that the we have a valid native messaging host name */
   if (!is_valid_name (server_name))
     {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT, "invalid native messaging server name");
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid native messaging server name");
       return NULL;
     }
 
@@ -316,14 +327,19 @@ find_server (const char *server_name,
   for (i = 0; search_path[i] != NULL; i++)
     {
       g_autofree char *metadata_filename = NULL;
+      g_autoptr(GError) load_error = NULL;
       JsonObject *metadata_root;
 
       metadata_filename = g_build_filename (search_path[i], metadata_basename, NULL);
-      if (!g_file_test (metadata_filename, G_FILE_TEST_EXISTS))
-        continue;
-
-      if (!json_parser_load_from_file (parser, metadata_filename, error))
-        return NULL;
+      if (!json_parser_load_from_file (parser, metadata_filename, &load_error))
+        {
+          /* If the file doesn't exist, continue searching. Error out
+             on anything else. */
+          if (g_error_matches (load_error, G_FILE_ERROR, G_FILE_ERROR_NOENT))
+            continue;
+          g_propagate_error (error, g_steal_pointer (&load_error));
+          return NULL;
+        }
 
       metadata_root = json_node_get_object (json_parser_get_root (parser));
 
@@ -343,14 +359,17 @@ find_server (const char *server_name,
         continue;
 
       /* Server matches: return its executable path and description */
-      if (server_description != NULL)
-          *server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
-      if (json_manifest != NULL)
-          *json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
+      if (out_server_description != NULL)
+          *out_server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
+      if (out_json_manifest != NULL)
+          *out_json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
       return g_strdup (json_object_get_string_member (metadata_root, "path"));
     }
 
-  g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND, "cannot find native messaging server");
+  g_set_error (error,
+               XDG_DESKTOP_PORTAL_ERROR,
+               XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
+               "Could not find native messaging server");
   return NULL;
 }
 
@@ -363,7 +382,7 @@ handle_get_manifest (XdpDbusWebExtensions *object,
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
   XdpSession *session;
-  WebExtensionsSession *we_session;
+  WebExtensionsSession *web_extensions_session;
   g_autofree char *server_path = NULL;
   g_autofree char *json_manifest = NULL;
   g_autoptr(GError) error = NULL;
@@ -379,9 +398,9 @@ handle_get_manifest (XdpDbusWebExtensions *object,
     }
 
   SESSION_AUTOLOCK_UNREF (session);
-  we_session = (WebExtensionsSession *)session;
+  web_extensions_session = (WebExtensionsSession *)session;
 
-  if (we_session->state != WEB_EXTENSIONS_SESSION_STATE_INIT)
+  if (web_extensions_session->state != WEB_EXTENSIONS_SESSION_STATE_INIT)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -410,7 +429,7 @@ handle_start_in_thread (GTask *task,
 {
   XdpRequest *request = (XdpRequest *)task_data;
   XdpSession *session;
-  WebExtensionsSession *we_session;
+  WebExtensionsSession *web_extensions_session;
   const char *arg_name;
   const char *arg_extension_or_origin;
   const char *app_id;
@@ -427,9 +446,9 @@ handle_start_in_thread (GTask *task,
   session = g_object_get_data (G_OBJECT (request), "session");
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_data (G_OBJECT (request), "session", NULL);
-  we_session = (WebExtensionsSession *)session;
+  web_extensions_session = (WebExtensionsSession *)session;
 
-  if (!request->exported || we_session->state != WEB_EXTENSIONS_SESSION_STATE_STARTING)
+  if (!request->exported || web_extensions_session->state != WEB_EXTENSIONS_SESSION_STATE_STARTING)
     goto out;
 
   arg_name = g_object_get_data (G_OBJECT (request), "name");
@@ -439,6 +458,8 @@ handle_start_in_thread (GTask *task,
   if (server_path == NULL)
     {
       g_warning ("Could not find WebExtensions backend: %s", error->message);
+      fflush(stderr);
+      fflush(stdout);
       goto out;
     }
 
@@ -465,7 +486,6 @@ handle_start_in_thread (GTask *task,
       display_name = info ? g_app_info_get_display_name (info) : app_id;
       title = g_strdup_printf (_("Allow %s to start WebExtension backend?"), display_name);
       subtitle = g_strdup_printf (_("%s is requesting to launch \"%s\" (%s)."), display_name, server_description, arg_name);
-      /* This UI does not currently exist */
       body = g_strdup (_("This permission can be changed at any time from the privacy settings."));
 
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
@@ -493,7 +513,9 @@ handle_start_in_thread (GTask *task,
         xdp_set_permission_sync (app_id, PERMISSION_TABLE, arg_name, allowed ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
     }
   else
-    allowed = permission == XDP_PERMISSION_YES ? TRUE : FALSE;
+    {
+      allowed = permission == XDP_PERMISSION_YES ? TRUE : FALSE;
+    }
 
   if (!allowed)
     {
@@ -508,20 +530,22 @@ handle_start_in_thread (GTask *task,
                                  G_SPAWN_DO_NOT_REAP_CHILD,
                                  NULL, /* child_setup */
                                  NULL, /* user_data */
-                                 &we_session->child_pid,
-                                 &we_session->standard_input,
-                                 &we_session->standard_output,
-                                 &we_session->standard_error,
+                                 &web_extensions_session->child_pid,
+                                 &web_extensions_session->standard_input,
+                                 &web_extensions_session->standard_output,
+                                 &web_extensions_session->standard_error,
                                  &error))
     {
-      we_session->child_pid = -1;
+      web_extensions_session->child_pid = -1;
       goto out;
     }
 
-  we_session->child_watch_id = g_child_watch_add_full (
-    G_PRIORITY_DEFAULT, we_session->child_pid, on_server_exited,
-    g_object_ref (we_session), g_object_unref);
-  we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
+  web_extensions_session->child_watch_id = g_child_watch_add_full (G_PRIORITY_DEFAULT,
+                                                                   web_extensions_session->child_pid,
+                                                                   on_server_exited,
+                                                                   g_object_ref (web_extensions_session),
+                                                                   g_object_unref);
+  web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
 
   response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
 
@@ -551,7 +575,7 @@ handle_start (XdpDbusWebExtensions *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   XdpSession *session;
-  WebExtensionsSession *we_session;
+  WebExtensionsSession *web_extensions_session;
   g_autoptr(GTask) task = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -567,9 +591,9 @@ handle_start (XdpDbusWebExtensions *object,
     }
 
   SESSION_AUTOLOCK_UNREF (session);
-  we_session = (WebExtensionsSession *)session;
+  web_extensions_session = (WebExtensionsSession *)session;
 
-  if (we_session->state != WEB_EXTENSIONS_SESSION_STATE_INIT)
+  if (web_extensions_session->state != WEB_EXTENSIONS_SESSION_STATE_INIT)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -578,7 +602,7 @@ handle_start (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  we_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTING;
+  web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTING;
   g_object_set_data_full (G_OBJECT (request), "session", g_object_ref (session), g_object_unref);
   g_object_set_data_full (G_OBJECT (request), "name", g_strdup (arg_name), g_free);
   g_object_set_data_full (G_OBJECT (request), "extension-or-origin", g_strdup (arg_extension_or_origin), g_free);
@@ -603,7 +627,8 @@ handle_get_pipes (XdpDbusWebExtensions *object,
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
   XdpSession *session;
-  WebExtensionsSession *we_session;
+  WebExtensionsSession *web_extensions_session;
+  int fds[3];
   g_autoptr(GUnixFDList) out_fd_list = NULL;
 
   session = xdp_session_from_call (arg_session_handle, call);
@@ -617,9 +642,9 @@ handle_get_pipes (XdpDbusWebExtensions *object,
     }
 
   SESSION_AUTOLOCK_UNREF (session);
-  we_session = (WebExtensionsSession *)session;
+  web_extensions_session = (WebExtensionsSession *)session;
 
-  if (we_session->state != WEB_EXTENSIONS_SESSION_STATE_STARTED)
+  if (web_extensions_session->state != WEB_EXTENSIONS_SESSION_STATE_STARTED)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -628,9 +653,9 @@ handle_get_pipes (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  if (we_session->standard_input < 0 ||
-      we_session->standard_output < 0 ||
-      we_session->standard_error < 0)
+  if (web_extensions_session->standard_input < 0 ||
+      web_extensions_session->standard_output < 0 ||
+      web_extensions_session->standard_error < 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -639,16 +664,14 @@ handle_get_pipes (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  int fds[3] = {
-    we_session->standard_input,
-    we_session->standard_output,
-    we_session->standard_error,
-  };
+  fds[0] = web_extensions_session->standard_input;
+  fds[1] = web_extensions_session->standard_output;
+  fds[2] = web_extensions_session->standard_error;
   out_fd_list = g_unix_fd_list_new_from_array (fds, G_N_ELEMENTS (fds));
   /* out_fd_list now owns the file descriptors */
-  we_session->standard_input = -1;
-  we_session->standard_output = -1;
-  we_session->standard_error = -1;
+  web_extensions_session->standard_input = -1;
+  web_extensions_session->standard_output = -1;
+  web_extensions_session->standard_error = -1;
 
   xdp_dbus_web_extensions_complete_get_pipes (object, invocation, out_fd_list,
                                               g_variant_new_handle (0),

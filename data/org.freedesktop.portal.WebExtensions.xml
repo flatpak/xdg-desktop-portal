@@ -32,7 +32,7 @@
         @options: Vardict with optional further information
         @session_handle: Object path for the #org.freedesktop.portal.Session created by this call.
 
-        Create a native messaging session. A successfully created
+        Create a web extensions session. A successfully created
         session can at any time be closed using
         org.freedesktop.portal.Session::Close, or may at any time be
         closed by the portal implementation, which will be signalled
@@ -55,14 +55,14 @@
       <arg type="o" name="session_handle" direction="out"/>
     </method>
     <!--
-        Start:
+        GetManifest:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @name: name of the native messaging server
         @extension_or_origin: extension ID or origin URI identifying the extension
         @json_manifest: the JSON manifest for the native messaging server
 
         Return the JSON manifest of the native messaging server that
-        would Start would invoke.
+        Start would invoke.
     -->
     <method name="GetManifest">
       <arg type="o" name="session_handle" direction="in"/>
@@ -114,7 +114,8 @@
         @stderr: File descriptor representing the server's stderr.
 
         Retrieve file descriptors for the native messaging server
-        identified by the session.
+        identified by the session. This method should only be called
+        after the Start request recveives a successful response.
     -->
     <method name="GetPipes">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>

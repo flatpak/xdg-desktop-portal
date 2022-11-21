@@ -1,6 +1,7 @@
 #include <config.h>
 
 #include "web-extensions.h"
+#include "xdp-utils.h"
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
@@ -430,6 +431,7 @@ cancel_call (gpointer data)
 typedef struct {
   GCancellable *cancellable;
   char *session_handle;
+  const char *server_name;
 } TestData;
 
 static void
@@ -473,7 +475,10 @@ get_pipes_cb (GObject *object, GAsyncResult *result, gpointer data)
   close (stdout_fileno);
   close (stderr_fileno);
 
-  close_session (test_data->session_handle, test_data->cancellable, close_session_cb, test_data);
+  close_session (test_data->session_handle,
+                 test_data->cancellable,
+                 close_session_cb,
+                 test_data);
 }
 
 static void
@@ -487,7 +492,10 @@ start_cb (GObject *object, GAsyncResult *result, gpointer data)
   g_assert_no_error (error);
   g_assert_true (ret);
 
-  get_pipes (test_data->session_handle, test_data->cancellable, get_pipes_cb, test_data);
+  get_pipes (test_data->session_handle,
+             test_data->cancellable,
+             get_pipes_cb,
+             test_data);
 }
 
 
@@ -502,7 +510,12 @@ get_manifest_cb (GObject *object, GAsyncResult *result, gpointer data)
   g_assert_no_error (error);
   g_assert_cmpstr (json_manifest, ==, "{\"name\":\"org.example.testing\",\"description\":\"Test native messaging host\",\"path\":\"/bin/cat\",\"type\":\"stdio\",\"allowed_extensions\":[\"some-extension@example.org\"]}");
 
-  start (test_data->session_handle, "org.example.testing", "some-extension@example.org", test_data->cancellable, start_cb, test_data);
+  start (test_data->session_handle,
+         "org.example.testing",
+         "some-extension@example.org",
+         test_data->cancellable,
+         start_cb,
+         test_data);
 }
 
 static void
@@ -515,7 +528,12 @@ create_session_cb (GObject *object, GAsyncResult *result, gpointer data)
   g_assert_no_error (error);
   g_assert_nonnull (test_data->session_handle);
 
-  get_manifest (test_data->session_handle, "org.example.testing", "some-extension@example.org", test_data->cancellable, get_manifest_cb, test_data);
+  get_manifest (test_data->session_handle,
+                "org.example.testing",
+                "some-extension@example.org",
+                test_data->cancellable,
+                get_manifest_cb,
+                test_data);
 }
 
 void
@@ -545,4 +563,62 @@ test_web_extensions_basic (void)
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
   g_free (test_data.session_handle);
+}
+
+static void
+start_bad_name_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+  g_autoptr(GError) error = NULL;
+  gboolean ret;
+
+  ret = start_finish (result, &error);
+  g_assert_false (ret);
+  g_assert_error (error, G_IO_ERROR, G_IO_ERROR_FAILED);
+
+  got_info++;
+  g_main_context_wakeup (NULL);
+}
+
+static void
+create_session_bad_name_cb (GObject *object, GAsyncResult *result, gpointer data)
+{
+  TestData *test_data = data;
+  g_autoptr(GError) error = NULL;
+
+  test_data->session_handle = create_session_finish (result, &error);
+  g_assert_no_error (error);
+  g_assert_nonnull (test_data->session_handle);
+
+  start (test_data->session_handle,
+         test_data->server_name,
+         "some-extension@example.org",
+         test_data->cancellable,
+         start_bad_name_cb,
+         test_data);
+}
+
+void
+test_web_extensions_bad_name (void)
+{
+    const char *server_name[] = {
+        "no-dashes",
+        "../foo",
+        "no_trailing_dot.",
+    };
+    int i;
+
+    for (i = 0; i < G_N_ELEMENTS (server_name); i++)
+      {
+        g_autoptr(GCancellable) cancellable = NULL;
+        TestData test_data = { cancellable, NULL, server_name[i] };
+
+        got_info = 0;
+        set_web_extensions_permissions ("yes");
+        create_session (cancellable, create_session_bad_name_cb, &test_data);
+
+        g_timeout_add (100, cancel_call, cancellable);
+        while (!got_info)
+          g_main_context_iteration (NULL, TRUE);
+        g_free (test_data.session_handle);
+    }
 }
