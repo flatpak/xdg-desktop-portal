@@ -278,7 +278,7 @@ shortcuts_bound_cb (GObject *source_object,
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
-  if (!xdp_dbus_impl_global_shortcuts_call_bind_shortcuts_finish (impl, &results, res, &error))
+  if (!xdp_dbus_impl_global_shortcuts_call_bind_shortcuts_finish (impl, &response, &results, res, &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -378,7 +378,7 @@ shortcuts_listed_cb (GObject *source_object,
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
-  if (!xdp_dbus_impl_global_shortcuts_call_list_shortcuts_finish (impl, &results, res, &error))
+  if (!xdp_dbus_impl_global_shortcuts_call_list_shortcuts_finish (impl, &response, &results, res, &error))
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
@@ -402,7 +402,8 @@ shortcuts_listed_cb (GObject *source_object,
 static gboolean
 handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
                        GDBusMethodInvocation *invocation,
-                       const gchar *arg_session_handle)
+                       const gchar *arg_session_handle,
+                       GVariant *arg_options)
 {
   Request *request = request_from_invocation (invocation);
   Session *session;
