@@ -83,9 +83,11 @@
       <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
       <arg type="a{sv}" name="results" direction="out"/>
+      <annotation value="QMap&lt;QString,QVariantMap&gt;" name="org.qtproject.QtDBus.QtTypeName.In2"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -113,8 +115,9 @@
     <method name="ListShortcuts">
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
       <arg type="a{sv}" name="results" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
     </method>
 
     <!--
