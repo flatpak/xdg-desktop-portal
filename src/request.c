@@ -353,6 +353,10 @@ get_token (GDBusMethodInvocation *invocation)
         {
           options = g_variant_get_child_value (parameters, 3);
         }
+      else if (strcmp (method, "ListShortcuts") == 0 )
+        {
+          options = g_variant_get_child_value (parameters, 1);
+        }
       else
         {
           g_warning ("Support for %s::%s missing in %s",
