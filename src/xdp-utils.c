@@ -189,6 +189,40 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 
   return g_steal_pointer (&app_id);
 }
+
+char *
+_xdp_parse_app_id_from_dbus_name (const char *unit)
+{
+  g_autoptr(GRegex) regex = NULL;
+  g_autoptr(GMatchInfo) match = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *app_id = NULL;
+
+  g_assert (g_str_has_prefix (unit, "dbus-"));
+
+  // Parses a unit name such as dbus-:1.2-org.kde.kdeconnect@7.service
+  regex = g_regex_new ("^dbus-:[[:digit:]]+\\.[[:digit:]]+-"
+                       "(.+?\\..+?\\..+?)(?:[@\\-][[:alnum:]]*)\\.service$",
+                       0, 0, &error);
+  g_assert (error == NULL);
+  if (g_regex_match (regex, unit, 0, &match))
+    {
+      const char *escaped_app_id;
+      /* Unescape the unit name which may have \x hex codes in it, e.g.
+       * "app-gnome-org.gnome.Evolution\x2dalarm\x2dnotify-2437.scope"
+       */
+      escaped_app_id = g_match_info_fetch (match, 1);
+      if (cunescape (escaped_app_id, UNESCAPE_RELAX, &app_id) < 0)
+        app_id = g_strdup ("");
+    }
+  else
+    {
+      g_warning("Failed to parse dbus name %s", unit);
+      app_id = g_strdup ("");
+    }
+
+  return g_steal_pointer (&app_id);
+}
 #endif /* HAVE_LIBSYSTEMD */
 
 void
@@ -206,13 +240,23 @@ set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
    * fetching our own systemd units or the unit might not be started by the
    * desktop environment (e.g. it's a script run from terminal).
    */
-  if (res == -ENODATA || res < 0 || !unit || !g_str_has_prefix (unit, "app-"))
+  if (res == -ENODATA || res < 0 || !unit)
     {
       app_info->id = g_strdup ("");
       return;
     }
-
-  app_info->id = _xdp_parse_app_id_from_unit_name (unit);
+  if (g_str_has_prefix (unit, "app-"))
+    {
+      app_info->id = _xdp_parse_app_id_from_unit_name (unit);
+    }
+  else if (g_str_has_prefix (unit, "dbus-"))
+    {
+      app_info->id = _xdp_parse_app_id_from_dbus_name (unit);
+    }
+  else
+    {
+      app_info->id = g_strdup ("");
+    }
   g_debug ("Assigning app ID \"%s\" to pid %ld which has unit \"%s\"",
            app_info->id, (long) pid, unit);
 
