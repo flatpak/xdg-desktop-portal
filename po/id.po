@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
-"PO-Revision-Date: 2022-08-24 11:24+0700\n"
+"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"PO-Revision-Date: 2022-11-30 10:52+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
 "Language: id\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.2.1\n"
 
 #: src/background.c:262
 #, c-format
@@ -45,7 +45,7 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Jangan izinkan"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Izinkan"
 
@@ -137,13 +137,35 @@ msgstr "%s ingin menggunakan lokasi Anda."
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Tolak"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Izinkan %s Mengambil Cuplikan Layar?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "%s ingin dapat mengambil cuplikan layar kapan saja."
+
+#: src/screenshot.c:261
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Izinkan Aplikasi Mengambil Cuplikan Layar?"
+
+#: src/screenshot.c:262
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Sebuah aplikasi ingin dapat mengambil cuplikan layar kapan saja."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "Pengaturan yang diminta tidak ditemukan"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Tolak"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -162,7 +184,3 @@ msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s meminta untuk dapat mengubah gambar latar belakang."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
