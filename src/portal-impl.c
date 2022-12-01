@@ -41,6 +41,84 @@ portal_implementation_free (PortalImplementation *impl)
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalImplementation, portal_implementation_free)
 
+/* Validation code taken from gdesktopappinfo.c {{{ */
+
+/* See: https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html
+ *
+ * There's not much to go on: a desktop name must be composed of alphanumeric
+ * characters, including '-' and '_'. Since we use this value to construct file
+ * names, we are going to need avoid invalid characters
+ */
+static gboolean
+validate_xdg_desktop (const char *desktop)
+{
+  size_t i;
+
+  for (i = 0; desktop[i] != '\0'; i++)
+    {
+      if (desktop[i] != '-' &&
+          desktop[i] != '_' &&
+          !g_ascii_isalnum (desktop[i]))
+        return FALSE;
+    }
+
+  if (i == 0)
+    return FALSE;
+
+  return TRUE;
+}
+
+static char **
+get_valid_current_desktops (const char *value)
+{
+  if (value == NULL)
+    value = g_getenv ("XDG_CURRENT_DESKTOP");
+  if (value == NULL)
+    value = "";
+
+  char **tmp = g_strsplit (value, G_SEARCHPATH_SEPARATOR_S, 0);
+  GPtrArray *valid_desktops = g_ptr_array_new_full (g_strv_length (tmp) + 1, g_free);
+
+  for (size_t i = 0; tmp[i] != NULL; i++)
+    {
+      if (validate_xdg_desktop (tmp[i]))
+        g_ptr_array_add (valid_desktops, tmp[i]);
+      else
+        g_free (tmp[i]);
+    }
+
+  g_ptr_array_add (valid_desktops, NULL);
+  g_free (tmp);
+
+  tmp = (char **) g_ptr_array_steal (valid_desktops, NULL);
+  g_ptr_array_unref (valid_desktops);
+
+  return tmp;
+}
+
+static const char **
+get_current_lowercase_desktops (void)
+{
+  static char **result;
+
+  if (g_once_init_enter (&result))
+    {
+      char **tmp = get_valid_current_desktops (NULL);
+
+      for (size_t i = 0; tmp[i] != NULL; i++)
+        {
+          /* Convert to lowercase */
+          for (size_t j = 0; tmp[i][j] != '\0'; j++)
+            tmp[i][j] = g_ascii_tolower (tmp[i][j]);
+        }
+
+      g_once_init_leave (&result, tmp);
+    }
+
+  return (const char **) result;
+}
+/* }}} */
+
 static GList *implementations = NULL;
 
 static gboolean
@@ -122,16 +200,10 @@ sort_impl_by_use_in_and_name (gconstpointer a,
 {
   const PortalImplementation *pa = a;
   const PortalImplementation *pb = b;
-  const char *desktops_str = NULL;
-  g_auto(GStrv) desktops = NULL;
+  const char **desktops;
   int i;
 
-  desktops_str = g_getenv ("XDG_CURRENT_DESKTOP");
-
-  if (desktops_str == NULL)
-    desktops_str = "";
-
-  desktops = g_strsplit (desktops_str, ":", -1);
+  desktops = get_current_lowercase_desktops ();
 
   for (i = 0; desktops[i] != NULL; i++)
     {
@@ -201,15 +273,11 @@ load_installed_portals (gboolean opt_verbose)
 PortalImplementation *
 find_portal_implementation (const char *interface)
 {
-  const char *desktops_str = g_getenv ("XDG_CURRENT_DESKTOP");
-  g_auto(GStrv) desktops = NULL;
+  const char **desktops;
   int i;
   GList *l;
 
-  if (desktops_str == NULL)
-    desktops_str = "";
-
-  desktops = g_strsplit (desktops_str, ":", -1);
+  desktops = get_current_lowercase_desktops ();
 
   for (i = 0; desktops[i] != NULL; i++)
     {
