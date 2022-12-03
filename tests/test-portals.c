@@ -140,7 +140,7 @@ global_setup (void)
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subprocess = NULL;
   guint name_timeout;
-  const char *argv[4];
+  const char *argv[4] = {0};
   GQuark portal_errors G_GNUC_UNUSED;
   static gboolean name_appeared;
   guint watch;
@@ -440,7 +440,7 @@ DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 4)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
-DEFINE_TEST_EXISTS(notification, NOTIFICATION, 1)
+DEFINE_TEST_EXISTS(notification, NOTIFICATION, 2)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 3)
 DEFINE_TEST_EXISTS(print, PRINT, 1)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
@@ -590,6 +590,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/background/reason", test_background_reason);
 
   g_test_add_func ("/portal/notification/basic", test_notification_basic);
+  g_test_add_func ("/portal/notification/action-invocation-v1", test_notification_action_invocation_v1);
   g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
   g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);

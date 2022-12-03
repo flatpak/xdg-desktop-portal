@@ -483,24 +483,49 @@ action_invoked (GDBusConnection *connection,
    Pair p;
    const char *action;
    GVariant *param;
+   GVariant *platform_data = NULL;
    const char *sender;
 
-   g_variant_get (parameters, "(&s&s&s@av)", &p.app_id, &p.id, &action, &param);
+  if (g_str_equal (signal_name, "ActionInvoked2"))
+    {
+      g_variant_get (parameters, "(&s&s&s@a{sv}@av)", &p.app_id, &p.id, &action,
+                     &platform_data, &param);
+    }
+  else
+    {
+      g_variant_get (parameters, "(&s&s&s@av)", &p.app_id, &p.id, &action,
+                     &param);
+    }
 
    sender = g_hash_table_lookup (active, &p);
    if (sender == NULL)
      return;
 
-   g_dbus_connection_emit_signal (connection,
-                                  sender,
-                                  "/org/freedesktop/portal/desktop",
-                                  "org.freedesktop.portal.Notification",
-                                  "ActionInvoked",
-                                  g_variant_new ("(ss@av)",
-                                                 p.id, action,
-                                                 param),
-                                  NULL);
-
+  if (g_str_equal (signal_name, "ActionInvoked2"))
+    {
+      g_dbus_connection_emit_signal (connection,
+                                     sender,
+                                     "/org/freedesktop/portal/desktop",
+                                     "org.freedesktop.portal.Notification",
+                                     "ActionInvoked2",
+                                     g_variant_new ("(ss@a{sv}@av)",
+                                                    p.id, action,
+                                                    platform_data,
+                                                    param),
+                                     NULL);
+    }
+  else
+    {
+      g_dbus_connection_emit_signal (connection,
+                                     sender,
+                                     "/org/freedesktop/portal/desktop",
+                                     "org.freedesktop.portal.Notification",
+                                     "ActionInvoked",
+                                     g_variant_new ("(ss@av)",
+                                                    p.id, action,
+                                                    param),
+                                     NULL);
+    }
 }
 
 static void
@@ -546,7 +571,7 @@ notification_iface_init (XdpDbusNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 1);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 2);
 }
 
 static void
@@ -580,6 +605,16 @@ notification_create (GDBusConnection *connection,
                                       dbus_name,
                                       "org.freedesktop.impl.portal.Notification",
                                       "ActionInvoked",
+                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                      NULL,
+                                      G_DBUS_SIGNAL_FLAGS_NONE,
+                                      action_invoked,
+                                      NULL, NULL);
+
+  g_dbus_connection_signal_subscribe (connection,
+                                      dbus_name,
+                                      "org.freedesktop.impl.portal.Notification",
+                                      "ActionInvoked2",
                                       DESKTOP_PORTAL_OBJECT_PATH,
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
