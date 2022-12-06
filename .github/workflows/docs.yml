@@ -47,7 +47,7 @@ jobs:
             xmlto
 
       - name: Check out xdg-desktop-portal
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Build docs
         run: |

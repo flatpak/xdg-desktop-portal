@@ -80,7 +80,7 @@ jobs:
           shared-mime-info
 
     - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup test user
       run: |
@@ -117,7 +117,7 @@ jobs:
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Upload test logs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure() || cancelled()
       with:
         name: test logs
@@ -186,7 +186,7 @@ jobs:
           shared-mime-info
 
     - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Setup test user
       run: |
@@ -226,7 +226,7 @@ jobs:
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Upload test logs
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure() || cancelled()
       with:
         name: test logs
@@ -271,7 +271,7 @@ jobs:
         ninja -C _build install
 
     - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - name: Configure xdg-desktop-portal
       # TODO: Enable gtk-doc builds
