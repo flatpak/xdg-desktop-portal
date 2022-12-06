@@ -29,10 +29,10 @@ jobs:
       id: env-setup
       run: |
         if [ "${{ matrix.sanitizer }}" == "address" ]; then
-          echo "::set-output name=cflags::$BASE_CFLAGS" \
-            "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address";
+          echo "cflags=$BASE_CFLAGS" \
+            "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address" >> $GITHUB_OUTPUT;
         else
-          echo "::set-output name=cflags::$BASE_CFLAGS";
+          echo "cflags=$BASE_CFLAGS" >> $GITHUB_OUTPUT;
         fi
 
     - name: Prepare container
