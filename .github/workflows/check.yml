@@ -30,7 +30,7 @@ jobs:
     - name: Prepare environment
       id: env-setup
       run: |
-        if [ "${{ matrix.sanitizer }}" == "address" ]; then
+        if [ "${{ matrix.sanitizer }}" == "address" && "${{ matrix.buildsystem }}" == "autotools" ]; then
           echo "cflags=$BASE_CFLAGS" \
             "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address" >> $GITHUB_OUTPUT;
         else
