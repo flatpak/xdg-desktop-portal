@@ -52,9 +52,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        $RUN_CMD apt-get update
-        $RUN_CMD apt-get upgrade -y
-        $RUN_CMD apt-get install -y --no-install-recommends \
+        $RUN_CMD apt-get update --quiet
+        $RUN_CMD apt-get upgrade --quiet -y
+        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
           ${{ matrix.compiler }} \
           desktop-file-utils \
           fuse3 \
@@ -79,7 +79,7 @@ jobs:
 
     - name: Install dependencies for autotools
       run: |
-        $RUN_CMD apt-get install -y --no-install-recommends \
+        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
           autoconf \
           automake \
           autopoint \
@@ -88,7 +88,7 @@ jobs:
 
     - name: Install dependencies for meson
       run: |
-        $RUN_CMD apt-get install -y --no-install-recommends \
+        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
           meson
       if: ${{ matrix.buildsystem == 'meson' }}
 
@@ -168,10 +168,10 @@ jobs:
     steps:
     - name: Install dependencies
       run: |
-        apt-get update -y
-        apt-get install -y software-properties-common
+        apt-get update --quiet -y
+        apt-get install --quiet -y software-properties-common
         add-apt-repository ppa:alexlarsson/flatpak
-        apt-get install -y \
+        apt-get install --quiet -y \
           autoconf \
           automake \
           autopoint \
@@ -190,7 +190,7 @@ jobs:
     - name: Install libfuse3
       run: |
         # Install libfuse3 dependencies
-        apt-get install -y git python3-pip udev
+        apt-get install --quiet -y git python3-pip udev
         pip3 install meson==0.56.2 ninja
         git clone https://github.com/libfuse/libfuse.git
         cd libfuse
