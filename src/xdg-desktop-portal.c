@@ -439,6 +439,7 @@ main (int argc, char *argv[])
 
   g_set_prgname (argv[0]);
 
+  load_portal_configuration (opt_verbose);
   load_installed_portals (opt_verbose);
 
   loop = g_main_loop_new (NULL, FALSE);
