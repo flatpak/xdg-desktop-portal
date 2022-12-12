@@ -1,3 +1,19 @@
+Changes in 1.16.0
+=================
+Released: 2022-12-12
+
+- Introduce a new background monitoring service. This allows desktop
+  environments to list applications that are running in background, that is,
+  sandboxed applications running without a visible window. Desktop environments
+  can display these background running applications in their interfaces, and
+  allow users to control their execution.
+- Introduce the Global Shortcuts portal. This portal allows applications to
+  register and receive keyboard shortcuts even when they're not focused. This
+  was a highly requested feature, especially on Wayland desktops. There are
+  improvements to come, but portal backends can now implement this new portal.
+- Various CI improvements
+- Translation updates
+
 Changes in 1.15.0
 =================
 Released: 2022-08-11

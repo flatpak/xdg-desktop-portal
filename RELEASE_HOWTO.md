@@ -1,15 +1,14 @@
 # Steps for doing a xdg-desktop-portal release
 
  - git clean -fxd
- - ./autogen.sh && make -C po/ update-po
+ - meson setup . _build && ninja -C _build/ xdg-desktop-portal-update-po
  - git add po/*po &&  git commit -m "Update po files"
  - git clean -fxd
  - add content to NEWS
  - git commit -m <version>
  - git push origin main
- - ./autogen.sh --enable-docbook-docs 
- - make all
- - make distcheck
+ - meson setup . _build -Ddocbook-docs=enabled 
+ - ninja -C _build dist
  - git tag <version>
  - git push origin refs/tags/<version>
  - upload tarball to github as release
