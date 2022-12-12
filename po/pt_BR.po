@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-12 19:34-0300\n"
 "PO-Revision-Date: 2019-11-24 22:29-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "X-Generator: Gtranslator 3.32.0\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir que %s execute em segundo plano?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita ser executado em segundo plano."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "A permissão “executar em segundo plano” pode ser alterada a qualquer tempo a "
 "partir das configurações do aplicativo."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Permitir"
 
@@ -142,13 +142,39 @@ msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
 "configurações de privacidades."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Negar"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Permitir que %s defina planos de fundo?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Permitir que aplicativos definam planos de fundo?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Um aplicativo deseja usar seu microfone."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Essa permissão pode ser alterada a qualquer momento a partir das "
+"configurações de privacidades."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "A configuração requisitada não foi encontrada"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Negar"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -170,9 +196,3 @@ msgstr "Permitir que %s defina planos de fundo?"
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 "%s está solicitando a capacidade de alterar a imagem de plano de fundo."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Essa permissão pode ser alterada a qualquer momento a partir das "
-"configurações de privacidades."

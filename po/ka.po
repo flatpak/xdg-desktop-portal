@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-03-16 22:02-0700\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-12 19:34-0300\n"
 "PO-Revision-Date: 2022-07-25 14:38+0200\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <(nothing)>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.1.1\n"
 
-#: src/background.c:260
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
 
-#: src/background.c:264
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s ავტომატურად გაშვებას და ფონურ რეჟიმს ითხოვს."
 
-#: src/background.c:266
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s ითხოვს გაშვებას ფონზე."
 
-#: src/background.c:267
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,19 +41,19 @@ msgstr ""
 "„ფონში გაშვების“ ნებართვა ნებისმიერ დროს აპლიკაციის პარამეტრებიდან შეიძლება "
 "შეიცვალოს."
 
-#: src/background.c:272
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "არ დაშვება"
 
-#: src/background.c:273 src/wallpaper.c:181
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "დაშვება"
 
-#: src/device.c:115
+#: src/device.c:116
 msgid "Turn On Microphone?"
 msgstr "ჩავრთო მიკროფონი?"
 
-#: src/device.c:116
+#: src/device.c:117
 msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
@@ -61,51 +61,51 @@ msgstr ""
 "თქვენს მიკროფონზე წვდომა ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან "
 "შეიძლება შეიცვალოს."
 
-#: src/device.c:120
+#: src/device.c:121
 msgid "An application wants to use your microphone."
 msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მიკროფონი."
 
-#: src/device.c:122
+#: src/device.c:123
 #, c-format
 msgid "%s wants to use your microphone."
 msgstr "%s-ს სურს თქვენი მიკროფონი გამოიყენოს."
 
-#: src/device.c:128
+#: src/device.c:129
 msgid "Turn On Speakers?"
 msgstr "ჩავრთო დინამიკები?"
 
-#: src/device.c:129
+#: src/device.c:130
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "თქვენს დინამიკებზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს "
 "კონფიდენციალურობის პარამეტრებიდან."
 
-#: src/device.c:133
+#: src/device.c:134
 msgid "An application wants to play sound."
 msgstr "აპლიკაციას ხმის გამოცემა სურს."
 
-#: src/device.c:135
+#: src/device.c:136
 #, c-format
 msgid "%s wants to play sound."
 msgstr "%s-ს ხმის გამოცემა სურს."
 
-#: src/device.c:141
+#: src/device.c:142
 msgid "Turn On Camera?"
 msgstr "ჩავრთო კამერა?"
 
-#: src/device.c:142
+#: src/device.c:143
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
 "თქვენს კამერაზე წვდომა ნებისმიერ დროს შეიძლება შეიცვალოს კონფიდენციალურობის "
 "პარამეტრებიდან."
 
-#: src/device.c:146
+#: src/device.c:147
 msgid "An application wants to use your camera."
 msgstr "აპლიკაციას სურს გამოიყენოს თქვენი კამერა."
 
-#: src/device.c:148
+#: src/device.c:149
 #, c-format
 msgid "%s wants to use your camera."
 msgstr "%s-ს სურს გამოიყენოს თქვენი კამერა."
@@ -142,33 +142,53 @@ msgstr ""
 "მდებარეობაზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს კონფიდენციალურობის "
 "პარამეტრებიდან."
 
-#: src/settings.c:124
-msgid "Requested setting not found"
-msgstr "მოთხოვნილი პარამეტრი ვერ მოიძებნა"
-
-#: src/wallpaper.c:179
+#: src/screenshot.c:236 src/wallpaper.c:180
 msgid "Deny"
 msgstr "უარყოფა"
 
-#: src/wallpaper.c:191
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "მიეცეს აპლიკაციებს ფონის სურათის შეცვლის უფლება?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მიკროფონი."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"წვდომის შეცვლა შესაძლებელია ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან."
+
+#: src/settings.c:127
+msgid "Requested setting not found"
+msgstr "მოთხოვნილი პარამეტრი ვერ მოიძებნა"
+
+#: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "მიეცეს აპლიკაციებს ფონის სურათის შეცვლის უფლება?"
 
-#: src/wallpaper.c:192
+#: src/wallpaper.c:193
 msgid "An application is requesting to be able to change the background image."
 msgstr "აპლიკაცია ფონის სურათის შეცვლის უფლებას მოითხოვს."
 
-#: src/wallpaper.c:204
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
 
-#: src/wallpaper.c:205
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s ფონის სურათის შეცვლის უფლებას მოითხოვს."
-
-#: src/wallpaper.c:208
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"წვდომის შეცვლა შესაძლებელია ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან."

@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-09-10 11:16+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-12 19:34-0300\n"
 "PO-Revision-Date: 2022-09-10 15:25+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.1.1\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s begär att startas automatiskt och köras i bakgrunden."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s begär att köras i bakgrunden."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,11 +42,11 @@ msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
 "programinställningarna."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:275 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Tillåt"
 

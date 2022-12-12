@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-12 19:34-0300\n"
 "PO-Revision-Date: 2016-09-23 19:17+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:269
+#: src/background.c:748
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -43,11 +43,11 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr ""
 
@@ -146,12 +146,39 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/settings.c:127
-msgid "Requested setting not found"
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
 msgstr ""
 
-#: src/wallpaper.c:180
-msgid "Deny"
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr ""
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Eine Anwendung möchte Ton wiedergeben."
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Eine Anwendung möchte auf Ihr Mikrofon zugreifen."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
+"jederzeit geändert werden."
+
+#: src/settings.c:127
+msgid "Requested setting not found"
 msgstr ""
 
 #: src/wallpaper.c:192
@@ -172,10 +199,3 @@ msgstr ""
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
-
-#: src/wallpaper.c:209
-#, fuzzy
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
-"jederzeit geändert werden."

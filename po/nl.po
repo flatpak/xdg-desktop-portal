@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-08-11 16:07-0300\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-12-12 19:34-0300\n"
 "PO-Revision-Date: 2021-07-18 14:05+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -19,25 +19,25 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0\n"
 
-#: src/background.c:262
+#: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Wilt u %s toestaan om op de achtergrond te worden uitgevoerd?"
 
-#: src/background.c:266
+#: src/background.c:745
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "%s verzoekt om automatisch te mogen worden opgestart en uitgevoerd te mogen "
 "worden op de achtergrond."
 
-#: src/background.c:268
+#: src/background.c:747
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 "%s verzoekt om automatisch te mogen worden uitgevoerd op de achtergrond."
 
-#: src/background.c:269
+#: src/background.c:748
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -45,11 +45,11 @@ msgstr ""
 "Het toegangsrecht ‘uitvoeren op achtergrond’ kan te allen tijde worden "
 "ingetrokken in de toepassingsvoorkeuren."
 
-#: src/background.c:274
+#: src/background.c:753
 msgid "Don't allow"
 msgstr "Niet toestaan"
 
-#: src/background.c:275 src/wallpaper.c:182
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Toestaan"
 
@@ -146,13 +146,39 @@ msgstr ""
 "De toegang tot uw locatie kan te allen tijde worden aangepast in de "
 "privacyvoorkeuren."
 
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Weigeren"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "%s toestaan achtergronden in te stellen?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr ""
+
+#: src/screenshot.c:261
+#, fuzzy
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Toepassingen toestaan achtergronden in te stellen?"
+
+#: src/screenshot.c:262
+#, fuzzy
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Een toepassing wil uw microfoon gebruiken."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Dit toegangsrecht kan te allen tijde worden aangepast in de "
+"privacyvoorkeuren."
+
 #: src/settings.c:127
 msgid "Requested setting not found"
 msgstr "De opgevraagde instelling bestaat niet"
-
-#: src/wallpaper.c:180
-msgid "Deny"
-msgstr "Weigeren"
 
 #: src/wallpaper.c:192
 msgid "Allow Applications to Set Backgrounds?"
@@ -173,9 +199,3 @@ msgstr "%s toestaan achtergronden in te stellen?"
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s verzoekt de mogelijkheid om uw achtergrondafbeelding te wijzigen."
-
-#: src/wallpaper.c:209
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Dit toegangsrecht kan te allen tijde worden aangepast in de "
-"privacyvoorkeuren."
