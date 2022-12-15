@@ -2,6 +2,7 @@ body {
   font-family: sans-serif;
   max-width: 850px;
   margin: auto;
+  overflow-wrap: break-word;
 }
 h1.title {
 }
@@ -19,10 +20,11 @@ h1.title {
   background: #eeeeff;
   border: solid 1px #aaaaff;
   padding: 0.5em;
+  overflow: scroll;
 }
 .variablelist {
   padding: 4px;
-  margin-left: 3em;
+  margin-left: 1em;
 }
 .variablelist td:first-child {
   vertical-align: top;
@@ -84,6 +86,7 @@ div.table table th {
   .classsynopsis {
     background: #161616;
     border: solid 1px #aaaaaa;
+    overflow: scroll;
   }
   .programlisting {
     background: #161616;
