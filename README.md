@@ -36,6 +36,7 @@ Different backends are available see:
 - LXQt [xdg-desktop-portal-lxqt](https://github.com/lxqt/xdg-desktop-portal-lxqt)
 - Pantheon (Elementary) [xdg-desktop-portal-pantheon](https://github.com/elementary/portals)
 - wlroots [xdg-desktop-portal-wlr](https://github.com/emersion/xdg-desktop-portal-wlr)
+- Deepin [xdg-desktop-portal-dde](https://github.com/linuxdeepin/xdg-desktop-portal-dde)
 
 ## Design considerations
 
