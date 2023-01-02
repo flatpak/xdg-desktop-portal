@@ -575,6 +575,10 @@ start_done (GObject *source_object,
     }
 }
 
+static XdpOptionKey remote_desktop_start_options[] = {
+  { "description", G_VARIANT_TYPE_STRING, NULL }
+};
+
 static gboolean
 handle_start (XdpDbusRemoteDesktop *object,
               GDBusMethodInvocation *invocation,
@@ -657,6 +661,14 @@ handle_start (XdpDbusRemoteDesktop *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           remote_desktop_start_options,
+                           G_N_ELEMENTS (remote_desktop_start_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
   options = g_variant_builder_end (&options_builder);
 
   g_object_set_qdata_full (G_OBJECT (request),
