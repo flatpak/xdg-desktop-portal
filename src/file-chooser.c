@@ -79,6 +79,7 @@ send_response_in_thread_func (GTask        *task,
   const char **uris;
   GVariant *choices;
   GVariant *current_filter;
+  GVariant *writable;
 
   g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
   g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
@@ -95,7 +96,8 @@ send_response_in_thread_func (GTask        *task,
   if (response != 0)
     goto out;
 
-  if (!g_variant_lookup_value (options, "writable", G_VARIANT_TYPE("b")))
+  writable = g_variant_lookup_value (options, "writable", G_VARIANT_TYPE("b"));
+  if (writable && !g_variant_get_boolean (writable))
     flags &= ~DOCUMENT_FLAG_WRITABLE;
 
   choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
