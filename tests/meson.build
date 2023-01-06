@@ -115,7 +115,11 @@ endif
 
 test_portals = executable(
   'test-portals',
-  test_portals_sources + portal_built_sources + impl_built_sources + xdp_utils_sources + sd_escape_sources,
+  impl_built_sources,
+  portal_built_sources,
+  sd_escape_sources,
+  test_portals_sources,
+  xdp_utils_sources,
   dependencies: [common_deps, libportal_dep, libsystemd_dep],
   include_directories: [common_includes, xdp_utils_includes],
   c_args: ['-DXDG_DP_BUILDDIR="src"',  '-DXDG_PS_BUILDDIR="document-portal"'],
