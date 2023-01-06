@@ -116,6 +116,7 @@ endif
 test_portals = executable(
   'test-portals',
   impl_built_sources,
+  permission_store_built_sources,
   portal_built_sources,
   sd_escape_sources,
   test_portals_sources,
