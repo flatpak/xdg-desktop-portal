@@ -1,0 +1,185 @@
+# Belarusian translation for xdg-desktop-portal.
+# Copyright (C) 2023 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Yuras Shumovich <shumovichy@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2023-01-03 15:31+0000\n"
+"PO-Revision-Date: 2023-01-04 01:42+0300\n"
+"Last-Translator: Yuras Shumovich <shumovichy@gmail.com>\n"
+"Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
+"Language: be\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
+"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: src/background.c:741
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Дазволіць %s выкананне ў фоне?"
+
+#: src/background.c:745
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s хоча атрымаць доступ на аўтаматычны запуск і выкананне ў фоне."
+
+#: src/background.c:747
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s хоча атрымаць доступ на выкананне ў фоне."
+
+#: src/background.c:748
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Дазвол на «выкананне ў фоне» заўсёды можна змяніць праз налады праграм."
+
+#: src/background.c:753
+msgid "Don't allow"
+msgstr "Не дазваляць"
+
+#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+msgid "Allow"
+msgstr "Дазволіць"
+
+#: src/device.c:116
+msgid "Turn On Microphone?"
+msgstr "Уключыць мікрафон?"
+
+#: src/device.c:117
+msgid ""
+"Access to your microphone can be changed at any time from the privacy "
+"settings."
+msgstr "Доступ да мікрафона заўсёды можна змяніць праз налады прыватнасці."
+
+#: src/device.c:121
+msgid "An application wants to use your microphone."
+msgstr "Праграма хоча атрымаць доступ да мікрафона."
+
+#: src/device.c:123
+#, c-format
+msgid "%s wants to use your microphone."
+msgstr "%s хоча атрымаць доступ да мікрафона."
+
+#: src/device.c:129
+msgid "Turn On Speakers?"
+msgstr "Уключыць дынамікі?"
+
+#: src/device.c:130
+msgid ""
+"Access to your speakers can be changed at any time from the privacy settings."
+msgstr "Доступ да дынамікаў заўсёды можна змяніць праз налады прыватнасці."
+
+#: src/device.c:134
+msgid "An application wants to play sound."
+msgstr "Праграма хоча атрымаць доступ на прайграванне гуку."
+
+#: src/device.c:136
+#, c-format
+msgid "%s wants to play sound."
+msgstr "%s хоча атрымаць доступ на прайграванне гуку."
+
+#: src/device.c:142
+msgid "Turn On Camera?"
+msgstr "Уключыць камеру?"
+
+#: src/device.c:143
+msgid ""
+"Access to your camera can be changed at any time from the privacy settings."
+msgstr "Доступ да камеры заўсёды можна змяніць праз налады прыватнасці."
+
+#: src/device.c:147
+msgid "An application wants to use your camera."
+msgstr "Праграма хоча атрымаць доступ да камеры."
+
+#: src/device.c:149
+#, c-format
+msgid "%s wants to use your camera."
+msgstr "%s хоча атрымаць доступ да камеры."
+
+#: src/location.c:527
+msgid "Deny Access"
+msgstr "Забараніць доступ"
+
+#: src/location.c:529
+msgid "Grant Access"
+msgstr "Дазволіць доступ"
+
+#: src/location.c:535
+msgid "Grant Access to Your Location?"
+msgstr "Дазволіць доступ да вашага месцазнаходжання?"
+
+#: src/location.c:536
+msgid "An application wants to use your location."
+msgstr "Праграма хоча атрымаць доступ да месцазнаходжання."
+
+#: src/location.c:548
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Даць %s доступ да вашага месцазнаходжання?"
+
+#: src/location.c:552
+#, c-format
+msgid "%s wants to use your location."
+msgstr "%s хоча атрымаць доступ да месцазнаходжання."
+
+#: src/location.c:555
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Доступ да месцазнаходжанне заўсёды можна змяніць праз налады прыватнасці."
+
+#: src/screenshot.c:236 src/wallpaper.c:180
+msgid "Deny"
+msgstr "Забараніць"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Дазволіць %s рабіць здымкі экрана?"
+
+#: src/screenshot.c:253
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "%s хоча атрымаць доступ у любы час рабіць здымкі экрана."
+
+#: src/screenshot.c:261
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Дазволіць праграмам рабіць здымкі экрана?"
+
+#: src/screenshot.c:262
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Праграма хоча атрымаць доступ у любы час рабіць здымкі экрана."
+
+#: src/screenshot.c:265 src/wallpaper.c:209
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Доступ да месцазнаходжанне заўсёды можна змяніць праз налады прыватнасці."
+
+#: src/settings.c:127
+msgid "Requested setting not found"
+msgstr "Запытаная налада не знойдзена"
+
+#: src/wallpaper.c:192
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Дазволіць праграмам змяняць фон?"
+
+#: src/wallpaper.c:193
+msgid "An application is requesting to be able to change the background image."
+msgstr "Праграма запытвае доступ на змяненне фонавай выявы."
+
+#: src/wallpaper.c:205
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Дазволіць %s змяняць фон?"
+
+#: src/wallpaper.c:206
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "%s хоча атрымаць доступ на змяненне фонавай выявы."
