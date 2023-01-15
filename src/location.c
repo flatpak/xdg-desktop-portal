@@ -524,16 +524,16 @@ handle_start_in_thread_func (GTask *task,
 
       g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "deny_label", g_variant_new_string (_("Deny Access")));
+                             "deny_label", g_variant_new_string (_("Deny")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "grant_label", g_variant_new_string (_("Grant Access")));
+                             "grant_label", g_variant_new_string (_("Allow")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("find-location-symbolic"));
 
       if (g_str_equal (app_id, ""))
         {
-          title = g_strdup (_("Grant Access to Your Location?"));
-          subtitle = g_strdup (_("An application wants to use your location."));
+          title = g_strdup (_("Allow Access to Your Location?"));
+          subtitle = g_strdup (_("An application wants to know the location of this device."));
         }
       else
         {
@@ -545,14 +545,14 @@ handle_start_in_thread_func (GTask *task,
           info = g_desktop_app_info_new (id);
           name = g_app_info_get_display_name (G_APP_INFO (info));
 
-          title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
+          title = g_strdup_printf (_("Allow %s to Access Your Location?"), name);
           if (g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
             subtitle = g_desktop_app_info_get_string (info, "X-Geoclue-Reason");
           else
-            subtitle = g_strdup_printf (_("%s wants to use your location."), name);
+            subtitle = g_strdup_printf (_("%s wants to know the location of this device."), name);
         }
 
-      body = _("Location access can be changed at any time from the privacy settings.");
+      body = "";
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
