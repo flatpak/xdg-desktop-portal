@@ -250,7 +250,7 @@ handle_screenshot_in_thread_func (GTask *task,
           name = g_app_info_get_display_name (G_APP_INFO (info));
 
           title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+          subtitle = g_strdup_printf (_("%s wants to be able to take pictures of the screen at any time."), name);
         }
       else
         {
@@ -258,11 +258,11 @@ handle_screenshot_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+          title = g_strdup (_("Allow to Take Screenshots?"));
+          subtitle = g_strdup (_("An application wants to be able to take pictures of the screen at any time."));
         }
 
-      body = _("This permission can be changed at any time from the privacy settings.");
+      body = "";
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
