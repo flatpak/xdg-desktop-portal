@@ -304,10 +304,63 @@ load_installed_portals (gboolean opt_verbose)
   implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
 }
 
+static PortalConfig *
+load_portal_configuration_for_dir (gboolean opt_verbose, const char *base_directory, const char *portal_file)
+{
+  g_autofree char *path = g_build_filename (base_directory, portal_file, NULL);
+  g_autoptr(GKeyFile) key_file = g_key_file_new ();
+
+  g_debug ("Looking for portals configuration in '%s'", path);
+  if (!g_key_file_load_from_file (key_file, path, G_KEY_FILE_NONE, NULL))
+    return NULL;
+
+  g_auto(GStrv) ifaces = g_key_file_get_keys (key_file, "preferred", NULL, NULL);
+
+  if (ifaces != NULL)
+    {
+      g_autoptr(GPtrArray) interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
+      g_autoptr(PortalConfig) conf = g_new0 (PortalConfig, 1);
+
+      for (size_t i = 0; ifaces[i] != NULL; i++)
+        {
+          g_autoptr(PortalInterface) interface = g_new0 (PortalInterface, 1);
+
+          /* Special case "default" as the fallback */
+          if (strcmp (ifaces[i], "default") == 0)
+            interface->dbus_name = g_strdup ("default");
+          else
+            interface->dbus_name = g_strdup (ifaces[i]);
+
+          interface->portals = g_key_file_get_string_list (key_file, "preferred", ifaces[i], NULL, NULL);
+          if (interface->portals == NULL)
+            {
+              g_critical ("Invalid portals for interface '%s' in %s", ifaces[i], portal_file);
+              return NULL;
+            }
+
+          if (opt_verbose)
+            {
+              g_autofree char *preferred = g_strjoinv (", ", interface->portals);
+              g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
+            }
+
+          g_ptr_array_add (interfaces, g_steal_pointer (&interface));
+        }
+
+      conf->n_ifaces = interfaces->len;
+      conf->ifaces = (PortalInterface **) g_ptr_array_steal (interfaces, NULL);
+
+      return g_steal_pointer (&conf);
+    }
+
+  return NULL;
+}
+
 void
 load_portal_configuration (gboolean opt_verbose)
 {
   g_autoptr(PortalConfig) conf = NULL;
+  g_autofree char *user_portal_dir = NULL;
   const char **desktops;
   const char *portal_dir;
 
@@ -316,64 +369,47 @@ load_portal_configuration (gboolean opt_verbose)
   if (portal_dir == NULL)
     portal_dir = DATADIR "/xdg-desktop-portal";
 
-  conf = g_new0 (PortalConfig, 1);
+  user_portal_dir = g_build_filename (g_get_user_config_dir (),
+                                      "xdg-desktop-portal",
+                                      NULL);
 
   desktops = get_current_lowercase_desktops ();
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
       g_autofree char *portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
-      g_autofree char *path = g_build_filename (portal_dir, portals_conf, NULL);
-      g_auto(GStrv) ifaces;
 
-      g_autoptr(GKeyFile) key_file = g_key_file_new ();
-
-      g_debug ("Looking for portals configuration in '%s'", path);
-      if (!g_key_file_load_from_file (key_file, path, G_KEY_FILE_NONE, NULL))
-        continue;
-
-      if (opt_verbose)
-        g_debug ("Loading portal configuration file '%s' for desktop '%s'",
-                 path,
-                 desktops[i]);
-
-      ifaces = g_key_file_get_keys (key_file, "preferred", NULL, NULL);
-
-      g_autoptr(GPtrArray) interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
-
-      if (ifaces != NULL)
+      conf = load_portal_configuration_for_dir (opt_verbose, portal_dir, portals_conf);
+      if (conf != NULL)
         {
-          for (size_t i = 0; ifaces[i] != NULL; i++)
-            {
-              g_autoptr(PortalInterface) interface = g_new0 (PortalInterface, 1);
-
-              /* Special case "default" as the fallback */
-              if (strcmp (ifaces[i], "default") == 0)
-                interface->dbus_name = g_strdup ("default");
-              else
-                interface->dbus_name = g_strdup (ifaces[i]);
-
-              interface->portals = g_key_file_get_string_list (key_file, "preferred", ifaces[i], NULL, NULL);
-              if (interface->portals == NULL)
-                {
-                  g_critical ("Invalid portals for interface '%s' in %s", ifaces[i], portals_conf);
-                  continue;
-                }
-
-              if (opt_verbose)
-                {
-                  g_autofree char *preferred = g_strjoinv (", ", interface->portals);
-                  g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
-                }
-
-              g_ptr_array_add (interfaces, g_steal_pointer (&interface));
-            }
-
-          conf->n_ifaces = interfaces->len;
-          conf->ifaces = (PortalInterface **) g_ptr_array_steal (interfaces, NULL);
+          if (opt_verbose)
+            g_debug ("Using system portal configuration file '%s' for desktop '%s'",
+                     portals_conf,
+                     desktops[i]);
 
           config = g_steal_pointer (&conf);
           return;
         }
+
+      conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, portals_conf);
+      if (conf != NULL)
+        {
+          if (opt_verbose)
+            g_debug ("Using user portal configuration file '%s' for desktop '%s'",
+                     portals_conf,
+                     desktops[i]);
+
+          config = g_steal_pointer (&conf);
+          return;
+        }
+    }
+
+  conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, "portals.conf");
+  if (conf != NULL)
+    {
+      if (opt_verbose)
+        g_debug ("Using user portal configuration file");
+
+      config = g_steal_pointer (&conf);
     }
 }
 
