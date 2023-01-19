@@ -1,6 +1,7 @@
 env_tests = environment()
 env_tests.set('XDP_UNINSTALLED', '1')
 env_tests.set('XDG_DATA_DIRS', meson.current_build_dir() / 'share')
+env_tests.set('XDG_CURRENT_DESKTOP', 'test')
 env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())
 env_tests.set('G_TEST_BUILDDIR', meson.current_build_dir())
 env_tests.set('G_DEBUG', 'gc-friendly')  # from glib-tap.mk
