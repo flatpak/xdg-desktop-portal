@@ -197,16 +197,17 @@ register_portal (const char *path, gboolean opt_verbose, GError **error)
         }
     }
 
-  impl->use_in = g_key_file_get_string_list (keyfile, "portal", "UseIn", NULL, error);
-  if (impl->use_in == NULL)
-    return FALSE;
-
   if (opt_verbose)
     {
-      g_autofree char *uses = g_strjoinv (", ", impl->use_in);
-      g_debug ("portal implementation for %s", uses);
       for (i = 0; impl->interfaces[i]; i++)
         g_debug ("portal implementation supports %s", impl->interfaces[i]);
+    }
+
+  impl->use_in = g_key_file_get_string_list (keyfile, "portal", "UseIn", NULL, error);
+  if (opt_verbose && impl->use_in != NULL)
+    {
+      g_autofree char *uses = g_strjoinv (", ", impl->use_in);
+      g_debug ("[DEPRECATED] portal implementation for %s", uses);
     }
 
   implementations = g_list_prepend (implementations, impl);
@@ -241,8 +242,12 @@ sort_impl_by_use_in_and_name (gconstpointer a,
 
   for (i = 0; desktops[i] != NULL; i++)
     {
-      gboolean use_a = g_strv_case_contains ((const char **)pa->use_in, desktops[i]);
-      gboolean use_b = g_strv_case_contains ((const char **)pb->use_in, desktops[i]);
+      gboolean use_a = pa->use_in != NULL
+                     ? g_strv_case_contains ((const char **)pa->use_in, desktops[i])
+                     : FALSE;
+      gboolean use_b = pb->use_in != NULL
+                     ? g_strv_case_contains ((const char **)pb->use_in, desktops[i])
+                     : FALSE;
 
       if (use_a != use_b)
         return use_b - use_a;
@@ -478,7 +483,7 @@ find_portal_implementation (const char *interface)
             }
 
           /* Fallback */
-          if (g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
+          if (impl->use_in != NULL && g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
             {
               g_debug ("Using %s.portal for %s in %s (fallback)", impl->source, interface, desktops[i]);
               return impl;
