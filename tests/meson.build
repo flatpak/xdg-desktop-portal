@@ -154,7 +154,7 @@ foreach p : portal_tests
     test(
       'test-portals-@0@'.format(p),
       test_portals,
-      args: ['--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
+      args: ['--verbose', '--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
       depends: [test_backends, test_portals],
       env: env_tests,
       is_parallel: false,
