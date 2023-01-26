@@ -44,27 +44,32 @@ typedef struct _PortalConfig {
 static void
 portal_interface_free (PortalInterface *iface)
 {
-  g_free (iface->dbus_name);
-  g_strfreev (iface->portals);
+  g_clear_pointer (&iface->dbus_name, g_free);
+  g_clear_pointer (&iface->portals, g_strfreev);
+
   g_free (iface);
 }
 
 static void
 portal_config_free (PortalConfig *config)
 {
-  g_free (config->source);
+  g_clear_pointer (&config->source, g_free);
+
   for (size_t i = 0; i < config->n_ifaces; i++)
     portal_interface_free (config->ifaces[i]);
+
+  g_clear_pointer (&config->ifaces, g_free);
+
   g_free (config);
 }
 
 static void
 portal_implementation_free (PortalImplementation *impl)
 {
-  g_free (impl->source);
-  g_free (impl->dbus_name);
-  g_strfreev (impl->interfaces);
-  g_strfreev (impl->use_in);
+  g_clear_pointer (&impl->source, g_free);
+  g_clear_pointer (&impl->dbus_name, g_free);
+  g_clear_pointer (&impl->interfaces, g_strfreev);
+  g_clear_pointer (&impl->use_in, g_strfreev);
   g_free (impl);
 }
 
