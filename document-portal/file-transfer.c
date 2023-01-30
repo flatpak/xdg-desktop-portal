@@ -391,6 +391,15 @@ add_files (GDBusMethodInvocation *invocation,
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
+  if (fd_list == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_INVALID_ARGS,
+                                             "Invalid transfer");
+      return;
+    }
+
   fds = g_unix_fd_list_peek_fds (fd_list, &n_fds);
 
   g_debug ("add %d files to file transfer owned by '%s' (%s)", n_fds,
