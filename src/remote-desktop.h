@@ -31,8 +31,13 @@ GList * remote_desktop_session_get_streams (RemoteDesktopSession *session);
 
 gboolean remote_desktop_session_can_select_sources (RemoteDesktopSession *session);
 
+gboolean remote_desktop_session_can_request_clipboard (RemoteDesktopSession *session);
+
+gboolean remote_desktop_session_is_clipboard_enabled (RemoteDesktopSession *session);
 
 void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
+
+void remote_desktop_session_clipboard_requested (RemoteDesktopSession *session);
 
 GDBusInterfaceSkeleton * remote_desktop_create (GDBusConnection *connection,
                                                 const char      *dbus_name);

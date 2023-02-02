@@ -95,6 +95,7 @@ if have_pipewire
       'remote-desktop.c',
       'pipewire.c',
       'camera.c',
+      'clipboard.c',
   )
 endif
 

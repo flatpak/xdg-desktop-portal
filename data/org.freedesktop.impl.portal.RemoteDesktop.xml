@@ -22,6 +22,8 @@
       @short_description: Remote desktop portal backend interface
 
       The Remote desktop portal allows to create remote desktop sessions.
+
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.RemoteDesktop">
     <!--
@@ -78,6 +80,37 @@
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>handle_token s</term>
+            <listitem><para>
+              A string that will be used as the last element of the @handle. Must be a valid
+              object path element. See the #org.freedesktop.portal.Request documentation for
+              more information about the @handle.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        The following results get returned via the
+        #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>devices u</term>
+            <listitem><para>
+              A bitmask of the devices selected by the user.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>clipboard_enabled b</term>
+            <listitem><para>
+              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
+              See the #org.freedesktop.portal.Clipboard documentation for more information.
+              Since version 2.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
 
         Start the remote desktop session.
     -->

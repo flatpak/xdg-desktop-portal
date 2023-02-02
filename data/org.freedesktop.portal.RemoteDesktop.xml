@@ -23,7 +23,7 @@
 
       The Remote desktop portal allows to create remote desktop sessions.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--
@@ -38,12 +38,15 @@
 
         A remote desktop session may only be started and stopped with this interface,
         but you can use the #org.freedesktop.portal.Session object created with this
-        method together with certain methods on the #org.freedesktop.portal.ScreenCast
-        interface. Specifically, you can call
+        method together with certain methods on the #org.freedesktop.portal.ScreenCast and
+        #org.freedesktop.portal.Clipboard interfaces. Specifically, you can call
         org.freedesktop.portal.ScreenCast.SelectSources() to also get screen content,
         and org.freedesktop.portal.ScreenCast.OpenPipewireRemote() to acquire a file
         descriptor for a PipeWire remote. See #org.freedesktop.portal.ScreenCast for
-        more information on how to use those methods.
+        more information on how to use those methods. To capture clipboard content,
+        you can call org.freedesktop.portal.Clipboard.RequestClipboard(). See 
+        #org.freedesktop.portal.Clipboard for more information on the clipboard
+        integration.
 
         Supported keys in the @options vardict include:
         <variablelist>
@@ -146,6 +149,14 @@
             <term>devices u</term>
             <listitem><para>
               A bitmask of the devices selected by the user.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>clipboard_enabled b</term>
+            <listitem><para>
+              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
+              See the #org.freedesktop.portal.Clipboard documentation for more information.
+              Since version 2.
             </para></listitem>
           </varlistentry>
         </variablelist>
