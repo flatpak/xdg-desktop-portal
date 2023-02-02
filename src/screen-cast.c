@@ -809,10 +809,6 @@ handle_select_sources (XdpDbusScreenCast *object,
       ((ScreenCastSession *)session)->state =
         SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES;
     }
-  else
-    {
-      remote_desktop_session_selecting_sources ((RemoteDesktopSession *)session);
-    }
 
   xdp_dbus_impl_screen_cast_call_select_sources (impl,
                                                  request->id,
