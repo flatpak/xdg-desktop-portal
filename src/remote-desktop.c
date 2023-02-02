@@ -81,9 +81,13 @@ typedef struct _RemoteDesktopSession
 
   GList *streams;
 
+  gboolean clipboard_requested;
+
   gboolean devices_selected;
 
   gboolean sources_selected;
+
+  gboolean clipboard_enabled;
 } RemoteDesktopSession;
 
 typedef struct _RemoteDesktopSessionClass
@@ -138,6 +142,27 @@ remote_desktop_session_can_select_devices (RemoteDesktopSession *session)
   g_assert_not_reached ();
 }
 
+gboolean
+remote_desktop_session_can_request_clipboard (RemoteDesktopSession *session)
+{
+  if (session->clipboard_requested)
+    return FALSE;
+
+  if (xdp_dbus_impl_remote_desktop_get_version (impl) < 2)
+    return FALSE;
+
+  switch (session->state)
+    {
+    case REMOTE_DESKTOP_SESSION_STATE_INIT:
+      return TRUE;
+    case REMOTE_DESKTOP_SESSION_STATE_STARTED:
+    case REMOTE_DESKTOP_SESSION_STATE_CLOSED:
+      return FALSE;
+    }
+
+  g_assert_not_reached ();
+}
+
 GList *
 remote_desktop_session_get_streams (RemoteDesktopSession *session)
 {
@@ -148,6 +173,18 @@ void
 remote_desktop_session_sources_selected (RemoteDesktopSession *session)
 {
   session->sources_selected = TRUE;
+}
+
+gboolean
+remote_desktop_session_is_clipboard_enabled (RemoteDesktopSession *session)
+{
+  return session->clipboard_enabled;
+}
+
+void
+remote_desktop_session_clipboard_requested (RemoteDesktopSession *session)
+{
+  session->clipboard_requested = TRUE;
 }
 
 static RemoteDesktopSession *
@@ -476,6 +513,7 @@ process_results (RemoteDesktopSession *remote_desktop_session,
 {
   g_autoptr(GVariantIter) streams_iter = NULL;
   uint32_t devices = 0;
+  gboolean clipboard_enabled = FALSE;
 
   if (g_variant_lookup (results, "streams", "a(ua{sv})", &streams_iter))
     {
@@ -485,6 +523,9 @@ process_results (RemoteDesktopSession *remote_desktop_session,
 
   if (g_variant_lookup (results, "devices", "u", &devices))
     remote_desktop_session->shared_devices = devices;
+
+  if (g_variant_lookup (results, "clipboard_enabled", "b", &clipboard_enabled))
+    remote_desktop_session->clipboard_enabled = clipboard_enabled;
 
   return TRUE;
 }
@@ -1357,7 +1398,7 @@ on_supported_device_types_changed (GObject *gobject,
 static void
 remote_desktop_init (RemoteDesktop *remote_desktop)
 {
-  xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 1);
+  xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 2);
 
   g_signal_connect (impl, "notify::supported-device-types",
                     G_CALLBACK (on_supported_device_types_changed),

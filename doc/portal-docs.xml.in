@@ -93,6 +93,7 @@
     <xi:include href="portal-org.freedesktop.portal.Account.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Background.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Camera.xml"/>
+    <xi:include href="portal-org.freedesktop.portal.Clipboard.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Device.xml"/>
     <xi:include href="portal-org.freedesktop.portal.Documents.xml"/>
     <xi:include href="portal-org.freedesktop.portal.DynamicLauncher.xml"/>
@@ -148,6 +149,7 @@
     <xi:include href="portal-org.freedesktop.impl.portal.Account.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.AppChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Background.xml"/>
+    <xi:include href="portal-org.freedesktop.impl.portal.Clipboard.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.Email.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.FileChooser.xml"/>
     <xi:include href="portal-org.freedesktop.impl.portal.GlobalShortcuts.xml"/>

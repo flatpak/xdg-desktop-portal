@@ -269,6 +269,10 @@ get_token (GDBusMethodInvocation *invocation)
                      interface, method, G_STRLOC);
         }
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Clipboard") == 0)
+    {
+      // no request objects
+    }
   else if (strcmp (interface, "org.freedesktop.portal.Location") == 0)
     {
       if (strcmp (method, "CreateSession") == 0 )

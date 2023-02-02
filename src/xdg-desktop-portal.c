@@ -34,6 +34,7 @@
 #include "background.h"
 #include "call.h"
 #include "camera.h"
+#include "clipboard.h"
 #include "device.h"
 #include "documents.h"
 #include "dynamic-launcher.h"
@@ -124,6 +125,10 @@ method_needs_request (GDBusMethodInvocation *invocation)
         return FALSE;
       else
         return TRUE;
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.Clipboard") == 0)
+    {
+      return FALSE;
     }
   else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
     {
@@ -362,6 +367,11 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   remote_desktop_create (connection, implementation->dbus_name));
+
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Clipboard");
+  if (implementation != NULL)
+    export_portal_implementation (
+        connection, clipboard_create (connection, implementation->dbus_name));
 #endif
 }
 
