@@ -31,7 +31,6 @@ GList * remote_desktop_session_get_streams (RemoteDesktopSession *session);
 
 gboolean remote_desktop_session_can_select_sources (RemoteDesktopSession *session);
 
-void remote_desktop_session_selecting_sources (RemoteDesktopSession *session);
 
 void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
 
