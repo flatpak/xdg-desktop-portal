@@ -367,6 +367,17 @@ class PortalTest(dbusmock.DBusTestCase):
 
         self.start_dbus_monitor()
 
+    def add_template(self, portal, params: Dict[str, Any] = {}):
+        """
+        Add an additional template to the portal object
+        """
+
+        self.obj_portal.AddTemplate(
+            f"tests/templates/{portal.lower()}.py",
+            dbus.Dictionary(params, signature="sv"),
+            dbus_interface=dbusmock.MOCK_IFACE,
+        )
+
     def start_xdp(self):
         """
         Start the xdg-desktop-portal process

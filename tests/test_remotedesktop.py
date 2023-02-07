@@ -12,7 +12,7 @@ import time
 
 class TestRemoteDesktop(PortalTest):
     def test_version(self):
-        self.check_version(1)
+        self.check_version(2)
 
     def test_remote_desktop_create_close_session(self):
         self.start_impl_portal()

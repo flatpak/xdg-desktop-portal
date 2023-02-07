@@ -3,6 +3,7 @@ test_portals = [
   'org.freedesktop.impl.portal.Account',
   'org.freedesktop.impl.portal.AppChooser',
   'org.freedesktop.impl.portal.Background',
+  'org.freedesktop.impl.portal.Clipboard',
   'org.freedesktop.impl.portal.Email',
   'org.freedesktop.impl.portal.FileChooser',
   'org.freedesktop.impl.portal.Inhibit',
