@@ -147,12 +147,15 @@ test_app_id_via_systemd_unit (void)
   g_clear_pointer (&app_id, g_free);
 
   app_id = _xdp_parse_app_id_from_unit_name ("app-glib-spice\\x2dvdagent-1839.scope");
-  /* App IDs must have two periods */
-  g_assert_cmpstr (app_id, ==, "");
+  g_assert_cmpstr (app_id, ==, "spice-vdagent");
   g_clear_pointer (&app_id, g_free);
 
   app_id = _xdp_parse_app_id_from_unit_name ("app-KDE-org.kde.okular@12345.service");
   g_assert_cmpstr (app_id, ==, "org.kde.okular");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-firefox.service");
+  g_assert_cmpstr (app_id, ==, "firefox");
   g_clear_pointer (&app_id, g_free);
 
   app_id = _xdp_parse_app_id_from_unit_name ("app-org.kde.amarok.service");
@@ -169,6 +172,14 @@ test_app_id_via_systemd_unit (void)
 
   app_id = _xdp_parse_app_id_from_unit_name ("app-com.obsproject.Studio-d70acc38b5154a3a8b4a60accc4b15f4.scope");
   g_assert_cmpstr (app_id, ==, "com.obsproject.Studio");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-firefox-jcfppqx.scope");
+  g_assert_cmpstr (app_id, ==, "firefox");
+  g_clear_pointer (&app_id, g_free);
+
+  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-firefox.service");
+  g_assert_cmpstr (app_id, ==, "firefox");
   g_clear_pointer (&app_id, g_free);
 }
 #endif /* HAVE_LIBSYSTEMD */

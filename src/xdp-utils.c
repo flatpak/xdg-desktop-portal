@@ -153,7 +153,8 @@ xdp_app_info_new (XdpAppInfoKind kind)
 char *
 _xdp_parse_app_id_from_unit_name (const char *unit)
 {
-  g_autoptr(GRegex) regex = NULL;
+  g_autoptr(GRegex) regex1 = NULL;
+  g_autoptr(GRegex) regex2 = NULL;
   g_autoptr(GMatchInfo) match = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *app_id = NULL;
@@ -163,16 +164,24 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
   /*
    * From https://systemd.io/DESKTOP_ENVIRONMENTS/ the format is one of:
    * app[-<launcher>]-<ApplicationID>-<RANDOM>.scope
-   * app[-<launcher>]-<ApplicationID>-autostart.service -> no longer true since systemd v248
-   * app[-<launcher>]-<ApplicationID>[@<RANDOM>].service
    * app[-<launcher>]-<ApplicationID>-<RANDOM>.slice
    */
-  regex = g_regex_new ("^app-(?:[[:alnum:]]+\\-)?(.+?\\..+?\\..+?)"
-                       "(?:[@\\-][[:alnum:]]*)?(?:-autostart)?"
-                       "(?:\\.scope|\\.service|\\.slice)$",
-                       0, 0, &error);
+  regex1 = g_regex_new ("^app-(?:[[:alnum:]]+\\-)?(.+?)(?:\\-[[:alnum:]]*)(?:\\.scope|\\.slice)$", 0, 0, &error);
   g_assert (error == NULL);
-  if (g_regex_match (regex, unit, 0, &match))
+  /*
+   * app[-<launcher>]-<ApplicationID>-autostart.service -> no longer true since systemd v248
+   * app[-<launcher>]-<ApplicationID>[@<RANDOM>].service
+   */
+  regex2 = g_regex_new ("^app-(?:[[:alnum:]]+\\-)?(.+?)(?:@[[:alnum:]]*|\\-autostart)?\\.service$", 0, 0, &error);
+  g_assert (error == NULL);
+
+  if (!g_regex_match (regex1, unit, 0, &match))
+    g_clear_pointer (&match, g_match_info_unref);
+
+  if (match == NULL && !g_regex_match (regex2, unit, 0, &match))
+    g_clear_pointer (&match, g_match_info_unref);
+
+  if (match != NULL)
     {
       const char *escaped_app_id;
       /* Unescape the unit name which may have \x hex codes in it, e.g.
