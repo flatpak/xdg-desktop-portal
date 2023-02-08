@@ -5,9 +5,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
-"PO-Revision-Date: 2020-01-06 00:03+0100\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2022-12-13 03:33+0000\n"
+"PO-Revision-Date: 2023-02-08 21:13+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
 "Language: gl\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 2.2.4\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: src/background.c:741
 #, c-format
@@ -146,24 +146,24 @@ msgid "Deny"
 msgstr "Denegar"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "Permitirlle a %s configurar o fondo de pantalla?"
+msgstr "Permitirlle a %s configurar sacar capturas de pantalla?"
 
 #: src/screenshot.c:253
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
+msgstr "%s solicita poder sacar capturas de pantalla en calquer momento."
 
 #: src/screenshot.c:261
-#, fuzzy
 msgid "Allow Applications to Take Screenshots?"
-msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
+msgstr "Permitirlle ás aplicacións sacar capturas de pantalla?"
 
 #: src/screenshot.c:262
-#, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "Unha aplicación quere usar o seu micrófono."
+msgstr ""
+"Unha aplicación solicita poder sacar capturas de pantalla en calquera "
+"momento."
 
 #: src/screenshot.c:265 src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
@@ -181,7 +181,7 @@ msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
 
 #: src/wallpaper.c:193
 msgid "An application is requesting to be able to change the background image."
-msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo"
+msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo."
 
 #: src/wallpaper.c:205
 #, c-format
