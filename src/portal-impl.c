@@ -377,28 +377,25 @@ load_portal_configuration (gboolean opt_verbose)
   /* We need to override this in the tests */
   portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
   if (portal_dir == NULL)
-    portal_dir = DATADIR "/xdg-desktop-portal";
+    portal_dir = SYSCONFDIR "/xdg-desktop-portal";
 
   user_portal_dir = g_build_filename (g_get_user_config_dir (),
                                       "xdg-desktop-portal",
                                       NULL);
 
+  conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, "portals.conf");
+  if (conf != NULL)
+    {
+      if (opt_verbose)
+        g_debug ("Using user portal configuration file");
+
+      config = g_steal_pointer (&conf);
+    }
+
   desktops = get_current_lowercase_desktops ();
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
       g_autofree char *portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
-
-      conf = load_portal_configuration_for_dir (opt_verbose, portal_dir, portals_conf);
-      if (conf != NULL)
-        {
-          if (opt_verbose)
-            g_debug ("Using system portal configuration file '%s' for desktop '%s'",
-                     portals_conf,
-                     desktops[i]);
-
-          config = g_steal_pointer (&conf);
-          return;
-        }
 
       conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, portals_conf);
       if (conf != NULL)
@@ -411,15 +408,18 @@ load_portal_configuration (gboolean opt_verbose)
           config = g_steal_pointer (&conf);
           return;
         }
-    }
 
-  conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, "portals.conf");
-  if (conf != NULL)
-    {
-      if (opt_verbose)
-        g_debug ("Using user portal configuration file");
+      conf = load_portal_configuration_for_dir (opt_verbose, portal_dir, portals_conf);
+      if (conf != NULL)
+        {
+          if (opt_verbose)
+            g_debug ("Using system portal configuration file '%s' for desktop '%s'",
+                     portals_conf,
+                     desktops[i]);
 
-      config = g_steal_pointer (&conf);
+          config = g_steal_pointer (&conf);
+          return;
+        }
     }
 }
 
