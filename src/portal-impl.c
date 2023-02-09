@@ -219,7 +219,10 @@ register_portal (const char  *path,
   if (opt_verbose && impl->use_in != NULL)
     {
       g_autofree char *uses = g_strjoinv (", ", impl->use_in);
-      g_debug ("[DEPRECATED] portal implementation for %s", uses);
+      g_warning ("Portal %s uses the deprecated UseIn key; the preferred method to "
+                 "match portal implementations to desktop environments is to use the "
+                 "portals.conf configuration file",
+                 uses);
     }
 
   implementations = g_list_prepend (implementations, impl);
