@@ -107,13 +107,16 @@ validate_xdg_desktop (const char *desktop)
 static char **
 get_valid_current_desktops (const char *value)
 {
+  char **tmp;
+  GPtrArray *valid_desktops;
+
   if (value == NULL)
     value = g_getenv ("XDG_CURRENT_DESKTOP");
   if (value == NULL)
     value = "";
 
-  char **tmp = g_strsplit (value, G_SEARCHPATH_SEPARATOR_S, 0);
-  GPtrArray *valid_desktops = g_ptr_array_new_full (g_strv_length (tmp) + 1, g_free);
+  tmp = g_strsplit (value, G_SEARCHPATH_SEPARATOR_S, 0);
+  valid_desktops = g_ptr_array_new_full (g_strv_length (tmp) + 1, g_free);
 
   for (size_t i = 0; tmp[i] != NULL; i++)
     {
@@ -467,8 +470,8 @@ PortalImplementation *
 find_portal_implementation (const char *interface)
 {
   const char **desktops;
-  int i;
   GList *l;
+  int i;
 
   desktops = get_current_lowercase_desktops ();
 
