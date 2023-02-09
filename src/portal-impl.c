@@ -510,8 +510,19 @@ find_portal_implementation (const char *interface)
               g_debug ("Using %s.portal for %s in %s (config)", impl->source, interface, desktops[i]);
               return impl;
             }
+        }
+    }
 
-          /* Fallback */
+  /* Fallback to the old UseIn key */
+  for (i = 0; desktops[i] != NULL; i++)
+    {
+     for (l = implementations; l != NULL; l = l->next)
+        {
+          PortalImplementation *impl = l->data;
+
+          if (!g_strv_contains ((const char **)impl->interfaces, interface))
+            continue;
+
           if (impl->use_in != NULL && g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
             {
               g_debug ("Using %s.portal for %s in %s (fallback)", impl->source, interface, desktops[i]);
