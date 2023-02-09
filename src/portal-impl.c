@@ -39,6 +39,7 @@ typedef struct _PortalConfig {
   char *source;
   PortalInterface **ifaces;
   size_t n_ifaces;
+  PortalInterface *dfl_portal;
 } PortalConfig;
 
 static void
@@ -58,6 +59,7 @@ portal_config_free (PortalConfig *config)
   for (size_t i = 0; i < config->n_ifaces; i++)
     portal_interface_free (config->ifaces[i]);
 
+  g_clear_pointer (&config->dfl_portal, portal_interface_free);
   g_clear_pointer (&config->ifaces, g_free);
 
   g_free (config);
@@ -337,17 +339,13 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
     {
       g_autoptr(GPtrArray) interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
       g_autoptr(PortalConfig) conf = g_new0 (PortalConfig, 1);
+      g_autoptr(PortalInterface) dfl_portal = NULL;
 
       for (size_t i = 0; ifaces[i] != NULL; i++)
         {
           g_autoptr(PortalInterface) interface = g_new0 (PortalInterface, 1);
 
-          /* Special case "default" as the fallback */
-          if (strcmp (ifaces[i], "default") == 0)
-            interface->dbus_name = g_strdup ("default");
-          else
-            interface->dbus_name = g_strdup (ifaces[i]);
-
+          interface->dbus_name = g_strdup (ifaces[i]);
           interface->portals = g_key_file_get_string_list (key_file, "preferred", ifaces[i], NULL, NULL);
           if (interface->portals == NULL)
             {
@@ -361,11 +359,15 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
               g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
             }
 
-          g_ptr_array_add (interfaces, g_steal_pointer (&interface));
+          if (strcmp (ifaces[i], "default") == 0)
+            dfl_portal = g_steal_pointer (&interface);
+          else
+            g_ptr_array_add (interfaces, g_steal_pointer (&interface));
         }
 
       conf->n_ifaces = interfaces->len;
       conf->ifaces = (PortalInterface **) g_ptr_array_steal (interfaces, NULL);
+      conf->dfl_portal = g_steal_pointer (&dfl_portal);
 
       return g_steal_pointer (&conf);
     }
@@ -431,42 +433,53 @@ load_portal_configuration (gboolean opt_verbose)
 }
 
 static gboolean
+portal_impl_name_matches (const PortalImplementation *impl,
+                          const PortalInterface      *iface)
+{
+  /* Exact match */
+  if (g_strv_contains ((const char * const *) iface->portals, impl->source))
+    {
+      g_debug ("Found %s=%s in configuration for %s", impl->dbus_name, impl->source, iface->dbus_name);
+      return TRUE;
+    }
+
+  /* The "*" alias means "any" */
+  if (g_strv_contains ((const char * const *) iface->portals, "*"))
+    {
+      g_debug ("Found %s=* in configuration for %s", impl->dbus_name, iface->dbus_name);
+      return TRUE;
+    }
+
+  /* No portal */
+  if (g_strv_contains ((const char * const *) iface->portals, "none"))
+    {
+      g_debug ("Found %s=none in configuration for %s", impl->dbus_name, iface->dbus_name);
+      return FALSE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
 portal_impl_matches_config (const PortalImplementation *impl,
                             const char                 *interface)
 {
   if (config == NULL)
     return FALSE;
 
+  /* Interfaces have precedence, followed by the "default" catch all,
+   * to allow for specific interfaces to override the default
+   */
   for (int i = 0; i < config->n_ifaces; i++)
     {
       const PortalInterface *iface = config->ifaces[i];
 
-      /* Interfaces have precedence, followed by the "default" catch all,
-       * to allow for specific interfaces to override the default
-       */
-      if (g_strcmp0 (iface->dbus_name, interface) == 0 ||
-          g_strcmp0 (iface->dbus_name, "default") == 0)
-        {
-          if (g_strv_contains ((const char * const *) iface->portals, impl->source))
-            {
-              g_debug ("Found %s=%s in configuration for %s", impl->dbus_name, impl->source, interface);
-              return TRUE;
-            }
-
-          /* The "*" alias means "any" */
-          if (g_strv_contains ((const char * const *) iface->portals, "*"))
-            {
-              g_debug ("Found %s=* in configuration for %s", impl->dbus_name, interface);
-              return TRUE;
-            }
-
-          if (g_strv_contains ((const char * const *) iface->portals, "none"))
-            {
-              g_debug ("Found %s=none in configuration for %s", impl->dbus_name, interface);
-              return FALSE;
-            }
-        }
+      if (g_strcmp0 (iface->dbus_name, interface) == 0)
+        return portal_impl_name_matches (impl, iface);
     }
+
+  if (config->dfl_portal)
+    return portal_impl_name_matches (impl, config->dfl_portal);
 
   return FALSE;
 }
