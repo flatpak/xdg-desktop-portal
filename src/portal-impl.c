@@ -162,7 +162,9 @@ static PortalConfig *config = NULL;
 static GList *implementations = NULL;
 
 static gboolean
-register_portal (const char *path, gboolean opt_verbose, GError **error)
+register_portal (const char  *path,
+                 gboolean     opt_verbose,
+                 GError     **error)
 {
   g_autoptr(GKeyFile) keyfile = g_key_file_new ();
   g_autoptr(PortalImplementation) impl = g_new0 (PortalImplementation, 1);
@@ -318,7 +320,9 @@ load_installed_portals (gboolean opt_verbose)
 }
 
 static PortalConfig *
-load_portal_configuration_for_dir (gboolean opt_verbose, const char *base_directory, const char *portal_file)
+load_portal_configuration_for_dir (gboolean    opt_verbose,
+                                   const char *base_directory,
+                                   const char *portal_file)
 {
   g_autofree char *path = g_build_filename (base_directory, portal_file, NULL);
   g_autoptr(GKeyFile) key_file = g_key_file_new ();
@@ -427,7 +431,8 @@ load_portal_configuration (gboolean opt_verbose)
 }
 
 static gboolean
-portal_impl_matches_config (const PortalImplementation *impl, const char *interface)
+portal_impl_matches_config (const PortalImplementation *impl,
+                            const char                 *interface)
 {
   if (config == NULL)
     return FALSE;
