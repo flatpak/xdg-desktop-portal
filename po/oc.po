@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-12 19:34-0300\n"
-"PO-Revision-Date: 2022-03-20 15:11+0100\n"
+"PO-Revision-Date: 2023-02-13 18:49+0100\n"
 "Last-Translator: Quentin PAGÈS\n"
 "Language-Team: Occitan\n"
 "Language: oc\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: src/background.c:741
 #, c-format
@@ -147,24 +147,22 @@ msgid "Deny"
 msgstr "Refusar"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "Permetre a %s de definir de fonzes d’ecran ?"
+msgstr "Permetre a %s de prendre de capturas d’ecran ?"
 
 #: src/screenshot.c:253
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
+msgstr "%s vòl poder prendre de capturas d’ecran en tot temps."
 
 #: src/screenshot.c:261
-#, fuzzy
 msgid "Allow Applications to Take Screenshots?"
-msgstr "Permetre a las aplicacions de definir los fonzes d’ecran ?"
+msgstr "Permetre a las aplicacions de prendre de capturas d’ecran ?"
 
 #: src/screenshot.c:262
-#, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "Una aplicacion vòl utilizar lo microfòn."
+msgstr "Una aplicacion vòl poder prendre de capturas d’ecran en tot temps."
 
 #: src/screenshot.c:265 src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
