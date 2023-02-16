@@ -442,21 +442,21 @@ portal_impl_name_matches (const PortalImplementation *impl,
   /* Exact match */
   if (g_strv_contains ((const char * const *) iface->portals, impl->source))
     {
-      g_debug ("Found %s=%s in configuration for %s", impl->dbus_name, impl->source, iface->dbus_name);
+      g_debug ("Found '%s' in configuration for %s", impl->source, iface->dbus_name);
       return TRUE;
     }
 
   /* The "*" alias means "any" */
   if (g_strv_contains ((const char * const *) iface->portals, "*"))
     {
-      g_debug ("Found %s=* in configuration for %s", impl->dbus_name, iface->dbus_name);
+      g_debug ("Found '*' in configuration for %s", iface->dbus_name);
       return TRUE;
     }
 
   /* No portal */
   if (g_strv_contains ((const char * const *) iface->portals, "none"))
     {
-      g_debug ("Found %s=none in configuration for %s", impl->dbus_name, iface->dbus_name);
+      g_debug ("Found 'none' in configuration for %s", iface->dbus_name);
       return FALSE;
     }
 
