@@ -95,8 +95,13 @@ test_portals_sources = files(
   'utils.c',
 )
 
+limited_portals_sources = files(
+  'limited-portals.c',
+  'utils.c',
+)
+
 if have_libportal
-  test_portals_sources += files(
+  extra_portals_sources = files(
     'account.c',
     'background.c',
     'camera.c',
@@ -112,6 +117,9 @@ if have_libportal
     'wallpaper.c',
     'glib-backports.c',
   )
+
+  test_portals_sources += extra_portals_sources
+  limited_portals_sources += extra_portals_sources
 endif
 
 test_portals = executable(
@@ -121,6 +129,21 @@ test_portals = executable(
   portal_built_sources,
   sd_escape_sources,
   test_portals_sources,
+  xdp_utils_sources,
+  dependencies: [common_deps, libportal_dep, libsystemd_dep],
+  include_directories: [common_includes, xdp_utils_includes],
+  c_args: ['-DXDG_DP_BUILDDIR="src"',  '-DXDG_PS_BUILDDIR="document-portal"'],
+  install: enable_installed_tests,
+  install_dir: installed_tests_dir,
+)
+
+limited_portals = executable(
+  'limited-portals',
+  impl_built_sources,
+  permission_store_built_sources,
+  portal_built_sources,
+  sd_escape_sources,
+  limited_portals_sources,
   xdp_utils_sources,
   dependencies: [common_deps, libportal_dep, libsystemd_dep],
   include_directories: [common_includes, xdp_utils_includes],
@@ -157,6 +180,29 @@ foreach p : portal_tests
       args: ['--verbose', '--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
       depends: [test_backends, test_portals],
       env: env_tests,
+      is_parallel: false,
+      protocol: test_protocol,
+      suite: 'portals',
+    )
+endforeach
+
+# Split the portal tests into one test per portal, this makes debugging a lot
+# easier.
+# Keep in sync with test-portals.c
+portal_limited = [
+  'screenshot',
+  'print',
+]
+
+limited_env = env_tests
+limited_env.set('XDG_CURRENT_DESKTOP', 'limited')
+foreach p : portal_limited
+    test(
+      'limited-portals-@0@'.format(p),
+      limited_portals,
+      args: ['--verbose', '--keep-going', '--tap', '-p', '/limited-portal/@0@'.format(p)],
+      depends: [test_backends, limited_portals],
+      env: limited_env,
       is_parallel: false,
       protocol: test_protocol,
       suite: 'portals',
