@@ -1,14 +1,14 @@
 # Georgian translation for xdg-desktop-portal.
-# Copyright (C) 2022 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2023 xdg-desktop-portal's authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2022.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2022-12-12 19:34-0300\n"
-"PO-Revision-Date: 2022-07-25 14:38+0200\n"
+"PO-Revision-Date: 2023-02-25 14:53+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <(nothing)>\n"
 "Language: ka\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.2.2\n"
 
 #: src/background.c:741
 #, c-format
@@ -147,24 +147,23 @@ msgid "Deny"
 msgstr "უარყოფა"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
+msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
 
 #: src/screenshot.c:253
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
+msgstr "%s-ს სურს ეკრანის ანაბეჭდის სურვილისამებრ გადაღების უფლება მიიღოს."
 
 #: src/screenshot.c:261
-#, fuzzy
 msgid "Allow Applications to Take Screenshots?"
-msgstr "მიეცეს აპლიკაციებს ფონის სურათის შეცვლის უფლება?"
+msgstr "მიეცეს აპლიკაციას ეკრანის ანაბეჭდების გადაღების უფლება?"
 
 #: src/screenshot.c:262
-#, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მიკროფონი."
+msgstr ""
+"აპლიკაციას სურს ეკრანის ანაბეჭდის სურვილისამებრ გადაღების უფლება მიიღოს."
 
 #: src/screenshot.c:265 src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
