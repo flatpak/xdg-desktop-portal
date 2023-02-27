@@ -1,18 +1,18 @@
 # Turkish translation for xdg-desktop-portal.
-# Copyright (C) 2017-2020 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2017-2023 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 #
 # Muhammet Kara <muhammetk@gmail.com>, 2017.
 # Serdar Sağlam <teknomobil@yandex.com>, 2019.
 # Emin Tufan Çetin <etcetin@gmail.com>, 2019-2020.
-# Sabri Ünal <libreajans@gmail.com>, 2020
+# Sabri Ünal <libreajans@gmail.com>, 2020, 2023.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
-"PO-Revision-Date: 2020-02-27 21:57+0300\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2023-02-27 15:33+0000\n"
+"PO-Revision-Date: 2023-02-27 21:41+0300\n"
 "Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
 "Language: tr\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 2.0.6\n"
+"X-Generator: Poedit 3.1.1\n"
 
 #: src/background.c:741
 #, c-format
@@ -150,24 +150,22 @@ msgid "Deny"
 msgstr "Reddet"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "%s, Arka Planı Belirlemesine İzin Verilsin Mi?"
+msgstr "%s, Ekran Görüntüsü Almasına İzin Verilsin Mi?"
 
 #: src/screenshot.c:253
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
+msgstr "%s istediği zaman ekran görüntüsü alabilmek istiyor."
 
 #: src/screenshot.c:261
-#, fuzzy
 msgid "Allow Applications to Take Screenshots?"
-msgstr "Uygulamaların Arka Planı Belirlemesine İzin Verilsin Mi?"
+msgstr "Uygulamaların Ekran Görüntüsü Almasına İzin Verilsin Mi?"
 
 #: src/screenshot.c:262
-#, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "Bir uygulama, mikrofonunuzu kullanmak istiyor."
+msgstr "Bir uygulama istediği zaman ekran görüntüsü alabilmek istiyor."
 
 #: src/screenshot.c:265 src/wallpaper.c:209
 msgid "This permission can be changed at any time from the privacy settings."
