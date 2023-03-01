@@ -7,13 +7,11 @@ env:
   TESTS_TIMEOUT: 10 # in minutes
 
 jobs:
-  # identical to the meson job but for the autotools commands
   check:
     name: Ubuntu 22.04 build
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        buildsystem: ['autotools', 'meson']
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
 
@@ -30,12 +28,7 @@ jobs:
     - name: Prepare environment
       id: env-setup
       run: |
-        if [ "${{ matrix.sanitizer }}" == "address" && "${{ matrix.buildsystem }}" == "autotools" ]; then
-          echo "cflags=$BASE_CFLAGS" \
-            "-fsanitize=undefined -fsanitize-undefined-trap-on-error -fsanitize=address" >> $GITHUB_OUTPUT;
-        else
-          echo "cflags=$BASE_CFLAGS" >> $GITHUB_OUTPUT;
-        fi
+        echo "cflags=$BASE_CFLAGS" >> $GITHUB_OUTPUT;
 
     - name: Prepare container
       run: |
@@ -77,20 +70,10 @@ jobs:
           python3-gi \
           shared-mime-info
 
-    - name: Install dependencies for autotools
-      run: |
-        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
-          autoconf \
-          automake \
-          autopoint \
-          make
-      if: ${{ matrix.buildsystem == 'autotools' }}
-
     - name: Install dependencies for meson
       run: |
         $RUN_CMD apt-get install --quiet -y --no-install-recommends \
           meson
-      if: ${{ matrix.buildsystem == 'meson' }}
 
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v3
@@ -100,43 +83,22 @@ jobs:
         $RUN_CMD adduser --disabled-password --gecos "" tester
         $RUN_CMD chown tester:tester . -R
 
-    - name: Build xdg-desktop-portal with autotools
-      run: |
-        $RUN_CMD $AS_USER ./autogen.sh --disable-dependency-tracking --enable-installed-tests
-        $RUN_CMD $AS_USER make
-      if: ${{ matrix.buildsystem == 'autotools' }}
-
-    - name: Run xdg-desktop-portal tests with autotools
-      run: $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m make check
-      env:
-        TEST_IN_CI: 1
-        G_MESSAGES_DEBUG: all
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
-      if: ${{ matrix.buildsystem == 'autotools' }}
-
-    - name: Build xdg-desktop-portal with meson
+    - name: Build xdg-desktop-portal
       run: |
         $RUN_CMD $AS_USER meson setup ${BUILDDIR} $MESON_OPTIONS
         $RUN_CMD $AS_USER meson compile -C ${BUILDDIR}
       env:
         MESON_OPTIONS: -Dinstalled-tests=true -Db_sanitize=${{ matrix.sanitizer }}
-      if: ${{ matrix.buildsystem == 'meson' }}
 
-    - name: Run xdg-desktop-portal tests with meson
+    - name: Run xdg-desktop-portal tests
       run: $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C ${BUILDDIR}
       env:
         TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
-      if: ${{ matrix.buildsystem == 'meson' }}
 
-    - name: Install xdg-desktop-portal with autotools
-      run: $RUN_CMD make install
-      if: ${{ matrix.buildsystem == 'autotools' }}
-
-    - name: Install xdg-desktop-portal with meson
+    - name: Install xdg-desktop-portal
       run: $RUN_CMD meson install -C ${BUILDDIR}
-      if: ${{ matrix.buildsystem == 'meson' }}
 
     - name: Run xdg-desktop-portal installed-tests
       run: |
@@ -160,52 +122,3 @@ jobs:
           test-*.log
           installed-test-logs/
           builddir/meson-logs/testlog.txt
-
-  xenial:
-    name: Ubuntu 16.04 build (old glib)
-    runs-on: ubuntu-22.04
-    container: ubuntu:16.04
-    steps:
-    - name: Install dependencies
-      run: |
-        apt-get update --quiet -y
-        apt-get install --quiet -y software-properties-common
-        add-apt-repository ppa:alexlarsson/flatpak
-        apt-get install --quiet -y \
-          autoconf \
-          automake \
-          autopoint \
-          desktop-file-utils \
-          gcc \
-          gettext \
-          gtk-doc-tools \
-          libfontconfig1-dev \
-          libgdk-pixbuf2.0-dev \
-          libglib2.0-dev \
-          libjson-glib-dev \
-          libsystemd-dev \
-          libtool \
-          shared-mime-info
-
-    - name: Install libfuse3
-      run: |
-        # Install libfuse3 dependencies
-        apt-get install --quiet -y git python3-pip udev
-        pip3 install meson==0.56.2 ninja
-        git clone https://github.com/libfuse/libfuse.git
-        cd libfuse
-        meson _build -Dexamples=false -Dtests=false
-        ninja -C _build install
-
-    - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v3
-
-    - name: Configure xdg-desktop-portal
-      # TODO: Enable gtk-doc builds
-      # Meson to old to build libportal
-      # Could not find a pipewire package
-      # Geoclue is in 18.04 too old
-      run: ./autogen.sh --disable-pipewire --disable-geoclue --disable-libportal
-
-    - name: Build xdg-desktop-portal
-      run: make -j $(getconf _NPROCESSORS_ONLN)
