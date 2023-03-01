@@ -1,9 +1,0 @@
-prefix=@prefix@
-datarootdir=@datarootdir@
-datadir=@datadir@
-
-interfaces_dir=${datadir}/dbus-1/interfaces/
-
-Name: xdg-desktop-portal
-Description: Desktop integration portal
-Version: @VERSION@

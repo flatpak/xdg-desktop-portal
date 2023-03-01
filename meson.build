@@ -184,12 +184,17 @@ base_config.set('libexecdir', libexecdir)
 base_config.set('VERSION', meson.project_version())
 base_config.set('extraargs', '')
 
-configure_file(
-  input: 'xdg-desktop-portal.pc.in',
-  output: '@BASENAME@',
-  configuration: base_config,
-  install: true,
-  install_dir: datadir / 'pkgconfig'
+pkgconfig = import('pkgconfig')
+pkgconfig.generate(
+  name: 'xdg-desktop-portal',
+  description: 'Desktop integration portal',
+  dataonly: true,
+  variables: {
+    'prefix': get_option('prefix'),
+    'datarootdir': dataroot_dir,
+    'datadir': '${prefix}/@0@'.format(get_option('datadir')),
+    'interfaces_dir': '${datadir}/dbus-1/interfaces/',
+  },
 )
 
 subdir('data')
