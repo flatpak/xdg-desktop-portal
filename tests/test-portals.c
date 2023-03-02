@@ -483,6 +483,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/email/cancel", test_email_cancel);
   g_test_add_func ("/portal/email/close", test_email_close);
   g_test_add_func ("/portal/email/address", test_email_address);
+  g_test_add_func ("/portal/email/punycode_address", test_email_punycode_address);
   g_test_add_func ("/portal/email/subject", test_email_subject);
   g_test_add_func ("/portal/email/parallel", test_email_parallel);
 
