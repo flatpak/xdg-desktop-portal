@@ -118,7 +118,11 @@ compose_email_done (GObject *source,
 static gboolean
 is_valid_email (const char *string)
 {
-  return g_regex_match_simple ("^\\w+([-+.]\\w+)*@\\w+([-.]\\w+)*\\.\\w+([-.]\\w+)*$", string, 0, 0);
+  // Regex proposed by the W3C at https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
+  return g_regex_match_simple ("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+"
+                               "@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?"
+                               "(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$",
+                               string, 0, 0);
 }
 
 static gboolean

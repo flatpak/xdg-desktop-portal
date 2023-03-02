@@ -74,6 +74,34 @@ class TestEmail:
         method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
+    def test_email_punycode_address(self, portal_mock):
+        addresses = ["xn--franais-xxa@exemple.fr"]
+        subject = "Re: portal tests"
+        body = "To ASCII and beyond"
+
+        request = portal_mock.create_request()
+        options = {
+            "addresses": addresses,
+            "subject": subject,
+            "body": body,
+        }
+        response = request.call(
+            "ComposeEmail",
+            parent_window="",
+            options=options,
+        )
+
+        assert response.response == 0
+
+        # Check the impl portal was called with the right args
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[2] == ""  # parent window
+        assert args[3]["addresses"] == addresses
+        assert args[3]["subject"] == subject
+        assert args[3]["body"] == body
+
     def test_email_subject_multiline(self, portal_mock):
         """test that an multiline subject triggers an error"""
 

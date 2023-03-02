@@ -64,13 +64,15 @@
           <varlistentry>
             <term>address s</term>
             <listitem><para>
-              The email address to send to.
+              The email address to send to. Must conform to the HTML5 definition of
+              <ulink url="https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address">valid email address</ulink>.
             </para></listitem>
           </varlistentry>
           <varlistentry>
             <term>addresses as</term>
             <listitem><para>
-              Email addresses to send to. This will be used in addition to address.
+              Email addresses to send to. This will be used in addition to address and must
+              pass the same validation.
             </para><para>
               This option was added in version 3.
             </para></listitem>
