@@ -1,6 +1,6 @@
 AC_PREREQ([2.63])
 
-AC_INIT([xdg-desktop-portal],[1.16.1])
+AC_INIT([xdg-desktop-portal],[1.17.0])
 
 AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
