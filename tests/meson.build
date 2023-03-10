@@ -219,15 +219,26 @@ python = pymod.find_installation(
 )
 
 if pytest.found() and python.found()
-  test_env = environment()
-  test_env.set('XDP_UNINSTALLED', '1')
+  subdir('templates')
+  pytest_files = [
+    '__init__.py',
+    'test_email.py',
+    'test_remotedesktop.py',
+    'test_trash.py',
+  ]
+  foreach pytest_file : pytest_files
+    configure_file(
+      input: pytest_file,
+      output: pytest_file,
+      copy: true,
+      install: false
+    )
+  endforeach
 
   test(
     'pytest',
     pytest,
     args: ['--verbose', '--log-level=DEBUG'],
-    env: test_env,
-    workdir: meson.project_source_root(),
     suite: ['pytest'],
   )
 endif
