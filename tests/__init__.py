@@ -14,9 +14,9 @@
 # the dbusmock documentation for details on those templates.
 #
 # Environment variables:
-#   XDP_UNINSTALLED: run from $PWD (with an emulation of the glib test behavior)
-#   LIBEXECDIR: run xdg-desktop-portal from that dir, required if
-#               XDP_UNINSTALLED is unset
+#   G_TEST_BUILDDIR: override the path to the tests/ build
+#                    directory (default: $PWD)
+#   LIBEXECDIR: run xdg-desktop-portal from that dir
 #   XDP_DBUS_MONITOR: if set, starts dbus_monitor on the custom bus, useful
 #                     for debugging
 
@@ -373,20 +373,29 @@ class PortalTest(dbusmock.DBusTestCase):
         """
 
         # This roughly resembles test-portals.c and glib's test behavior
-        if os.getenv("XDP_UNINSTALLED", None):
-            builddir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / ".."
-            # meson has x-d-p in a different build directory than the autotools build...
-            xdp_path = builddir / "xdg-desktop-portal"
-            if not xdp_path.exists():
-                xdp_path = builddir / "src" / "xdg-desktop-portal"
+        # but preferences in-tree testing by running pytest in meson's
+        # project_build_root
+        libexecdir = os.getenv("LIBEXECDIR")
+        if libexecdir:
+            xdp_path = Path(libexecdir) / "xdg-desktop-portal"
         else:
-            builddir = os.getenv("LIBEXECDIR")
-            if not builddir:
-                raise NotImplementedError("LIBEXECDIR is not set")
-            xdp_path = Path(builddir) / "xdg-desktop-portal"
+            xdp_path = (
+                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+                / ".."
+                / "src"
+                / "xdg-desktop-portal"
+            )
 
-        distdir = os.getenv("G_TEST_SRCDIR") or "tests"
-        portal_dir = Path(distdir) / "portals"
+        if not xdp_path.exists():
+            raise FileNotFoundError(
+                f"{xdp_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+            )
+
+        portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals"
+        if not portal_dir.exists():
+            raise FileNotFoundError(
+                f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
+            )
 
         argv = [xdp_path]
         env = os.environ.copy()
