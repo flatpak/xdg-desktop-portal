@@ -2,9 +2,11 @@
 #include <config.h>
 
 #include "account.h"
+#include "utils.h"
 
 #include <libportal/portal.h>
 #include "xdp-utils.h"
+#include "xdp-test-utils.h"
 
 extern char outdir[];
 
@@ -52,6 +54,7 @@ test_notification_basic (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test");
   g_key_file_set_string (keyfile, "notification", "action", "test-action");
@@ -100,6 +103,7 @@ test_notification_buttons (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -160,6 +164,7 @@ test_notification_bad_arg (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -198,6 +203,7 @@ test_notification_bad_priority (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -237,6 +243,7 @@ test_notification_bad_button (void)
 
   keyfile = g_key_file_new ();
 
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
   g_key_file_set_string (keyfile, "notification", "data", notification_s);
   g_key_file_set_string (keyfile, "notification", "id", "test2");
   g_key_file_set_string (keyfile, "notification", "action", "action1");
@@ -253,4 +260,56 @@ test_notification_bad_button (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+}
+
+void
+test_notification_basic_with_custom_app_id (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GVariant) notification = NULL;
+  const char *notification_s;
+  gulong id;
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'body': <'test notification body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, NULL);
+
+  keyfile = g_key_file_new ();
+  tests_set_app_id ("a-custom-app-id", &error);
+  g_assert_no_error (error);
+  g_assert_cmpstr (tests_get_expected_app_id (), ==, "a-custom-app-id");
+
+  g_key_file_set_string (keyfile, "notification", "app-id", tests_get_expected_app_id ());
+  g_key_file_set_string (keyfile, "notification", "data", notification_s);
+  g_key_file_set_string (keyfile, "notification", "id", "test");
+  g_key_file_set_string (keyfile, "notification", "action", "test-action");
+  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+
+  path = g_build_filename (outdir, "notification", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
+
+  got_info = 0;
+  xdp_portal_add_notification (portal, "test", notification, 0, NULL, NULL, NULL);
+
+  while (!got_info)
+    g_main_context_iteration (NULL, TRUE);
+
+  g_signal_handler_disconnect (portal, id);
+
+  xdp_portal_remove_notification (portal, "test");
+
+  tests_set_app_id (NULL, &error);
+  g_assert_no_error (error);
+  g_assert_cmpstr (tests_get_expected_app_id (), !=, "a-custom-app-id");
 }

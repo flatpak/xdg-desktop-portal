@@ -1,6 +1,7 @@
 #include <config.h>
 
 #include "screenshot.h"
+#include "utils.h"
 
 #include <libportal/portal.h>
 #include "xdp-impl-dbus.h"
@@ -17,12 +18,15 @@ set_screenshot_permissions (const char *permission)
   const char *permissions[2] = { NULL, NULL };
   g_autoptr(GError) error = NULL;
 
+  tests_set_app_id ("furrfix", &error);
+  g_assert_no_error (error);
+
   permissions[0] = permission;
   xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
                                                            "screenshot",
                                                            TRUE,
                                                            "screenshot",
-                                                           "",
+                                                           tests_get_expected_app_id (),
                                                            permissions,
                                                            NULL,
                                                            &error);
@@ -32,7 +36,11 @@ set_screenshot_permissions (const char *permission)
 static void
 reset_screenshot_permissions (void)
 {
+  GError *error = NULL;
+
   set_screenshot_permissions (NULL);
+  tests_set_app_id (NULL, &error);
+  g_assert_no_error (error);
 }
 
 static void

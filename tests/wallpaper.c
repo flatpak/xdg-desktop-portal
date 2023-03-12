@@ -1,6 +1,7 @@
 #include <config.h>
 
 #include "account.h"
+#include "utils.h"
 
 #include <libportal/portal.h>
 #include "xdp-impl-dbus.h"
@@ -22,7 +23,7 @@ set_wallpaper_permissions (const char *permission)
                                                            "wallpaper",
                                                            TRUE,
                                                            "wallpaper",
-                                                           "",
+                                                           tests_get_expected_app_id (),
                                                            permissions,
                                                            NULL,
                                                            &error);

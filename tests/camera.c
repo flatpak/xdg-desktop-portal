@@ -26,7 +26,7 @@ set_camera_permissions (const char *permission)
                                                            "devices",
                                                            TRUE,
                                                            "camera",
-                                                           "",
+                                                           tests_get_expected_app_id (),
                                                            permissions,
                                                            NULL,
                                                            &error);

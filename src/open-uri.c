@@ -516,6 +516,7 @@ find_recommended_choices (const char *scheme,
   if (info != NULL)
     {
       *default_app = get_app_id (info);
+      g_clear_object (&info);
       g_debug ("Default handler %s for %s, %s", *default_app, scheme, content_type);
     }
   else

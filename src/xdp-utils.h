@@ -51,6 +51,7 @@ typedef enum
   XDP_APP_INFO_KIND_HOST = 0,
   XDP_APP_INFO_KIND_FLATPAK = 1,
   XDP_APP_INFO_KIND_SNAP    = 2,
+  XDP_APP_INFO_KIND_TEST    = 3,
 } XdpAppInfoKind;
 
 gint xdp_mkstempat (int    dir_fd,
@@ -113,7 +114,7 @@ char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 
 void  xdp_set_documents_mountpoint    (const char *path);
-char *xdp_get_alternate_document_path (const char *path, const char *app_id);
+char *xdp_get_alternate_document_path (const char *path, const char *app_id, XdpAppInfoKind kind);
 
 XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
                                                  GCancellable          *cancellable,

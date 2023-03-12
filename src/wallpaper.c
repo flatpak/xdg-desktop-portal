@@ -170,6 +170,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
+      g_autoptr(GAppInfo) info = NULL;
       GVariantBuilder access_opt_builder;
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
@@ -183,7 +184,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
 
-      if (g_str_equal (app_id, ""))
+      info = xdp_app_info_load_app_info (request->app_info);
+      if (!info)
         {
           /* Note: this will set the wallpaper permission for all unsandboxed
            * apps for which an app ID can't be determined.
@@ -194,14 +196,9 @@ handle_set_wallpaper_in_thread_func (GTask *task,
         }
       else
         {
-          g_autoptr(GDesktopAppInfo) info = NULL;
-          g_autofree gchar *id = NULL;
           const gchar *name;
 
-          id = g_strconcat (app_id, ".desktop", NULL);
-          info = g_desktop_app_info_new (id);
           name = g_app_info_get_display_name (G_APP_INFO (info));
-
           title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
           subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
         }

@@ -1,6 +1,7 @@
 #include <config.h>
 
 #include "inhibit.h"
+#include "utils.h"
 
 #include <libportal/portal.h>
 #include "xdp-impl-dbus.h"
@@ -18,7 +19,7 @@ set_inhibit_permissions (const char **permissions)
                                                            "inhibit",
                                                            TRUE,
                                                            "inhibit",
-                                                           "",
+                                                           tests_get_expected_app_id (),
                                                            permissions,
                                                            NULL,
                                                            &error);
