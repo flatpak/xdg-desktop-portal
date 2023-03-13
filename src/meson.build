@@ -93,6 +93,7 @@ if have_pipewire
   xdg_desktop_portal_sources += files(
       'screen-cast.c',
       'remote-desktop.c',
+      'restore-token.c',
       'pipewire.c',
       'camera.c',
       'clipboard.c',
