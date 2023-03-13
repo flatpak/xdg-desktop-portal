@@ -23,6 +23,7 @@
 #define __PORTAL_IMPL_H__
 
 #include <glib.h>
+#include <gio/gio.h>
 
 typedef struct {
   char *source;
@@ -30,10 +31,12 @@ typedef struct {
   char **interfaces;
   char **use_in;
   int priority;
+  GHashTable *dummy_proxies;
 } PortalImplementation;
 
 void                  load_installed_portals          (gboolean opt_verbose);
-PortalImplementation *find_portal_implementation      (const char *interface);
+PortalImplementation *find_portal_implementation      (GDBusConnection *connection,
+                                                       const char *interface);
 GPtrArray            *find_all_portal_implementations (const char *interface);
 
 #endif  /* __PORTAL_IMPL_H__ */

@@ -29,9 +29,12 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+#include "xdp-utils.h"
+
 static void
 portal_implementation_free (PortalImplementation *impl)
 {
+  g_clear_pointer (&impl->dummy_proxies, g_hash_table_unref);
   g_free (impl->source);
   g_free (impl->dbus_name);
   g_strfreev (impl->interfaces);
@@ -55,6 +58,10 @@ register_portal (const char *path, gboolean opt_verbose, GError **error)
   if (!g_key_file_load_from_file (keyfile, path, G_KEY_FILE_NONE, error))
     return FALSE;
 
+  impl->dummy_proxies = g_hash_table_new_full (g_str_hash,
+                                               g_str_equal,
+                                               g_free,
+                                               g_object_unref);
   impl->source = g_path_get_basename (path);
   impl->dbus_name = g_key_file_get_string (keyfile, "portal", "DBusName", error);
   if (impl->dbus_name == NULL)
@@ -198,8 +205,44 @@ load_installed_portals (gboolean opt_verbose)
   implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
 }
 
+static gboolean
+create_dummy_proxy (PortalImplementation  *impl,
+                    GDBusConnection       *connection,
+                    const char            *interface,
+                    GError               **error)
+{
+  g_autoptr(GDBusProxy) proxy = NULL;
+
+  g_debug ("Creating dummy proxy for %s on %s", interface, impl->dbus_name);
+  proxy = g_dbus_proxy_new_sync (connection,
+                                 G_DBUS_PROXY_FLAGS_NONE,
+                                 NULL,
+                                 impl->dbus_name,
+                                 DESKTOP_PORTAL_OBJECT_PATH,
+                                 interface,
+                                 NULL,
+                                 error);
+  if (!proxy)
+    return FALSE;
+
+  if (!g_dbus_proxy_get_name_owner (proxy))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Proxy has no owner");
+      return FALSE;
+    }
+
+  g_debug ("Dummy proxy created");
+
+  g_hash_table_insert (impl->dummy_proxies,
+                       g_strdup (interface),
+                       g_steal_pointer (&proxy));
+  return TRUE;
+}
+
 PortalImplementation *
-find_portal_implementation (const char *interface)
+find_portal_implementation (GDBusConnection *connection,
+                            const char      *interface)
 {
   const char *desktops_str = g_getenv ("XDG_CURRENT_DESKTOP");
   g_auto(GStrv) desktops = NULL;
@@ -216,15 +259,23 @@ find_portal_implementation (const char *interface)
      for (l = implementations; l != NULL; l = l->next)
         {
           PortalImplementation *impl = l->data;
+          g_autoptr(GError) error = NULL;
 
           if (!g_strv_contains ((const char **)impl->interfaces, interface))
             continue;
 
-          if (g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
+          if (!g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
+            continue;
+
+          if (!create_dummy_proxy (impl, connection, interface, &error))
             {
-              g_debug ("Using %s for %s in %s", impl->source, interface, desktops[i]);
-              return impl;
+              g_debug ("Failed to create dummy proxy on %s for %s: %s",
+                       impl->dbus_name, interface, error->message);
+              continue;
             }
+
+          g_debug ("Using %s for %s in %s", impl->source, interface, desktops[i]);
+          return impl;
         }
     }
 
@@ -232,9 +283,17 @@ find_portal_implementation (const char *interface)
   for (l = implementations; l != NULL; l = l->next)
     {
       PortalImplementation *impl = l->data;
+      g_autoptr(GError) error = NULL;
 
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
+
+      if (!create_dummy_proxy (impl, connection, interface, &error))
+        {
+          g_debug ("Failed to create dummy fallback proxy on %s for %s: %s",
+                   impl->dbus_name, interface, error->message);
+          continue;
+        }
 
       g_debug ("Falling back to %s for %s", impl->source, interface);
       return impl;
