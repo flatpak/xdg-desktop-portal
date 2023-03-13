@@ -237,7 +237,8 @@ on_bus_acquired (GDBusConnection *connection,
   init_document_proxy (connection);
   init_permission_store (connection);
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Lockdown");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Lockdown");
   if (implementation != NULL)
     lockdown = xdp_dbus_impl_lockdown_proxy_new_sync (connection,
                                                       G_DBUS_PROXY_FLAGS_NONE,
@@ -259,40 +260,48 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, settings_create (connection, impls));
   g_ptr_array_free (impls, TRUE);
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.FileChooser");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   file_chooser_create (connection, implementation->dbus_name, lockdown));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.AppChooser");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.AppChooser");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   open_uri_create (connection, implementation->dbus_name, lockdown));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Print");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Print");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   print_create (connection, implementation->dbus_name, lockdown));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Notification");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Notification");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   notification_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Inhibit");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Inhibit");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   inhibit_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Access");
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Access");
+  implementation2 = find_portal_implementation (connection,
+                                                "org.freedesktop.impl.portal.Screenshot");
   if (implementation != NULL && implementation2 != NULL)
     export_portal_implementation (connection,
                                   screenshot_create (connection,
                                                      implementation->dbus_name,
                                                      implementation2->dbus_name));
 
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Background");
+  implementation2 = find_portal_implementation (connection,
+                                                "org.freedesktop.impl.portal.Background");
   if (implementation != NULL)
     {
       export_portal_implementation (connection,
@@ -313,47 +322,55 @@ on_bus_acquired (GDBusConnection *connection,
                                                      implementation->dbus_name,
                                                      implementation2->dbus_name));
 
-  implementation2 = find_portal_implementation ("org.freedesktop.impl.portal.Wallpaper");
+  implementation2 = find_portal_implementation (connection,
+                                                "org.freedesktop.impl.portal.Wallpaper");
   if (implementation != NULL && implementation2 != NULL)
     export_portal_implementation (connection,
                                   wallpaper_create (connection,
                                                     implementation->dbus_name,
                                                     implementation2->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Account");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   account_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Email");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Email");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   email_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Secret");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.Secret");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   secret_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.GlobalShortcuts");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.GlobalShortcuts");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   global_shortcuts_create (connection, implementation->dbus_name));
 
 #ifdef HAVE_GLIB_2_66
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.DynamicLauncher");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.DynamicLauncher");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   dynamic_launcher_create (connection, implementation->dbus_name));
 #endif
 
 #ifdef HAVE_PIPEWIRE
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.ScreenCast");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   screen_cast_create (connection, implementation->dbus_name));
 
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.RemoteDesktop");
+  implementation = find_portal_implementation (connection,
+                                               "org.freedesktop.impl.portal.RemoteDesktop");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   remote_desktop_create (connection, implementation->dbus_name));
