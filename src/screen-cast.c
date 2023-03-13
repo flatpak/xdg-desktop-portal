@@ -26,18 +26,19 @@
 #include "screen-cast.h"
 #include "remote-desktop.h"
 #include "request.h"
+#include "restore-token.h"
 #include "permissions.h"
 #include "pipewire.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define RESTORE_DATA_TYPE "(suv)"
 #define PERMISSION_ITEM(item_id, item_permissions) \
   ((struct pw_permission) { \
     .id = item_id, \
     .permissions = item_permissions \
   })
+#define SCREEN_CAST_TABLE "screencast"
 
 typedef struct _ScreenCast ScreenCast;
 typedef struct _ScreenCastClass ScreenCastClass;
@@ -55,9 +56,6 @@ struct _ScreenCastClass
 static XdpDbusImplScreenCast *impl;
 static int impl_version;
 static ScreenCast *screen_cast;
-
-static GMutex transient_permissions_lock;
-static GHashTable *transient_permissions;
 
 static unsigned int available_cursor_modes = 0;
 
@@ -77,13 +75,6 @@ G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
                          XDP_DBUS_TYPE_SCREEN_CAST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREEN_CAST,
                                                 screen_cast_iface_init))
-
-typedef enum _PersistMode
-{
-  PERSIST_MODE_NONE = 0,
-  PERSIST_MODE_TRANSIENT = 1,
-  PERSIST_MODE_PERSISTENT = 2,
-} PersistMode;
 
 typedef enum _ScreenCastSessionState
 {
@@ -116,143 +107,11 @@ GType screen_cast_session_get_type (void);
 
 G_DEFINE_TYPE (ScreenCastSession, screen_cast_session, session_get_type ())
 
-static void
-set_persistent_permissions (const char *app_id,
-                            const char *restore_token,
-                            GVariant *restore_data)
-{
-  g_autoptr(GError) error = NULL;
-
-  set_permission_sync (app_id, "screencast", restore_token, PERMISSION_YES);
-
-  if (!xdp_dbus_impl_permission_store_call_set_value_sync (get_permission_store (),
-                                                           "screencast",
-                                                           TRUE,
-                                                           restore_token,
-                                                           g_variant_new_variant (restore_data),
-                                                           NULL,
-                                                           &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Error setting permission store value: %s", error->message);
-    }
-}
-
-static GVariant *
-get_persistent_permissions (const char *app_id,
-                            const char *restore_token)
-{
-  g_autoptr(GVariant) perms = NULL;
-  g_autoptr(GVariant) data = NULL;
-  g_autoptr(GError) error = NULL;
-  const char **permissions;
-
-  if (!xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
-                                                        "screencast",
-                                                        restore_token,
-                                                        &perms,
-                                                        &data,
-                                                        NULL,
-                                                        &error))
-    {
-      return NULL;
-    }
-
-  if (!perms || !g_variant_lookup (perms, app_id, "^a&s", &permissions))
-    return NULL;
-
-  if (!data)
-    return NULL;
-
-  return g_variant_get_child_value (data, 0);
-}
-
-void
-delete_persistent_permissions (const char *app_id,
-                               const char *restore_token)
-{
-
-  g_autoptr(GError) error = NULL;
-
-  if (!xdp_dbus_impl_permission_store_call_delete_sync (get_permission_store (),
-                                                        "screencast",
-                                                        restore_token,
-                                                        NULL,
-                                                        &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Error deleting permission: %s", error->message);
-    }
-}
-
-static void
-set_transient_permissions (const char *sender,
-                           const char *restore_token,
-                           GVariant *restore_data)
-{
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
-
-  if (!transient_permissions)
-    {
-      transient_permissions = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                                     g_free, (GDestroyNotify)g_variant_unref);
-    }
-
-  g_hash_table_insert (transient_permissions,
-                       g_strdup_printf ("%s/%s", sender, restore_token),
-                       g_variant_ref (restore_data));
-}
-
-static GVariant *
-get_transient_permissions (const char *sender,
-                           const char *restore_token)
-{
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
-  g_autofree char *id = NULL;
-  GVariant *permissions;
-
-  if (!transient_permissions)
-    return NULL;
-
-  id = g_strdup_printf ("%s/%s", sender, restore_token);
-  permissions = g_hash_table_lookup (transient_permissions, id);
-  return permissions ? g_variant_ref (permissions) : NULL;
-}
-
-static void
-delete_transient_permissions (const char *sender,
-                              const char *restore_token)
-{
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
-  g_autofree char *id = NULL;
-
-  if (!transient_permissions)
-    return;
-
-  id = g_strdup_printf ("%s/%s", sender, restore_token);
-  g_hash_table_remove (transient_permissions, id);
-}
 
 void
 screen_cast_remove_transient_permissions_for_sender (const char *sender)
 {
-  g_autoptr(GMutexLocker) locker = NULL;
-  GHashTableIter iter;
-  const char *key;
-
-  locker = g_mutex_locker_new (&transient_permissions_lock);
-
-  if (!transient_permissions)
-    return;
-
-  g_hash_table_iter_init (&iter, transient_permissions);
-  while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL))
-    {
-      g_auto(GStrv) split = g_strsplit (key, "/", 2);
-
-      if (split && split[0] && g_strcmp0 (split[0], sender) == 0)
-        g_hash_table_iter_remove (&iter);
-    }
+  remove_transient_permissions_for_sender (sender);
 }
 
 static gboolean
@@ -577,108 +436,69 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
 };
 
 static gboolean
-replace_restore_token_with_data (Session *session,
-                                 GVariant **in_out_options,
-                                 GError **error)
+variant_contains_key (GVariant *dictionary,
+                      const char *key)
 {
-  GVariantBuilder options_builder;
+  GVariantIter iter;
+
+  g_variant_iter_init (&iter, dictionary);
+  while (TRUE)
+    {
+      g_autoptr(GVariant) entry = NULL;
+      g_autoptr(GVariant) entry_key = NULL;
+
+      entry = g_variant_iter_next_value (&iter);
+      if (!entry)
+        break;
+
+      entry_key = g_variant_get_child_value (entry, 0);
+      if (g_strcmp0 (g_variant_get_string (entry_key, NULL), key) == 0)
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
+replace_screen_cast_restore_token_with_data (Session *session,
+                                             GVariant **in_out_options,
+                                             GError **error)
+{
   g_autoptr(GVariant) options = NULL;
   PersistMode persist_mode;
-  gsize i;
 
   options = *in_out_options;
 
   if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
     persist_mode = PERSIST_MODE_NONE;
 
-  if (is_remote_desktop_session (session) && persist_mode != PERSIST_MODE_NONE)
+  if (is_remote_desktop_session (session))
     {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Remote desktop sessions cannot persist");
-      return FALSE;
+      if (persist_mode != PERSIST_MODE_NONE ||
+          variant_contains_key (options, "restore_token"))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Remote desktop sessions cannot persist");
+          return FALSE;
+        }
     }
 
   if (is_screen_cast_session (session))
     {
       ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+
       screen_cast_session->persist_mode = persist_mode;
+      replace_restore_token_with_data (session,
+                                       SCREEN_CAST_TABLE,
+                                       in_out_options,
+                                       &screen_cast_session->restore_token);
     }
-
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
-  for (i = 0; i < G_N_ELEMENTS (screen_cast_select_sources_options); i++)
+  else
     {
-      g_autoptr(GVariant) value = NULL;
-
-      value = g_variant_lookup_value (options,
-                                      screen_cast_select_sources_options[i].key,
-                                      screen_cast_select_sources_options[i].type);
-
-      if (!value)
-        continue;
-
-      if (g_strcmp0 (screen_cast_select_sources_options[i].key, "restore_token") == 0)
-        {
-          ScreenCastSession *screen_cast_session;
-          g_autoptr(GVariant) restore_data = NULL;
-          g_autofree char *restore_token = NULL;
-
-          if (is_remote_desktop_session (session))
-            {
-              g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                           "Remote desktop sessions cannot be restored");
-              return FALSE;
-            }
-
-          restore_token = g_variant_dup_string (value, NULL);
-
-          /* Lookup permissions in memory first, and fallback to the permission
-           * store if not found. Immediately delete them now as a safety measure,
-           * since they'll be stored again when the session is closed.
-           *
-           * Notice that transient mode uses the sender name, whereas persistent
-           * mode uses the app id.
-           */
-          restore_data = get_transient_permissions (session->sender, restore_token);
-          if (restore_data)
-            {
-              delete_transient_permissions (session->sender, restore_token);
-            }
-          else
-            {
-              restore_data = get_persistent_permissions (session->app_id, restore_token);
-              if (restore_data)
-                delete_persistent_permissions (session->app_id, restore_token);
-            }
-
-          if (!restore_data)
-            continue;
-
-          if (!g_variant_check_format_string (restore_data, RESTORE_DATA_TYPE, FALSE))
-            {
-              g_warning ("Restore data was stored with the wrong format, ignoring");
-              continue;
-            }
-
-          /* Only store the restore token after checking if it exists, otherwise
-           * apps can pass random UUIDs and yet predict what the next token will
-           * be.
-           */
-          g_assert (is_screen_cast_session (session));
-          screen_cast_session = (ScreenCastSession *)session;
-          screen_cast_session->restore_token = g_steal_pointer (&restore_token);
-
-          g_debug ("Replacing 'restore_token' with portal-specific data");
-          g_variant_builder_add (&options_builder, "{sv}", "restore_data", restore_data);
-        }
-      else
-        {
-          g_variant_builder_add (&options_builder, "{sv}",
-                                 screen_cast_select_sources_options[i].key,
-                                 g_steal_pointer (&value));
-        }
+      *in_out_options = g_steal_pointer (&options);
     }
-
-  *in_out_options = g_variant_builder_end (&options_builder);
 
   return TRUE;
 }
@@ -794,7 +614,7 @@ handle_select_sources (XdpDbusScreenCast *object,
    * permission store and / or the GHashTable with transient permissions.
    * Portal implementations do not have access to the restore token.
    */
-  if (!replace_restore_token_with_data (session, &options, &error))
+  if (!replace_screen_cast_restore_token_with_data (session, &options, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -938,111 +758,15 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
 }
 
 static void
-generate_and_save_restore_token (ScreenCastSession *screen_cast_session)
+replace_restore_screen_cast_data_with_token (ScreenCastSession *screen_cast_session,
+                                             GVariant **in_out_results)
 {
-  Session *session = (Session *)screen_cast_session;
-
-  if (!screen_cast_session->restore_data)
-    {
-      if (screen_cast_session->restore_token)
-        {
-          delete_persistent_permissions (session->app_id, screen_cast_session->restore_token);
-          delete_transient_permissions (session->sender, screen_cast_session->restore_token);
-        }
-
-      g_clear_pointer (&screen_cast_session->restore_token, g_free);
-      return;
-    }
-
-  switch (screen_cast_session->persist_mode)
-    {
-    case PERSIST_MODE_NONE:
-      if (screen_cast_session->restore_token)
-        {
-          delete_persistent_permissions (session->app_id, screen_cast_session->restore_token);
-          delete_transient_permissions (session->sender, screen_cast_session->restore_token);
-        }
-
-      g_clear_pointer (&screen_cast_session->restore_token, g_free);
-      g_clear_pointer (&screen_cast_session->restore_data, g_variant_unref);
-      break;
-
-    case PERSIST_MODE_TRANSIENT:
-      if (screen_cast_session->restore_token == NULL)
-        screen_cast_session->restore_token = g_uuid_string_random ();
-
-      set_transient_permissions (session->sender,
-                                 screen_cast_session->restore_token,
-                                 screen_cast_session->restore_data);
-      break;
-
-    case PERSIST_MODE_PERSISTENT:
-      if (screen_cast_session->restore_token == NULL)
-        screen_cast_session->restore_token = g_uuid_string_random ();
-
-      set_persistent_permissions (session->app_id,
-                                  screen_cast_session->restore_token,
-                                  screen_cast_session->restore_data);
-
-      break;
-    }
-}
-
-static void
-replace_restore_data_by_token (ScreenCastSession *screen_cast_session,
-                               GVariant **in_out_results)
-{
-  g_autoptr(GVariant) results = *in_out_results;
-  GVariantBuilder results_builder;
-  GVariantIter iter;
-  const char *key;
-  GVariant *value;
-  gboolean found_restore_data = FALSE;
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
-
-  g_variant_iter_init (&iter, results);
-  while (g_variant_iter_next (&iter, "{&sv}", &key, &value))
-    {
-      if (g_strcmp0 (key, "restore_data") == 0)
-        {
-          if (g_variant_check_format_string (value, RESTORE_DATA_TYPE, FALSE))
-            {
-              screen_cast_session->restore_data = g_variant_ref_sink (value);
-              found_restore_data = TRUE;
-            }
-          else
-            {
-              g_warning ("Received restore data in invalid variant format ('%s'; expected '%s')",
-                         g_variant_get_type_string (value),
-                         RESTORE_DATA_TYPE);
-            }
-        }
-      else if (g_strcmp0 (key, "persist_mode") == 0)
-        {
-          screen_cast_session->persist_mode = MIN (screen_cast_session->persist_mode,
-                                                   g_variant_get_uint32 (value));
-        }
-      else
-        {
-          g_variant_builder_add (&results_builder, "{sv}", key, value);
-        }
-    }
-
-  if (found_restore_data)
-    {
-      g_debug ("Replacing restore data received from portal impl with a token");
-
-      generate_and_save_restore_token (screen_cast_session);
-      g_variant_builder_add (&results_builder, "{sv}", "restore_token",
-                             g_variant_new_string (screen_cast_session->restore_token));
-    }
-  else
-    {
-      screen_cast_session->persist_mode = PERSIST_MODE_NONE;
-    }
-
-  *in_out_results = g_variant_builder_end (&results_builder);
+  replace_restore_data_with_token ((Session *) screen_cast_session,
+                                   SCREEN_CAST_TABLE,
+                                   in_out_results,
+                                   &screen_cast_session->persist_mode,
+                                   &screen_cast_session->restore_token,
+                                   &screen_cast_session->restore_data);
 }
 
 static gboolean
@@ -1060,7 +784,8 @@ process_results (ScreenCastSession *screen_cast_session,
     }
 
   screen_cast_session->streams = collect_screen_cast_stream_data (streams_iter);
-  replace_restore_data_by_token (screen_cast_session, in_out_results);
+  replace_restore_screen_cast_data_with_token (screen_cast_session,
+                                               in_out_results);
   return TRUE;
 }
 
@@ -1428,7 +1153,11 @@ screen_cast_session_close (Session *session)
 
   screen_cast_session->state = SCREEN_CAST_SESSION_STATE_CLOSED;
 
-  generate_and_save_restore_token (screen_cast_session);
+  generate_and_save_restore_token (session,
+                                   SCREEN_CAST_TABLE,
+                                   screen_cast_session->persist_mode,
+                                   &screen_cast_session->restore_token,
+                                   &screen_cast_session->restore_data);
 
   g_debug ("screen cast session owned by '%s' closed", session->sender);
 }
