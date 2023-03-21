@@ -43,6 +43,14 @@
           Unknown values should be treated as 0 (no preference).
         </para></listitem>
       </varlistentry>
+      <varlistentry>
+        <term>org.freedesktop.appearance accent-color (ddd)</term>
+        <listitem><para>
+          Indicates the system's preferred accent color as a tuple of RGB values
+          in the sRGB color space, in the range [0,1].
+          Out-of-range RGB values should be treated as an unset accent color.
+        </para></listitem>
+      </varlistentry>
     </variablelist>
 
     Implementations can provide other keys; they are entirely
