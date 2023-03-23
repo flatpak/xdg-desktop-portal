@@ -32,6 +32,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
+#define TRANSIENT_PERMISSION_EXPIRE_TIME_S (24 * 60 * 60)
 #define RESTORE_DATA_TYPE "(suv)"
 #define PERMISSION_ITEM(item_id, item_permissions) \
   ((struct pw_permission) { \
@@ -189,7 +190,22 @@ typedef struct {
   char *sender;
   char *restore_token;
   GVariant *restore_data;
+  guint delete_permission_id;
 } TransientPermissionData;
+
+static void delete_transient_permissions (const char *sender,
+                                          const char *restore_token);
+
+static gboolean
+delete_permission_cb (gpointer user_data)
+{
+  TransientPermissionData *data = user_data;
+
+  data->delete_permission_id = 0;
+  delete_transient_permissions (data->sender, data->restore_token);
+
+  return G_SOURCE_REMOVE;
+}
 
 static TransientPermissionData *
 transient_permission_data_new (const char *sender,
@@ -206,6 +222,10 @@ transient_permission_data_new (const char *sender,
   data->sender = g_strdup (sender);
   data->restore_token = g_strdup (restore_token);
   data->restore_data = g_variant_ref (restore_data);
+  data->delete_permission_id =
+    g_timeout_add_seconds (TRANSIENT_PERMISSION_EXPIRE_TIME_S,
+                           delete_permission_cb,
+                           data);
 
   return g_steal_pointer (&data);
 }
@@ -213,6 +233,7 @@ transient_permission_data_new (const char *sender,
 static void
 transient_permission_data_free (TransientPermissionData *data)
 {
+  g_clear_handle_id (&data->delete_permission_id, g_source_remove);
   g_clear_pointer (&data->sender, g_free);
   g_clear_pointer (&data->restore_token, g_free);
   g_clear_pointer (&data->restore_data, g_variant_unref);

@@ -143,7 +143,7 @@
 
               <simplelist>
                 <member>0: Do not persist (default)</member>
-                <member>1: Permissions persist as long as the application is running</member>
+                <member>1: Permissions persist as long as the application is running, and for a maximum of 24 hours</member>
                 <member>2: Permissions persist until explicitly revoked</member>
               </simplelist>
 
