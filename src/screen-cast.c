@@ -32,6 +32,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
+#define TRANSIENT_PERMISSION_EXPIRE_TIME_S (24 * 60 * 60)
 #define RESTORE_DATA_TYPE "(suv)"
 #define PERMISSION_ITEM(item_id, item_permissions) \
   ((struct pw_permission) { \
@@ -185,22 +186,80 @@ delete_persistent_permissions (const char *app_id,
     }
 }
 
+typedef struct {
+  char *sender;
+  char *restore_token;
+  GVariant *restore_data;
+  guint delete_permission_id;
+} TransientPermissionData;
+
+static void delete_transient_permissions (const char *sender,
+                                          const char *restore_token);
+
+static gboolean
+delete_permission_cb (gpointer user_data)
+{
+  TransientPermissionData *data = user_data;
+
+  data->delete_permission_id = 0;
+  delete_transient_permissions (data->sender, data->restore_token);
+
+  return G_SOURCE_REMOVE;
+}
+
+static TransientPermissionData *
+transient_permission_data_new (const char *sender,
+                               const char *restore_token,
+                               GVariant   *restore_data)
+{
+  TransientPermissionData *data;
+
+  g_assert (sender != NULL);
+  g_assert (restore_token != NULL);
+  g_assert (restore_data != NULL);
+
+  data = g_new0 (TransientPermissionData, 1);
+  data->sender = g_strdup (sender);
+  data->restore_token = g_strdup (restore_token);
+  data->restore_data = g_variant_ref (restore_data);
+  data->delete_permission_id =
+    g_timeout_add_seconds (TRANSIENT_PERMISSION_EXPIRE_TIME_S,
+                           delete_permission_cb,
+                           data);
+
+  return g_steal_pointer (&data);
+}
+
+static void
+transient_permission_data_free (TransientPermissionData *data)
+{
+  g_clear_handle_id (&data->delete_permission_id, g_source_remove);
+  g_clear_pointer (&data->sender, g_free);
+  g_clear_pointer (&data->restore_token, g_free);
+  g_clear_pointer (&data->restore_data, g_variant_unref);
+  g_clear_pointer (&data, g_free);
+}
+
 static void
 set_transient_permissions (const char *sender,
                            const char *restore_token,
                            GVariant *restore_data)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+  TransientPermissionData *data;
 
   if (!transient_permissions)
     {
       transient_permissions = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                                     g_free, (GDestroyNotify)g_variant_unref);
+                                                     g_free,
+                                                     (GDestroyNotify) transient_permission_data_free);
     }
+
+  data = transient_permission_data_new (sender, restore_token, restore_data);
 
   g_hash_table_insert (transient_permissions,
                        g_strdup_printf ("%s/%s", sender, restore_token),
-                       g_variant_ref (restore_data));
+                       g_steal_pointer (&data));
 }
 
 static GVariant *
@@ -208,15 +267,15 @@ get_transient_permissions (const char *sender,
                            const char *restore_token)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+  TransientPermissionData *data;
   g_autofree char *id = NULL;
-  GVariant *permissions;
 
   if (!transient_permissions)
     return NULL;
 
   id = g_strdup_printf ("%s/%s", sender, restore_token);
-  permissions = g_hash_table_lookup (transient_permissions, id);
-  return permissions ? g_variant_ref (permissions) : NULL;
+  data = g_hash_table_lookup (transient_permissions, id);
+  return data ? g_variant_ref (data->restore_data) : NULL;
 }
 
 static void
@@ -230,7 +289,9 @@ delete_transient_permissions (const char *sender,
     return;
 
   id = g_strdup_printf ("%s/%s", sender, restore_token);
-  g_hash_table_remove (transient_permissions, id);
+
+  if (!g_hash_table_remove (transient_permissions, id))
+    g_warning ("Transient permission not found");
 }
 
 void
