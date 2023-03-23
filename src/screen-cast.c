@@ -268,7 +268,9 @@ delete_transient_permissions (const char *sender,
     return;
 
   id = g_strdup_printf ("%s/%s", sender, restore_token);
-  g_hash_table_remove (transient_permissions, id);
+
+  if (!g_hash_table_remove (transient_permissions, id))
+    g_warning ("Transient permission not found");
 }
 
 void
