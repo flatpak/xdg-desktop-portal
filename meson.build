@@ -97,7 +97,7 @@ foreach h : check_headers
   config_h.set(h.get(1), cc.has_header(h.get(0)))
 endforeach
 
-glib_dep = dependency('glib-2.0')
+glib_dep = dependency('glib-2.0', version: '>= 2.56')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
 json_glib_dep = dependency('json-glib-1.0')
