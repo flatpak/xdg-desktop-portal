@@ -97,7 +97,7 @@ foreach h : check_headers
   config_h.set(h.get(1), cc.has_header(h.get(0)))
 endforeach
 
-glib_dep = dependency('glib-2.0')
+glib_dep = dependency('glib-2.0', version: '>= 2.66')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
 json_glib_dep = dependency('json-glib-1.0')
@@ -115,18 +115,6 @@ libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
 bwrap_required = host_machine.system() in ['linux']
 bwrap = find_program('bwrap', required: bwrap_required)
-
-if glib_dep.version().version_compare('>= 2.60')
-  config_h.set(
-    'GLIB_VERSION_MIN_REQUIRED',
-    'GLIB_VERSION_2_60',
-    description: 'Ignore massive GTimeVal deprecation warnings in 2.62',
-  )
-endif
-
-if glib_dep.version().version_compare('>= 2.66')
-  config_h.set('HAVE_GLIB_2_66', 1)
-endif
 
 have_libportal = libportal_dep.found()
 if have_libportal
@@ -147,6 +135,8 @@ have_libsystemd = libsystemd_dep.found()
 if have_libsystemd
   config_h.set('HAVE_LIBSYSTEMD', 1)
 endif
+
+add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66'], language: 'c')
 
 build_docbook = false
 xmlto = find_program('xmlto', required: get_option('docbook-docs'))
