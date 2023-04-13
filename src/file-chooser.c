@@ -523,6 +523,9 @@ handle_open_file (XdpDbusFileChooser *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+/* Note that current_file is intentionally left out here.
+ * It is handled separately below
+ */
 static XdpOptionKey save_file_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING, NULL },
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
@@ -530,7 +533,6 @@ static XdpOptionKey save_file_options[] = {
   { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
   { "current_name", G_VARIANT_TYPE_STRING, NULL },
   { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
-  { "current_file", G_VARIANT_TYPE_BYTESTRING, NULL },
   { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices  }
 };
 
@@ -562,6 +564,40 @@ save_file_done (GObject *source,
   task = g_task_new (NULL, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, send_response_in_thread_func);
+}
+
+/* Calling Lookup on a nonexisting path does not work, so we
+ * pull the doc id out of the path manually.
+ */
+static gboolean
+looks_like_document_portal_path (const char *path, char **guessed_docid)
+{
+  const char *prefix = "/run/user/";
+  char *docid;
+  char *p, *q;
+
+  if (!g_str_has_prefix (path, prefix))
+    return FALSE;
+
+  p = strstr (path, "/doc/");
+  if (!p)
+    return FALSE;
+
+  p += strlen ("/doc/");
+  q = strchr (p, '/');
+  if (q)
+    docid = g_strndup (p, q - p);
+  else
+    docid = g_strdup (p);
+
+  if (docid[0] == '\0')
+    {
+      g_free (docid);
+      return FALSE;
+    }
+
+  *guessed_docid = docid;
+  return TRUE;
 }
 
 static gboolean
@@ -599,6 +635,35 @@ handle_save_file (XdpDbusFileChooser *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
+
+  {
+    g_autoptr(GVariant) value = g_variant_lookup_value (arg_options,
+                                                        "current_file",
+                                                        G_VARIANT_TYPE_BYTESTRING);
+
+    if (value)
+      {
+        const char *path = g_variant_get_bytestring (value);
+        g_autofree char *host_path = get_real_path_for_doc_path (path, request->app_info);
+        g_autofree char *doc_id = NULL;
+
+        if (strcmp (path, host_path) == 0 &&
+            looks_like_document_portal_path (path, &doc_id))
+          {
+            char *real_path = get_real_path_for_doc_id (doc_id);
+
+            if (real_path)
+              {
+                g_free (host_path);
+                host_path = real_path;
+              }
+          }
+
+        g_debug ("SaveFile: translating current_file value '%s' to host path '%s'", path, host_path);
+
+        g_variant_builder_add (&options, "{sv}", "current_file", g_variant_new_bytestring (host_path));
+      }
+  }
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
