@@ -67,8 +67,8 @@ xdp_mkstempat (int    dir_fd,
   static const char letters[] =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
   static const int NLETTERS = sizeof (letters) - 1;
-  glong value;
-  GTimeVal tv;
+  gint64 value;
+  gint64 current_time;
   static int counter = 0;
 
   g_return_val_if_fail (tmpl != NULL, -1);
@@ -83,12 +83,12 @@ xdp_mkstempat (int    dir_fd,
     }
 
   /* Get some more or less random data.  */
-  g_get_current_time (&tv);
-  value = (tv.tv_usec ^ tv.tv_sec) + counter++;
+  current_time = g_get_real_time ();
+  value = ((current_time % G_USEC_PER_SEC) ^ (current_time / G_USEC_PER_SEC)) + counter++;
 
   for (count = 0; count < 100; value += 7777, ++count)
     {
-      glong v = value;
+      gint64 v = value;
 
       /* Fill in the random bits.  */
       XXXXXX[0] = letters[v % NLETTERS];
