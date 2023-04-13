@@ -208,22 +208,42 @@ get_real_path_for_doc_path (const char *path,
   g_autofree char *doc_id = NULL;
   gboolean ret = FALSE;
   char *real_path = NULL;
+  GError *error = NULL;
 
   if (xdp_app_info_is_host (app_info))
     return g_strdup (path);
 
-  ret = xdp_dbus_documents_call_lookup_sync (documents, path, &doc_id,
-                                             NULL, NULL);
+  ret = xdp_dbus_documents_call_lookup_sync (documents, path, &doc_id, NULL, &error);
   if (!ret)
-    return g_strdup (path);
+    {
+      g_debug ("document portal error for path '%s': %s", path, error->message);
+      g_error_free (error);
+      return g_strdup (path);
+    }
 
   if (!g_strcmp0 (doc_id, ""))
-    return g_strdup (path);
+    {
+      g_debug ("document portal returned empty doc id for path '%s'", path);
+      return g_strdup (path);
+    }
 
-  ret = xdp_dbus_documents_call_info_sync (documents, doc_id, &real_path,
-                                           NULL, NULL, NULL);
+  return get_real_path_for_doc_id (doc_id);
+}
+
+char *
+get_real_path_for_doc_id (const char *doc_id)
+{
+  gboolean ret = FALSE;
+  char *real_path = NULL;
+  GError *error = NULL;
+
+  ret = xdp_dbus_documents_call_info_sync (documents, doc_id, &real_path, NULL, NULL, &error);
   if (!ret)
-    return g_strdup (path);
+    {
+      g_debug ("document portal error for doc id '%s': %s", doc_id, error->message);
+      g_error_free (error);
+      return NULL;
+    }
 
   return real_path;
 }

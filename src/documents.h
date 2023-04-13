@@ -39,3 +39,5 @@ char *register_document (const char *uri,
 
 char *get_real_path_for_doc_path (const char *path,
                                   XdpAppInfo *app_info);
+
+char *get_real_path_for_doc_id (const char *doc_id);
