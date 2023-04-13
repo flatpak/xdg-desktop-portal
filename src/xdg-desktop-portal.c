@@ -340,12 +340,10 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   global_shortcuts_create (connection, implementation->dbus_name));
 
-#ifdef HAVE_GLIB_2_66
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.DynamicLauncher");
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   dynamic_launcher_create (connection, implementation->dbus_name));
-#endif
 
 #ifdef HAVE_PIPEWIRE
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");

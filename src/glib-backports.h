@@ -23,28 +23,6 @@
 
 #include <gio/gio.h>
 
-#ifndef G_DBUS_METHOD_INVOCATION_HANDLED
-#define G_DBUS_METHOD_INVOCATION_HANDLED TRUE
-#define G_DBUS_METHOD_INVOCATION_UNHANDLED FALSE
-#endif
-
-#if !GLIB_CHECK_VERSION (2, 58, 0)
-static inline gboolean
-g_hash_table_steal_extended (GHashTable    *hash_table,
-                             gconstpointer  lookup_key,
-                             gpointer      *stolen_key,
-                             gpointer      *stolen_value)
-{
-  if (g_hash_table_lookup_extended (hash_table, lookup_key, stolen_key, stolen_value))
-    {
-      g_hash_table_steal (hash_table, lookup_key);
-      return TRUE;
-    }
-  else
-      return FALSE;
-}
-#endif
-
 #if !GLIB_CHECK_VERSION (2, 68, 0)
 guint g_string_replace (GString     *string,
                         const gchar *find,

@@ -20,8 +20,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_GLIB_2_66
-
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
@@ -1051,5 +1049,3 @@ dynamic_launcher_create (GDBusConnection *connection,
 
   return G_DBUS_INTERFACE_SKELETON (dynamic_launcher);
 }
-
-#endif /* HAVE_GLIB_2_66 */
