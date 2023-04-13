@@ -508,13 +508,14 @@ gvdb_table_get_content (GHashTable     *table,
   FileBuilder *fb;
   GString *str;
   GBytes *res;
+  gsize len;
 
   fb = file_builder_new (byteswap);
   file_builder_add_hash (fb, table, &root);
   str = file_builder_serialise (fb, root);
 
-  res = g_bytes_new_take (str->str, str->len);
-  g_string_free (str, FALSE);
+  len = str->len;
+  res = g_bytes_new_take (g_string_free (str, FALSE), len);
 
   return res;
 }
