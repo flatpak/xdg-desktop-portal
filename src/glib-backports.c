@@ -5,6 +5,7 @@
  * Copyright © 2021 Nelson Ben
  * Copyright © 2021 Peter Bloomfield
  * Copyright © 2021 Collabora Ltd.
+ * Copyright 2023 Igalia
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

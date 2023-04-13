@@ -20,8 +20,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_GLIB_2_66
-
 #include <glib.h>
 #include <gio/gdesktopappinfo.h>
 
@@ -272,15 +270,12 @@ migrate_renamed_app_launchers (void)
 
   return success;
 }
-#endif /* HAVE_GLIB_2_66 */
 
 int
 main (int argc, char *argv[])
 {
-/* The dynamic launcher portal is only compiled against GLib >= 2.66 */
-#ifdef HAVE_GLIB_2_66
   if (!migrate_renamed_app_launchers ())
     return 1;
-#endif
+
   return 0;
 }
