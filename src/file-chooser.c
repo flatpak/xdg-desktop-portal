@@ -570,7 +570,8 @@ save_file_done (GObject *source,
  * pull the doc id out of the path manually.
  */
 static gboolean
-looks_like_document_portal_path (const char *path, char **guessed_docid)
+looks_like_document_portal_path (const char *path,
+                                 char **guessed_docid)
 {
   const char *prefix = "/run/user/";
   char *docid;
