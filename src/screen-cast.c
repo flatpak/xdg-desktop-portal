@@ -349,7 +349,7 @@ select_sources_done (GObject *source_object,
 }
 
 static gboolean
-validate_device_types (const char *key,
+validate_source_types (const char *key,
                        GVariant *value,
                        GVariant *options,
                        GError **error)
@@ -428,7 +428,7 @@ validate_persist_mode (const char *key,
 }
 
 static XdpOptionKey screen_cast_select_sources_options[] = {
-  { "types", G_VARIANT_TYPE_UINT32, validate_device_types },
+  { "types", G_VARIANT_TYPE_UINT32, validate_source_types },
   { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "cursor_mode", G_VARIANT_TYPE_UINT32, validate_cursor_mode },
   { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
