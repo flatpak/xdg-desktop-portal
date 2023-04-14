@@ -111,7 +111,7 @@
           </varlistentry>
         </variablelist>
 
-        For available source types, see the AvailableDeviceTypes property.
+        For available device types, see the AvailableDeviceTypes property.
     -->
     <method name="SelectDevices">
       <arg type="o" name="session_handle" direction="in"/>
