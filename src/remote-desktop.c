@@ -21,6 +21,7 @@
 #include "remote-desktop.h"
 #include "screen-cast.h"
 #include "request.h"
+#include "restore-token.h"
 #include "pipewire.h"
 #include "call.h"
 #include "session.h"
@@ -30,6 +31,8 @@
 
 #include <gio/gunixfdlist.h>
 #include <stdint.h>
+
+#define REMOTE_DESKTOP_TABLE "remote-desktop"
 
 typedef struct _RemoteDesktop RemoteDesktop;
 typedef struct _RemoteDesktopClass RemoteDesktopClass;
@@ -91,6 +94,10 @@ typedef struct _RemoteDesktopSession
   gboolean clipboard_enabled;
 
   gboolean uses_eis;
+
+  char *restore_token;
+  PersistMode persist_mode;
+  GVariant *restore_data;
 } RemoteDesktopSession;
 
 typedef struct _RemoteDesktopSessionClass
@@ -423,9 +430,74 @@ validate_device_types (const char *key,
   return TRUE;
 }
 
+static gboolean
+validate_restore_token (const char *key,
+                        GVariant *value,
+                        GVariant *options,
+                        GError **error)
+{
+  const char *restore_token = g_variant_get_string (value, NULL);
+
+  if (!g_uuid_string_is_valid (restore_token))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Restore token is not a valid UUID string");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+validate_persist_mode (const char *key,
+                       GVariant *value,
+                       GVariant *options,
+                       GError **error)
+{
+  uint32_t mode = g_variant_get_uint32 (value);
+
+  if (mode > PERSIST_MODE_PERSISTENT)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid persist mode %x", mode);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey remote_desktop_select_devices_options[] = {
   { "types", G_VARIANT_TYPE_UINT32, validate_device_types },
+  { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
+  { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
 };
+
+static gboolean
+replace_remote_desktop_restore_token_with_data (Session *session,
+                                                GVariant **in_out_options,
+                                                GError **error)
+{
+  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *) session;
+  g_autoptr(GVariant) options = NULL;
+  PersistMode persist_mode;
+
+  options = *in_out_options;
+
+  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+    persist_mode = PERSIST_MODE_NONE;
+
+  remote_desktop_session->persist_mode = persist_mode;
+  replace_restore_token_with_data (session,
+                                   REMOTE_DESKTOP_TABLE,
+                                   in_out_options,
+                                   &remote_desktop_session->restore_token);
+
+  return TRUE;
+}
 
 static gboolean
 handle_select_devices (XdpDbusRemoteDesktop *object,
@@ -439,6 +511,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
+  GVariant *options;
 
   REQUEST_AUTOLOCK (request);
 
@@ -490,6 +563,18 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
+  options = g_variant_builder_end (&options_builder);
+
+  /* If 'restore_token' is passed, lookup the corresponding data in the
+   * permission store and / or the GHashTable with transient permissions.
+   * Portal implementations do not have access to the restore token.
+   */
+  if (!replace_remote_desktop_restore_token_with_data (session, &options, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
                            g_object_ref (session),
@@ -499,7 +584,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
                                                     request->id,
                                                     arg_session_handle,
                                                     xdp_app_info_get_id (request->app_info),
-                                                    g_variant_builder_end (&options_builder),
+                                                    options,
                                                     NULL,
                                                     select_devices_done,
                                                     g_object_ref (request));
@@ -509,12 +594,25 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static void
+replace_restore_remote_desktop_data_with_token (RemoteDesktopSession *remote_desktop_session,
+                                                GVariant **in_out_results)
+{
+  replace_restore_data_with_token ((Session *) remote_desktop_session,
+                                   REMOTE_DESKTOP_TABLE,
+                                   in_out_results,
+                                   &remote_desktop_session->persist_mode,
+                                   &remote_desktop_session->restore_token,
+                                   &remote_desktop_session->restore_data);
+}
+
 static gboolean
 process_results (RemoteDesktopSession *remote_desktop_session,
-                 GVariant *results,
+                 GVariant **in_out_results,
                  GError **error)
 {
   g_autoptr(GVariantIter) streams_iter = NULL;
+  GVariant *results = *in_out_results;
   uint32_t devices = 0;
   gboolean clipboard_enabled = FALSE;
 
@@ -529,6 +627,9 @@ process_results (RemoteDesktopSession *remote_desktop_session,
 
   if (g_variant_lookup (results, "clipboard_enabled", "b", &clipboard_enabled))
     remote_desktop_session->clipboard_enabled = clipboard_enabled;
+
+  replace_restore_remote_desktop_data_with_token (remote_desktop_session,
+                                                  in_out_results);
 
   return TRUE;
 }
@@ -569,7 +670,7 @@ start_done (GObject *source_object,
     {
       if (response == 0)
         {
-          if (!process_results (remote_desktop_session, results, &error))
+          if (!process_results (remote_desktop_session, &results, &error))
             {
               g_warning ("Could not start remote desktop session: %s",
                          error->message);
