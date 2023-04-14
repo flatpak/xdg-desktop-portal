@@ -105,6 +105,9 @@
         @response: Numeric response
         @results: Vardict with the results of the call
 
+        Start the remote desktop session. This will typically result the portal
+        presenting a dialog.
+
         Supported keys in the @options vardict include:
         <variablelist>
           <varlistentry>
@@ -134,9 +137,21 @@
               Since version 2.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>streams a(ua{sv})</term>
+            <listitem><para>
+              Equivalent to the streams entry documented in
+              #org.freedesktop.impl.portal.ScreenCast.Start.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>devices u</term>
+            <listitem><para>
+              The device types that can be used for remote control. See the
+              AvailableDeviceTypes property.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
-
-        Start the remote desktop session.
     -->
     <method name="Start">
       <arg type="o" name="handle" direction="in"/>
