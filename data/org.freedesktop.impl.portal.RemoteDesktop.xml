@@ -61,6 +61,30 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+    <!--
+        SelectDevices:
+        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Configure what the devices remote desktop session should expose.
+
+        Supported keys in the @options vardict include:
+        <variablelist>
+          <varlistentry>
+            <term>types u</term>
+            <listitem><para>
+              Bitmask of what device types to request remote controlling of.
+              Default is all.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+
+        For available device types, see the AvailableDeviceTypes property.
+    -->
     <method name="SelectDevices">
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
