@@ -121,6 +121,8 @@ XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocati
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
                                           XdpPeerDiedCallback    peer_died_cb);
 
+gboolean xdp_variant_contains_key (GVariant *dictionary,
+                                   const char *key);
 
 typedef struct {
   const char *key;
