@@ -81,6 +81,47 @@
               Default is all.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>restore_data (suv)</term>
+            <listitem><para>
+              The data to restore from a previous session.
+            </para>
+            <para>
+              If the stored session cannot be restored, this value is ignored
+              and the user will be prompted normally. This may happen when, for
+              example, the session contains a monitor or a window that is not
+              available anymore, or when the stored permissions are withdrawn.
+            </para>
+            <para>
+              The restore data is composed of the vendor name (e.g. "GNOME" or
+              "KDE"), the version of the implementation-specific private data,
+              and the implementation-specific private data itself.
+            </para>
+            <para>
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>persist_mode u</term>
+            <listitem><para>
+              How this session should persist. Default is 0. Accepted values are:
+            </para>
+            <para>
+              <simplelist>
+                <member>0: Do not persist (default)</member>
+                <member>1: Permissions persist as long as the application is running</member>
+                <member>2: Permissions persist until explicitly revoked</member>
+              </simplelist>
+            </para>
+            <para>
+              If the permission for the session to persist is granted, "restore_data"
+              will be returned via the #org.freedesktop.portal.Request::Response
+              signal of the #org.freedesktop.impl.portal.RemoteDesktop.Start method.
+            </para>
+            <para>
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         For available device types, see the AvailableDeviceTypes property.

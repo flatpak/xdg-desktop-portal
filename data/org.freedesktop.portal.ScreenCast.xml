@@ -133,6 +133,10 @@
               the same session again, use the new restore token sent in response
               to starting this session.
 
+              Setting a restore_token is only allowed for screen cast sessions.
+              Persistent remote desktop screen cast sessions can only be handled
+              via the #org.freedesktop.portal.RemoteDesktop interface.
+
               This option was added in version 4 of this interface.
             </para></listitem>
           </varlistentry>
@@ -147,8 +151,9 @@
                 <member>2: Permissions persist until explicitly revoked</member>
               </simplelist>
 
-              Remote desktop screen cast sessions cannot persist. The only allowed
-              persist_mode for remote desktop sessions is 0.
+              Setting persist_mode is only allowed for screen cast sessions. Persistent
+              remote desktop screen cast sessions can only be handled via the
+              #org.freedesktop.portal.RemoteDesktop interface.
 
               If the permission for the session to persist is granted, a restore token will
               be returned via the #org.freedesktop.portal.Request::Response signal of the
