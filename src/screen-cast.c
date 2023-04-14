@@ -436,30 +436,6 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
 };
 
 static gboolean
-variant_contains_key (GVariant *dictionary,
-                      const char *key)
-{
-  GVariantIter iter;
-
-  g_variant_iter_init (&iter, dictionary);
-  while (TRUE)
-    {
-      g_autoptr(GVariant) entry = NULL;
-      g_autoptr(GVariant) entry_key = NULL;
-
-      entry = g_variant_iter_next_value (&iter);
-      if (!entry)
-        break;
-
-      entry_key = g_variant_get_child_value (entry, 0);
-      if (g_strcmp0 (g_variant_get_string (entry_key, NULL), key) == 0)
-        return TRUE;
-    }
-
-  return FALSE;
-}
-
-static gboolean
 replace_screen_cast_restore_token_with_data (Session *session,
                                              GVariant **in_out_options,
                                              GError **error)
@@ -475,7 +451,7 @@ replace_screen_cast_restore_token_with_data (Session *session,
   if (is_remote_desktop_session (session))
     {
       if (persist_mode != PERSIST_MODE_NONE ||
-          variant_contains_key (options, "restore_token"))
+          xdp_variant_contains_key (options, "restore_token"))
         {
           g_set_error (error,
                        XDG_DESKTOP_PORTAL_ERROR,
