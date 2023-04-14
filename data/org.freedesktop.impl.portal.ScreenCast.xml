@@ -115,9 +115,10 @@
               </simplelist>
             </para>
             <para>
-              If the permission for the session to persist is granted, a restore token will
-              be returned via the #org.freedesktop.portal.Request::Response signal of the
-              #org.freedesktop.portal.ScreenCast.SelectSources method.
+              If the permission for the session to persist is granted,
+              "persist_mode" will be returned via the
+              #org.freedesktop.portal.Request::Response signal of the
+              #org.freedesktop.impl.portal.ScreenCast.Start method.
             </para>
             <para>
               This option was added in version 4 of this interface.
