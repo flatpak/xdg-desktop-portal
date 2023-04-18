@@ -17,6 +17,7 @@ Documentation for the available D-Bus interfaces can be found
 
 xdg-desktop-portal depends on GLib and Flatpak.
 To build the documentation, you will need xmlto and the docbook stylesheets.
+For more instructions, please read [CONTRIBUTING.md][contributing].
 
 ## Using portals
 
@@ -81,3 +82,6 @@ only be passed into portal APIs in one of two forms:
 When it comes to processes, passing pids around is not useful in a sandboxed
 world where apps are likely in their own pid namespace. And passing pids from
 inside the sandbox is problematic, since the app can just lie.
+
+
+[contributing]: https://github.com/flatpak/xdg-desktop-portal/blob/main/CONTRIBUTING.md
