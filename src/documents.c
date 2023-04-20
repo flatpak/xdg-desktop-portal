@@ -207,7 +207,6 @@ get_real_path_for_doc_path (const char *path,
 {
   g_autofree char *doc_id = NULL;
   gboolean ret = FALSE;
-  char *real_path = NULL;
   g_autoptr(GError) error = NULL;
 
   if (xdp_app_info_is_host (app_info))
