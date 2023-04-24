@@ -523,7 +523,7 @@ handle_open_file (XdpDbusFileChooser *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
-/* Note that current_file is intentionally left out here.
+/* Note that current_file and current_folder is intentionally left out here.
  * It is handled separately below
  */
 static XdpOptionKey save_file_options[] = {
@@ -532,8 +532,7 @@ static XdpOptionKey save_file_options[] = {
   { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
   { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
   { "current_name", G_VARIANT_TYPE_STRING, NULL },
-  { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
-  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices  }
+  { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices }
 };
 
 static void
@@ -601,6 +600,22 @@ looks_like_document_portal_path (const char *path,
   return TRUE;
 }
 
+static char *
+get_host_folder_for_doc_id (const char *doc_id)
+{
+  gchar *host_folder = NULL;
+  g_autofree char *real_path = get_real_path_for_doc_id (doc_id);
+  if (real_path)
+    {
+      char *filename = strrchr (real_path, '/');
+      if (filename)
+        host_folder = g_strndup (real_path, filename - real_path);
+      else
+        host_folder = g_strdup (real_path);
+    }
+  return host_folder;
+}
+
 static gboolean
 handle_save_file (XdpDbusFileChooser *object,
                   GDBusMethodInvocation *invocation,
@@ -664,6 +679,29 @@ handle_save_file (XdpDbusFileChooser *object,
 
         g_variant_builder_add (&options, "{sv}", "current_file", g_variant_new_bytestring (host_path));
       }
+  }
+  {
+      g_autoptr(GVariant) value =
+        g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
+
+      if (value)
+        {
+          const char *path_from_app = g_variant_get_bytestring (value);
+          g_autofree char *host_path = g_strdup (path_from_app);
+          g_autofree char *doc_id_from_app = NULL;
+          if (looks_like_document_portal_path (host_path, &doc_id_from_app))
+            {
+              char *real_path = get_host_folder_for_doc_id (doc_id_from_app);
+              if (real_path)
+                {
+                  g_free (host_path);
+                  host_path = real_path;
+                }
+              g_debug ("SaveFile: translating current_folder value '%s' to host path '%s'", path_from_app, host_path);
+            }
+          g_variant_builder_add (&options, "{sv}", "current_folder",
+                                g_variant_new_bytestring (host_path));
+        }
   }
 
   impl_request =
