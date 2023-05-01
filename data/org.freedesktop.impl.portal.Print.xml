@@ -98,6 +98,12 @@
               Whether to make the dialog modal. Defaults to yes.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>accept_label s</term>
+            <listitem><para>
+              Label for the accept button. Mnemonic underlines are allowed.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:
