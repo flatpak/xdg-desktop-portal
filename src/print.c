@@ -100,7 +100,7 @@ print_done (GObject *source,
 
 static XdpOptionKey print_options[] = {
   { "token", G_VARIANT_TYPE_UINT32, NULL },
-  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL }
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
 
 static gboolean
@@ -213,7 +213,8 @@ prepare_print_done (GObject *source,
 }
 
 static XdpOptionKey prepare_print_options[] = {
-  { "modal", G_VARIANT_TYPE_BOOLEAN }
+  { "modal", G_VARIANT_TYPE_BOOLEAN },
+  { "accept_label", G_VARIANT_TYPE_STRING }
 };
 
 static gboolean
