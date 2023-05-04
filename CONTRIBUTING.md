@@ -28,7 +28,7 @@ run:
 
 ```
 $ meson setup . _build
-$ ninja -C _build
+$ meson compile -C _build
 ```
 
 ### Running
