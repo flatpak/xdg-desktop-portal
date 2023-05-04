@@ -1,3 +1,0 @@
-[portal]
-DBusName=org.freedesktop.impl.portal.Limited
-Interfaces=org.freedesktop.impl.portal.FileChooser;org.freedesktop.impl.portal.Screenshot;

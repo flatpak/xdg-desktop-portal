@@ -21,7 +21,6 @@
 
 #include "src/glib-backports.h"
 
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 static GMainLoop *loop;
@@ -59,13 +58,16 @@ on_name_lost (GDBusConnection *connection,
               const gchar     *name,
               gpointer         user_data)
 {
+  g_debug ("%s lost", name);
   g_main_loop_quit (loop);
 }
 
 static gboolean opt_verbose;
 static gboolean opt_replace;
+static char *opt_backend_name;
 
 static GOptionEntry entries[] = {
+  { "backend-name", 0, 0, G_OPTION_ARG_STRING, &opt_backend_name, "The name of the backend on the bus", NULL },
   { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information during command processing", NULL },
   { "replace", 'r', 0, G_OPTION_ARG_NONE, &opt_replace, "Replace a running instance", NULL },
   { NULL }
@@ -120,6 +122,9 @@ main (int argc, char *argv[])
       return 1;
     }
 
+  if (opt_backend_name == NULL)
+    g_error ("You must specify the name of the backend to own on the bus");
+
   g_set_printerr_handler (printerr_handler);
   if (opt_verbose)
     g_log_set_handler (G_LOG_DOMAIN, G_LOG_LEVEL_DEBUG, message_handler, NULL);
@@ -133,8 +138,9 @@ main (int argc, char *argv[])
       return 2;
     }
 
+  g_debug ("Testing backends for '%s'", opt_backend_name);
   owner_id = g_bus_own_name (G_BUS_TYPE_SESSION,
-                             BACKEND_BUS_NAME,
+                             opt_backend_name,
                              G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT | (opt_replace ? G_BUS_NAME_OWNER_FLAGS_REPLACE : 0),
                              on_bus_acquired,
                              on_name_acquired,

@@ -151,6 +151,7 @@ global_setup (void)
   g_mkdtemp (outdir);
   g_debug ("outdir: %s\n", outdir);
 
+  g_setenv ("XDG_CURRENT_DESKTOP", "test", TRUE);
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
 
@@ -190,8 +191,9 @@ global_setup (void)
 
   backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
   argv[0] = backends_executable;
-  argv[1] = g_test_verbose () ? "--verbose" : NULL;
-  argv[2] = NULL;
+  argv[1] = "--backend-name=" BACKEND_BUS_NAME;
+  argv[2] = g_test_verbose () ? "--verbose" : NULL;
+  argv[3] = NULL;
 
   g_debug ("launching test-backend\n");
 
@@ -263,7 +265,7 @@ global_setup (void)
                                           &name_appeared,
                                           NULL);
 
-  portal_dir = g_test_build_filename (G_TEST_DIST, "portals", NULL);
+  portal_dir = g_test_build_filename (G_TEST_DIST, "portals", "test", NULL);
 
   g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);

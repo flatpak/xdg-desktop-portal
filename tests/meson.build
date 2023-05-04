@@ -1,7 +1,6 @@
 env_tests = environment()
 env_tests.set('XDP_UNINSTALLED', '1')
 env_tests.set('XDG_DATA_DIRS', meson.current_build_dir() / 'share')
-env_tests.set('XDG_CURRENT_DESKTOP', 'test')
 env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())
 env_tests.set('G_TEST_BUILDDIR', meson.current_build_dir())
 env_tests.set('G_DEBUG', 'gc-friendly')  # from glib-tap.mk
@@ -132,7 +131,10 @@ test_portals = executable(
   xdp_utils_sources,
   dependencies: [common_deps, libportal_dep, libsystemd_dep],
   include_directories: [common_includes, xdp_utils_includes],
-  c_args: ['-DXDG_DP_BUILDDIR="src"',  '-DXDG_PS_BUILDDIR="document-portal"'],
+  c_args: [
+    '-DXDG_DP_BUILDDIR="src"',
+    '-DXDG_PS_BUILDDIR="document-portal"',
+  ],
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
 )
@@ -147,7 +149,10 @@ limited_portals = executable(
   xdp_utils_sources,
   dependencies: [common_deps, libportal_dep, libsystemd_dep],
   include_directories: [common_includes, xdp_utils_includes],
-  c_args: ['-DXDG_DP_BUILDDIR="src"',  '-DXDG_PS_BUILDDIR="document-portal"'],
+  c_args: [
+    '-DXDG_DP_BUILDDIR="src"',
+    '-DXDG_PS_BUILDDIR="document-portal"',
+  ],
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
 )
@@ -173,13 +178,16 @@ portal_tests = [
   'trash',
   'wallpaper',
 ]
+
+test_env = env_tests
+test_env.set('XDG_CURRENT_DESKTOP', 'test')
 foreach p : portal_tests
     test(
       'test-portals-@0@'.format(p),
       test_portals,
       args: ['--verbose', '--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
       depends: [test_backends, test_portals],
-      env: env_tests,
+      env: test_env,
       is_parallel: false,
       protocol: test_protocol,
       suite: 'portals',
@@ -190,8 +198,8 @@ endforeach
 # easier.
 # Keep in sync with test-portals.c
 portal_limited = [
-  'screenshot',
-  'print',
+  'openfile',
+  'savefile',
 ]
 
 limited_env = env_tests
@@ -200,7 +208,7 @@ foreach p : portal_limited
     test(
       'limited-portals-@0@'.format(p),
       limited_portals,
-      args: ['--verbose', '--keep-going', '--tap', '-p', '/limited-portal/@0@'.format(p)],
+      args: ['--verbose', '--keep-going', '--tap', '-p', '/limited/@0@'.format(p)],
       depends: [test_backends, limited_portals],
       env: limited_env,
       is_parallel: false,
@@ -325,6 +333,19 @@ if enable_installed_tests
       configure_file(
         input: 'template.test.in',
         output: 'test-portals-@0@.test'.format(p),
+        configuration: data,
+        install: true,
+        install_dir: installed_tests_data_dir,
+      )
+  endforeach
+
+  foreach p : portal_limited
+      data = configuration_data()
+      data.set('installed_testdir', installed_tests_dir)
+      data.set('exec', 'test-portals -p /limited/@0@'.format(p))
+      configure_file(
+        input: 'template.test.in',
+        output: 'test-limited-@0@.test'.format(p),
         configuration: data,
         install: true,
         install_dir: installed_tests_data_dir,
