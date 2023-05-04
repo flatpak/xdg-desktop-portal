@@ -1,4 +1,5 @@
-#include <config.h>
+#include "config.h"
+
 #include <string.h>
 #include <locale.h>
 
@@ -39,7 +40,7 @@
 
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
-#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Test"
+#define BACKEND_BUS_NAME "org.freedesktop.impl.portal.Limited"
 #define BACKEND_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 #include "document-portal/permission-store-dbus.h"
@@ -151,6 +152,7 @@ global_setup (void)
   g_mkdtemp (outdir);
   g_debug ("outdir: %s\n", outdir);
 
+  g_setenv ("XDG_CURRENT_DESKTOP", "limited", TRUE);
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
 
@@ -190,8 +192,9 @@ global_setup (void)
 
   backends_executable = g_test_build_filename (G_TEST_BUILT, "test-backends", NULL);
   argv[0] = backends_executable;
-  argv[1] = g_test_verbose () ? "--verbose" : NULL;
-  argv[2] = NULL;
+  argv[1] = "--backend-name=" BACKEND_BUS_NAME;
+  argv[2] = g_test_verbose () ? "--verbose" : NULL;
+  argv[3] = NULL;
 
   g_debug ("launching test-backend\n");
 
@@ -263,7 +266,7 @@ global_setup (void)
                                           &name_appeared,
                                           NULL);
 
-  portal_dir = g_test_build_filename (G_TEST_DIST, "portals", NULL);
+  portal_dir = g_test_build_filename (G_TEST_DIST, "portals", "limited", NULL);
 
   g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
@@ -434,7 +437,6 @@ test_##pp##_does_not_exist (void) \
 }
 
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 3)
-DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 
 DEFINE_TEST_DOES_NOT_EXIST(print, PRINT)
 
@@ -449,16 +451,33 @@ main (int argc, char **argv)
 
   g_test_init (&argc, &argv, NULL);
 
-  g_test_add_func ("/limited-portal/filechooser/exists", test_file_chooser_exists);
-  g_test_add_func ("/limited-portal/screenshot/exists", test_screenshot_exists);
-  g_test_add_func ("/limited-portal/print/does-not-exist", test_print_does_not_exist);
+  g_test_add_func ("/limited/filechooser/exists", test_file_chooser_exists);
+  g_test_add_func ("/limited/print/does-not-exist", test_print_does_not_exist);
 
 #ifdef HAVE_LIBPORTAL
-  g_test_add_func ("/limited-portal/screenshot/basic", test_screenshot_basic);
-  g_test_add_func ("/limited-portal/screenshot/delay", test_screenshot_delay);
-  g_test_add_func ("/limited-portal/screenshot/cancel", test_screenshot_cancel);
-  g_test_add_func ("/limited-portal/screenshot/close", test_screenshot_close);
-  g_test_add_func ("/limited-portal/screenshot/parallel", test_screenshot_parallel);
+  g_test_add_func ("/limited/openfile/basic", test_open_file_basic);
+  g_test_add_func ("/limited/openfile/delay", test_open_file_delay);
+  g_test_add_func ("/limited/openfile/close", test_open_file_close);
+  g_test_add_func ("/limited/openfile/cancel", test_open_file_cancel);
+  g_test_add_func ("/limited/openfile/multiple", test_open_file_multiple);
+  g_test_add_func ("/limited/openfile/filters1", test_open_file_filters1);
+  g_test_add_func ("/limited/openfile/filters2", test_open_file_filters2);
+  g_test_add_func ("/limited/openfile/current_filter1", test_open_file_current_filter1);
+  g_test_add_func ("/limited/openfile/current_filter2", test_open_file_current_filter2);
+  g_test_add_func ("/limited/openfile/current_filter3", test_open_file_current_filter3);
+  g_test_add_func ("/limited/openfile/current_filter4", test_open_file_current_filter4);
+  g_test_add_func ("/limited/openfile/choices1", test_open_file_choices1);
+  g_test_add_func ("/limited/openfile/choices2", test_open_file_choices2);
+  g_test_add_func ("/limited/openfile/choices3", test_open_file_choices3);
+  g_test_add_func ("/limited/openfile/parallel", test_open_file_parallel);
+
+  g_test_add_func ("/limited/savefile/basic", test_save_file_basic);
+  g_test_add_func ("/limited/savefile/delay", test_save_file_delay);
+  g_test_add_func ("/limited/savefile/close", test_save_file_close);
+  g_test_add_func ("/limited/savefile/cancel", test_save_file_cancel);
+  g_test_add_func ("/limited/savefile/filters", test_save_file_filters);
+  g_test_add_func ("/limited/savefile/lockdown", test_save_file_lockdown);
+  g_test_add_func ("/limited/savefile/parallel", test_save_file_parallel);
 #endif
 
   global_setup ();
@@ -471,4 +490,3 @@ main (int argc, char **argv)
 
   return res;
 }
-
