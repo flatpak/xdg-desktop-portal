@@ -523,7 +523,7 @@ handle_open_file (XdpDbusFileChooser *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
-/* Note that current_file and current_folder is intentionally left out here.
+/* Note that current_file and current_folder are intentionally left out here.
  * It is handled separately below
  */
 static XdpOptionKey save_file_options[] = {
@@ -607,11 +607,7 @@ get_host_folder_for_doc_id (const char *doc_id)
   g_autofree char *real_path = get_real_path_for_doc_id (doc_id);
   if (real_path)
     {
-      char *filename = strrchr (real_path, '/');
-      if (filename)
-        host_folder = g_strndup (real_path, filename - real_path);
-      else
-        host_folder = g_strdup (real_path);
+      host_folder = g_path_get_dirname (real_path);
     }
   return host_folder;
 }
