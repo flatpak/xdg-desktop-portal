@@ -391,7 +391,7 @@ class PortalTest(dbusmock.DBusTestCase):
                 f"{xdp_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
             )
 
-        portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals"
+        portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals" / "test"
         if not portal_dir.exists():
             raise FileNotFoundError(
                 f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
