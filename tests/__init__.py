@@ -401,6 +401,7 @@ class PortalTest(dbusmock.DBusTestCase):
         env = os.environ.copy()
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
+        env["XDG_CURRENT_DESKTOP"] = "test"
 
         xdp = subprocess.Popen(argv, env=env)
 
