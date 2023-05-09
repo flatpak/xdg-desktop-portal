@@ -75,6 +75,11 @@ jobs:
         $RUN_CMD apt-get install --quiet -y --no-install-recommends \
           meson
 
+    - name: Install dependencies for the pytest test suite
+      run: |
+        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
+          python3-pytest python3-dbusmock python3-dbus
+
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v3
 
