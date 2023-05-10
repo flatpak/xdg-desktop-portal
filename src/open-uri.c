@@ -681,8 +681,18 @@ handle_open_in_thread_func (GTask *task,
       g_autofree char *path = NULL;
       gboolean fd_is_writable;
       g_autoptr(GError) local_error = NULL;
+      g_autofree char *host_path = NULL;
 
       path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, &fd_is_writable, &local_error);
+
+      host_path = get_real_path_for_doc_path (path, request->app_info);
+      if (host_path)
+        {
+          g_debug ("OpenFile: translating path value '%s' to host path '%s'", path, host_path);
+          g_clear_pointer (&path, g_free);
+          path = g_steal_pointer (&host_path);
+        }
+
       if (path == NULL ||
           (writable && !fd_is_writable) ||
           (!xdp_app_info_is_host (request->app_info) && !writable && fd_is_writable))
