@@ -569,9 +569,12 @@ find_all_portal_implementations (const char *interface)
     {
       PortalImplementation *impl = l->data;
 
-      if (g_strv_contains ((const char **)impl->interfaces, interface))
+      if (!g_strv_contains ((const char **)impl->interfaces, interface))
+        continue;
+
+      if (portal_impl_matches_config (impl, interface))
         {
-          g_debug ("Using %s.portal for %s", impl->source, interface);
+          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           g_ptr_array_add (impls, impl);
         }
     }
