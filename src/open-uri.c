@@ -641,6 +641,25 @@ handle_open_in_thread_func (GTask *task,
 
   if (uri)
     {
+      GError *error = NULL;
+
+      if (!g_uri_is_valid (uri, G_URI_FLAGS_NONE, &error))
+        {
+          g_debug ("Rejecting open request for invalid uri '%s': %s", uri, error->message);
+          g_clear_error (&error);
+
+          /* Reject the request */
+          if (request->exported)
+            {
+              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
+              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                              XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                              g_variant_builder_end (&opts_builder));
+              request_unexport (request);
+            }
+          return;
+        }
+
       resolve_scheme_and_content_type (uri, &scheme, &content_type);
       if (content_type == NULL)
         {
