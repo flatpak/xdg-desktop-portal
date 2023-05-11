@@ -154,18 +154,6 @@ endif
 
 enable_installed_tests = get_option('installed-tests')
 
-summary({
-    'Enable docbook documentation': build_docbook,
-    'Enable pipewire support': have_pipewire,
-    'Enable libsystemd support': have_libsystemd,
-    'Enable geoclue support': have_geoclue,
-    'Enable libportal support': have_libportal,
-    'Enable installed tests:': enable_installed_tests,
-  },
-  section: 'Optional builds',
-  bool_yn: true,
-)
-
 ###### systemd units, dbus service files, pkgconfig
 
 base_config = configuration_data()
@@ -198,3 +186,16 @@ subdir('doc')
 
 ###### generate config.h
 configure_file(output: 'config.h', configuration: config_h)
+
+summary({
+    'Enable docbook documentation': build_docbook,
+    'Enable pipewire support': have_pipewire,
+    'Enable libsystemd support': have_libsystemd,
+    'Enable geoclue support': have_geoclue,
+    'Enable libportal support': have_libportal,
+    'Enable installed tests:': enable_installed_tests,
+    'Enable python test suite': enable_pytest,
+  },
+  section: 'Optional builds',
+  bool_yn: true,
+)

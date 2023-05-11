@@ -265,15 +265,17 @@ test(
   protocol: test_protocol,
 )
 
-pytest = find_program('pytest-3', 'pytest', required: false)
+pytest = find_program('pytest-3', 'pytest', required: get_option('pytest'))
 pymod = import('python')
 python = pymod.find_installation(
   'python3',
   modules: ['dbus', 'dbusmock', 'gi'],
-  required: false,
+  required: get_option('pytest'),
 )
 
-if pytest.found() and python.found()
+enable_pytest = pytest.found() and python.found()
+
+if enable_pytest
   subdir('templates')
   pytest_files = [
     '__init__.py',

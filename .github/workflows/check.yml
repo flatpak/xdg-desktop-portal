@@ -93,7 +93,7 @@ jobs:
         $RUN_CMD $AS_USER meson setup ${BUILDDIR} $MESON_OPTIONS
         $RUN_CMD $AS_USER meson compile -C ${BUILDDIR}
       env:
-        MESON_OPTIONS: -Dinstalled-tests=true -Db_sanitize=${{ matrix.sanitizer }}
+        MESON_OPTIONS: -Dinstalled-tests=true -Dpytest=enabled -Db_sanitize=${{ matrix.sanitizer }}
 
     - name: Run xdg-desktop-portal tests
       run: $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C ${BUILDDIR}

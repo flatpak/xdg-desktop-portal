@@ -42,3 +42,7 @@ option('installed-tests',
         type: 'boolean',
         value: false,
         description: 'Enable installation of some test cases')
+option('pytest',
+        type: 'feature',
+        value: 'auto',
+        description: 'Enable the pytest-based test suite')
