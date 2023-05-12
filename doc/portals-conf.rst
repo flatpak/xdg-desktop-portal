@@ -65,7 +65,7 @@ EXAMPLE
 
 ::
 
-  [portals]
+  [preferred]
   # Use xdg-desktop-portal-gtk for every portal interface...
   default=gtk
   # ... except for the Screencast interface
