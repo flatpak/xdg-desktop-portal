@@ -16,9 +16,9 @@ should be used to provide the implementation for the requested interface.
 
 The configuration file can be found in the following locations:
 
-- ``/etc/xdg-desktop-portals/portals.conf``, for site-wide configuration
+- ``/etc/xdg-desktop-portal/portals.conf``, for site-wide configuration
 
-- ``$XDG_CONFIG_HOME/xdg-desktop-portals/portals.conf``, for user-specific
+- ``$XDG_CONFIG_HOME/xdg-desktop-portal/portals.conf``, for user-specific
   configuration
 
 Additionally, every desktop environment can provide a portal configuration file
