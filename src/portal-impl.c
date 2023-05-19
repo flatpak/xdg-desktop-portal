@@ -503,24 +503,21 @@ find_portal_implementation (const char *interface)
   GList *l;
   int i;
 
-  desktops = get_current_lowercase_desktops ();
-
-  for (i = 0; desktops[i] != NULL; i++)
+  for (l = implementations; l != NULL; l = l->next)
     {
-     for (l = implementations; l != NULL; l = l->next)
+      PortalImplementation *impl = l->data;
+
+      if (!g_strv_contains ((const char **)impl->interfaces, interface))
+        continue;
+
+      if (portal_impl_matches_config (impl, interface))
         {
-          PortalImplementation *impl = l->data;
-
-          if (!g_strv_contains ((const char **)impl->interfaces, interface))
-            continue;
-
-          if (portal_impl_matches_config (impl, interface))
-            {
-              g_debug ("Using %s.portal for %s in %s (config)", impl->source, interface, desktops[i]);
-              return impl;
-            }
+          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
+          return impl;
         }
     }
+
+  desktops = get_current_lowercase_desktops ();
 
   /* Fallback to the old UseIn key */
   for (i = 0; desktops[i] != NULL; i++)
