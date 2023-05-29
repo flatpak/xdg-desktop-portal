@@ -1,6 +1,6 @@
-test_portal = configure_file(input: 'test.portal',
-    output: '@PLAINNAME@',
-    copy: true,
+test_portal = configure_file(input: 'test.portal.in',
+    output: 'test.portal',
+    configuration: test_portal_conf,
     install: enable_installed_tests,
     install_dir: installed_tests_dir / 'portals/test',
 )
