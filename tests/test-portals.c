@@ -265,7 +265,7 @@ global_setup (void)
                                           &name_appeared,
                                           NULL);
 
-  portal_dir = g_test_build_filename (G_TEST_DIST, "portals", "test", NULL);
+  portal_dir = g_test_build_filename (G_TEST_BUILT, "portals", "test", NULL);
 
   g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
