@@ -12,20 +12,20 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2023-02-27 15:33+0000\n"
-"PO-Revision-Date: 2023-02-27 21:41+0300\n"
-"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
+"PO-Revision-Date: 2023-06-06 02:05+0300\n"
+"Last-Translator: Berk Elyesa Yıldırım <beryesa@proton.me>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.3.1\n"
 
 #: src/background.c:741
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr "%s, arka planda çalışsın mı?"
+msgstr "%s, arka planda çalışmasına izin verilsin mi?"
 
 #: src/background.c:745
 #, c-format
@@ -62,7 +62,7 @@ msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Mikrofonunuza erişimi istediğiniz zaman, gizlilik ayarlarından "
+"Mikrofonunuza erişimi, istediğiniz zaman gizlilik ayarlarından "
 "değiştirebilirsiniz."
 
 #: src/device.c:121
@@ -82,7 +82,7 @@ msgstr "Hoparlörler Açılsın Mı?"
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"Hoparlörlerinize erişimi istediğiniz zaman, gizlilik ayarlarından "
+"Hoparlörlerinize erişimi, istediğiniz zaman gizlilik ayarlarından "
 "değiştirebilirsiniz."
 
 #: src/device.c:134
@@ -102,7 +102,7 @@ msgstr "Kamera Açılsın Mı?"
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Kameranıza erişimi istediğiniz zaman, gizlilik ayarlarından "
+"Kameranıza erişimi, istediğiniz zaman gizlilik ayarlarından "
 "değiştirebilirsiniz."
 
 #: src/device.c:147
