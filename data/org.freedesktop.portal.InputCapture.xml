@@ -288,6 +288,55 @@
     </method>
 
     <!--
+        SetGlobalShortcuts:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @shortcuts_session_handle: The session handle of the Globalshortcuts session
+        @shortcuts: An array of shortcut ids that specify the triggering shortcuts
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Set up zero or more global shortcuts that should trigger the start of
+        input capture. Global shortcuts must be defined by
+        org.freedesktop.portal.GlobalShortcuts.BindShortcuts(). See the
+        org.freedesktop.portal.GlobalShortcuts portal for details on how
+        these shortcuts can be triggered and defined.
+
+        After a successful org.freedesktop.portal.InputCapture.Enable() call and
+        when the compositor has deemed the shortcut to be triggered, input events
+        (from compositor-determined input devices) are sent to the application
+        via the transport layer.
+
+        A zero-sized array of shortcuts removes all existing global
+        shortcuts for this session. Otherwise, each entry in the shortcuts
+        array refers to the respective shortcut id as detailed in
+        org.freedesktop.portal.GlobalShortcuts.BindShortcuts().
+
+        If the GlobalShortcuts session is closed, the trigger is silently
+        removed. If org.freedesktop.portal.GlobalShortcuts.BindShortcuts()
+        removes any shortcut specified in this call, the respective
+        shortcut is silently removed as trigger.
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>failed_shortcuts as</term>
+            <listitem><para>
+              An array of shortcut ids of shortcuts that have been denied. The
+              shortcut matches the shortcut id in the shortcuts argument.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+
+    <method name="SetGlobalShortcuts">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="shortcuts_session_handle" direction="in"/>
+      <arg type="as" name="shortcuts" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
         SetEnableTrigger:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @options: Vardict with optional further information
