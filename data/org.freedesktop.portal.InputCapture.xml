@@ -51,7 +51,7 @@
       captured. The transport of actual input events is delegated to a
       transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--
@@ -284,6 +284,47 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="aa{sv}" name="barriers" direction="in"/>
       <arg type="u" name="zone_set" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        SetEnableTrigger:
+        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @options: Vardict with optional further information
+        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+
+        Set up a trigger to allow the application to trigger input capture via
+        the next call to org.freedesktop.portal.InputCapture.Enable().
+        Successfully setting up this trigger merely allows the application
+        to request input capture, it is up to the compositor to determine whether
+        all conditions are met. For example, typically a compositor will not
+        allow an application to capture input unless it is focused.
+
+        Setting up the trigger successfully does not imply that input capture
+        will start or start within any given timeframe.
+
+        This trigger is automatically removed when the session is disabled, either
+        via org.freedesktop.portal.InputCapture.Disable() or via the
+        #org.freedesktop.portal.InputCapture::Disabled signal. An application
+        needs to re-request the trigger fo it to take effect in the future.
+
+        It is an application bug to call this function if the session is
+        currently disabled.
+
+        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        <variablelist>
+          <varlistentry>
+            <term>failed b</term>
+            <listitem><para>
+                If true, this setting up this trigger failed. Otherwise or if missing,
+                setting up the trigger was successful.
+            </para></listitem>
+          </varlistentry>
+        </variablelist>
+    -->
+    <method name="SetEnableTrigger">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
 
