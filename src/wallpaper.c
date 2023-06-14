@@ -222,6 +222,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                                                          &error))
         {
           g_warning ("Failed to show access dialog: %s", error->message);
+          send_response (request, 2);
           return;
         }
 
