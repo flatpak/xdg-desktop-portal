@@ -278,6 +278,7 @@ handle_screenshot_in_thread_func (GTask *task,
                                                          &error))
         {
           g_warning ("Failed to show access dialog: %s", error->message);
+          send_response (request, 2, g_variant_builder_end (&opt_builder));
           return;
         }
 
