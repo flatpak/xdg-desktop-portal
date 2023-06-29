@@ -229,13 +229,22 @@
         </varlistentry>
         <varlistentry>
           <term>current_name s</term>
-          <listitem><para>Suggested filename.</para></listitem>
+          <listitem><para>Suggested name of the file.</para></listitem>
         </varlistentry>
         <varlistentry>
           <term>current_folder ay</term>
           <listitem>
             <para>
-              Suggested folder to save the file in. The byte array is expected to be null-terminated.
+              Suggested folder in which the file should be saved. The byte array
+              contains a path in the same encoding as the file system, and it's
+              expected to be terminated by a nul byte.
+            </para>
+            <para>
+              If the path points to a location in the document storage, it will be
+              replaced with the path to the location on the host.
+            </para>
+            <para>
+              The portal implementation is free to ignore this option. 
             </para>
           </listitem>
         </varlistentry>
@@ -243,7 +252,8 @@
           <term>current_file ay</term>
           <listitem>
             <para>
-              The current file (when saving an existing file). The byte array is expected to be null-terminated.
+              The current file (when saving an existing file), in the same encoding as the file
+              system. The byte array is expected to be terminated by a nul byte.
             </para>
           </listitem>
         </varlistentry>
@@ -277,8 +287,16 @@
           <term>current_folder ay</term>
           <listitem>
             <para>
-              Suggested folder to select the files from. The byte array is
-              expected to be null-terminated.
+              Suggested folder in which the file should be saved. The byte array
+              contains a path in the same encoding as the file system, and it's
+              expected to be terminated by a nul byte.
+            </para>
+            <para>
+              If the path points to a location in the document storage, it will be
+              replaced with the path to the location on the host.
+            </para>
+            <para>
+              The portal implementation is free to ignore this option. 
             </para>
           </listitem>
         </varlistentry>
@@ -338,8 +356,16 @@
           <term>current_folder ay</term>
           <listitem>
             <para>
-              Suggested folder to save the files in. The byte array is
-              expected to be null-terminated.
+              Suggested folder in which the files should be saved. The byte array
+              contains a path in the same encoding as the file system, and it's
+              expected to be terminated by a nul byte.
+            </para>
+            <para>
+              If the path points to a location in the document storage, it will be
+              replaced with the path to the location on the host.
+            </para>
+            <para>
+              The portal implementation is free to ignore this option. 
             </para>
           </listitem>
         </varlistentry>
@@ -347,8 +373,9 @@
         <term>files aay</term>
           <listitem>
             <para>
-              An array of file names to be saved. The byte arrays are
-              expected to be null-terminated.
+              An array of file names, using the same encoding as the file system,
+              to be saved. Each byte array is expected to be terminated by a nul
+              byte.
             </para>
           </listitem>
         </varlistentry>
