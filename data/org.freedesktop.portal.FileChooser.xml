@@ -135,6 +135,23 @@
             </para>
           </listitem>
         </varlistentry>
+        <varlistentry>
+          <term>current_folder ay</term>
+          <listitem>
+            <para>
+              Suggested folder from which the files should be opened. The byte array
+              contains a path in the same encoding as the file system, and it's
+              expected to be terminated by a nul byte.
+            </para>
+            <para>
+              If the path points to a location in the document storage, it will be
+              replaced with the path to the location on the host.
+            </para>
+            <para>
+              The portal implementation is free to ignore this option. 
+            </para>
+          </listitem>
+        </varlistentry>
       </variablelist>
 
       The following results get returned via the #org.freedesktop.portal.Request::Response signal:
