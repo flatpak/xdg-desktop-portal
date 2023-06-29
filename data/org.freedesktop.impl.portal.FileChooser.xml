@@ -86,6 +86,13 @@
               See org.freedesktop.portal.FileChooser.OpenFile() for details.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>current_folder ay</term>
+            <listitem><para>
+              A suggested folder to open the files from.
+              See org.freedesktop.portal.FileChooser.OpenFile() for details.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the @results vardict:
@@ -105,23 +112,15 @@
           </varlistentry>
           <varlistentry>
             <term>current_filter (sa(us))</term>
-            <listitem>
-              <para>
-                The filter that was selected.
-                See org.freedesktop.portal.FileChooser.OpenFile() for details.
-              </para>
-            </listitem>
+            <listitem><para>
+              The filter that was selected.
+              See org.freedesktop.portal.FileChooser.OpenFile() for details.
+            </para></listitem>
           </varlistentry>
           <varlistentry>
             <term>writable b</term>
             <listitem><para>
               Whether the file is opened with write access. Default is no.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>current_folder ay</term>
-            <listitem><para>
-              A suggested folder to open the files from.
             </para></listitem>
           </varlistentry>
         </variablelist>
