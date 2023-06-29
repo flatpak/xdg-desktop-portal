@@ -752,7 +752,7 @@ handle_save_file (XdpDbusFileChooser *object,
                                              save_file_done,
                                              g_object_ref (request));
 
-  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_save_file (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -857,7 +857,7 @@ handle_save_files (XdpDbusFileChooser *object,
                                               save_files_done,
                                               g_object_ref (request));
 
-  xdp_dbus_file_chooser_complete_open_file (object, invocation, request->id);
+  xdp_dbus_file_chooser_complete_save_files (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
