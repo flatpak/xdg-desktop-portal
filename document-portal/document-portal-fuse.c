@@ -2065,7 +2065,7 @@ forget_one (fuse_ino_t ino,
 static void
 xdp_fuse_forget (fuse_req_t req,
                  fuse_ino_t ino,
-                 unsigned long nlookup)
+                 uint64_t nlookup)
 {
   forget_one (ino, nlookup);
   fuse_reply_none (req);
