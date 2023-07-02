@@ -5,6 +5,7 @@
 from tests.templates import Response, init_template_logger, ImplRequest, ImplSession
 import dbus
 import dbus.service
+import socket
 
 from gi.repository import GLib
 
@@ -26,6 +27,7 @@ def load(mock, parameters):
     mock.response: int = parameters.get("response", 0)
     mock.expect_close: bool = parameters.get("expect-close", False)
     mock.force_close: int = parameters.get("force-close", 0)
+    mock.fail_connect_to_eis: bool = parameters.get("fail-connect-to-eis", False)
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -34,6 +36,7 @@ def load(mock, parameters):
             }
         ),
     )
+    mock.sessions: dict[str, ImplSession] = {}
 
 
 @dbus.service.method(
@@ -47,6 +50,7 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
         logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
 
         session = ImplSession(self, BUS_NAME, session_handle).export()
+        self.sessions[session_handle] = session
 
         response = Response(self.response, {"session_handle": session.handle})
 
@@ -80,3 +84,83 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
     except Exception as e:
         logger.critical(e)
         cb_error(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="oosa{sv}",
+    out_signature="ua{sv}",
+    async_callbacks=("cb_success", "cb_error"),
+)
+def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_error):
+    try:
+        logger.debug(f"SelectDevices({handle}, {session_handle}, {app_id}, {options})")
+
+        session = self.sessions[session_handle]
+        response = Response(self.response, {"session_handle": session.handle})
+        request = ImplRequest(self, BUS_NAME, handle)
+        request.export()
+
+        def reply():
+            logger.debug(f"SelectDevices with response {response}")
+            cb_success(response.response, response.results)
+
+        logger.debug(f"scheduling delay of {self.delay}")
+        GLib.timeout_add(self.delay, reply)
+
+    except Exception as e:
+        logger.critical(e)
+        cb_error(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="oossa{sv}",
+    out_signature="ua{sv}",
+    async_callbacks=("cb_success", "cb_error"),
+)
+def Start(
+    self, handle, session_handle, app_id, parent_window, options, cb_success, cb_error
+):
+    try:
+        logger.debug(f"Start({handle}, {session_handle}, {app_id}, {options})")
+
+        session = self.sessions[session_handle]
+        response = Response(self.response, {"session_handle": session.handle})
+        request = ImplRequest(self, BUS_NAME, handle)
+        request.export()
+
+        def reply():
+            logger.debug(f"Start with response {response}")
+            cb_success(response.response, response.results)
+
+        logger.debug(f"scheduling delay of {self.delay}")
+        GLib.timeout_add(self.delay, reply)
+
+    except Exception as e:
+        logger.critical(e)
+        cb_error(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="osa{sv}",
+    out_signature="h",
+)
+def ConnectToEIS(self, session_handle, app_id, options):
+    try:
+        logger.debug(f"ConnectToEIS({session_handle}, {app_id}, {options})")
+
+        assert session_handle in self.sessions
+
+        if self.fail_connect_to_eis:
+            raise dbus.exceptions.DBusException(f"Purposely failing ConnectToEIS")
+
+        sockets = socket.socketpair()
+        self.eis_socket = sockets[0]
+        assert self.eis_socket.send(b"HELLO") == 5
+
+        return dbus.types.UnixFd(sockets[1])
+    except Exception as e:
+        logger.critical(e)
+        raise e

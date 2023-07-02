@@ -202,6 +202,10 @@ get_token (GDBusMethodInvocation *invocation)
       else if (strcmp (method, "CreateMonitor") == 0)
         options = g_variant_get_child_value (parameters, 1);
     }
+  else if (strcmp (interface, "org.freedesktop.portal.InputCapture") == 0)
+    {
+      options = g_variant_get_child_value (parameters, 1);
+    }
   else if (strcmp (interface, "org.freedesktop.portal.NetworkMonitor") == 0)
     {
       // no methods

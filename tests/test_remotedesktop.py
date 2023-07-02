@@ -8,11 +8,13 @@ from gi.repository import GLib
 
 import dbus
 import time
+import socket
+import pytest
 
 
 class TestRemoteDesktop(PortalTest):
     def test_version(self):
-        self.check_version(1)
+        self.check_version(2)
 
     def test_remote_desktop_create_close_session(self):
         self.start_impl_portal()
@@ -78,3 +80,92 @@ class TestRemoteDesktop(PortalTest):
         mainloop.run()
 
         assert session.closed
+
+    def test_remote_desktop_connect_to_eis(self):
+        self.start_impl_portal()
+        self.start_xdp()
+
+        rd_intf = self.get_dbus_interface()
+        request = Request(self.dbus_con, rd_intf)
+        options = {
+            "session_handle_token": "session_token0",
+        }
+        response = request.call(
+            "CreateSession",
+            options=options,
+        )
+
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+        request = Request(self.dbus_con, rd_intf)
+        options = {
+            "types": dbus.UInt32(0x3),
+        }
+        response = request.call(
+            "SelectDevices",
+            session_handle=session.handle,
+            options=options,
+        )
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+        request = Request(self.dbus_con, rd_intf)
+        options = {}
+        response = request.call(
+            "Start",
+            session_handle=session.handle,
+            parent_window="",
+            options=options,
+        )
+        assert response.response == 0
+
+        fd = rd_intf.ConnectToEIS(session.handle, dbus.Dictionary({}, signature="sv"))
+        eis_socket = socket.fromfd(fd.take(), socket.AF_UNIX, socket.SOCK_STREAM)
+        assert eis_socket.recv(10) == b"HELLO"
+
+    def test_remote_desktop_connect_to_eis_fail(self):
+        params = {"fail-connect-to-eis": True}
+        self.start_impl_portal(params=params)
+        self.start_xdp()
+
+        rd_intf = self.get_dbus_interface()
+        request = Request(self.dbus_con, rd_intf)
+        options = {
+            "session_handle_token": "session_token0",
+        }
+        response = request.call(
+            "CreateSession",
+            options=options,
+        )
+
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+        request = Request(self.dbus_con, rd_intf)
+        options = {
+            "types": dbus.UInt32(0x3),
+        }
+        response = request.call(
+            "SelectDevices",
+            session_handle=session.handle,
+            options=options,
+        )
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+        request = Request(self.dbus_con, rd_intf)
+        options = {}
+        response = request.call(
+            "Start",
+            session_handle=session.handle,
+            parent_window="",
+            options=options,
+        )
+        assert response.response == 0
+
+        with self.assertRaises(dbus.exceptions.DBusException) as cm:
+            fd = rd_intf.ConnectToEIS(
+                session.handle, dbus.Dictionary({}, signature="sv")
+            )
+        assert "Purposely failing ConnectToEIS" in cm.exception.get_dbus_message()
