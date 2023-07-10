@@ -774,7 +774,7 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: pointer");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -832,7 +832,7 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: pointer");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -900,7 +900,7 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: pointer");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -963,7 +963,7 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: pointer");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1021,7 +1021,7 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: pointer");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1079,7 +1079,7 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: keyboard");
+                                             "Session is not allowed to call NotifyPointer methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1137,7 +1137,7 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: keyboard");
+                                             "Session is not allowed to call NotifyKeyboard methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1197,7 +1197,7 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: touchscreen");
+                                             "Session is not allowed to call NotifyTouch methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1267,7 +1267,7 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: touchscreen");
+                                             "Session is not allowed to call NotifyTouch methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -1334,7 +1334,7 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_FAILED,
-                                             "Session doesn't have access to a device of type: touchscreen");
+                                             "Session is not allowed to call NotifyTouch methods");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 

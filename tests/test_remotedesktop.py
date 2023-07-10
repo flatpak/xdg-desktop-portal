@@ -226,6 +226,6 @@ class TestRemoteDesktop(PortalTest):
                 )
             # Not the best error message but...
             assert (
-                "Session doesn't have access to a device of type"
+                "Session is not allowed to call Notify"
                 in cm.exception.get_dbus_message()
             )
