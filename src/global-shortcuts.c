@@ -589,13 +589,22 @@ activated_cb (XdpDbusImplGlobalShortcuts *impl,
               GVariant *options,
               gpointer data)
 {
+  GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received activated %s for %s", session_id, shortcut_id);
 
   if (global_shortcuts_session && !global_shortcuts_session->closed)
-    xdp_dbus_global_shortcuts_emit_activated (data, session_id, shortcut_id, timestamp, options);
+    g_dbus_connection_emit_signal (connection,
+                                   session->sender,
+                                   "/org/freedesktop/portal/desktop",
+                                   "org.freedesktop.portal.GlobalShortcuts",
+                                   "Activated",
+                                   g_variant_new ("(ost@a{sv})",
+                                                  session_id, shortcut_id,
+                                                  timestamp, options),
+                                   NULL);
 }
 
 static void
@@ -606,13 +615,22 @@ deactivated_cb (XdpDbusImplGlobalShortcuts *impl,
                 GVariant *options,
                 gpointer data)
 {
+  GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received deactivated %s for %s", session_id, shortcut_id);
 
   if (global_shortcuts_session && !global_shortcuts_session->closed)
-    xdp_dbus_global_shortcuts_emit_deactivated (data, session_id, shortcut_id, timestamp, options);
+    g_dbus_connection_emit_signal (connection,
+                                   session->sender,
+                                   "/org/freedesktop/portal/desktop",
+                                   "org.freedesktop.portal.GlobalShortcuts",
+                                   "Deactivated",
+                                   g_variant_new ("(ost@a{sv})",
+                                                  session_id, shortcut_id,
+                                                  timestamp, options),
+                                   NULL);
 }
 
 static void
@@ -621,13 +639,20 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
                       GVariant *shortcuts,
                       gpointer data)
 {
+  GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received ShortcutsChanged %s", session_id);
 
   if (global_shortcuts_session && !global_shortcuts_session->closed)
-    xdp_dbus_global_shortcuts_emit_shortcuts_changed (data, session_id, shortcuts);
+    g_dbus_connection_emit_signal (connection,
+                                   session->sender,
+                                   "/org/freedesktop/portal/desktop",
+                                   "org.freedesktop.portal.GlobalShortcuts",
+                                   "ShortcutsChanged",
+                                   g_variant_new ("(o@a(sa{sv}))", session_id, shortcuts),
+                                   NULL);
 }
 
 GDBusInterfaceSkeleton *
