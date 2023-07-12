@@ -191,6 +191,18 @@
               more information about the @handle.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>description s</term>
+            <listitem><para>
+              A localized user facing string meant to provide a description
+              about the context the application intends use the shared
+              resources. Portal backends may incorporate this into potential
+              dialogs allowing users to make more well informed decisions.
+              An example of such description can be a name of a web page
+              making request to use the shared resources.
+              E.g. www.videomeeting.com is requesting access to your screen.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the
