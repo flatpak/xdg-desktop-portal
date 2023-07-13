@@ -27,10 +27,32 @@ static GHashTable *transient_permissions;
 
 #define RESTORE_DATA_TYPE "(suv)"
 
+static void
+internal_closed_cb (Session *session)
+{
+  g_autoptr(GMutexLocker) locker = NULL;
+  GHashTableIter iter;
+  const char *key;
+
+  locker = g_mutex_locker_new (&transient_permissions_lock);
+
+  if (!transient_permissions)
+    return;
+
+  g_hash_table_iter_init (&iter, transient_permissions);
+  while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL))
+    {
+      g_auto(GStrv) split = g_strsplit (key, "/", 2);
+
+      if (split && split[0] && g_strcmp0 (split[0], session->sender) == 0)
+        g_hash_table_iter_remove (&iter);
+    }
+}
+
 void
-set_transient_permissions (const char *sender,
-                           const char *restore_token,
-                           GVariant *restore_data)
+xdp_session_persistence_set_transient_permissions (Session *session,
+                                                   const char *restore_token,
+                                                   GVariant *restore_data)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
 
@@ -42,13 +64,20 @@ set_transient_permissions (const char *sender,
     }
 
   g_hash_table_insert (transient_permissions,
-                       g_strdup_printf ("%s/%s", sender, restore_token),
+                       g_strdup_printf ("%s/%s", session->sender, restore_token),
                        g_variant_ref (restore_data));
+
+  if (!session->persistence.has_transient_permissions)
+    {
+      g_signal_connect (session, "internal-closed",
+                        G_CALLBACK (internal_closed_cb), NULL);
+      session->persistence.has_transient_permissions = TRUE;
+    }
 }
 
 void
-delete_transient_permissions (const char *sender,
-                              const char *restore_token)
+xdp_session_persistence_delete_transient_permissions (Session *session,
+                                                      const char *restore_token)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
   g_autofree char *id = NULL;
@@ -56,13 +85,13 @@ delete_transient_permissions (const char *sender,
   if (!transient_permissions)
     return;
 
-  id = g_strdup_printf ("%s/%s", sender, restore_token);
+  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
   g_hash_table_remove (transient_permissions, id);
 }
 
 GVariant *
-get_transient_permissions (const char *sender,
-                           const char *restore_token)
+xdp_session_persistence_get_transient_permissions (Session *session,
+                                                   const char *restore_token)
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
   g_autofree char *id = NULL;
@@ -71,20 +100,20 @@ get_transient_permissions (const char *sender,
   if (!transient_permissions)
     return NULL;
 
-  id = g_strdup_printf ("%s/%s", sender, restore_token);
+  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
   permissions = g_hash_table_lookup (transient_permissions, id);
   return permissions ? g_variant_ref (permissions) : NULL;
 }
 
 void
-set_persistent_permissions (const char *table,
-                            const char *app_id,
-                            const char *restore_token,
-                            GVariant *restore_data)
+xdp_session_persistence_set_persistent_permissions (Session *session,
+                                                    const char *table,
+                                                    const char *restore_token,
+                                                    GVariant *restore_data)
 {
   g_autoptr(GError) error = NULL;
 
-  set_permission_sync (app_id, table, restore_token, PERMISSION_YES);
+  set_permission_sync (session->app_id, table, restore_token, PERMISSION_YES);
 
   if (!xdp_dbus_impl_permission_store_call_set_value_sync (get_permission_store (),
                                                            table,
@@ -100,9 +129,9 @@ set_persistent_permissions (const char *table,
 }
 
 void
-delete_persistent_permissions (const char *table,
-                               const char *app_id,
-                               const char *restore_token)
+xdp_session_persistence_delete_persistent_permissions (Session *session,
+                                                       const char *table,
+                                                       const char *restore_token)
 {
 
   g_autoptr(GError) error = NULL;
@@ -119,9 +148,9 @@ delete_persistent_permissions (const char *table,
 }
 
 GVariant *
-get_persistent_permissions (const char *table,
-                            const char *app_id,
-                            const char *restore_token)
+xdp_session_persistence_get_persistent_permissions (Session *session,
+                                                    const char *table,
+                                                    const char *restore_token)
 {
   g_autoptr(GVariant) perms = NULL;
   g_autoptr(GVariant) data = NULL;
@@ -139,7 +168,7 @@ get_persistent_permissions (const char *table,
       return NULL;
     }
 
-  if (!perms || !g_variant_lookup (perms, app_id, "^a&s", &permissions))
+  if (!perms || !g_variant_lookup (perms, session->app_id, "^a&s", &permissions))
     return NULL;
 
   if (!data)
@@ -149,32 +178,10 @@ get_persistent_permissions (const char *table,
 }
 
 void
-remove_transient_permissions_for_sender (const char *sender)
-{
-  g_autoptr(GMutexLocker) locker = NULL;
-  GHashTableIter iter;
-  const char *key;
-
-  locker = g_mutex_locker_new (&transient_permissions_lock);
-
-  if (!transient_permissions)
-    return;
-
-  g_hash_table_iter_init (&iter, transient_permissions);
-  while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL))
-    {
-      g_auto(GStrv) split = g_strsplit (key, "/", 2);
-
-      if (split && split[0] && g_strcmp0 (split[0], sender) == 0)
-        g_hash_table_iter_remove (&iter);
-    }
-}
-
-void
-replace_restore_token_with_data (Session *session,
-                                 const char *table,
-                                 GVariant **in_out_options,
-                                 char **out_restore_token)
+xdp_session_persistence_replace_restore_token_with_data (Session *session,
+                                                         const char *table,
+                                                         GVariant **in_out_options,
+                                                         char **out_restore_token)
 {
   GVariantIter options_iter;
   GVariantBuilder options_builder;
@@ -201,21 +208,25 @@ replace_restore_token_with_data (Session *session,
            * Notice that transient mode uses the sender name, whereas persistent
            * mode uses the app id.
            */
-          restore_data = get_transient_permissions (session->sender, restore_token);
+          restore_data =
+            xdp_session_persistence_get_transient_permissions (session,
+                                                               restore_token);
           if (restore_data)
             {
-              delete_transient_permissions (session->sender, restore_token);
+              xdp_session_persistence_delete_transient_permissions (session,
+                                                                    restore_token);
             }
           else
             {
-              restore_data = get_persistent_permissions (table,
-                                                         session->app_id,
-                                                         restore_token);
+              restore_data =
+                xdp_session_persistence_get_persistent_permissions (session,
+                                                                    table,
+                                                                    restore_token);
               if (restore_data)
                 {
-                  delete_persistent_permissions (table,
-                                                 session->app_id,
-                                                 restore_token);
+                  xdp_session_persistence_delete_persistent_permissions (session,
+                                                                         table,
+                                                                         restore_token);
                 }
             }
 
@@ -242,21 +253,21 @@ replace_restore_token_with_data (Session *session,
 }
 
 void
-generate_and_save_restore_token (Session *session,
-                                 const char *table,
-                                 PersistMode persist_mode,
-                                 char **in_out_restore_token,
-                                 GVariant **in_out_restore_data)
+xdp_session_persistence_generate_and_save_restore_token (Session *session,
+                                                         const char *table,
+                                                         PersistMode persist_mode,
+                                                         char **in_out_restore_token,
+                                                         GVariant **in_out_restore_data)
 {
   if (!*in_out_restore_data)
     {
       if (*in_out_restore_token)
         {
-          delete_persistent_permissions (table,
-                                         session->app_id,
-                                         *in_out_restore_token);
-          delete_transient_permissions (session->sender,
-                                        *in_out_restore_token);
+          xdp_session_persistence_delete_persistent_permissions (session,
+                                                                 table,
+                                                                 *in_out_restore_token);
+          xdp_session_persistence_delete_transient_permissions (session,
+                                                                *in_out_restore_token);
         }
 
       g_clear_pointer (in_out_restore_token, g_free);
@@ -268,11 +279,11 @@ generate_and_save_restore_token (Session *session,
     case PERSIST_MODE_NONE:
       if (*in_out_restore_token)
         {
-          delete_persistent_permissions (table,
-                                         session->app_id,
-                                         *in_out_restore_token);
-          delete_transient_permissions (session->sender,
-                                        *in_out_restore_token);
+          xdp_session_persistence_delete_persistent_permissions (session,
+                                                                 table,
+                                                                 *in_out_restore_token);
+          xdp_session_persistence_delete_transient_permissions (session,
+                                                                *in_out_restore_token);
         }
 
       g_clear_pointer (in_out_restore_token, g_free);
@@ -283,31 +294,31 @@ generate_and_save_restore_token (Session *session,
       if (!*in_out_restore_token)
         *in_out_restore_token = g_uuid_string_random ();
 
-      set_transient_permissions (session->sender,
-                                 *in_out_restore_token,
-                                 *in_out_restore_data);
+      xdp_session_persistence_set_transient_permissions (session,
+                                                         *in_out_restore_token,
+                                                         *in_out_restore_data);
       break;
 
     case PERSIST_MODE_PERSISTENT:
       if (!*in_out_restore_token)
         *in_out_restore_token = g_uuid_string_random ();
 
-      set_persistent_permissions (table,
-                                  session->app_id,
-                                  *in_out_restore_token,
-                                  *in_out_restore_data);
+      xdp_session_persistence_set_persistent_permissions (session,
+                                                          table,
+                                                          *in_out_restore_token,
+                                                          *in_out_restore_data);
 
       break;
     }
 }
 
 void
-replace_restore_data_with_token (Session *session,
-                                 const char *table,
-                                 GVariant **in_out_results,
-                                 PersistMode *in_out_persist_mode,
-                                 char **in_out_restore_token,
-                                 GVariant **in_out_restore_data)
+xdp_session_persistence_replace_restore_data_with_token (Session *session,
+                                                         const char *table,
+                                                         GVariant **in_out_results,
+                                                         PersistMode *in_out_persist_mode,
+                                                         char **in_out_restore_token,
+                                                         GVariant **in_out_restore_data)
 {
   g_autoptr(GVariant) results = *in_out_results;
   GVariantBuilder results_builder;
@@ -350,11 +361,11 @@ replace_restore_data_with_token (Session *session,
     {
       g_debug ("Replacing restore data received from portal impl with a token");
 
-      generate_and_save_restore_token (session,
-                                       table,
-                                       *in_out_persist_mode,
-                                       in_out_restore_token,
-                                       in_out_restore_data);
+      xdp_session_persistence_generate_and_save_restore_token (session,
+                                                               table,
+                                                               *in_out_persist_mode,
+                                                               in_out_restore_token,
+                                                               in_out_restore_data);
       g_variant_builder_add (&results_builder, "{sv}", "restore_token",
                              g_variant_new_string (*in_out_restore_token));
     }

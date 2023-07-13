@@ -491,10 +491,10 @@ replace_remote_desktop_restore_token_with_data (Session *session,
     persist_mode = PERSIST_MODE_NONE;
 
   remote_desktop_session->persist_mode = persist_mode;
-  replace_restore_token_with_data (session,
-                                   REMOTE_DESKTOP_TABLE,
-                                   in_out_options,
-                                   &remote_desktop_session->restore_token);
+  xdp_session_persistence_replace_restore_token_with_data (session,
+                                                           REMOTE_DESKTOP_TABLE,
+                                                           in_out_options,
+                                                           &remote_desktop_session->restore_token);
 
   return TRUE;
 }
@@ -598,12 +598,12 @@ static void
 replace_restore_remote_desktop_data_with_token (RemoteDesktopSession *remote_desktop_session,
                                                 GVariant **in_out_results)
 {
-  replace_restore_data_with_token ((Session *) remote_desktop_session,
-                                   REMOTE_DESKTOP_TABLE,
-                                   in_out_results,
-                                   &remote_desktop_session->persist_mode,
-                                   &remote_desktop_session->restore_token,
-                                   &remote_desktop_session->restore_data);
+  xdp_session_persistence_replace_restore_data_with_token ((Session *) remote_desktop_session,
+                                                           REMOTE_DESKTOP_TABLE,
+                                                           in_out_results,
+                                                           &remote_desktop_session->persist_mode,
+                                                           &remote_desktop_session->restore_token,
+                                                           &remote_desktop_session->restore_data);
 }
 
 static gboolean

@@ -27,45 +27,43 @@ typedef enum _PersistMode
   PERSIST_MODE_PERSISTENT = 2,
 } PersistMode;
 
-void set_transient_permissions (const char *sender,
-                                const char *restore_token,
-                                GVariant *restore_data);
+void xdp_session_persistence_set_transient_permissions (Session *session,
+                                                        const char *restore_token,
+                                                        GVariant *restore_data);
 
-void delete_transient_permissions (const char *sender,
-                                   const char *restore_token);
+void xdp_session_persistence_delete_transient_permissions (Session *session,
+                                                           const char *restore_token);
 
-GVariant * get_transient_permissions (const char *sender,
-                                      const char *restore_token);
+GVariant * xdp_session_persistence_get_transient_permissions (Session *session,
+                                                              const char *restore_token);
 
-void set_persistent_permissions (const char *table,
-                                 const char *app_id,
-                                 const char *restore_token,
-                                 GVariant *restore_data);
+void xdp_session_persistence_set_persistent_permissions (Session *session,
+                                                         const char *table,
+                                                         const char *restore_token,
+                                                         GVariant *restore_data);
 
-void delete_persistent_permissions (const char *table,
-                                    const char *app_id,
-                                    const char *restore_token);
+void xdp_session_persistence_delete_persistent_permissions (Session *session,
+                                                            const char *table,
+                                                            const char *restore_token);
 
-GVariant * get_persistent_permissions (const char *table,
-                                       const char *app_id,
-                                       const char *restore_token);
+GVariant * xdp_session_persistence_get_persistent_permissions (Session *session,
+                                                               const char *table,
+                                                               const char *restore_token);
 
-void remove_transient_permissions_for_sender (const char *sender);
+void xdp_session_persistence_replace_restore_token_with_data (Session *session,
+                                                              const char *table,
+                                                              GVariant **in_out_options,
+                                                              char **out_restore_token);
 
-void replace_restore_token_with_data (Session *session,
-                                      const char *table,
-                                      GVariant **in_out_options,
-                                      char **out_restore_token);
+void xdp_session_persistence_replace_restore_data_with_token (Session *session,
+                                                              const char *table,
+                                                              GVariant **in_out_results,
+                                                              PersistMode *in_out_persist_mode,
+                                                              char **in_out_restore_token,
+                                                              GVariant **in_out_restore_data);
 
-void replace_restore_data_with_token (Session *session,
-                                      const char *table,
-                                      GVariant **in_out_results,
-                                      PersistMode *in_out_persist_mode,
-                                      char **in_out_restore_token,
-                                      GVariant **in_out_restore_data);
-
-void generate_and_save_restore_token (Session *session,
-                                      const char *table,
-                                      PersistMode persist_mode,
-                                      char **in_out_restore_token,
-                                      GVariant **in_out_restore_data);
+void xdp_session_persistence_generate_and_save_restore_token (Session *session,
+                                                              const char *table,
+                                                              PersistMode persist_mode,
+                                                              char **in_out_restore_token,
+                                                              GVariant **in_out_restore_data);
