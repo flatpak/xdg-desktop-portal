@@ -218,9 +218,6 @@ peer_died_cb (const char *name)
 {
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
-#ifdef HAVE_PIPEWIRE
-  screen_cast_remove_transient_permissions_for_sender (name);
-#endif
 }
 
 static void

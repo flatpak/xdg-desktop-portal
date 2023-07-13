@@ -108,12 +108,6 @@ GType screen_cast_session_get_type (void);
 G_DEFINE_TYPE (ScreenCastSession, screen_cast_session, session_get_type ())
 
 
-void
-screen_cast_remove_transient_permissions_for_sender (const char *sender)
-{
-  remove_transient_permissions_for_sender (sender);
-}
-
 static gboolean
 is_screen_cast_session (Session *session)
 {
@@ -466,10 +460,10 @@ replace_screen_cast_restore_token_with_data (Session *session,
       ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
 
       screen_cast_session->persist_mode = persist_mode;
-      replace_restore_token_with_data (session,
-                                       SCREEN_CAST_TABLE,
-                                       in_out_options,
-                                       &screen_cast_session->restore_token);
+      xdp_session_persistence_replace_restore_token_with_data (session,
+                                                               SCREEN_CAST_TABLE,
+                                                               in_out_options,
+                                                               &screen_cast_session->restore_token);
     }
   else
     {
@@ -737,12 +731,12 @@ static void
 replace_restore_screen_cast_data_with_token (ScreenCastSession *screen_cast_session,
                                              GVariant **in_out_results)
 {
-  replace_restore_data_with_token ((Session *) screen_cast_session,
-                                   SCREEN_CAST_TABLE,
-                                   in_out_results,
-                                   &screen_cast_session->persist_mode,
-                                   &screen_cast_session->restore_token,
-                                   &screen_cast_session->restore_data);
+  xdp_session_persistence_replace_restore_data_with_token ((Session *) screen_cast_session,
+                                                           SCREEN_CAST_TABLE,
+                                                           in_out_results,
+                                                           &screen_cast_session->persist_mode,
+                                                           &screen_cast_session->restore_token,
+                                                           &screen_cast_session->restore_data);
 }
 
 static gboolean
@@ -1129,11 +1123,11 @@ screen_cast_session_close (Session *session)
 
   screen_cast_session->state = SCREEN_CAST_SESSION_STATE_CLOSED;
 
-  generate_and_save_restore_token (session,
-                                   SCREEN_CAST_TABLE,
-                                   screen_cast_session->persist_mode,
-                                   &screen_cast_session->restore_token,
-                                   &screen_cast_session->restore_data);
+  xdp_session_persistence_generate_and_save_restore_token (session,
+                                                           SCREEN_CAST_TABLE,
+                                                           screen_cast_session->persist_mode,
+                                                           &screen_cast_session->restore_token,
+                                                           &screen_cast_session->restore_data);
 
   g_debug ("screen cast session owned by '%s' closed", session->sender);
 }
