@@ -50,6 +50,8 @@ xdg_desktop_portal_sources = files(
   'background.c',
   'background-monitor.c',
   'call.c',
+  'camera.c',
+  'clipboard.c',
   'device.c',
   'documents.c',
   'dynamic-launcher.c',
@@ -65,12 +67,16 @@ xdg_desktop_portal_sources = files(
   'notification.c',
   'open-uri.c',
   'permissions.c',
+  'pipewire.c',
   'portal-impl.c',
   'power-profile-monitor.c',
   'print.c',
   'proxy-resolver.c',
   'realtime.c',
+  'remote-desktop.c',
   'request.c',
+  'restore-token.c',
+  'screen-cast.c',
   'screenshot.c',
   'secret.c',
   'session.c',
@@ -88,17 +94,6 @@ xdg_desktop_portal_sources += [
   geoclue_built_sources,
   built_resources,
 ]
-
-if have_pipewire
-  xdg_desktop_portal_sources += files(
-      'screen-cast.c',
-      'remote-desktop.c',
-      'restore-token.c',
-      'pipewire.c',
-      'camera.c',
-      'clipboard.c',
-  )
-endif
 
 if have_geoclue
   xdg_desktop_portal_sources += files(

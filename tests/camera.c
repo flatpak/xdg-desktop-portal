@@ -82,14 +82,6 @@ camera_cb (GObject *obj,
   g_main_context_wakeup (NULL);
 }
 
-#ifdef HAVE_PIPEWIRE
-#define require_pipewire()
-#else
-#define require_pipewire() \
-  g_test_skip ("Skipping tests that require pipewire"); \
-  return;
-#endif
-
 void
 test_camera_basic (void)
 {
@@ -97,8 +89,6 @@ test_camera_basic (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-
-  require_pipewire ();
 
   reset_camera_permissions ();
 
@@ -128,8 +118,6 @@ test_camera_delay (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
-  require_pipewire ();
-
   reset_camera_permissions ();
 
   keyfile = g_key_file_new ();
@@ -158,8 +146,6 @@ test_camera_cancel (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-
-  require_pipewire ();
 
   reset_camera_permissions ();
 
@@ -202,8 +188,6 @@ test_camera_close (void)
   g_autofree char *path = NULL;
   g_autoptr(GCancellable) cancellable = NULL;
 
-  require_pipewire ();
-
   reset_camera_permissions ();
 
   keyfile = g_key_file_new ();
@@ -238,7 +222,6 @@ test_camera_lockdown (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
-  require_pipewire ();
   reset_camera_permissions ();
 
   tests_set_property_sync (G_DBUS_PROXY (lockdown),
@@ -286,8 +269,6 @@ test_camera_no_access1 (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
-  require_pipewire ();
-
   reset_camera_permissions ();
 
   keyfile = g_key_file_new ();
@@ -317,8 +298,6 @@ test_camera_no_access2 (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
 
-  require_pipewire ();
-
   set_camera_permissions ("no");
 
   keyfile = g_key_file_new ();
@@ -346,8 +325,6 @@ test_camera_parallel (void)
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-
-  require_pipewire ();
 
   reset_camera_permissions ();
 

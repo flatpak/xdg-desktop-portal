@@ -110,9 +110,7 @@ geoclue_dep = dependency('libgeoclue-2.0',
                          required: get_option('geoclue'))
 libportal_dep = dependency('libportal',
                            required: get_option('libportal'))
-pipewire_dep = dependency('libpipewire-0.3',
-                          version: '>= 0.2.90',
-                          required: get_option('pipewire'))
+pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
 bwrap_required = host_machine.system() in ['linux']
@@ -126,11 +124,6 @@ endif
 have_geoclue = geoclue_dep.found()
 if have_geoclue
   config_h.set('HAVE_GEOCLUE', 1)
-endif
-
-have_pipewire = pipewire_dep.found()
-if have_pipewire
-  config_h.set('HAVE_PIPEWIRE', 1)
 endif
 
 have_libsystemd = libsystemd_dep.found()
@@ -189,7 +182,6 @@ configure_file(output: 'config.h', configuration: config_h)
 
 summary({
     'Enable docbook documentation': build_docbook,
-    'Enable pipewire support': have_pipewire,
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
     'Enable libportal support': have_libportal,

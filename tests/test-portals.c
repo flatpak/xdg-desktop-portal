@@ -382,17 +382,6 @@ global_teardown (void)
   g_object_unref (dbus);
 }
 
-#ifdef HAVE_PIPEWIRE
-#define check_pipewire(name)
-#else
-#define check_pipewire(name) \
- if (strcmp (name , "camera") == 0) \
-   { \
-     g_test_skip ("Skipping tests that require pipewire"); \
-     return; \
-   }
-#endif
-
 #ifdef HAVE_GEOCLUE
 #define check_geoclue(name)
 #else
@@ -416,7 +405,6 @@ test_##pp##_exists (void) \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
  \
- check_pipewire ( #pp ) \
  check_geoclue ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_dbus_##pp##_proxy_new_sync (session_bus, \

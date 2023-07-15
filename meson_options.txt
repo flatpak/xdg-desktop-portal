@@ -18,10 +18,6 @@ option('geoclue',
        type: 'feature',
        value: 'auto',
        description: 'Enable Geoclue support. Needed for location portal')
-option('pipewire',
-       type: 'feature',
-       value: 'auto',
-       description: 'Enable PipeWire support. Needed for screen cast portal')
 option('systemd',
        type: 'feature',
        value: 'auto',
