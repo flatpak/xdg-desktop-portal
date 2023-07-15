@@ -116,11 +116,11 @@ msgstr "%s, kameranızı kullanmak istiyor."
 
 #: src/location.c:527
 msgid "Deny Access"
-msgstr "Erişim Reddedildi"
+msgstr "Erişimi Reddet"
 
 #: src/location.c:529
 msgid "Grant Access"
-msgstr "Erişim Verildi"
+msgstr "Erişim İzni Ver"
 
 #: src/location.c:535
 msgid "Grant Access to Your Location?"
