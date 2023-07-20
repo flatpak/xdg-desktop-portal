@@ -142,7 +142,7 @@ session_created_cb (GObject *source_object,
   g_autoptr(Request) request = data;
   Session *session;
   guint response = 2;
-  GVariant *opts;
+  g_autoptr (GVariant) results = NULL;
   gboolean should_close_session;
   GVariantBuilder results_builder;
   g_autoptr(GError) error = NULL;
@@ -157,7 +157,7 @@ session_created_cb (GObject *source_object,
 
   if (!xdp_dbus_impl_global_shortcuts_call_create_session_finish (impl,
                                                                   &response,
-                                                                  &opts,
+                                                                  &results,
                                                                   res,
                                                                   &error))
     {
@@ -185,9 +185,6 @@ session_created_cb (GObject *source_object,
       should_close_session = TRUE;
     }
 
-  GVariantDict *dict = g_variant_dict_new (opts);
-  g_variant_builder_add (&results_builder, "{sv}",
-                         "shortcuts", g_variant_dict_lookup_value (dict, "shortcuts", 0));
   g_variant_builder_add (&results_builder, "{sv}",
                          "session_handle", g_variant_new ("s", session->id));
 
