@@ -78,3 +78,65 @@ class TestGlobalShortcuts(PortalTest):
         mainloop.run()
 
         assert session.closed
+
+    def test_global_shortcuts_bind_list_shortcuts(self):
+        self.start_impl_portal()
+        self.start_xdp()
+
+        gs_intf = self.get_dbus_interface()
+        request = Request(self.dbus_con, gs_intf)
+        options = {
+            "session_handle_token": "session_token0",
+        }
+        response = request.call(
+            "CreateSession",
+            options=options,
+        )
+
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+
+        shortcuts = [
+            (
+                "binding1",
+                {
+                    "description": dbus.String("Binding #1", variant_level=1),
+                    "preferred-trigger": dbus.String("CTRL+a", variant_level=1),
+                },
+            ),
+            (
+                "binding2",
+                {
+                    "description": dbus.String("Binding #2", variant_level=1),
+                    "preferred-trigger": dbus.String("CTRL+b", variant_level=1),
+                },
+            ),
+        ]
+
+        request = Request(self.dbus_con, gs_intf)
+        response = request.call(
+            "BindShortcuts",
+            session_handle=session.handle,
+            shortcuts=shortcuts,
+            parent_window="",
+            options={},
+        )
+
+        request = Request(self.dbus_con, gs_intf)
+        options = {}
+        response = request.call(
+            "ListShortcuts",
+            session_handle=session.handle,
+            options=options,
+        )
+
+        assert len(list(actual_shortcuts)) == len(list(shortcuts))
+
+        session.close()
+
+        mainloop = GLib.MainLoop()
+        GLib.timeout_add(2000, mainloop.quit)
+        mainloop.run()
+
+        assert session.closed
