@@ -267,7 +267,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
                                                       request->id,
                                                       session->id,
                                                       xdp_app_info_get_id (request->app_info),
-                                                      options,
+                                                      g_steal_pointer (&options),
                                                       NULL,
                                                       session_created_cb,
                                                       g_object_ref (request));
