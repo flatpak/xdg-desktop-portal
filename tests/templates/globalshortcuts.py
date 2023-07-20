@@ -83,3 +83,56 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
     except Exception as e:
         logger.critical(e)
         cb_error(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="ooa(sa{sv})sa{sv}",
+    out_signature="ua{sv}",
+    async_callbacks=("cb_success", "cb_error"),
+)
+def BindShortcuts(
+    self,
+    handle,
+    session_handle,
+    shortcuts,
+    parent_window,
+    options,
+    cb_success,
+    cb_error,
+):
+    try:
+        logger.debug(
+            f"BindShortcuts({handle}, {session_handle}, {shortcuts}, {options})"
+        )
+
+        assert session_handle in self.sessions
+        response = Response(self.response, {})
+        request = ImplRequest(self, BUS_NAME, handle)
+        request.export()
+
+        def reply():
+            logger.debug(f"BindShortcuts with response {response}")
+            self.sessions[session_handle].shortcuts = shortcuts
+            cb_success(response.response, response.results)
+
+        logger.debug(f"scheduling delay of {self.delay}")
+        GLib.timeout_add(self.delay, reply)
+
+    except Exception as e:
+        logger.critical(e)
+        cb_error(e)
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="oo",
+    out_signature="ua{sv}",
+)
+def ListShortcuts(
+    self,
+    handle,
+    session_handle,
+):
+    shortcuts = self.sessions[session_handle].shortcuts
+    return (0, {"shortcuts": shortcuts})
