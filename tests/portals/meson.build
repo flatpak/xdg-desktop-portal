@@ -6,6 +6,7 @@ test_portals = [
   'org.freedesktop.impl.portal.Clipboard',
   'org.freedesktop.impl.portal.Email',
   'org.freedesktop.impl.portal.FileChooser',
+  'org.freedesktop.impl.portal.GlobalShortcuts',
   'org.freedesktop.impl.portal.Inhibit',
   'org.freedesktop.impl.portal.Lockdown',
   'org.freedesktop.impl.portal.Notification',
