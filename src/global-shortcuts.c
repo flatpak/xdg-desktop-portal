@@ -336,16 +336,18 @@ xdp_verify_shortcuts (GVariant *shortcuts,
 
       if (shortcut_name[0] == 0)
         {
-          g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                          "Unexpected empty shortcut id");
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Unexpected empty shortcut id");
           return FALSE;
         }
 
       g_variant_builder_init (&shortcut_builder, G_VARIANT_TYPE_VARDICT);
       if (!xdp_filter_options (values, &shortcut_builder,
-                              global_shortcuts_keys,
-                              G_N_ELEMENTS (global_shortcuts_keys),
-                              error))
+                               global_shortcuts_keys,
+                               G_N_ELEMENTS (global_shortcuts_keys),
+                               error))
         return FALSE;
       g_variant_builder_add (filtered, "(sa{sv})", g_variant_builder_end (&shortcut_builder));
     }
