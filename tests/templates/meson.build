@@ -2,6 +2,7 @@ template_files = [
   '__init__.py',
   'clipboard.py',
   'email.py',
+  'globalshortcuts.py',
   'remotedesktop.py',
 ]
 foreach template_file : template_files
