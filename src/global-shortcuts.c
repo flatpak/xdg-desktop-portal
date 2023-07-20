@@ -326,11 +326,11 @@ xdp_verify_shortcuts (GVariant *shortcuts,
                       GError **error)
 {
   gchar *shortcut_name;
-  GVariant *values;
+  GVariant *values = NULL;
   g_autoptr(GVariantIter) iter = NULL;
 
   iter = g_variant_iter_new (shortcuts);
-  while (g_variant_iter_loop (iter, "sa{sv}", &shortcut_name, &values))
+  while (g_variant_iter_loop (iter, "(s@a{sv})", &shortcut_name, &values))
     {
       GVariantBuilder shortcut_builder;
 
@@ -349,7 +349,9 @@ xdp_verify_shortcuts (GVariant *shortcuts,
                                G_N_ELEMENTS (global_shortcuts_keys),
                                error))
         return FALSE;
-      g_variant_builder_add (filtered, "(sa{sv})", g_variant_builder_end (&shortcut_builder));
+      g_variant_builder_add (filtered, "(sa{sv})",
+                             shortcut_name,
+                             &shortcut_builder);
     }
   return TRUE;
 }
