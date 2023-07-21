@@ -6,6 +6,8 @@ from tests.templates import Response, init_template_logger, ImplRequest, ImplSes
 import dbus
 import dbus.service
 import socket
+import time
+from dbusmock import MOCK_IFACE, mockobject
 
 from gi.repository import GLib
 
@@ -136,3 +138,26 @@ def ListShortcuts(
 ):
     shortcuts = self.sessions[session_handle].shortcuts
     return (0, {"shortcuts": shortcuts})
+
+
+@dbus.service.method(
+    MOCK_IFACE,
+    in_signature="os",
+    out_signature="",
+)
+def Trigger(self, session_handle, shortcut_id):
+    now_since_epoch = int(time.time() * 1000000)
+    self.EmitSignal(
+        MAIN_IFACE,
+        "Activated",
+        "osta{sv}",
+        [session_handle, shortcut_id, now_since_epoch, {}],
+    )
+    time.sleep(0.2)
+    now_since_epoch = int(time.time() * 1000000)
+    self.EmitSignal(
+        MAIN_IFACE,
+        "Deactivated",
+        "osta{sv}",
+        [session_handle, shortcut_id, now_since_epoch, {}],
+    )

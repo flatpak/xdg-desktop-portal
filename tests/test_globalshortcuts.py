@@ -8,6 +8,7 @@ from gi.repository import GLib
 
 import dbus
 import socket
+import time
 
 
 class TestGlobalShortcuts(PortalTest):
@@ -131,7 +132,91 @@ class TestGlobalShortcuts(PortalTest):
             options=options,
         )
 
-        assert len(list(actual_shortcuts)) == len(list(shortcuts))
+        assert len(list(response.results["shortcuts"])) == len(list(shortcuts))
+
+        session.close()
+
+        mainloop = GLib.MainLoop()
+        GLib.timeout_add(2000, mainloop.quit)
+        mainloop.run()
+
+        assert session.closed
+
+    def test_global_shortcuts_trigger(self):
+        self.start_impl_portal()
+        self.start_xdp()
+
+        gs_intf = self.get_dbus_interface()
+        request = Request(self.dbus_con, gs_intf)
+        options = {
+            "session_handle_token": "session_token0",
+        }
+        response = request.call(
+            "CreateSession",
+            options=options,
+        )
+
+        assert response.response == 0
+
+        session = Session.from_response(self.dbus_con, response)
+
+        shortcuts = [
+            (
+                "binding1",
+                {
+                    "description": dbus.String("Binding #1", variant_level=1),
+                    "preferred-trigger": dbus.String("CTRL+a", variant_level=1),
+                },
+            ),
+        ]
+
+        request = Request(self.dbus_con, gs_intf)
+        response = request.call(
+            "BindShortcuts",
+            session_handle=session.handle,
+            shortcuts=shortcuts,
+            parent_window="",
+            options={},
+        )
+
+        activated_count = 0
+        deactivated_count = 0
+
+        def cb_activated(session_handle, shortcut_id, timestamp, options):
+            nonlocal activated_count
+            now_since_epoch = int(time.time() * 1000000)
+            # This assert will race twice a year on systems configured with
+            # summer time timezone changes
+            assert (
+                now_since_epoch > timestamp
+                and (now_since_epoch - 10 * 10001000) < timestamp
+            )
+            assert shortcut_id == "binding1"
+            activated_count += 1
+
+        def cb_deactivated(session_handle, shortcut_id, timestamp, options):
+            nonlocal deactivated_count
+            now_since_epoch = int(time.time() * 1000000)
+            # This assert will race twice a year on systems configured with
+            # summer time timezone changes
+            assert (
+                now_since_epoch > timestamp
+                and (now_since_epoch - 10 * 10001000) < timestamp
+            )
+            assert shortcut_id == "binding1"
+            deactivated_count += 1
+
+        gs_intf.connect_to_signal("Activated", cb_activated)
+        gs_intf.connect_to_signal("Deactivated", cb_deactivated)
+
+        self.mock_interface.Trigger(session.handle, "binding1")
+
+        mainloop = GLib.MainLoop()
+        GLib.timeout_add(2000, mainloop.quit)
+        mainloop.run()
+
+        assert activated_count == 1
+        assert deactivated_count == 1
 
         session.close()
 
