@@ -22,7 +22,6 @@ static void pc_init(void *userdata,
                     struct fuse_conn_info *conn)
 {
   struct fuse_session **session_ptr = userdata;
-  g_autofree char *missing_features = NULL;
 
   if (!(conn->capable & FUSE_CAP_SPLICE_READ))
     cannot_use_fuse = g_strdup ("FUSE_CAP_SPLICE_READ");
