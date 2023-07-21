@@ -71,7 +71,6 @@ DocumentPermissionFlags
 document_entry_get_permissions (PermissionDbEntry *entry,
                                 XdpAppInfo        *app_info)
 {
-  g_autofree const char **permissions = NULL;
   const char *app_id = xdp_app_info_get_id (app_info);
 
   if (xdp_app_info_is_host (app_info))
