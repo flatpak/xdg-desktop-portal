@@ -363,7 +363,6 @@ set_location_permissions (const char *app_id,
                           GClueAccuracyLevel accuracy,
                           gint64 timestamp)
 {
-  g_autoptr(GError) error = NULL;
   g_autofree char *date = NULL;
   const char *permissions[3];
 
