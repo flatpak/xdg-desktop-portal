@@ -323,7 +323,6 @@ handle_install (XdpDbusDynamicLauncher *object,
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GVariant) launcher_data = NULL;
   g_autoptr(GError) error = NULL;
-  g_autoptr(GDesktopAppInfo) app_info = NULL;
   g_autoptr(GKeyFile) desktop_keyfile = NULL;
   g_autofree char *icon_path = NULL;
   g_autofree char *desktop_dir = NULL;
@@ -454,7 +453,6 @@ prepare_install_done (GObject      *source,
   g_autoptr(Request) request = data;
   GVariant *launcher_data;
   guint response = 2;
-  xdp_autofd int icon_fd = -1;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder results_builder;
@@ -551,7 +549,6 @@ validate_launcher_type (const char  *key,
                         GError     **error)
 {
   guint32 launcher_type = g_variant_get_uint32 (value);
-  g_autoptr(GError) local_error = NULL;
   guint32 supported_launcher_types;
 
   supported_launcher_types =
@@ -596,7 +593,6 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
-  g_autofree char *token = NULL;
   g_autofree char *icon_format = NULL;
   g_autofree char *icon_size = NULL;
   g_autoptr(GVariant) icon_v = NULL;
