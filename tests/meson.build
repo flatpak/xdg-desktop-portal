@@ -279,6 +279,7 @@ if enable_pytest
   subdir('templates')
   pytest_files = [
     '__init__.py',
+    'test_clipboard.py',
     'test_email.py',
     'test_remotedesktop.py',
     'test_trash.py',
