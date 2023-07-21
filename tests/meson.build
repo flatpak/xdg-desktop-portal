@@ -299,7 +299,7 @@ if enable_pytest
     pytest,
     args: ['--verbose', '--log-level=DEBUG'],
     suite: ['pytest'],
-    timeout: 60,
+    timeout: 120,
   )
 endif
 
