@@ -225,7 +225,6 @@ handle_selection_write (XdpDbusClipboard *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  g_autoptr(GError) error = NULL;
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
@@ -277,7 +276,6 @@ handle_selection_write_done (XdpDbusClipboard *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  g_autoptr(GError) error = NULL;
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
@@ -368,7 +366,6 @@ handle_selection_read (XdpDbusClipboard *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  g_autoptr(GError) error = NULL;
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
