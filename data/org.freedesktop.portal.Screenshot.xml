@@ -34,7 +34,6 @@
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
         Screenshot:
-        Supported keys in the @options vardict include:
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
