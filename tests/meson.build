@@ -287,6 +287,7 @@ if enable_pytest
   endif
 
   pytest_files = [
+    'conftest.py',
     '__init__.py',
     'test_clipboard.py',
     'test_email.py',

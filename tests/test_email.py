@@ -2,26 +2,32 @@
 #
 # This file is formatted with Python Black
 
-
-from tests import PortalTest
-
+from tests import PortalMock
 import dbus
+import pytest
 import time
 
 
-class TestEmail(PortalTest):
-    def test_version(self):
-        self.check_version(3)
+@pytest.fixture
+def portal_name():
+    yield "Email"
 
-    def test_email_basic(self):
-        self.start_impl_portal()
-        self.start_xdp()
 
+@pytest.fixture
+def portal_has_impl():
+    yield True
+
+
+class TestEmail:
+    def test_version(self, portal_mock):
+        portal_mock.check_version(3)
+
+    def test_email_basic(self, portal_mock):
         addresses = ["mclasen@redhat.com"]
         subject = "Re: portal tests"
         body = "You have to see this"
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -36,7 +42,7 @@ class TestEmail(PortalTest):
         assert response.response == 0
 
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[2] == ""  # parent window
@@ -44,15 +50,12 @@ class TestEmail(PortalTest):
         assert args[3]["subject"] == subject
         assert args[3]["body"] == body
 
-    def test_email_address(self):
+    def test_email_address(self, portal_mock):
         """test that an invalid address triggers an error"""
-
-        self.start_impl_portal()
-        self.start_xdp()
 
         addresses = ["gibberish! not an email address\n%Q"]
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "addresses": addresses,
         }
@@ -63,23 +66,20 @@ class TestEmail(PortalTest):
                 options=options,
             )
 
-            self.fail("This statement should not be reached")
+            assert False, "This statement should not be reached"
         except dbus.exceptions.DBusException as e:
             assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
 
         # Check the impl portal was never called
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_email_subject_multiline(self):
+    def test_email_subject_multiline(self, portal_mock):
         """test that an multiline subject triggers an error"""
-
-        self.start_impl_portal()
-        self.start_xdp()
 
         subject = "not\na\nvalid\nsubject line"
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "subject": subject,
         }
@@ -90,25 +90,22 @@ class TestEmail(PortalTest):
                 options=options,
             )
 
-            self.fail("This statement should not be reached")
+            assert False, "This statement should not be reached"
         except dbus.exceptions.DBusException as e:
             assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
 
         # Check the impl portal was never called
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_email_subject_too_long(self):
+    def test_email_subject_too_long(self, portal_mock):
         """test that a subject line over 200 chars triggers an error"""
-
-        self.start_impl_portal()
-        self.start_xdp()
 
         subject = "This subject line is too long" + "abc" * 60
 
         assert len(subject) > 200
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "subject": subject,
         }
@@ -119,30 +116,25 @@ class TestEmail(PortalTest):
                 options=options,
             )
 
-            self.fail("This statement should not be reached")
+            assert False, "This statement should not be reached"
         except dbus.exceptions.DBusException as e:
             assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
 
         # Check the impl portal was never called
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_email_delay(self):
+    @pytest.mark.parametrize("params", ({"delay": 2000},))
+    def test_email_delay(self, portal_mock):
         """
         Test that everything works as expected when the backend takes some
         time to send its response, as * is to be expected from a real backend
         that presents dialogs to the user.
         """
-
-        params = {"delay": 2000}
-
-        self.start_impl_portal(params)
-        self.start_xdp()
-
         subject = "delay test"
         addresses = ["mclasen@redhat.com"]
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -163,14 +155,15 @@ class TestEmail(PortalTest):
         assert end_time - start_time > 2
 
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[2] == ""  # parent window
         assert args[3]["addresses"] == addresses
         assert args[3]["subject"] == subject
 
-    def test_email_cancel(self):
+    @pytest.mark.parametrize("params", ({"response": 1},))
+    def test_email_cancel(self, portal_mock):
         """
         Test that user cancellation works as expected.
         We simulate that the user cancels a hypothetical dialog,
@@ -178,15 +171,10 @@ class TestEmail(PortalTest):
         And we check that we get the expected G_IO_ERROR_CANCELLED.
         """
 
-        params = {"response": 1}
-
-        self.start_impl_portal(params)
-        self.start_xdp()
-
         subject = "cancel test"
         addresses = ["mclasen@redhat.com"]
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -201,14 +189,15 @@ class TestEmail(PortalTest):
         assert response.response == 1
 
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[2] == ""  # parent window
         assert args[3]["addresses"] == addresses
         assert args[3]["subject"] == subject
 
-    def test_email_close(self):
+    @pytest.mark.parametrize("params", ({"expect-close": True},))
+    def test_email_close(self, portal_mock):
         """
         Test that app-side cancellation works as expected.
         We cancel the cancellable while while the hypothetical
@@ -217,15 +206,10 @@ class TestEmail(PortalTest):
         verify that that call actually happened.
         """
 
-        params = {"expect-close": True}
-
-        self.start_impl_portal(params)
-        self.start_xdp()
-
         subject = "close test"
         addresses = ["mclasen@redhat.com"]
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         request.schedule_close(1000)
         options = {
             "addresses": addresses,
@@ -242,7 +226,7 @@ class TestEmail(PortalTest):
         assert request.closed
 
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("ComposeEmail")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("ComposeEmail")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[2] == ""  # parent window

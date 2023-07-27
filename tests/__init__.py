@@ -327,24 +327,26 @@ class Session(Closable):
         return cls(bus, response.results["session_handle"])
 
 
-class PortalTest(dbusmock.DBusTestCase):
+class PortalMock:
     """
     Parent class for portal tests.
     """
 
-    @classmethod
-    def setUpClass(cls):
-        cls.PORTAL_NAME = cls.__name__.removeprefix("Test")
-        cls.INTERFACE_NAME = f"org.freedesktop.portal.{cls.PORTAL_NAME}"
-        cls.start_session_bus()
-        cls.dbus_con = cls.get_dbus(system_bus=False)
-        assert cls.dbus_con
-
-    def setUp(self):
+    def __init__(self, session_bus, portal_name: str):
+        self.bus = session_bus
+        self.portal_name = portal_name
         self.p_mock = None
         self.xdp = None
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.dbus_monitor = None
+
+    @property
+    def interface_name(self) -> str:
+        return f"org.freedesktop.portal.{self.portal_name}"
+
+    @property
+    def dbus_con(self):
+        return self.bus.dbus_con
 
     def start_impl_portal(self, params=None, portal=None):
         """
@@ -352,8 +354,8 @@ class PortalTest(dbusmock.DBusTestCase):
         the portal name is derived from the class name of the test, e.g.
         ``TestFoo`` will start ``org.freedesktop.impl.portal.Foo``.
         """
-        portal = portal or self.PORTAL_NAME
-        self.p_mock, self.obj_portal = self.spawn_server_template(
+        portal = portal or self.portal_name
+        self.p_mock, self.obj_portal = self.bus.spawn_server_template(
             template=f"tests/templates/{portal.lower()}.py",
             parameters=params,
             stdout=subprocess.PIPE,
@@ -414,11 +416,13 @@ class PortalTest(dbusmock.DBusTestCase):
         xdp = subprocess.Popen(argv, env=env)
 
         for _ in range(50):
-            if self.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+            if self.bus.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
                 break
             time.sleep(0.1)
         else:
-            self.fail("Timeout while waiting for xdg-desktop-portal to claim the bus")
+            assert (
+                False
+            ), "Timeout while waiting for xdg-desktop-portal to claim the bus"
 
         self.xdp = xdp
 
@@ -454,7 +458,7 @@ class PortalTest(dbusmock.DBusTestCase):
         try:
             return self._xdp_dbus_object
         except AttributeError:
-            obj = self.dbus_con.get_object(
+            obj = self.bus.dbus_con.get_object(
                 "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
             )
             # Useful for debugging:
@@ -474,12 +478,12 @@ class PortalTest(dbusmock.DBusTestCase):
         For portals, it's enough to specify the portal name (e.g. "InputCapture").
         If no name is provided, guess from the test class name.
         """
-        name = name or self.INTERFACE_NAME
+        name = name or self.interface_name
         if "." not in name:
             name = f"org.freedesktop.portal.{name}"
 
         try:
-            intf = self.portal_interfaces[name]
+            intf = getattr(self, "portal_interfaces", {})[name]
         except KeyError:
             intf = dbus.Interface(self.get_xdp_dbus_object(), name)
             assert intf
@@ -494,15 +498,14 @@ class PortalTest(dbusmock.DBusTestCase):
         """
         Helper function to check for a portal's version. Use as:
 
-            >>> class TestFoo(PortalTest):
+            >>> class TestFoo(PortalMock):
             ...     def test_version(self):
             ...         self.check_version(2)
             >>>
         """
-        self.start_xdp()
         properties_intf = self.get_dbus_interface("org.freedesktop.DBus.Properties")
         try:
-            portal_version = properties_intf.Get(self.INTERFACE_NAME, "version")
+            portal_version = properties_intf.Get(self.interface_name, "version")
             assert int(portal_version) == expected_version
         except dbus.exceptions.DBusException as e:
             logger.critical(e)
