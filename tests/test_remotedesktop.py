@@ -3,22 +3,25 @@
 # This file is formatted with Python Black
 
 
-from tests import PortalTest, Session
+from tests import PortalMock, Session
 from gi.repository import GLib
 
 import dbus
+import pytest
 import socket
 
 
-class TestRemoteDesktop(PortalTest):
-    def test_version(self):
-        self.check_version(2)
+@pytest.fixture
+def portal_name():
+    return "RemoteDesktop"
 
-    def test_remote_desktop_create_close_session(self):
-        self.start_impl_portal()
-        self.start_xdp()
 
-        request = self.create_request()
+class TestRemoteDesktop:
+    def test_version(self, portal_mock):
+        portal_mock.check_version(2)
+
+    def test_remote_desktop_create_close_session(self, portal_mock):
+        request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -29,9 +32,9 @@ class TestRemoteDesktop(PortalTest):
 
         assert response.response == 0
 
-        session = Session.from_response(self.dbus_con, response)
+        session = Session.from_response(portal_mock.dbus_con, response)
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
@@ -45,12 +48,9 @@ class TestRemoteDesktop(PortalTest):
 
         assert session.closed
 
-    def test_remote_desktop_create_session_signal_closed(self):
-        params = {"force-close": 500}
-        self.start_impl_portal(params=params)
-        self.start_xdp()
-
-        request = self.create_request()
+    @pytest.mark.parametrize("params", ({"force-close": 500},))
+    def test_remote_desktop_create_session_signal_closed(self, portal_mock):
+        request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -61,9 +61,9 @@ class TestRemoteDesktop(PortalTest):
 
         assert response.response == 0
 
-        session = Session.from_response(self.dbus_con, response)
+        session = Session.from_response(portal_mock.dbus_con, response)
         # Check the impl portal was called with the right args
-        method_calls = self.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
@@ -77,11 +77,8 @@ class TestRemoteDesktop(PortalTest):
 
         assert session.closed
 
-    def test_remote_desktop_connect_to_eis(self):
-        self.start_impl_portal()
-        self.start_xdp()
-
-        request = self.create_request()
+    def test_remote_desktop_connect_to_eis(self, portal_mock):
+        request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -92,8 +89,8 @@ class TestRemoteDesktop(PortalTest):
 
         assert response.response == 0
 
-        session = Session.from_response(self.dbus_con, response)
-        request = self.create_request()
+        session = Session.from_response(portal_mock.dbus_con, response)
+        request = portal_mock.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -104,7 +101,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -114,17 +111,14 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        rd_intf = self.get_dbus_interface()
+        rd_intf = portal_mock.get_dbus_interface()
         fd = rd_intf.ConnectToEIS(session.handle, dbus.Dictionary({}, signature="sv"))
         eis_socket = socket.fromfd(fd.take(), socket.AF_UNIX, socket.SOCK_STREAM)
         assert eis_socket.recv(10) == b"HELLO"
 
-    def test_remote_desktop_connect_to_eis_fail(self):
-        params = {"fail-connect-to-eis": True}
-        self.start_impl_portal(params=params)
-        self.start_xdp()
-
-        request = self.create_request()
+    @pytest.mark.parametrize("params", ({"fail-connect-to-eis": True},))
+    def test_remote_desktop_connect_to_eis_fail(self, portal_mock):
+        request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -135,8 +129,8 @@ class TestRemoteDesktop(PortalTest):
 
         assert response.response == 0
 
-        session = Session.from_response(self.dbus_con, response)
-        request = self.create_request()
+        session = Session.from_response(portal_mock.dbus_con, response)
+        request = portal_mock.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -147,7 +141,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -157,18 +151,15 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        with self.assertRaises(dbus.exceptions.DBusException) as cm:
-            rd_intf = self.get_dbus_interface()
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            rd_intf = portal_mock.get_dbus_interface()
             _ = rd_intf.ConnectToEIS(
                 session.handle, dbus.Dictionary({}, signature="sv")
             )
-        assert "Purposely failing ConnectToEIS" in cm.exception.get_dbus_message()
+        assert "Purposely failing ConnectToEIS" in excinfo.value.get_dbus_message()
 
-    def test_remote_desktop_connect_to_eis_fail_notifies(self):
-        self.start_impl_portal()
-        self.start_xdp()
-
-        request = self.create_request()
+    def test_remote_desktop_connect_to_eis_fail_notifies(self, portal_mock):
+        request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -179,8 +170,8 @@ class TestRemoteDesktop(PortalTest):
 
         assert response.response == 0
 
-        session = Session.from_response(self.dbus_con, response)
-        request = self.create_request()
+        session = Session.from_response(portal_mock.dbus_con, response)
+        request = portal_mock.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -191,7 +182,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = self.create_request()
+        request = portal_mock.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -213,8 +204,8 @@ class TestRemoteDesktop(PortalTest):
             {"name": "NotifyTouchMotion", "args": (0, 0, 1, 1)},
             {"name": "NotifyTouchUp", "args": (0,)},
         ]:
-            with self.assertRaises(dbus.exceptions.DBusException) as cm:
-                rd_intf = self.get_dbus_interface()
+            with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+                rd_intf = portal_mock.get_dbus_interface()
                 func = getattr(rd_intf, notifyfunc["name"])
                 assert func is not None
                 func(
@@ -225,5 +216,5 @@ class TestRemoteDesktop(PortalTest):
             # Not the best error message but...
             assert (
                 "Session is not allowed to call Notify"
-                in cm.exception.get_dbus_message()
+                in excinfo.value.get_dbus_message()
             )
