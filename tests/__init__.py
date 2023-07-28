@@ -486,6 +486,10 @@ class PortalTest(dbusmock.DBusTestCase):
             self.portal_interfaces[name] = intf
         return intf
 
+    def create_request(self, intf_name: Optional[str] = None) -> Request:
+        intf = self.get_dbus_interface(intf_name)
+        return Request(self.dbus_con, intf)
+
     def check_version(self, expected_version):
         """
         Helper function to check for a portal's version. Use as:

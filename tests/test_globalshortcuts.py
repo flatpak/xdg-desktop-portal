@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 
-from tests import Request, PortalTest, Session
+from tests import PortalTest, Session
 from gi.repository import GLib
 
 import dbus
@@ -18,8 +18,7 @@ class TestGlobalShortcuts(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        gs_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -51,8 +50,7 @@ class TestGlobalShortcuts(PortalTest):
         self.start_impl_portal(params=params)
         self.start_xdp()
 
-        gs_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -83,8 +81,7 @@ class TestGlobalShortcuts(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        gs_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -114,7 +111,7 @@ class TestGlobalShortcuts(PortalTest):
             ),
         ]
 
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         response = request.call(
             "BindShortcuts",
             session_handle=session.handle,
@@ -123,7 +120,7 @@ class TestGlobalShortcuts(PortalTest):
             options={},
         )
 
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         options = {}
         response = request.call(
             "ListShortcuts",
@@ -145,8 +142,7 @@ class TestGlobalShortcuts(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        gs_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -169,7 +165,7 @@ class TestGlobalShortcuts(PortalTest):
             ),
         ]
 
-        request = Request(self.dbus_con, gs_intf)
+        request = self.create_request()
         response = request.call(
             "BindShortcuts",
             session_handle=session.handle,
@@ -205,6 +201,7 @@ class TestGlobalShortcuts(PortalTest):
             assert shortcut_id == "binding1"
             deactivated_count += 1
 
+        gs_intf = self.get_dbus_interface()
         gs_intf.connect_to_signal("Activated", cb_activated)
         gs_intf.connect_to_signal("Deactivated", cb_deactivated)
 
