@@ -334,9 +334,6 @@ class PortalTest(dbusmock.DBusTestCase):
 
     @classmethod
     def setUpClass(cls):
-        logging.basicConfig(
-            format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
-        )
         cls.PORTAL_NAME = cls.__name__.removeprefix("Test")
         cls.INTERFACE_NAME = f"org.freedesktop.portal.{cls.PORTAL_NAME}"
         cls.start_session_bus()
