@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests import Request, PortalTest, Session
+from tests import PortalTest, Session
 import dbus
 import os
 
@@ -16,10 +16,9 @@ class TestClipboard(PortalTest):
         self.add_template(portal="RemoteDesktop", params=params)
         self.start_xdp()
 
-        remote_desktop_interface = self.get_dbus_interface("RemoteDesktop")
         clipboard_interface = self.get_dbus_interface()
 
-        create_session_request = Request(self.dbus_con, remote_desktop_interface)
+        create_session_request = self.create_request("RemoteDesktop")
         create_session_response = create_session_request.call(
             "CreateSession", options={"session_handle_token": "1234"}
         )
@@ -30,7 +29,7 @@ class TestClipboard(PortalTest):
 
         clipboard_interface.RequestClipboard(session.handle, {})
 
-        start_session_request = Request(self.dbus_con, remote_desktop_interface)
+        start_session_request = self.create_request("RemoteDesktop")
         start_session_response = start_session_request.call(
             "Start", session_handle=session.handle, parent_window="", options={}
         )

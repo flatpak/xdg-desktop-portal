@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 
-from tests import Request, PortalTest, Session
+from tests import PortalTest, Session
 from gi.repository import GLib
 
 import dbus
@@ -18,8 +18,7 @@ class TestRemoteDesktop(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        rd_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -51,8 +50,7 @@ class TestRemoteDesktop(PortalTest):
         self.start_impl_portal(params=params)
         self.start_xdp()
 
-        rd_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -83,8 +81,7 @@ class TestRemoteDesktop(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        rd_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -96,7 +93,7 @@ class TestRemoteDesktop(PortalTest):
         assert response.response == 0
 
         session = Session.from_response(self.dbus_con, response)
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -107,7 +104,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -117,6 +114,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
+        rd_intf = self.get_dbus_interface()
         fd = rd_intf.ConnectToEIS(session.handle, dbus.Dictionary({}, signature="sv"))
         eis_socket = socket.fromfd(fd.take(), socket.AF_UNIX, socket.SOCK_STREAM)
         assert eis_socket.recv(10) == b"HELLO"
@@ -126,8 +124,7 @@ class TestRemoteDesktop(PortalTest):
         self.start_impl_portal(params=params)
         self.start_xdp()
 
-        rd_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -139,7 +136,7 @@ class TestRemoteDesktop(PortalTest):
         assert response.response == 0
 
         session = Session.from_response(self.dbus_con, response)
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -150,7 +147,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -161,6 +158,7 @@ class TestRemoteDesktop(PortalTest):
         assert response.response == 0
 
         with self.assertRaises(dbus.exceptions.DBusException) as cm:
+            rd_intf = self.get_dbus_interface()
             _ = rd_intf.ConnectToEIS(
                 session.handle, dbus.Dictionary({}, signature="sv")
             )
@@ -170,8 +168,7 @@ class TestRemoteDesktop(PortalTest):
         self.start_impl_portal()
         self.start_xdp()
 
-        rd_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "session_handle_token": "session_token0",
         }
@@ -183,7 +180,7 @@ class TestRemoteDesktop(PortalTest):
         assert response.response == 0
 
         session = Session.from_response(self.dbus_con, response)
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {
             "types": dbus.UInt32(0x3),
         }
@@ -194,7 +191,7 @@ class TestRemoteDesktop(PortalTest):
         )
         assert response.response == 0
 
-        request = Request(self.dbus_con, rd_intf)
+        request = self.create_request()
         options = {}
         response = request.call(
             "Start",
@@ -217,6 +214,7 @@ class TestRemoteDesktop(PortalTest):
             {"name": "NotifyTouchUp", "args": (0,)},
         ]:
             with self.assertRaises(dbus.exceptions.DBusException) as cm:
+                rd_intf = self.get_dbus_interface()
                 func = getattr(rd_intf, notifyfunc["name"])
                 assert func is not None
                 func(

@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 
-from tests import Request, PortalTest
+from tests import PortalTest
 
 import dbus
 import time
@@ -21,8 +21,7 @@ class TestEmail(PortalTest):
         subject = "Re: portal tests"
         body = "You have to see this"
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -53,8 +52,7 @@ class TestEmail(PortalTest):
 
         addresses = ["gibberish! not an email address\n%Q"]
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "addresses": addresses,
         }
@@ -81,8 +79,7 @@ class TestEmail(PortalTest):
 
         subject = "not\na\nvalid\nsubject line"
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "subject": subject,
         }
@@ -111,8 +108,7 @@ class TestEmail(PortalTest):
 
         assert len(subject) > 200
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "subject": subject,
         }
@@ -146,8 +142,7 @@ class TestEmail(PortalTest):
         subject = "delay test"
         addresses = ["mclasen@redhat.com"]
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -191,8 +186,7 @@ class TestEmail(PortalTest):
         subject = "cancel test"
         addresses = ["mclasen@redhat.com"]
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         options = {
             "addresses": addresses,
             "subject": subject,
@@ -231,8 +225,7 @@ class TestEmail(PortalTest):
         subject = "close test"
         addresses = ["mclasen@redhat.com"]
 
-        email_intf = self.get_dbus_interface()
-        request = Request(self.dbus_con, email_intf)
+        request = self.create_request()
         request.schedule_close(1000)
         options = {
             "addresses": addresses,
