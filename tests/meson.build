@@ -294,10 +294,17 @@ if enable_pytest
     )
   endforeach
 
+  pytest_args = ['--verbose', '--log-level=DEBUG']
+
+  # pytest xdist is nice because it significantly speeds up our
+  # test process, but it's not required
+  if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
+    pytest_args += ['-n', 'auto']
+  endif
   test(
     'pytest',
     pytest,
-    args: ['--verbose', '--log-level=DEBUG'],
+    args: pytest_args,
     suite: ['pytest'],
     timeout: 120,
   )
