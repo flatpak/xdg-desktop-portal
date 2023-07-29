@@ -277,6 +277,15 @@ enable_pytest = pytest.found() and python.found()
 
 if enable_pytest
   subdir('templates')
+
+  pytest_args = ['--verbose', '--log-level=DEBUG']
+
+  # pytest xdist is nice because it significantly speeds up our
+  # test process, but it's not required
+  if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
+    pytest_args += ['-n', 'auto']
+  endif
+
   pytest_files = [
     '__init__.py',
     'test_clipboard.py',
@@ -292,22 +301,18 @@ if enable_pytest
       copy: true,
       install: false
     )
+
+    if pytest_file.startswith('test_')
+      testname = pytest_file.replace('.py', '')
+      test(
+        'pytest @0@'.format(testname),
+        pytest,
+        args: pytest_args + ['-k', testname],
+        suite: ['pytest'],
+        timeout: 120,
+      )
+    endif
   endforeach
-
-  pytest_args = ['--verbose', '--log-level=DEBUG']
-
-  # pytest xdist is nice because it significantly speeds up our
-  # test process, but it's not required
-  if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
-    pytest_args += ['-n', 'auto']
-  endif
-  test(
-    'pytest',
-    pytest,
-    args: pytest_args,
-    suite: ['pytest'],
-    timeout: 120,
-  )
 endif
 
 if enable_installed_tests
