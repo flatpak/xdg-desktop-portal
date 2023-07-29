@@ -4,7 +4,6 @@
 
 
 from tests import Request, PortalTest
-from gi.repository import GLib
 
 import dbus
 import time
