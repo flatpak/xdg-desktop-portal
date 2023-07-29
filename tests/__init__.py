@@ -160,7 +160,7 @@ class Request(Closable):
         # GLib makes assertions in callbacks impossible, so we wrap all
         # callbacks into a try: except and store the error on the request to
         # be raised later when we're back in the main context
-        self.error = None
+        self.error: Optional[Exception] = None
 
         proxy = bus.get_object("org.freedesktop.portal.Desktop", self.handle)
         self.mock_interface = dbus.Interface(proxy, dbusmock.MOCK_IFACE)
@@ -343,7 +343,7 @@ class PortalTest(dbusmock.DBusTestCase):
     def setUp(self):
         self.p_mock = None
         self.xdp = None
-        self.portal_interfaces = {}
+        self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.dbus_monitor = None
 
     def start_impl_portal(self, params=None, portal=None):
