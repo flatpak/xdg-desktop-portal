@@ -173,7 +173,7 @@ def ConnectToEIS(self, session_handle, app_id, options):
         assert session_handle in self.sessions
 
         if self.fail_connect_to_eis:
-            raise dbus.exceptions.DBusException(f"Purposely failing ConnectToEIS")
+            raise dbus.exceptions.DBusException("Purposely failing ConnectToEIS")
 
         sockets = socket.socketpair()
         self.eis_socket = sockets[0]

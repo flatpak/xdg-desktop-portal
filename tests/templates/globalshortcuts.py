@@ -5,9 +5,8 @@
 from tests.templates import Response, init_template_logger, ImplRequest, ImplSession
 import dbus
 import dbus.service
-import socket
 import time
-from dbusmock import MOCK_IFACE, mockobject
+from dbusmock import MOCK_IFACE
 
 from gi.repository import GLib
 
