@@ -2,9 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from logging import debug
 from tests import Request, PortalTest, Session
-from gi.repository import GLib
 import dbus
 import os
 

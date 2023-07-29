@@ -7,7 +7,6 @@ from tests import Request, PortalTest, Session
 from gi.repository import GLib
 
 import dbus
-import socket
 import time
 
 

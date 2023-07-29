@@ -6,9 +6,7 @@
 from tests import PortalTest
 from pathlib import Path
 
-import dbus
 import os
-import time
 import tempfile
 
 
