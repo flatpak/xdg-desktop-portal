@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 
-import os, sys, stat, random, errno, argparse
+import argparse
+import errno
+import os
+import random
+import stat
+import sys
+
 from gi.repository import Gio, GLib
 
 
@@ -131,7 +137,7 @@ def assertEqual(a, b):
 
 
 def assertIn(element, container):
-    if not element in container:
+    if element not in container:
         raise AssertionError(
             "{} was not in the container {}".format(element, container)
         )
@@ -216,7 +222,7 @@ def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
     for file in expected_files:
         if file in remaining:
             remaining.remove(file)
-        elif not file in volatile_files:
+        elif file not in volatile_files:
             raise AssertionError(
                 "Expected file {} not found in dir {} (all: {})".format(
                     file, path, found_files
@@ -276,7 +282,7 @@ class Doc:
         name = self.id
         if self.is_dir:
             return "%s(dir)" % (name)
-        elif self.content == None:
+        elif self.content is None:
             return "%s(missing)" % (name)
         else:
             return "%s" % (name)
@@ -407,7 +413,7 @@ class DocPortal:
         return docs
 
     def ensure_app_id(self, app_id, volatile=False):
-        if not app_id in self.apps:
+        if app_id not in self.apps:
             self.apps.append(app_id)
         if volatile:
             self.volatile_apps.add(app_id)
@@ -458,7 +464,7 @@ def verify_virtual_dir(path, files, volatile_files=None):
 
     assertRaises(FileNotFoundError, os.lstat, path + "/not-existing-file")
 
-    if files != None:
+    if files is not None:
         assertDirFiles(path, files, ensure_no_remaining, volatile_files)
 
 
@@ -500,7 +506,6 @@ def verify_doc(doc, app_id=None):
         real_path = doc.real_path
         if doc.content:
             assertFileExist(main_path)
-            content = None
             assertFileHasContent(main_path, doc.content)
             assertFileHasContent(real_path, doc.content)
 
@@ -944,7 +949,7 @@ def export_a_doc():
     assert doc is reused_doc
 
     not_reused_doc = portal.add(path, False)
-    assert not doc is not_reused_doc
+    assert doc is not not_reused_doc
 
     # We should not be able to re-export a tmpfile
     tmppath = doc.get_doc_path(None) + "/tmpfile"
@@ -971,7 +976,7 @@ def export_a_named_doc(create_file):
     assert doc is reused_doc
 
     not_reused_doc = portal.add_named(path, False)
-    assert not doc is not_reused_doc
+    assert doc is not not_reused_doc
 
 
 def export_a_dir_doc():
@@ -991,7 +996,7 @@ def export_a_dir_doc():
     doc = portal.lookup(subpath)
     assertEqual(doc, "")
     doc2 = portal.lookup(dir + "/sub")
-    assertEqual(doc, "")
+    assertEqual(doc2, "")
 
     # But we should be able to re-export the file
     reexported_doc = portal.add(subpath)

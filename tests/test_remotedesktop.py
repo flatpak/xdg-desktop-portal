@@ -161,7 +161,7 @@ class TestRemoteDesktop(PortalTest):
         assert response.response == 0
 
         with self.assertRaises(dbus.exceptions.DBusException) as cm:
-            fd = rd_intf.ConnectToEIS(
+            _ = rd_intf.ConnectToEIS(
                 session.handle, dbus.Dictionary({}, signature="sv")
             )
         assert "Purposely failing ConnectToEIS" in cm.exception.get_dbus_message()
