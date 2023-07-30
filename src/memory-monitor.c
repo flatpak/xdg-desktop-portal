@@ -57,7 +57,7 @@ static void memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (MemoryMonitor, memory_monitor,
                          XDP_DBUS_TYPE_MEMORY_MONITOR_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_MEMORY_MONITOR, 
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_MEMORY_MONITOR,
                                                 memory_monitor_iface_init));
 
 static void

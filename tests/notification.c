@@ -140,7 +140,7 @@ notification_fail (GObject *source,
   got_info++;
   g_main_context_wakeup (NULL);
 }
-                
+
 void
 test_notification_bad_arg (void)
 {

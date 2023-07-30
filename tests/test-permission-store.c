@@ -111,7 +111,7 @@ test_change (void)
   g_source_remove (timeout_id);
 
   g_assert_cmpint (change_count, ==, 1);
-                                      
+
   g_signal_handler_disconnect (permissions, changed_handler);
 
   changed_handler = g_signal_connect (permissions, "changed", G_CALLBACK (changed_cb2), NULL);

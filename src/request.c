@@ -524,4 +524,3 @@ close_requests_for_sender (const char *sender)
   g_task_run_in_thread (task, close_requests_in_thread_func);
   g_object_unref (task);
 }
-

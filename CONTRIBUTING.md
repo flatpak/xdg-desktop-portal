@@ -55,4 +55,3 @@ with `-Dlibportal=enabled`, and run:
 ```
 $ meson test -C _build
 ```
-

@@ -43,5 +43,5 @@ test_trash_file (void)
   xdp_portal_trash_file (portal, "/proc/cmdline", NULL, trash_cb, &expected);
 
   while (!got_info)
-    g_main_context_iteration (NULL, TRUE);    
+    g_main_context_iteration (NULL, TRUE);
 }

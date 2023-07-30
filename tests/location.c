@@ -104,4 +104,3 @@ test_location_accuracy (void)
 
   xdp_portal_location_monitor_stop (portal);
 }
-

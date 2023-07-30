@@ -54,7 +54,7 @@
         ::Closed signal is emitted to inform the application.
       </para>
     </section>
-    <section id="parent_window"> 
+    <section id="parent_window">
       <title>Parent window identifiers</title>
       <para>
         Most portals interact with the user by showing dialogs. These dialogs

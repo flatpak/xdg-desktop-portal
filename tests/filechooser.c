@@ -45,7 +45,7 @@ open_file_cb (GObject *obj,
       g_variant_lookup (ret, "uris", "^a&s", &uris);
       expected_uris = g_key_file_get_string_list (keyfile, "result", "uris", NULL, NULL);
 
-      g_assert (g_strv_equal (uris, (const char * const *)expected_uris)); 
+      g_assert (g_strv_equal (uris, (const char * const *)expected_uris));
 
       expected_choices = g_key_file_get_string (keyfile, "result", "choices", NULL);
       g_variant_lookup (ret, "choices", "@a(ss)", &choices);
@@ -263,7 +263,7 @@ test_open_file_filters1 (void)
     NULL
   };
   g_autoptr(GVariant) filters = NULL;
-  const char *filter_string = 
+  const char *filter_string =
     "[('Images', [(0, '*ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')])]";
 
   filters = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), filter_string, NULL, NULL, &error);
@@ -303,7 +303,7 @@ test_open_file_filters2 (void)
     NULL
   };
   g_autoptr(GVariant) filters = NULL;
-  const char *filter_string = 
+  const char *filter_string =
     "[('Images', [(0, '*ico'), (1, 'image/png')]), ('Text', [(4, '*.txt')])]"; /* invalid type */
 
   filters = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), filter_string, NULL, NULL, &error);
@@ -674,7 +674,7 @@ save_file_cb (GObject *obj,
       g_variant_lookup (ret, "uris", "^a&s", &uris);
       expected = g_key_file_get_string_list (keyfile, "result", "uris", NULL, NULL);
 
-      g_assert (g_strv_equal (uris, (const char * const *)expected)); 
+      g_assert (g_strv_equal (uris, (const char * const *)expected));
     }
   else if (response == 1)
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
@@ -834,7 +834,7 @@ test_save_file_filters (void)
     NULL
   };
   g_autoptr(GVariant) filters = NULL;
-  const char *filter_string = 
+  const char *filter_string =
     "[('Images', [(0, '*ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')])]";
 
   filters = g_variant_parse (G_VARIANT_TYPE ("a(sa(us))"), filter_string, NULL, NULL, &error);

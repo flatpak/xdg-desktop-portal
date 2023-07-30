@@ -173,7 +173,7 @@
           <varlistentry>
             <term>clipboard_enabled b</term>
             <listitem><para>
-              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
+              A boolean for whether the clipboard was enabled ('true') or not ('false').
               See the #org.freedesktop.portal.Clipboard documentation for more information.
               Since version 2.
             </para></listitem>

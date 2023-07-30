@@ -7,7 +7,7 @@
  - add content to NEWS
  - git commit -m <version>
  - git push origin main
- - meson setup . _build -Ddocbook-docs=enabled 
+ - meson setup . _build -Ddocbook-docs=enabled
  - meson compile -C _build dist
  - git tag <version>
  - git push origin refs/tags/<version>

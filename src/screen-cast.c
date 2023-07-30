@@ -355,7 +355,7 @@ validate_source_types (const char *key,
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Unsupported device type: %x", types & ~(1 | 2 | 4));
       return FALSE;
-    } 
+    }
 
   return TRUE;
 }

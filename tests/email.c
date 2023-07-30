@@ -101,7 +101,7 @@ test_email_address (void)
   addresses[0] = "gibberish! not an email address\n%Q";
   addresses[1] = NULL;
 
-  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1); 
+  g_key_file_set_string_list (keyfile, "input", "addresses", addresses, 1);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
@@ -145,7 +145,7 @@ test_email_subject (void)
 
   subject = "not\na\nvalid\nsubject line";
 
-  g_key_file_set_string (keyfile, "input", "subject", subject); 
+  g_key_file_set_string (keyfile, "input", "subject", subject);
 
   g_key_file_set_integer (keyfile, "backend", "delay", 0);
   g_key_file_set_integer (keyfile, "backend", "response", 0);
@@ -176,7 +176,7 @@ test_email_subject (void)
   subject = "This subject line is too long, much too long. It is more than twohundred characters long, which is much, much too long for a reasonable subject line. Be concise! This is not twitter where you can use hundreds of characters, including Emoji like 😂️ or 😩️";
   g_assert_cmpint (g_utf8_strlen (subject, -1), >, 200);
 
-  g_key_file_set_string (keyfile, "input", "subject", subject); 
+  g_key_file_set_string (keyfile, "input", "subject", subject);
   g_key_file_save_to_file (keyfile, path, &error);
   g_assert_no_error (error);
 
@@ -417,4 +417,3 @@ test_email_parallel (void)
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
 }
-
