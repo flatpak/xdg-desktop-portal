@@ -112,7 +112,7 @@ def assertRaises(exc_type, func, *args, **kwargs):
     raised_exc = None
     try:
         func(*args, **kwargs)
-    except:
+    except Exception:
         raised_exc = sys.exc_info()[0]
 
     if not raised_exc:
@@ -130,7 +130,7 @@ def assertRaisesErrno(error_nr, func, *args, **kwargs):
     raised_exc_value = None
     try:
         func(*args, **kwargs)
-    except:
+    except Exception:
         raised_exc = sys.exc_info()[0]
         raised_exc_value = sys.exc_info()[1]
 
@@ -151,7 +151,7 @@ def assertRaisesGError(message, code, func, *args, **kwargs):
     raised_exc_value = None
     try:
         func(*args, **kwargs)
-    except:
+    except Exception:
         raised_exc = sys.exc_info()[0]
         raised_exc_value = sys.exc_info()[1]
 
@@ -203,7 +203,7 @@ def assertFileExist(path):
         info = os.lstat(path)
         if info.st_mode & stat.S_IFREG != stat.S_IFREG:
             raise AssertionError("File {} is not a regular file".format(path))
-    except:
+    except Exception:
         raise AssertionError("File {} doesn't exist".format(path))
 
 
@@ -212,7 +212,7 @@ def assertDirExist(path):
         info = os.lstat(path)
         if info.st_mode & stat.S_IFDIR != stat.S_IFDIR:
             raise AssertionError("File {} is not a directory file".format(path))
-    except:
+    except Exception:
         raise AssertionError("File {} doesn't exist".format(path))
 
 
@@ -228,7 +228,7 @@ def assertSymlink(path, expected_target):
                     path, target, expected_target
                 )
             )
-    except:
+    except Exception:
         raise AssertionError("Symlink {} doesn't exist".format(path))
 
 
@@ -237,7 +237,7 @@ def assertFileNotExist(path):
         os.lstat(path)
     except FileNotFoundError:
         return
-    except:
+    except Exception:
         raise AssertionError(
             "Got wrong execption {} for {}, expected FileNotFoundError".format(
                 sys.exc_info()[0], path
@@ -404,7 +404,7 @@ class DocPortal:
         try:
             with open(path) as f:
                 content = f.read()
-        except:
+        except Exception:
             content = None
         doc = Doc(self, doc_id, path, content)
         self.docs[doc.id] = doc
