@@ -5,7 +5,6 @@
 from typing import Any, Iterator
 
 import pytest
-import dbus
 import dbusmock
 
 from tests import PortalMock
