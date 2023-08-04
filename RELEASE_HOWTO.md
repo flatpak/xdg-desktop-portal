@@ -14,6 +14,6 @@
  - upload tarball to github as release
  - edit release, copy NEWS section in
  - update portal api docs in the gh-pages branch
- - bump version in configure.ac and meson.build
+ - bump version in meson.build
  - git commit -m "Post-release version bump"
  - git push origin main
