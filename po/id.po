@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2022-11-30 10:52+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
@@ -107,33 +107,33 @@ msgstr "Aplikasi ingin menggunakan kamera Anda."
 msgid "%s wants to use your camera."
 msgstr "%s ingin menggunakan kamera Anda."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Tolak Akses"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Beri Akses"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Beri Akses ke Lokasi Anda?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Sebuah aplikasi ingin menggunakan lokasi Anda."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Beri Akses %s ke Lokasi Anda?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s ingin menggunakan lokasi Anda."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 

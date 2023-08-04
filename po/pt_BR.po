@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2019-11-24 22:29-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <gnome-pt_br-list@gnome.org>\n"
@@ -110,33 +110,33 @@ msgstr "Um aplicativo deseja usar sua câmera."
 msgid "%s wants to use your camera."
 msgstr "%s deseja usar sua câmera."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Negar acesso"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Conceder acesso"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Conceder acesso à sua localização?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Um aplicativo deseja usar sua localização."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Dar %s acesso a sua localização?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s deseja usar sua localização."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "

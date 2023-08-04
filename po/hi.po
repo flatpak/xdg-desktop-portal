@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2021-09-09 00:42+0700\n"
 "Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
@@ -102,33 +102,33 @@ msgstr "एक एप्लिकेशन आपके कैमरे का �
 msgid "%s wants to use your camera."
 msgstr "%s अपने कैमरे का उपयोग करना चाहता है।"
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "पहुँच को अस्वीकार"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "अनुदान पहुँच"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "एक एप्लिकेशन आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "देना %s आपके स्थान तक पहुँच?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान का उपयोग बदला जा सकता है।"
 

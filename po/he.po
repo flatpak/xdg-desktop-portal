@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2022-07-25 21:56+0300\n"
 "Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
 "Language-Team: Hebrew <yoseforb@gmail.com>\n"
@@ -102,33 +102,33 @@ msgstr "יישום מבקש להשתמש במצלמה שלך."
 msgid "%s wants to use your camera."
 msgstr "‏%s מבקש להשתמש במצלמה שלך."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "מניעת גישה"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "הענקת גישה"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "לאפשר גישה למיקום שלך?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "יישום מבקש להשתמש במיקום שלך."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "לתת ליישום %s גישה למיקום שלך?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "‏%s מבקש להשתמש במיקום שלך."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקום שלך מהגדרות הפרטיות."
 

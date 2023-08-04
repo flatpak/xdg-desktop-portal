@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2021-12-04 14:52+0100\n"
 "Last-Translator: Adolfo Jayme Barrientos <fitojb@ubuntu.com>\n"
 "Language-Team: Spanish\n"
@@ -109,33 +109,33 @@ msgstr "Una aplicación intenta utilizar la cámara."
 msgid "%s wants to use your camera."
 msgstr "%s intenta utilizar la cámara."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Denegar acceso"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Conceder acceso"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "¿Quiere conceder acceso a su ubicación?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Una aplicación intenta utilizar su ubicación."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "¿Quiere conceder a %s acceso a su ubicación?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s intenta utilizar su ubicación."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "El acceso a la ubicación puede modificarse en cualquier momento a través de "

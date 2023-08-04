@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2020-10-12 01:25+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -106,33 +106,33 @@ msgstr "Et program anmoder om at bruge dit kamera."
 msgid "%s wants to use your camera."
 msgstr "%s anmoder om at bruge dit kamera."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Nægt adgang"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Giv adgang"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Giv adgang til din placering?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Et program anmoder om at bruge din placering."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s anmoder om at bruge din placering."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til din placering kan når som helst ændres i "

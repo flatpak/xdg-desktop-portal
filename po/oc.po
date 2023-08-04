@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-12-12 19:34-0300\n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2023-02-13 18:49+0100\n"
 "Last-Translator: Quentin PAGÈS\n"
 "Language-Team: Occitan\n"
@@ -110,33 +110,33 @@ msgstr "Una aplicacion vòl utilizar la camèra."
 msgid "%s wants to use your camera."
 msgstr "%s vòl utilizar la camèra."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Refusar l’accès"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Acordar l’accès"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Donar accès a vòstre localizacion ?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Una aplicacion vòl utilizar vòstra localizacion."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Donar accès a %s a vòstra localizacion ?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vòl utilizar vòstra localizacion."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Las règlas d’accès a la localizacion se pòdon a tot moment modificar als "

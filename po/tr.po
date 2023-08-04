@@ -10,8 +10,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2023-02-27 15:33+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2023-06-06 02:05+0300\n"
 "Last-Translator: Berk Elyesa Yıldırım <beryesa@proton.me>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
@@ -114,33 +114,33 @@ msgstr "Bir uygulama, kameranızı kullanmak istiyor."
 msgid "%s wants to use your camera."
 msgstr "%s, kameranızı kullanmak istiyor."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Erişimi Reddet"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Erişim İzni Ver"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Konumunuza Erişim Verilsin Mi?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Bir uygulama, konumunuzu kullanmak istiyor."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "%s, Bulunduğunuz Konuma Erişsin Mi?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s, konumunuzu kullanmak istiyor."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Konum erişimini, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."

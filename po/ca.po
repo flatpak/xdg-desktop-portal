@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2022-10-25 15:32+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2021-11-10 19:00+0100\n"
 "Last-Translator: Jordi Mas i Hernàndez <jmas@softcatala.org>\n"
 "Language-Team: Catalan <gnome@llistes.softcatala.org>\n"
@@ -77,8 +77,7 @@ msgstr "Voleu activar els altaveus?"
 
 #: src/device.c:130
 msgid ""
-"Access to your speakers can be changed at any time from the privacy "
-"settings."
+"Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
 "L'accés als altaveus es pot canviar en qualsevol moment des de la "
 "configuració de privacitat."
@@ -112,33 +111,33 @@ msgstr "Una aplicació vol utilitzar la càmera."
 msgid "%s wants to use your camera."
 msgstr "%s vol utilitzar la càmera."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Denega l'accés"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Permet l'accés"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Permeteu l'accés a la vostra ubicació?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Una aplicació vol utilitzar la teva ubicació."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Permeteu que %s tingui accés a la vostra ubicació?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vol saber la teva ubicació."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Podeu canviar la configuració de l'accés a la ubicació sempre que vulgueu "
@@ -181,8 +180,7 @@ msgid "Allow Applications to Set Backgrounds?"
 msgstr "Voleu permetre que les aplicacions estableixin el fons?"
 
 #: src/wallpaper.c:193
-msgid ""
-"An application is requesting to be able to change the background image."
+msgid "An application is requesting to be able to change the background image."
 msgstr "Una aplicació sol·licita poder canviar la imatge de fons."
 
 #: src/wallpaper.c:205

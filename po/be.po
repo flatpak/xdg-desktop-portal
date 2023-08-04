@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2023-01-03 15:31+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-08-04 16:59-0300\n"
 "PO-Revision-Date: 2023-01-04 01:42+0300\n"
 "Last-Translator: Yuras Shumovich <shumovichy@gmail.com>\n"
 "Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
@@ -104,33 +104,33 @@ msgstr "Праграма хоча атрымаць доступ да камер�
 msgid "%s wants to use your camera."
 msgstr "%s хоча атрымаць доступ да камеры."
 
-#: src/location.c:527
+#: src/location.c:526
 msgid "Deny Access"
 msgstr "Забараніць доступ"
 
-#: src/location.c:529
+#: src/location.c:528
 msgid "Grant Access"
 msgstr "Дазволіць доступ"
 
-#: src/location.c:535
+#: src/location.c:534
 msgid "Grant Access to Your Location?"
 msgstr "Дазволіць доступ да вашага месцазнаходжання?"
 
-#: src/location.c:536
+#: src/location.c:535
 msgid "An application wants to use your location."
 msgstr "Праграма хоча атрымаць доступ да месцазнаходжання."
 
-#: src/location.c:548
+#: src/location.c:547
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Даць %s доступ да вашага месцазнаходжання?"
 
-#: src/location.c:552
+#: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s хоча атрымаць доступ да месцазнаходжання."
 
-#: src/location.c:555
+#: src/location.c:554
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Доступ да месцазнаходжанне заўсёды можна змяніць праз налады прыватнасці."
