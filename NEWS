@@ -1,3 +1,29 @@
+Changes in 1.17.0
+=================
+Released: 2023-08-04
+
+- Drop the Autotools build. Meson is now the only supported build system.
+- Rework how portal implementations are loaded. This new, more robust system
+  allows selecting specific backends for specific portals, and layering them
+  when necessary. Platforms that provide portals implementation are encouraged
+  to provide a suitable configuration file.
+- Introduce a new Clipboard portal. This portal extends the Remote Desktop
+  portal by adding support for sharing clipboard between remote machines.
+- Introduce a new Input Capture portal. This portal adds mechanisms for taking
+  control of input devices. The primary usage model is centered around the
+  InputLeap and Synergy use cases, where local devices are used to control
+  remote displays.
+- Stop using the deprecated GTimeVal struct
+- Bump GLib dependency to 2.66
+- Add an "accept-label" option the the Print portal. This lets apps suggest a
+  proper label to the print operation.
+- Various fixes to the Global Shortcuts portal
+- Support restoring remote desktop sessions
+- Improve robustness of the OpenURI portal by validating more URIs
+- The PipeWire dependency is now mandatory
+- Various improvements for the test suite
+- Translation updates
+
 Changes in 1.16.0
 =================
 Released: 2022-12-12
