@@ -13,6 +13,14 @@ and others.
 Documentation for the available D-Bus interfaces can be found	
 [here](https://flatpak.github.io/xdg-desktop-portal/portal-docs.html).
 
+## Version numbering
+
+xdg-desktop-portal uses even minor vesion numbers for stable versions, and odd
+minor version numbers for unstable versions. During an unstable version cycle,
+portal APIs can make backward incompatible changes, meaning that applications
+should only depend on APIs defined in stable xdg-desktop-portal versions in
+production.
+
 ## Building xdg-desktop-portal
 
 xdg-desktop-portal depends on GLib and Flatpak.
