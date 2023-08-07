@@ -1074,7 +1074,7 @@ handle_open_directory (XdpDbusOpenURI *object,
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_open_uri_complete_open_file (object, invocation, NULL, request->id);
+  xdp_dbus_open_uri_complete_open_directory (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
