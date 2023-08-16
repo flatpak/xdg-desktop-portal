@@ -35,19 +35,19 @@ account_cb (GObject *obj,
   if (response == 0)
     {
       g_assert_no_error (error);
-  
+
       t = g_key_file_get_string (keyfile, "account", "id", NULL);
-      res = g_variant_lookup (ret, "id", "&s", &s); 
+      res = g_variant_lookup (ret, "id", "&s", &s);
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
 
       t = g_key_file_get_string (keyfile, "account", "name", NULL);
-      res = g_variant_lookup (ret, "name", "&s", &s); 
+      res = g_variant_lookup (ret, "name", "&s", &s);
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
 
       t = g_key_file_get_string (keyfile, "account", "image", NULL);
-      res = g_variant_lookup (ret, "image", "&s", &s); 
+      res = g_variant_lookup (ret, "image", "&s", &s);
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
     }
@@ -327,4 +327,3 @@ test_account_parallel (void)
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
 }
-

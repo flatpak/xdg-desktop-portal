@@ -75,7 +75,7 @@ send_response (gpointer data)
     }
 
   g_debug ("send response %d", response);
- 
+
   if (strcmp (g_dbus_method_invocation_get_method_name (handle->invocation), "Print") == 0)
     xdp_dbus_impl_print_complete_print (handle->impl,
                                         handle->invocation,

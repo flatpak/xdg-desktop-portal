@@ -44,7 +44,7 @@
         and org.freedesktop.portal.ScreenCast.OpenPipewireRemote() to acquire a file
         descriptor for a PipeWire remote. See #org.freedesktop.portal.ScreenCast for
         more information on how to use those methods. To capture clipboard content,
-        you can call org.freedesktop.portal.Clipboard.RequestClipboard(). See 
+        you can call org.freedesktop.portal.Clipboard.RequestClipboard(). See
         #org.freedesktop.portal.Clipboard for more information on the clipboard
         integration.
 
@@ -189,7 +189,7 @@
           <varlistentry>
             <term>clipboard_enabled b</term>
             <listitem><para>
-              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
+              A boolean for whether the clipboard was enabled ('true') or not ('false').
               See the #org.freedesktop.portal.Clipboard documentation for more information.
               Since version 2.
             </para></listitem>

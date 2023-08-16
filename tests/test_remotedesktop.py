@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 
-from tests import PortalMock, Session
+from tests import Session
 from gi.repository import GLib
 
 import dbus

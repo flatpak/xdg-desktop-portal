@@ -40,4 +40,3 @@ lockdown_init (GDBusConnection *bus,
 
   g_debug ("providing %s at %s", g_dbus_interface_skeleton_get_info (helper)->name, object_path);
 }
-

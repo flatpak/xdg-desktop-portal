@@ -372,7 +372,7 @@ test_inhibit_monitor (void)
   path = g_build_filename (outdir, "inhibit", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
   g_assert_no_error (error);
-  
+
   portal = xdp_portal_new ();
 
   id = g_signal_connect (portal, "session-state-changed", G_CALLBACK (session_state_changed_cb), NULL);

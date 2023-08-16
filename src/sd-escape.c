@@ -353,4 +353,3 @@ gssize cunescape_length_with_prefix(const char *s, gsize length, const char *pre
         *ret = g_steal_pointer (&ans);
         return t - *ret;
 }
-

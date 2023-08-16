@@ -7,6 +7,26 @@ env:
   TESTS_TIMEOUT: 10 # in minutes
 
 jobs:
+  pre-commit:
+    name: pre-commit sanity checks
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Install dependencies
+      run: |
+        sudo apt-get update --quiet
+        sudo apt-get upgrade --quiet -y
+        sudo apt-get install --quiet -y --no-install-recommends python3-pip git
+
+    - name: Check out xdg-desktop-portal
+      uses: actions/checkout@v3
+
+    - name: Install pre-commit
+      run: pip install pre-commit
+
+    - name: Run pre-commit checks
+      run: pre-commit run --all
+
   check:
     name: Ubuntu 22.04 build
     runs-on: ubuntu-22.04

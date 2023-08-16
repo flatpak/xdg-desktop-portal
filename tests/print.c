@@ -500,4 +500,3 @@ test_print_parallel (void)
   while (got_info < 3)
     g_main_context_iteration (NULL, TRUE);
 }
-

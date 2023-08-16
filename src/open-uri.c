@@ -1130,4 +1130,3 @@ open_uri_create (GDBusConnection *connection,
 
   return G_DBUS_INTERFACE_SKELETON (open_uri);
 }
-

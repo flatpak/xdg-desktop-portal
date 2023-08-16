@@ -42,7 +42,7 @@ if build_docbook
     rst2man_flags = [
       '--syntax-highlight=none',
     ]
-    
+
     man_pages = [
       { 'input': 'portals-conf.rst', 'output': 'portals.conf', 'section': '5' },
     ]

@@ -235,14 +235,14 @@ location_session_start (LocationSession *loc_session)
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
-  
+
   g_object_set (loc_session->client,
                 "desktop-id", "xdg-desktop-portal",
                 "distance-threshold", loc_session->distance_threshold,
                 "time-threshold", loc_session->time_threshold,
                 "requested-accuracy-level", loc_session->accuracy,
                 NULL);
-  
+
   g_signal_connect (loc_session->client, "location-updated",
                     G_CALLBACK (location_updated), loc_session);
 
@@ -386,7 +386,7 @@ typedef struct
   XdpDbusLocationSkeleton parent_instance;
 } Location;
 
-typedef struct 
+typedef struct
 {
   XdpDbusLocationSkeletonClass parent_class;
 } LocationClass;
@@ -610,7 +610,7 @@ out:
                                       response,
                                       g_variant_builder_end (&opt_builder));
       request_unexport (request);
-    }  
+    }
 
   if (response != 0)
     {

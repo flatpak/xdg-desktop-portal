@@ -174,7 +174,7 @@ validate_email_subject (const char *key,
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Not accepting multi-line subjects");
       return FALSE;
-    } 
+    }
 
   if (g_utf8_strlen (string, -1) > 200)
     {

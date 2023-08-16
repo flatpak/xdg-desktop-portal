@@ -196,7 +196,7 @@ handle_can_reach (XdpDbusNetworkMonitor *object,
       g_autoptr(GSocketConnectable) address = NULL;
 
       address = g_network_address_new (hostname, port);
-      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation)); 
+      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation));
     }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
