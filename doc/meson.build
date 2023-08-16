@@ -36,31 +36,30 @@ if build_docbook
         install_dir: docs_dir,
       )
   endforeach
+endif
 
-  rst2man = find_program('rst2man', 'rst2man.py', required: false)
-  if rst2man.found()
-    rst2man_flags = [
-      '--syntax-highlight=none',
-    ]
-    
-    man_pages = [
-      { 'input': 'portals-conf.rst', 'output': 'portals.conf', 'section': '5' },
-    ]
+if rst2man.found()
+  rst2man_flags = [
+    '--syntax-highlight=none',
+  ]
+  
+  man_pages = [
+    { 'input': 'portals-conf.rst', 'output': 'portals.conf', 'section': '5' },
+  ]
 
-    foreach man_page: man_pages
-      man_input = man_page.get('input')
-      man_output = man_page.get('output', man_input)
-      man_section = man_page.get('section', '1')
-      man_full = '@0@.@1@'.format(man_output, man_section)
+  foreach man_page: man_pages
+    man_input = man_page.get('input')
+    man_output = man_page.get('output', man_input)
+    man_section = man_page.get('section', '1')
+    man_full = '@0@.@1@'.format(man_output, man_section)
 
-      custom_target('man-' + man_output,
-        input: man_input,
-        output: man_full,
-        command: [ rst2man, rst2man_flags, '@INPUT@' ],
-        capture: true,
-        install: true,
-        install_dir: get_option('mandir') / 'man@0@'.format(man_section),
-      )
-    endforeach
-  endif
+    custom_target('man-' + man_output,
+      input: man_input,
+      output: man_full,
+      command: [ rst2man, rst2man_flags, '@INPUT@' ],
+      capture: true,
+      install: true,
+      install_dir: get_option('mandir') / 'man@0@'.format(man_section),
+    )
+  endforeach
 endif

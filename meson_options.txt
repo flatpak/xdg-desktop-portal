@@ -42,3 +42,7 @@ option('pytest',
         type: 'feature',
         value: 'auto',
         description: 'Enable the pytest-based test suite')
+option('man-pages',
+       type: 'feature',
+       value: 'auto',
+       description: 'Build man pages (requires rst2man)')

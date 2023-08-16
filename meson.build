@@ -145,6 +145,8 @@ if xmlto.found()
     endif
 endif
 
+rst2man = find_program('rst2man', 'rst2man.py', required: get_option('man-pages'))
+
 enable_installed_tests = get_option('installed-tests')
 
 ###### systemd units, dbus service files, pkgconfig
@@ -187,6 +189,7 @@ summary({
     'Enable libportal support': have_libportal,
     'Enable installed tests:': enable_installed_tests,
     'Enable python test suite': enable_pytest,
+    'Build man pages': rst2man.found(),
   },
   section: 'Optional builds',
   bool_yn: true,
