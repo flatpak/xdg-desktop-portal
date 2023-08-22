@@ -37,9 +37,9 @@ typedef struct _PortalInterface {
 
 typedef struct _PortalConfig {
   char *source;
-  PortalInterface **ifaces;
+  PortalInterface **interfaces;
   size_t n_ifaces;
-  PortalInterface *dfl_portal;
+  PortalInterface *default_portal;
 } PortalConfig;
 
 static void
@@ -57,10 +57,10 @@ portal_config_free (PortalConfig *config)
   g_clear_pointer (&config->source, g_free);
 
   for (size_t i = 0; i < config->n_ifaces; i++)
-    portal_interface_free (config->ifaces[i]);
+    portal_interface_free (config->interfaces[i]);
 
-  g_clear_pointer (&config->dfl_portal, portal_interface_free);
-  g_clear_pointer (&config->ifaces, g_free);
+  g_clear_pointer (&config->default_portal, portal_interface_free);
+  g_clear_pointer (&config->interfaces, g_free);
 
   g_free (config);
 }
@@ -346,11 +346,11 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
 
   if (ifaces != NULL)
     {
-      g_autoptr(PortalInterface) dfl_portal = NULL;
-      g_autoptr(PortalConfig) conf = NULL;
+      g_autoptr(PortalInterface) default_portal = NULL;
+      g_autoptr(PortalConfig) portal_config = NULL;
       g_autoptr(GPtrArray) interfaces = NULL;
 
-      conf = g_new0 (PortalConfig, 1);
+      portal_config = g_new0 (PortalConfig, 1);
       interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
 
       for (size_t i = 0; ifaces[i] != NULL; i++)
@@ -372,16 +372,16 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
             }
 
           if (strcmp (ifaces[i], "default") == 0)
-            dfl_portal = g_steal_pointer (&interface);
+            default_portal = g_steal_pointer (&interface);
           else
             g_ptr_array_add (interfaces, g_steal_pointer (&interface));
         }
 
-      conf->n_ifaces = interfaces->len;
-      conf->ifaces = (PortalInterface **) g_ptr_array_steal (interfaces, NULL);
-      conf->dfl_portal = g_steal_pointer (&dfl_portal);
+      portal_config->n_ifaces = interfaces->len;
+      portal_config->interfaces = (PortalInterface **) g_ptr_array_steal (interfaces, NULL);
+      portal_config->default_portal = g_steal_pointer (&default_portal);
 
-      return g_steal_pointer (&conf);
+      return g_steal_pointer (&portal_config);
     }
 
   return NULL;
@@ -484,14 +484,14 @@ portal_impl_matches_config (const PortalImplementation *impl,
    */
   for (int i = 0; i < config->n_ifaces; i++)
     {
-      const PortalInterface *iface = config->ifaces[i];
+      const PortalInterface *iface = config->interfaces[i];
 
       if (g_strcmp0 (iface->dbus_name, interface) == 0)
         return portal_impl_name_matches (impl, iface);
     }
 
-  if (config->dfl_portal)
-    return portal_impl_name_matches (impl, config->dfl_portal);
+  if (config->default_portal)
+    return portal_impl_name_matches (impl, config->default_portal);
 
   return FALSE;
 }
