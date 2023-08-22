@@ -109,8 +109,8 @@ validate_xdg_desktop (const char *desktop)
 static char **
 get_valid_current_desktops (const char *value)
 {
-  char **tmp;
   GPtrArray *valid_desktops;
+  char **tmp;
 
   if (value == NULL)
     value = g_getenv ("XDG_CURRENT_DESKTOP");
@@ -168,8 +168,8 @@ register_portal (const char  *path,
                  gboolean     opt_verbose,
                  GError     **error)
 {
-  g_autoptr(GKeyFile) keyfile = g_key_file_new ();
   g_autoptr(PortalImplementation) impl = g_new0 (PortalImplementation, 1);
+  g_autoptr(GKeyFile) keyfile = g_key_file_new ();
   g_autofree char *basename = NULL;
   int i;
 
@@ -278,9 +278,9 @@ sort_impl_by_use_in_and_name (gconstpointer a,
 void
 load_installed_portals (gboolean opt_verbose)
 {
-  const char *portal_dir;
-  g_autoptr(GFile) dir = NULL;
   g_autoptr(GFileEnumerator) enumerator = NULL;
+  g_autoptr(GFile) dir = NULL;
+  const char *portal_dir;
 
   /* We need to override this in the tests */
   portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
@@ -297,11 +297,13 @@ load_installed_portals (gboolean opt_verbose)
 
   while (TRUE)
     {
-      g_autoptr(GFileInfo) info = g_file_enumerator_next_file (enumerator, NULL, NULL);
+      g_autoptr(GFileInfo) info = NULL;
+      g_autoptr(GError) error = NULL;
       g_autoptr(GFile) child = NULL;
       g_autofree char *path = NULL;
       const char *name;
-      g_autoptr(GError) error = NULL;
+
+      info = g_file_enumerator_next_file (enumerator, NULL, NULL);
 
       if (info == NULL)
         break;
@@ -329,20 +331,27 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
                                    const char *base_directory,
                                    const char *portal_file)
 {
-  g_autofree char *path = g_build_filename (base_directory, portal_file, NULL);
-  g_autoptr(GKeyFile) key_file = g_key_file_new ();
+  g_autoptr(GKeyFile) key_file = NULL;
+  g_autofree char *path = NULL;
+  g_auto(GStrv) ifaces = NULL;
+
+  key_file = g_key_file_new ();
+  path = g_build_filename (base_directory, portal_file, NULL);
 
   g_debug ("Looking for portals configuration in '%s'", path);
   if (!g_key_file_load_from_file (key_file, path, G_KEY_FILE_NONE, NULL))
     return NULL;
 
-  g_auto(GStrv) ifaces = g_key_file_get_keys (key_file, "preferred", NULL, NULL);
+  ifaces = g_key_file_get_keys (key_file, "preferred", NULL, NULL);
 
   if (ifaces != NULL)
     {
-      g_autoptr(GPtrArray) interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
-      g_autoptr(PortalConfig) conf = g_new0 (PortalConfig, 1);
       g_autoptr(PortalInterface) dfl_portal = NULL;
+      g_autoptr(PortalConfig) conf = NULL;
+      g_autoptr(GPtrArray) interfaces = NULL;
+
+      conf = g_new0 (PortalConfig, 1);
+      interfaces = g_ptr_array_new_full (g_strv_length (ifaces) + 1, NULL);
 
       for (size_t i = 0; ifaces[i] != NULL; i++)
         {
