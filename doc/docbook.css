@@ -4,6 +4,9 @@ body {
   margin: auto;
   overflow-wrap: break-word;
 }
+html {
+  background-color: #fafafa;
+}
 h1.title {
 }
 .permission {
@@ -76,8 +79,8 @@ div.table table th {
 
 @media (prefers-color-scheme: dark) {
   html {
-    background-color: #222222;
-    color: #dddddd;
+    background-color: #242424;
+    color: white;
   }
 
   a {
