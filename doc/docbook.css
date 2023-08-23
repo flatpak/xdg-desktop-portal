@@ -92,10 +92,8 @@ div.table table th {
   }
 
   .synopsis,
-  .classsynopsis {
-    background: #161616;
-  }
+  .classsynopsis,
   .programlisting {
-    background: #161616;
+    background: rgba(255, 255, 255, .08);
   }
 }
