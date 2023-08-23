@@ -14,11 +14,13 @@ h1.title {
 .classsynopsis {
   background: #eeeeee;
   border: solid 1px #aaaaaa;
+  border-radius: 12px;
   padding: 0.5em;
 }
 .programlisting {
   background: #eeeeff;
   border: solid 1px #aaaaff;
+  border-radius: 12px;
   padding: 0.5em;
   overflow: scroll;
 }
