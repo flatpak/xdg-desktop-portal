@@ -43,6 +43,29 @@
           Unknown values should be treated as 0 (no preference).
         </para></listitem>
       </varlistentry>
+      <varlistentry>
+        <term>org.freedesktop.appearance button-placement (asas)</term>
+        <listitem><para>
+          Indicates the system's preferred arrangement of buttons on the titlebar.
+          In LTR locales, the first tuple is on the left (leading), and the second tuple is on the right (trailing).
+          In RTL locales, the first tuple is on the right (leading), and the second tuple is on the left (trailing).
+          Supported values are:
+          <simplelist>
+            <member>close: the close button</member>
+            <member>minimize: the minimize button</member>
+            <member>maximize: the maximize button</member>
+          </simplelist>
+          Unknown values must be ignored if the client does
+          not understand them. Duplicate buttons across the tuples and
+          string arrays are not allowed.
+          Examples:
+          <simplelist>
+            <member>`(["close","minimize","maximize"][])` would result in the close, minimize, and maximize buttons being drawn on the leading side of the window, in that order; there will be no buttons on the trailing side of the window.</member>
+            <member>`([]["close"])` would result in the close button being drawn on the trailing side of the window; there will be no buttons on the leading side of the window.</member>
+            <member>`(["close"]["maximize"])` would result in the close button being drawn on the leading side of the window, and the maximize button being drawn on the trailing side of the window.</member>
+          </simplelist>
+        </para></listitem>
+      </varlistentry>
     </variablelist>
 
     Implementations can provide other keys; they are entirely
