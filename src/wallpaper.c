@@ -189,8 +189,9 @@ handle_set_wallpaper_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Set Backgrounds?"));
-          subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
+          title = g_strdup (_("Allow to Set Backgrounds?"));
+          subtitle = g_strdup (_("An application wants to be able to change the background image. Granting "
+                                 "permission will allow it to change the background at any time."));
         }
       else
         {
@@ -203,10 +204,11 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           name = g_app_info_get_display_name (G_APP_INFO (info));
 
           title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
-          subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
+          subtitle = g_strdup_printf (_("%s wants to be able to change the background image. Granting "
+                                        "permission will allow it to change the background at any time."), name);
         }
 
-      body = _("This permission can be changed at any time from the privacy settings.");
+      body = "";
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,

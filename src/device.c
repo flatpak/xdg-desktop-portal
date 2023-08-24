@@ -139,14 +139,21 @@ device_query_permission_sync (const char *app_id,
         {
           g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
 
-          title = g_strdup (_("Turn On Camera?"));
-          body = g_strdup (_("Access to your camera can be changed "
-                             "at any time from the privacy settings."));
-
           if (info == NULL)
-            subtitle = g_strdup (_("An application wants to use your camera."));
+            {
+              title = g_strdup (_("Allow to Use the Camera?"));
+              subtitle = g_strdup (_("An application wants to access camera devices."));
+            }
           else
-            subtitle = g_strdup_printf (_("%s wants to use your camera."), g_app_info_get_display_name (info));
+            {
+              const char *name;
+
+              name = g_app_info_get_display_name (info);
+              title = g_strdup_printf (_("Allow %s to Use the Camera?"), name);
+              subtitle = g_strdup_printf (_("%s wants to access camera devices."), name);
+            }
+
+          body = g_strdup ("");
         }
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
