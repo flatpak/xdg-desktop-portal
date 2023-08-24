@@ -387,61 +387,114 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
   return NULL;
 }
 
-void
-load_portal_configuration (gboolean opt_verbose)
+/*
+ * Returns: %TRUE if configuration was found in @dir
+ */
+static gboolean
+load_config_directory (const char *dir,
+                       const char **desktops,
+                       gboolean opt_verbose)
 {
   g_autoptr(PortalConfig) conf = NULL;
-  g_autofree char *user_portal_dir = NULL;
-  const char **desktops;
-  const char *portal_dir;
 
-  /* We need to override this in the tests */
-  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
-  if (portal_dir == NULL)
-    portal_dir = SYSCONFDIR "/xdg-desktop-portal";
-
-  user_portal_dir = g_build_filename (g_get_user_config_dir (),
-                                      "xdg-desktop-portal",
-                                      NULL);
-
-  conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, "portals.conf");
-  if (conf != NULL)
-    {
-      if (opt_verbose)
-        g_debug ("Using user portal configuration file");
-
-      config = g_steal_pointer (&conf);
-    }
-
-  desktops = get_current_lowercase_desktops ();
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
       g_autofree char *portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
 
-      conf = load_portal_configuration_for_dir (opt_verbose, user_portal_dir, portals_conf);
+      conf = load_portal_configuration_for_dir (opt_verbose, dir, portals_conf);
+
       if (conf != NULL)
         {
           if (opt_verbose)
-            g_debug ("Using user portal configuration file '%s' for desktop '%s'",
-                     portals_conf,
-                     desktops[i]);
+            g_debug ("Using portal configuration file '%s/%s' for desktop '%s'",
+                     dir, portals_conf, desktops[i]);
 
           config = g_steal_pointer (&conf);
-          return;
-        }
-
-      conf = load_portal_configuration_for_dir (opt_verbose, portal_dir, portals_conf);
-      if (conf != NULL)
-        {
-          if (opt_verbose)
-            g_debug ("Using system portal configuration file '%s' for desktop '%s'",
-                     portals_conf,
-                     desktops[i]);
-
-          config = g_steal_pointer (&conf);
-          return;
+          return TRUE;
         }
     }
+
+  conf = load_portal_configuration_for_dir (opt_verbose, dir, "portals.conf");
+
+  if (conf != NULL)
+    {
+      if (opt_verbose)
+        g_debug ("Using portal configuration file '%s/%s' for non-specific desktop",
+                 dir, "portals.conf");
+
+      config = g_steal_pointer (&conf);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+#define XDP_SUBDIR "xdg-desktop-portal"
+
+void
+load_portal_configuration (gboolean opt_verbose)
+{
+  g_autofree char *user_portal_dir = NULL;
+  const char * const *dirs;
+  const char * const *iter;
+  const char **desktops;
+  const char *portal_dir;
+
+  desktops = get_current_lowercase_desktops ();
+
+  /* We need to override this in the tests */
+  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
+
+  if (portal_dir != NULL)
+    {
+      load_config_directory (portal_dir, desktops, opt_verbose);
+      /* All other config directories are ignored when this is set */
+      return;
+    }
+
+  /* $XDG_CONFIG_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf */
+  user_portal_dir = g_build_filename (g_get_user_config_dir (), XDP_SUBDIR, NULL);
+
+  if (load_config_directory (user_portal_dir, desktops, opt_verbose))
+    return;
+
+  /* $XDG_CONFIG_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
+  dirs = g_get_system_config_dirs ();
+
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
+
+      if (load_config_directory (dir, desktops, opt_verbose))
+        return;
+    }
+
+  /* ${sysconfdir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
+  if (load_config_directory (SYSCONFDIR "/" XDP_SUBDIR, desktops, opt_verbose))
+    return;
+
+  /* $XDG_DATA_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf
+   * (just for consistency with other XDG specifications) */
+  g_clear_pointer (&user_portal_dir, g_free);
+  user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, NULL);
+
+  if (load_config_directory (user_portal_dir, desktops, opt_verbose))
+    return;
+
+  /* $XDG_DATA_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
+  dirs = g_get_system_data_dirs ();
+
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
+
+      if (load_config_directory (dir, desktops, opt_verbose))
+        return;
+    }
+
+  /* ${datadir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
+  if (load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose))
+    return;
 }
 
 static gboolean
