@@ -73,10 +73,7 @@ jobs:
       - name: Prepare docs
         working-directory: builddir/doc
         run: |
-          mkdir ../../_site/docs/
-          mv portal-docs.html ../../_site/docs/index.html
-          mv redirect.html ../../_site/docs/portal-docs.html
-          mv docbook.css ../../_site/docs/
+          mv ./html ../../_site/docs
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
