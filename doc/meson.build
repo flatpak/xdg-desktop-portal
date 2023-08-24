@@ -1,42 +1,4 @@
-if build_docbook
-  xslfile = files('xmlto-config.xsl')
-
-  portal_docs_xml = configure_file(
-    input: 'portal-docs.xml.in',
-    output: '@BASENAME@',
-    configuration: {
-      'VERSION': meson.project_version(),
-    },
-  )
-
-  docs = custom_target(
-    'html',
-    build_by_default: true,
-    depends: [portal_built_sources, impl_built_sources],
-    input: portal_docs_xml,
-    output: 'portal-docs.html',
-    command: [xmlto, get_option('xmlto-flags'), 'xhtml-nochunks',
-              '-o', '@OUTDIR@',
-              '-m', xslfile,
-              '--searchpath', meson.project_build_root() / 'src',
-              '@INPUT@'],
-    install: true,
-    install_dir: docs_dir,
-  )
-  doc_extra = files(
-      'docbook.css',
-      'redirect.html'
-  )
-  foreach f : doc_extra
-      configure_file(
-        input: f,
-        output: '@PLAINNAME@',
-        copy: true,
-        install: true,
-        install_dir: docs_dir,
-      )
-  endforeach
-endif
+manpages = []
 
 if rst2man.found()
   manpage_conf = configuration_data()
@@ -46,7 +8,7 @@ if rst2man.found()
   rst2man_flags = [
     '--syntax-highlight=none',
   ]
-  
+
   man_pages = [
     { 'input': 'portals.conf.rst.in', 'output': 'portals.conf', 'section': '5' },
   ]
@@ -61,7 +23,7 @@ if rst2man.found()
     man_section = man_page.get('section', '1')
     man_full = '@0@.@1@'.format(man_output, man_section)
 
-    custom_target('man-' + man_output,
+    manpages += custom_target('man-' + man_output,
       input: man_input,
       output: man_full,
       command: [ rst2man, rst2man_flags, '@INPUT@' ],
@@ -70,4 +32,55 @@ if rst2man.found()
       install_dir: get_option('mandir') / 'man@0@'.format(man_section),
     )
   endforeach
+endif
+
+if build_documentation
+  # Gather the XML files under data
+  all_interfaces_xml = []
+  foreach i: portal_sources
+    all_interfaces_xml += i
+  endforeach
+  foreach i: portal_impl_sources
+    all_interfaces_xml += i
+  endforeach
+
+  # Replace the extension for gdbus-codegen
+  all_interfaces_rst = []
+  foreach i: all_interfaces_xml
+    f = fs.name(i)
+    all_interfaces_rst += fs.replace_suffix(f, '.rst')
+  endforeach
+
+  interfaces_rst = custom_target('interfaces_rst',
+    input: all_interfaces_xml,
+    output: all_interfaces_rst,
+    command: [ gdbus_codegen, '--generate-rst', 'doc/doc', '@INPUT@' ],
+  )
+
+  docs_sources = [
+    'conf.py',
+
+    'index.rst',
+    'common-conventions.rst',
+    'portal-interfaces.rst',
+    'implementation-interfaces.rst',
+  ]
+
+  copied_docs_sources = []
+  foreach d: docs_sources
+    copied_docs_sources += configure_file(input: d, output: d, copy: true)
+  endforeach
+
+  docs_inputs = copied_docs_sources + interfaces_rst
+  if rst2man.found()
+    docs_inputs += manpages
+  endif
+
+  custom_target('docs',
+    input: docs_inputs,
+    output: 'html',
+    command: [ sphinx_build, meson.current_build_dir(), '@OUTPUT@' ],
+    build_by_default: true,
+    depend_files: all_interfaces_xml,
+  )
 endif
