@@ -13,17 +13,57 @@ DESCRIPTION
 
 xdg-desktop-portal uses a configuration file to determine which portal backend
 should be used to provide the implementation for the requested interface.
+This mechanism is very similar to the freedesktop.org specification for
+"Association between MIME types and applications" (mime-apps).
 
-The configuration file can be found in the following locations:
+Desktop environments and OS vendors should provide a default configuration
+for their chosen portal backends in
+``/usr/share/xdg-desktop-portal/DESKTOP-portals.conf``, where ``DESKTOP``
+is the desktop environment name as it would appear in the
+``XDG_CURRENT_DESKTOP`` environment variable, after case-folding ASCII
+upper case to lower case.
+For example, KDE should provide ``/usr/share/xdg-desktop-portal/kde-portals.conf``.
 
-- ``/etc/xdg-desktop-portal/portals.conf``, for site-wide configuration
+Users can override those defaults, or provide configuration for an otherwise
+unsupported desktop environment, by writing a file
+``~/.config/xdg-desktop-portal/portals.conf``. Users of more than one
+desktop environment can use desktop-specific filenames such as
+``kde-portals.conf`` which will only be used in the appropriate desktop
+environment.
 
-- ``$XDG_CONFIG_HOME/xdg-desktop-portal/portals.conf``, for user-specific
-  configuration
+Similarly, system administrators can provide a default configuration for
+all users in ``/etc/xdg-desktop-portal/DESKTOP-portals.conf`` or
+``/etc/xdg-desktop-portal/portals.conf``.
 
-Additionally, every desktop environment can provide a portal configuration file
-named ``DESKTOP-portals.conf``, where ``DESKTOP`` is the lowercase name also
-used in the ``XDG_CURRENT_DESKTOP`` environment variable.
+The following locations are searched for configuration, highest precedence
+first:
+
+- ``$XDG_CONFIG_HOME``, defaulting to ``~/.config``
+- each directory in ``$XDG_CONFIG_DIRS``, defaulting to ``/etc/xdg``
+- the build-time ``sysconfdir`` for xdg-desktop-portal, usually ``/etc``
+- ``$XDG_DATA_HOME``, defaulting to ``~/.local/share``
+  (searched only for consistency with other specifications, writing
+  configuration here is not recommended)
+- each directory in ``$XDG_DATA_DIRS``, defaulting to ``/usr/local/share:/usr/share``
+- the build-time ``datadir`` for xdg-desktop-portal, usually ``/usr/share``
+
+In each of those locations, for each desktop environment name listed in the
+``XDG_CURRENT_DESKTOP`` environment variable, xdg-desktop-portal checks for
+``xdg-desktop-portal/DESKTOP-portals.conf``, where ``DESKTOP`` is the
+desktop environment name in lower-case. If a desktop-environment-specific
+configuration file is not found, a non-desktop-specific file
+``xdg-desktop-portal/portals.conf`` will be read.
+For example, if ``XDG_CURRENT_DESKTOP`` is set to ``Budgie:GNOME``,
+then xdg-desktop-portal will look for
+``xdg-desktop-portal/budgie-portals.conf``,
+``xdg-desktop-portal/gnome-portals.conf`` and
+``xdg-desktop-portal/portals.conf`` in that order.
+
+Only the first configuration file found is read, and lower-precedence
+configuration files are ignored. All possible configuration files within
+one directory are tried before moving on to the next directory, so for
+example ``~/.config/xdg-desktop-portal/portals.conf`` is higher-precedence
+than ``/usr/share/xdg-desktop-portal/kde-portals.conf``.
 
 FILE FORMAT
 -----------
@@ -75,13 +115,35 @@ EXAMPLE
 ENVIRONMENT
 -----------
 
+``XDG_CURRENT_DESKTOP``
+
+  A colon-separated list of desktop environments, most specific first,
+  used to choose a desktop-specific portal configuration.
+  The default is an empty list.
+
 ``XDG_CONFIG_HOME``
 
   The per-user ``portals.conf`` file is located in this directory. The default
-  is ``$HOME/.config``
+  is ``$HOME/.config``.
 
+``XDG_CONFIG_DIRS``
+
+  A colon-separated list of system configuration directories and secondary
+  per-user configuration directories. The default is ``/etc/xdg``.
+
+``XDG_DATA_HOME``
+
+  A per-user data directory, searched for consistency with other
+  specifications. The default is ``$HOME/.local/share``.
+
+``XDG_DATA_DIRS``
+
+  A colon-separated list of system data directories and secondary per-user
+  data directories. The default is ``/usr/local/share:/usr/share``.
 
 SEE ALSO
 --------
 
+- `XDG Base Directory Specification <https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html>`_
 - `XDG Desktop Entry specification <https://specifications.freedesktop.org/desktop-entry-spec/desktop-entry-spec-latest.html>`_
+- `XDG Association between MIME type and applications specification <https://specifications.freedesktop.org/mime-apps-spec/mime-apps-spec-latest.html>`_
