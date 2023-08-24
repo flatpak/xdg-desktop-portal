@@ -142,14 +142,15 @@ endif
 
 add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66'], language: 'c')
 
-build_docbook = false
-xmlto = find_program('xmlto', required: get_option('docbook-docs'))
-if xmlto.found()
+build_documentation = false
+gdbus_codegen = find_program('gdbus-codegen', native: true, required: get_option('documentation'))
+sphinx_build = find_program('sphinx-build', native: true, required: get_option('documentation'))
+if not get_option('documentation').disabled() and gdbus_codegen.found() and sphinx_build.found()
     fs = import('fs')
     # we're going to copy this file in to our build tree
     if fs.is_file(flatpak_intf_dir / 'org.freedesktop.portal.Flatpak.xml')
-        build_docbook = true
-    elif get_option('docbook-docs').enabled()
+        build_documentation = true
+    elif get_option('documentation').enabled()
         error('Flatpak development files are required to build DocBook docs')
     endif
 endif
@@ -192,7 +193,7 @@ subdir('doc')
 configure_file(output: 'config.h', configuration: config_h)
 
 summary({
-    'Enable docbook documentation': build_docbook,
+    'Enable documentation': build_documentation,
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
     'Enable libportal support': have_libportal,

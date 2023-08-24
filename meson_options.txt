@@ -26,14 +26,10 @@ option('systemd',
        type: 'feature',
        value: 'auto',
        description: 'Enable systemd support')
-option('docbook-docs',
+option('documentation',
        type: 'feature',
        value: 'auto',
-       description: 'Build documentation (requires xmlto)')
-option('xmlto-flags',
-       type: 'array',
-       value: [],
-       description: 'Define/override "xmlto" options, like "--skip-validation"')
+       description: 'Build documentation (requires sphinx)')
 option('datarootdir',
         type: 'string',
         value: '',
