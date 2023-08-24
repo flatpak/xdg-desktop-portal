@@ -38,51 +38,28 @@
         Gets information about the user.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>reason s</term>
-            <listitem><para>
-              A string that can be shown in the dialog to expain why the information is needed.
-              This should be a complete sentence that explains what the application will do with
-              the returned information, for example: Allows your personal information to be included
-              with recipes you share with your friends.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
+
+        * ``reason`` (``s``)
+          A string that can be shown in the dialog to explain why the information is
+          needed. This should be a complete sentence that explains what the application
+          will do with the returned information, for example: "Allows your personal
+          information to be included with recipes you share with your friends".
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>id s</term>
-            <listitem><para>
-              The user id.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>name s</term>
-            <listitem>
-              <para>
-                The users real name.
-              </para>
-            </listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>image s</term>
-            <listitem>
-              <para>
-                The uri of an image file for the users avatar photo.
-              </para>
-            </listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``id`` (``s``)
+          The user id.
+
+        * ``name`` (``s``)
+          The user's real name.
+
+        * ``image`` (``s``)
+          The URI of an image file for the user's avatar photo.
     -->
     <method name="GetUserInformation">
       <arg type="s" name="window" direction="in"/>
