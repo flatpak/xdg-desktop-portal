@@ -96,3 +96,10 @@ div.table table th {
     background: rgba(255, 255, 255, .08);
   }
 }
+
+@media only screen and (max-width: 900px) {
+    .book {
+        margin: 1rem;
+        font-size: 90%
+    }
+}
