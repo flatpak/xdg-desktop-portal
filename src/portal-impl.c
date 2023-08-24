@@ -216,15 +216,6 @@ register_portal (const char  *path,
     }
 
   impl->use_in = g_key_file_get_string_list (keyfile, "portal", "UseIn", NULL, error);
-  if (opt_verbose && impl->use_in != NULL)
-    {
-      g_autofree char *uses = g_strjoinv (", ", impl->use_in);
-      g_warning ("Portal %s uses the deprecated UseIn key; the preferred method to "
-                 "match portal implementations to desktop environments is to use the "
-                 "portals.conf configuration file",
-                 uses);
-    }
-
   implementations = g_list_prepend (implementations, impl);
   impl = NULL;
 
@@ -584,6 +575,12 @@ find_portal_implementation (const char *interface)
 
           if (impl->use_in != NULL && g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
             {
+              g_warning ("Choosing %s.portal for %s via the deprecated UseIn key",
+                         impl->source, interface);
+              g_warning_once ("The preferred method to match portal implementations "
+                              "to desktop environments is to use the portals.conf(5) "
+                              "configuration file");
+
               g_debug ("Using %s.portal for %s in %s (fallback)", impl->source, interface, desktops[i]);
               return impl;
             }
