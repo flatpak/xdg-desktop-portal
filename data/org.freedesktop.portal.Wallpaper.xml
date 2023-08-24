@@ -42,21 +42,14 @@
         background, use the org.freedesktop.portal.Wallpaper.SetWallpaperFile() method.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>show-preview b</term>
-            <listitem><para>
-             whether to show a preview of the picture. Note that the portal may
-             decide to show a preview even if this option is not set
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>set-on s</term>
-            <listitem><para>
-              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``show-preview`` (``b``)
+          Whether to show a preview of the picture. Note that the portal may
+          decide to show a preview even if this option is not set.
+
+        * ``set-on`` (``s``)
+          Where to set the wallpaper. Possible values are ``background``,
+          ``lockscreen``, or ``both``.
     -->
     <method name="SetWallpaperURI">
       <arg type="s" name="parent_window" direction="in"/>
@@ -75,21 +68,14 @@
         Asks to set a given local file as the desktop background picture.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>show-preview b</term>
-            <listitem><para>
-             whether to show a preview of the picture. Note that the portal may
-             decide to show a preview even if this option is not set
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>set-on s</term>
-            <listitem><para>
-              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``show-preview`` (``b``)
+          Whether to show a preview of the picture. Note that the portal may
+          decide to show a preview even if this option is not set.
+
+        * ``set-on`` (``s``)
+          Where to set the wallpaper. Possible values are ``background``,
+          ``lockscreen``, or ``both``.
     -->
     <method name="SetWallpaperFile">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
