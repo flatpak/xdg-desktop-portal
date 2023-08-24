@@ -35,11 +35,11 @@
       call org.freedesktop.portal.Session.Close() depends on the interface.
 
       The handle of a session will be of the form
-      /org/freedesktop/portal/desktop/session/SENDER/TOKEN, where SENDER is the
-      callers unique name, with the initial ':' removed and all '.' replaced by
-      '_', and TOKEN is a unique token that the caller provided with the
-      session_handle_token key in the options vardict of the method creating
-      the session.
+      ``/org/freedesktop/portal/desktop/session/SENDER/TOKEN``, where ``SENDER``
+      is the caller's unique name, with the initial ``:`` removed and all ``.``
+      replaced by ``_``, and ``TOKEN`` is a unique token that the caller
+      provided with the ``session_handle_token`` key in the options vardict of
+      the method creating the session.
 
       The token that the caller provides should be unique and not guessable. To
       avoid clashes with calls made from unrelated libraries, it is a good idea
