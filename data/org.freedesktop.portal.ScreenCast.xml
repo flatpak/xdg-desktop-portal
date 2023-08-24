@@ -23,7 +23,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes version 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
@@ -263,6 +263,19 @@
               The type of the content which is being screen casted.
               For available source types, see the AvailableSourceTypes property.
               This property was added in version 3 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>mapping_id s</term>
+            <listitem><para>
+              An optional identifier used to map different aspects of the
+              resource this stream corresponds to.
+            </para><para>
+              When used in a remote desktop session, the mapping_id can be used to
+              match a libei region of absolute libei devices. There may be
+              multiple absolute libei devices, and each device may have multiple
+              regions, but a mapping_id will only match one of these regions per
+              device. This property was added in version 5 of this interface.
             </para></listitem>
           </varlistentry>
         </variablelist>
