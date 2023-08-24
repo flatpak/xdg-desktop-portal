@@ -53,14 +53,15 @@ jobs:
           apt-get install -y --no-install-recommends \
             ca-certificates \
             git \
-            xmlto
+            python3-sphinx \
+            python3-sphinx-rtd-theme
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
 
       - name: Build docs
         run: |
-          meson setup builddir -Ddocbook-docs=enabled
+          meson setup builddir -Ddocumentation=enabled
           meson compile -C builddir
 
       - name: Build website
