@@ -462,6 +462,10 @@
         the EIS connection. Any events submitted via NotifyPointerMotion,
         NotifyKeyboardKeycode and other Notify* methods will return an error.
 
+        To see how to pair a PipeWire stream with a libei device region, see the
+        documentation for the mapping_id stream property in
+        #org.freedesktop.portal.RemoteDesktop.Start().
+
         This method was added in version 2 of this interface.
     -->
     <method name="ConnectToEIS">
