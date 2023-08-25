@@ -183,7 +183,24 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
 
-      if (g_str_equal (app_id, ""))
+      if (g_strcmp0 (app_id, "") != 0)
+        {
+          g_autoptr(GDesktopAppInfo) info = NULL;
+          g_autofree gchar *id = NULL;
+          const gchar *name = NULL;
+
+          id = g_strconcat (app_id, ".desktop", NULL);
+          info = g_desktop_app_info_new (id);
+
+          if (info)
+            name = g_app_info_get_display_name (G_APP_INFO (info));
+          else
+            name = app_id;
+
+          title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
+          subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
+        }
+      else
         {
           /* Note: this will set the wallpaper permission for all unsandboxed
            * apps for which an app ID can't be determined.
@@ -191,19 +208,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           g_assert (xdp_app_info_is_host (request->app_info));
           title = g_strdup (_("Allow Applications to Set Backgrounds?"));
           subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
-        }
-      else
-        {
-          g_autoptr(GDesktopAppInfo) info = NULL;
-          g_autofree gchar *id = NULL;
-          const gchar *name;
-
-          id = g_strconcat (app_id, ".desktop", NULL);
-          info = g_desktop_app_info_new (id);
-          name = g_app_info_get_display_name (G_APP_INFO (info));
-
-          title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
-          subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
         }
 
       body = _("This permission can be changed at any time from the privacy settings.");
