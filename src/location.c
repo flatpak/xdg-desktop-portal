@@ -529,26 +529,35 @@ handle_start_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("find-location-symbolic"));
 
-      if (g_str_equal (app_id, ""))
+      if (g_strcmp0 (app_id, "") != 0)
         {
-          title = g_strdup (_("Grant Access to Your Location?"));
-          subtitle = g_strdup (_("An application wants to use your location."));
-        }
-      else
-        {
-          g_autofree char *id = NULL;
           g_autoptr(GDesktopAppInfo) info = NULL;
-          const char *name;
+          g_autofree gchar *id = NULL;
+          const gchar *name = NULL;
 
           id = g_strconcat (app_id, ".desktop", NULL);
           info = g_desktop_app_info_new (id);
-          name = g_app_info_get_display_name (G_APP_INFO (info));
+
+          if (info)
+            name = g_app_info_get_display_name (G_APP_INFO (info));
+          else
+            name = app_id;
 
           title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
-          if (g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
+
+          if (info && g_desktop_app_info_has_key (info, "X-Geoclue-Reason"))
             subtitle = g_desktop_app_info_get_string (info, "X-Geoclue-Reason");
           else
             subtitle = g_strdup_printf (_("%s wants to use your location."), name);
+        }
+      else
+        {
+          /* Note: this will set the location permission for all unsandboxed
+           * apps for which an app ID can't be determined.
+           */
+          g_assert (xdp_app_info_is_host (request->app_info));
+          title = g_strdup (_("Grant Access to Your Location?"));
+          subtitle = g_strdup (_("An application wants to use your location."));
         }
 
       body = _("Location access can be changed at any time from the privacy settings.");
