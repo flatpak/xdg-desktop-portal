@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2021-07-18 14:05+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -122,15 +122,7 @@ msgstr "Toegang weigeren"
 msgid "Grant Access"
 msgstr "Toegang verlenen"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Toegang verlenen tot uw locatie?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "Een toepassing wil uw locatie opvragen."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Wilt u %s toegang verlenen tot uw locatie?"
@@ -140,7 +132,15 @@ msgstr "Wilt u %s toegang verlenen tot uw locatie?"
 msgid "%s wants to use your location."
 msgstr "%s wil uw locatie opvragen."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Toegang verlenen tot uw locatie?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "Een toepassing wil uw locatie opvragen."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "De toegang tot uw locatie kan te allen tijde worden aangepast in de "
@@ -150,52 +150,52 @@ msgstr ""
 msgid "Deny"
 msgstr "Weigeren"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "%s toestaan achtergronden in te stellen?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Toepassingen toestaan achtergronden in te stellen?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Een toepassing wil uw microfoon gebruiken."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Dit toegangsrecht kan te allen tijde worden aangepast in de "
 "privacyvoorkeuren."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "De opgevraagde instelling bestaat niet"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Toepassingen toestaan achtergronden in te stellen?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr ""
-"Een toepassing verzoekt de mogelijkheid om uw achtergrondafbeelding te "
-"wijzigen."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "%s toestaan achtergronden in te stellen?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s verzoekt de mogelijkheid om uw achtergrondafbeelding te wijzigen."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Toepassingen toestaan achtergronden in te stellen?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr ""
+"Een toepassing verzoekt de mogelijkheid om uw achtergrondafbeelding te "
+"wijzigen."

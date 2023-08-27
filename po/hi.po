@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2021-09-09 00:42+0700\n"
 "Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
@@ -110,15 +110,7 @@ msgstr "पहुँच को अस्वीकार"
 msgid "Grant Access"
 msgstr "अनुदान पहुँच"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "अपने स्थान तक पहुंच प्रदान करें?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "एक एप्लिकेशन आपके स्थान का उपयोग करना चाहता है।"
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "देना %s आपके स्थान तक पहुँच?"
@@ -128,7 +120,15 @@ msgstr "देना %s आपके स्थान तक पहुँच?"
 msgid "%s wants to use your location."
 msgstr "%s आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "अपने स्थान तक पहुंच प्रदान करें?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "एक एप्लिकेशन आपके स्थान का उपयोग करना चाहता है।"
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान का उपयोग बदला जा सकता है।"
 
@@ -136,48 +136,48 @@ msgstr "गोपनीयता सेटिंग्स से किसी �
 msgid "Deny"
 msgstr "मना"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "परमिट %s पृष्ठभूमि सेट करने के लिए?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "एप्‍लिकेशन को पृष्‍ठभूमि सेट करने की अनुमति दें?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "एक एप्लिकेशन आपके माइक्रोफ़ोन का उपयोग करना चाहता है।"
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "अनुरोधित सेटिंग नहीं मिली"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "एप्‍लिकेशन को पृष्‍ठभूमि सेट करने की अनुमति दें?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "एक एप्लिकेशन पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "परमिट %s पृष्ठभूमि सेट करने के लिए?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "एप्‍लिकेशन को पृष्‍ठभूमि सेट करने की अनुमति दें?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "एक एप्लिकेशन पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"

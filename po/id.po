@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2022-11-30 10:52+0700\n"
 "Last-Translator: Kukuh Syafaat <kukuhsyafaat@gnome.org>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
@@ -115,15 +115,7 @@ msgstr "Tolak Akses"
 msgid "Grant Access"
 msgstr "Beri Akses"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Beri Akses ke Lokasi Anda?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "Sebuah aplikasi ingin menggunakan lokasi Anda."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Beri Akses %s ke Lokasi Anda?"
@@ -133,7 +125,15 @@ msgstr "Beri Akses %s ke Lokasi Anda?"
 msgid "%s wants to use your location."
 msgstr "%s ingin menggunakan lokasi Anda."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Beri Akses ke Lokasi Anda?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "Sebuah aplikasi ingin menggunakan lokasi Anda."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 
@@ -141,46 +141,46 @@ msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 msgid "Deny"
 msgstr "Tolak"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Izinkan %s Mengambil Cuplikan Layar?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s ingin dapat mengambil cuplikan layar kapan saja."
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Izinkan Aplikasi Mengambil Cuplikan Layar?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Sebuah aplikasi ingin dapat mengambil cuplikan layar kapan saja."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Pengaturan yang diminta tidak ditemukan"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "Aplikasi meminta untuk dapat mengubah gambar latar belakang."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s meminta untuk dapat mengubah gambar latar belakang."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "Aplikasi meminta untuk dapat mengubah gambar latar belakang."

@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2022-02-18 10:51+0000\n"
 "Last-Translator: Sergiu Bivol <sergiu@cip.md>\n"
 "Language-Team: Romanian\n"
@@ -118,15 +118,7 @@ msgstr "Refuză accesul"
 msgid "Grant Access"
 msgstr "Permite accesul"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Permiteți accesul la localizare?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "O aplicație vrea să vă folosească localizarea."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Permiteți accesul %s la localizare?"
@@ -136,7 +128,15 @@ msgstr "Permiteți accesul %s la localizare?"
 msgid "%s wants to use your location."
 msgstr "%s vrea să vă folosească localizarea."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Permiteți accesul la localizare?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "O aplicație vrea să vă folosească localizarea."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Accesul la localizare poate fi schimbat oricând din configurările de "
@@ -146,50 +146,50 @@ msgstr ""
 msgid "Deny"
 msgstr "Refuză"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permiteți %s să stabilească fundaluri?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Permiteți aplicațiilor să stabilească fundaluri?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "O aplicație vrea să vă folosească microfonul."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Această permisiune poate fi schimbată oricând din configurările de "
 "confidențialitate."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Configurarea cerută nu a fost găsită"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Permiteți aplicațiilor să stabilească fundaluri?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "O aplicație cere să poată schimba imaginea de fundal."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permiteți %s să stabilească fundaluri?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s cere să poată schimba imaginea de fundal."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Permiteți aplicațiilor să stabilească fundaluri?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "O aplicație cere să poată schimba imaginea de fundal."

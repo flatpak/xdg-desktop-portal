@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2020-10-12 01:25+0200\n"
 "Last-Translator: scootergrisen\n"
 "Language-Team: Danish\n"
@@ -114,15 +114,7 @@ msgstr "Nægt adgang"
 msgid "Grant Access"
 msgstr "Giv adgang"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Giv adgang til din placering?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "Et program anmoder om at bruge din placering."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Giv %s adgang til din placering?"
@@ -132,7 +124,15 @@ msgstr "Giv %s adgang til din placering?"
 msgid "%s wants to use your location."
 msgstr "%s anmoder om at bruge din placering."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Giv adgang til din placering?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "Et program anmoder om at bruge din placering."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Adgang til din placering kan når som helst ændres i "
@@ -142,48 +142,48 @@ msgstr ""
 msgid "Deny"
 msgstr "Nægt"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Tillad %s at indstille baggrunde?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Tillad programmer at indstille baggrunde?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Et program anmoder om at bruge din mikrofon."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Tilladelsen kan når som helst ændres i privatlivsindstillingerne."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Den anmodede indstilling blev ikke fundet"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Tillad programmer at indstille baggrunde?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "Et program anmoder om at være i stand til at ændre baggrundsbilledet."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Tillad %s at indstille baggrunde?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s anmoder om at være i stand til at ændre baggrundsbilledet."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Tillad programmer at indstille baggrunde?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "Et program anmoder om at være i stand til at ændre baggrundsbilledet."

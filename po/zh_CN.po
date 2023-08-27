@@ -9,8 +9,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2023-08-05 03:34+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2023-08-17 19:32+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
@@ -113,15 +113,7 @@ msgstr "拒绝访问"
 msgid "Grant Access"
 msgstr "授权访问"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "授权访问您的位置信息？"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "有应用程序想使用您的位置信息。"
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "授予 %s 访问您的位置信息权限？"
@@ -131,7 +123,15 @@ msgstr "授予 %s 访问您的位置信息权限？"
 msgid "%s wants to use your location."
 msgstr "%s 想使用您的位置信息。"
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "授权访问您的位置信息？"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "有应用程序想使用您的位置信息。"
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改位置信息的访问权限。"
 
@@ -139,46 +139,46 @@ msgstr "您可随时在隐私设置中修改位置信息的访问权限。"
 msgid "Deny"
 msgstr "拒绝"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "允许 %s 获取截屏吗？"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s 想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 msgid "Allow Applications to Take Screenshots?"
 msgstr "允许应用程序获取截屏吗？"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "有应用程序想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改该权限。"
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "未找到请求的设置"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "允许应用程序设置背景吗？"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "一个应用程序正在请求允许修改背景图像。"
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "允许 %s 设置背景吗？"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s 正在请求允许修改背景图像。"
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "允许应用程序设置背景吗？"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "一个应用程序正在请求允许修改背景图像。"

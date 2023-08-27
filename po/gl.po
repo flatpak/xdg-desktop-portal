@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2023-02-08 21:13+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -117,15 +117,7 @@ msgstr "Denegar acceso"
 msgid "Grant Access"
 msgstr "Conceder acceso"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Desexa acceder acceso á súa localización?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "Unha aplicación quere usar a súa localización."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Desexa darlle acceso a %s á súa localización?"
@@ -135,7 +127,15 @@ msgstr "Desexa darlle acceso a %s á súa localización?"
 msgid "%s wants to use your location."
 msgstr "%s quere usar a súa localización."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Desexa acceder acceso á súa localización?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "Unha aplicación quere usar a súa localización."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "O acceso á súa localización pode cambiarse en calquera momento desde as "
@@ -145,50 +145,50 @@ msgstr ""
 msgid "Deny"
 msgstr "Denegar"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permitirlle a %s configurar sacar capturas de pantalla?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s solicita poder sacar capturas de pantalla en calquer momento."
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Permitirlle ás aplicacións sacar capturas de pantalla?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Unha aplicación solicita poder sacar capturas de pantalla en calquera "
 "momento."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Este permiso pode cambiarse en calquera momento desde as preferencias de "
 "privacidade."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Non se atopou a configuración solicitada"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitirlle a %s configurar o fondo de pantalla?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s está solicitando poder cambiar o fondo de pantalla."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Permitirlle ás aplicacións configurar o fondo de pantalla?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "Unha aplicación está solicitando poder cambiar a imaxe de fondo."

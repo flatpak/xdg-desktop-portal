@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2022-07-25 21:56+0300\n"
 "Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
 "Language-Team: Hebrew <yoseforb@gmail.com>\n"
@@ -110,15 +110,7 @@ msgstr "מניעת גישה"
 msgid "Grant Access"
 msgstr "הענקת גישה"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "לאפשר גישה למיקום שלך?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "יישום מבקש להשתמש במיקום שלך."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "לתת ליישום %s גישה למיקום שלך?"
@@ -128,7 +120,15 @@ msgstr "לתת ליישום %s גישה למיקום שלך?"
 msgid "%s wants to use your location."
 msgstr "‏%s מבקש להשתמש במיקום שלך."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "לאפשר גישה למיקום שלך?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "יישום מבקש להשתמש במיקום שלך."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקום שלך מהגדרות הפרטיות."
 
@@ -136,48 +136,48 @@ msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקו�
 msgid "Deny"
 msgstr "דחייה"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "לאפשר ליישום %s לקבוע את הרקעים?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "לאפשר ליישומים לקבוע את הרקעים?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "יישום מבקש להשתמש במיקרופון שלך."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "ניתן לשנות בכל עת הרשאה זו בהגדרות הפרטיות."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "ההגדרה המבוקשת לא נמצאה"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "לאפשר ליישומים לקבוע את הרקעים?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "יישום מבקש הרשאה לשינוי תמונת הרקע."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "לאפשר ליישום %s לקבוע את הרקעים?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "‏%s מבקש הרשאה לשינוי תמונת הרקע."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "לאפשר ליישומים לקבוע את הרקעים?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "יישום מבקש הרשאה לשינוי תמונת הרקע."

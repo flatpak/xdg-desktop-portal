@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-08-04 16:59-0300\n"
+"POT-Creation-Date: 2023-08-27 13:08-0300\n"
 "PO-Revision-Date: 2020-01-25 16:44+0100\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
@@ -116,15 +116,7 @@ msgstr "Zabrani pristup"
 msgid "Grant Access"
 msgstr "Dozvoli pristup"
 
-#: src/location.c:534
-msgid "Grant Access to Your Location?"
-msgstr "Dozvoliti pristup tvojoj lokaciji?"
-
-#: src/location.c:535
-msgid "An application wants to use your location."
-msgstr "Jedan program želi koristiti tvoju lokaciju."
-
-#: src/location.c:547
+#: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Dozvoliti da %s pristupi tvojoj lokaciji?"
@@ -134,7 +126,15 @@ msgstr "Dozvoliti da %s pristupi tvojoj lokaciji?"
 msgid "%s wants to use your location."
 msgstr "%s želi koristiti tvoju lokaciju."
 
-#: src/location.c:554
+#: src/location.c:559
+msgid "Grant Access to Your Location?"
+msgstr "Dozvoliti pristup tvojoj lokaciji?"
+
+#: src/location.c:560
+msgid "An application wants to use your location."
+msgstr "Jedan program želi koristiti tvoju lokaciju."
+
+#: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Pristup lokaciji je uvijek moguće promijeniti u postavkama privatnosti."
@@ -143,48 +143,48 @@ msgstr ""
 msgid "Deny"
 msgstr "Zabrani"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:256
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Dozvoliti da %s postavi pozadine?"
 
-#: src/screenshot.c:253
+#: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:261
+#: src/screenshot.c:265
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Dozvoliti programu da postavi pozadine?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:266
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Jedan program želi koristiti tvoj mikrofon."
 
-#: src/screenshot.c:265 src/wallpaper.c:209
+#: src/screenshot.c:269 src/wallpaper.c:213
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Ovu dozvolu je uvijek moguće promijeniti u postavkama privatnosti."
 
-#: src/settings.c:127
+#: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Zatražena postavka nije nađena"
 
-#: src/wallpaper.c:192
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Dozvoliti programu da postavi pozadine?"
-
-#: src/wallpaper.c:193
-msgid "An application is requesting to be able to change the background image."
-msgstr "Jedan program traži dozvolu za mijenjanje slike pozadine."
-
-#: src/wallpaper.c:205
+#: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Dozvoliti da %s postavi pozadine?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s traži dozvolu za mijenjanje slike pozadine."
+
+#: src/wallpaper.c:209
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Dozvoliti programu da postavi pozadine?"
+
+#: src/wallpaper.c:210
+msgid "An application is requesting to be able to change the background image."
+msgstr "Jedan program traži dozvolu za mijenjanje slike pozadine."
