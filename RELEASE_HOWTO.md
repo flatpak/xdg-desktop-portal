@@ -8,7 +8,7 @@
  - git commit -m <version>
  - git push origin main
  - meson setup . _build -Ddocbook-docs=enabled 
- - meson compile -C _build dist
+ - meson dist -C _build
  - git tag <version>
  - git push origin refs/tags/<version>
  - upload tarball to github as release
