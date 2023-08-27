@@ -1,3 +1,24 @@
+Changes in 1.17.1
+=================
+Released: 2023-08-27
+
+- Document xdg-desktop-portal versioning scheme
+- Fix various issues in the OpenURI portal
+- Introduce the ReadOne() method in the Settings portal. This method is now
+  preferred over the Read() method, as Read() mistakenly returned a variant
+  inside a variant. The Read() method will continue to exist for compatibility
+  with existing apps, but its usage is deprecated. We recommend apps to port
+  to the ReadOne() method. Apps can decide whether to use ReadOne() or Read()
+  by looking at the version of the Settings portal.
+- Improvements to the new config-based portal matching mechanism. Config files
+  are now searched in standard paths, in a way that is compatible to other
+  system components (e.g. MIME types).
+- Various small visual tweaks to the generated documentation
+- Document a new 'accent-color' key in the Settings portal. This key represents
+  an arbitrary color in sRGB colorspace. How implementations of the portal
+  provide this key is entirely dependent on their internal policies and design.
+- Translation updates
+
 Changes in 1.17.0
 =================
 Released: 2023-08-04
