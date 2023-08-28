@@ -119,6 +119,15 @@ jobs:
         XDG_DATA_DIRS: /usr/local/share:/usr/share
         ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
+    - name: Create dist tarball
+      run: |
+        $RUN_CMD $AS_USER ls -la
+        $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C ${BUILDDIR}
+      env:
+        TEST_IN_CI: 1
+        G_MESSAGES_DEBUG: all
+        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
+
     - name: Upload test logs
       uses: actions/upload-artifact@v3
       if: success() || failure()
