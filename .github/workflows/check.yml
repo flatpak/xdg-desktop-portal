@@ -52,6 +52,7 @@ jobs:
           desktop-file-utils \
           fuse3 \
           gettext \
+          git \
           gnome-desktop-testing \
           gtk-doc-tools \
           libcap2-bin \
