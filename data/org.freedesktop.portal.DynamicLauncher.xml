@@ -153,7 +153,13 @@
           <varlistentry>
             <term>name s</term>
             <listitem><para>
-              The name chosen by the user for the launcher.
+              The name chosen by the user for the launcher or the predefined one.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>icon v</term>
+            <listitem><para>
+              The icon chosen by the user for the launcher or the predefined one.
             </para></listitem>
           </varlistentry>
           <varlistentry>
