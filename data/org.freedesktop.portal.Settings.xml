@@ -102,6 +102,8 @@
       @value: The value @key is set to.
 
       Reads a single value which may be any valid DBus type. Returns an error on any unknown namespace or key.
+
+      This method was added in version 2.
     -->
     <method name='ReadOne'>
       <arg name='namespace' type='s'/>
