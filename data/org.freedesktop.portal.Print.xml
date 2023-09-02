@@ -32,7 +32,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -120,6 +120,8 @@
             <term>accept_label s</term>
             <listitem><para>
              Label for the accept button. Mnemonic underlines are allowed.
+            </para><para>
+              This option was added in version 2.
             </para></listitem>
           </varlistentry>
         </variablelist>

@@ -288,7 +288,7 @@ print_iface_init (XdpDbusPrintIface *iface)
 static void
 print_init (Print *print)
 {
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 1);
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 2);
 }
 
 static void
