@@ -112,8 +112,19 @@ libportal_dep = dependency('libportal',
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
-bwrap_required = host_machine.system() in ['linux']
-bwrap = find_program('bwrap', required: bwrap_required)
+
+use_bwrap = get_option('sandboxed-image-validation')
+bwrap = find_program('bwrap', required: use_bwrap)
+
+if not use_bwrap
+  warning('''
+    Sandboxed image validation with Bubblewrap is DISABLED.
+    If your system can run Bubblewrap, it's **hightly** recommended that you enable this
+    option. Bitmap validation and processing is a common attack vector.
+    By proceeding with sandboxed image validation disabled, you acknowledge that you
+    are lowering your system's security, and are subject to known or unknown exploits.
+    ''')
+endif
 
 have_libportal = libportal_dep.found()
 if have_libportal
@@ -190,6 +201,7 @@ summary({
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
     'Build flatpak interfaces': flatpak_dep.found(),
+    'Sandboxed image validation': use_bwrap,
   },
   section: 'Optional builds',
   bool_yn: true,
