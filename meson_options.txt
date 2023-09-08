@@ -2,6 +2,10 @@ option('dbus-service-dir',
        type: 'string',
        value: '',
        description: 'directory for dbus service files (default: PREFIX/share/dbus-1/services)')
+option('flatpak-interfaces',
+       type: 'feature',
+       value: 'auto',
+       description: 'Build flatpak interfaces')
 option('flatpak-interfaces-dir',
        type: 'string',
        value: '',

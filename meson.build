@@ -21,8 +21,7 @@ endif
 
 flatpak_intf_dir = get_option('flatpak-interfaces-dir')
 if flatpak_intf_dir == ''
-    flatpak_required = host_machine.system() in ['linux']
-    flatpak_dep = dependency('flatpak', version: '>= 1.5.0', required : flatpak_required)
+    flatpak_dep = dependency('flatpak', version: '>= 1.5.0', required: get_option('flatpak-interfaces'))
     if flatpak_dep.found()
       flatpak_intf_dir = flatpak_dep.get_variable(pkgconfig: 'interfaces_dir')
     endif
@@ -190,6 +189,7 @@ summary({
     'Enable installed tests:': enable_installed_tests,
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
+    'Build flatpak interfaces': flatpak_dep.found(),
   },
   section: 'Optional builds',
   bool_yn: true,
