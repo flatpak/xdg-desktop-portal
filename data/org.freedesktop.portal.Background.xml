@@ -66,7 +66,8 @@
           <varlistentry>
             <term>commandline as</term>
             <listitem><para>
-              Commandline to use add when autostarting at login.
+              Commandline to use add when autostarting at login
+              or when starting the app with a timer
               If this is not specified, the Exec line from the
               desktop file will be used.
             </para></listitem>
@@ -74,7 +75,19 @@
           <varlistentry>
             <term>dbus-activatable b</term>
             <listitem><para>
-              If TRUE, use D-Bus activation for autostart.
+              If TRUE, use D-Bus activation for autostart and timer start.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>timer as</term>
+            <listitem><para>
+              List of times the APP should be started
+            </para></listitem>
+          </varlistentry>
+	  <varlistentry>
+            <term>wake-system b</term>
+            <listitem><para>
+              If TRUE, the system is woken form susped to start the app
             </para></listitem>
           </varlistentry>
         </variablelist>
@@ -93,6 +106,12 @@
           <term>autostart b</term>
           <listitem><para>
             TRUE if the application is will be autostarted.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>timer b</term>
+          <listitem><para>
+            TRUE if the application will be started at the specificed times.
           </para></listitem>
         </varlistentry>
       </variablelist>

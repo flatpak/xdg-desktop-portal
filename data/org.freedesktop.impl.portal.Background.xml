@@ -103,6 +103,30 @@
     </method>
 
     <!--
+      EnableTimer:
+      @app_id: App id of the application
+      @timer: List of times the app should be started
+      @commandline: The commandline to used to start the app at the specificied time
+      @flags: Flags influencing the details of the timer
+      @result: TRUE if timer was enabled, FALSE otherwise
+
+      Enables or disables autostart for an application.
+
+      The following flags are understood:
+      <simplelist>
+        <member>1: Wake system from suspend</member>
+        <member>2: Use D-Bus activation</member>
+      </simplelist>
+    -->
+    <method name='EnableTimer'>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="as" name="timer" direction="in"/>
+      <arg type="as" name="commandline" direction="in"/>
+      <arg type="u" name="flags" direction="in"/>
+      <arg type="b" name="result" direction="out"/>
+    </method>
+
+    <!--
       RunningApplicationsChanged:
 
       This signal gets emitted when applications change their state

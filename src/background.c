@@ -110,6 +110,12 @@ typedef enum {
   AUTOSTART_FLAGS_ACTIVATABLE = 1 << 0,
 } AutostartFlags;
 
+typedef enum {
+  TIMER_FLAGS_NONE = 0,
+  TIMER_FLAGS_ACTIVATABLE = 1 << 0,
+  TIMER_FLAGS_WAKE = 1 << 1,
+} TimerFlags;
+
 static GVariant *
 get_all_permissions (void)
 {
@@ -704,6 +710,10 @@ handle_request_background_in_thread_func (GTask *task,
   AutostartFlags autostart_flags = AUTOSTART_FLAGS_NONE;
   gboolean activatable = FALSE;
   g_auto(GStrv) commandline = NULL;
+  const char * const *run_times = { NULL };
+  gboolean wake_system = FALSE;
+  gboolean timer_enabled;
+  TimerFlags timer_flags = TIMER_FLAGS_NONE;
 
   REQUEST_AUTOLOCK (request);
 
@@ -712,9 +722,16 @@ handle_request_background_in_thread_func (GTask *task,
   g_variant_lookup (options, "autostart", "b", &autostart_requested);
   g_variant_lookup (options, "commandline", "^a&s", &autostart_exec);
   g_variant_lookup (options, "dbus-activatable", "b", &activatable);
+  g_variant_lookup (options, "timer", "^a&s", &run_times);
+  g_variant_lookup (options, "wake-system", "b", &wake_system);
 
-  if (activatable)
+  if (activatable) {
     autostart_flags |= AUTOSTART_FLAGS_ACTIVATABLE;
+    timer_flags |= TIMER_FLAGS_ACTIVATABLE;
+  }
+
+  if (wake_system)
+    timer_flags |= TIMER_FLAGS_WAKE;
 
   app_id = xdp_app_info_get_id (request->app_info);
 
@@ -782,14 +799,16 @@ handle_request_background_in_thread_func (GTask *task,
            allowed && autostart_requested ? "enabled" : "disabled");
 
   autostart_enabled = FALSE;
+  timer_enabled = FALSE;
 
   commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec,
                                                   FALSE /* don't quote escape */);
   if (commandline == NULL)
     {
-      g_debug ("Autostart not supported for: %s", app_id);
+      g_debug ("Autostart and schedualed autostart not supported for: %s", app_id);
     }
-  else if (!xdp_dbus_impl_background_call_enable_autostart_sync (background_impl,
+  else {
+    if (!xdp_dbus_impl_background_call_enable_autostart_sync (background_impl,
                                                                  app_id,
                                                                  allowed && autostart_requested,
                                                                  (const char * const *)commandline,
@@ -802,6 +821,20 @@ handle_request_background_in_thread_func (GTask *task,
       g_clear_error (&error);
     }
 
+    if (!xdp_dbus_impl_background_call_enable_timer_sync (background_impl,
+                                                          app_id,
+                                                          allowed && run_times != NULL ? run_times : (const char *[]) { NULL },
+                                                          (const char * const *)commandline,
+                                                          timer_flags,
+                                                          &timer_enabled,
+                                                          NULL,
+                                                          &error))
+    {
+      g_warning ("EnableTimer call failed: %s", error->message);
+      g_clear_error (&error);
+    }
+  }
+
   if (request->exported)
     {
       XdgDesktopPortalResponseEnum portal_response;
@@ -810,6 +843,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
       g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
+      g_variant_builder_add (&results, "{sv}", "timer", g_variant_new_boolean (timer_enabled));
 
       if (allowed)
         portal_response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
@@ -873,11 +907,23 @@ validate_commandline (const char *key,
 
   return TRUE;
 }
+static gboolean
+validate_timer (const char *key,
+                      GVariant *value,
+                      GVariant *options,
+                      GError **error)
+{
+	// TODO: validate
+  	// We want to allow only: OnCalendar=, OnActiveSec=, OnBootSec=, OnStartupSec=, OnUnitActiveSec=, OnUnitInactiveSec=
+	return TRUE;
+}
 static XdpOptionKey background_options[] = {
   { "reason", G_VARIANT_TYPE_STRING, validate_reason },
   { "autostart", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "commandline", G_VARIANT_TYPE_STRING_ARRAY, validate_commandline },
   { "dbus-activatable", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "timer", G_VARIANT_TYPE_STRING_ARRAY, validate_timer },
+  { "wake-system", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
 
 static gboolean
