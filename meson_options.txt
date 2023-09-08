@@ -50,3 +50,7 @@ option('man-pages',
        type: 'feature',
        value: 'auto',
        description: 'Build man pages (requires rst2man)')
+option('sandboxed-image-validation',
+       type: 'boolean',
+       value: true,
+       description: 'Use Bubblewrap to sandbox image validation. Disabling this option may lead to security vulnerabilities.')
