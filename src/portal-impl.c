@@ -160,7 +160,7 @@ get_current_lowercase_desktops (void)
 }
 /* }}} */
 
-static PortalConfig *config = NULL;
+static PortalConfig *global_config = NULL;
 static GList *implementations = NULL;
 
 static gboolean
@@ -400,7 +400,7 @@ load_config_directory (const char *dir,
             g_debug ("Using portal configuration file '%s/%s' for desktop '%s'",
                      dir, portals_conf, desktops[i]);
 
-          config = g_steal_pointer (&conf);
+          global_config = g_steal_pointer (&conf);
           return TRUE;
         }
     }
@@ -413,7 +413,7 @@ load_config_directory (const char *dir,
         g_debug ("Using portal configuration file '%s/%s' for non-specific desktop",
                  dir, "portals.conf");
 
-      config = g_steal_pointer (&conf);
+      global_config = g_steal_pointer (&conf);
       return TRUE;
     }
 
@@ -517,7 +517,8 @@ portal_impl_name_matches (const PortalImplementation *impl,
 }
 
 static gboolean
-portal_impl_matches_config (const PortalImplementation *impl,
+portal_impl_matches_config (const PortalConfig *config,
+                            const PortalImplementation *impl,
                             const char                 *interface)
 {
   if (config == NULL)
@@ -554,7 +555,7 @@ find_portal_implementation (const char *interface)
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
-      if (portal_impl_matches_config (impl, interface))
+      if (portal_impl_matches_config (global_config, impl, interface))
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           return impl;
