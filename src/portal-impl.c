@@ -540,6 +540,14 @@ portal_impl_matches_config (const PortalImplementation *impl,
   return FALSE;
 }
 
+static void
+warn_please_use_portals_conf (void)
+{
+  g_warning_once ("The preferred method to match portal implementations "
+                  "to desktop environments is to use the portals.conf(5) "
+                  "configuration file");
+}
+
 PortalImplementation *
 find_portal_implementation (const char *interface)
 {
@@ -577,10 +585,7 @@ find_portal_implementation (const char *interface)
             {
               g_warning ("Choosing %s.portal for %s via the deprecated UseIn key",
                          impl->source, interface);
-              g_warning_once ("The preferred method to match portal implementations "
-                              "to desktop environments is to use the portals.conf(5) "
-                              "configuration file");
-
+              warn_please_use_portals_conf ();
               g_debug ("Using %s.portal for %s in %s (fallback)", impl->source, interface, desktops[i]);
               return impl;
             }
@@ -605,10 +610,7 @@ find_portal_implementation (const char *interface)
 
       g_warning ("Choosing %s.portal for %s as a last-resort fallback",
                  impl->source, interface);
-      g_warning_once ("The preferred method to match portal implementations "
-                      "to desktop environments is to use the portals.conf(5) "
-                      "configuration file");
-
+      warn_please_use_portals_conf ();
       return impl;
     }
 
