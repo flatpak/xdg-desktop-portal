@@ -161,6 +161,7 @@ get_current_lowercase_desktops (void)
 /* }}} */
 
 static PortalConfig *global_config = NULL;
+static PortalConfig *fallback_config = NULL;
 static GList *implementations = NULL;
 
 static gboolean
@@ -486,6 +487,10 @@ load_portal_configuration (gboolean opt_verbose)
   /* ${datadir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
   if (load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose))
     return;
+
+  g_debug ("No portals.conf(5) found, will fall back to UseIn and then %s",
+           DATADIR "/" XDP_SUBDIR "/fallback-portals.conf");
+  fallback_config = load_portal_configuration_for_dir (opt_verbose, DATADIR "/" XDP_SUBDIR, "fallback-portals.conf");
 }
 
 static gboolean
@@ -593,8 +598,6 @@ find_portal_implementation (const char *interface)
         }
     }
 
-#if 0
-  /* Fall back to *any* installed implementation */
   for (l = implementations; l != NULL; l = l->next)
     {
       PortalImplementation *impl = l->data;
@@ -602,10 +605,14 @@ find_portal_implementation (const char *interface)
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
-      g_debug ("Falling back to %s.portal for %s", impl->source, interface);
-      return impl;
+      if (portal_impl_matches_config (fallback_config, impl, interface))
+        {
+          g_warning ("Choosing %s.portal for %s via fallback-portals.conf",
+                     impl->source, interface);
+          warn_please_use_portals_conf ();
+          return impl;
+        }
     }
-#endif
 
   return NULL;
 }
