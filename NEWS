@@ -1,3 +1,10 @@
+Changes in 1.18.0
+=================
+Released: 2023-09-18
+
+- Bump interface version of the Printer portal to 2
+- Validate addresses following the HTML specs in the Email portal
+
 Changes in 1.17.2
 =================
 Released: 2023-09-01
