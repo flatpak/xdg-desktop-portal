@@ -29,6 +29,13 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+typedef enum
+{
+  MATCH_POSITIVE,
+  MATCH_NEGATIVE,
+  NO_MATCH,
+} MatchResult;
+
 typedef struct _PortalInterface {
   /* dbus_name is NULL if this is the default */
   char *dbus_name;
@@ -516,12 +523,12 @@ portal_impl_name_matches (const PortalImplementation *impl,
   return FALSE;
 }
 
-static gboolean
-portal_impl_matches_config (const PortalImplementation *impl,
-                            const char                 *interface)
+static MatchResult
+portal_impl_matches_iface_config (const PortalImplementation *impl,
+                                  const char                 *interface)
 {
   if (config == NULL)
-    return FALSE;
+    return NO_MATCH;
 
   /* Interfaces have precedence, followed by the "default" catch all,
    * to allow for specific interfaces to override the default
@@ -531,13 +538,22 @@ portal_impl_matches_config (const PortalImplementation *impl,
       const PortalInterface *iface = config->interfaces[i];
 
       if (g_strcmp0 (iface->dbus_name, interface) == 0)
-        return portal_impl_name_matches (impl, iface);
+        return portal_impl_name_matches (impl, iface)
+          ? MATCH_POSITIVE
+          : MATCH_NEGATIVE;
     }
 
-  if (config->default_portal)
-    return portal_impl_name_matches (impl, config->default_portal);
+  return NO_MATCH;
+}
 
-  return FALSE;
+static gboolean
+portal_impl_matches_default_config (const PortalImplementation *impl,
+                                    const char                 *interface)
+{
+  if (config == NULL || config->default_portal == NULL)
+    return FALSE;
+
+  return portal_impl_name_matches (impl, config->default_portal);
 }
 
 PortalImplementation *
@@ -554,9 +570,15 @@ find_portal_implementation (const char *interface)
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
-      if (portal_impl_matches_config (impl, interface))
+      if (portal_impl_matches_iface_config (impl, interface) == MATCH_POSITIVE)
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
+          return impl;
+        }
+
+      if (portal_impl_matches_default_config (impl, interface))
+        {
+          g_debug ("Using %s.portal for %s (default config)", impl->source, interface);
           return impl;
         }
     }
@@ -619,7 +641,9 @@ find_all_portal_implementations (const char *interface)
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
-      if (portal_impl_matches_config (impl, interface))
+      /* We allow the portal if the configured for the interface, or if the
+       * interface has no explicit configuration. */
+      if (portal_impl_matches_iface_config (impl, interface) != MATCH_NEGATIVE)
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           g_ptr_array_add (impls, impl);
