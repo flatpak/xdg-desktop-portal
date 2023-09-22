@@ -100,6 +100,23 @@ special values ``none`` and ``*`` can be used:
 
   Use the first portal implementation found, in lexicographical order.
 
+PORTAL LOADING
+--------------
+
+There are two types of interfaces: Exclusive interfaces, and unified
+interfaces. Exclusive interfaces are provided by a single portal. Unified
+interfaces are provided my multiple portals at once.
+
+At the current time, the only unified interface is the Settings portal.
+
+A portal is only loaded for an exclusive interface if configured, by either
+being a member of the default list or the particular interface list.
+
+A portal is loaded for a unified interface if the portal is a member of the
+particular interface list, or by default if no configuration is provided for
+that particular interface. As such, portals do not need to be in the default
+list to be used for unified interfaces.
+
 EXAMPLE
 -------
 
