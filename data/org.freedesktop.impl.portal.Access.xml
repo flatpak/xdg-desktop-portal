@@ -37,7 +37,7 @@
         @subtitle: Subtitle for the dialog
         @body: Body text, may be ""
         @options: Vardict with optional further information
-        @response: Numeric response
+        @response: Numeric response. The values allowed match the values allowed for #org.freedesktop.portal.Request::Response signal.
         @results: Vardict with the results of the call
 
         Presents a "deny/grant" question to the user.
