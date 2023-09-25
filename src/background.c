@@ -474,7 +474,11 @@ notify_background_done (GObject *source,
       if (nd->perm != PERMISSION_ASK)
         nd->perm = PERMISSION_NO;
 
-      g_debug ("Kill app %s (pid %d)", nd->app_id, nd->child_pid);
+      g_message ("Terminating app %s (process %d) because the app does not "
+                 "have permission to run in the background. You may be able to "
+                 "grant this app the permission to run in background in the "
+                 "system settings of your desktop environment.",
+                 nd->app_id, nd->child_pid);
 
       kill (nd->child_pid, SIGKILL);
     }
