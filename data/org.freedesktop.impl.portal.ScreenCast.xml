@@ -83,6 +83,18 @@
             </para></listitem>
           </varlistentry>
           <varlistentry>
+            <term>cursor_mode u</term>
+            <listitem><para>
+              Determines how the cursor will be drawn in the screen cast stream. It must be
+              one of the cursor modes advertised in
+              #org.freedesktop.portal.impl.ScreenCast.AvailableCursorModes. Setting a cursor
+              mode not advertised will cause the screen cast session to be closed. The default
+              cursor mode is 'Hidden'.
+
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
             <term>restore_data (suv)</term>
             <listitem><para>
               The data to restore from a previous session.
