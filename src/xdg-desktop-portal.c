@@ -57,6 +57,7 @@
 #include "realtime.h"
 #include "remote-desktop.h"
 #include "request.h"
+#include "restore-token.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"
@@ -229,6 +230,7 @@ peer_died_cb (const char *name)
 {
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
+  xdp_session_persistence_delete_transient_permissions_for_sender (name);
 }
 
 static void
