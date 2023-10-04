@@ -89,6 +89,29 @@ xdp_session_persistence_delete_transient_permissions (Session *session,
   g_hash_table_remove (transient_permissions, id);
 }
 
+void
+xdp_session_persistence_delete_transient_permissions_for_sender (const char *sender_name)
+{
+
+  g_autoptr(GMutexLocker) locker = NULL;
+  GHashTableIter iter;
+  const char *key;
+
+  locker = g_mutex_locker_new (&transient_permissions_lock);
+
+  if (!transient_permissions)
+    return;
+
+  g_hash_table_iter_init (&iter, transient_permissions);
+  while (g_hash_table_iter_next (&iter, (gpointer *) &key, NULL))
+    {
+      g_auto(GStrv) split = g_strsplit (key, "/", 2);
+
+      if (split && split[0] && g_strcmp0 (split[0], sender_name) == 0)
+        g_hash_table_iter_remove (&iter);
+    }
+}
+
 GVariant *
 xdp_session_persistence_get_transient_permissions (Session *session,
                                                    const char *restore_token)
