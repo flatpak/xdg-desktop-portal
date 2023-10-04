@@ -24,15 +24,6 @@
 
 enum
 {
-  INTERNAL_CLOSED,
-
-  N_SIGNALS
-};
-
-static guint signals[N_SIGNALS];
-
-enum
-{
   PROP_0,
 
   PROP_SENDER,
@@ -182,8 +173,6 @@ session_close (Session *session,
     return;
 
   SESSION_GET_CLASS (session)->close (session);
-
-  g_signal_emit (session, signals[INTERNAL_CLOSED], 0);
 
   if (notify_closed)
     {
@@ -539,11 +528,4 @@ session_class_init (SessionClass *klass)
                          G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (gobject_class, PROP_LAST, obj_props);
-
-  signals[INTERNAL_CLOSED] = g_signal_new ("internal-closed",
-                                           G_TYPE_FROM_CLASS (klass),
-                                           G_SIGNAL_RUN_LAST,
-                                           0,
-                                           NULL, NULL, NULL,
-                                           G_TYPE_NONE, 0);
 }

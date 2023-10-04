@@ -45,10 +45,6 @@ struct _Session
   char *impl_dbus_name;
   GDBusConnection *impl_connection;
   XdpDbusImplSession *impl_session;
-
-  struct {
-    gboolean has_transient_permissions;
-  } persistence;
 };
 
 struct _SessionClass
