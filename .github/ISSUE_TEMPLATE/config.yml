@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Help/Support
+    url: https://matrix.to/#/#xdg-desktop-portals:matrix.org
+    about: Questions or issues about how to use and configure xdg-desktop-portal
