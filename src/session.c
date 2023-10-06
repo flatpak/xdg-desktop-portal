@@ -190,8 +190,13 @@ session_close (Session *session,
       GVariantBuilder details_builder;
 
       g_variant_builder_init (&details_builder, G_VARIANT_TYPE_VARDICT);
-      g_signal_emit_by_name (session, "closed",
-                             g_variant_builder_end (&details_builder));
+      g_dbus_connection_emit_signal (session->connection,
+                                     session->sender,
+                                     session->id,
+                                     "org.freedesktop.portal.Session",
+                                     "Closed",
+                                     g_variant_new ("(@a{sv})", g_variant_builder_end (&details_builder)),
+                                     NULL);
     }
 
   if (session->exported)
