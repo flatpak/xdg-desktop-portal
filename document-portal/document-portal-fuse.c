@@ -50,22 +50,22 @@
  * we won't be told about this. This means that in general we always
  * return 0 for the cacheable lifetimes of entries and file attributes.
  * (Except for the virtual directories we have full control of, the
- * below only discusses real files).
+ * section below only discusses real files).
  *
  * However, even though we don't have full control of the underlying
- * filesystem the *kernel* has. This means we can used that to get
+ * filesystem the *kernel* has. This means we can use that to get
  * the correct semantics.
  *
- * For example, assume that a directory is held opened by a process
- * (for example, it could be the CWD of the process). When we opened
- * the directory via a LOOKUP operation we returned an inode to it,
- * and for as long as the kernel has this inode around (i.e.  until it
- * sent a FORGET message) it can send operations on this inode without
- * looking it up again. For example if the above process used a
+ * For example, assume that a directory is held open by a process
+ * (for example, it could be the CWD of the process). When we open
+ * the directory via a LOOKUP operation we return an inode to it,
+ * and, for as long as the kernel has this inode around (i.e.  until it
+ * sent a FORGET message), it can send operations on this inode without
+ * looking it up again. For example, if the above process used a
  * relative path.
  *
  * Now, consider the case where the app chdir():ed into the fuse
- * directory, but after that the backing directory was renamed ouside
+ * directory, but after the backing directory was renamed outside
  * the fuse filesystem. The fuse inode representation for the inode
  * cannot be the directory name, because the expected semantics is
  * that further relative pathnames from the app will still resolve
@@ -84,11 +84,11 @@
  *
  * One problem with this approach is that the kernel tends to keep
  * inodes alive for a very long time even if they are *only*
- * references by the dcache (event though we will not really use the
- * dcache info due to the 0 valid time). This is unfortunate, because
- * it means we will keep a lot of file descriptor open. But, we
- * can't know if the kernel needs the inode for some non-dcache use
- * so we can't close the file descriptors.
+ * referenced by the dcache (Directory Entry Cache) (even though we
+ * will not really use the dcache info due to the 0 valid time). This
+ * is unfortunate, because it means we will keep a lot of file
+ * descriptor open. But, we can not know if the kernel needs the inode
+ * for some non-dcache use so we can't close the file descriptors.
  *
  * To work around this we regularly emit entry invalidation calls
  * to the kernel, which will make it forget the inodes that are
@@ -709,11 +709,12 @@ _xdp_inode_new (void)
   return inode;
 }
 
-/* We try to create persistent inode nr based on the backing device and inode nrs, as
- * well as the doc/app id (since the same backing dev/ino should be different inodes
- * in the fuse filesystem). We do this by hashing the data to generate a value.
- * For non-phsyical files or accidental collisions we just pick a free number
- * by incrementing.
+/* We try to create persistent inode number based on the backing
+ * device and inode numbers, as well as the doc/app id (since the same
+ * backing dev/ino should be different inodes in the fuse
+ * filesystem). We do this by hashing the data to generate a value.
+ * For non-physical files or accidental collisions we just pick a free
+ * number by incrementing.
  */
 static guint64
 generate_persistent_ino (DevIno *backing_devino,
@@ -1645,7 +1646,7 @@ ensure_docdir_inode_by_name (XdpInode *parent,
   if (o_path_fd == -1)
       return -errno;
 
-  return ensure_docdir_inode (parent, o_path_fd, e, NULL); /* Takes ownershif of o_path_fd */
+  return ensure_docdir_inode (parent, o_path_fd, e, NULL); /* Takes ownership of o_path_fd */
 }
 
 
@@ -1795,7 +1796,7 @@ xdp_fuse_lookup (fuse_req_t req,
       if (fd < 0)
         return xdp_reply_err (op, req, -fd);
 
-      res = ensure_docdir_inode (parent, fd, &e, NULL); /* Takes ownershif of fd */
+      res = ensure_docdir_inode (parent, fd, &e, NULL); /* Takes ownership of fd */
       if (res != 0)
         return xdp_reply_err (op, req, -res);
 
@@ -1857,7 +1858,7 @@ xdp_fuse_open (fuse_req_t req,
   fi->fh = (gsize)file;
   if (fuse_reply_open (req, fi) == -ENOENT)
     {
-      /* The open syscall was interrupted, so it  must be cancelled */
+      /* The open syscall was interrupted, so it must be cancelled */
       xdp_file_free (file);
     }
 }
@@ -1896,7 +1897,7 @@ xdp_fuse_create (fuse_req_t             req,
   if (o_path_fd < 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), &e, NULL); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode (parent, xdp_steal_fd (&o_path_fd), &e, NULL); /* Takes ownership of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -1905,7 +1906,7 @@ xdp_fuse_create (fuse_req_t             req,
   fi->fh = (gsize)file;
   if (fuse_reply_create (req, &e, fi) == -ENOENT)
     {
-      /* The open syscall was interrupted, so it  must be cancelled */
+      /* The open syscall was interrupted, so it must be cancelled */
       xdp_file_free (file);
       abort_reply_entry (&e);
     }
@@ -2281,7 +2282,7 @@ xdp_fuse_opendir (fuse_req_t             req,
 
   if (fuse_reply_open (req, fi) == -ENOENT)
     {
-      /* The opendir syscall was interrupted, so it  must be cancelled */
+      /* The opendir syscall was interrupted, so it must be cancelled */
       xdp_dir_free (d);
     }
 }
@@ -2349,7 +2350,7 @@ xdp_fuse_readdir (fuse_req_t req,
                                        d->entry->d_name, &st, nextoff);
           /* The above function returns the size of the entry size even though
            * the copy failed due to smaller buf size, so I'm checking after this
-           * function and breaking out incase we exceed the size.
+           * function and breaking out in case we exceed the size.
            */
           if (entsize > rem)
             break;
@@ -2449,7 +2450,7 @@ xdp_fuse_mkdir (fuse_req_t  req,
   if (res != 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownership of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
@@ -2833,7 +2834,7 @@ xdp_fuse_symlink (fuse_req_t req,
   if (res != 0)
     return xdp_reply_err (op, req, errno);
 
-  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownershif of o_path_fd */
+  res = ensure_docdir_inode_by_name (parent, dirfd, name, &e); /* Takes ownership of o_path_fd */
   if (res != 0)
     return xdp_reply_err (op, req, -res);
 
