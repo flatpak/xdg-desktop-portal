@@ -566,6 +566,7 @@ stop_file_transfers_in_thread_func (GTask        *task,
         }
     }
   G_UNLOCK (transfers);
+  g_task_return_boolean (task, TRUE);
 }
 
 void
