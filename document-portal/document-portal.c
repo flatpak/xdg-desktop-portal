@@ -291,7 +291,7 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
   char *id = NULL;
   guint32 flags = 0;
 
-  g_debug ("Creating document at path '%s', resuse_existing: %d, persistent: %d, directory: %d", path, reuse_existing, persistent, directory);
+  g_debug ("Creating document at path '%s', reuse_existing: %d, persistent: %d, directory: %d", path, reuse_existing, persistent, directory);
 
   if (!reuse_existing)
     flags |= DOCUMENT_ENTRY_FLAG_UNIQUE;
