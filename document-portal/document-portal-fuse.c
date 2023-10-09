@@ -2294,7 +2294,6 @@ xdp_fuse_readdir (fuse_req_t req,
                   struct fuse_file_info *fi)
 {
   XdpDir *d = (XdpDir *)fi->fh;
-  char *p;
   size_t rem;
   const char *op = "READDIR";
 
@@ -2302,6 +2301,7 @@ xdp_fuse_readdir (fuse_req_t req,
 
   if (d->dir)
     {
+      char *p;
       g_autofree char *buf = g_try_malloc (size);
 
       if (buf == NULL)
