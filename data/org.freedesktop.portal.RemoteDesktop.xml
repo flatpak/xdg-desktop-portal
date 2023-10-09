@@ -41,7 +41,7 @@
         method together with certain methods on the #org.freedesktop.portal.ScreenCast and
         #org.freedesktop.portal.Clipboard interfaces. Specifically, you can call
         org.freedesktop.portal.ScreenCast.SelectSources() to also get screen content,
-        and org.freedesktop.portal.ScreenCast.OpenPipewireRemote() to acquire a file
+        and org.freedesktop.portal.ScreenCast.OpenPipeWireRemote() to acquire a file
         descriptor for a PipeWire remote. See #org.freedesktop.portal.ScreenCast for
         more information on how to use those methods. To capture clipboard content,
         you can call org.freedesktop.portal.Clipboard.RequestClipboard(). See 
