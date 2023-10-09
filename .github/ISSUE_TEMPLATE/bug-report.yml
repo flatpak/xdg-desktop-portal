@@ -1,0 +1,103 @@
+---
+name: Bug Report
+description: Report a bug or crash
+labels: bug,
+body:
+- type: input
+  id: distribution
+  attributes:
+    label: "Operating System"
+    description: "Which operating system or Linux distribution are you using?"
+    placeholder: "e.g., Ubuntu 22.04, Arch Linux, FreeBSD"
+  validations:
+    required: true
+
+- type: dropdown
+  id: version
+  attributes:
+    label: "XDG Desktop Portal version"
+    description: "What version of XDG Desktop Portal are you using?"
+    options:
+    - "1.18"
+    - "1.17"
+    - "1.16"
+    - Git
+    - Other
+  validations:
+    required: true
+
+- type: input
+  id: version_other
+  attributes:
+    label: XDG Desktop Portal version (Other)
+    description: "If \"Other\" was selected above, what version of XDG Desktop Portal are you using?"
+  validations:
+    required: false
+
+- type: dropdown
+  id: desktop_environment
+  attributes:
+    label: "Desktop Environment"
+    description: "which desktop environment are you using?"
+    options:
+    - Deepin
+    - Cinnamon / MATE / Xfce
+    - GNOME
+    - KDE
+    - LXQt
+    - Pantheon (elementary OS)
+    - wlroots
+    - Other
+  validations:
+    required: true
+
+- type: input
+  id: desktop_environment_other
+  attributes:
+    label: Desktop Environment (Other)
+    description: "If \"Other\" was selected above, which desktop environment are you using?"
+  validations:
+    required: false
+
+- type: textarea
+  id: expected_behavior
+  attributes:
+    label: Expected Behavior
+    description: "What did you expect to happen?"
+  validations:
+    required: true
+
+- type: textarea
+  id: current_behavior
+  attributes:
+    label: Current Behavior
+    description: "What actually happened?"
+  validations:
+    required: true
+- type: textarea
+  id: steps_to_reproduce
+  attributes:
+    label: Steps to Reproduce
+    description: "How do you trigger this bug? Please walk us through it step by step."
+    placeholder: |
+      1.
+      2.
+      3.
+      ...
+    value: |
+      1.
+      2.
+      3.
+      ...
+  validations:
+    required: true
+
+- type: textarea
+  id: additional_notes
+  attributes:
+    label: Anything else we should know?
+  validations:
+    required: false
+
+---
+
