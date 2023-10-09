@@ -337,7 +337,7 @@ get_token (GDBusMethodInvocation *invocation)
         {
           options = g_variant_get_child_value (parameters, 0);
         }
-      else if (strcmp (method, "OpenPipewireRemote") == 0)
+      else if (strcmp (method, "OpenPipeWireRemote") == 0)
         {
           // no request objects
         }
