@@ -296,7 +296,7 @@ gssize cunescape_length_with_prefix(const char *s, gsize length, const char *pre
         else
           pl = strlen(prefix);
 
-        ans = g_new(char, pl+length+1);
+        ans = g_new (char, pl+length+1);
         if (!ans)
                 return -ENOMEM;
 
