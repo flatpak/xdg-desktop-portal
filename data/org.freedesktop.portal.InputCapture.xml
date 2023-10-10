@@ -205,8 +205,11 @@
         (from compositor-determined input devices) are sent to the application
         via the transport layer.
 
-        Pointer barriers are situated on the top or left of their respective pixels and a
-        pointer barrier must be situated at the outside boundary of the union of all zones.
+        Pointer barriers are situated on the top (for horizontal barriers) or left
+        (for vertical barriers) edge of their respective pixels and their width or height
+        is inclusive each pixel's width or height. In other words, a barrier spanning
+        x1=0, x2=1 is exactly two pixels wide. A pointer barrier must be situated at the
+        outside boundary of the union of all zones.
         A pointer barrier must be fully contained within one zone.
 
         For example, consider two zones of size 1920x1080 with offsets
@@ -214,12 +217,12 @@
         The following pointer barriers are permitted:
 
         <itemizedlist>
-        <listitem><para>top edge of left screen: <literal>x1=0,y1=0,x2=1920,y1=0</literal></para></listitem>
-        <listitem><para>bottom edge of left screen: <literal>x1=0,y1=1080,x2=1920,y1=1080</literal></para></listitem>
-        <listitem><para>top edge of right screen: <literal>x1=1920,y1=0,x2=3840,y1=0</literal></para></listitem>
-        <listitem><para>bottom edge of right screen: <literal>x1=1920,y1=1080,x2=3840,y1=1080</literal></para></listitem>
-        <listitem><para>left edge of left screen: <literal>x1=0,y1=0,x2=0,y1=1080</literal></para></listitem>
-        <listitem><para>right edge of right screen: <literal>x1=3840,y1=0,x2=3840,y1=1080</literal></para></listitem>
+        <listitem><para>top edge of left screen: <literal>x1=0,y1=0,x2=1919,y1=0</literal></para></listitem>
+        <listitem><para>bottom edge of left screen: <literal>x1=0,y1=1080,x2=1919,y1=1080</literal></para></listitem>
+        <listitem><para>top edge of right screen: <literal>x1=1920,y1=0,x2=3839,y1=0</literal></para></listitem>
+        <listitem><para>bottom edge of right screen: <literal>x1=1920,y1=1080,x2=3839,y1=1080</literal></para></listitem>
+        <listitem><para>left edge of left screen: <literal>x1=0,y1=0,x2=0,y1=1079</literal></para></listitem>
+        <listitem><para>right edge of right screen: <literal>x1=3840,y1=0,x2=3840,y1=1079</literal></para></listitem>
         </itemizedlist>
 
         A pointer barrier is considered triggered when the pointer would
