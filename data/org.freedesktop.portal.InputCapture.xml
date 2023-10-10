@@ -218,8 +218,8 @@
         <listitem><para>bottom edge of left screen: <literal>x1=0,y1=1080,x2=1920,y1=1080</literal></para></listitem>
         <listitem><para>top edge of right screen: <literal>x1=1920,y1=0,x2=3840,y1=0</literal></para></listitem>
         <listitem><para>bottom edge of right screen: <literal>x1=1920,y1=1080,x2=3840,y1=1080</literal></para></listitem>
-        <listitem><para>left edge of left screen: <literal>x1=0,y1=0,x2=0,y1=1920</literal></para></listitem>
-        <listitem><para>right edge of right screen: <literal>x1=3840,y1=0,x2=3840,y1=1920</literal></para></listitem>
+        <listitem><para>left edge of left screen: <literal>x1=0,y1=0,x2=0,y1=1080</literal></para></listitem>
+        <listitem><para>right edge of right screen: <literal>x1=3840,y1=0,x2=3840,y1=1080</literal></para></listitem>
         </itemizedlist>
 
         A pointer barrier is considered triggered when the pointer would
