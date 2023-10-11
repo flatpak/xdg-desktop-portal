@@ -39,16 +39,24 @@ if build_docbook
 endif
 
 if rst2man.found()
+  manpage_conf = configuration_data()
+  manpage_conf.set('DATADIR', datadir)
+  manpage_conf.set('SYSCONFDIR', sysconfdir)
+
   rst2man_flags = [
     '--syntax-highlight=none',
   ]
   
   man_pages = [
-    { 'input': 'portals-conf.rst', 'output': 'portals.conf', 'section': '5' },
+    { 'input': 'portals.conf.rst.in', 'output': 'portals.conf', 'section': '5' },
   ]
 
   foreach man_page: man_pages
-    man_input = man_page.get('input')
+    man_input = configure_file(
+      input: man_page.get('input'),
+      output: man_page.get('input').split('.in').get(0),
+      configuration: manpage_conf,
+    )
     man_output = man_page.get('output', man_input)
     man_section = man_page.get('section', '1')
     man_full = '@0@.@1@'.format(man_output, man_section)
