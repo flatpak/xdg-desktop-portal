@@ -436,7 +436,7 @@ test_##pp##_does_not_exist (void) \
   g_assert_cmpuint (xdp_dbus_##pp##_get_version (XDP_DBUS_##PP (proxy)), ==, 0); \
 }
 
-DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 3)
+DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 4)
 
 DEFINE_TEST_DOES_NOT_EXIST(print, PRINT)
 
