@@ -1,5 +1,3 @@
-.. _portals.conf(5):
-
 ============
 portals.conf
 ============
@@ -8,8 +6,28 @@ portals.conf
 XDG desktop portal configuration
 --------------------------------
 
+:Manual section: 5
+:Manual group: File Formats Manual
+
+.. _synopsis:
+
+SYNOPSIS
+========
+
+*$XDG_CONFIG_HOME/xdg-desktop-portal/{\*-}portals.conf*
+
+*$XDG_CONFIG_DIRS/xdg-desktop-portal/{\*-}portals.conf*
+
+*@SYSCONFDIR@/xdg-desktop-portal/{\*-}portals.conf*
+
+*$XDG_DATA_HOME/xdg-desktop-portal/{\*-}portals.conf*
+
+*$XDG_DATA_DIRS/xdg-desktop-portal/{\*-}portals.conf*
+
+*@DATADIR@/xdg-desktop-portal/{\*-}portals.conf*
+
 DESCRIPTION
------------
+===========
 
 xdg-desktop-portal uses a configuration file to determine which portal backend
 should be used to provide the implementation for the requested interface.
