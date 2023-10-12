@@ -31,6 +31,12 @@ $ meson setup . _build
 $ meson compile -C _build
 ```
 
+Some distributions install portal configuration files in `/usr`, while Meson
+defaults to the prefix `/usr/local`. If the portal configuration files in your
+distribution are in `/usr/share/xdg-desktop-portal/portals`, re-configure
+Meson using `meson setup --reconfigure . _build --prefix /usr` and compile
+again.
+
 ### Running
 
 xdg-desktop-portal needs to own the D-Bus name and replace the user session
