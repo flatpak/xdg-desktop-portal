@@ -2469,15 +2469,18 @@ compositor has deemed the pointer barrier to be crossed, input events
 (from compositor-determined input devices) are sent to the application
 via the transport layer.
 </p><p>
-Pointer barriers are situated on the top or left of their respective pixels and a
-pointer barrier must be situated at the outside boundary of the union of all zones.
+Pointer barriers are situated on the top (for horizontal barriers) or left
+(for vertical barriers) edge of their respective pixels and their width or height
+is inclusive each pixel's width or height. In other words, a barrier spanning
+x1=0, x2=1 is exactly two pixels wide. A pointer barrier must be situated at the
+outside boundary of the union of all zones.
 A pointer barrier must be fully contained within one zone.
 </p><p>
 For example, consider two zones of size 1920x1080 with offsets
 0,0 and 1920,0, respectively. (i.e. a left-right dual-monitor setup).
 The following pointer barriers are permitted:
 </p><p>
-</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>top edge of left screen: <code class="literal">x1=0,y1=0,x2=1920,y1=0</code></p></li><li class="listitem"><p>bottom edge of left screen: <code class="literal">x1=0,y1=1080,x2=1920,y1=1080</code></p></li><li class="listitem"><p>top edge of right screen: <code class="literal">x1=1920,y1=0,x2=3840,y1=0</code></p></li><li class="listitem"><p>bottom edge of right screen: <code class="literal">x1=1920,y1=1080,x2=3840,y1=1080</code></p></li><li class="listitem"><p>left edge of left screen: <code class="literal">x1=0,y1=0,x2=0,y1=1920</code></p></li><li class="listitem"><p>right edge of right screen: <code class="literal">x1=3840,y1=0,x2=3840,y1=1920</code></p></li></ul></div><p>
+</p><div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem"><p>top edge of left screen: <code class="literal">x1=0,y1=0,x2=1919,y1=0</code></p></li><li class="listitem"><p>bottom edge of left screen: <code class="literal">x1=0,y1=1080,x2=1919,y1=1080</code></p></li><li class="listitem"><p>top edge of right screen: <code class="literal">x1=1920,y1=0,x2=3839,y1=0</code></p></li><li class="listitem"><p>bottom edge of right screen: <code class="literal">x1=1920,y1=1080,x2=3839,y1=1080</code></p></li><li class="listitem"><p>left edge of left screen: <code class="literal">x1=0,y1=0,x2=0,y1=1079</code></p></li><li class="listitem"><p>right edge of right screen: <code class="literal">x1=3840,y1=0,x2=3840,y1=1079</code></p></li></ul></div><p>
 </p><p>
 A pointer barrier is considered triggered when the pointer would
 logically move off that zone, even if the actual cusor movement is
