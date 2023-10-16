@@ -1,0 +1,14 @@
+# Site settings
+title: XDG Desktop Portal
+baseurl: "/xdg-desktop-portal" # the subpath of your site, e.g. /blog/
+                                 # usually empty. necessary for building absolute URIs
+                                 # for metadata header
+url: "https://flatpak.github.io"   # the base hostname & protocol for your site
+sourceurl: "https://github.com/flatpak/xdg-desktop-portal" # "edit this website" link in the footer
+description: ""
+issuesurl: "https://github.com/flatpak/xdg-desktop-portal/issues" # issue tracker for website
+permalink: /:title/
+primary-color: "#26a269" #used in ios theme. further color customization in style.css  
+
+# Build settings
+markdown: kramdown
