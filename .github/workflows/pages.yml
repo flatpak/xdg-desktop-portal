@@ -1,9 +1,18 @@
-name: Documentation
+name: Documentation & Website
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
-  docs:
+  build:
     runs-on: ubuntu-20.04
     container:
       image: ubuntu:22.04
@@ -54,18 +63,32 @@ jobs:
           meson setup builddir -Ddocbook-docs=enabled
           meson compile -C builddir
 
+      - name: Build website
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./doc/website
+          destination: ./_site
+
       - name: Prepare docs
         working-directory: builddir/doc
         run: |
-          mkdir published-docs
-          mv portal-docs.html ./published-docs/index.html
-          mv redirect.html ./published-docs/portal-docs.html
-          mv docbook.css ./published-docs
+          mkdir ../../_site/docs/
+          mv portal-docs.html ../../_site/docs/index.html
+          mv redirect.html ../../_site/docs/portal-docs.html
+          mv docbook.css ../../_site/docs/
 
-      - name: Deploy docs
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./builddir/doc/published-docs/
-          destination_dir: ./
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+
+  # Deployment job
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
