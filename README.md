@@ -1,3 +1,5 @@
+![Portals](doc/website/assets/readme.png)
+
 # xdg-desktop-portal
 
 A portal frontend service for [Flatpak](http://www.flatpak.org) and possibly
