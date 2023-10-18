@@ -1,3 +1,24 @@
+/*
+ * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2023 GNOME Foundation Inc.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Contributors:
+ *      Hubert Figuière <hub@figuiere.net>
+ */
+
 #include "config.h"
 
 #define FUSE_USE_VERSION 35
@@ -165,14 +186,27 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDomain, xdp_domain_unref)
 
 G_LOCK_DEFINE (domain_inodes);
 
+/* The reference count and use count are different. The latter still
+ * allow keeping track of the file without keeping it open, which otherwise
+ * keep the files around indefinitely.
+ * See https://github.com/flatpak/xdg-desktop-portal/issues/689
+ */
 typedef struct {
   gint ref_count; /* atomic */
+  /* The use count manages the lifetime of the `fd` */
+  gint use_count; /* atomic */
   DevIno backing_devino;
   int fd; /* O_PATH fd */
 } XdpPhysicalInode;
 
 static XdpPhysicalInode *xdp_physical_inode_ref   (XdpPhysicalInode *inode);
 static void              xdp_physical_inode_unref (XdpPhysicalInode *inode);
+/** Use the physical inode with `fd` if necessary, otherwise increase `use_count`.
+ *  Should be called within G_LOCK (physical_inodes).
+ */
+static void              xdp_physical_inode_use   (XdpPhysicalInode *inode, int fd);
+/** Close the inode `fd` if `use_count` reaches 0. */
+static void              xdp_physical_inode_release (XdpPhysicalInode *inode);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpPhysicalInode, xdp_physical_inode_unref)
 
 typedef struct {
@@ -431,13 +465,14 @@ ensure_physical_inode (dev_t dev, ino_t ino, int o_path_fd)
   if (inode != NULL)
     {
       inode = xdp_physical_inode_ref (inode);
-      close (o_path_fd);
+      xdp_physical_inode_use (inode, xdp_steal_fd (&o_path_fd)); /* passed ownership of fd */
     }
   else
     {
       /* Takes ownership of fd */
       inode = g_new0 (XdpPhysicalInode, 1);
       inode->ref_count = 1;
+      inode->use_count = 1;
       inode->fd = o_path_fd;
       inode->backing_devino = devino;
       g_hash_table_insert (physical_inodes, &inode->backing_devino, inode);
@@ -453,6 +488,61 @@ xdp_physical_inode_ref (XdpPhysicalInode *inode)
 {
   g_atomic_int_inc (&inode->ref_count);
   return inode;
+}
+
+static void
+xdp_physical_inode_use (XdpPhysicalInode *inode, int fd)
+{
+  gint old_use;
+
+retry_atomic_decrement1:
+  old_use = g_atomic_int_get (&inode->use_count);
+  if (old_use >= 1)
+    {
+      if (!g_atomic_int_compare_and_exchange ((int *) &inode->use_count, old_use, old_use + 1))
+        goto retry_atomic_decrement1;
+
+      close (fd);
+    }
+  else
+    {
+      if (!g_atomic_int_compare_and_exchange ((int *) &inode->use_count, old_use, old_use + 1))
+        goto retry_atomic_decrement1;
+      inode->fd = fd;
+    }
+}
+
+static void
+xdp_physical_inode_release (XdpPhysicalInode *inode)
+{
+  gint old_use;
+
+retry_atomic_decrement1:
+  old_use = g_atomic_int_get (&inode->use_count);
+  if (old_use > 1)
+    {
+      if (!g_atomic_int_compare_and_exchange ((int *) &inode->use_count, old_use, old_use - 1))
+        goto retry_atomic_decrement1;
+    }
+  else
+    {
+      if (old_use <= 0)
+        {
+          g_warning ("Can't unref dead inode");
+          return;
+        }
+      G_LOCK (physical_inodes);
+
+      if (!g_atomic_int_compare_and_exchange ((int *) &inode->use_count, old_use, old_use - 1))
+        {
+          G_UNLOCK (physical_inodes);
+          goto retry_atomic_decrement1;
+        }
+      close (inode->fd);
+      inode->fd = -1;
+
+      G_UNLOCK (physical_inodes);
+    }
 }
 
 static void
@@ -2044,9 +2134,13 @@ xdp_fuse_release (fuse_req_t             req,
                   struct fuse_file_info *fi)
 {
   XdpFile *file = (XdpFile *)fi->fh;
+  g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   const char *op = "RELEASE";
 
   g_debug ("RELEASE %lx", ino);
+
+  if (inode->domain->type == XDP_DOMAIN_DOCUMENT && inode->physical)
+    xdp_physical_inode_release (inode->physical);
 
   xdp_file_free (file);
 
