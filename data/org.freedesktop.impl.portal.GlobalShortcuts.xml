@@ -124,7 +124,7 @@
         Activated:
         @session_handle: Session that requested the shortcut
         @shortcut_id: the application-provided ID for the notification
-        @timestamp: The timestamp, as seconds and microseconds since the Unix epoch.
+        @timestamp: the time of activation with millisecond granularity, with an undefined base.
         @options: Vardict with optional further information
 
         Emitted when a shortcut is activated.
@@ -141,7 +141,7 @@
         Deactivated:
         @session_handle: Session that requested the shortcut
         @shortcut_id: the application-provided ID for the notification
-        @timestamp: The timestamp, as seconds and microseconds since the Unix epoch.
+        @timestamp: the time of deactivation with millisecond granularity, with an undefined base.
         @options: Vardict with optional further information
 
         Emitted when a shortcut is deactivated.
