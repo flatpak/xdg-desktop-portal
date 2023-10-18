@@ -61,6 +61,11 @@ Here are some examples of available backends:
 - Deepin [xdg-desktop-portal-dde](https://github.com/linuxdeepin/xdg-desktop-portal-dde)
 - Xapp (Cinnamon, MATE, Xfce) [xdg-desktop-portal-xapp](https://github.com/linuxmint/xdg-desktop-portal-xapp)
 
+You can test the compatibility of your system by testing which portals work using the [Door Knocker](https://flathub.org/apps/details/xyz.tytanium.DoorKnocker) application.
+
+![Door Knocker screenshot](https://dl.flathub.org/repo/screenshots/xyz.tytanium.DoorKnocker-stable/752x423/xyz.tytanium.DoorKnocker-6e69a17a09f11b61738a3a23776bb39d.png)
+
+
 ## Design Considerations
 
 There are several reasons for the frontend/backend separation of the portal
