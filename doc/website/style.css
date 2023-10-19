@@ -484,8 +484,8 @@ code.highlighter-rouge {
   font-size: 90%;
   padding: .4rem 1rem;
   border-radius: var(--rounded-corner);
-  background-color: rgba(0,0,0,0.05);
-  color: var(--dark5);
+  background-color: var(--term-bg);
+  color: var(--fg-color);
 }
 
 a.pixelbutton img { transition: all ease-out 300ms; }
