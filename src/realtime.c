@@ -56,23 +56,21 @@ G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_DBUS_TYPE_REALTIME_SKELETON,
                                                 realtime_iface_init));
 
 static gboolean
-map_pid_if_needed (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
+map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
 {
-  if (!xdp_app_info_is_host (app_info))
-  {
-    if (!xdp_app_info_map_pids (app_info, pid, 1, error))
+  if (!xdp_app_info_map_pids (app_info, pid, 1, error))
     {
       g_prefix_error (error, "Could not map pid: ");
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
-    if (!xdp_app_info_map_tids (app_info, *pid, tid, 1, error))
+
+  if (!xdp_app_info_map_tids (app_info, *pid, tid, 1, error))
     {
       g_prefix_error (error, "Could not map tid: ");
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
-  }
 
   return TRUE;
 }
@@ -129,7 +127,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid_if_needed (request->app_info, pids, tids, &error))
+  if (!map_pid (request->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -180,7 +178,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid_if_needed (request->app_info, pids, tids, &error))
+  if (!map_pid (request->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

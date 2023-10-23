@@ -2167,6 +2167,9 @@ app_info_map_pids (XdpAppInfo  *app_info,
   g_return_val_if_fail (app_info != NULL, FALSE);
   g_return_val_if_fail (pids != NULL, FALSE);
 
+  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+    return TRUE;
+
   if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
