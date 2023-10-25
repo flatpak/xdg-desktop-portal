@@ -21,6 +21,7 @@
 
 #include "request.h"
 #include "xdp-utils.h"
+#include "xdp-method-info.h"
 
 #include <string.h>
 
@@ -174,206 +175,22 @@ get_token (GDBusMethodInvocation *invocation)
   GVariant *parameters;
   g_autoptr(GVariant) options = NULL;
   const char *token = NULL;
+  const XdpMethodInfo *method_info;
 
   interface = g_dbus_method_invocation_get_interface_name (invocation);
   method = g_dbus_method_invocation_get_method_name (invocation);
   parameters = g_dbus_method_invocation_get_parameters (invocation);
 
-  if (strcmp (interface, "org.freedesktop.portal.Account") == 0)
+  method_info = xdp_method_info_find (interface, method);
+  if (method_info)
     {
-      options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Device") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 2);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Email") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.FileChooser") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 2);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Inhibit") == 0)
-    {
-      if (strcmp (method, "Inhibit") == 0)
-        options = g_variant_get_child_value (parameters, 2);
-      else if (strcmp (method, "CreateMonitor") == 0)
-        options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.InputCapture") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.NetworkMonitor") == 0)
-    {
-      // no methods
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Notification") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.OpenURI") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 2);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Print") == 0)
-    {
-      if (strcmp (method, "Print") == 0)
-        options = g_variant_get_child_value (parameters, 3);
-      else if (strcmp (method, "PreparePrint") == 0)
-        options = g_variant_get_child_value (parameters, 4);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.ProxyResolver") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Screenshot") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.ScreenCast") == 0)
-    {
-      if (strcmp (method, "CreateSession") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 0);
-        }
-      else if (strcmp (method, "SelectSources") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 1);
-        }
-      else if (strcmp (method, "Start") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 2);
-        }
-      else
-        {
-          g_warning ("Support for %s::%s missing in %s",
-                     interface, method, G_STRLOC);
-        }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
-    {
-      if (strcmp (method, "CreateSession") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 0);
-        }
-      else if (strcmp (method, "SelectDevices") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 1);
-        }
-      else if (strcmp (method, "Start") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 2);
-        }
-      else
-        {
-          g_warning ("Support for %s::%s missing in %s",
-                     interface, method, G_STRLOC);
-        }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Clipboard") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Location") == 0)
-    {
-      if (strcmp (method, "CreateSession") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 0);
-        }
-      else if (strcmp (method, "SelectDetails") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 1);
-        }
-      else if (strcmp (method, "Start") == 0)
-        {
-          options = g_variant_get_child_value (parameters, 2);
-        }
-      else
-        {
-          g_warning ("Support for %s::%s missing in %s",
-                     interface, method, G_STRLOC);
-        }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Settings") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.GameMode") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Realtime") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0)
-    {
-      // no request objects
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
-    {
-        if (strcmp (method, "RequestBackground") == 0 )
-          {
-            options = g_variant_get_child_value (parameters, 1);
-          }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.DynamicLauncher") == 0)
-    {
-        if (strcmp (method, "PrepareInstall") == 0 )
-          {
-            options = g_variant_get_child_value (parameters, 3);
-          }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Wallpaper") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 2);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
-    {
-      if (strcmp (method, "AccessCamera") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 0);
-        }
-      else if (strcmp (method, "OpenPipeWireRemote") == 0)
-        {
-          // no request objects
-        }
-      else
-        {
-          g_warning ("Support for %s::%s missing in %s",
-                     interface, method, G_STRLOC);
-        }
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Secret") == 0)
-    {
-      options = g_variant_get_child_value (parameters, 1);
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.GlobalShortcuts") == 0)
-    {
-      if (strcmp (method, "CreateSession") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 0);
-        }
-      else if (strcmp (method, "BindShortcuts") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 3);
-        }
-      else if (strcmp (method, "ListShortcuts") == 0 )
-        {
-          options = g_variant_get_child_value (parameters, 1);
-        }
-      else
-        {
-          g_warning ("Support for %s::%s missing in %s",
-                     interface, method, G_STRLOC);
-        }
+      if (method_info->option_arg >= 0)
+        options = g_variant_get_child_value (parameters, method_info->option_arg);
     }
   else
     {
-      g_print ("Support for %s missing in " G_STRLOC, interface);
+      g_warning ("Support for %s::%s missing in %s",
+                 interface, method, G_STRLOC);
     }
 
   if (options)

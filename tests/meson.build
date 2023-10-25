@@ -265,6 +265,23 @@ test(
   protocol: test_protocol,
 )
 
+test_method_info = executable(
+  'test-xdp-method-info',
+  'test-xdp-method-info.c',
+  xdp_method_info_sources,
+  dependencies: [common_deps],
+  include_directories: [common_includes, xdp_utils_includes],
+  install: enable_installed_tests,
+  install_dir: installed_tests_dir,
+)
+test(
+  'test-xdp-method-info',
+  test_method_info,
+  env: env_tests,
+  is_parallel: true,
+  protocol: test_protocol,
+)
+
 pytest = find_program('pytest-3', 'pytest', required: get_option('pytest'))
 pymod = import('python')
 python = pymod.find_installation(
