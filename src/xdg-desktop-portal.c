@@ -30,6 +30,8 @@
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-method-info.h"
+
 #include "account.h"
 #include "background.h"
 #include "call.h"
@@ -110,83 +112,18 @@ method_needs_request (GDBusMethodInvocation *invocation)
 {
   const char *interface;
   const char *method;
+  const XdpMethodInfo *method_info;
 
   interface = g_dbus_method_invocation_get_interface_name (invocation);
   method = g_dbus_method_invocation_get_method_name (invocation);
 
-  if (strcmp (interface, "org.freedesktop.portal.ScreenCast") == 0)
-    {
-      if (strcmp (method, "OpenPipeWireRemote") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.RemoteDesktop") == 0)
-    {
-      if (strstr (method, "Notify") == method || strcmp (method, "ConnectToEIS") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Clipboard") == 0)
-    {
-      return FALSE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Camera") == 0)
-    {
-      if (strcmp (method, "OpenPipeWireRemote") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.DynamicLauncher") == 0)
-    {
-      if (strcmp (method, "PrepareInstall") == 0)
-        return TRUE;
-      else
-        return FALSE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Background") == 0)
-    {
-      if (strcmp (method, "SetStatus") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Inhibit") == 0)
-    {
-      if (strcmp (method, "QueryEndResponse") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.InputCapture") == 0)
-    {
-      if (strcmp (method, "ConnectToEIS") == 0 ||
-          strcmp (method, "Enable") == 0 ||
-          strcmp (method, "Disable") == 0 ||
-          strcmp (method, "Release") == 0)
-        return FALSE;
-      else
-        return TRUE;
-    }
-  else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.Documents") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.FileTransfer") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.GameMode") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.MemoryMonitor") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.Notification") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.NetworkMonitor") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.ProxyResolver") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.Realtime") == 0 ||
-           strcmp (interface, "org.freedesktop.portal.Settings") == 0)
-    {
-      return FALSE;
-    }
-  else
-    {
-      return TRUE;
-    }
+  method_info = xdp_method_info_find (interface, method);
+
+  if (!method_info)
+    g_warning ("Support for %s::%s missing in %s",
+               interface, method, G_STRLOC);
+
+  return method_info ?  method_info->uses_request : TRUE;
 }
 
 static gboolean
