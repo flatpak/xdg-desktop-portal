@@ -33,7 +33,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "trash.h"
-#include "request.h"
+#include "call.h"
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -101,18 +101,16 @@ handle_trash_file (XdpDbusTrash *object,
                    GUnixFDList *fd_list,
                    GVariant *arg_fd)
 {
-  Request *request = request_from_invocation (invocation);
+  Call *call = call_from_invocation (invocation);
   int idx, fd;
   guint result;
 
   g_debug ("Handling TrashFile");
 
-  REQUEST_AUTOLOCK (request);
-
   g_variant_get (arg_fd, "h", &idx);
   fd = g_unix_fd_list_get (fd_list, idx, NULL);
 
-  result = trash_file (request->app_info, request->sender, fd);
+  result = trash_file (call->app_info, call->sender, fd);
 
   xdp_dbus_trash_complete_trash_file (object, invocation, NULL, result);
 

@@ -24,7 +24,7 @@
 #include <gio/gio.h>
 
 #include "realtime.h"
-#include "request.h"
+#include "call.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
@@ -102,10 +102,10 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
                                       guint32                priority)
 {
   g_autoptr (GError) error = NULL;
-  Request *request = request_from_invocation (invocation);
+  Call *call = call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
-  const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *app_id = xdp_app_info_get_id (call->app_info);
   Permission permission;
 
   if (!realtime->rtkit_proxy)
@@ -127,7 +127,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (request->app_info, pids, tids, &error))
+  if (!map_pid (call->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -153,10 +153,10 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
                                            gint32                 priority)
 {
   g_autoptr (GError) error = NULL;
-  Request *request = request_from_invocation (invocation);
+  Call *call = call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
-  const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *app_id = xdp_app_info_get_id (call->app_info);
   Permission permission;
 
   if (!realtime->rtkit_proxy)
@@ -178,7 +178,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (request->app_info, pids, tids, &error))
+  if (!map_pid (call->app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

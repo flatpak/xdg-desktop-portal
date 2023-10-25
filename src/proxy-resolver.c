@@ -24,7 +24,7 @@
 #include <gio/gio.h>
 
 #include "proxy-resolver.h"
-#include "request.h"
+#include "call.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 
@@ -59,9 +59,9 @@ proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
                               const char *arg_uri)
 {
   ProxyResolver *resolver = (ProxyResolver *)object;
-  Request *request = request_from_invocation (invocation);
+  Call *call = call_from_invocation (invocation);
 
-  if (!xdp_app_info_has_network (request->app_info))
+  if (!xdp_app_info_has_network (call->app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,

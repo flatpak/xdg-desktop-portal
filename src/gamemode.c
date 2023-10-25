@@ -20,7 +20,7 @@
 
 #include "config.h"
 
-#include "request.h"
+#include "call.h"
 #include "permissions.h"
 
 #include "xdp-dbus.h"
@@ -365,8 +365,8 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
 {
   g_autoptr(GTask) task = NULL;
   XdpAppInfo *app_info;
-  Request  *request;
-  CallData *call;
+  Call *call;
+  CallData *call_data;
 
   if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
     {
@@ -375,15 +375,15 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
       return;
     }
 
-  request = request_from_invocation (invocation);
-  app_info = request->app_info;
+  call = call_from_invocation (invocation);
+  app_info = call->app_info;
 
-  call = call_data_new (invocation, app_info, method);
-  call->fdlist = g_object_ref (fdlist);
+  call_data = call_data_new (invocation, app_info, method);
+  call_data->fdlist = g_object_ref (fdlist);
 
   task = g_task_new (object, NULL, NULL, NULL);
 
-  g_task_set_task_data (task, call, call_data_free);
+  g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);
 }
 
@@ -396,26 +396,26 @@ handle_call_in_thread (XdpDbusGameMode       *object,
 {
   g_autoptr(GTask) task = NULL;
   XdpAppInfo *app_info;
-  Request  *request;
-  CallData *call;
+  Call *call;
+  CallData *call_data;
 
-  request = request_from_invocation (invocation);
-  app_info = request->app_info;
+  call = call_from_invocation (invocation);
+  app_info = call->app_info;
 
-  call = call_data_new (invocation, app_info, method);
+  call_data = call_data_new (invocation, app_info, method);
 
-  call->ids[0] = target;
-  call->n_ids = 1;
+  call_data->ids[0] = target;
+  call_data->n_ids = 1;
 
   if (requester != 0)
     {
-      call->ids[1] = requester;
-      call->n_ids += 1;
+      call_data->ids[1] = requester;
+      call_data->n_ids += 1;
     }
 
   task = g_task_new (object, NULL, NULL, NULL);
 
-  g_task_set_task_data (task, call, call_data_free);
+  g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);
 }
 

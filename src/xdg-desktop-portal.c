@@ -153,6 +153,13 @@ method_needs_request (GDBusMethodInvocation *invocation)
       else
         return TRUE;
     }
+  else if (strcmp (interface, "org.freedesktop.portal.Inhibit") == 0)
+    {
+      if (strcmp (method, "QueryEndResponse") == 0)
+        return FALSE;
+      else
+        return TRUE;
+    }
   else if (strcmp (interface, "org.freedesktop.portal.InputCapture") == 0)
     {
       if (strcmp (method, "ConnectToEIS") == 0 ||
@@ -162,6 +169,18 @@ method_needs_request (GDBusMethodInvocation *invocation)
         return FALSE;
       else
         return TRUE;
+    }
+  else if (strcmp (interface, "org.freedesktop.portal.Trash") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.Documents") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.FileTransfer") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.GameMode") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.MemoryMonitor") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.NetworkMonitor") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.ProxyResolver") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.Realtime") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.Settings") == 0)
+    {
+      return FALSE;
     }
   else
     {

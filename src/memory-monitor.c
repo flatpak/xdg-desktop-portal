@@ -25,7 +25,6 @@
 #include <gio/gio.h>
 
 #include "memory-monitor.h"
-#include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 
