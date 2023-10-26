@@ -31,95 +31,71 @@
   <interface name="org.freedesktop.portal.Email">
     <!--
         ComposeEmail:
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :doc:`common-conventions`
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
         Presents a window that lets the user compose an email.
 
         Note that the default email client for the host will need to support mailto: URIs
-        following <ulink url="https://tools.ietf.org/html/rfc2368">RFC 2368</ulink>, with
+        following `RFC 2368 <https://tools.ietf.org/html/rfc2368>`_, with
         "cc", "bcc", "subject" and "body" query keys each corresponding to the email
-        header of the same name, and with each attachment being passed as a "file://"
+        header of the same name, and with each attachment being passed as a ``file://``
         URI as a value in an "attachment" query key.
 
         For example:
-        <programlisting>
-        mailto:foo@bar.com,baz@bar.com?cc=ceo@bar.com&amp;subject=Test%20e-mail%20subject&amp;attachment=file://path/to/full/file.txt
-        </programlisting>
+
+        ::
+          
+          mailto:foo@bar.com,baz@bar.com?cc=ceo@bar.com&amp;subject=Test%20e-mail%20subject&amp;attachment=file://path/to/full/file.txt
+
+
         would send a mail to "foo@bar.com", "baz@bar.com", with a CC:
         to "ceo@bar.com", with the subject "Test e-mail subject"
-        and the file pointed by URI "file://path/to/full/file.txt" as an attachment.
+        and the file pointed by URI ``file://path/to/full/file.txt`` as
+        an attachment.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>address s</term>
-            <listitem><para>
-              The email address to send to. Must conform to the HTML5 definition of
-              <ulink url="https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address">valid email address</ulink>.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>addresses as</term>
-            <listitem><para>
-              Email addresses to send to. This will be used in addition to address and must
-              pass the same validation.
-            </para><para>
-              This option was added in version 3.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>cc as</term>
-            <listitem><para>
-              Email addresses to cc.
-            </para><para>
-              This option was added in version 3.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>bcc as</term>
-            <listitem><para>
-              Email addresses to bcc.
-            </para><para>
-              This option was added in version 3.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>subject s</term>
-            <listitem><para>
-              The subject for the email.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>body s</term>
-            <listitem><para>
-              The body for the email.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>attachment_fds ah</term>
-            <listitem><para>
-              File descriptors for files to attach.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>activation_token s</term>
-            <listitem><para>
-              A token that can be used to activate the chosen application.
-            </para><para>
-              The activation_token option was introduced in version 4 of the interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
+
+        * ``address`` (``s``)
+          The email address to send to. Must conform to the HTML5 definition of a
+          [valid email address](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
+
+        * ``addresses`` (``as``)
+          Email addresses to send to. This will be used in addition to address and must
+          pass the same validation.
+
+          This option was introduced in version 3 of the interface.
+
+        * ``cc`` (``as``)
+          Email addresses to cc.
+
+          This option was introduced in version 3 of the interface.
+
+        * ``bcc`` (``as``)
+          Email addresses to bcc.
+
+          This option was introduced in version 3 of the interface.
+
+        * ``subject`` (``s``)
+          The subject for the email.
+
+        * ``body`` (``s``)
+          The body for the email.
+
+        * ``attachment_fds`` (``ah``)
+          File descriptors for files to attach.
+
+        * ``activation_token`` (``s``)
+          A token that can be used to activate the chosen application.
+
+          This option was introduced in version 4 of the interface.
+
 
         All the keys in the options are are optional.
     -->

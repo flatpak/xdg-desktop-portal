@@ -36,9 +36,14 @@
       org.freedesktop.portal.Request.Close() on the Request object.
 
       Since version 0.9 of xdg-desktop-portal, the handle will be of the form
-       /org/freedesktop/portal/desktop/request/SENDER/TOKEN,
-      where SENDER is the callers unique name, with the initial ':' removed and
-      all '.' replaced by '_', and TOKEN is a unique token that the caller provided
+
+      ::
+
+        /org/freedesktop/portal/desktop/request/SENDER/TOKEN
+
+
+      where ``SENDER`` is the callers unique name, with the initial ``':'`` removed and
+      all ``'.'`` replaced by ``'_'``, and ``TOKEN`` is a unique token that the caller provided
       with the handle_token key in the options vardict.
 
       This change was made to let applications subscribe to the Response signal before
@@ -58,6 +63,7 @@
 
         Closes the portal request to which this object refers and ends all
         related user interaction (dialogs, etc).
+
         A Response signal will not be emitted in this case.
     -->
     <method name="Close">
@@ -71,11 +77,10 @@
         Emitted when the user interaction for a portal request is over.
 
         The @response indicates how the user interaction ended:
-            <simplelist>
-              <member>0: Success, the request is carried out</member>
-              <member>1: The user cancelled the interaction</member>
-              <member>2: The user interaction was ended in some other way</member>
-            </simplelist>
+
+        - 0: Success, the request is carried out
+        - 1: The user cancelled the interaction
+        - 2: The user interaction was ended in some other way
     -->
     <signal name="Response">
       <arg type="u" name="response"/>

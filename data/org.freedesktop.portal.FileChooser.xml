@@ -29,14 +29,14 @@
 
       The selected files will be made accessible to the application
       via the document portal, and the returned URI will point
-      into the document portal fuse filesystem in /run/user/$UID/doc/.
+      into the document portal fuse filesystem in ``/run/user/$UID/doc/``.
 
       This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.FileChooser">
     <!--
       OpenFile:
-      @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+      @parent_window: Identifier for the application window, see :doc:`common-conventions`
       @title: Title for the file chooser dialog
       @options: Vardict with optional further information
       @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -44,159 +44,93 @@
       Asks to open one or more files.
 
       Supported keys in the @options vardict include:
-      <variablelist>
-        <varlistentry>
-          <term>handle_token s</term>
-          <listitem><para>
-            A string that will be used as the last element of the @handle. Must be a valid
-            object path element. See the #org.freedesktop.portal.Request documentation for
-            more information about the @handle.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>accept_label s</term>
-          <listitem><para>
-            Label for the accept button. Mnemonic underlines are allowed.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>modal b</term>
-          <listitem><para>
-            Whether the dialog should be modal. Default is yes.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>multiple b</term>
-          <listitem><para>
-            Whether multiple files can be selected or not. Default is single-selection.
-          </para></listitem>
-       </varlistentry>
-       <varlistentry>
-          <term>directory b</term>
-          <listitem><para>
-            Whether to select for folders instead of files. Default is to select files. This option was added in version 3.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>filters a(sa(us))</term>
-          <listitem>
-            <para>
-              List of serialized file filters.
-            </para>
-            <para>
-              Each item in the array specifies a single filter to offer to the user.
-              The first string is a user-visible name for the filter. The a(us)
-              specifies a list of filter strings, which can be either a glob-style pattern
-              (indicated by 0) or a mimetype (indicated by 1). Patterns are case-sensitive.
-              To match different capitalizations of, e.g. '*.ico', use a pattern like
-              '*.[iI][cC][oO]'.
-            </para>
-            <para>
-              Example: [('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')])]
-            </para>
-            <para>
-              Note that filters are purely there to aid the user in making a useful selection.
-              The portal may still allow the user to select files that don't match any filter
-              criteria, and applications must be prepared to handle that.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_filter (sa(us))</term>
-          <listitem>
-            <para>
-              Request that this filter be set by default at dialog creation. If
-              the filters list is nonempty, it should match a filter in the
-              list to set the default filter from the list. Alternatively, it
-              may be specified when the list is empty to apply the filter
-              unconditionally.
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ssa(ss)s)</term>
-          <listitem>
-            <para>
-              List of serialized combo boxes to add to the file chooser.
-            </para>
-            <para>
-              For each element, the first string is an ID that will be returned
-              with the response, the second string is a user-visible label. The
-              a(ss) is the list of choices, each being an ID and a
-              user-visible label. The final string is the initial selection,
-              or "", to let the portal decide which choice will be initially selected.
-              None of the strings, except for the initial selection, should be empty.
-            </para>
-            <para>
-              As a special case, passing an empty array for the list of choices
-              indicates a boolean choice that is typically displayed as a check
-              button, using "true" and "false" as the choices.
-            </para>
-            <para>
-              Example: [('encoding', 'Encoding', [('utf8', 'Unicode (UTF-8)'), ('latin15', 'Western')], 'latin15'), ('reencode', 'Reencode', [], 'false')]
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_folder ay</term>
-          <listitem>
-            <para>
-              Suggested folder from which the files should be opened. The byte array
-              contains a path in the same encoding as the file system, and it's
-              expected to be terminated by a nul byte.
-            </para>
-            <para>
-              If the path points to a location in the document storage, it will be
-              replaced with the path to the location on the host.
-            </para>
-            <para>
-              The portal implementation is free to ignore this option. 
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``handle_token`` (``s``)
+        A string that will be used as the last element of the @handle. Must be a valid
+        object path element. See the #org.freedesktop.portal.Request documentation for
+        more information about the @handle.
+
+      * ``accept_label`` (``s``)
+        Label for the accept button. Mnemonic underlines are allowed.
+
+      * ``modal`` (``b``)
+        Whether the dialog should be modal. Default is true.
+
+      * ``multiple`` (``b``)
+        Whether multiple files can be selected or not. Default is single-selection.
+
+      * ``directory`` (``b``)
+        Whether to select for folders instead of files. Default is to select files.
+
+        This option was added in version 3.
+
+      * ``filters`` (``a(sa(us))``)
+        List of serialized file filters.
+
+        Each item in the array specifies a single filter to offer to the user.
+        The first string is a user-visible name for the filter. The ``a(us)``
+        specifies a list of filter strings, which can be either a glob-style pattern
+        (indicated by 0) or a MIME type (indicated by 1). Patterns are case-sensitive.
+        To match different capitalizations of, e.g. ``'*.ico'``, use a pattern like
+        ``'*.[iI][cC][oO]'``.
+
+        Example: ``[('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')])]``
+
+        .. note::
+           Note that filters are purely there to aid the user in making a useful selection.
+           The portal may still allow the user to select files that don't match any filter
+           criteria, and applications must be prepared to handle that.
+
+      * ``current_filter`` (``(sa(us))``)
+        Request that this filter be set by default at dialog creation. If
+        the filters list is nonempty, it should match a filter in the
+        list to set the default filter from the list. Alternatively, it
+        may be specified when the list is empty to apply the filter
+        unconditionally.
+
+      * ``choices`` (``a(ssa(ss)s)``)
+        List of serialized combo boxes to add to the file chooser.
+
+        For each element, the first string is an ID that will be returned
+        with the response, the second string is a user-visible label. The
+        ``a(ss)`` is the list of choices, each being an ID and a
+        user-visible label. The final string is the initial selection,
+        or "", to let the portal decide which choice will be initially selected.
+        None of the strings, except for the initial selection, should be empty.
+
+        As a special case, passing an empty array for the list of choices
+        indicates a boolean choice that is typically displayed as a check
+        button, using "true" and "false" as the choices.
+
+        Example: ``[('encoding', 'Encoding', [('utf8', 'Unicode (UTF-8)'), ('latin15', 'Western')], 'latin15'), ('reencode', 'Reencode', [], 'false')]``
+
+      * ``current_folder`` (``ay``)
+        Suggested folder from which the files should be opened. The byte array
+        contains a path in the same encoding as the file system, and it's
+        expected to be terminated by a nul byte.
+
+        If the path points to a location in the document storage, it will be
+        replaced with the path to the location on the host.
+
+        The portal implementation is free to ignore this option.
+
 
       The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-      <variablelist>
-        <varlistentry>
-          <term>uris as</term>
-          <listitem><para>
-            An array of strings containing the uris of the selected files. All
-            URIs have the "file://" scheme.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ss)</term>
-          <listitem>
-            <para>
-              An array of pairs of strings, the first string being the ID of a
-              combobox that was passed into this call, the second string being
-              the selected option.
-            </para>
-            <para>
-              Example: [('encoding', 'utf8'), ('reencode', 'true')]
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_filter (sa(us))</term>
-          <listitem>
-            <para>
-              The filter that was selected. This may match a filter in the
-              filter list or another filter that was applied unconditionally.
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``uris`` (``as``)
+        An array of strings containing the uris of the selected files. All URIs
+        have the "file://" scheme.
+
+      * ``choices`` (``a(ss)``)
+        An array of pairs of strings, the first string being the ID of a
+        combobox that was passed into this call, the second string being
+        the selected option.
+
+        Example: ``[('encoding', 'utf8'), ('reencode', 'true')]``
+
+      * ``current_filter`` (``(sa(us))``)
+        The filter that was selected. This may match a filter in the
+        filter list or another filter that was applied unconditionally.
     -->
     <method name="OpenFile">
       <arg type="s" name="parent_window" direction="in"/>
@@ -214,134 +148,76 @@
       Asks for a location to save a file.
 
       Supported keys in the @options vardict include:
-      <variablelist>
-        <varlistentry>
-          <term>handle_token s</term>
-          <listitem><para>
-            A string that will be used as the last element of the @handle. Must be a valid
-            object path element. See the #org.freedesktop.portal.Request documentation for
-            more information about the @handle.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>accept_label s</term>
-          <listitem><para>
-            Label for the accept button. Mnemonic underlines are allowed.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>modal b</term>
-          <listitem><para>
-            Whether the dialog should be modal. Default is yes.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>filters a(sa(us))</term>
-          <listitem><para>
-            List of serialized file filters.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_filter (sa(us))</term>
-          <listitem>
-            <para>
-              Request that this filter be set by default at dialog creation.
-              See org.freedesktop.portal.FileChooser.OpenFile() for details.
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ssa(ss)s)</term>
-          <listitem><para>
-            List of serialized combo boxes.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_name s</term>
-          <listitem><para>Suggested name of the file.</para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_folder ay</term>
-          <listitem>
-            <para>
-              Suggested folder in which the file should be saved. The byte array
-              contains a path in the same encoding as the file system, and it's
-              expected to be terminated by a nul byte.
-            </para>
-            <para>
-              If the path points to a location in the document storage, it will be
-              replaced with the path to the location on the host.
-            </para>
-            <para>
-              The portal implementation is free to ignore this option. 
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_file ay</term>
-          <listitem>
-            <para>
-              The current file (when saving an existing file), in the same encoding as the file
-              system. The byte array is expected to be terminated by a nul byte.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``handle_token`` (``s``)
+        A string that will be used as the last element of the @handle. Must be a valid
+        object path element. See the #org.freedesktop.portal.Request documentation for
+        more information about the @handle.
+
+      * ``accept_label`` (``s``)
+        Label for the accept button. Mnemonic underlines are allowed.
+
+      * ``modal`` (``b``)
+        Whether the dialog should be modal. Default is yes.
+
+      * ``filters`` (``a(sa(us))``)
+        List of serialized file filters.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``current_filter`` (``(sa(us))``)
+        Request that this filter be set by default at dialog creation.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``choices`` (``a(ssa(ss)s)``)
+        List of serialized combo boxes.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``current_name``(``s``)
+        Suggested name of the file.
+
+      * ``current_folder`` (``ay``)
+        Suggested folder in which the file should be saved. The byte array
+        contains a path in the same encoding as the file system, and it's
+        expected to be terminated by a nul byte.
+
+        If the path points to a location in the document storage, it will be
+        replaced with the path to the location on the host.
+
+        The portal implementation is free to ignore this option.
+
+      * ``current_file`` (``ay``)
+        The current file (when saving an existing file), in the same encoding as the file
+        system. The byte array is expected to be terminated by a nul byte.
+
 
       The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-      <variablelist>
-        <varlistentry>
-          <term>uris as</term>
-          <listitem><para>
-            An array of strings containing the uri of the selected file. All
-            URIs have the "file://" scheme.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ss)</term>
-          <listitem><para>
-            An array of pairs of strings, corresponding to the passed-in choices.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_filter (sa(us))</term>
-          <listitem>
-            <para>
-              The filter that was selected.
-              See org.freedesktop.portal.FileChooser.OpenFile() for details.
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_folder ay</term>
-          <listitem>
-            <para>
-              Suggested folder in which the file should be saved. The byte array
-              contains a path in the same encoding as the file system, and it's
-              expected to be terminated by a nul byte.
-            </para>
-            <para>
-              If the path points to a location in the document storage, it will be
-              replaced with the path to the location on the host.
-            </para>
-            <para>
-              The portal implementation is free to ignore this option. 
-            </para>
-            <para>
-              This option was added in version 4 of this interface.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``uris`` (``as``)
+        An array of strings containing the uri of the selected file. All URIs
+        have the "file://" scheme.
+
+      * ``choices`` (``a(ss)``)
+        An array of pairs of strings, corresponding to the passed-in choices.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``current_filter`` (``(sa(us))``)
+        The filter that was selected.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``current_folder`` (``ay``)
+        Suggested folder in which the file should be saved. The byte array
+        contains a path in the same encoding as the file system, and it's
+        expected to be terminated by a nul byte.
+
+        If the path points to a location in the document storage, it will be
+        replaced with the path to the location on the host.
+
+        The portal implementation is free to ignore this option.
     -->
     <method name="SaveFile">
       <arg type="s" name="parent_window" direction="in"/>
@@ -364,89 +240,54 @@
       construct a unique file name and return that instead.
 
       Supported keys in the @options vardict include:
-      <variablelist>
-        <varlistentry>
-          <term>handle_token s</term>
-          <listitem><para>
-            A string that will be used as the last element of the
-            @handle. Must be a valid object path element. See the
-            #org.freedesktop.portal.Request documentation for more
-            information about the @handle.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>accept_label s</term>
-          <listitem><para>
-            Label for the accept button. Mnemonic underlines are allowed.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>modal b</term>
-          <listitem><para>
-            Whether the dialog should be modal. Default is yes.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ssa(ss)s)</term>
-          <listitem><para>
-            List of serialized combo boxes.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>current_folder ay</term>
-          <listitem>
-            <para>
-              Suggested folder in which the files should be saved. The byte array
-              contains a path in the same encoding as the file system, and it's
-              expected to be terminated by a nul byte.
-            </para>
-            <para>
-              If the path points to a location in the document storage, it will be
-              replaced with the path to the location on the host.
-            </para>
-            <para>
-              The portal implementation is free to ignore this option. 
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-        <term>files aay</term>
-          <listitem>
-            <para>
-              An array of file names, using the same encoding as the file system,
-              to be saved. Each byte array is expected to be terminated by a nul
-              byte.
-            </para>
-          </listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``handle_token`` (``s``)
+        A string that will be used as the last element of the
+        @handle. Must be a valid object path element. See the
+        #org.freedesktop.portal.Request documentation for more
+        information about the @handle.
+
+      * ``accept_label`` (``s``)
+        Label for the accept button. Mnemonic underlines are allowed.
+
+      * ``modal`` (``b``)
+        Whether the dialog should be modal. Default is yes.
+
+      * ``choices`` (``a(ssa(ss)s)``)
+        List of serialized combo boxes.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+
+      * ``current_folder`` (``ay``)
+        Suggested folder in which the files should be saved. The byte array
+        contains a path in the same encoding as the file system, and it's
+        expected to be terminated by a nul byte.
+
+        If the path points to a location in the document storage, it will be
+        replaced with the path to the location on the host.
+
+        The portal implementation is free to ignore this option.
+
+      * ``files`` (``aay``)
+        An array of file names, using the same encoding as the file system,
+        to be saved. Each byte array is expected to be terminated by a nul
+
 
       The following results get returned via the
       #org.freedesktop.portal.Request::Response signal:
-      <variablelist>
-        <varlistentry>
-          <term>uris as</term>
-          <listitem>
-            <para>
-              An array of strings containing the uri corresponding to
-              each file given by @options, in the same order. Note that
-              the file names may have changed, for example if a file
-              with the same name in the selected folder already exists.
-            </para>
-            <para>
-               All URIs have the "file://" scheme.
-            </para>
-          </listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>choices a(ss)</term>
-          <listitem><para>
-            An array of pairs of strings, corresponding to the passed-in choices.
-            See org.freedesktop.portal.FileChooser.OpenFile() for details.
-          </para></listitem>
-        </varlistentry>
-      </variablelist>
+
+      * ``uris`` (``as``)
+        An array of strings containing the uri corresponding to
+        each file given by @options, in the same order. Note that
+        the file names may have changed, for example if a file
+        with the same name in the selected folder already exists.
+
+        All URIs have the "file://" scheme.
+
+      * ``choices`` (``a(ss)``)
+        An array of pairs of strings, corresponding to the passed-in choices.
+
+        See org.freedesktop.portal.FileChooser.OpenFile() for details.
     -->
     <method name="SaveFiles">
       <arg type="s" name="parent_window" direction="in"/>
