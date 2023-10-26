@@ -26,6 +26,7 @@
 #include <gio/gunixoutputstream.h>
 
 #include "notification.h"
+#include "call.h"
 #include "request.h"
 #include "permissions.h"
 #include "xdp-dbus.h"
@@ -97,6 +98,69 @@ pair_copy (Pair *o)
   return p;
 }
 
+struct _CallData {
+  GObject parent_instance;
+  GDBusMethodInvocation *inv;
+  XdpAppInfo *app_info;
+  GMutex mutex;
+
+  char *sender;
+  char *id;
+  GVariant *notification;
+};
+
+G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
+G_DEFINE_TYPE (CallData, call_data, G_TYPE_OBJECT);
+#define CALL_DATA_AUTOLOCK(call_data) G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) GMutex * G_PASTE (request_auto_unlock, __LINE__) = auto_lock_helper (&call_data->mutex);
+
+static void
+call_data_init (CallData *call_data)
+{
+  g_mutex_init (&call_data->mutex);
+}
+
+static CallData *
+call_data_new (GDBusMethodInvocation *inv,
+               XdpAppInfo            *app_info,
+               const char            *sender,
+               const char            *id,
+               GVariant              *notification)
+{
+  CallData *call_data = g_object_new (call_data_get_type(),  NULL);
+
+  call_data->inv = g_object_ref (inv);
+  call_data->app_info = xdp_app_info_ref (app_info);
+  call_data->sender = g_strdup (sender);
+  call_data->id = g_strdup (id);
+  if (notification)
+    call_data->notification = g_variant_ref (notification);
+
+  return call_data;
+}
+
+static void
+call_data_finalize (GObject *object)
+{
+  CallData *call_data = CALL_DATA (object);
+
+  g_object_unref (call_data->inv);
+  xdp_app_info_unref (call_data->app_info);
+  g_free (call_data->id);
+  g_free (call_data->sender);
+  if (call_data->notification)
+    g_variant_unref (call_data->notification);
+
+  G_OBJECT_CLASS (call_data_parent_class)->finalize (object);
+}
+
+static void
+call_data_class_init (CallDataClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = call_data_finalize;
+}
+
 GType notification_get_type (void) G_GNUC_CONST;
 static void notification_iface_init (XdpDbusNotificationIface *iface);
 
@@ -110,7 +174,7 @@ add_done (GObject *source,
           GAsyncResult *result,
           gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(CallData) call_data = data;
   g_autoptr(GError) error = NULL;
 
   if (!xdp_dbus_impl_notification_call_add_notification_finish (impl, result, &error))
@@ -122,11 +186,11 @@ add_done (GObject *source,
     {
       Pair p;
 
-      p.app_id = (char *)xdp_app_info_get_id (request->app_info);
-      p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
+      p.app_id = (char *)xdp_app_info_get_id (call_data->app_info);
+      p.id = call_data->id;
 
       G_LOCK (active);
-      g_hash_table_insert (active, pair_copy (&p), g_strdup (request->sender));
+      g_hash_table_insert (active, pair_copy (&p), g_strdup (call_data->sender));
       G_UNLOCK (active);
     }
 }
@@ -372,28 +436,23 @@ handle_add_in_thread_func (GTask *task,
                            gpointer task_data,
                            GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
-  const char *id;
-  GVariant *notification;
+  CallData *call_data = task_data;
   g_autoptr(GVariant) notification2 = NULL;
 
-  REQUEST_AUTOLOCK (request);
+  CALL_DATA_AUTOLOCK (call_data);
 
-  if (!xdp_app_info_is_host (request->app_info) &&
-      !get_notification_allowed (xdp_app_info_get_id (request->app_info)))
+  if (!xdp_app_info_is_host (call_data->app_info) &&
+      !get_notification_allowed (xdp_app_info_get_id (call_data->app_info)))
     return;
 
-  id = (const char *)g_object_get_data (G_OBJECT (request), "id");
-  notification = (GVariant *)g_object_get_data (G_OBJECT (request), "notification");
-
-  notification2 = maybe_remove_icon (notification);
+  notification2 = maybe_remove_icon (call_data->notification);
   xdp_dbus_impl_notification_call_add_notification (impl,
-                                                    xdp_app_info_get_id (request->app_info),
-                                                    id,
+                                                    xdp_app_info_get_id (call_data->app_info),
+                                                    call_data->id,
                                                     notification2,
                                                     NULL,
                                                     add_done,
-                                                    g_object_ref (request));
+                                                    g_object_ref (call_data));
 }
 
 static gboolean
@@ -402,12 +461,10 @@ notification_handle_add_notification (XdpDbusNotification *object,
                                       const char *arg_id,
                                       GVariant *notification)
 {
-  Request *request = request_from_invocation (invocation);
+  Call *call = call_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   g_autoptr(GError) error = NULL;
-
-  g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
-  g_object_set_data_full (G_OBJECT (request), "notification", g_variant_ref (notification), (GDestroyNotify)g_variant_unref);
+  CallData *call_data;
 
   if (!check_notification (notification, &error))
     {
@@ -416,8 +473,9 @@ notification_handle_add_notification (XdpDbusNotification *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
+  call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, notification);
   task = g_task_new (object, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
 
   xdp_dbus_notification_complete_add_notification (object, invocation);
@@ -430,7 +488,7 @@ remove_done (GObject *source,
              GAsyncResult *result,
              gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(CallData) call_data = data;
   g_autoptr(GError) error = NULL;
 
   if (!xdp_dbus_impl_notification_call_remove_notification_finish (impl, result, &error))
@@ -442,8 +500,8 @@ remove_done (GObject *source,
     {
       Pair p;
 
-      p.app_id = (char *)xdp_app_info_get_id (request->app_info);
-      p.id = (char *)g_object_get_data (G_OBJECT (request), "id");
+      p.app_id = (char *)xdp_app_info_get_id (call_data->app_info);
+      p.id = call_data->id;
 
       G_LOCK (active);
       g_hash_table_remove (active, &p);
@@ -456,15 +514,14 @@ notification_handle_remove_notification (XdpDbusNotification *object,
                                          GDBusMethodInvocation *invocation,
                                          const char *arg_id)
 {
-  Request *request = request_from_invocation (invocation);
-
-  g_object_set_data_full (G_OBJECT (request), "id", g_strdup (arg_id), g_free);
+  Call *call = call_from_invocation (invocation);
+  CallData *call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, NULL);
 
   xdp_dbus_impl_notification_call_remove_notification (impl,
-                                                       xdp_app_info_get_id (request->app_info),
+                                                       xdp_app_info_get_id (call->app_info),
                                                        arg_id,
                                                        NULL,
-                                                       remove_done, g_object_ref (request));
+                                                       remove_done, call_data);
 
   xdp_dbus_notification_complete_remove_notification (object, invocation);
 
