@@ -31,15 +31,18 @@
       launchers. The portal also allows apps to uninstall the launchers, launch
       them, and read the desktop file and icon data for them.
 
-      The standard way to install a launcher is to use the PrepareInstall() method
+      The standard way to install a launcher is to use the
+      org.freedesktop.portal.DynamicLauncher.PrepareInstall() method
       which results in a dialog being presented to the user so they can confirm
-      they want to install the launcher. Then, the token returned by PrepareInstall()
-      would be passed to the Install() method to complete the installation.
+      they want to install the launcher. Then, the token returned by
+      org.freedesktop.portal.DynamicLauncher.PrepareInstall()
+      would be passed to the org.freedesktop.portal.DynamicLauncher.Install()
+      method to complete the installation.
 
       However, in the rare circumstance that an unsandboxed process such as a
       system component needs to install a launcher without user interaction, this
-      can be accomplished by using the RequestInstallToken() method and passing
-      the acquired token to Install().
+      can be accomplished by using the org.freedesktop.portal.DynamicLauncher.RequestInstallToken()
+      method and passing the acquired token to org.freedesktop.portal.DynamicLauncher.Install().
 
       This documentation describes version 1 of this interface.
   -->
@@ -47,7 +50,7 @@
     <!--
         Install:
         @token: Token proving authorization of the installation
-        @desktop_file_id: The .desktop file name to be used
+        @desktop_file_id: The ``.desktop`` file name to be used
         @desktop_entry: The text of the Desktop Entry file to be installed, see below
         @options: Vardict with optional further information
 
@@ -55,8 +58,8 @@
         allow the desktop environment to find them. Please note that this method
         overwrites any existing launcher with the same id. If you want to
         present the user with a confirmation dialog in that case, you can check
-        for it using the GetDesktopEntry() method and clean up any state from
-        the previous launcher if you want.
+        for it using the org.freedesktop.portal.DynamicLauncher.GetDesktopEntry()
+        method and clean up any state from the previous launcher if you want.
 
         @token must be a token that was returned by a previous
         org.freedesktop.portal.DynamicLauncher.PrepareInstall() or
@@ -73,13 +76,13 @@
         regardless of whether the calling process is sandboxed or unsandboxed.
 
         The @desktop_entry should be a valid desktop entry file beginning with
-        "[Desktop Entry]", except it should not include Name= or Icon= entries
+        ``[Desktop Entry]``, except it should not include ``Name=`` or ``Icon=`` entries
         (if present, these will be overwritten by the portal implementation).
-        The Exec= entry will be rewritten to call the sandboxed application e.g.
+        The ``Exec=`` entry will be rewritten to call the sandboxed application e.g.
         via "flatpak run", if the application is sandboxed.
 
-        It is recommended to include a TryExec= line with either a binary name
-        or an absolute path. The launcher will be deleted if the TryExec binary
+        It is recommended to include a ``TryExec=`` line with either a binary name
+        or an absolute path. The launcher will be deleted if the ``TryExec`` binary
         cannot be found on session start.
 
         The @options vardict currently has no supported entries.
@@ -92,9 +95,9 @@
     </method>
     <!--
         PrepareInstall:
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :doc:`common-conventions`
         @name: The default name for the launcher
-        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be a png or jpeg no larger than 512x512, or an svg
+        @icon_v: A ``GBytesIcon`` icon as returned by ``g_icon_serialize()``. Must be a png or jpeg no larger than 512x512, or an svg
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
@@ -102,68 +105,41 @@
         change the name, and confirm installation of the launcher.
 
         Supported keys in the @options vardict:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>modal b</term>
-            <listitem><para>
-              Whether to make the dialog modal. Defaults to yes.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>launcher_type u</term>
-            <listitem><para>
-              The type of launcher being created. For supported values see the
-              SupportedLauncherTypes property. Defaults to "Application".
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>target s</term>
-            <listitem><para>
-              For a launcher of type "Webapp", this is the URL of the web app
-              being installed. This is displayed in the user-facing dialog.
-              For other launcher types, this is not needed.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>editable_name b</term>
-            <listitem><para>
-              If true, the user will be able to edit the name of the launcher.
-              Defaults to true.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>editable_icon b</term>
-            <listitem><para>
-              If true, the user will be able to edit the icon of the launcher,
-              if the implementation supports this. Defaults to false.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
+
+        * ``modal`` (``b``)
+          Whether to make the dialog modal. Defaults to true.
+
+        * ``launcher_type`` (``u``)
+          The type of launcher being created. For supported values see the
+          #org.freedesktop.portal.DynamicLauncher:SupportedLauncherTypes property.
+          Defaults to "Application".
+
+        * ``target`` (``s``)
+          For a launcher of type "Webapp", this is the URL of the web app
+          being installed. This is displayed in the user-facing dialog.
+          For other launcher types, this is not needed.
+
+        * ``editable_name`` (``b``)
+          If true, the user will be able to edit the name of the launcher.
+          Defaults to true.
+
+        * ``editable_icon`` (``b``)
+          If true, the user will be able to edit the icon of the launcher,
+          if the implementation supports this. Defaults to false.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>name s</term>
-            <listitem><para>
-              The name chosen by the user for the launcher.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>token s</term>
-            <listitem><para>
-              Token that can be passed to a subsequent org.freedesktop.portal.DynamicLauncher.Install() call to
-              complete the installation without another dialog.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``name`` (``s``)
+          The name chosen by the user for the launcher.
+
+        * ``token`` (``s``)
+          Token that can be passed to a subsequent org.freedesktop.portal.DynamicLauncher.Install() call to
+          complete the installation without another dialog.
     -->
     <method name="PrepareInstall">
       <arg type="s" name="parent_window" direction="in"/>
@@ -175,9 +151,9 @@
     <!--
         RequestInstallToken:
         @name: The name that will be used in the desktop file
-        @icon_v: A #GBytesIcon icon as returned by g_icon_serialize(). Must be a png or jpeg no larger than 512x512, or an svg
+        @icon_v: A ``GBytesIcon`` icon as returned by ``g_icon_serialize()``. Must be a png or jpeg no larger than 512x512, or an svg
         @options: Vardict with optional further information
-        @token: the token to be used with the Install() method
+        @token: the token to be used with the org.freedesktop.portal.DynamicLauncher.Install() method
 
         This method is intended for use only by specific components that
         have their application ID allowlisted in the portal backend (e.g. GNOME
@@ -204,17 +180,17 @@
         appropriate directories to remove the launcher referred to by
         @desktop_file_id.
 
-        The @desktop_file_id must have ".desktop" as a suffix. Except in the
+        The @desktop_file_id must have ``.desktop`` as a suffix. Except in the
         special case when the calling process has no associated app ID,
         @desktop_file_id must have the app ID followed by a period as a prefix,
         regardless of whether the calling process is sandboxed or unsandboxed.
 
         For example, Epiphany, which has the app ID "org.gnome.Epiphany"
         in stable builds, might use a @desktop_file_id like
-        "org.gnome.Epiphany.WebApp_e9d0e1e4b0a10856aa3b38d9eb4375de4070d043.desktop"
+        ``org.gnome.Epiphany.WebApp_e9d0e1e4b0a10856aa3b38d9eb4375de4070d043.desktop``
         In that example the desktop file would exist at the path
-        "~/.local/share/xdg-desktop-portal/applications/org.gnome.Epiphany.WebApp_e9d0e1e4b0a10856aa3b38d9eb4375de4070d043.desktop"
-        with a sym link in "~/.local/share/applications/".
+        ``~/.local/share/xdg-desktop-portal/applications/org.gnome.Epiphany.WebApp_e9d0e1e4b0a10856aa3b38d9eb4375de4070d043.desktop``
+        with a sym link in ``~/.local/share/applications/``.
         The checksum at the end of the file name is an implementation detail in
         Epiphany and not required by the portal.
 
@@ -224,7 +200,7 @@
         to remove a launcher is by using the APIs provided by the application
         that installed it. For example, for GNOME Software to remove web
         launchers created by Epiphany, it would use the
-        org.gnome.Epiphany.WebAppProvider D-Bus interface.
+        ``org.gnome.Epiphany.WebAppProvider`` D-Bus interface.
 
         Please note that this method call will fail if the specified launcher
         already does not exist.
@@ -298,16 +274,9 @@
         dynamic launcher portal.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>activation_token s</term>
-            <listitem><para>
-              A token that can be used to activate the chosen application.
-            </para><para>
-              The activation_token option was introduced in version 1 of the interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``activation_token`` (``s``)
+          A token that can be used to activate the chosen application.
     -->
     <method name="Launch">
       <arg type="s" name="desktop_file_id" direction="in"/>
@@ -318,10 +287,8 @@
 
         A bitmask of available launcher types. Currently defined types are:
 
-        <simplelist>
-          <member>1: Application. A launcher that represents an application.</member>
-          <member>2: Webapp. A launcher that represents a web app.</member>
-        </simplelist>
+        - 1: Application. A launcher that represents an application.
+        - 2: Webapp. A launcher that represents a web app.
     -->
     <property name="SupportedLauncherTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

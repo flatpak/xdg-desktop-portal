@@ -43,6 +43,9 @@ if build_documentation
   foreach i: portal_impl_sources
     all_interfaces_xml += i
   endforeach
+  foreach i: background_monitor_sources
+    all_interfaces_xml += i
+  endforeach
 
   # Replace the extension for gdbus-codegen
   all_interfaces_rst = []
@@ -64,6 +67,7 @@ if build_documentation
     'common-conventions.rst',
     'portal-interfaces.rst',
     'implementation-interfaces.rst',
+    'background-app-monitor.rst',
   ]
 
   copied_docs_sources = []

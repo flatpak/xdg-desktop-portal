@@ -28,4 +28,11 @@ Welcome to XDG Desktop Portals's documentation!
    implementation-interfaces
 
 
+.. toctree::
+   :maxdepth: 1
+   :caption: For system developers
+
+   background-app-monitor
+
+
 Welcome to the documentation for XDG Desktop Portals.
