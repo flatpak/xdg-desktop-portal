@@ -175,6 +175,7 @@ method_needs_request (GDBusMethodInvocation *invocation)
            strcmp (interface, "org.freedesktop.portal.FileTransfer") == 0 ||
            strcmp (interface, "org.freedesktop.portal.GameMode") == 0 ||
            strcmp (interface, "org.freedesktop.portal.MemoryMonitor") == 0 ||
+           strcmp (interface, "org.freedesktop.portal.Notification") == 0 ||
            strcmp (interface, "org.freedesktop.portal.NetworkMonitor") == 0 ||
            strcmp (interface, "org.freedesktop.portal.ProxyResolver") == 0 ||
            strcmp (interface, "org.freedesktop.portal.Realtime") == 0 ||
