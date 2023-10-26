@@ -32,13 +32,13 @@ For more instructions, please read [CONTRIBUTING.md][contributing].
 ## Using portals
 
 Flatpak grants sandboxed applications _talk_ access to names in the
-org.freedesktop.portal.\* prefix. One possible way to use the portal APIs
+`org.freedesktop.portal.*` prefix. One possible way to use the portal APIs
 is thus just to make D-Bus calls. For many of the portals, toolkits (e.g.
 GTK+) are expected to support portals transparently if you use suitable
 high-level APIs.
 
 To implement most portals, xdg-desktop-portal relies on a backend
-that provides implementations of the org.freedesktop.impl.portal.\* interfaces.
+that provides implementations of the `org.freedesktop.impl.portal.*` interfaces.
 
 Here are some examples of available backends:
 
@@ -50,6 +50,40 @@ Here are some examples of available backends:
 - wlroots [xdg-desktop-portal-wlr](https://github.com/emersion/xdg-desktop-portal-wlr)
 - Deepin [xdg-desktop-portal-dde](https://github.com/linuxdeepin/xdg-desktop-portal-dde)
 - Xapp (Cinnamon, MATE, Xfce) [xdg-desktop-portal-xapp](https://github.com/linuxmint/xdg-desktop-portal-xapp)
+- GNOME Keyring [gnome-keyring](https://gitlab.gnome.org/GNOME/gnome-keyring)
+
+### Portals available on your system
+
+Each portal drops a file in `/usr/share/xdg-desktop-portal/portals/` with the
+portal name and the `.portal` suffix. it provides its DBus name and the list of
+protocol interfaces it supports. It can provide a hist of the desktop
+environment they are used in but [this is deprecated](https://www.bassi.io/articles/2023/05/29/configuring-portals/)
+and desktop environment are asked to provide a list of portals they should use
+(see below).
+
+### Portals in use in your desktop environment
+
+`xdg-desktop-portal` makes use of the `XDG_CURRENT_DESKTOP` environment variable
+to know your current desktop environment, then it will make take a configuration
+file named `CURRENTDESKTOP-portals.conf` specific to your environment to know
+which portal implementations to use.
+
+System-wide configuration is in `/usr/share/xdg-desktop-portal/` and it is
+possible to override this configuration in `~/.config/xdg-desktop-portal`.
+
+You can check which portals are implemented in your environment using
+[DoorKnocker](https://flathub.org/apps/xyz.tytanium.DoorKnocker) and you can try
+out the portals with [ASHPD Demo](https://flathub.org/apps/com.belmoussaoui.ashpd.demo).
+
+<details>
+<summary>Troubleshooting</summary>
+
+Make sure the `XDG_CURRENT_DESKTOP` environment variable is correctly set and
+inherited by the `xdg-desktop-portal` process. You can check with
+`< "/proc/$(pidof xdg-desktop-portal)/environ" tr '\0' '\n' | grep '^XDG_CURRENT_DESKTOP='`
+that the variable is there.
+
+</details>
 
 ## Design considerations
 
