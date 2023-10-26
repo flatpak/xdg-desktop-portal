@@ -45,6 +45,9 @@ built_resources = gnome.compile_resources(
 
 sd_escape_sources = files('sd-escape.c')
 
+xdp_utils_includes = include_directories('.')
+xdp_utils_sources = files('xdp-utils.c')
+
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
@@ -85,10 +88,10 @@ xdg_desktop_portal_sources = files(
   'trash.c',
   'wallpaper.c',
   'xdg-desktop-portal.c',
-  'xdp-utils.c',
 )
 
 xdg_desktop_portal_sources += [
+  xdp_utils_sources,
   portal_built_sources,
   impl_built_sources,
   background_monitor_sources,
@@ -133,9 +136,6 @@ xdg_desktop_portal = executable(
   install: true,
   install_dir: libexecdir,
 )
-
-xdp_utils_includes = include_directories('.')
-xdp_utils_sources = files('xdp-utils.c')
 
 configure_file(
   input: 'xdg-desktop-portal.service.in',
