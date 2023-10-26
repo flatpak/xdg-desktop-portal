@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2022-01-20 10:40-0300\n"
 "Last-Translator: Juliano de Souza Camargo <julianosc@protonmail.com>\n"
 "Language-Team: Portuguese < https://l10n.gnome.org/teams/pt/>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 40.0\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir a %s correr em segundo plano?"
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s requisita iniciar automaticamente e correr em segundo plano."
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s requisita correr em segundo plano."
 
-#: src/background.c:748
+#: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "Pode alterar, em qualquer altura, a permissão para “correr em segundo plano” "
 "pelas definições da aplicação."
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Permitir"
 

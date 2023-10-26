@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2016-09-14 12:54+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: српски <gnome-sr@googlegroups.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:748
+#: src/background.c:752
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -42,11 +42,11 @@ msgstr ""
 "Приступ вашим звучницима се може изменити у било које време из подешавања "
 "приватности."
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr ""
 

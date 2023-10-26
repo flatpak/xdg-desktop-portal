@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2023-02-08 21:13+0100\n"
 "Last-Translator: Fran Diéguez <frandieguez@gnome.org>\n"
 "Language-Team: Galician\n"
@@ -17,22 +17,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir a %s executarse en segundo plano?"
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita iniciarse automaticamente e en segundo plano."
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita executarse en segundo plano."
 
-#: src/background.c:748
+#: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -40,11 +40,11 @@ msgstr ""
 "Pode cambiar o permiso «executarse en segundo plano» en calquera momento "
 "desde as preferencias da aplicación."
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr "Non permitir"
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Permitir"
 

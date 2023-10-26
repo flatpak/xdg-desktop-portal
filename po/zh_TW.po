@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2022-07-03 04:00+0800\n"
 "Last-Translator: Freddy Cheng <freddy4212@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -17,32 +17,32 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "允許《%s》於背景執行嗎？"
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "《%s》請求自動啟動並於背景執行。"
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "《%s》請求於背景執行。"
 
-#: src/background.c:748
+#: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "背景執行許可權可隨時從應用程式設定中更改。"
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr "不允許"
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "允許"
 

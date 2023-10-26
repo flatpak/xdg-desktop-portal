@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2023-02-25 14:53+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <(nothing)>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s ავტომატურად გაშვებას და ფონურ რეჟიმს ითხოვს."
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s ითხოვს გაშვებას ფონზე."
 
-#: src/background.c:748
+#: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "„ფონში გაშვების“ ნებართვა ნებისმიერ დროს აპლიკაციის პარამეტრებიდან შეიძლება "
 "შეიცვალოს."
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr "არ დაშვება"
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "დაშვება"
 
