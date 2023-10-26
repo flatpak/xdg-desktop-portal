@@ -1,3 +1,31 @@
+Changes in 1.18.1
+=================
+Released: 2023-10-26
+
+- Communicate better when the Background portal kills an app
+- Properly quote Flatpak command in the Background portal
+- Improve documentation of the "cursor_mode" propery of the ScreenCast
+  backend D-Bus interface
+- Fix ScreenCast portal removing transient restore permissions too early.
+  This fixes screen sharing dialogs on Chromium asking for the screen multiple
+  times.
+- Only send the Closed session signal to the sender
+- Add Meson options to disable building with Bubblewrap, and without the
+  Flatpak portal documentation. Disabling Bubblewrap is **highly** discouraged,
+  and only meant to be used on platforms that do not currently support it. By
+  disabling Bubblewrap, bitmap validation happens without a sandbox, which is
+  highly insecure since image parsing is a common source of exploits. Really,
+  just do not disable Bubblewrap please.
+- Improve the manpage of portals.conf
+- Various spelling fixes to the Document portal
+- Add a new website! We don't have a fancy domain yet, but the website can be
+  accessed at https://flatpak.github.io/xdg-desktop-portal/
+- Improve pid mapping for host system apps. This should get rid of some rare,
+  unnecessary warnings.
+- Adjust documentation of Global Shortcuts portal's timestamps to millisecond
+  granularity
+- Bump minimum Meson version to 0.58
+
 Changes in 1.18.0
 =================
 Released: 2023-09-18
