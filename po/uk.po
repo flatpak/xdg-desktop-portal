@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-18 15:26-0300\n"
+"POT-Creation-Date: 2023-10-26 11:13-0300\n"
 "PO-Revision-Date: 2022-10-04 23:10+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 20.12.0\n"
 
-#: src/background.c:741
+#: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Дозволити запуск %s у фоновому режимі?"
 
-#: src/background.c:745
+#: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s надіслано запит щодо автоматичного запуску у фоновому режимі."
 
-#: src/background.c:747
+#: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s надіслано запит щодо запуску у фоновому режимі."
 
-#: src/background.c:748
+#: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,11 +42,11 @@ msgstr ""
 "Параметри запуску у фоновому режимі може бути будь-коли змінено за допомогою "
 "налаштовування параметрів програми."
 
-#: src/background.c:753
+#: src/background.c:757
 msgid "Don't allow"
 msgstr "Не дозволяти"
 
-#: src/background.c:754 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
 msgstr "Дозволити"
 
