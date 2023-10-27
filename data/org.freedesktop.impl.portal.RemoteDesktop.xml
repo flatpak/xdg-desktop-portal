@@ -41,7 +41,7 @@
         org.freedesktop.portal.ScreenCast), but may only be started and stopped
         with this interface.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>session s</term>
@@ -115,8 +115,8 @@
             </para>
             <para>
               If the permission for the session to persist is granted, "restore_data"
-              will be returned via the #org.freedesktop.portal.Request::Response
-              signal of the #org.freedesktop.impl.portal.RemoteDesktop.Start method.
+              will be returned in the results of the
+              #org.freedesktop.impl.portal.RemoteDesktop.Start method.
             </para>
             <para>
               This option was added in version 2 of this interface.
@@ -161,8 +161,7 @@
           </varlistentry>
         </variablelist>
 
-        The following results get returned via the
-        #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>devices u</term>
