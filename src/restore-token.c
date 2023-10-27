@@ -19,6 +19,8 @@
 
 #include "config.h"
 
+#include <stdint.h>
+
 #include "permissions.h"
 #include "restore-token.h"
 
@@ -369,4 +371,40 @@ xdp_session_persistence_replace_restore_data_with_token (Session *session,
     }
 
   *in_out_results = g_variant_builder_end (&results_builder);
+}
+
+gboolean
+xdp_session_persistence_validate_restore_token (const char *key,
+                                                GVariant *value,
+                                                GVariant *options,
+                                                GError **error)
+{
+  const char *restore_token = g_variant_get_string (value, NULL);
+
+  if (!g_uuid_string_is_valid (restore_token))
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Restore token is not a valid UUID string");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+gboolean
+xdp_session_persistence_validate_persist_mode (const char *key,
+                                               GVariant *value,
+                                               GVariant *options,
+                                               GError **error)
+{
+  uint32_t mode = g_variant_get_uint32 (value);
+
+  if (mode > PERSIST_MODE_PERSISTENT)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid persist mode %x", mode);
+      return FALSE;
+    }
+
+  return TRUE;
 }
