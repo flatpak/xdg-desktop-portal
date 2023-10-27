@@ -25,11 +25,15 @@
 #include "session.h"
 #include "input-capture.h"
 #include "request.h"
+#include "restore-token.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
 #define VERSION_1  1 /* Makes grep easier */
+#define VERSION_2  2
+
+#define INPUT_CAPTURE_TABLE "input-capture"
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
@@ -71,6 +75,10 @@ typedef struct _InputCaptureSession
   Session parent;
 
   InputCaptureSessionState state;
+
+  char *restore_token;
+  PersistMode persist_mode;
+  GVariant *restore_data;
 } InputCaptureSession;
 
 typedef struct _InputCaptureSessionClass
@@ -119,6 +127,23 @@ input_capture_session_new (GVariant  *options,
   return (InputCaptureSession*)session;
 }
 
+static gboolean
+process_results (Session *session,
+                 GVariant **in_out_results,
+                 GError **error)
+{
+  InputCaptureSession *input_capture_session = (InputCaptureSession*)session;
+
+  xdp_session_persistence_replace_restore_data_with_token (session,
+                                                           INPUT_CAPTURE_TABLE,
+                                                           in_out_results,
+                                                           &input_capture_session->persist_mode,
+                                                           &input_capture_session->restore_token,
+                                                           &input_capture_session->restore_data);
+
+  return TRUE;
+}
+
 static void
 create_session_done (GObject      *source_object,
                      GAsyncResult *res,
@@ -129,9 +154,10 @@ create_session_done (GObject      *source_object,
   GVariantBuilder results_builder;
   GVariant *results;
   Session *session;
-  gboolean should_close_session;
+  gboolean should_close_session = FALSE;
   uint32_t capabilities = 0;
   uint32_t response = 2;
+  const char *restore_token;
 
   REQUEST_AUTOLOCK (request);
 
@@ -155,6 +181,16 @@ create_session_done (GObject      *source_object,
 
   if (request->exported && response == 0)
     {
+      if (!process_results (session, &results, &error))
+        {
+          g_warning ("Could not start input-capture session: %s",
+                     error->message);
+          g_clear_error (&error);
+          g_clear_pointer (&results, g_variant_unref);
+          response = 2;
+          goto out;
+        }
+
       if (!session_export (session, &error))
         {
           g_warning ("Failed to export session: %s", error->message);
@@ -178,6 +214,10 @@ create_session_done (GObject      *source_object,
                             "capabilities", g_variant_new_uint32 (capabilities));
       g_variant_builder_add (&results_builder, "{sv}",
                              "session_handle", g_variant_new ("o", session->id));
+
+      if (g_variant_lookup (results, "restore_token", "s", &restore_token))
+        g_variant_builder_add (&results_builder, "{sv}",
+                               "restore_token", g_variant_new_string (restore_token));
     }
   else
     {
@@ -221,7 +261,32 @@ validate_capabilities (const char  *key,
 
 static XdpOptionKey input_capture_create_session_options[] = {
   { "capabilities", G_VARIANT_TYPE_UINT32, validate_capabilities },
+  { "restore_token", G_VARIANT_TYPE_STRING, xdp_session_persistence_validate_restore_token },
+  { "persist_mode", G_VARIANT_TYPE_UINT32, xdp_session_persistence_validate_persist_mode },
 };
+
+static gboolean
+replace_input_capture_restore_token_with_data (Session *session,
+                                               GVariant **in_out_options,
+                                               GError **error)
+{
+  InputCaptureSession *input_capture_session = (InputCaptureSession *) session;
+  g_autoptr(GVariant) options = NULL;
+  PersistMode persist_mode;
+
+  options = *in_out_options;
+
+  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+    persist_mode = PERSIST_MODE_NONE;
+
+  input_capture_session->persist_mode = persist_mode;
+  xdp_session_persistence_replace_restore_token_with_data (session,
+                                                           INPUT_CAPTURE_TABLE,
+                                                           in_out_options,
+                                                           &input_capture_session->restore_token);
+
+  return TRUE;
+}
 
 static gboolean
 handle_create_session (XdpDbusInputCapture   *object,
@@ -269,7 +334,18 @@ handle_create_session (XdpDbusInputCapture   *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
+
   options = g_variant_builder_end (&options_builder);
+
+  /* If 'restore_token' is passed, lookup the corresponding data in the
+   * permission store and / or the GHashTable with transient permissions.
+   * Portal implementations do not have access to the restore token.
+   */
+  if (!replace_input_capture_restore_token_with_data (session, &options, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
@@ -1118,7 +1194,7 @@ input_capture_init (InputCapture *input_capture)
 {
   unsigned int supported_capabilities;
 
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_1);
+  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_2);
 
   supported_capabilities =
     xdp_dbus_impl_input_capture_get_supported_capabilities (impl);

@@ -16,7 +16,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.InputCapture"
-VERSION = 1
+VERSION = 2
 
 logger = logging.getLogger(f"templates.{__name__}")
 logger.setLevel(logging.DEBUG)
@@ -81,6 +81,28 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
 
         response = Response(0, {"session_handle": session.handle})
         response.results["capabilities"] = dbus.UInt32(capabilities)
+
+        if options.get("persist_mode") != 0:
+            restore_data = options.get("restore_data")
+            if not restore_data:
+                # The restore data isn't actually visible to the app but oh well
+                data = dbus.String("some restore token", variant_level=1)
+                self.restore_data = dbus.Struct(
+                    list(
+                        [
+                            dbus.String("TEST", variant_level=0),
+                            dbus.UInt32(1, variant_level=0),
+                            data,
+                        ]
+                    ),
+                    signature="suv",
+                    variant_level=0,
+                )
+            else:
+                if restore_data != self.restore_data:
+                    logger.error(f"Invalid restore_data passed")
+                    return (2, {})
+            response.results["restore_data"] = self.restore_data
 
         logger.debug(f"CreateSession with response {response}")
 
