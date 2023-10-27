@@ -39,12 +39,12 @@
 
         Supported keys in the @options vardict include:
 
-        * ``handle_token`` (``s``)
+        ``handle_token`` (``s``)
           A string that will be used as the last element of the @handle. Must be a valid
           object path element. See the #org.freedesktop.portal.Request documentation for
           more information about the @handle.
 
-        * ``reason`` (``s``)
+        ``reason`` (``s``)
           A string that can be shown in the dialog to explain why the information is
           needed. This should be a complete sentence that explains what the application
           will do with the returned information, for example: "Allows your personal

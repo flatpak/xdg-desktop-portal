@@ -78,8 +78,7 @@
       SetStatus:
       @options: Vardict with optional further information
 
-      .. note::
-         This method was added in version 2.
+      This method was added in version 2 of this interface.
 
       Sets the status of the application running in background.
 
