@@ -111,14 +111,6 @@
         @doc_ids: the IDs of the files in the document store
         @extra_info: Extra info returned
 
-        .. info::
-           This method was added in version 2 of the #org.freedesktop.portal.Documents interface.
-
-
-        .. info::
-           Support for exporting directories was added in version 4 of the #org.freedesktop.portal.Documents interface.
-
-
         Adds multiple files to the document store. The file is passed in the
         form of an open file descriptor to prove that the caller has
         access to the file.
@@ -134,6 +126,10 @@
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
+
+        This method was added in version 2 of this interface.
+
+        Support for exporting directories was added in version 4 of this interface.
     -->
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -155,10 +151,6 @@
         @doc_id: the ID of the file in the document store
         @extra_info: Extra info returned
 
-        .. info::
-           This method was added in version 3 of the #org.freedesktop.portal.Documents interface.
-
-
         Creates an entry in the document store for writing a new file.
 
         If the ``as-needed-by-app`` flag is given, file will only be added to
@@ -172,6 +164,8 @@
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
+
+        This method was added in version 3 of this interface.
     -->
     <method name="AddNamedFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -193,9 +187,8 @@
         Grants access permissions for a file in the document store
         to an application.
 
-        .. info::
-           This call is available inside the sandbox if the application
-           has the ``grant-permissions`` permission for the document.
+        This call is available inside the sandbox if the application
+        has the ``grant-permissions`` permission for the document.
     -->
     <method name="GrantPermissions">
       <arg type='s' name='doc_id' direction='in'/>
@@ -212,9 +205,8 @@
         Revokes access permissions for a file in the document store
         from an application.
 
-        .. info::
-           This call is available inside the sandbox if the application
-           has the ``grant-permissions`` permission for the document.
+        This call is available inside the sandbox if the application
+        has the ``grant-permissions`` permission for the document.
     -->
     <method name="RevokePermissions">
       <arg type='s' name='doc_id' direction='in'/>
@@ -229,9 +221,8 @@
         Removes an entry from the document store. The file itself is
         not deleted.
 
-        .. info::
-           This call is available inside the sandbox if the application
-           has the ``delete`` permission for the document.
+        This call is available inside the sandbox if the application
+        has the ``delete`` permission for the document.
     -->
     <method name="Delete">
       <arg type='s' name='doc_id' direction='in'/>
@@ -244,8 +235,7 @@
 
         Looks up the document ID for a file.
 
-        .. info::
-           This call is not available inside the sandbox.
+        This call is not available inside the sandbox.
     -->
     <method name="Lookup">
       <arg type='ay' name='filename' direction='in'/>
@@ -261,8 +251,7 @@
         Gets the filesystem path and application permissions for a document store
         entry.
 
-        .. info::
-           This call is not available inside the sandbox.
+        This call is not available inside the sandbox.
     -->
     <method name="Info">
       <arg type='s' name='doc_id' direction='in'/>
@@ -278,8 +267,7 @@
         Lists documents in the document store for an application (or for
         all applications).
 
-        .. info::
-           This call is not available inside the sandbox.
+        This call is not available inside the sandbox.
     -->
     <method name="List">
       <arg type='s' name='app_id' direction='in'/>
