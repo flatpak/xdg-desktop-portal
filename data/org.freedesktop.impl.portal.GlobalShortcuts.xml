@@ -40,7 +40,7 @@
 
         Create a global shortcuts session.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>session_id s</term>
@@ -98,7 +98,7 @@
 
         List shortcuts registered in the global shortcuts session.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>shortcuts a(sa{sv})</term>

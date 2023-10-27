@@ -37,7 +37,7 @@
 
         Create a screen cast session.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>session_id s</term>
@@ -128,8 +128,7 @@
             </para>
             <para>
               If the permission for the session to persist is granted,
-              "persist_mode" will be returned via the
-              #org.freedesktop.portal.Request::Response signal of the
+              "persist_mode" will be returned in the results of the
               #org.freedesktop.impl.portal.ScreenCast.Start method.
             </para>
             <para>
@@ -163,7 +162,7 @@
         Start the screen cast session. This will typically result the portal presenting
         a dialog letting the user do the selection set up by SelectSources.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned in the @results vardict:
         <variablelist>
           <varlistentry>
             <term>streams a(ua{sv})</term>
