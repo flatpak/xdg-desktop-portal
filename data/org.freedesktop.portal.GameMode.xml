@@ -27,11 +27,11 @@
       page for pid_namespaces(7) for more details, but briefly, it
       means that the sandbox has its own process id namespace which
       is separated from the one on the host. Thus there will be two
-      separate process  ids (pids) within two different namespaces
-      that both identify same process. One id from the pid namespace
-      inside the sandbox and one id from the host pid namespace.
+      separate process ids (PID) within two different namespaces
+      that both identify same process. One id from the PID namespace
+      inside the sandbox and one id from the host PID namespace.
       Since org.freedesktop.portal.GameMode expects pids from the host
-      pid namespace but programs inside the sandbox can only know pids
+      PID namespace but programs inside the sandbox can only know PID
       from the sandbox namespace, process ids need to be translated from
       the portal to the host namespace. The portal will do that transparently
       for all calls where this is necessary.
@@ -41,7 +41,8 @@
       org.freedesktop.portal.GameMode.RegisterGame().
       In the event that a client terminates without a call to the
       org.freedesktop.portal.GameMode.UnregisterGame() method, GameMode will
-      automatically un-register the client. This might happen with a (small) delay.
+      automatically un-register the client. This might happen with a (small)
+      delay.
 
       This documentation describes version 4 of this interface.
     -->
@@ -49,16 +50,21 @@
       <!--
           QueryStatus:
           @pid: Process id to query the GameMode status of
-          @result: The GameMode status for @pid '
+          @result: The GameMode status for @pid
 
-          Query the GameMode status for a process. If the caller
-          is running inside a sandbox with pid namespace isolation,
-          the pid will be translated to the respective host pid. See
-          the general introduction for details. Will return:
-            0 if GameMode is inactive,
-            1 if GameMode is active,
-            2 if GameMode is active and @pid is registered,
-           -1 if the query failed inside GameMode
+          Query the GameMode status for a process.
+
+          If the caller is running inside a sandbox with PID namespace
+          isolation, the @pid will be translated to the respective host PID.
+
+          See the general introduction for details.
+
+          The @result will be one of:
+
+          - `0` if GameMode is inactive
+          - `1` if GameMode is active
+          - `2` if GameMode is active and @pid is registered
+          - `-1` if the query failed inside GameMode
       -->
       <method name="QueryStatus">
         <arg type="i" name="pid" direction="in"/>
@@ -70,14 +76,20 @@
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Register a game with GameMode and thus request GameMode to
-          be activated. If the caller is running inside a sandbox with
-          pid namespace isolation, the pid will be translated to the
-          respective host pid. See the general introduction for details.
+          be activated.
+
+          If the caller is running inside a sandbox with PID namespace
+          isolation, the @pid will be translated to the respective host PID.
+
+          See the general introduction for details.
+
           If the GameMode has already been requested for @pid before,
           this call will fail, i.e. result will be -1.
-          Will return:
-            0 if the game with @pid was successfully registered,
-           -1 if the request was rejected by GameMode
+
+          The @result will be one of:
+
+          - `0` if the game with @pid was successfully registered
+          - `-1` if the request was rejected by GameMode
       -->
       <method name="RegisterGame">
         <arg type="i" name="pid" direction="in"/>
@@ -88,14 +100,18 @@
           @pid: Process id of the game to un-register
           @result: Status of the request: 0 for success, -1 indicates an error
 
-          Un-register a game from GameMode; if the call is successful
-          and there are no other games or clients registered, GameMode
-          will be deactivated. If the caller is running inside a sandbox
-          with pid namespace isolation, the pid will be translated to
-          the respective host pid.
-          Will return:
-            0 if the game with @pid was successfully un-registered,
-           -1 if the request was rejected by GameMode
+          Un-register a game from GameMode.
+
+          If the call is successful and there are no other games or clients
+          registered, GameMode will be deactivated.
+
+          If the caller is running inside a sandbox with PID namespace
+          isolation, the @pid will be translated to the respective host PID.
+
+          The @result will be one of:
+          
+          - `0` if the game with @pid was successfully un-registered
+          - `-1` if the request was rejected by GameMode
       -->
       <method name="UnregisterGame">
         <arg type="i" name="pid" direction="in"/>
