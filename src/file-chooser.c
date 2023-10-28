@@ -117,6 +117,14 @@ send_response_in_thread_func (GTask        *task,
           g_autofree char *ruri = NULL;
           g_autoptr(GError) error = NULL;
 
+          g_assert (uris[i] != NULL);
+
+          if (!g_str_has_prefix (uris[i], "file://"))
+            {
+              g_warning ("Only URIs with the \"file://\" scheme are allowed");
+              continue;
+            }
+
           if (xdp_app_info_is_host (request->app_info))
             ruri = g_strdup (uris[i]);
           else
