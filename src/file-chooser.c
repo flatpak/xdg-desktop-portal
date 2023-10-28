@@ -142,6 +142,8 @@ out:
                                       g_variant_builder_end (&results));
       request_unexport (request);
     }
+
+  g_task_return_boolean (task, TRUE);
 }
 
 /* Calling Lookup on a nonexisting path does not work, so we
