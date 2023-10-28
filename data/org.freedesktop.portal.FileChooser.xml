@@ -167,7 +167,8 @@
         <varlistentry>
           <term>uris as</term>
           <listitem><para>
-            An array of strings containing the uris of the selected files.
+            An array of strings containing the uris of the selected files. All
+            URIs have the "file://" scheme.
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -297,7 +298,8 @@
         <varlistentry>
           <term>uris as</term>
           <listitem><para>
-            An array of strings containing the uri of the selected file.
+            An array of strings containing the uri of the selected file. All
+            URIs have the "file://" scheme.
           </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -425,12 +427,17 @@
       <variablelist>
         <varlistentry>
           <term>uris as</term>
-          <listitem><para>
-            An array of strings containing the uri corresponding to
-            each file given by @options, in the same order. Note that
-            the file names may have changed, for example if a file
-            with the same name in the selected folder already exists.
-          </para></listitem>
+          <listitem>
+            <para>
+              An array of strings containing the uri corresponding to
+              each file given by @options, in the same order. Note that
+              the file names may have changed, for example if a file
+              with the same name in the selected folder already exists.
+            </para>
+            <para>
+               All URIs have the "file://" scheme.
+            </para>
+          </listitem>
         </varlistentry>
         <varlistentry>
           <term>choices a(ss)</term>
