@@ -51,6 +51,25 @@
           Out-of-range RGB values should be treated as an unset accent color.
         </para></listitem>
       </varlistentry>
+      <varlistentry>
+        <term>org.freedesktop.appearance color-filter u</term>
+        <listitem><para>
+          Indicates the system's preferred color filter.
+          Applications should only use this to adjust themselves for the current filter.
+          It is the compositor's job to apply the colour filter globally.
+          Supported values are:
+          <simplelist>
+            <member>0: No preference</member>
+            <member>1: Protanopia</member>
+            <member>2: Protanopia (higher color contrast)</member>
+            <member>1: Deuteranopia</member>
+            <member>2: Deuteranopia (higher color contrast)</member>
+            <member>1: Tritanopia</member>
+            <member>1: Grayscale</member>
+          </simplelist>
+          Unknown values should be treated as 0 (no preference).
+        </para></listitem>
+      </varlistentry>
     </variablelist>
 
     Implementations can provide other keys; they are entirely
