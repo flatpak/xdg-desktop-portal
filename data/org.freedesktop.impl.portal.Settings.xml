@@ -56,7 +56,7 @@
         <listitem><para>
           Indicates the system's preferred color filter.
           Applications should only use this to adjust themselves for the current filter.
-          It is the compositor's job to apply the colour filter globally.
+          It is the compositor's job to apply the color filter globally.
           Supported values are:
           <simplelist>
             <member>0: No preference</member>
