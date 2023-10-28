@@ -20,9 +20,9 @@ The portal interfaces include APIs for file access, opening URIs, printing
 and others.
 
 
-<a href="https://flatpak.github.io/xdg-desktop-portal/docs" class="pixelbutton"><picture alt="Documentation for the available D-Bus interfaces">
+<a href="https://flatpak.github.io/xdg-desktop-portal/docs" class="pixelbutton"><picture>
     <source srcset="assets/docs-button-dark.png" media="(prefers-color-scheme: dark)">
-    <img src="assets/docs-button.png">
+    <img alt="Documentation for the available D-Bus interfaces" src="assets/docs-button.png">
 </picture></a>
 
 ## Version Numbering
