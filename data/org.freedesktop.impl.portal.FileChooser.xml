@@ -25,6 +25,10 @@
       The FileChooser portal allows sandboxed applications to ask
       the user for access to files outside the sandbox. The portal
       backend will present the user with a file chooser dialog.
+
+      Backends must normalize URIs of locations selected by the
+      user into "file://" URIs. URIs that cannot be normalized
+      should be discarded.
   -->
   <interface name="org.freedesktop.impl.portal.FileChooser">
     <!--
@@ -100,7 +104,8 @@
           <varlistentry>
             <term>uris as</term>
             <listitem><para>
-              An array of strings containing the uris of the selected files.
+              An array of strings containing the uris of the selected files. All
+              URIs must have the "file://" scheme.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -214,7 +219,8 @@
           <varlistentry>
             <term>uris as</term>
             <listitem><para>
-              An array of strings containing the uri of the selected file.
+              An array of strings containing the uri of the selected file. All
+              URIs must have the "file://" scheme.
             </para></listitem>
           </varlistentry>
           <varlistentry>
@@ -315,12 +321,17 @@
       <variablelist>
         <varlistentry>
           <term>uris as</term>
-          <listitem><para>
-            An array of strings containing the uri corresponding to
-            each file given by @options, in the same order. Note that
-            the file names may have changed, for example if a file
-            with the same name in the selected folder already exists.
-          </para></listitem>
+          <listitem>
+            <para>
+              An array of strings containing the uri corresponding to
+              each file given by @options, in the same order. Note that
+              the file names may have changed, for example if a file
+              with the same name in the selected folder already exists.
+            </para>
+            <para>
+               All URIs must have the "file://" scheme.
+            </para>
+        </listitem>
         </varlistentry>
         <varlistentry>
           <term>choices a(ss)</term>
