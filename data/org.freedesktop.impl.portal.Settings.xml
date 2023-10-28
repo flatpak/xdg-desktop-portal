@@ -62,10 +62,10 @@
             <member>0: No preference</member>
             <member>1: Protanopia</member>
             <member>2: Protanopia (higher color contrast)</member>
-            <member>1: Deuteranopia</member>
-            <member>2: Deuteranopia (higher color contrast)</member>
-            <member>1: Tritanopia</member>
-            <member>1: Grayscale</member>
+            <member>3: Deuteranopia</member>
+            <member>4: Deuteranopia (higher color contrast)</member>
+            <member>5: Tritanopia</member>
+            <member>6: Grayscale</member>
           </simplelist>
           Unknown values should be treated as 0 (no preference).
         </para></listitem>
