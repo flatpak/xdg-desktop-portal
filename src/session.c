@@ -265,6 +265,7 @@ close_sessions_in_thread_func (GTask *task,
     }
 
   g_slist_free_full (list, g_object_unref);
+  g_task_return_boolean (task, TRUE);
 }
 
 void
