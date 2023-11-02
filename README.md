@@ -17,7 +17,7 @@ Documentation for the available D-Bus interfaces can be found
 
 ## Version numbering
 
-xdg-desktop-portal uses even minor vesion numbers for stable versions, and odd
+xdg-desktop-portal uses even minor version numbers for stable versions, and odd
 minor version numbers for unstable versions. During an unstable version cycle,
 portal APIs can make backward incompatible changes, meaning that applications
 should only depend on APIs defined in stable xdg-desktop-portal versions in
