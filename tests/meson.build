@@ -388,3 +388,5 @@ if enable_installed_tests
       )
   endforeach
 endif
+
+meson.add_devenv(test_env)
