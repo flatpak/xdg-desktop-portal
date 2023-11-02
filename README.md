@@ -59,7 +59,7 @@ code:
   GTK+ dialogs for GNOME, Qt dialogs for KDE)
 - One of the limitations of the D-Bus proxying in flatpak is that allowing a
   sandboxed app to talk to a name implicitly also allows it to talk to any other
-  name owned by the same unique name. Therefore, sandbox-facing D-Bus apis
+  name owned by the same unique name. Therefore, sandbox-facing D-Bus APIs
   should generally be hosted on a dedicated bus connection. For portals, the
   frontend takes care of this for us.
 - The frontend can handle all the interaction with _portal infrastructure_, such
@@ -72,7 +72,7 @@ The portal apis are all following the pattern of an initial method call, whose
 response returns an object handle for an _org.freedesktop.portal.Request_ object
 that represents the portal interaction. The end of the interaction is done via a
 _Response_ signal that gets emitted on that object. This pattern was chosen over
-a simple method call with return, since portal apis are expected to show dialogs
+a simple method call with return, since portal APIs are expected to show dialogs
 and interact with the user, which may well take longer than the maximum method
 call timeout of D-Bus. Another advantage is that the caller can cancel an
 ongoing interaction by calling the _Cancel_ method on the request object.
@@ -82,7 +82,7 @@ One consideration for deciding the shape of portal APIs is that we want them to
 possible to have apps use them _transparently_. For example, the OpenFile portal
 is working well as a backend for the GtkFileChooserNative API.
 
-When it comes to files, we need to be careful to not let portal apis subvert the
+When it comes to files, we need to be careful to not let portal APIs subvert the
 limited filesystem view that apps have in their sandbox. Therefore, files should
 only be passed into portal APIs in one of two forms:
 - As a document ID referring to a file that has been exported in the document
