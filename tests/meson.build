@@ -332,6 +332,13 @@ if enable_pytest
       )
     endif
   endforeach
+
+  configure_file(
+    input: '.pytest.ini',
+    output: '@PLAINNAME@',
+    copy: true,
+    install: false
+  )
 endif
 
 if enable_installed_tests
