@@ -1,13 +1,13 @@
 ![Portals](doc/website/assets/readme.png)
 
-# xdg-desktop-portal
+# XDG Desktop Portal
 
-A portal frontend service for [Flatpak](http://www.flatpak.org) and possibly
-other desktop containment frameworks.
+A portal frontend service for [Flatpak](http://www.flatpak.org) and other
+desktop containment frameworks.
 
 xdg-desktop-portal works by exposing a series of D-Bus interfaces known as
-_portals_ under a well-known name (org.freedesktop.portal.Desktop) and object
-path (/org/freedesktop/portal/desktop).
+_portals_ under a well-known name (`org.freedesktop.portal.Desktop`) and object
+path (`/org/freedesktop/portal/desktop`).
 
 The portal interfaces include APIs for file access, opening URIs, printing
 and others.
@@ -15,7 +15,7 @@ and others.
 Documentation for the available D-Bus interfaces can be found	
 [here](https://flatpak.github.io/xdg-desktop-portal/docs/).
 
-## Version numbering
+## Version Numbering
 
 xdg-desktop-portal uses even minor version numbers for stable versions, and odd
 minor version numbers for unstable versions. During an unstable version cycle,
@@ -29,12 +29,12 @@ xdg-desktop-portal depends on GLib and Flatpak.
 To build the documentation, you will need xmlto and the docbook stylesheets.
 For more instructions, please read [CONTRIBUTING.md][contributing].
 
-## Using portals
+## Using Portals
 
 Flatpak grants sandboxed applications _talk_ access to names in the
 org.freedesktop.portal.\* prefix. One possible way to use the portal APIs
 is thus just to make D-Bus calls. For many of the portals, toolkits (e.g.
-GTK+) are expected to support portals transparently if you use suitable
+GTK) are expected to support portals transparently if you use suitable
 high-level APIs.
 
 To implement most portals, xdg-desktop-portal relies on a backend
@@ -51,12 +51,12 @@ Here are some examples of available backends:
 - Deepin [xdg-desktop-portal-dde](https://github.com/linuxdeepin/xdg-desktop-portal-dde)
 - Xapp (Cinnamon, MATE, Xfce) [xdg-desktop-portal-xapp](https://github.com/linuxmint/xdg-desktop-portal-xapp)
 
-## Design considerations
+## Design Considerations
 
 There are several reasons for the frontend/backend separation of the portal
 code:
 - We want to have _native_ portal dialogs that match the session desktop (i.e.
-  GTK+ dialogs for GNOME, Qt dialogs for KDE)
+  GTK dialogs for GNOME, Qt dialogs for KDE)
 - One of the limitations of the D-Bus proxying in flatpak is that allowing a
   sandboxed app to talk to a name implicitly also allows it to talk to any other
   name owned by the same unique name. Therefore, sandbox-facing D-Bus APIs
