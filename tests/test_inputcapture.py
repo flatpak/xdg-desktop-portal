@@ -384,7 +384,6 @@ class TestInputCapture:
 
     def test_enable_disable(self, portal_mock):
         self.create_session(portal_mock)
-        self.create_session(portal_mock)
         self.get_zones(portal_mock)
 
         # The default zone is 1920x1080
