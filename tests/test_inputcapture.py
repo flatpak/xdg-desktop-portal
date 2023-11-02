@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 from gi.repository import GLib
-
+from . import Response
 from itertools import count
 
 import dbus
@@ -28,7 +28,11 @@ def zones():
 
 
 class TestInputCapture:
-    def create_session(self, portal_mock, capabilities=0xF):
+    def create_session(
+        self,
+        portal_mock,
+        capabilities=0xF,
+    ) -> Response:
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -46,17 +50,15 @@ class TestInputCapture:
             signature="sv",
         )
 
-        response, results = request.call(
-            "CreateSession", parent_window="", options=options
-        )
-        assert response == 0
-        assert "session_handle" in results
-        assert "capabilities" in results
-        caps = results["capabilities"]
+        response = request.call("CreateSession", parent_window="", options=options)
+        assert response.response == 0
+        assert "session_handle" in response.results
+        assert "capabilities" in response.results
+        caps = response.results["capabilities"]
         # Returned capabilities must be a subset of the requested ones
         assert caps & ~capabilities == 0
 
-        self.current_session_handle = results["session_handle"]
+        self.current_session_handle = response.results["session_handle"]
 
         # Check the impl portal was called with the right args
         method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
@@ -65,7 +67,7 @@ class TestInputCapture:
         assert args[3] == ""  # parent window
         assert args[4]["capabilities"] == capabilities
 
-        return response, results
+        return response
 
     def get_zones(self, portal_mock):
         """
