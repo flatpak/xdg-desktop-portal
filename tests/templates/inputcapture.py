@@ -26,7 +26,7 @@ Response = namedtuple("Response", ["response", "results"])
 Barrier = namedtuple("Barrier", ["id", "position"])
 
 
-def load(mock, parameters=None):
+def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
     # Delay before Request.response
     mock.delay: int = parameters.get("delay", 0)

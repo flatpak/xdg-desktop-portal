@@ -21,7 +21,7 @@ VERSION = 1
 logger = init_template_logger(__name__)
 
 
-def load(mock, parameters):
+def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
     mock.delay: int = parameters.get("delay", 200)
