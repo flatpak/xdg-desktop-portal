@@ -203,6 +203,7 @@ class ImplSession:
         # In theory, EmitSignal should work on self.mock_interface but
         # it doesn't and I can't figure out why.
         self.mock_object = dbusmock.get_object(self.handle)
+        self._close_callback = close_callback
         return self
 
     def _unexport(self):
