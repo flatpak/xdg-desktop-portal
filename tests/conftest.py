@@ -11,27 +11,17 @@ import dbusmock
 from tests import PortalMock
 
 
-class SessionBusMock(dbusmock.DBusTestCase):
-    def __init__(self):
-        super().__init__()
-        self._dbus_con = None
-
-    @property
-    def dbus_con(self) -> "dbus.Bus":
-        return self._dbus_con
-
-
 @pytest.fixture()
-def session_bus() -> Iterator[SessionBusMock]:
+def session_bus() -> Iterator[dbusmock.DBusTestCase]:
     """
     Fixture to yield a DBusTestCase with a started session bus.
     """
-    bus = SessionBusMock()
+    bus = dbusmock.DBusTestCase()
     bus.setUp()
     bus.start_session_bus()
     con = bus.get_dbus(system_bus=False)
     assert con
-    bus._dbus_con = con
+    setattr(bus, "dbus_con", con)
     yield bus
     bus.tearDown()
     bus.tearDownClass()
