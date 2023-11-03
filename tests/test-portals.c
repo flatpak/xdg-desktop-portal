@@ -173,6 +173,20 @@ global_setup (void)
   session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
   g_assert_no_error (error);
 
+  if (g_getenv ("XDP_DBUS_MONITOR"))
+    {
+      launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
+      g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
+      g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
+      argv[0] = "dbus-monitor";
+      argv[1] = NULL;
+      subprocess = g_subprocess_launcher_spawnv (launcher, argv, &error);
+      g_assert_no_error (error);
+      g_test_message ("Launched %s with pid %s\n", argv[0],
+                      g_subprocess_get_identifier (subprocess));
+      test_procs = g_list_append (test_procs, g_steal_pointer (&subprocess));
+    }
+
   /* start portal backends */
   name_appeared = FALSE;
   watch = g_bus_watch_name_on_connection (session_bus,
