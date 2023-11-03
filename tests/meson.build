@@ -189,7 +189,6 @@ foreach p : portal_tests
       args: ['--verbose', '--keep-going', '--tap', '-p', '/portal/@0@'.format(p)],
       depends: [test_backends, test_portals],
       env: test_env,
-      is_parallel: false,
       protocol: test_protocol,
       suite: 'portals',
     )
@@ -212,7 +211,6 @@ foreach p : portal_limited
       args: ['--verbose', '--keep-going', '--tap', '-p', '/limited/@0@'.format(p)],
       depends: [test_backends, limited_portals],
       env: limited_env,
-      is_parallel: false,
       protocol: test_protocol,
       suite: 'portals',
     )
