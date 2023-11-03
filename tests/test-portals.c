@@ -151,6 +151,7 @@ global_setup (void)
   g_mkdtemp (outdir);
   g_debug ("outdir: %s\n", outdir);
 
+  g_setenv ("HOME", outdir, TRUE);
   g_setenv ("XDG_CURRENT_DESKTOP", "test", TRUE);
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
