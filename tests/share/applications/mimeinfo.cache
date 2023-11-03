@@ -1,6 +1,7 @@
 [MIME Cache]
 application/vnd.mozilla.xul+xml=furrfix.desktop;
 application/xhtml+xml=furrfix.desktop;
+text/plain=furrfix.desktop;
 text/html=furrfix.desktop;
 text/mml=furrfix.desktop;
 text/xml=furrfix.desktop;
