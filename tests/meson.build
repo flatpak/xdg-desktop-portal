@@ -175,6 +175,7 @@ portal_tests = [
   'print',
   'savefile',
   'screenshot',
+  'settings',
   'trash',
   'wallpaper',
 ]
