@@ -116,7 +116,7 @@ web_extensions_session_close (XdpSession *session)
 
   if (web_extensions_session->child_pid > 0)
     {
-      kill (web_extensions_session->child_pid, SIGTERM);
+      kill (web_extensions_session->child_pid, SIGKILL);
       waitpid (web_extensions_session->child_pid, NULL, 0);
       g_spawn_close_pid (web_extensions_session->child_pid);
       web_extensions_session->child_pid = -1;
