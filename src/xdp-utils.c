@@ -1056,6 +1056,8 @@ xdg_desktop_portal_error_quark (void)
   return (GQuark) quark_volatile;
 }
 
+static char *documents_mountpoint = NULL;
+
 static char *
 verify_proc_self_fd (XdpAppInfo *app_info,
                      const char *proc_path,
@@ -1094,16 +1096,27 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      but there is not much to do about this. */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
-                   "Cannot share deleted file: %s", path_buffer);
-      return NULL;
+      if (documents_mountpoint != NULL &&
+          g_str_has_prefix (path_buffer, documents_mountpoint))
+        {
+          /* Unfortunately our workaround for dcache purging triggers
+             o_path file descriptors on the fuse filesystem being
+             marked as deleted, so we have to allow these here and
+             rewrite them. This is safe, becase we will stat the file
+             and compare to make sure we end up on the right file. */
+          path_buffer[symlink_size - strlen(" (deleted)")] = 0;
+        }
+      else
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
+                       "Cannot share deleted file: %s", path_buffer);
+          return NULL;
+        }
     }
 
   /* remap from sandbox to host if needed */
   return xdp_app_info_remap_path (app_info, path_buffer);
 }
-
-static char *documents_mountpoint = NULL;
 
 void
 xdp_set_documents_mountpoint (const char *path)
