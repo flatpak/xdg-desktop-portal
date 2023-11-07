@@ -153,8 +153,6 @@ struct _XdpDomain {
   guint64 doc_dir_inode;
   guint32 doc_flags;
 
-  int doc_queued_invalidate; /* Access atomically, 1 if queued invalidate */
-
   /* Below is mutable, protected by mutex */
   GMutex  tempfile_mutex;
   GHashTable *tempfiles; /* Name -> physical */
@@ -223,6 +221,14 @@ typedef struct {
 XdpInode *root_inode;
 XdpInode *by_app_inode;
 
+typedef struct {
+  ino_t parent_ino;
+  char name[0];
+} XdpInvalidateData;
+
+static GList *invalidate_list;
+G_LOCK_DEFINE (invalidate_list);
+
 static XdpInode *xdp_inode_ref (XdpInode *inode);
 static void xdp_inode_unref (XdpInode *inode);
 
@@ -237,6 +243,8 @@ static int ensure_docdir_inode (XdpInode *parent,
                                 int o_path_fd_in, /* Takes ownership */
                                 struct fuse_entry_param *e,
                                 XdpInode **inode_out);
+
+static void queue_invalidate_dentry (XdpInode *parent, const char *name);
 
 static gboolean
 app_can_write_doc (PermissionDbEntry *entry, const char *app_id)
@@ -1061,6 +1069,8 @@ get_tempfile_for (XdpInode *parent,
   /* This is atomic, because we're called with the lock held */
   g_hash_table_replace (domain->tempfiles, tempfile->name, xdp_tempfile_ref (tempfile));
 
+  queue_invalidate_dentry (parent, tempfile->name);
+
   if (tempfile_out)
     *tempfile_out = g_steal_pointer (&tempfile);
   return 0;
@@ -1107,6 +1117,8 @@ create_tempfile (XdpInode *parent,
 
   /* This is atomic, because we're called with the lock held */
   g_hash_table_replace (domain->tempfiles, tempfile->name, xdp_tempfile_ref (tempfile));
+
+  queue_invalidate_dentry (parent, tempfile->name);
 
   if (tempfile_out)
     *tempfile_out = g_steal_pointer (&tempfile);
@@ -1707,37 +1719,53 @@ ensure_doc_inode (XdpInode *parent,
 }
 
 static gboolean
-invalidate_doc_domain (gpointer user_data)
+invalidate_dentry_cb (gpointer user_data)
 {
-  g_autoptr(XdpDomain) doc_domain = user_data;
-  ino_t parent_ino;
-
-  g_atomic_int_set (&doc_domain->doc_queued_invalidate, 0);
-
-  parent_ino = xdp_inode_to_ino (doc_domain->parent_inode);
+  GList *to_invalidate = NULL;
+  {
+    XDP_AUTOLOCK (invalidate_list);
+    to_invalidate = g_steal_pointer (&invalidate_list);
+  }
+  to_invalidate = g_list_reverse (to_invalidate);
 
   XDP_AUTOLOCK (session);
-  if (session && g_atomic_int_get (&doc_domain->parent_inode->kernel_ref_count) > 0)
-    fuse_lowlevel_notify_inval_entry (session, parent_ino, doc_domain->doc_id,
-                                      strlen (doc_domain->doc_id));
+  for (GList *l = to_invalidate; l != NULL; l = l->next)
+    {
+      XdpInvalidateData *data = l->data;
+      if (session)
+        fuse_lowlevel_notify_inval_entry (session, data->parent_ino, data->name,
+                                          strlen (data->name));
+      g_free (data);
+    }
+
+  g_list_free (to_invalidate);
 
   return FALSE;
 }
 
-/* Queue an inval_entry call on this domain, thereby freeing all unused inodes
- * in the dcache which will free up a bunch of O_PATH fds in the fuse implementation
+/* Queue an inval_dentry, thereby freeing unused inodes in the dcache
+ * which will free up a bunch of O_PATH fds in the fuse implementation.
  */
 static void
-doc_domain_queue_entry_invalidate (XdpDomain *doc_domain)
+queue_invalidate_dentry (XdpInode *parent, const char *name)
 {
-  int old = g_atomic_int_get (&doc_domain->doc_queued_invalidate);
-  if (old != 0)
-    return;
+  XDP_AUTOLOCK (invalidate_list);
 
-  if (!g_atomic_int_compare_and_exchange (&doc_domain->doc_queued_invalidate, old, 1))
-    return; // Someone else set it to 1, return
+  for (GList *l = invalidate_list; l != NULL; l = l->next)
+    {
+      XdpInvalidateData *data = l->data;
+      if (data->parent_ino == parent->ino && strcmp (name, data->name) == 0)
+        return;
+    }
 
-  g_timeout_add (1000, invalidate_doc_domain, xdp_domain_ref (doc_domain));
+  XdpInvalidateData *data = g_malloc0(sizeof(XdpInvalidateData) + strlen(name) + 1);
+  data->parent_ino = parent->ino;
+  strcpy(data->name, name);
+
+  if (invalidate_list == NULL)
+    g_timeout_add (10, invalidate_dentry_cb, NULL);
+
+  invalidate_list = g_list_append(invalidate_list, data);
 }
 
 static void
@@ -1800,7 +1828,7 @@ xdp_fuse_lookup (fuse_req_t req,
       if (res != 0)
         return xdp_reply_err (op, req, -res);
 
-      doc_domain_queue_entry_invalidate (parent_domain);
+      queue_invalidate_dentry (parent, name);
     }
 
   g_debug ("LOOKUP %lx:%s => %lx", parent_ino, name, e.ino);
@@ -1910,6 +1938,8 @@ xdp_fuse_create (fuse_req_t             req,
       xdp_file_free (file);
       abort_reply_entry (&e);
     }
+
+  queue_invalidate_dentry (parent, filename);
 }
 
 static void
