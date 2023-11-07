@@ -80,7 +80,8 @@ fi
 # Only do this when running uninstalled; when running as an installed-test,
 # we rely on D-Bus activation.
 if [ -n "${XDP_UNINSTALLED:-}" ]; then
-    ./xdg-document-portal -r &
+    $test_builddir/../document-portal/xdg-document-portal -r &
+    sleep 0.2 # Make sure the portal has connected to dbus
 fi
 
 # First run a basic single-thread test
