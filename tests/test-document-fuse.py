@@ -34,9 +34,9 @@ if args.prefix:
 
 def log(str):
     if args.prefix:
-        print("%s: %s" % (args.prefix, str))
+        print("%s: %s" % (args.prefix, str), file=sys.stderr)
     else:
-        print(str)
+        print(str, file=sys.stderr)
 
 
 def logv(str):
