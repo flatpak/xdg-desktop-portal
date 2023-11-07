@@ -368,6 +368,7 @@ find_server (WebExtensionsSessionMode mode,
       g_autofree char *metadata_filename = NULL;
       g_autoptr(GError) load_error = NULL;
       JsonObject *metadata_root;
+      const char *server_path;
 
       metadata_filename = g_build_filename (search_path[i], metadata_basename, NULL);
       if (!json_parser_load_from_file (parser, metadata_filename, &load_error))
@@ -405,14 +406,24 @@ find_server (WebExtensionsSessionMode mode,
           break;
         }
 
+      server_path = json_object_get_string_member (metadata_root, "path");
+      if (!g_path_is_absolute (server_path))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                       "Native messaging host path is not absolute");
+          return NULL;
+        }
+
       /* Server matches: return its executable path and description */
       if (out_server_description != NULL)
         *out_server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
       if (out_manifest_filename != NULL)
-        *out_manifest_filename = g_strdup (metadata_filename);
+        *out_manifest_filename = g_steal_pointer (&metadata_filename);
       if (out_json_manifest != NULL)
         *out_json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
-      return g_strdup (json_object_get_string_member (metadata_root, "path"));
+      return g_strdup (server_path);
     }
 
   g_set_error (error,
