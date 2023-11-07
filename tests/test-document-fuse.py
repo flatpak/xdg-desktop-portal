@@ -1025,43 +1025,46 @@ def add_an_app(num_docs):
         doc.apps.append(write_app)
     logv("granted acces to %s and %s for %s" % (read_app, write_app, ids))
 
+try:
+    log("Connecting to portal")
+    portal = DocPortal()
 
-log("Connecting to portal")
-portal = DocPortal()
-
-log("Running fuse tests...")
-create_app_by_lookup()
-verify_fs_layout()
-
-log("Creating some docs")
-for i in range(10):
-    export_a_doc()
-verify_fs_layout()
-
-log("Creating some named docs (existing)")
-for i in range(10):
-    export_a_named_doc(True)
-verify_fs_layout()
-
-log("Creating some named docs (non-existing)")
-for i in range(10):
-    export_a_named_doc(False)
-verify_fs_layout()
-
-log("Creating some dir docs")
-for i in range(10):
-    export_a_dir_doc()
-verify_fs_layout()
-
-log("Creating some apps")
-for i in range(10):
-    add_an_app(6)
-verify_fs_layout()
-
-for i in range(args.iterations):
-    log("Checking permissions, pass %d" % (i + 1))
-    check_perms()
+    log("Running fuse tests...")
+    create_app_by_lookup()
     verify_fs_layout()
 
-log("fuse tests ok")
-sys.exit(0)
+    log("Creating some docs")
+    for i in range(10):
+        export_a_doc()
+        verify_fs_layout()
+
+    log("Creating some named docs (existing)")
+    for i in range(10):
+        export_a_named_doc(True)
+    verify_fs_layout()
+
+    log("Creating some named docs (non-existing)")
+    for i in range(10):
+        export_a_named_doc(False)
+    verify_fs_layout()
+
+    log("Creating some dir docs")
+    for i in range(10):
+        export_a_dir_doc()
+    verify_fs_layout()
+
+    log("Creating some apps")
+    for i in range(10):
+        add_an_app(6)
+    verify_fs_layout()
+
+    for i in range(args.iterations):
+        log("Checking permissions, pass %d" % (i + 1))
+        check_perms()
+        verify_fs_layout()
+
+    log("fuse tests ok")
+    sys.exit(0)
+except Exception as e:
+    log("fuse tests failed: %s" % e)
+    sys.exit(1)
