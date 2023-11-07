@@ -58,6 +58,12 @@ G_DEFINE_TYPE_WITH_CODE (WebExtensions, web_extensions, XDP_DBUS_TYPE_WEB_EXTENS
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_WEB_EXTENSIONS,
                                                 web_extensions_iface_init));
 
+typedef enum _WebExtensionsSessionMode
+{
+  WEB_EXTENSIONS_SESSION_MODE_CHROMIUM,
+  WEB_EXTENSIONS_SESSION_MODE_MOZILLA,
+} WebExtensionsSessionMode;
+
 typedef enum _WebExtensionsSessionState
 {
   WEB_EXTENSIONS_SESSION_STATE_INIT,
@@ -70,6 +76,7 @@ typedef struct _WebExtensionsSession
 {
   XdpSession parent;
 
+  WebExtensionsSessionMode mode;
   WebExtensionsSessionState state;
 
   GPid child_pid;
@@ -168,7 +175,27 @@ web_extensions_session_new (GVariant *options,
                             GError **error)
 {
   XdpSession *session;
+  WebExtensionsSession *web_extensions_session;
+  WebExtensionsSessionMode mode = WEB_EXTENSIONS_SESSION_MODE_CHROMIUM;
+  const char *mode_str = NULL;
   const char *session_token;
+
+  g_variant_lookup (options, "mode", "&s", &mode_str);
+  if (mode_str != NULL)
+    {
+      if (!strcmp(mode_str, "chromium"))
+        mode = WEB_EXTENSIONS_SESSION_MODE_CHROMIUM;
+      else if (!strcmp(mode_str, "mozilla"))
+        mode = WEB_EXTENSIONS_SESSION_MODE_MOZILLA;
+      else
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Invalid mode");
+          return NULL;
+        }
+    }
 
   session_token = lookup_session_token (options);
   session = g_initable_new (web_extensions_session_get_type (), NULL, error,
@@ -181,7 +208,9 @@ web_extensions_session_new (GVariant *options,
   if (session)
     g_debug ("webextensions session owned by '%s' created", session->sender);
 
-  return (WebExtensionsSession *)session;
+  web_extensions_session = (WebExtensionsSession *)session;
+  web_extensions_session->mode = mode;
+  return web_extensions_session;
 }
 
 static gboolean
@@ -261,7 +290,7 @@ is_valid_name (const char *name)
 }
 
 static GStrv
-get_manifest_search_path (void)
+get_manifest_search_path (WebExtensionsSessionMode mode)
 {
   const char *hosts_path_str;
   g_autoptr(GPtrArray) search_path = NULL;
@@ -270,38 +299,48 @@ get_manifest_search_path (void)
   if (hosts_path_str != NULL)
     return g_strsplit (hosts_path_str, ":", -1);
 
-  /* By default, use the native messaging search paths of Firefox,
-   * Chrome, and Chromium, as documented here:
-   *
-   * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#manifest_location
-   * https://developer.chrome.com/docs/apps/nativeMessaging/#native-messaging-host-location
-   */
-
   search_path = g_ptr_array_new_with_free_func (g_free);
-  /* Add per-user directories */
-  g_ptr_array_add (search_path, g_build_filename (g_get_home_dir (), ".mozilla", "native-messaging-hosts", NULL));
-  g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "google-chrome", "NativeMessagingHosts", NULL));
-  g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "chromium", "NativeMessagingHosts", NULL));
+  switch (mode)
+    {
+    case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
+      /* Chrome and Chromium search paths documented here:
+       * https://developer.chrome.com/docs/apps/nativeMessaging/#native-messaging-host-location
+       */
+      /* Add per-user directories */
+      g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "google-chrome", "NativeMessagingHosts", NULL));
+      g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "chromium", "NativeMessagingHosts", NULL));
+      /* Add system wide directories */
+      g_ptr_array_add (search_path, g_strdup ("/etc/opt/chrome/native-messaging-hosts"));
+      g_ptr_array_add (search_path, g_strdup ("/etc/chromium/native-messaging-hosts"));
+      /* And the same for xdg-desktop-portal's configured prefix */
+      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "opt/chrome/native-messaging-hosts"));
+      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "chromium/native-messaging-hosts"));
+      break;
 
-  /* Add system wide directories */
-  g_ptr_array_add (search_path, g_strdup ("/usr/lib/mozilla/native-messaging-hosts"));
-  g_ptr_array_add (search_path, g_strdup ("/usr/lib64/mozilla/native-messaging-hosts"));
-  g_ptr_array_add (search_path, g_strdup ("/etc/opt/chrome/native-messaging-hosts"));
-  g_ptr_array_add (search_path, g_strdup ("/etc/chromium/native-messaging-hosts"));
-
-  /* And the same for xdg-desktop-portal's configured prefix */
-  g_ptr_array_add (search_path, g_strdup (LIBDIR "mozilla/native-messaging-hosts"));
-  g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "opt/chrome/native-messaging-hosts"));
-  g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "chromium/native-messaging-hosts"));
+    case WEB_EXTENSIONS_SESSION_MODE_MOZILLA:
+      /* Firefox search paths documented here:
+       * https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#manifest_location
+       */
+      /* Add per-user directories */
+      g_ptr_array_add (search_path, g_build_filename (g_get_home_dir (), ".mozilla", "native-messaging-hosts", NULL));
+      /* Add system wide directories */
+      g_ptr_array_add (search_path, g_strdup ("/usr/lib/mozilla/native-messaging-hosts"));
+      g_ptr_array_add (search_path, g_strdup ("/usr/lib64/mozilla/native-messaging-hosts"));
+      /* And the same for xdg-desktop-portal's configured prefix */
+      g_ptr_array_add (search_path, g_strdup (LIBDIR "mozilla/native-messaging-hosts"));
+      break;
+    }
 
   g_ptr_array_add (search_path, NULL);
   return (GStrv)g_ptr_array_free (g_steal_pointer (&search_path), FALSE);
 }
 
 static char *
-find_server (const char *server_name,
+find_server (WebExtensionsSessionMode mode,
+             const char *server_name,
              const char *extension_or_origin,
              char **out_server_description,
+             char **out_manifest_filename,
              char **out_json_manifest,
              GError **error)
 {
@@ -320,7 +359,7 @@ find_server (const char *server_name,
       return NULL;
     }
 
-  search_path = get_manifest_search_path ();
+  search_path = get_manifest_search_path (mode);
   parser = json_parser_new ();
   metadata_basename = g_strconcat (server_name, ".json", NULL);
 
@@ -354,15 +393,25 @@ find_server (const char *server_name,
       /* Skip if this server isn't available to the extension. Note
        * that this ID is provided by the sandboxed browser, so this
        * check is just to help implement its security policy. */
-      if (!array_contains (json_object_get_array_member (metadata_root, "allowed_extensions"), extension_or_origin) &&
-          !array_contains (json_object_get_array_member (metadata_root, "allowed_origins"), extension_or_origin))
-        continue;
+      switch (mode)
+        {
+        case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
+          if (!array_contains (json_object_get_array_member (metadata_root, "allowed_origins"), extension_or_origin))
+            continue;
+          break;
+        case WEB_EXTENSIONS_SESSION_MODE_MOZILLA:
+          if (!array_contains (json_object_get_array_member (metadata_root, "allowed_extensions"), extension_or_origin))
+            continue;
+          break;
+        }
 
       /* Server matches: return its executable path and description */
       if (out_server_description != NULL)
-          *out_server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
+        *out_server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
+      if (out_manifest_filename != NULL)
+        *out_manifest_filename = g_strdup (metadata_filename);
       if (out_json_manifest != NULL)
-          *out_json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
+        *out_json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
       return g_strdup (json_object_get_string_member (metadata_root, "path"));
     }
 
@@ -409,8 +458,9 @@ handle_get_manifest (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  server_path = find_server (arg_name, arg_extension_or_origin,
-                             NULL, &json_manifest, &error);
+  server_path = find_server (web_extensions_session->mode,
+                             arg_name, arg_extension_or_origin,
+                             NULL, NULL, &json_manifest, &error);
   if (!server_path)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -431,15 +481,16 @@ handle_start_in_thread (GTask *task,
   XdpSession *session;
   WebExtensionsSession *web_extensions_session;
   const char *arg_name;
-  const char *arg_extension_or_origin;
+  char *arg_extension_or_origin;
   const char *app_id;
   g_autofree char *server_path = NULL;
   g_autofree char *server_description = NULL;
+  g_autofree char *manifest_filename = NULL;
   guint response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
   gboolean should_close_session;
   XdpPermission permission;
   gboolean allowed;
-  char *argv[] = {NULL, NULL};
+  char *argv[] = {NULL, NULL, NULL, NULL};
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -454,7 +505,10 @@ handle_start_in_thread (GTask *task,
   arg_name = g_object_get_data (G_OBJECT (request), "name");
   arg_extension_or_origin = g_object_get_data (G_OBJECT (request), "extension-or-origin");
 
-  server_path = find_server (arg_name, arg_extension_or_origin, &server_description, NULL, &error);
+  server_path = find_server (web_extensions_session->mode,
+                             arg_name, arg_extension_or_origin,
+                             &server_description, &manifest_filename, NULL,
+                             &error);
   if (server_path == NULL)
     {
       g_warning ("Could not find WebExtensions backend: %s", error->message);
@@ -524,6 +578,16 @@ handle_start_in_thread (GTask *task,
     }
 
   argv[0] = server_path;
+  switch (web_extensions_session->mode)
+    {
+    case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
+      argv[1] = arg_extension_or_origin;
+      break;
+    case WEB_EXTENSIONS_SESSION_MODE_MOZILLA:
+      argv[1] = manifest_filename;
+      argv[2] = arg_extension_or_origin;
+      break;
+    }
   if (!g_spawn_async_with_pipes (NULL, /* working_directory */
                                  argv,
                                  NULL, /* envp */

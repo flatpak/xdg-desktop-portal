@@ -51,6 +51,7 @@ create_session (GCancellable *cancellable,
 
   session_token = g_strdup_printf ("portal%d", g_random_int_range (0, G_MAXINT));
   g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
+  g_variant_builder_add (&options, "{sv}", "mode", g_variant_new_string ("mozilla"));
   g_variant_builder_add (&options, "{sv}", "session_handle_token", g_variant_new_string (session_token));
   g_dbus_connection_call (session_bus,
                           "org.freedesktop.portal.Desktop",
@@ -505,10 +506,15 @@ get_manifest_cb (GObject *object, GAsyncResult *result, gpointer data)
   TestData *test_data = data;
   g_autoptr(GError) error = NULL;
   g_autofree char *json_manifest = NULL;
+  g_autofree char *server_path = NULL;
+  g_autofree char *expected = NULL;
+
+  server_path = g_test_build_filename (G_TEST_BUILT, "native-messaging-hosts", "server.sh", NULL);
+  expected = g_strdup_printf ("{\"name\":\"org.example.testing\",\"description\":\"Test native messaging host\",\"path\":\"%s\",\"type\":\"stdio\",\"allowed_extensions\":[\"some-extension@example.org\"]}", server_path);
 
   json_manifest = get_manifest_finish (result, &error);
   g_assert_no_error (error);
-  g_assert_cmpstr (json_manifest, ==, "{\"name\":\"org.example.testing\",\"description\":\"Test native messaging host\",\"path\":\"/bin/cat\",\"type\":\"stdio\",\"allowed_extensions\":[\"some-extension@example.org\"]}");
+  g_assert_cmpstr (json_manifest, ==, expected);
 
   start (test_data->session_handle,
          "org.example.testing",

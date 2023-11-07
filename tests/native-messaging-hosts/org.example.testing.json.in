@@ -1,7 +1,7 @@
 {
   "name": "org.example.testing",
   "description": "Test native messaging host",
-  "path": "/bin/cat",
+  "path": "@server_path@",
   "type": "stdio",
   "allowed_extensions": [
     "some-extension@example.org"

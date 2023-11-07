@@ -283,7 +283,7 @@ global_setup (void)
                                           NULL);
 
   portal_dir = g_test_build_filename (G_TEST_BUILT, "portals", "test", NULL);
-  web_extensions_dir = g_test_build_filename (G_TEST_DIST, "native-messaging-hosts", NULL);
+  web_extensions_dir = g_test_build_filename (G_TEST_BUILT, "native-messaging-hosts", NULL);
 
   g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
