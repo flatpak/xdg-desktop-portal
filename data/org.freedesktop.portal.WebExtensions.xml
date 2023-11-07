@@ -45,7 +45,8 @@
             <listitem><para>
               A string indicating which behaviour the portal should
               use when locating and starting native messaging
-              servers. Valid values are "mozilla" and "chromium".
+              servers. Valid values are "mozilla" and "chromium". By
+              default, mozilla behaviour is used.
             </para></listitem>
           </varlistentry>
           <varlistentry>

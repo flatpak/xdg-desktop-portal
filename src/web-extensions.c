@@ -176,7 +176,7 @@ web_extensions_session_new (GVariant *options,
 {
   XdpSession *session;
   WebExtensionsSession *web_extensions_session;
-  WebExtensionsSessionMode mode = WEB_EXTENSIONS_SESSION_MODE_CHROMIUM;
+  WebExtensionsSessionMode mode = WEB_EXTENSIONS_SESSION_MODE_MOZILLA;
   const char *mode_str = NULL;
   const char *session_token;
 
