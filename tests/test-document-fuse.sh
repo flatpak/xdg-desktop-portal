@@ -84,12 +84,12 @@ if [ -n "${XDP_UNINSTALLED:-}" ]; then
 fi
 
 # First run a basic single-thread test
-echo Testing single-threaded
+echo Testing single-threaded &>2
 "${test_srcdir}/test-document-fuse.py" --iterations ${ITERATIONS} -v
 echo "ok single-threaded"
 
 # Then a bunch of copies in parallel to stress-test
-echo Testing in parallel
+echo Testing in parallel &>2
 PIDS=()
 for i in $(seq ${PARALLEL_TESTS}); do
     "${test_srcdir}/test-document-fuse.py" --iterations ${PARALLEL_ITERATIONS} --prefix "$i" &
@@ -97,6 +97,6 @@ for i in $(seq ${PARALLEL_TESTS}); do
     PIDS+=( "$PID" )
 done
 
-echo waiting for pids "${PIDS[@]}"
+echo waiting for pids "${PIDS[@]}" &>2
 wait "${PIDS[@]}"
 echo "ok load-test"
