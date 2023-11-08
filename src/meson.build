@@ -167,6 +167,11 @@ if bwrap.found()
   helper_def = '-DHELPER="@0@"'.format(bwrap.full_path())
 endif
 
+install_data(
+  'portals.conf',
+  install_dir: datadir / 'xdg-desktop-portal',
+)
+
 executable(
   'xdg-desktop-portal-validate-icon',
   'validate-icon.c',
