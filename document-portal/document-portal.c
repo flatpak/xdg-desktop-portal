@@ -239,7 +239,7 @@ portal_delete (GDBusMethodInvocation *invocation,
   g_autofree const char **old_apps = NULL;
   int i;
 
-  g_variant_get (parameters, "(s)", &id);
+  g_variant_get (parameters, "(&s)", &id);
 
   g_debug ("portal_delete %s", id);
 
