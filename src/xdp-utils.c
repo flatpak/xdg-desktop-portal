@@ -183,7 +183,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 
   if (match != NULL)
     {
-      const char *escaped_app_id;
+      g_autofree char *escaped_app_id = NULL;
       /* Unescape the unit name which may have \x hex codes in it, e.g.
        * "app-gnome-org.gnome.Evolution\x2dalarm\x2dnotify-2437.scope"
        */
