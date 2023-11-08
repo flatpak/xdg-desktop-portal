@@ -22,7 +22,7 @@
       @short_description: WebExtensions portal
 
       The WebExtensions portal allows sandboxed web browsers to start
-      native messaging servers installed on the host system.
+      native messaging hosts installed on the host system.
 
       This documentation describes version 1 of this interface.
   -->
@@ -45,7 +45,7 @@
             <listitem><para>
               A string indicating which behaviour the portal should
               use when locating and starting native messaging
-              servers. Valid values are "mozilla" and "chromium". By
+              hosts. Valid values are "mozilla" and "chromium". By
               default, mozilla behaviour is used.
             </para></listitem>
           </varlistentry>
@@ -66,11 +66,11 @@
     <!--
         GetManifest:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
-        @name: name of the native messaging server
+        @name: name of the native messaging host
         @extension_or_origin: extension ID or origin URI identifying the extension
-        @json_manifest: the JSON manifest for the native messaging server
+        @json_manifest: the JSON manifest for the native messaging host
 
-        Return the JSON manifest of the native messaging server that
+        Return the JSON manifest of the native messaging host that
         Start would invoke.
     -->
     <method name="GetManifest">
@@ -82,17 +82,17 @@
     <!--
         Start:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
-        @name: name of the native messaging server
+        @name: name of the native messaging host
         @extension_or_origin: extension ID or origin URI identifying the extension
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
 
-        Start the named native messaging server. The caller must
+        Start the named native messaging host. The caller must
         indicate the requesting web extension (either by extension ID
         for Firefox, or origin URI for Chrome), which will be matched
-        against the server's access control list.
+        against the host's access control list.
 
-        If the server can't be started, or invalid data is provided,
+        If the host can't be started, or invalid data is provided,
         the session will be closed.
 
         Supported keys in the @options vardict include:
@@ -118,11 +118,11 @@
         GetPipes:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @options: Vardict with optional further information
-        @stdin: File descriptor representing the server's stdin.
-        @stdout: File descriptor representing the server's stdout.
-        @stderr: File descriptor representing the server's stderr.
+        @stdin: File descriptor representing the hosts's stdin.
+        @stdout: File descriptor representing the host's stdout.
+        @stderr: File descriptor representing the host's stderr.
 
-        Retrieve file descriptors for the native messaging server
+        Retrieve file descriptors for the native messaging host
         identified by the session. This method should only be called
         after the Start request recveives a successful response.
     -->

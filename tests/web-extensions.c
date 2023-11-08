@@ -432,7 +432,7 @@ cancel_call (gpointer data)
 typedef struct {
   GCancellable *cancellable;
   char *session_handle;
-  const char *server_name;
+  const char *messaging_host_name;
 } TestData;
 
 static void
@@ -506,11 +506,11 @@ get_manifest_cb (GObject *object, GAsyncResult *result, gpointer data)
   TestData *test_data = data;
   g_autoptr(GError) error = NULL;
   g_autofree char *json_manifest = NULL;
-  g_autofree char *server_path = NULL;
+  g_autofree char *host_path = NULL;
   g_autofree char *expected = NULL;
 
-  server_path = g_test_build_filename (G_TEST_BUILT, "native-messaging-hosts", "server.sh", NULL);
-  expected = g_strdup_printf ("{\"name\":\"org.example.testing\",\"description\":\"Test native messaging host\",\"path\":\"%s\",\"type\":\"stdio\",\"allowed_extensions\":[\"some-extension@example.org\"]}", server_path);
+  host_path = g_test_build_filename (G_TEST_BUILT, "native-messaging-hosts", "server.sh", NULL);
+  expected = g_strdup_printf ("{\"name\":\"org.example.testing\",\"description\":\"Test native messaging host\",\"path\":\"%s\",\"type\":\"stdio\",\"allowed_extensions\":[\"some-extension@example.org\"]}", host_path);
 
   json_manifest = get_manifest_finish (result, &error);
   g_assert_no_error (error);
@@ -596,7 +596,7 @@ create_session_bad_name_cb (GObject *object, GAsyncResult *result, gpointer data
   g_assert_nonnull (test_data->session_handle);
 
   start (test_data->session_handle,
-         test_data->server_name,
+         test_data->messaging_host_name,
          "some-extension@example.org",
          test_data->cancellable,
          start_bad_name_cb,
@@ -606,17 +606,17 @@ create_session_bad_name_cb (GObject *object, GAsyncResult *result, gpointer data
 void
 test_web_extensions_bad_name (void)
 {
-    const char *server_name[] = {
+    const char *messaging_host_name[] = {
         "no-dashes",
         "../foo",
         "no_trailing_dot.",
     };
     int i;
 
-    for (i = 0; i < G_N_ELEMENTS (server_name); i++)
+    for (i = 0; i < G_N_ELEMENTS (messaging_host_name); i++)
       {
         g_autoptr(GCancellable) cancellable = NULL;
-        TestData test_data = { cancellable, NULL, server_name[i] };
+        TestData test_data = { cancellable, NULL, messaging_host_name[i] };
 
         got_info = 0;
         set_web_extensions_permissions ("yes");

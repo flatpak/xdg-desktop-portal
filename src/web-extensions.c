@@ -243,9 +243,9 @@ handle_create_session (XdpDbusWebExtensions *object,
 }
 
 static void
-on_server_exited (GPid pid,
-                  gint status,
-                  gpointer user_data)
+on_host_exited (GPid pid,
+                gint status,
+                gpointer user_data)
 {
   XdpSession *session = user_data;
   WebExtensionsSession *web_extensions_session = (WebExtensionsSession *)session;
@@ -279,7 +279,7 @@ static gboolean
 is_valid_name (const char *name)
 {
   /* This regexp comes from the Mozilla documentation on valid native
-     messaging server names:
+     messaging host names:
 
      https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_manifests#native_messaging_manifests
 
@@ -336,13 +336,13 @@ get_manifest_search_path (WebExtensionsSessionMode mode)
 }
 
 static char *
-find_server (WebExtensionsSessionMode mode,
-             const char *server_name,
-             const char *extension_or_origin,
-             char **out_server_description,
-             char **out_manifest_filename,
-             char **out_json_manifest,
-             GError **error)
+find_messaging_host (WebExtensionsSessionMode mode,
+                     const char *messaging_host_name,
+                     const char *extension_or_origin,
+                     char **out_description,
+                     char **out_manifest_filename,
+                     char **out_json_manifest,
+                     GError **error)
 {
   g_auto(GStrv) search_path = NULL;
   g_autoptr(JsonParser) parser = NULL;
@@ -350,25 +350,25 @@ find_server (WebExtensionsSessionMode mode,
   int i;
 
   /* Check that the we have a valid native messaging host name */
-  if (!is_valid_name (server_name))
+  if (!is_valid_name (messaging_host_name))
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR,
                    XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Invalid native messaging server name");
+                   "Invalid native messaging host name");
       return NULL;
     }
 
   search_path = get_manifest_search_path (mode);
   parser = json_parser_new ();
-  metadata_basename = g_strconcat (server_name, ".json", NULL);
+  metadata_basename = g_strconcat (messaging_host_name, ".json", NULL);
 
   for (i = 0; search_path[i] != NULL; i++)
     {
       g_autofree char *metadata_filename = NULL;
       g_autoptr(GError) load_error = NULL;
       JsonObject *metadata_root;
-      const char *server_path;
+      const char *host_path;
 
       metadata_filename = g_build_filename (search_path[i], metadata_basename, NULL);
       if (!json_parser_load_from_file (parser, metadata_filename, &load_error))
@@ -384,14 +384,14 @@ find_server (WebExtensionsSessionMode mode,
       metadata_root = json_node_get_object (json_parser_get_root (parser));
 
       /* Skip if metadata contains an unexpected name */
-      if (g_strcmp0 (json_object_get_string_member (metadata_root, "name"), server_name) != 0)
+      if (g_strcmp0 (json_object_get_string_member (metadata_root, "name"), messaging_host_name) != 0)
         continue;
 
-      /* Skip if this is not a "stdio" type native messaging server */
+      /* Skip if this is not a "stdio" type native messaging host */
       if (g_strcmp0 (json_object_get_string_member (metadata_root, "type"), "stdio") != 0)
         continue;
 
-      /* Skip if this server isn't available to the extension. Note
+      /* Skip if this host isn't available to the extension. Note
        * that this ID is provided by the sandboxed browser, so this
        * check is just to help implement its security policy. */
       switch (mode)
@@ -406,8 +406,8 @@ find_server (WebExtensionsSessionMode mode,
           break;
         }
 
-      server_path = json_object_get_string_member (metadata_root, "path");
-      if (!g_path_is_absolute (server_path))
+      host_path = json_object_get_string_member (metadata_root, "path");
+      if (!g_path_is_absolute (host_path))
         {
           g_set_error (error,
                        XDG_DESKTOP_PORTAL_ERROR,
@@ -416,20 +416,20 @@ find_server (WebExtensionsSessionMode mode,
           return NULL;
         }
 
-      /* Server matches: return its executable path and description */
-      if (out_server_description != NULL)
-        *out_server_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
+      /* Host matches: return its executable path and description */
+      if (out_description != NULL)
+        *out_description = g_strdup (json_object_get_string_member (metadata_root, "description"));
       if (out_manifest_filename != NULL)
         *out_manifest_filename = g_steal_pointer (&metadata_filename);
       if (out_json_manifest != NULL)
         *out_json_manifest = json_to_string (json_parser_get_root (parser), FALSE);
-      return g_strdup (server_path);
+      return g_strdup (host_path);
     }
 
   g_set_error (error,
                XDG_DESKTOP_PORTAL_ERROR,
                XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
-               "Could not find native messaging server");
+               "Could not find native messaging host");
   return NULL;
 }
 
@@ -443,7 +443,7 @@ handle_get_manifest (XdpDbusWebExtensions *object,
   XdpCall *call = xdp_call_from_invocation (invocation);
   XdpSession *session;
   WebExtensionsSession *web_extensions_session;
-  g_autofree char *server_path = NULL;
+  g_autofree char *host_path = NULL;
   g_autofree char *json_manifest = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -469,10 +469,10 @@ handle_get_manifest (XdpDbusWebExtensions *object,
       return TRUE;
     }
 
-  server_path = find_server (web_extensions_session->mode,
-                             arg_name, arg_extension_or_origin,
-                             NULL, NULL, &json_manifest, &error);
-  if (!server_path)
+  host_path = find_messaging_host (web_extensions_session->mode,
+                                   arg_name, arg_extension_or_origin,
+                                   NULL, NULL, &json_manifest, &error);
+  if (!host_path)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return TRUE;
@@ -494,8 +494,8 @@ handle_start_in_thread (GTask *task,
   const char *arg_name;
   char *arg_extension_or_origin;
   const char *app_id;
-  g_autofree char *server_path = NULL;
-  g_autofree char *server_description = NULL;
+  g_autofree char *host_path = NULL;
+  g_autofree char *description = NULL;
   g_autofree char *manifest_filename = NULL;
   guint response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
   gboolean should_close_session;
@@ -516,11 +516,11 @@ handle_start_in_thread (GTask *task,
   arg_name = g_object_get_data (G_OBJECT (request), "name");
   arg_extension_or_origin = g_object_get_data (G_OBJECT (request), "extension-or-origin");
 
-  server_path = find_server (web_extensions_session->mode,
-                             arg_name, arg_extension_or_origin,
-                             &server_description, &manifest_filename, NULL,
-                             &error);
-  if (server_path == NULL)
+  host_path = find_messaging_host (web_extensions_session->mode,
+                                   arg_name, arg_extension_or_origin,
+                                   &description, &manifest_filename, NULL,
+                                   &error);
+  if (host_path == NULL)
     {
       g_warning ("Could not find WebExtensions backend: %s", error->message);
       fflush(stderr);
@@ -550,7 +550,7 @@ handle_start_in_thread (GTask *task,
         }
       display_name = info ? g_app_info_get_display_name (info) : app_id;
       title = g_strdup_printf (_("Allow %s to start WebExtension backend?"), display_name);
-      subtitle = g_strdup_printf (_("%s is requesting to launch \"%s\" (%s)."), display_name, server_description, arg_name);
+      subtitle = g_strdup_printf (_("%s is requesting to launch \"%s\" (%s)."), display_name, description, arg_name);
       body = g_strdup (_("This permission can be changed at any time from the privacy settings."));
 
       g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
@@ -588,7 +588,7 @@ handle_start_in_thread (GTask *task,
       goto out;
     }
 
-  argv[0] = server_path;
+  argv[0] = host_path;
   switch (web_extensions_session->mode)
     {
     case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
@@ -617,7 +617,7 @@ handle_start_in_thread (GTask *task,
 
   web_extensions_session->child_watch_id = g_child_watch_add_full (G_PRIORITY_DEFAULT,
                                                                    web_extensions_session->child_pid,
-                                                                   on_server_exited,
+                                                                   on_host_exited,
                                                                    g_object_ref (web_extensions_session),
                                                                    g_object_unref);
   web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_STARTED;
