@@ -1007,7 +1007,6 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
   GVariant *v = (GVariant *) entry;
 
   g_autoptr(GVariant) app_array = NULL;
-  GVariant *child;
   GVariant *res = NULL;
   gsize n_children, start, end, m;
   const char *child_app_id;
@@ -1021,6 +1020,8 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
   end = n_children;
   while (start < end)
     {
+      g_autoptr(GVariant) child = NULL;
+
       m = (start + end) / 2;
 
       child = g_variant_get_child_value (app_array, m);
