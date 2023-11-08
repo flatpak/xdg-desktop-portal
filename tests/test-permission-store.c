@@ -507,7 +507,7 @@ test_get_permission2 (void)
 {
   gboolean res;
   const char * in_perms[] = { "yes", NULL };
-  g_autofree char **out_perms = NULL;
+  g_auto(GStrv) out_perms = NULL;
   g_autoptr(GError) error = NULL;
 
   res = xdg_permission_store_call_set_permission_sync (permissions,
@@ -595,7 +595,7 @@ static gboolean
 rm_rf_dir (GFile         *dir,
            GError       **error)
 {
-  GFileEnumerator *enumerator = NULL;
+  g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFileInfo) child_info = NULL;
   GError *temp_error = NULL;
 
@@ -663,6 +663,9 @@ int
 main (int argc, char **argv)
 {
   int res;
+
+  /* Better leak reporting without gvfs */
+  g_setenv ("GIO_USE_VFS", "local", TRUE);
 
   g_log_writer_default_set_use_stderr (TRUE);
   g_test_init (&argc, &argv, NULL);

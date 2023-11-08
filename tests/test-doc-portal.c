@@ -499,7 +499,7 @@ test_create_docs (void)
   g_autofree char *path2 = NULL;
   int fd1, fd2;
   guint32 fd_ids[2];
-  GUnixFDList *fd_list = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
   gboolean res;
   g_auto(GStrv) out_doc_ids = NULL;
   g_autoptr(GVariant) out_extra = NULL;
@@ -745,7 +745,7 @@ static gboolean
 rm_rf_dir (GFile         *dir,
            GError       **error)
 {
-  GFileEnumerator *enumerator = NULL;
+  g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFileInfo) child_info = NULL;
   GError *temp_error = NULL;
 
@@ -860,6 +860,9 @@ int
 main (int argc, char **argv)
 {
   int res;
+
+  /* Better leak reporting without gvfs */
+  g_setenv ("GIO_USE_VFS", "local", TRUE);
 
   g_test_init (&argc, &argv, NULL);
 
