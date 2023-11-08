@@ -40,16 +40,19 @@ account_cb (GObject *obj,
       res = g_variant_lookup (ret, "id", "&s", &s); 
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
+      free(t);
 
       t = g_key_file_get_string (keyfile, "account", "name", NULL);
       res = g_variant_lookup (ret, "name", "&s", &s); 
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
+      free(t);
 
       t = g_key_file_get_string (keyfile, "account", "image", NULL);
       res = g_variant_lookup (ret, "image", "&s", &s); 
       g_assert (res == (t != NULL));
       if (t) g_assert_cmpstr (s, ==, t);
+      free(t);
     }
   else if (response == 1)
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
