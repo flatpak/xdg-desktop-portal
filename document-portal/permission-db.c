@@ -724,7 +724,8 @@ permission_db_set_entry (PermissionDb      *self,
 void
 permission_db_update (PermissionDb *self)
 {
-  GHashTable *root, *main_h, *apps_h;
+  g_autoptr(GHashTable) root = NULL;
+  GHashTable *main_h, *apps_h;
   GBytes *new_contents;
   GvdbTable *new_gvdb;
   int i;
