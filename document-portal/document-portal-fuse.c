@@ -1758,14 +1758,14 @@ queue_invalidate_dentry (XdpInode *parent, const char *name)
         return;
     }
 
-  XdpInvalidateData *data = g_malloc0(sizeof(XdpInvalidateData) + strlen(name) + 1);
+  XdpInvalidateData *data = g_malloc0 (sizeof (XdpInvalidateData) + strlen (name) + 1);
   data->parent_ino = parent->ino;
-  strcpy(data->name, name);
+  strcpy (data->name, name);
 
   if (invalidate_list == NULL)
     g_timeout_add (10, invalidate_dentry_cb, NULL);
 
-  invalidate_list = g_list_append(invalidate_list, data);
+  invalidate_list = g_list_append (invalidate_list, data);
 }
 
 static void
