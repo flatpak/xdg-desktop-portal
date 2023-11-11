@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2023 GNOME Foundation Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +17,7 @@
  *
  * Authors:
  *       Alexander Larsson <alexl@redhat.com>
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #include "config.h"
@@ -1897,6 +1899,28 @@ xdp_fuse_open (fuse_req_t req,
     return;
 
   path = fd_to_path (inode->physical->fd);
+
+  /*
+   * `path` is a path to the fd entry in `/proc`, which is a symlink
+   * to the actual file. Opening it directly with `O_NOFOLLOW` will
+   * fail. So we should resolve it first then we can honour the no
+   * follow flag.
+   */
+  if (open_flags & O_NOFOLLOW)
+    {
+      ssize_t res;
+      char resolved_path[PATH_MAX] = {0, };
+      res = readlink (path, resolved_path, sizeof (resolved_path));
+
+      if (res == sizeof (resolved_path))
+        return xdp_reply_err (op, req, ENAMETOOLONG);
+      if (res < 0)
+        return xdp_reply_err (op, req, errno);
+
+      g_clear_pointer (&path, g_free);
+      path = g_strdup (resolved_path);
+    }
+
   fd = open (path, open_flags, 0);
   if (fd == -1)
     return xdp_reply_err (op, req, errno);
