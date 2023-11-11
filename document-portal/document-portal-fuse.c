@@ -3161,10 +3161,16 @@ xdp_fuse_setlk (fuse_req_t req,
                 int sleep)
 {
   const char *op = "SETLK";
+  XdpFile *file = (XdpFile *)fi->fh;
+  int res;
 
   g_debug ("SETLK %lx", ino);
 
-  xdp_reply_err (op, req, ENOSYS);
+  res = fcntl (file->fd, F_SETLK, lock);
+  if (res < 0)
+    return xdp_reply_err (op, req, errno);
+
+  return xdp_reply_err (op, req, 0);
 }
 
 static void
