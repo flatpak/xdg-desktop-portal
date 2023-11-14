@@ -113,10 +113,9 @@ pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
 
-use_bwrap = get_option('sandboxed-image-validation')
-bwrap = find_program('bwrap', required: use_bwrap)
+bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation'))
 
-if not use_bwrap
+if not bwrap.found()
   warning('''
     Sandboxed image validation with Bubblewrap is DISABLED.
     If your system can run Bubblewrap, it's **hightly** recommended that you enable this
@@ -201,7 +200,7 @@ summary({
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
     'Build flatpak interfaces': flatpak_intf_dir != '',
-    'Sandboxed image validation': use_bwrap,
+    'Sandboxed image validation': bwrap.found(),
   },
   section: 'Optional builds',
   bool_yn: true,
