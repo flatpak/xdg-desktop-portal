@@ -3147,10 +3147,16 @@ xdp_fuse_getlk (fuse_req_t req,
                 struct flock *lock)
 {
   const char *op = "GETLK";
+  XdpFile *file = (XdpFile *)fi->fh;
+  int res;
 
   g_debug ("GETLK %lx", ino);
 
-  xdp_reply_err (op, req, ENOSYS);
+  res = fcntl (file->fd, F_GETLK, lock);
+  if (res < 0)
+    return xdp_reply_err (op, req, errno);
+
+  return xdp_reply_err (op, req, 0);
 }
 
 static void
