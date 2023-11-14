@@ -200,7 +200,7 @@ summary({
     'Enable installed tests:': enable_installed_tests,
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
-    'Build flatpak interfaces': flatpak_dep.found(),
+    'Build flatpak interfaces': flatpak_intf_dir != '',
     'Sandboxed image validation': use_bwrap,
   },
   section: 'Optional builds',
