@@ -119,6 +119,8 @@ validate_icon (const char *arg_width,
   return 0;
 }
 
+#ifdef HELPER
+
 G_GNUC_NULL_TERMINATED
 static void
 add_args (GPtrArray *argv_array, ...)
@@ -131,21 +133,6 @@ add_args (GPtrArray *argv_array, ...)
     g_ptr_array_add (argv_array, g_strdup (arg));
   va_end (args);
 }
-
-const char *
-flatpak_get_bwrap (void)
-{
-  const char *e = g_getenv ("FLATPAK_BWRAP");
-
-  if (e != NULL)
-    return e;
-#ifdef HELPER
-  return HELPER;
-#else
-  return NULL;
-#endif
-}
-
 
 static gboolean
 path_is_usrmerged (const char *dir)
@@ -164,6 +151,17 @@ path_is_usrmerged (const char *dir)
 
   return (stat_buf_src.st_dev == stat_buf_target.st_dev) &&
          (stat_buf_src.st_ino == stat_buf_target.st_ino);
+}
+
+const char *
+flatpak_get_bwrap (void)
+{
+  const char *e = g_getenv ("FLATPAK_BWRAP");
+
+  if (e != NULL)
+    return e;
+
+  return HELPER;
 }
 
 static int
@@ -249,6 +247,7 @@ rerun_in_sandbox (const char *arg_width,
   g_printerr ("Icon validation: execvpe %s: %s\n", flatpak_get_bwrap (), g_strerror (errno));
   return 1;
 }
+#endif
 
 static gboolean opt_sandbox;
 
