@@ -153,19 +153,16 @@ configure_file(
   install_dir: dbus_service_dir,
 )
 
-helper_def = ''
+validate_icon_c_args = ['-D_GNU_SOURCE=1']
 if bwrap.found()
-  helper_def = '-DHELPER="@0@"'.format(bwrap.full_path())
+  validate_icon_c_args += '-DHELPER="@0@"'.format(bwrap.full_path())
 endif
 
 executable(
   'xdg-desktop-portal-validate-icon',
   'validate-icon.c',
   dependencies: [gdk_pixbuf_dep],
-  c_args: [
-      '-D_GNU_SOURCE=1',
-      helper_def
-  ],
+  c_args: validate_icon_c_args,
   install: true,
   install_dir: libexecdir,
 )
