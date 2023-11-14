@@ -587,19 +587,30 @@ find_portal_implementation (const char *interface)
         }
     }
 
-#if 0
-  /* Fall back to *any* installed implementation */
+  /* As a last resort, if nothing was selected for this desktop by
+   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
+   * itself as suitable for this desktop via the legacy UseIn mechanism,
+   * try to fall back to x-d-p-gtk, which has historically been the portal
+   * UI backend used by desktop environments with no backend of their own.
+   * If it isn't installed, that is not an error: we just don't use it. */
   for (l = implementations; l != NULL; l = l->next)
     {
       PortalImplementation *impl = l->data;
 
+      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
+        continue;
+
       if (!g_strv_contains ((const char **)impl->interfaces, interface))
         continue;
 
-      g_debug ("Falling back to %s.portal for %s", impl->source, interface);
+      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
+                 impl->source, interface);
+      g_warning_once ("The preferred method to match portal implementations "
+                      "to desktop environments is to use the portals.conf(5) "
+                      "configuration file");
+
       return impl;
     }
-#endif
 
   return NULL;
 }
