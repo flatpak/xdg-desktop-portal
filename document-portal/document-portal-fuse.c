@@ -2853,7 +2853,7 @@ xdp_fuse_rmdir (fuse_req_t req,
 
   res = unlinkat (dirfd, filename, AT_REMOVEDIR);
   if (res != 0)
-    xdp_reply_err (op, req, errno);
+    return xdp_reply_err (op, req, errno);
 
   xdp_reply_ok (op, req);
 }
