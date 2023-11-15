@@ -2795,11 +2795,9 @@ xdp_fuse_access (fuse_req_t req,
   if (inode->domain->type != XDP_DOMAIN_DOCUMENT)
     {
       if (mask & W_OK)
-        xdp_reply_err (op, req, EPERM);
+        return xdp_reply_err (op, req, EPERM);
       else
-        xdp_reply_ok (op, req);
-
-      return;
+        return xdp_reply_ok (op, req);
     }
 
   if ((mask & W_OK) != 0 &&
