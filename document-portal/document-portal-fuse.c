@@ -1915,8 +1915,9 @@ xdp_fuse_open (fuse_req_t req,
    */
   if (open_flags & O_NOFOLLOW)
     {
+      char resolved_path[PATH_MAX] = { 0, };
       ssize_t res;
-      char resolved_path[PATH_MAX] = {0, };
+
       res = readlink (path, resolved_path, sizeof (resolved_path));
 
       if (res == sizeof (resolved_path))
