@@ -1314,6 +1314,13 @@ xdp_reply_err (const char *op, fuse_req_t req, int err)
   fuse_reply_err (req, err);
 }
 
+static inline void
+xdp_reply_ok (const char *op,
+              fuse_req_t  req)
+{
+  xdp_reply_err (op, req, 0);
+}
+
 typedef enum {
       CHECK_CAN_WRITE = 1 << 0,
       CHECK_IS_DIRECTORY = 1 << 1,
@@ -2070,7 +2077,7 @@ xdp_fuse_fsync (fuse_req_t             req,
   else
     res = fsync (file->fd);
   if (res == 0)
-    xdp_reply_err (op, req, 0);
+    xdp_reply_ok (op, req);
   else
     xdp_reply_err (op, req, errno);
 }
@@ -2096,7 +2103,7 @@ xdp_fuse_fallocate (fuse_req_t req,
 #endif
 
   if (res == 0)
-    xdp_reply_err (op, req, 0);
+    xdp_reply_ok (op, req);
   else
     xdp_reply_err (op, req, errno);
 }
@@ -2109,7 +2116,7 @@ xdp_fuse_flush (fuse_req_t req,
   const char *op = "FLUSH";
 
   g_debug ("FLUSH %lx", ino);
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static void
@@ -2124,7 +2131,7 @@ xdp_fuse_release (fuse_req_t             req,
 
   xdp_file_free (file);
 
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static void
@@ -2463,7 +2470,7 @@ xdp_fuse_releasedir (fuse_req_t             req,
 
   xdp_dir_free (d);
 
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static void
@@ -2490,7 +2497,7 @@ xdp_fuse_fsyncdir (fuse_req_t             req,
     res = 0;
 
   if (res == 0)
-    xdp_reply_err (op, req, 0);
+    xdp_reply_ok (op, req);
   else
     xdp_reply_err (op, req, errno);
 }
@@ -2585,7 +2592,7 @@ xdp_fuse_unlink (fuse_req_t  req,
         }
     }
 
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static int
@@ -2655,7 +2662,7 @@ xdp_fuse_rename (fuse_req_t  req,
       if (res != 0)
         return xdp_reply_err (op, req, errno);
 
-      xdp_reply_err (op, req, 0);
+      xdp_reply_ok (op, req);
     }
   else
     {
@@ -2665,7 +2672,7 @@ xdp_fuse_rename (fuse_req_t  req,
 
       /* Early exit for same file */
       if (strcmp (name, newname) == 0)
-        return xdp_reply_err (op, req, 0);
+        return xdp_reply_ok (op, req);
 
       dirfd = xdp_nonphysical_document_inode_opendir (parent);
       if (dirfd < 0)
@@ -2702,7 +2709,7 @@ xdp_fuse_rename (fuse_req_t  req,
           if (res != 0)
             return xdp_reply_err (op, req, -res);
 
-          xdp_reply_err (op, req, 0);
+          xdp_reply_ok (op, req);
         }
       else if (strcmp (newname, domain->doc_file) == 0)
         {
@@ -2739,7 +2746,7 @@ xdp_fuse_rename (fuse_req_t  req,
           if (res != 0)
             return xdp_reply_err (op, req, errsv);
 
-          xdp_reply_err (op, req, 0);
+          xdp_reply_ok (op, req);
         }
       else
         {
@@ -2767,7 +2774,7 @@ xdp_fuse_rename (fuse_req_t  req,
           if (!found_tempfile)
             return xdp_reply_err (op, req, ENOENT);
 
-          xdp_reply_err (op, req, 0);
+          xdp_reply_ok (op, req);
         }
     }
 }
@@ -2789,7 +2796,7 @@ xdp_fuse_access (fuse_req_t req,
       if (mask & W_OK)
         xdp_reply_err (op, req, EPERM);
       else
-        xdp_reply_err (op, req, 0);
+        xdp_reply_ok (op, req);
 
       return;
     }
@@ -2819,7 +2826,7 @@ xdp_fuse_access (fuse_req_t req,
   if (res == -1)
     xdp_reply_err (op, req, errno);
   else
-    xdp_reply_err (op, req, 0);
+    xdp_reply_ok (op, req);
 }
 
 static void
@@ -2849,7 +2856,7 @@ xdp_fuse_rmdir (fuse_req_t req,
   if (res != 0)
     xdp_reply_err (op, req, errno);
 
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static void
@@ -3020,7 +3027,7 @@ xdp_fuse_setxattr (fuse_req_t req,
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
-  xdp_reply_err (op, req, 0);
+  xdp_reply_ok (op, req);
 }
 
 static void
@@ -3137,7 +3144,7 @@ xdp_fuse_removexattr (fuse_req_t req,
   if (res < 0)
     xdp_reply_err (op, req, errno);
   else
-    xdp_reply_err (op, req, 0);
+    xdp_reply_ok (op, req);
 }
 
 static void
@@ -3156,7 +3163,7 @@ xdp_fuse_getlk (fuse_req_t req,
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
-  return xdp_reply_err (op, req, 0);
+  return xdp_reply_ok (op, req);
 }
 
 static void
@@ -3176,7 +3183,7 @@ xdp_fuse_setlk (fuse_req_t req,
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
-  return xdp_reply_err (op, req, 0);
+  return xdp_reply_ok (op, req);
 }
 
 static void
