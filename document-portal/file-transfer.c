@@ -451,7 +451,7 @@ retrieve_files (GDBusMethodInvocation *invocation,
   const char *key;
   FileTransfer *transfer;
   g_auto(GStrv) files = NULL;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_variant_get (parameters, "(&s@a{sv})", &key, NULL);
 
