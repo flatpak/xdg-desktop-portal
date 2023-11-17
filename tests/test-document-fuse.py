@@ -253,9 +253,9 @@ class Doc:
 
     def get_doc_path(self, app_id):
         if app_id:
-            base = portal.app_path(app_id) + "/" + self.id
+            base = self.portal.app_path(app_id) + "/" + self.id
         else:
-            base = portal.mountpoint + "/" + self.id
+            base = self.portal.mountpoint + "/" + self.id
         if self.is_dir:
             return base + "/" + self.dirname
         else:
@@ -402,10 +402,10 @@ class DocPortal:
             self.volatile_apps.add(app_id)
 
     def get_docs(self):
-        return list(portal.docs.values())
+        return list(self.docs.values())
 
     def get_docs_randomized(self):
-        docs = list(portal.docs.values())
+        docs = list(self.docs.values())
         random.shuffle(docs)
         return docs
 
@@ -424,10 +424,10 @@ class DocPortal:
         return apps
 
     def by_app_path(self):
-        return portal.mountpoint + "/by-app"
+        return self.mountpoint + "/by-app"
 
     def app_path(self, app_id):
-        return portal.mountpoint + "/by-app/" + app_id
+        return self.mountpoint + "/by-app/" + app_id
 
 
 def check_virtual_stat(info, writable=False):
@@ -510,7 +510,7 @@ def verify_doc(doc, app_id=None):
         assert not real_file.startswith(".xdp")
 
 
-def verify_fs_layout():
+def verify_fs_layout(portal):
     verify_virtual_dir(portal.mountpoint, ["by-app"] + list(portal.docs.keys()))
     verify_virtual_dir(
         portal.by_app_path(), portal.get_app_ids(), portal.get_volatile_app_ids()
@@ -812,7 +812,7 @@ def check_directory_doc_perms(doc, app_id):
         os.rename(filepath2, docpath + "/moved")
         assertFileHasContent(docpath + "/moved", "replaced")
 
-        assertRaisesErrno(errno.EXDEV, os.rename, docpath, portal.mountpoint)
+        assertRaisesErrno(errno.EXDEV, os.rename, docpath, doc.portal.mountpoint)
 
         os.unlink(docpath + "/moved")
 
@@ -879,7 +879,7 @@ def check_doc_perms(doc, app_id):
         check_regular_doc_perms(doc, app_id)
 
 
-def check_perms():
+def check_perms(portal):
     check_root_perms(portal.mountpoint)
     check_byapp_perms(portal.by_app_path())
 
@@ -890,7 +890,7 @@ def check_perms():
 
 
 # Ensure that a single lookup by app-id creates that app id (we need this for when mounting the subdir for an app)
-def create_app_by_lookup():
+def create_app_by_lookup(portal):
     # Should only work for valid app ids
     assertRaises(FileNotFoundError, os.lstat, portal.app_path("not-an-app-id"))
 
@@ -917,7 +917,7 @@ def ensure_real_dir_file(create_file):
     return path
 
 
-def export_a_doc():
+def export_a_doc(portal):
     path = ensure_real_dir_file(True)
     doc = portal.add(path)
     logv("exported %s as %s" % (path, doc))
@@ -946,7 +946,7 @@ def export_a_doc():
     os.unlink(tmppath)
 
 
-def export_a_named_doc(create_file):
+def export_a_named_doc(portal, create_file):
     path = ensure_real_dir_file(create_file)
     doc = portal.add_named(path)
     logv("exported (named) %s as %s" % (path, doc))
@@ -962,7 +962,7 @@ def export_a_named_doc(create_file):
     assert doc is not not_reused_doc
 
 
-def export_a_dir_doc():
+def export_a_dir_doc(portal):
     (dir, count) = ensure_real_dir(False)
     doc = portal.add_dir(dir)
     logv("exported (dir) %s as %s" % (dir, doc))
@@ -1001,7 +1001,7 @@ def export_a_dir_doc():
     os.rmdir(subpath)
 
 
-def add_an_app(num_docs):
+def add_an_app(portal, num_docs):
     if num_docs == 0:
         return
     count = get_a_count("app")
@@ -1027,41 +1027,41 @@ def add_an_app(num_docs):
 
 try:
     log("Connecting to portal")
-    portal = DocPortal()
+    doc_portal = DocPortal()
 
     log("Running fuse tests...")
-    create_app_by_lookup()
-    verify_fs_layout()
+    create_app_by_lookup(doc_portal)
+    verify_fs_layout(doc_portal)
 
     log("Creating some docs")
     for i in range(10):
-        export_a_doc()
-        verify_fs_layout()
+        export_a_doc(doc_portal)
+        verify_fs_layout(doc_portal)
 
     log("Creating some named docs (existing)")
     for i in range(10):
-        export_a_named_doc(True)
-    verify_fs_layout()
+        export_a_named_doc(doc_portal, True)
+    verify_fs_layout(doc_portal)
 
     log("Creating some named docs (non-existing)")
     for i in range(10):
-        export_a_named_doc(False)
-    verify_fs_layout()
+        export_a_named_doc(doc_portal, False)
+    verify_fs_layout(doc_portal)
 
     log("Creating some dir docs")
     for i in range(10):
-        export_a_dir_doc()
-    verify_fs_layout()
+        export_a_dir_doc(doc_portal)
+    verify_fs_layout(doc_portal)
 
     log("Creating some apps")
     for i in range(10):
-        add_an_app(6)
-    verify_fs_layout()
+        add_an_app(doc_portal, 6)
+    verify_fs_layout(doc_portal)
 
     for i in range(args.iterations):
         log("Checking permissions, pass %d" % (i + 1))
-        check_perms()
-        verify_fs_layout()
+        check_perms(doc_portal)
+        verify_fs_layout(doc_portal)
 
     log("fuse tests ok")
     sys.exit(0)
