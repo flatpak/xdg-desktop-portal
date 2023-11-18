@@ -146,6 +146,33 @@ def assertRaisesErrno(error_nr, func, *args, **kwargs):
         )
 
 
+def assertRaisesGError(message, code, func, *args, **kwargs):
+    raised_exc = None
+    raised_exc_value = None
+    try:
+        func(*args, **kwargs)
+    except:
+        raised_exc = sys.exc_info()[0]
+        raised_exc_value = sys.exc_info()[1]
+
+    if not raised_exc:
+        raise AssertionError("No assertion was raised")
+    if raised_exc != GLib.GError:
+        raise AssertionError("GError was not raised")
+    if not raised_exc_value.message.startswith(message):
+        raise AssertionError(
+            "Wrong message {0} doesn't start with {1}".format(
+                raised_exc_value.message, message
+            )
+        )
+    if raised_exc_value.code != code:
+        raise AssertionError(
+            "Wrong code {0} was raised instead of {1}".format(
+                raised_exc_value.code, code
+            )
+        )
+
+
 def assertFileHasContent(path, expected_content):
     with open(path) as f:
         file_content = f.read()
@@ -449,6 +476,61 @@ class DocPortal:
     def app_path(self, app_id):
         return self.mountpoint + "/by-app/" + app_id
 
+class FileTransferPortal(DocPortal):
+    def __init__(self):
+        super().__init__()
+        self.ft_proxy = Gio.DBusProxy.new_sync(
+            self.bus,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            "org.freedesktop.portal.Documents",
+            "/org/freedesktop/portal/documents",
+            "org.freedesktop.portal.FileTransfer",
+            None,
+        )
+
+    def start_transfer(self):
+        res = self.ft_proxy.call_sync("StartTransfer", GLib.Variant("(a{sv})", ([None])), 0, -1, None)
+        return res[0]
+
+    def add_files(self, key, files):
+        fdlist = Gio.UnixFDList.new()
+        handles = []
+        for filename in files:
+            fd = os.open(filename, os.O_PATH)
+            handle = fdlist.append(fd)
+            handles.append(handle)
+            os.close(fd)
+
+        res = self.ft_proxy.call_with_unix_fd_list_sync(
+            "AddFiles",
+            GLib.Variant("(saha{sv})", (key, handles, [])),
+            0,
+            -1,
+            fdlist,
+            None,
+        )
+        return res
+
+    def retrieve_files(self, key):
+        res = self.ft_proxy.call_sync(
+            "RetrieveFiles",
+            GLib.Variant("(sa{sv})", (key, [])),
+            0,
+            -1,
+            None,
+        )
+        return res
+
+    def stop_transfer(self, key):
+        res = self.ft_proxy.call_sync(
+            "StopTransfer",
+            GLib.Variant("(s)", (key,)),
+            0,
+            -1,
+            None,
+        )
+        return res
 
 def check_virtual_stat(info, writable=False):
     assert info.st_uid == os.getuid()
@@ -1045,6 +1127,51 @@ def add_an_app(portal, num_docs):
         doc.apps.append(write_app)
     logv("granted acces to %s and %s for %s" % (read_app, write_app, ids))
 
+def file_transfer_portal_test():
+    log("File transfer tests")
+    ft_portal = FileTransferPortal()
+
+    key = ft_portal.start_transfer()
+
+    file1 = ensure_real_dir_file(True)
+    file2 = ensure_real_dir_file(True)
+    res = ft_portal.add_files(key, [file1, file2])
+
+    res = ft_portal.retrieve_files(key)
+    files = res[0]
+    assert len(files) == 2
+    # This is the same app, it's not sandboxed
+    assert files[0] == file1
+    assert files[1] == file2
+    log("filetransfer tests ok")
+
+    log("filetransfer dir")
+    # File transfer doesn't support lists with directories.
+    # See https://github.com/flatpak/xdg-desktop-portal/issues/911
+    dir1 = ensure_real_dir(True)
+    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, key, [file1, file2, dir1[0]])
+    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.retrieve_files, key)
+    log("filetransfer dir ok")
+
+    log("filetransfer key")
+    # Test that an invalid key is rejected
+    assert key != "1234"
+    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, "1234", [file1, file2])
+
+    # Test stop transfer
+    key = ft_portal.start_transfer()
+    ft_portal.add_files(key, [file1, file2])
+    ft_portal.stop_transfer(key)
+    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, key, [file1, file2])
+
+    # Test that we can't reuse an old key
+    new_key = ft_portal.start_transfer()
+    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, key, [file1, file2])
+    res = ft_portal.add_files(new_key, [file1, file2])
+    log("filetransfer key ok")
+
+    log("File transfer tests ok")
+
 try:
     log("Connecting to portal")
     doc_portal = DocPortal()
@@ -1084,6 +1211,8 @@ try:
         verify_fs_layout(doc_portal)
 
     log("fuse tests ok")
+    file_transfer_portal_test()
+
     sys.exit(0)
 except Exception as e:
     log("fuse tests failed: %s" % e)
