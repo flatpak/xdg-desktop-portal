@@ -1147,15 +1147,13 @@ def file_transfer_portal_test():
 
     log("filetransfer dir")
     key = ft_portal.start_transfer()
-    # File transfer doesn't support lists with directories.
-    # See https://github.com/flatpak/xdg-desktop-portal/issues/911
     dir1 = ensure_real_dir(True)
-    assertRaisesGError("GDBus.Error:org.freedesktop.portal.Error.NotAllowed", 36, ft_portal.add_files, key, [file1, dir1[0], file2])
+    ft_portal.add_files(key, [file1, dir1[0], file2])
     res = ft_portal.retrieve_files(key)
-    # This doesn't look right, it should be empty but is not. It just stopped
-    # when a directory was encountered.
-    assert len(res[0]) == 1
+    assert len(res[0]) == 3
     assert res[0][0] == file1
+    assert res[0][1] == dir1[0]
+    assert res[0][2] == file2
     log("filetransfer dir ok")
 
     log("filetransfer key")
