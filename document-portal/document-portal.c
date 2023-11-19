@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2023 GNOME Foundation Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +17,7 @@
  *
  * Authors:
  *       Alexander Larsson <alexl@redhat.com>
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #include "config.h"
@@ -506,7 +508,7 @@ portal_add (GDBusMethodInvocation *invocation,
         {
           int fd = fds[fd_id];
 
-          ids = document_add_full (&fd, NULL, NULL, 1, flags, app_info, "", 0, &error);
+          ids = document_add_full (&fd, NULL, NULL, &flags, 1, app_info, "", 0, &error);
         }
     }
 
@@ -697,6 +699,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   GDBusMessage *message;
   GUnixFDList *fd_list;
   g_autofree int *fd = NULL;
+  g_autofree DocumentAddFullFlags *documents_flags = NULL;
   g_auto(GStrv) ids = NULL;
   GError *error = NULL;
   GVariantBuilder builder;
@@ -724,6 +727,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
 
   n_args = g_variant_n_children (array);
   fd = g_new (int, n_args);
+  documents_flags = g_new (DocumentAddFullFlags, n_args);
   message = g_dbus_method_invocation_get_message (invocation);
   fd_list = g_dbus_message_get_unix_fd_list (message);
 
@@ -740,6 +744,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   for (i = 0; i < n_args; i++)
     {
       int fd_id;
+      documents_flags[i] = flags;
       g_variant_get_child (array, i, "h", &fd_id);
       if (fd_id < fds_len)
         fd[i] = fds[fd_id];
@@ -747,7 +752,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
         fd[i] = -1;
     }
 
-  ids = document_add_full (fd, NULL, NULL, n_args, flags, app_info, target_app_id, target_perms, &error);
+  ids = document_add_full (fd, NULL, NULL, documents_flags, n_args, app_info, target_app_id, target_perms, &error);
 
   if (ids == NULL)
     {
@@ -774,8 +779,8 @@ char **
 document_add_full (int                      *fd,
                    int                      *parent_dev,
                    int                      *parent_ino,
+                   DocumentAddFullFlags     *documents_flags,
                    int                       n_args,
-                   DocumentAddFullFlags      flags,
                    XdpAppInfo               *app_info,
                    const char               *target_app_id,
                    DocumentPermissionFlags   target_perms,
@@ -784,17 +789,10 @@ document_add_full (int                      *fd,
   const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
   g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
-  gboolean reuse_existing, persistent, as_needed_by_app, allow_write, is_dir;
   g_autofree struct stat *real_dir_st_bufs = NULL;
   struct stat st_buf;
   g_autofree gboolean *writable = NULL;
   int i;
-
-  reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
-  persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
-  as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
-  is_dir = (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0;
-  allow_write = (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) != 0;
 
   g_ptr_array_set_size (paths, n_args + 1);
   g_ptr_array_set_size (ids, n_args + 1);
@@ -803,7 +801,14 @@ document_add_full (int                      *fd,
 
   for (i = 0; i < n_args; i++)
     {
+      DocumentAddFullFlags flags;
       g_autofree char *path = NULL;
+      gboolean reuse_existing, allow_write, is_dir;
+
+      flags = documents_flags[i];
+      reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
+      is_dir = (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0;
+      allow_write = (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) != 0;
 
       if (!validate_fd (fd[i], app_info, is_dir ? VALIDATE_FD_FILE_TYPE_DIR : VALIDATE_FD_FILE_TYPE_REGULAR, &st_buf, &real_dir_st_bufs[i], &path, &writable[i], error))
         return NULL;
@@ -871,18 +876,26 @@ document_add_full (int                      *fd,
     }
 
   {
-    DocumentPermissionFlags caller_base_perms = DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
-                                                DOCUMENT_PERMISSION_FLAGS_READ;
-    DocumentPermissionFlags caller_write_perms = DOCUMENT_PERMISSION_FLAGS_WRITE;
-
-    /* If its a unique one its safe for the creator to delete it at will */
-    if (!reuse_existing)
-      caller_write_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
-
     XDP_AUTOLOCK (db); /* Lock once for all ops */
 
     for (i = 0; i < n_args; i++)
       {
+        DocumentAddFullFlags flags;
+        DocumentPermissionFlags caller_base_perms = DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
+                                                    DOCUMENT_PERMISSION_FLAGS_READ;
+        DocumentPermissionFlags caller_write_perms = DOCUMENT_PERMISSION_FLAGS_WRITE;
+        gboolean reuse_existing, persistent, as_needed_by_app, is_dir;
+
+        flags = documents_flags[i];
+        reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
+        as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
+        persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
+        is_dir = (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0;
+
+        /* If its a unique one its safe for the creator to delete it at will */
+        if (!reuse_existing)
+          caller_write_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
+
         const char *path = g_ptr_array_index(paths,i);
         g_assert (path != NULL);
 

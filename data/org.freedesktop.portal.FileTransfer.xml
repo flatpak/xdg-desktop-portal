@@ -87,15 +87,15 @@
     <!--
         AddFiles:
         @key: A key returned by org.freedesktop.portal.FileTransfer.StartTransfer()
-        @fds: File descriptors for the files to register
+        @fds: File descriptors for the files or directories to register
         @options: Vardict with optional further information
 
-        Adds files to a session. This method can be called multiple times on
-        a given session. Note that only regular files (not directories) can
+        Adds files or directories to a session. This method can be called multiple
+        times on a given session. Either regular files or directories can
         be added.
 
         Note that the session bus often has a low limit of file descriptors per
-        message (typically, 16), so you may have to send large file lists with
+        message (typically, 16), so you may have to send large lists with
         multiple org.freedesktop.portal.FileTransfer.AddFiles() calls.
 
         The @options vardict currently has no supported entries.
@@ -113,9 +113,9 @@
         @options: Vardict with optional further information
         @files: list of paths
 
-        Retrieves files that were previously added to the session with
-        org.freedesktop.portal.FileTransfer.AddFiles(). The files will be
-        exported in the document portal as-needed for the caller, and they
+        Retrieves files or directories that were previously added to the session with
+        org.freedesktop.portal.FileTransfer.AddFiles(). The files or directories
+        will be exported in the document portal as-needed for the caller, and they
         will be writable if the owner of the session allowed it.
 
         After the first org.freedesktop.portal.FileTransfer.RetrieveFiles() call,
