@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2023 GNOME Foundation Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +17,7 @@
  *
  * Authors:
  *       Matthias Clasen <mclasen@redhat.com>
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #include "config.h"
@@ -48,6 +50,7 @@ typedef struct
   char *path;
   int parent_dev;
   int parent_ino;
+  gboolean is_dir;
 } ExportedFile;
 
 static void
@@ -222,12 +225,14 @@ file_transfer_stop (FileTransfer *transfer)
 static void
 file_transfer_add_file (FileTransfer *transfer,
                         const char *path,
+                        struct stat *st_buf,
                         struct stat *parent_st_buf)
 {
   ExportedFile *file;
 
   file = g_new (ExportedFile, 1);
   file->path = g_strdup (path);
+  file->is_dir = S_ISDIR (st_buf->st_mode);
   file->parent_dev = parent_st_buf->st_dev;
   file->parent_ino = parent_st_buf->st_ino;
 
@@ -239,13 +244,14 @@ file_transfer_execute (FileTransfer *transfer,
                        XdpAppInfo *target_app_info,
                        GError **error)
 {
-  guint32 flags;
+  DocumentAddFullFlags common_flags;
   DocumentPermissionFlags perms;
   const char *target_app_id;
   int n_fds;
   g_autofree int *fds = NULL;
   g_autofree int *parent_devs = NULL;
   g_autofree int *parent_inos = NULL;
+  g_autofree DocumentAddFullFlags *documents_flags = NULL;
   int i;
   g_auto(GStrv) ids = NULL;
   char **files = NULL;
@@ -269,7 +275,7 @@ file_transfer_execute (FileTransfer *transfer,
       return files;
     }
 
-  flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
+  common_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
 
   perms = DOCUMENT_PERMISSION_FLAGS_READ;
   if (transfer->writable)
@@ -281,6 +287,7 @@ file_transfer_execute (FileTransfer *transfer,
   fds = g_new (int, n_fds);
   parent_devs = g_new (int, n_fds);
   parent_inos = g_new (int, n_fds);
+  documents_flags = g_new (DocumentAddFullFlags, n_fds);
   for (i = 0; i < n_fds; i++)
     {
       ExportedFile *file = (ExportedFile*)g_ptr_array_index (transfer->files, i);
@@ -294,11 +301,12 @@ file_transfer_execute (FileTransfer *transfer,
           return NULL;
         }
 
+      documents_flags[i] = common_flags | (file->is_dir ? DOCUMENT_ADD_FLAGS_DIRECTORY : 0);
       parent_devs[i] = file->parent_dev;
       parent_inos[i] = file->parent_ino;
     }
 
-  ids = document_add_full (fds, parent_devs, parent_inos, n_fds, flags, transfer->app_info, target_app_id, perms, error);
+  ids = document_add_full (fds, parent_devs, parent_inos, documents_flags, n_fds, transfer->app_info, target_app_id, perms, error);
 
   for (i = 0; i < n_fds; i++)
     close (fds[i]);
@@ -426,7 +434,7 @@ add_files (GDBusMethodInvocation *invocation,
           return;
         }
 
-      if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_REGULAR, &st_buf, &parent_st_buf, &path, &fd_is_writable, NULL) ||
+      if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &parent_st_buf, &path, &fd_is_writable, NULL) ||
           (transfer->writable && !fd_is_writable))
         {
           g_dbus_method_invocation_return_error (invocation,
@@ -436,7 +444,7 @@ add_files (GDBusMethodInvocation *invocation,
           return;
         }
 
-      file_transfer_add_file (transfer, path, &parent_st_buf);
+      file_transfer_add_file (transfer, path, &st_buf, &parent_st_buf);
     }
 
   g_dbus_method_invocation_return_value (invocation, NULL);
