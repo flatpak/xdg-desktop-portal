@@ -57,87 +57,66 @@
 
         The format of the serialized notification is a vardict, with
         the following supported keys, all of which are optional:
-        <variablelist>
-          <varlistentry>
-            <term>title s</term>
-            <listitem><para>
-              User-visible string to display as the title.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>body s</term>
-            <listitem><para>
-              User-visible string to display as the body.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>icon v</term>
-            <listitem><para>
-              Serialized icon (see g_icon_serialize()).
-            </para><para>
-              The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
-              these have the form (sv). For themed icons, the string is "themed",
-              and the value is an array of strings containing the icon names.
-              For bytes icons, the string is "bytes", and the value is a bytestring
-              containing the icon data in png, jpeg or svg form. For historical
-              reasons, it is also possible to send a simple string for themed
-              icons with a single icon name.
-            </para>
-            <para>
-              There may be further restrictions on the supported kinds of icons.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>priority s</term>
-            <listitem><para>
-              The priority for the notification. Supported values: low, normal,
-              high, urgent.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>default-action s</term>
-            <listitem><para>
-              Name of an action that is exported by the application. This
-              action will be activated when the user clicks on the notification.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>default-action-target v</term>
-            <listitem><para>
-              Target parameter to send along when activating the default action.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>buttons aa{sv}</term>
-            <listitem><para>
-              Array of serialized buttons to add to the notification.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
 
-        The format for serialized buttons is a vardict with the following supported keys:
-        <variablelist>
-          <varlistentry>
-            <term>label s</term>
-            <listitem><para>
-              User-visible label for the button. Mandatory.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>action s</term>
-            <listitem><para>
-              Name of an action that is exported by the application. The action
-              will be activated when the user clicks on the button. Mandatory.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>target v</term>
-            <listitem><para>
-              Target parameter to send along when activating the action.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
-    -->
+        * ``title`` (``s``)
+
+          User-visible string to display as the title.
+
+        * ``body`` (``s``)
+
+          User-visible string to display as the body.
+
+        * ``icon`` (``v``)
+
+          Serialized icon (see `g_icon_serialize()
+          <https://docs.gtk.org/gio/method.Icon.serialize.html>`_).
+
+          The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
+          these have the form (sv). For themed icons, the string is "themed",
+          and the value is an array of strings containing the icon names.
+          For bytes icons, the string is "bytes", and the value is a bytestring
+          containing the icon data in png, jpeg or svg form. For historical
+          reasons, it is also possible to send a simple string for themed
+          icons with a single icon name.
+
+          There may be further restrictions on the supported kinds of icons.
+
+        * ``priority`` (``s``)
+
+          The priority for the notification. Supported values:
+
+          - ``low``
+          - ``normal``
+          - ``high``
+          - ``urgent``
+
+        * ``default-action`` (``s``)
+
+          Name of an action that is exported by the application. This
+          action will be activated when the user clicks on the notification.
+
+        * ``default-action-target`` (``v``)
+
+          Target parameter to send along when activating the default action.
+
+        * ``buttons`` (``aa{sv}``)
+
+          Array of serialized buttons to add to the notification. The format for
+          serialized buttons is a vardict with the following supported keys:
+
+          * ``label`` (``s``)
+
+            User-visible label for the button. Mandatory.
+
+          * ``action`` (``s``)
+
+            Name of an action that is exported by the application. The action
+            will be activated when the user clicks on the button. Mandatory.
+
+          * ``target`` (``v``)
+
+            Target parameter to send along when activating the action.
+      -->
     <method name="AddNotification">
       <arg type="s" name="id" direction="in"/>
       <arg type="a{sv}" name="notification" direction="in"/>
@@ -156,8 +135,7 @@
         ActionInvoked:
         @id: the application-provided ID for the notification
         @action: the name of the action
-        @parameter: array which will contain the target parameter
-          for the action, if one was specified
+        @parameter: array which will contain the target parameter for the action, if one was specified
 
         Send to the application when a non-exported action is
         activated.

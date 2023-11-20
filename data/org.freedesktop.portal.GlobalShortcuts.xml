@@ -103,45 +103,32 @@
 
         Supported keys in the @options vardict include:
 
-        * ``handle_token`` s</term>
-            <listitem><para>
-              A string that will be used as the last element of the
-              @handle. Must be a valid object path element. See the
-              #org.freedesktop.portal.Request documentation for more
-              information about the @handle.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``handle_token```` (``s``)
+
+          A string that will be used as the last element of the
+          @handle. Must be a valid object path element. See the
+          #org.freedesktop.portal.Request documentation for more
+          information about the @handle.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>shortcuts a(sa{sv})</term>
-            <listitem><para>
-              A list of shortcuts. The list of keys it may contain is described
-              below, and is different from the @shortcuts variable of this method.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``shortcuts a(sa{sv})</term>
+
+          A list of shortcuts. The list of keys it may contain is described
+          below, and is different from the @shortcuts variable of this method.
 
         Each element of the @shortcuts array returned by the
         #org.freedesktop.portal.Request::Response signal is a tuple composed of
         a shortcut id, and a vardict with the following keys:
-        <variablelist>
-          <varlistentry>
-            <term>description s</term>
-            <listitem><para>
-              User-readable text describing what the shortcut does.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>trigger_description s</term>
-            <listitem><para>
-              User-readable text describing how to trigger the shortcut for the
-              client to render.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``description`` (``s``)
+
+          User-readable text describing what the shortcut does.
+
+        * ``trigger_description`` (``s``)
+
+          User-readable text describing how to trigger the shortcut for the
+          client to render.
     -->
     <method name="BindShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
