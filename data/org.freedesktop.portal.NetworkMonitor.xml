@@ -72,12 +72,11 @@
 
         Returns more detailed information about the host's network
         connectivity. The meaning of the value is:
-        <simplelist>
-          <member>1: Local only. The host is not configured with a route to the internet.</member>
-          <member>2: Limited connectivity. The host is connected to a network, but can't reach the full internet.</member>
-          <member>3: Captive portal. The host is behind a captive portal and cannot reach the full internet.</member>
-          <member>4: Full network. The host connected to a network, and can reach the full internet.</member>
-        </simplelist>
+
+        - ``1``: Local only. The host is not configured with a route to the internet.
+        - ``2``: Limited connectivity. The host is connected to a network, but can't reach the full internet.
+        - ``3``: Captive portal. The host is behind a captive portal and cannot reach the full internet.
+        - ``4``: Full network. The host connected to a network, and can reach the full internet.
 
         This method was added in version 2 to replace
         the connectivity property.
@@ -92,26 +91,18 @@
         Returns the three values all at once.
 
         The following results get returned via @status:
-        <variablelist>
-          <varlistentry>
-            <term>available b</term>
-            <listitem><para>
-              Whether the network is available.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>metered b</term>
-            <listitem><para>
-              Whether the network is metered.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>connectivity u</term>
-            <listitem><para>
-              The level of connectivity.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``available`` (``b``)
+
+          Whether the network is available.
+
+        * ``metered`` (``b``)
+
+          Whether the network is metered.
+
+        * ``connectivity`` (``u``)
+
+          The level of connectivity.
 
         This method was added in version 3 to avoid multiple round-trips.
     -->

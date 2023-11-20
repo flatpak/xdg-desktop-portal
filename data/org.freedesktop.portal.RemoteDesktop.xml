@@ -49,36 +49,27 @@
         integration.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>session_handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the session handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Session documentation for
-              more information about the session handle.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Session documentation for
+          more information about the session handle.
+
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>session_handle o</term>
-            <listitem><para>
-              The session handle. An object path for the
-              #org.freedesktop.portal.Session object representing the created
-              session.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``session_handle`` (``o``)
+
+          The session handle. An object path for the
+          #org.freedesktop.portal.Session object representing the created
+          session.
     -->
     <method name="CreateSession">
       <arg type="a{sv}" name="options" direction="in"/>
@@ -93,58 +84,46 @@
         Select input devices to remote control.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>types u</term>
-            <listitem><para>
-              Bitmask of what device types to request remote controlling of.
-              Default is all.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>restore_token s</term>
-            <listitem><para>
-              The token to restore a previous session.
 
-              If the stored session cannot be restored, this value is ignored
-              and the user will be prompted normally. This may happen when, for
-              example, the session contains a monitor or a window that is not
-              available anymore, or when the stored permissions are withdrawn.
+        * ``handle_token`` (``s``)
 
-              The restore token is invalidated after using it once. To restore
-              the same session again, use the new restore token sent in response
-              to starting this session.
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
 
-              This option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>persist_mode u</term>
-            <listitem><para>
-              How this session should persist. Default is 0. Accepted values are:
+        * ``types`` (``u``)
 
-              <simplelist>
-                <member>0: Do not persist (default)</member>
-                <member>1: Permissions persist as long as the application is running</member>
-                <member>2: Permissions persist until explicitly revoked</member>
-              </simplelist>
+          Bitmask of what device types to request remote controlling of.
+          Default is all.
 
-              If the permission for the session to persist is granted, a restore token will
-              be returned via the #org.freedesktop.portal.Request::Response signal of the
-              start method used to start the session.
+        * ``restore_token`` (``s``)
 
-              This option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+          The token to restore a previous session.
+
+          If the stored session cannot be restored, this value is ignored
+          and the user will be prompted normally. This may happen when, for
+          example, the session contains a monitor or a window that is not
+          available anymore, or when the stored permissions are withdrawn.
+
+          The restore token is invalidated after using it once. To restore
+          the same session again, use the new restore token sent in response
+          to starting this session.
+
+          This option was added in version 2 of this interface.
+
+        * ``persist_mode`` (``u``)
+
+          How this session should persist. Default is 0. Accepted values are:
+
+          - ``0``: Do not persist (default)
+          - ``1``: Permissions persist as long as the application is running
+          - ``2``: Permissions persist until explicitly revoked
+
+          If the permission for the session to persist is granted, a restore token will
+          be returned via the #org.freedesktop.portal.Request::Response signal of the
+          start method used to start the session.
+
+          This option was added in version 2 of this interface.
 
         For available device types, see the AvailableDeviceTypes property.
     -->
@@ -166,45 +145,33 @@
         selected.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
 
         The following results get returned via the
         #org.freedesktop.portal.Request::Response signal:
-        <variablelist>
-          <varlistentry>
-            <term>devices u</term>
-            <listitem><para>
-              A bitmask of the devices selected by the user.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>clipboard_enabled b</term>
-            <listitem><para>
-              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
-              See the #org.freedesktop.portal.Clipboard documentation for more information.
-              Since version 2.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>restore_token s</term>
-            <listitem><para>
-              The restore token. This token is a single use token that can later
-              be used to restore a session. See
-              org.freedesktop.portal.RemoteDesktop.SelectDevices() for details.
 
-              This response option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``devices`` (``u``)
+
+          A bitmask of the devices selected by the user.
+
+        * ``clipboard_enabled`` (``b``)
+
+          A boolean for whether the clipboard was enabled ('true') or not ('false').
+          See the #org.freedesktop.portal.Clipboard documentation for more information.
+          Since version 2.
+
+        * ``restore_token`` (``s``)
+
+          The restore token. This token is a single use token that can later
+          be used to restore a session. See
+          org.freedesktop.portal.RemoteDesktop.SelectDevices() for details.
+
+          This response option was added in version 2 of this interface.
 
         If a screen cast source was selected, the results of the
         #org.freedesktop.portal.ScreenCast.Start response signal may be
@@ -266,10 +233,9 @@
         session.
 
         Available button states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyPointerButton">
       <arg type="o" name="session_handle" direction="in"/>
@@ -292,16 +258,12 @@
         session.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>finish b</term>
-            <listitem><para>
-              If set to true, this is the last axis event in a series, for
-              example as a result of the fingers being lifted from a touchpad
-              after a two-finger scroll.  Default is false.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``finish`` (``b``)
+
+          If set to true, this is the last axis event in a series, for
+          example as a result of the fingers being lifted from a touchpad
+          after a two-finger scroll.  Default is false.
     -->
     <method name="NotifyPointerAxis">
       <arg type="o" name="session_handle" direction="in"/>
@@ -320,10 +282,10 @@
         session.
 
         Available axes:
-        <simplelist>
-          <member>0: Vertical scroll</member>
-          <member>1: Horizontal scroll</member>
-        </simplelist>
+
+        - ``0``: Vertical scroll
+        - ``1``: Horizontal scroll
+
     -->
     <method name="NotifyPointerAxisDiscrete">
       <arg type="o" name="session_handle" direction="in"/>
@@ -342,10 +304,9 @@
         session.
 
         Available keyboard keycode states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyKeyboardKeycode">
       <arg type="o" name="session_handle" direction="in"/>
@@ -364,10 +325,9 @@
         session.
 
         Available keyboard keysym states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyKeyboardKeysym">
       <arg type="o" name="session_handle" direction="in"/>
@@ -456,15 +416,15 @@
         This method may only be called once per session, where the EIS
         implementation disconnects the session should be closed.
 
-        This method must be called after #org.freedesktop.portal.RemoteDesktop.Start()
+        This method must be called after org.freedesktop.portal.RemoteDesktop.Start()
 
         Once an EIS connection is established, input events must be sent exclusively via
         the EIS connection. Any events submitted via NotifyPointerMotion,
         NotifyKeyboardKeycode and other Notify* methods will return an error.
 
         To see how to pair a PipeWire stream with a libei device region, see the
-        documentation for the mapping_id stream property in
-        #org.freedesktop.portal.RemoteDesktop.Start().
+        documentation for the ``mapping_id`` stream property in
+        org.freedesktop.portal.RemoteDesktop.Start().
 
         This method was added in version 2 of this interface.
     -->
@@ -481,11 +441,9 @@
 
         A bitmask of available source types. Currently defined types are:
 
-        <simplelist>
-          <member>1: KEYBOARD</member>
-          <member>2: POINTER</member>
-          <member>4: TOUCHSCREEN</member>
-        </simplelist>
+        - ``1``: KEYBOARD
+        - ``2``: POINTER
+        - ``4``: TOUCHSCREEN
     -->
     <property name="AvailableDeviceTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

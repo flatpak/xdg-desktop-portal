@@ -36,26 +36,17 @@
       The list of applications that are considered to be running in
       background. The following keys are supported:
 
-      <variablelist>
-        <varlistentry>
-          <term>app_id s</term>
-          <listitem><para>
-            App id of the application.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>instance s</term>
-          <listitem><para>
-            The Flatpak instance of the application.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>message s</term>
-          <listitem><para>
-            Status message reported by the application. Optional.
-          </para></listitem>
-        </varlistentry>
-      </variablelist>
+      * ``app_id`` (``s``)
+
+        App id of the application.
+
+      * ``instance`` (``s``)
+
+        The Flatpak instance of the application.
+
+      * ``message`` (``s``)
+
+        Status message reported by the application. Optional.
     -->
     <property name="BackgroundApps" type="aa{sv}" access="read"/>
 

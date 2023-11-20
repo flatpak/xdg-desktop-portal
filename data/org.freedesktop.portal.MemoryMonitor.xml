@@ -38,8 +38,8 @@
 
         Signal emitted when a particular low memory situation happens with 0 being the lowest
         level of memory availability warning, and 255 being the highest. Those levels are defined
-        and documented in <ulink url="https://hadess.pages.freedesktop.org/low-memory-monitor/">
-        Low Memory Monitor's documentation</ulink>.
+        and documented in `Low Memory Monitor's documentation
+        <https://hadess.pages.freedesktop.org/low-memory-monitor/>`_.
     -->
     <signal name="LowMemoryWarning">
       <arg name="level" type="y"/>

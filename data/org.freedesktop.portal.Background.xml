@@ -92,6 +92,7 @@
       Supported keys in the @options vardict include:
 
       * ``message`` (``s``)
+
         A string that will be used as the status message of the application.
         This should be a single line that can be presented to the user in a
         list, not a full sentence or paragraph. Must be shorter than 96

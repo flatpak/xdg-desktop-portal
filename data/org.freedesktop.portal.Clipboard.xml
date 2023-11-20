@@ -90,8 +90,7 @@
         SelectionWriteDone:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @serial: The serial of the request where this answer is directed to
-        @success: A boolean which indicates whether the transfer of the clipboard
-          data was successful ('true') or not ('false')
+        @success: A boolean which indicates whether the transfer of the clipboard data was successful (``true``) or not (``false``)
 
         Notifies that the transfer of the clipboard data has either completed
         successfully, or failed.
