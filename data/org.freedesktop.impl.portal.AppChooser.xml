@@ -33,7 +33,7 @@
         @handle: Object path to export the Request object at
         @app_id: App id of the application
         @title: Title for the app chooser dialog
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @choices: App ids of applications to let the user choose from
         @options: Vardict with optional further information
         @response: Numeric response

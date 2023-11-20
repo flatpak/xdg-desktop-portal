@@ -40,6 +40,7 @@ Sessions can be ended from the application side by calling the Close() method on
 the session. They can also be closed from the service side, in which case the
 ::Closed signal is emitted on the Session object to inform the application.
 
+.. _window-identifiers:
 Parent window identifiers
 -------------------------
 
