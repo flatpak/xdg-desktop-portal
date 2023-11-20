@@ -96,7 +96,7 @@
 
         The following results get returned in the @results vardict:
 
-        * ``shortcuts a(sa{sv})</term>
+        * ``shortcuts`` (``a(sa{sv})``)
 
           A list of shortcuts.
 
