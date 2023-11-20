@@ -29,29 +29,22 @@
 
     Currently the interface provides the following keys:
 
-    <variablelist>
-      <varlistentry>
-        <term>org.freedesktop.appearance color-scheme u</term>
-        <listitem><para>
-          Indicates the system's preferred color scheme.
-          Supported values are:
-          <simplelist>
-            <member>0: No preference</member>
-            <member>1: Prefer dark appearance</member>
-            <member>2: Prefer light appearance</member>
-          </simplelist>
-          Unknown values should be treated as 0 (no preference).
-        </para></listitem>
-      </varlistentry>
-      <varlistentry>
-        <term>org.freedesktop.appearance accent-color (ddd)</term>
-        <listitem><para>
-          Indicates the system's preferred accent color as a tuple of RGB values
-          in the sRGB color space, in the range [0,1].
-          Out-of-range RGB values should be treated as an unset accent color.
-        </para></listitem>
-      </varlistentry>
-    </variablelist>
+    * ``org.freedesktop.appearance`` ``color-scheme`` (``u``)
+
+      Indicates the system's preferred color scheme.
+      Supported values are:
+
+      - ``0``: No preference
+      - ``1``: Prefer dark appearance
+      - ``2``: Prefer light appearance
+
+      Unknown values should be treated as 0 (no preference).
+
+    * ``org.freedesktop.appearance`` ``accent-color`` (``(ddd)``)
+
+      Indicates the system's preferred accent color as a tuple of RGB values
+      in the sRGB color space, in the range [0,1].
+      Out-of-range RGB values should be treated as an unset accent color.
 
     Implementations can provide other keys; they are entirely
     implementation details that are undocumented. If you are a

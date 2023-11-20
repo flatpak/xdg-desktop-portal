@@ -65,8 +65,7 @@
         @app_id: App id of the application
         @id: the application-provided ID for the notification
         @action: the name of the action
-        @parameter: array which will contain the target parameter
-          for the action, if one was specified
+        @parameter: array which will contain the target parameter for the action, if one was specified
 
         Send to the application when a non-exported action is
         activated.

@@ -40,39 +40,28 @@
         Takes a screenshot.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>modal b</term>
-            <listitem><para>
-              Whether the dialog should be modal. Defaults to yes.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>interactive b</term>
-            <listitem><para>
-              Hint whether the dialog should offer customization before taking a screenshot.
-              Defaults to no.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>permission_store_checked b</term>
-            <listitem><para>
-              Hint whether the screenshot portal has checked the 'screenshot' permission for
-              the requesting app. Defaults to no.
 
-              This option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``modal`` (``b``)
+
+          Whether the dialog should be modal. Defaults to yes.
+
+        * ``interactive`` (``b``)
+
+          Hint whether the dialog should offer customization before taking a screenshot.
+          Defaults to no.
+
+        * ``permission_store_checked`` (``b``)
+
+          Hint whether the screenshot portal has checked the 'screenshot' permission for
+          the requesting app. Defaults to no.
+
+          This option was added in version 2 of this interface.
 
         The following results get returned via the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>uri s</term>
-            <listitem><para>A string containing the uri of the screenshot.</para></listitem>
-          </varlistentry>
-        </variablelist>
 
+        * ``uri`` (``s``)
+
+          A string containing the URI of the screenshot.
     -->
     <method name="Screenshot">
       <arg type="o" name="handle" direction="in"/>
@@ -97,12 +86,10 @@
         Obtains the value of a pixel.
 
         The following results get returned via the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>color (ddd)</term>
-            <listitem><para>The color, rgb values in the range [0,1].</para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``color``` (``(ddd)``)
+
+          The color, RGB values in the range [0,1].
     -->
     <method name="PickColor">
       <arg type="o" name="handle" direction="in"/>
