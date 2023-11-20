@@ -51,7 +51,7 @@
       captured. The transport of actual input events is delegated to a
       transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--
@@ -90,6 +90,40 @@
               SupportedCapabilities property. This value is required and must not be zero.
             </para></listitem>
           </varlistentry>
+          <varlistentry>
+            <term>restore_token s</term>
+            <listitem><para>
+              The token to restore a previous session.
+
+              If the stored session cannot be restored, this value is ignored
+              and the user will be prompted normally. This may happen when, for
+              example, the session contains a monitor or a window that is not
+              available anymore, or when the stored permissions are withdrawn.
+
+              The restore token is invalidated after using it once. To restore
+              the same session again, use the new restore token sent in response
+              to starting this session.
+
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>persist_mode u</term>
+            <listitem><para>
+              How this session should persist. Default is 0. Accepted values are:
+
+              <simplelist>
+                <member>0: Do not persist (default)</member>
+                <member>1: Permissions persist as long as the application is running</member>
+                <member>2: Permissions persist until explicitly revoked</member>
+              </simplelist>
+
+              If the permission for the session to persist is granted, a restore token will
+              be returned via the #org.freedesktop.portal.Request::Response signal.
+
+              This option was added in version 2 of this interface.
+            </para></listitem>
+          </varlistentry>
         </variablelist>
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
@@ -115,6 +149,16 @@
               It is best to view this set as a negative confirmation - a
               capability that was requested but is missing is an indication that
               this application may not capture events of that capability.
+            </para></listitem>
+          </varlistentry>
+          <varlistentry>
+            <term>restore_token s</term>
+            <listitem><para>
+              The restore token. This token is a single use token that can later
+              be used to restore a session. See
+              org.freedesktop.portal.InputCapture.CreateSession() for details.
+
+              This response option was added in version 2 of this interface.
             </para></listitem>
           </varlistentry>
         </variablelist>

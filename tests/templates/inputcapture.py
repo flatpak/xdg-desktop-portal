@@ -2,6 +2,7 @@
 #
 # This file is formatted with Python Black
 
+from tests.templates import Response, ImplSession
 from collections import namedtuple
 from itertools import count
 from gi.repository import GLib
@@ -15,7 +16,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.InputCapture"
-VERSION = 1
+VERSION = 2
 
 logger = logging.getLogger(f"templates.{__name__}")
 logger.setLevel(logging.DEBUG)
@@ -53,7 +54,7 @@ def load(mock, parameters={}):
         ),
     )
 
-    mock.active_session_handles = []
+    mock.sessions: dict[str, ImplSession] = {}
 
 
 @dbus.service.method(
@@ -67,6 +68,9 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
 
         assert "capabilities" in options
 
+        session = ImplSession(self, BUS_NAME, session_handle).export()
+        self.sessions[session_handle] = session
+
         # Filter to the subset of supported capabilities
         if self.capabilities is None:
             capabilities = options["capabilities"]
@@ -74,10 +78,31 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
             capabilities = self.capabilities
 
         capabilities &= self.supported_capabilities
-        response = Response(0, {})
 
+        response = Response(0, {"session_handle": session.handle})
         response.results["capabilities"] = dbus.UInt32(capabilities)
-        self.active_session_handles.append(session_handle)
+
+        if options.get("persist_mode") != 0:
+            restore_data = options.get("restore_data")
+            if not restore_data:
+                # The restore data isn't actually visible to the app but oh well
+                data = dbus.String("some restore token", variant_level=1)
+                self.restore_data = dbus.Struct(
+                    list(
+                        [
+                            dbus.String("TEST", variant_level=0),
+                            dbus.UInt32(1, variant_level=0),
+                            data,
+                        ]
+                    ),
+                    signature="suv",
+                    variant_level=0,
+                )
+            else:
+                if restore_data != self.restore_data:
+                    logger.error(f"Invalid restore_data passed")
+                    return (2, {})
+            response.results["restore_data"] = self.restore_data
 
         logger.debug(f"CreateSession with response {response}")
 
@@ -96,7 +121,7 @@ def GetZones(self, handle, session_handle, app_id, options):
     try:
         logger.debug(f"GetZones({session_handle}, {options})")
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
 
         response = Response(0, {})
         response.results["zones"] = self.default_zone
@@ -127,7 +152,7 @@ def SetPointerBarriers(
             f"SetPointerBarriers({session_handle}, {options}, {barriers}, {zone_set})"
         )
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
         assert zone_set == self.current_zone_set
 
         self.current_barriers = []
@@ -192,7 +217,7 @@ def Enable(self, session_handle, app_id, options):
     try:
         logger.debug(f"Enable({session_handle}, {options})")
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
 
         # for use in the signals
         activation_id = next(serials)
@@ -250,7 +275,7 @@ def Disable(self, session_handle, app_id, options):
     try:
         logger.debug(f"Disable({session_handle}, {options})")
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
     except Exception as e:
         logger.critical(e)
         return (2, {})
@@ -265,7 +290,7 @@ def Release(self, session_handle, app_id, options):
     try:
         logger.debug(f"Release({session_handle}, {options})")
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
     except Exception as e:
         logger.critical(e)
         return (2, {})
@@ -280,7 +305,7 @@ def ConnectToEIS(self, session_handle, app_id, options):
     try:
         logger.debug(f"ConnectToEIS({session_handle}, {options})")
 
-        assert session_handle in self.active_session_handles
+        assert session_handle in self.sessions
 
         sockets = socket.socketpair()
         self.eis_socket = sockets[0]

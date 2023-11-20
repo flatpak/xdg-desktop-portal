@@ -3,7 +3,8 @@
 # This file is formatted with Python Black
 
 from gi.repository import GLib
-
+from . import Response, Session
+from enum import IntEnum
 from itertools import count
 
 import dbus
@@ -27,8 +28,20 @@ def zones():
     return default_zones()
 
 
+class PersistMode(IntEnum):
+    NONE = 0
+    TRANSIENT = 1
+    PERSISTENT = 2
+
+
 class TestInputCapture:
-    def create_session(self, portal_mock, capabilities=0xF):
+    def create_session(
+        self,
+        portal_mock,
+        capabilities=0xF,
+        restore_token=None,
+        persist_mode=PersistMode.NONE,
+    ) -> Response:
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -38,25 +51,27 @@ class TestInputCapture:
         capabilities = dbus.UInt32(capabilities, variant_level=1)
         session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
 
-        options = dbus.Dictionary(
-            {
-                "capabilities": capabilities,
-                "session_handle_token": session_handle_token,
-            },
-            signature="sv",
-        )
+        options = {
+            "capabilities": capabilities,
+            "session_handle_token": session_handle_token,
+        }
+        if restore_token:
+            options["restore_token"] = dbus.String(restore_token)
 
-        response, results = request.call(
-            "CreateSession", parent_window="", options=options
-        )
-        assert response == 0
-        assert "session_handle" in results
-        assert "capabilities" in results
-        caps = results["capabilities"]
+        if persist_mode:
+            options["persist_mode"] = dbus.UInt32(persist_mode)
+
+        options = dbus.Dictionary(options, signature="sv")
+
+        response = request.call("CreateSession", parent_window="", options=options)
+        assert response.response == 0
+        assert "session_handle" in response.results
+        assert "capabilities" in response.results
+        caps = response.results["capabilities"]
         # Returned capabilities must be a subset of the requested ones
         assert caps & ~capabilities == 0
 
-        self.current_session_handle = results["session_handle"]
+        self.current_session_handle = response.results["session_handle"]
 
         # Check the impl portal was called with the right args
         method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
@@ -64,8 +79,14 @@ class TestInputCapture:
         _, args = method_calls[-1]
         assert args[3] == ""  # parent window
         assert args[4]["capabilities"] == capabilities
+        if persist_mode:
+            assert args[4]["persist_mode"] == persist_mode
 
-        return response, results
+        # if restore_token:
+        #     # The portal converts from token to data, we don't know the exact data
+        #     assert args[4]["restore_data"] is not None
+
+        return response
 
     def get_zones(self, portal_mock):
         """
@@ -180,7 +201,7 @@ class TestInputCapture:
             assert pos == cursor_position
 
     def test_version(self, portal_mock):
-        portal_mock.check_version(1)
+        portal_mock.check_version(2)
 
     @pytest.mark.parametrize(
         "params",
@@ -613,3 +634,56 @@ class TestInputCapture:
         # Release() implies deactivated
         assert not deactivated_signal_received
         assert not disabled_signal_received
+
+    def test_restore_session(self, portal_mock):
+        import uuid
+
+        # This should initialize a session with restore_data
+        response = self.create_session(portal_mock, persist_mode=PersistMode.TRANSIENT)
+        assert response.response == 0
+        restore_token = response.results["restore_token"]
+        assert restore_token is not None
+        try:
+            # We cannot see the actual data but we can verify our token is a valid UUID
+            uuid.UUID(restore_token)
+        except ValueError as e:
+            pytest.fail(f"Invalid UUID: {e}")
+
+        session = Session.from_response(portal_mock.dbus_con, response)
+        session.close()
+
+        mainloop = GLib.MainLoop()
+        GLib.timeout_add(500, mainloop.quit)
+        mainloop.run()
+
+        assert session.closed
+
+        # Second session, try to restore it with the token
+        response, results = self.create_session(
+            portal_mock, persist_mode=PersistMode.TRANSIENT, restore_token=restore_token
+        )
+        assert response == 0
+        assert results["restore_token"] is not None
+        # An implementation detail, the spec does not require it
+        assert results["restore_token"] == restore_token
+
+        # Third session, try to restore with an invalid token which is silently ignored
+        # but should give us a new restore token
+        response, results = self.create_session(
+            portal_mock,
+            persist_mode=PersistMode.TRANSIENT,
+            restore_token=str(uuid.uuid4()),
+        )
+        assert response == 0
+        assert results["restore_token"] is not None
+        assert results["restore_token"] != restore_token
+
+        # Fourth session, try to restore with a non-uuid value
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            self.create_session(
+                portal_mock, persist_mode=PersistMode.TRANSIENT, restore_token="blah"
+            )
+            assert (
+                "Restore token is not a valid UUID string"
+                in excinfo.value.get_dbus_message()
+            )
