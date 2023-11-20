@@ -30,6 +30,7 @@
     Currently the interface provides the following keys:
 
     * ``org.freedesktop.appearance`` ``color-scheme`` (``u``)
+
       Indicates the system's preferred color scheme.
       Supported values are:
 
@@ -40,6 +41,7 @@
       Unknown values should be treated as ``0`` (no preference).
 
     * ``org.freedesktop.appearance`` ``accent-color`` (``(ddd)``)
+
       Indicates the system's preferred accent color as a tuple of RGB values in
       the sRGB color space, in the range [0,1]. Out-of-range RGB values should
       be treated as an unset accent color.

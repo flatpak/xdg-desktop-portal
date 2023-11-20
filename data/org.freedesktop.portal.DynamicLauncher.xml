@@ -107,37 +107,45 @@
         Supported keys in the @options vardict:
 
         * ``handle_token`` (``s``)
+
           A string that will be used as the last element of the @handle. Must be a valid
           object path element. See the #org.freedesktop.portal.Request documentation for
           more information about the @handle.
 
         * ``modal`` (``b``)
+
           Whether to make the dialog modal. Defaults to true.
 
         * ``launcher_type`` (``u``)
+
           The type of launcher being created. For supported values see the
           #org.freedesktop.portal.DynamicLauncher:SupportedLauncherTypes property.
           Defaults to "Application".
 
         * ``target`` (``s``)
+
           For a launcher of type "Webapp", this is the URL of the web app
           being installed. This is displayed in the user-facing dialog.
           For other launcher types, this is not needed.
 
         * ``editable_name`` (``b``)
+
           If true, the user will be able to edit the name of the launcher.
           Defaults to true.
 
         * ``editable_icon`` (``b``)
+
           If true, the user will be able to edit the icon of the launcher,
           if the implementation supports this. Defaults to false.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
 
         * ``name`` (``s``)
+
           The name chosen by the user for the launcher.
 
         * ``token`` (``s``)
+
           Token that can be passed to a subsequent org.freedesktop.portal.DynamicLauncher.Install() call to
           complete the installation without another dialog.
     -->
@@ -276,6 +284,7 @@
         Supported keys in the @options vardict include:
 
         * ``activation_token`` (``s``)
+
           A token that can be used to activate the chosen application.
     -->
     <method name="Launch">

@@ -48,9 +48,11 @@
           more information about the @handle.
 
         * ``modal`` (``b``)
+
           Whether the dialog should be modal. Default is yes.
 
         * ``interactive`` (``b``)
+
           Hint whether the dialog should offer customization before taking a screenshot.
           Default is no.  **Since version 2.**
 
@@ -58,6 +60,7 @@
         signal:
 
         * ``uri`` (``s``)
+
           String containing the uri of the screenshot.
     -->
     <method name="Screenshot">
@@ -76,6 +79,7 @@
         Supported keys in the @options vardict include:
 
         * ``handle_token`` (``s``)
+
           A string that will be used as the last element of the @handle. Must be a valid
           object path element. See the #org.freedesktop.portal.Request documentation for
           more information about the @handle.
@@ -83,6 +87,7 @@
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
 
         * ``color`` (``(ddd)``)
+
           The color, RGB values in the range [0,1], in the sRGB color space.
       -->
     <method name="PickColor">

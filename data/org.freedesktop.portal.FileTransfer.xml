@@ -63,6 +63,7 @@
         Supported keys in the @options vardict include:
 
         * ``writable`` (``b``)
+
           Whether to allow the chosen application to write to the files.
 
           This key only takes effect for files that need to be exported
@@ -72,6 +73,7 @@
           Default: False
 
         * ``autostop`` (``b``)
+
           Whether to stop the transfer automatically after the first
           org.freedesktop.portal.FileTransfer.RetrieveFiles() call.
 

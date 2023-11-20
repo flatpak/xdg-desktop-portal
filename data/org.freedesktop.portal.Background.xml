@@ -41,31 +41,38 @@
         Supported keys in the @options vardict include:
 
         * ``handle_token`` (``s``)
+
           A string that will be used as the last element of the @handle.
           Must be a valid object path element. See the
           #org.freedesktop.portal.Request documentation for more
           information about the @handle.
 
         * ``reason`` (``s``)
+
           User-visible reason for the request.
 
         * ``autostart`` (``b``)
+
           true if the app also wants to be started automatically at login.
 
         * ``commandline`` (``as``)
+
           Commandline to use add when autostarting at login. If this is not
           specified, the ``Exec`` key from the desktop file will be used.
 
         * ``dbus-activatable`` (``b``)
+
           true to use D-Bus activation for autostart.
 
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
 
         * ``background`` (``b``)
+
           true if the application is allowed to run in the background.
 
         * ``autostart`` (``b``)
+
           true if the application is will be autostarted.
     -->
     <method name="RequestBackground">
