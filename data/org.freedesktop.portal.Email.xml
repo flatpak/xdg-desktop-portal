@@ -58,46 +58,55 @@
         Supported keys in the @options vardict include:
 
         * ``handle_token`` (``s``)
+
           A string that will be used as the last element of the @handle. Must be a valid
           object path element. See the #org.freedesktop.portal.Request documentation for
           more information about the @handle.
 
         * ``address`` (``s``)
+
           The email address to send to. Must conform to the HTML5 definition of a
           [valid email address](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
 
         * ``addresses`` (``as``)
+
           Email addresses to send to. This will be used in addition to address and must
           pass the same validation.
 
           This option was introduced in version 3 of the interface.
 
         * ``cc`` (``as``)
+
           Email addresses to cc.
 
           This option was introduced in version 3 of the interface.
 
         * ``bcc`` (``as``)
+
           Email addresses to bcc.
 
           This option was introduced in version 3 of the interface.
 
         * ``subject`` (``s``)
+
           The subject for the email.
 
         * ``body`` (``s``)
+
           The body for the email.
 
         * ``attachment_fds`` (``ah``)
+
           File descriptors for files to attach.
 
         * ``activation_token`` (``s``)
+
           A token that can be used to activate the chosen application.
 
           This option was introduced in version 4 of the interface.
 
 
-        All the keys in the options are are optional.
+        All the keys in the @options vardict are optional.
     -->
     <method name="ComposeEmail">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>

@@ -44,10 +44,12 @@
         Supported keys in the @options vardict include:
 
         * ``show-preview`` (``b``)
+
           Whether to show a preview of the picture. Note that the portal may
           decide to show a preview even if this option is not set.
 
         * ``set-on`` (``s``)
+
           Where to set the wallpaper. Possible values are ``background``,
           ``lockscreen``, or ``both``.
     -->
@@ -70,10 +72,12 @@
         Supported keys in the @options vardict include:
 
         * ``show-preview`` (``b``)
+
           Whether to show a preview of the picture. Note that the portal may
           decide to show a preview even if this option is not set.
 
         * ``set-on`` (``s``)
+
           Where to set the wallpaper. Possible values are ``background``,
           ``lockscreen``, or ``both``.
     -->

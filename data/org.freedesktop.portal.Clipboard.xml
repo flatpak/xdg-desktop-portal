@@ -60,7 +60,8 @@
 
         Supported keys in the @options vardict include:
 
-        ``mime_types`` (``as``)
+        * ``mime_types`` (``as``)
+
           A list of mime types that the session has clipboard content for.
      -->
     <method name="SetSelection">
@@ -132,9 +133,12 @@
 
         Supported keys in the @options vardict include:
 
-        ``mime_types`` (``as``)
+        * ``mime_types`` (``as``)
+
           A list of MIME types for which the new clipboard selection has content
-        ``session_is_owner`` (``b``)
+
+        * ``session_is_owner`` (``b``)
+
           A boolean for whether the session is the owner of the clipboard selection ('true') or not ('false')
      -->
     <signal name="SelectionOwnerChanged">
