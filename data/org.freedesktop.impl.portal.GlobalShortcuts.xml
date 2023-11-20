@@ -62,7 +62,7 @@
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @shortcuts: The list of shortcuts to bind. See @org.freedesktop.portal.GlobalShortcuts.BindShortcuts
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @shortcuts: The identifier of the shortcuts we intend to register, empty for all shortcuts
         @results: Vardict with the results of the call
 

@@ -130,7 +130,7 @@
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @app_id: App id of the application
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call

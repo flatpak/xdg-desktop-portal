@@ -156,7 +156,7 @@
     </method>
     <!--
       SaveFile:
-      @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+      @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
       @title: Title for the file chooser dialog
       @options: Vardict with optional further information
       @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -256,7 +256,7 @@
     </method>
     <!--
       SaveFiles:
-      @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+      @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
       @title: Title for the file chooser dialog
       @options: Vardict with optional further information
       @handle: Object path for the #org.freedesktop.portal.Request object representing this call

@@ -32,7 +32,7 @@
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
         OpenURI:
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @uri: The uri to open
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -80,7 +80,7 @@
 
     <!--
         OpenFile:
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @fd: File descriptor for the file to open
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
@@ -128,7 +128,7 @@
 
     <!--
         OpenDirectory:
-        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @fd: File descriptor for a file
         @options: Vardict with optional further information
         @handle: Object path for the #org.freedesktop.portal.Request object representing this call
