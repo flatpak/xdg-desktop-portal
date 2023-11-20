@@ -112,7 +112,7 @@
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
 
-        * ``shortcuts a(sa{sv})</term>
+        * ``shortcuts`` (``a(sa{sv})``)
 
           A list of shortcuts. The list of keys it may contain is described
           below, and is different from the @shortcuts variable of this method.
