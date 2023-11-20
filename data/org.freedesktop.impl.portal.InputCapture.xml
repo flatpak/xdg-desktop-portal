@@ -42,32 +42,22 @@
         Create a capture input session.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>capabilities u</term>
-            <listitem><para>
-              Bitmask of requested capabilities, see the
-              SupportedCapabilities property. This value is required.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``capabilities`` (``u``)
+
+          Bitmask of requested capabilities, see the
+          SupportedCapabilities property. This value is required.
 
         The following results get returned in the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>session_id s</term>
-            <listitem><para>
-              The session id. A string representing the created capture input session.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>capabilities u</term>
-            <listitem><para>
-              The capabilities available to this session. This is always a
-              subset of the requested capabilities.
-            </para></listitem>
-          </varlistentry>
-      </variablelist>
+
+        * ``session_id`` (``s``)
+
+          The session id. A string representing the created capture input session.
+
+        * ``capabilities`` (``u``)
+
+          The capabilities available to this session. This is always a
+          subset of the requested capabilities.
     -->
     <method name="CreateSession">
       <arg type="o" name="handle" direction="in"/>
@@ -92,21 +82,15 @@
         Return the current zones for this session.
 
         The following results get returned in the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>zones a(uuii)</term>
-            <listitem><para>
-              An array of zones with width, height, x-offset, y-offset.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>zone_set u</term>
-            <listitem><para>
-             The zone_set ID required in
-             org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``zones`` (``a(uuii)``)
+
+          An array of zones with width, height, x-offset, y-offset.
+
+        * ``zone_set`` (``u``)
+
+          The zone_set ID required in
+          org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
     -->
     <method name="GetZones">
       <arg type="o" name="handle" direction="in"/>
@@ -133,35 +117,25 @@
         Set up zero or more pointer barriers.
 
         Supported keys in the @barriers vardicts include:
-        <variablelist>
-          <varlistentry>
-            <term>barrier_id u</term>
-            <listitem><para>
-              The non-zero id of this barrier. This id is used in the
-              #org.freedesktop.portal.impl.InputCapture::Activated signal to inform
-              which barrier triggered input capture.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>position (iiii)</term>
-            <listitem><para>
-              The x1/y1 x2/y2 position of the pointer barrier. A horizontal
-              pointer barrier must have y1 == y2, a vertical pointer barrier
-              must have x1 == x2. Diagonal pointer barriers are not supported.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``barrier_id`` (``u``)
+
+          The non-zero id of this barrier. This id is used in the
+          #org.freedesktop.portal.impl.InputCapture::Activated signal to inform
+          which barrier triggered input capture.
+
+        * ``position`` (``(iiii)``)
+
+          The x1/y1 x2/y2 position of the pointer barrier. A horizontal
+          pointer barrier must have y1 == y2, a vertical pointer barrier
+          must have x1 == x2. Diagonal pointer barriers are not supported.
 
         The following results get returned in the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>failed_barriers au</term>
-            <listitem><para>
-              An array of barrier_ids of pointer barriers that have been denied. The
-              id matches the barrier_id of the entries in the @barriers argument.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``failed_barriers`` (``au``)
+
+          An array of barrier_ids of pointer barriers that have been denied. The
+          id matches the barrier_id of the entries in the @barriers argument.
     -->
     <method name="SetPointerBarriers">
       <arg type="o" name="handle" direction="in"/>
@@ -221,26 +195,20 @@
         Release ongoing input capturing.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>activation_id u</term>
-            <listitem><para>
-              The same activation_id number as in the
-              #org.freedesktop.impl.portal.InputCapture::Activated signal.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>cursor_position (dd)</term>
-            <listitem><para>
-              The suggested cursor position within the Zones available in
-              this session.
 
-              This is a suggestion to the compositor to place the cursor in
-              the correct position to allow for fluent movement between virtual
-              screens. The compositor is not required to honor this suggestion.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``activation_id`` (``u``)
+
+          The same activation_id number as in the
+          #org.freedesktop.impl.portal.InputCapture::Activated signal.
+
+        * ``cursor_position`` (``(dd)``)
+
+          The suggested cursor position within the Zones available in
+          this session.
+
+          This is a suggestion to the compositor to place the cursor in
+          the correct position to allow for fluent movement between virtual
+          screens. The compositor is not required to honor this suggestion.
     -->
     <method name="Release">
       <arg type="o" name="session_handle" direction="in"/>
@@ -302,58 +270,50 @@
         to org.freedesktop.impl.portal.InputCapture.Enable().
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>activation_id u</term>
-            <listitem><para>
-                A number that can be used to synchronize with the
-                transport-layer. This number has no intrinsic meaning but
-                is guaranteed to increase by an unspecified amount on each call.
 
-                In particular: if the compositor sends an activation_id of N as
-                part of this request it will also set the sequence in EIS'
-                start_emulating event the same value N on the EIS connection
-                before the first event from a device is sent.
-                This allows an application to have a synchronization point and
-                attribute an event sequence to the portal interaction.
+        * ``activation_id`` (``u``)
 
-                Applications must be able to handle the activation_id number wrapping
-                around. Implementations of this portal must to increase the
-                activation_id number by an sensible amount to allow for wrapping
-                detection.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>cursor_position (dd)</term>
-            <listitem><para>
-              The current cursor position. Note that this position may be
-              outside the Zones available to this session - this indicates
-              movement larger than a single pixel.
+          A number that can be used to synchronize with the
+          transport-layer. This number has no intrinsic meaning but
+          is guaranteed to increase by an unspecified amount on each call.
 
-              For example, a fast movement against a barrier on the right edge
-              of a screen may logically put the cursor dozens of pixels into
-              the (non-existing) screen on the other side of the barrier.
-              It is the application's responsibility to adjust the cursor
-              position as necessary.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>barrier_id u</term>
-            <listitem><para>
-              The barrier id of the barrier that triggered. If the value is
-              nonzero, it matches the barrier id as specified in
-              org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+          In particular: if the compositor sends an activation_id of N as
+          part of this request it will also set the sequence in EIS'
+          start_emulating event the same value N on the EIS connection
+          before the first event from a device is sent.
+          This allows an application to have a synchronization point and
+          attribute an event sequence to the portal interaction.
 
-              If the id is zero, the pointer barrier could be determined.
-              If the id is missing, the input capture was not triggered by a
-              pointer barrier.
+          Applications must be able to handle the activation_id number wrapping
+          around. Implementations of this portal must to increase the
+          activation_id number by an sensible amount to allow for wrapping
+          detection.
 
-              Where more than one pointer barrier are triggered by the same
-              movement it is up to the compositor to choose one barrier (or use
-              a barrier id of zero).
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``cursor_position`` (``(dd)``)
+
+          The current cursor position. Note that this position may be
+          outside the Zones available to this session - this indicates
+          movement larger than a single pixel.
+
+          For example, a fast movement against a barrier on the right edge
+          of a screen may logically put the cursor dozens of pixels into
+          the (non-existing) screen on the other side of the barrier.
+          It is the application's responsibility to adjust the cursor
+          position as necessary.
+
+        * ``barrier_id`` (``u``)
+
+          The barrier id of the barrier that triggered. If the value is
+          nonzero, it matches the barrier id as specified in
+          org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+
+          If the id is zero, the pointer barrier could be determined.
+          If the id is missing, the input capture was not triggered by a
+          pointer barrier.
+
+          Where more than one pointer barrier are triggered by the same
+          movement it is up to the compositor to choose one barrier (or use
+          a barrier id of zero).
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="out"/>
@@ -370,29 +330,23 @@
         capture, an application must call org.freedesktop.portal.InputCapture.Disable().
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>activation_id u</term>
-            <listitem><para>
-                The same activation_id as in the corresponding
-                #org.freedesktop.impl.portal.InputCapture::Activated signal.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>cursor_position (dd)</term>
-            <listitem><para>
-              The current cursor position. Note that this position may be
-              outside the Zones available to this session - this indicates
-              movement larger than a single pixel.
 
-              For example, a fast movement against a barrier on the right edge
-              of a screen may logically put the cursor dozens of pixels into
-              the (non-existing) screen on the other side of the barrier.
-              It is the application's responsibility to adjust the cursor
-              position as necessary.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+        * ``activation_id`` (``u``)
+
+          The same activation_id as in the corresponding
+          #org.freedesktop.impl.portal.InputCapture::Activated signal.
+
+        * ``cursor_position`` (``(dd)``)
+
+          The current cursor position. Note that this position may be
+          outside the Zones available to this session - this indicates
+          movement larger than a single pixel.
+
+          For example, a fast movement against a barrier on the right edge
+          of a screen may logically put the cursor dozens of pixels into
+          the (non-existing) screen on the other side of the barrier.
+          It is the application's responsibility to adjust the cursor
+          position as necessary.
     -->
     <signal name="Deactivated">
       <arg type="o" name="session_handle" direction="out"/>
@@ -424,11 +378,9 @@
 
         Currently defined types are:
 
-        <simplelist>
-          <member>1: KEYBOARD</member>
-          <member>2: POINTER</member>
-          <member>4: TOUCHSCREEN</member>
-        </simplelist>
+        - ``1``: KEYBOARD
+        - ``2``: POINTER
+        - ``4``: TOUCHSCREEN
     -->
     <property name="SupportedCapabilities" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

@@ -42,14 +42,10 @@
         with this interface.
 
         The following results get returned in the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>session s</term>
-            <listitem><para>
-              The session id. A string representing the created screen cast session.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``session`` (``s``)
+
+          The session id. A string representing the created screen cast session.
     -->
     <method name="CreateSession">
       <arg type="o" name="handle" direction="in"/>
@@ -73,56 +69,40 @@
         Configure what the devices remote desktop session should expose.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>types u</term>
-            <listitem><para>
-              Bitmask of what device types to request remote controlling of.
-              Default is all.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>restore_data (suv)</term>
-            <listitem><para>
-              The data to restore from a previous session.
-            </para>
-            <para>
-              If the stored session cannot be restored, this value is ignored
-              and the user will be prompted normally. This may happen when, for
-              example, the session contains a monitor or a window that is not
-              available anymore, or when the stored permissions are withdrawn.
-            </para>
-            <para>
-              The restore data is composed of the vendor name (e.g. "GNOME" or
-              "KDE"), the version of the implementation-specific private data,
-              and the implementation-specific private data itself.
-            </para>
-            <para>
-              This option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>persist_mode u</term>
-            <listitem><para>
-              How this session should persist. Default is 0. Accepted values are:
-            </para>
-            <para>
-              <simplelist>
-                <member>0: Do not persist (default)</member>
-                <member>1: Permissions persist as long as the application is running</member>
-                <member>2: Permissions persist until explicitly revoked</member>
-              </simplelist>
-            </para>
-            <para>
-              If the permission for the session to persist is granted, "restore_data"
-              will be returned in the results of the
-              #org.freedesktop.impl.portal.RemoteDesktop.Start method.
-            </para>
-            <para>
-              This option was added in version 2 of this interface.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``types`` (``u``)
+
+          Bitmask of what device types to request remote controlling of.
+          Default is all.
+
+        * ``restore_data`` (``(suv)``)
+
+          The data to restore from a previous session.
+
+          If the stored session cannot be restored, this value is ignored
+          and the user will be prompted normally. This may happen when, for
+          example, the session contains a monitor or a window that is not
+          available anymore, or when the stored permissions are withdrawn.
+
+          The restore data is composed of the vendor name (e.g. "GNOME" or
+          "KDE"), the version of the implementation-specific private data,
+          and the implementation-specific private data itself.
+
+          This option was added in version 2 of this interface.
+
+        * ``persist_mode`` (``u``)
+
+          How this session should persist. Default is 0. Accepted values are:
+
+          - ``0``: Do not persist (default)
+          - ``1``: Permissions persist as long as the application is running
+          - ``2``: Permissions persist until explicitly revoked
+
+          If the permission for the session to persist is granted, ``restore_data``
+          will be returned in the results of the
+          #org.freedesktop.impl.portal.RemoteDesktop.Start method.
+
+          This option was added in version 2 of this interface.
 
         For available device types, see the AvailableDeviceTypes property.
     -->
@@ -140,7 +120,7 @@
         @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
-        @session: Identifier for the remote desktop session
+        @session_handle: Identifier for the remote desktop session
         @parent_window: Identifier for the application window
         @options: Vardict with optional further information
         @response: Numeric response
@@ -150,48 +130,35 @@
         presenting a dialog.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>handle_token s</term>
-            <listitem><para>
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the #org.freedesktop.portal.Request documentation for
-              more information about the @handle.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the #org.freedesktop.portal.Request documentation for
+          more information about the @handle.
 
         The following results get returned in the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>devices u</term>
-            <listitem><para>
-              A bitmask of the devices selected by the user.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>clipboard_enabled b</term>
-            <listitem><para>
-              A boolean for whether the clipboard was enabled ('true') or not ('false'). 
-              See the #org.freedesktop.portal.Clipboard documentation for more information.
-              Since version 2.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>streams a(ua{sv})</term>
-            <listitem><para>
-              Equivalent to the streams entry documented in
-              #org.freedesktop.impl.portal.ScreenCast.Start.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>devices u</term>
-            <listitem><para>
-              The device types that can be used for remote control. See the
-              AvailableDeviceTypes property.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``devices`` (``u``)
+
+          A bitmask of the devices selected by the user.
+
+        * ``clipboard_enabled`` (``b``)
+
+          A boolean for whether the clipboard was enabled ('true') or not ('false').
+          See the #org.freedesktop.portal.Clipboard documentation for more information.
+
+          Since version 2.
+
+        * ``streams`` (``a(ua{sv})``)
+
+          Equivalent to the streams entry documented in
+          #org.freedesktop.impl.portal.ScreenCast.Start.
+
+        * ``devices`` (``u``)
+
+          The device types that can be used for remote control. See the
+          AvailableDeviceTypes property.
     -->
     <method name="Start">
       <arg type="o" name="handle" direction="in"/>
@@ -254,10 +221,9 @@
         session.
 
         Available button states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyPointerButton">
       <arg type="o" name="session_handle" direction="in"/>
@@ -280,16 +246,12 @@
         session.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>finish b</term>
-            <listitem><para>
-              If set to true, this is the last axis event in a series, for
-              example as a result of the fingers being lifted from a touchpad
-              after a two-finger scroll.  Default is false.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``finish`` (``b``)
+
+          If set to true, this is the last axis event in a series, for
+          example as a result of the fingers being lifted from a touchpad
+          after a two-finger scroll.  Default is false.
     -->
     <method name="NotifyPointerAxis">
       <arg type="o" name="session_handle" direction="in"/>
@@ -308,10 +270,9 @@
         session.
 
         Available axes:
-        <simplelist>
-          <member>0: Vertical scroll</member>
-          <member>1: Horizontal scroll</member>
-        </simplelist>
+
+        - ``0``: Vertical scroll
+        - ``1``: Horizontal scroll
     -->
     <method name="NotifyPointerAxisDiscrete">
       <arg type="o" name="session_handle" direction="in"/>
@@ -330,10 +291,9 @@
         session.
 
         Available keyboard keysym states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyKeyboardKeycode">
       <arg type="o" name="session_handle" direction="in"/>
@@ -352,10 +312,9 @@
         session.
 
         Available keyboard keysym states:
-        <simplelist>
-          <member>0: Released</member>
-          <member>1: Pressed</member>
-        </simplelist>
+
+        - ``0``: Released
+        - ``1``: Pressed
     -->
     <method name="NotifyKeyboardKeysym">
       <arg type="o" name="session_handle" direction="in"/>
@@ -377,7 +336,7 @@
 
         Notify about a new touch down event. The (x, y) position
         represents the new touch point position in the streams logical
-        coordinate space (see the logical_size stream property in
+        coordinate space (see the ``logical_size`` stream property in
         #org.freedesktop.portal.ScreenCast).
     -->
     <method name="NotifyTouchDown">
@@ -402,7 +361,7 @@
 
         Notify about a new touch motion event. The (x, y) position
         represents where the touch point position in the streams logical
-        coordinate space moved (see the logical_size stream property in
+        coordinate space moved (see the ``logical_size`` stream property in
         #org.freedesktop.portal.ScreenCast).
     -->
     <method name="NotifyTouchMotion">
@@ -454,11 +413,9 @@
 
         A bitmask of available source types. Currently defined types are:
 
-        <simplelist>
-          <member>1: KEYBOARD</member>
-          <member>2: POINTER</member>
-          <member>4: TOUCHSCREEN</member>
-        </simplelist>
+        - ``1``: KEYBOARD
+        - ``2``: POINTER
+        - ``4``: TOUCHSCREEN
     -->
     <property name="AvailableDeviceTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

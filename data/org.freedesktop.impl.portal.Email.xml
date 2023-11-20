@@ -38,56 +38,38 @@
         Lets the user compose an email.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>address s</term>
-            <listitem><para>
-              The email address to send to.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>addresses as</term>
-            <listitem><para>
-              Email addresses to send to.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>cc as</term>
-            <listitem><para>
-              Email addresses to cc.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>bcc as</term>
-            <listitem><para>
-              Email addresses to bcc.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>subject s</term>
-            <listitem><para>
-              The subject for the email.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>body s</term>
-            <listitem><para>
-              The body for the email.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>attachments as</term>
-            <listitem><para>
-              The uris for files to attach.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>activation_token s</term>
-            <listitem><para>
-              A token that can be used to activate the chosen application.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``address`` (``s``)
+
+          The email address to send to.
+
+        * ``addresses`` (``as``)
+
+          Email addresses to send to.
+
+        * ``cc`` (``as``)
+
+          Email addresses to cc.
+
+        * ``bcc`` (``as``)
+
+          Email addresses to bcc.
+
+        * ``subject`` (``s``)
+
+          The subject for the email.
+
+        * ``body`` (``s``)
+
+          The body for the email.
+
+        * ``attachments`` (``as``)
+
+          The uris for files to attach.
+
+        * ``activation_token`` (``s``)
+
+          A token that can be used to activate the chosen application.
     -->
     <method name="ComposeEmail">
       <arg type="o" name="handle" direction="in"/>

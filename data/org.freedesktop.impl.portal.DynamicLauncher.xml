@@ -41,61 +41,43 @@
         change the name, and confirm installation of the launcher.
 
         Supported keys in the @options vardict:
-        <variablelist>
-          <varlistentry>
-            <term>modal b</term>
-            <listitem><para>
-              Whether to make the dialog modal. Defaults to yes.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>launcher_type u</term>
-            <listitem><para>
-              The type of launcher being created. For supported values see the
-              SupportedLauncherTypes property. Defaults to "Application".
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>target s</term>
-            <listitem><para>
-              For a launcher of type "Webapp", this is the URL of the web app
-              being installed. This is displayed in the user-facing dialog.
-              For other launcher types, this is not needed.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>editable_name b</term>
-            <listitem><para>
-              If true, the user will be able to edit the name of the launcher.
-              Defaults to true.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>editable_icon b</term>
-            <listitem><para>
-              If true, the user will be able to edit the icon of the launcher,
-              if the implementation supports this. Defaults to false.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``modal`` (``b``)
+
+          Whether to make the dialog modal. Defaults to yes.
+
+        * ``launcher_type`` (``u``)
+
+          The type of launcher being created. For supported values see the
+          SupportedLauncherTypes property. Defaults to "Application".
+
+        * ``target`` (``s``)
+
+          For a launcher of type "Webapp", this is the URL of the web app
+          being installed. This is displayed in the user-facing dialog.
+          For other launcher types, this is not needed.
+
+        * ``editable_name`` (``b``)
+
+          If true, the user will be able to edit the name of the launcher.
+          Defaults to true.
+
+        * ``editable_icon`` (``b``)
+
+          If true, the user will be able to edit the icon of the launcher,
+          if the implementation supports this. Defaults to false.
 
         The following results get returned via the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>name s</term>
-            <listitem><para>
-              The name chosen by the user for the launcher (or the default if
-              the editable_name option was false).
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>icon v</term>
-            <listitem><para>
-              The icon chosen by the user for the launcher (or the default if
-              the editable_icon option was false).
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``name`` (``s``)
+
+          The name chosen by the user for the launcher (or the default if
+          the editable_name option was false).
+
+        * ``icon`` (``v``)
+
+          The icon chosen by the user for the launcher (or the default if
+          the ``editable_icon`` option was false).
     -->
     <method name="PrepareInstall">
       <arg type="o" name="handle" direction="in"/>
@@ -112,8 +94,7 @@
         RequestInstallToken:
         @app_id: App id of the application
         @options: Vardict with optional further information
-        @response: 0 if the caller should be allowed to do non-interactive
-          launcher installation, a nonzero number otherwise
+        @response: 0 if the caller should be allowed to do non-interactive launcher installation, a nonzero number otherwise
 
         The @response returned by this method is used to determine whether to
         give an install token to the caller, which can be used to avoid the need
@@ -137,10 +118,8 @@
 
         A bitmask of available launcher types. Currently defined types are:
 
-        <simplelist>
-          <member>1: Application. A launcher that represents an application.</member>
-          <member>2: Webapp. A launcher that represents a web app.</member>
-        </simplelist>
+        - ``1``: Application. A launcher that represents an application.
+        - ``2``: Webapp. A launcher that represents a web app.
     -->
     <property name="SupportedLauncherTypes" type="u" access="read"/>
     <property name="version" type="u" access="read"/>

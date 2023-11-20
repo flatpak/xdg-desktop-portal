@@ -48,20 +48,14 @@
         it considers tokens valid.
 
         Supported keys in the @options vardict:
-        <variablelist>
-          <varlistentry>
-            <term>modal b</term>
-            <listitem><para>
-              Whether to make the dialog modal. Defaults to yes.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>token u</term>
-            <listitem><para>
-              Token that was returned by a previous org.freedesktop.impl.portal.Print.PreparePrint() call.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``modal`` (``b``)
+
+          Whether to make the dialog modal. Defaults to yes.
+
+        * ``token`` (``u``)
+
+          Token that was returned by a previous org.freedesktop.impl.portal.Print.PreparePrint() call.
     -->
     <method name="Print">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -75,7 +69,7 @@
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
-   </method>
+    </method>
 
     <!--
         PreparePrint:
@@ -86,48 +80,36 @@
         @settings: Serialized print settings
         @page_setup: Serialized page setup
         @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
 
         Presents a print dialog to the user and returns print settings
         and page setup.
 
         Supported keys in the @options vardict:
-        <variablelist>
-          <varlistentry>
-            <term>modal b</term>
-            <listitem><para>
-              Whether to make the dialog modal. Defaults to yes.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>accept_label s</term>
-            <listitem><para>
-              Label for the accept button. Mnemonic underlines are allowed.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``modal`` (``b``)
+
+          Whether to make the dialog modal. Defaults to yes.
+
+        * ``accept_label`` (``s``)
+
+          Label for the accept button. Mnemonic underlines are allowed.
 
         The following results get returned via the @results vardict:
-        <variablelist>
-          <varlistentry>
-            <term>settings a{sv}</term>
-            <listitem><para>
-              Print settings as set up by the user in the print dialog.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>page-setup a{sv}</term>
-            <listitem><para>
-              Page setup as set up by the user in the print dialog.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>token u</term>
-            <listitem><para>
-              Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
-              bypass the print dialog.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``settings`` (``a{sv}``)
+
+          Print settings as set up by the user in the print dialog.
+
+        * ``page-setup`` (``a{sv}``)
+
+          Page setup as set up by the user in the print dialog.
+
+        * ``token`` (``u``)
+
+          Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
+          bypass the print dialog.
 
         The org.freedesktop.portal.Print.Print() documentation has details about
         the supported keys in settings and page-setup.

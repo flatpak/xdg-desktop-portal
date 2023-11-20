@@ -31,29 +31,24 @@
         SetWallpaperURI:
         @handle: Object path to export the Request object at
         @app_id: App id of the application
-        @parent_window: Identifier for the application window, see
-            <link linkend="parent_window">Common Conventions</link>
+        @parent_window: Identifier for the application window, see <link linkend="parent_window">Common Conventions</link>
+        @uri: The picture file URI
         @options: Options that influence the behavior of the portal
         @response: Numberic response
 
         Asks to set a given picture as the desktop background picture.
 
         The following options are supported:
-        <variablelist>
-          <varlistentry>
-            <term>show-preview b</term>
-            <listitem><para>
-             whether to show a preview of the picture. Note that the portal may
-             decide to show a preview even if this option is not set
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>set-on s</term>
-            <listitem><para>
-              where to set the wallpaper. Possible values are 'background', 'lockscreen' or 'both'
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``show-preview`` (``b``)
+
+          Whether to show a preview of the picture. Note that the portal may
+          decide to show a preview even if this option is not set
+
+        * ``set-on`` (``s``)
+
+          Where to set the wallpaper. Possible values are `background`,
+          `lockscreen` or `both`.
     -->
     <method name="SetWallpaperURI">
       <arg type="o" name="handle" direction="in"/>

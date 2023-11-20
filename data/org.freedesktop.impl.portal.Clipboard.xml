@@ -57,14 +57,10 @@
         May only be called if clipboard access was given after starting the session.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>mime_types as</term>
-            <listitem><para>
-              A list of mime types that the session has clipboard content for.
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``mime_types`` (``as``)
+
+          A list of mime types that the session has clipboard content for.
      -->
     <method name="SetSelection">
       <arg type="o" name="session_handle" direction="in"/>
@@ -92,8 +88,7 @@
         SelectionWriteDone:
         @session_handle: Object path for the #org.freedesktop.portal.Session object
         @serial: The serial of the request where this answer is directed to
-        @success: A boolean which indicates whether the transfer of the clipboard
-                    data was successful ('true') or not ('false')
+        @success: A boolean which indicates whether the transfer of the clipboard data was successful (true') or not ('false')
 
         Notifies that the transfer of the clipboard data has either completed
         successfully, or failed.
@@ -133,20 +128,15 @@
         Caller will only be notified if clipboard access was given after starting the session.
 
         Supported keys in the @options vardict include:
-        <variablelist>
-          <varlistentry>
-            <term>mime_types as</term>
-            <listitem><para>
-              A list of mime types that the the new clipboard selection has content for.
-            </para></listitem>
-          </varlistentry>
-          <varlistentry>
-            <term>session_is_owner b</term>
-            <listitem><para>
-              A boolean for whether the session is the owner of the clipboard selection ('true') or not ('false').
-            </para></listitem>
-          </varlistentry>
-        </variablelist>
+
+        * ``mime_types`` (``as``)
+
+          A list of mime types that the the new clipboard selection has content for.
+
+        * ``session_is_owner`` (``b``)
+
+          A boolean for whether the session is the owner of the clipboard selection
+          (``true``) or not (``false``).
      -->
     <signal name="SelectionOwnerChanged">
       <arg type="o" name="session_handle" direction="out"/>
