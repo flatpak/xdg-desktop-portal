@@ -36,7 +36,7 @@
         @pid: the pid of the application on whose behalf the request is made
         @devices: a list of devices to request access to.
         @options: vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Asks for access to a device.
 
@@ -54,7 +54,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
      -->
     <method name="AccessDevice">

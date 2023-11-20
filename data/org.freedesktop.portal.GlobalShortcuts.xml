@@ -45,7 +45,7 @@
     <!--
         CreateSession:
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Creates a global shortcuts session.
 
@@ -79,11 +79,11 @@
 
     <!--
         BindShortcuts:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
         @shortcuts: The list of shortcuts to bind
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
-        @request_handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @request_handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Bind the shortcuts. This will typically result the portal presenting a
         dialog showing the shortcuts and allowing users to configure the shortcuts.
@@ -107,7 +107,7 @@
 
           A string that will be used as the last element of the
           @handle. Must be a valid object path element. See the
-          #org.freedesktop.portal.Request documentation for more
+          :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
@@ -143,7 +143,7 @@
 
     <!--
         ListShortcuts:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
         @options: Vardict with optional further information
 
         Lists all shortcuts.
@@ -154,7 +154,7 @@
 
           A string that will be used as the last element of the
           @handle. Must be a valid object path element. See the
-          #org.freedesktop.portal.Request documentation for more
+          :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:

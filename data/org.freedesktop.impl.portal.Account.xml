@@ -31,7 +31,7 @@
   <interface name="org.freedesktop.impl.portal.Account">
     <!--
         GetUserInformation:
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
         @app_id: App id of the application
         @window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information

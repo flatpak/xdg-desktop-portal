@@ -33,7 +33,7 @@
         ComposeEmail:
         @parent_window: Identifier for the application window, see :doc:`common-conventions`
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Presents a window that lets the user compose an email.
 
@@ -60,13 +60,13 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``address`` (``s``)
 
           The email address to send to. Must conform to the HTML5 definition of a
-          [valid email address](https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address).
+          `valid email address <https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address>`_.
 
         * ``addresses`` (``as``)
 

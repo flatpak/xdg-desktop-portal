@@ -31,7 +31,7 @@
   <interface name="org.freedesktop.impl.portal.GlobalShortcuts">
     <!--
         CreateSession:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
         @app_id: App id of the application
         @options: Vardict with optional further information. See org.freedesktop.portal.GlobalShortcuts.CreateSession()
@@ -59,7 +59,7 @@
 
     <!--
         BindShortcuts:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @shortcuts: The list of shortcuts to bind. See @org.freedesktop.portal.GlobalShortcuts.BindShortcuts
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
@@ -88,7 +88,7 @@
 
     <!--
         ListShortcuts:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @results: Vardict with the results of the call
 

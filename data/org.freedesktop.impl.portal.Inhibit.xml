@@ -29,14 +29,14 @@
   <interface name="org.freedesktop.impl.portal.Inhibit">
     <!--
         Inhibit:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @app_id: Application id
         @window: Identifier for the window
         @flags: Flags identifying what is inhibited
         @options: Vardict with optional further information
 
         Inhibits session status changes. As a side-effect of this call,
-        a #org.freedesktop.impl.portal.Request object is exported on the
+        a :ref:`org.freedesktop.impl.portal.Request` object is exported on the
         object path @handle. To end the inhibition, call
         org.freedesktop.impl.portal.Request.Close() on that object.
 
@@ -64,7 +64,7 @@
 
     <!--
         CreateMonitor:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the created #org.freedesktop.impl.portal.Session object
         @app_id: App id of the application
         @window: the parent window
@@ -84,7 +84,7 @@
 
     <!--
         StateChanged:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @state: Vardict with information about the session state
 
         The StateChanged signal is sent to active monitoring sessions when

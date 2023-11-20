@@ -35,11 +35,11 @@
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @uri: The uri to open
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        Asks to open a uri.
+        Asks to open a URI.
 
-        Note that file:// uris are explicitly not supported by this method.
+        Note that ``file://`` URIs are explicitly not supported by this method.
         To request opening local files, use org.freedesktop.portal.OpenURI.OpenFile().
 
         Supported keys in the @options vardict include:
@@ -47,7 +47,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``writable`` (``b``)
@@ -83,7 +83,7 @@
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @fd: File descriptor for the file to open
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Asks to open a local file.
 
@@ -92,7 +92,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``writable`` (``b``)
@@ -131,7 +131,7 @@
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @fd: File descriptor for a file
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Asks to open the directory containing a local file in the file browser.
 
@@ -140,7 +140,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``activation_token`` (``s``)

@@ -31,7 +31,7 @@
   <interface name="org.freedesktop.impl.portal.InputCapture">
     <!--
         CreateSession:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
@@ -72,7 +72,7 @@
     </method>
     <!--
         GetZones:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
@@ -105,7 +105,7 @@
 
     <!--
         SetPointerBarriers:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
@@ -222,7 +222,7 @@
 
     <!--
         ConnectToEIS:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @app_id: App id of the application
         @options: Vardict with optional further information
         @fd: A file descriptor to an EIS implementation that can be passed to a passive libei context

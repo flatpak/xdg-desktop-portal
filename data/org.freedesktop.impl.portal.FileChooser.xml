@@ -33,7 +33,7 @@
   <interface name="org.freedesktop.impl.portal.FileChooser">
     <!--
         OpenFile:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @title: Title for the file chooser dialog
@@ -115,7 +115,7 @@
     </method>
     <!--
         SaveFile:
-        @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @title: Title for the file chooser dialog
@@ -199,7 +199,7 @@
       @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
       @title: Title for the file chooser dialog
       @options: Vardict with optional further information
-      @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+      @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
       @response: Numeric response
       @results: Vardict with the results of the call
 
@@ -216,7 +216,7 @@
 
         A string that will be used as the last element of the
         @handle. Must be a valid object path element. See the
-        #org.freedesktop.portal.Request documentation for more
+        :ref:`org.freedesktop.portal.Request` documentation for more
         information about the @handle.
 
       * ``accept_label`` (``s``)

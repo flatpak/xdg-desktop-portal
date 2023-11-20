@@ -36,7 +36,7 @@
         Screenshot:
         @parent_window: Identifier for the application window, see :ref:`Common Conventions`</link>
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Takes a screenshot.
 
@@ -45,7 +45,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``modal`` (``b``)
@@ -73,7 +73,7 @@
         PickColor:
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Obtains the color of a single pixel.
 
@@ -82,7 +82,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:

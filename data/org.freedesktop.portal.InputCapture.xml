@@ -58,7 +58,7 @@
         CreateSession:
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Create a capture input session. A successfully created session can at
         any time be closed using org.freedesktop.portal.Session.Close(), or may
@@ -70,13 +70,13 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``session_handle_token`` (``s``)
 
           A string that will be used as the last element of the session handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Session documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
         * ``capabilities`` (``u``)
@@ -89,7 +89,7 @@
         * ``session_handle`` (``o``)
 
           The session handle. An object path for the
-          #org.freedesktop.portal.Session object representing the created
+          :ref:`org.freedesktop.portal.Session` object representing the created
           session.
 
         * ``capabilities`` (``u``)
@@ -113,9 +113,9 @@
 
     <!--
         GetZones:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Retrieve the set of currently available input zones for this session.
         The zones may not be continuous and may be a logical representation
@@ -171,11 +171,11 @@
 
     <!--
         SetPointerBarriers:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @barriers: An array of vardicts, each specifying one barrier
         @zone_set: A unique zone_set ID referring to the zone set
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Set up zero or more pointer barriers. Pointer barriers are horizontal
         or vertical "lines" that should trigger the start of input capture when the cursor moves
@@ -222,7 +222,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         Supported keys in the @barriers vardicts include:
@@ -256,7 +256,7 @@
 
     <!--
         Enable:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Enable input capturing. This does not immediately trigger capture, it
@@ -271,7 +271,7 @@
 
     <!--
         Disable:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Disable input capturing. No
@@ -297,7 +297,7 @@
 
     <!--
         Release:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Release any ongoing input capture. No
@@ -342,7 +342,7 @@
 
     <!--
         ConnectToEIS:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @fd: A file descriptor to an active EIS implementation that can be passed to a passive libei context
 
@@ -364,7 +364,7 @@
 
     <!--
         Disabled:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         The Disabled signal is emitted when the application will no longer
@@ -382,7 +382,7 @@
 
     <!--
         Activated:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         The Activated signal is emitted when input capture starts and input events
@@ -445,7 +445,7 @@
 
     <!--
         Deactivated:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         The Deactivated signal is emitted when input capture stopped and input events
@@ -466,7 +466,7 @@
 
     <!--
         ZonesChanged:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         The ZonesChanged signal is emitted when the set of zones

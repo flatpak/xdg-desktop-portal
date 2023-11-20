@@ -28,7 +28,7 @@
     <!--
         AccessCamera:
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Request to gain access to the camera.
 
@@ -36,7 +36,7 @@
 
         * ``handle_token`` (``s``)
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         Following the #org.freedesktop.portal.Request::Response signal, if
