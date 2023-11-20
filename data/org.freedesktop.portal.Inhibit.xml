@@ -34,7 +34,7 @@
         @window: Identifier for the window
         @flags: Flags identifying what is inhibited
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Inhibits a session status changes. To remove the inhibition,
         call org.freedesktop.portal.Request.Close() on the returned
@@ -52,7 +52,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``reason`` (``s``)
@@ -70,7 +70,7 @@
         CreateMonitor:
         @window: the parent window
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Creates a monitoring session. While this session is
         active, the caller will receive StateChanged signals
@@ -86,13 +86,13 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``session_handle_token`` (``s``)
 
           A string that will be used as the last element of the session handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Session documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
         The following results get returned via the #org.freedesktop.portal.Request::Response signal:
@@ -100,7 +100,7 @@
         * ``session_handle`` (``o``)
 
           The session handle. An object path for the
-          #org.freedesktop.portal.Session object representing the created
+          :ref:`org.freedesktop.portal.Session` object representing the created
           session.
 
         This method was added in version 2 of this interface.
@@ -113,7 +113,7 @@
 
     <!--
         StateChanged:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @state: Vardict with information about the session state
 
         The StateChanged signal is sent to active monitoring sessions when
@@ -147,7 +147,7 @@
 
     <!--
       QueryEndResponse:
-      @session_handle: Object path for the #org.freedesktop.portal.Session object
+      @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
 
       Acknowledges that the caller received the #org.freedesktop.portal.Inhibit::StateChanged
       signal. This method should be called within one second or receiving a StateChanged

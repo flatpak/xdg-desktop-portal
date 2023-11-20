@@ -99,7 +99,7 @@
         @name: The default name for the launcher
         @icon_v: A ``GBytesIcon`` icon as returned by ``g_icon_serialize()``. Must be a png or jpeg no larger than 512x512, or an svg
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Presents a dialog to the user to allow them to see the icon, potentially
         change the name, and confirm installation of the launcher.
@@ -109,7 +109,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``modal`` (``b``)

@@ -29,7 +29,7 @@
   <interface name="org.freedesktop.portal.Clipboard">
     <!-- 
         RequestClipboard:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Requests clipboard access for the given portal session. This request
@@ -47,7 +47,7 @@
     </method>
     <!-- 
         SetSelection:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Sets the owner of the clipboard formats in ``mime_types`` in @options to
@@ -70,7 +70,7 @@
     </method>
     <!--
         SelectionWrite:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @serial: The serial of the request where this answer is directed towards
         @fd: A UnixFD handle to the contents of the selection being written to
 
@@ -88,7 +88,7 @@
     </method>
     <!-- 
         SelectionWriteDone:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @serial: The serial of the request where this answer is directed to
         @success: A boolean which indicates whether the transfer of the clipboard data was successful (``true``) or not (``false``)
 
@@ -104,7 +104,7 @@
     </method>
     <!-- 
         SelectionRead:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The MIME type string of the requested format
         @fd: A UnixFD handle to the contents of the selection being read
 
@@ -123,7 +123,7 @@
     </method>
     <!-- 
         SelectionOwnerChanged:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Notifies the session that the clipboard selection has changed.
@@ -146,7 +146,7 @@
     </signal>
     <!-- 
         SelectionTransfer:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @mime_type: The mime-type string of the requested format
         @serial: The serial used to track this transfer, to which the answer of this request must use
 

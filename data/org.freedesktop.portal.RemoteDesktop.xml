@@ -29,7 +29,7 @@
     <!--
         CreateSession:
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Create a remote desktop session.
 
@@ -37,7 +37,7 @@
         session.
 
         A remote desktop session may only be started and stopped with this interface,
-        but you can use the #org.freedesktop.portal.Session object created with this
+        but you can use the :ref:`org.freedesktop.portal.Session` object created with this
         method together with certain methods on the #org.freedesktop.portal.ScreenCast and
         #org.freedesktop.portal.Clipboard interfaces. Specifically, you can call
         org.freedesktop.portal.ScreenCast.SelectSources() to also get screen content,
@@ -53,13 +53,13 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``session_handle_token`` (``s``)
 
           A string that will be used as the last element of the session handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Session documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
 
@@ -68,7 +68,7 @@
         * ``session_handle`` (``o``)
 
           The session handle. An object path for the
-          #org.freedesktop.portal.Session object representing the created
+          :ref:`org.freedesktop.portal.Session` object representing the created
           session.
     -->
     <method name="CreateSession">
@@ -77,9 +77,9 @@
     </method>
     <!--
         SelectDevices:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Select input devices to remote control.
 
@@ -88,7 +88,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         * ``types`` (``u``)
@@ -134,10 +134,10 @@
     </method>
     <!--
         Start:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
-        @handle: Object path for the #org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Start the remote desktop session. This will typically result in the portal
         presenting a dialog letting the user select what to share, including
@@ -149,7 +149,7 @@
         * ``handle_token`` (``s``)
 
           A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Request documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
         The following results get returned via the
@@ -185,7 +185,7 @@
     </method>
     <!--
         NotifyPointerMotion:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @dx: Relative movement on the x axis
         @dy: Relative movement on the y axis
@@ -202,7 +202,7 @@
     </method>
     <!--
         NotifyPointerMotionAbsolute:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @stream: The PipeWire stream node the coordinate is relative to
         @x: Pointer motion x coordinate
@@ -222,7 +222,7 @@
     </method>
     <!--
         NotifyPointerButton:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @button: The pointer button was pressed or released
         @state: The new state of the button
@@ -245,7 +245,7 @@
     </method>
     <!--
         NotifyPointerAxis:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @dx: Relative axis movement on the x axis
         @dy: Relative axis movement on the y axis
@@ -273,7 +273,7 @@
     </method>
     <!--
         NotifyPointerAxisDiscrete:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @axis: The axis that was scrolled
         @steps: The number of steps scrolled
@@ -295,7 +295,7 @@
     </method>
     <!--
         NotifyKeyboardKeycode:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @keycode: Keyboard code that was pressed or released
         @state: New state of keyboard keycode
@@ -316,7 +316,7 @@
     </method>
     <!--
         NotifyKeyboardKeysym:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @keysym: Keyboard symbol that was pressed or released
         @state: New state of keyboard keysym
@@ -337,7 +337,7 @@
     </method>
     <!--
         NotifyTouchDown:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @stream: The PipeWire stream node the coordinate is relative to
         @slot: Touch slot where touch point appeared
@@ -362,7 +362,7 @@
     </method>
     <!--
         NotifyTouchMotion:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @stream: The PipeWire stream node the coordinate is relative to
         @slot: Touch slot where touch point appeared
@@ -387,7 +387,7 @@
     </method>
     <!--
         NotifyTouchUp:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @slot: Touch slot where touch point appeared
 
@@ -404,7 +404,7 @@
 
     <!--
         ConnectToEIS:
-        @session_handle: Object path for the #org.freedesktop.portal.Session object
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @fd: A file descriptor to an EIS implementation that can be passed to a libei sender context
 

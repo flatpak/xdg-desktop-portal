@@ -46,7 +46,7 @@
 
     <!--
       NotifyBackground:
-      @handle: Object path for the #org.freedesktop.impl.portal.Request object representing this call
+      @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
       @app_id: App id of the application
       @name: A display name for the application
       @response: Numeric response, not used
