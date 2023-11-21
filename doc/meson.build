@@ -89,4 +89,18 @@ if build_documentation
     build_by_default: true,
     depend_files: all_interfaces_xml,
   )
+
+  # Copy static files to the appropriate output subdir
+  copy = find_program('copy-subdir.py')
+
+  static_files = [
+    'xdg.css',
+    'inter.woff2',
+    'xdg-portal-dark.png',
+    'xdg-portal-light.png',
+  ]
+
+  foreach f: static_files
+    run_command(copy, '_static' / f, 'html' / '_static' / f)
+  endforeach
 endif

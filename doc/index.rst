@@ -3,6 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
+.. image:: _static/xdg-portal-light.png
+   :class: only-light
+.. image:: _static/xdg-portal-dark.png
+   :class: only-dark
+
 XDG Desktop Portal
 ==================
 
