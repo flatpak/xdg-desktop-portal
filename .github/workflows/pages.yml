@@ -15,7 +15,7 @@ jobs:
   build:
     runs-on: ubuntu-20.04
     container:
-      image: ubuntu:22.04
+      image: ubuntu:23.10
     steps:
       - name: Install dependencies
         env:
@@ -52,9 +52,9 @@ jobs:
         run: |
           apt-get install -y --no-install-recommends \
             ca-certificates \
+            furo \
             git \
-            python3-sphinx \
-            python3-sphinx-rtd-theme
+            python3-sphinx
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
