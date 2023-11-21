@@ -62,7 +62,7 @@ jobs:
       - name: Build docs
         run: |
           meson setup builddir -Ddocumentation=enabled
-          meson compile -C builddir
+          ninja -C builddir doc/html
 
       - name: Build website
         uses: actions/jekyll-build-pages@v1
