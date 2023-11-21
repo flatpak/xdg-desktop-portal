@@ -61,6 +61,3 @@ protocol.
 
 For other windowing systems, or if you don't have a suitable handle, just pass
 an empty string for "parent_window".
-
-.. toctree::
-   :maxdepth: 2
