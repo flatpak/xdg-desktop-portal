@@ -12,7 +12,7 @@ path (`/org/freedesktop/portal/desktop`).
 The portal interfaces include APIs for file access, opening URIs, printing
 and others.
 
-Documentation for the available D-Bus interfaces can be found	
+Documentation for the available D-Bus interfaces can be found
 [here](https://flatpak.github.io/xdg-desktop-portal/docs/).
 
 ## Version Numbering
@@ -55,6 +55,7 @@ Here are some examples of available backends:
 
 There are several reasons for the frontend/backend separation of the portal
 code:
+
 - We want to have _native_ portal dialogs that match the session desktop (i.e.
   GTK dialogs for GNOME, Qt dialogs for KDE)
 - One of the limitations of the D-Bus proxying in flatpak is that allowing a
@@ -85,6 +86,7 @@ is working well as a backend for the GtkFileChooserNative API.
 When it comes to files, we need to be careful to not let portal APIs subvert the
 limited filesystem view that apps have in their sandbox. Therefore, files should
 only be passed into portal APIs in one of two forms:
+
 - As a document ID referring to a file that has been exported in the document
   portal
 - As an open fd. The portal can work its way back to a file path from the fd,
@@ -94,6 +96,5 @@ only be passed into portal APIs in one of two forms:
 When it comes to processes, passing PIDs around is not useful in a sandboxed
 world where apps are likely in their own PID namespace. And passing PIDs from
 inside the sandbox is problematic, since the app can just lie.
-
 
 [contributing]: https://github.com/flatpak/xdg-desktop-portal/blob/main/CONTRIBUTING.md
