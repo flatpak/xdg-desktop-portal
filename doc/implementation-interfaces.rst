@@ -1,5 +1,5 @@
-D-Bus Interfaces for Portal Implementations
-===========================================
+D-Bus Interfaces for Desktop Developers
+=======================================
 
 The backend interfaces are used by the portal frontend to carry out portal
 requests. They are provided by a separate process (or processes), and are not
