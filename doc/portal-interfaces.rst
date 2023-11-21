@@ -1,5 +1,5 @@
-D-Bus Interfaces for Portal Users
-=================================
+D-Bus Interfaces for App Developers
+===================================
 
 Portal interfaces are available to sandboxed applications with the default
 filtered session bus access of Flatpak.
