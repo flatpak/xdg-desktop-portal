@@ -9,7 +9,6 @@
 project = 'XDG Desktop Portals'
 copyright = '2023, XDG Desktop Portal Authors'
 author = 'XDG Desktop Portal Authors'
-release = 'xdg-desktop-portal'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
