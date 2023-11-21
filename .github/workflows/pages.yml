@@ -54,7 +54,7 @@ jobs:
             ca-certificates \
             git \
             python3-sphinx \
-            python3-sphinx-rtd-theme
+            furo
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
