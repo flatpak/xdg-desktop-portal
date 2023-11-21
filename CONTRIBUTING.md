@@ -62,3 +62,19 @@ with `-Dlibportal=enabled`, and run:
 $ meson test -C _build
 ```
 
+### Building the documentation
+
+These instructions are for fedora, where you will need these packages:
+
+```
+sudo dnf install json-glib-devel fuse3-devel gdk-pixbuf2-devel pipewire-devel python3-sphinx flatpak-devel python3-furo
+```
+
+Then you can build the website with:
+
+```
+meson setup . _build -Ddocumentation=enabled
+ninja -C _build
+```
+
+Then just load the build website into a browser of your choice from `_build/doc/html/index.html`
