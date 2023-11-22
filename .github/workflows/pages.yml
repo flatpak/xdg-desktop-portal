@@ -50,7 +50,8 @@ jobs:
             git \
             python3-sphinx \
             python3-furo \
-            python-sphinxext-opengraph
+            python-sphinxext-opengraph \
+            python-sphinx-copybutton
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
