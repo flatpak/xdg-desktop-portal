@@ -12,6 +12,7 @@ author = "XDG Desktop Portal Authors"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
+html_favicon = "favicon.ico"
 
 extensions = [
     "sphinxext.opengraph",
