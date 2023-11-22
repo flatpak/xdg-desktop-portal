@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2022-09-11 15:05+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Pozwolić programowi „%s” na działanie w tle?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Program „%s” potrzebuje być automatycznie uruchamiany i działać w tle."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Program „%s” potrzebuje działać w tle."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,11 +42,11 @@ msgstr ""
 "Uprawnienie do działania w tle można zmienić w każdej chwili w ustawieniach "
 "programów."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Nie zezwalaj"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Zezwól"
 
@@ -108,38 +108,38 @@ msgstr "Program potrzebuje dostępu do kamery."
 msgid "%s wants to use your camera."
 msgstr "Program „%s” potrzebuje dostępu do kamery."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Odmów dostępu"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Udziel dostępu"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Udzielić dostęp do położenia programowi „%s”?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Program „%s” potrzebuje dostępu do położenia."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Udzielić dostęp do położenia?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Program potrzebuje dostępu do położenia."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Odmów"
 
@@ -165,7 +165,7 @@ msgstr ""
 "Program potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
@@ -174,20 +174,20 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Nie odnaleziono żądanego ustawienia"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Pozwolić programowi „%s” na ustawianie tła?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Program „%s” potrzebuje mieć możliwość zmiany obrazu tła."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Pozwolić programowi na ustawianie tła?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Program potrzebuje mieć możliwość zmiany obrazu tła."

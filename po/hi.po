@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2021-09-09 00:42+0700\n"
 "Last-Translator: Dmitry <dmitrydmitry761@gmail.com>\n"
 "Language-Team: Hindi <kde-i18n-doc@kde.org>\n"
@@ -18,32 +18,32 @@ msgstr ""
 "X-Generator: Poedit 2.2.4\n"
 "Plural-Forms: nplurals=2; plural=(n==0 || n==1);\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "अनुमति देना %s पृष्ठभूमि में चलाने के लिए?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s अनुरोध स्वचालित रूप से शुरू होने और पृष्ठभूमि में चलाने का अनुरोध करता है।"
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s पृष्ठभूमि में चलाने के लिए अनुरोध।"
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "एप्लिकेशन सेटिंग से किसी भी समय 'रन इन बैकग्राउंड' अनुमति को बदला जा सकता है।"
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "अनुमति न दें"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "अनुमति"
 
@@ -102,37 +102,37 @@ msgstr "एक एप्लिकेशन आपके कैमरे का �
 msgid "%s wants to use your camera."
 msgstr "%s अपने कैमरे का उपयोग करना चाहता है।"
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "पहुँच को अस्वीकार"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "अनुदान पहुँच"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "देना %s आपके स्थान तक पहुँच?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "एक एप्लिकेशन आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान का उपयोग बदला जा सकता है।"
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "मना"
 
@@ -156,7 +156,7 @@ msgstr "एप्‍लिकेशन को पृष्‍ठभूमि स
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "एक एप्लिकेशन आपके माइक्रोफ़ोन का उपयोग करना चाहता है।"
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
 
@@ -164,20 +164,20 @@ msgstr "इस अनुमति को गोपनीयता सेटि�
 msgid "Requested setting not found"
 msgstr "अनुरोधित सेटिंग नहीं मिली"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "परमिट %s पृष्ठभूमि सेट करने के लिए?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "एप्‍लिकेशन को पृष्‍ठभूमि सेट करने की अनुमति दें?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "एक एप्लिकेशन पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"

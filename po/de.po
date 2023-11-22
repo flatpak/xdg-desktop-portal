@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2016-09-23 19:17+0200\n"
 "Last-Translator: Mario Blättermann <mario.blaettermann@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.9\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr ""
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 
-#: src/background.c:752
+#: src/background.c:754
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
@@ -43,11 +43,11 @@ msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr ""
 
@@ -112,41 +112,41 @@ msgstr "Eine Anwendung möchte Ihre Kamera nutzen."
 msgid "%s wants to use your camera."
 msgstr "%s möchte Ihre Kamera nutzen."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr ""
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr ""
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr ""
 
-#: src/location.c:551
+#: src/location.c:556
 #, fuzzy, c-format
 msgid "%s wants to use your location."
 msgstr "%s möchte Ihre Kamera nutzen."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr ""
 
-#: src/location.c:560
+#: src/location.c:566
 #, fuzzy
 msgid "An application wants to use your location."
 msgstr "Eine Anwendung möchte Ihre Kamera nutzen."
 
-#: src/location.c:563
+#: src/location.c:569
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Der Zugriff auf Ihre Lautsprecher kann in den Einstellungen zur Privatsphäre "
 "jederzeit geändert werden."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr ""
 
@@ -170,7 +170,7 @@ msgstr "Eine Anwendung möchte Ton wiedergeben."
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Eine Anwendung möchte auf Ihr Mikrofon zugreifen."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 #, fuzzy
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
@@ -181,21 +181,21 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr ""
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr ""
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 #, fuzzy
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Eine Anwendung möchte Ton wiedergeben."
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr ""

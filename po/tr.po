@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2023-06-06 02:05+0300\n"
 "Last-Translator: Berk Elyesa Yıldırım <beryesa@proton.me>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
@@ -22,22 +22,22 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.3.1\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "%s, arka planda çalışmasına izin verilsin mi?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s, kendiliğinden başlamayı ve arka planda çalışmayı istiyor."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s, arka planda çalışmak istiyor."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -45,11 +45,11 @@ msgstr ""
 "‘Arka planda çalış’ ayarı, uygulama ayarlarından istediğiniz zaman "
 "değiştirilebilir."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "İzin verme"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "İzin ver"
 
@@ -114,38 +114,38 @@ msgstr "Bir uygulama, kameranızı kullanmak istiyor."
 msgid "%s wants to use your camera."
 msgstr "%s, kameranızı kullanmak istiyor."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Erişimi Reddet"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Erişim İzni Ver"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "%s, Bulunduğunuz Konuma Erişsin Mi?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s, konumunuzu kullanmak istiyor."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Konumunuza Erişim Verilsin Mi?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Bir uygulama, konumunuzu kullanmak istiyor."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Konum erişimini, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Reddet"
 
@@ -167,7 +167,7 @@ msgstr "Uygulamaların Ekran Görüntüsü Almasına İzin Verilsin Mi?"
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Bir uygulama istediği zaman ekran görüntüsü alabilmek istiyor."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Bu izin, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
 
@@ -175,20 +175,20 @@ msgstr "Bu izin, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
 msgid "Requested setting not found"
 msgstr "İstenen ayar bulunamadı"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "%s, Arka Planı Belirlemesine İzin Verilsin Mi?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s, arka planı değiştirme yetkisi istiyor."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Uygulamaların Arka Planı Belirlemesine İzin Verilsin Mi?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Bir uygulama arka planı değiştirme yetkisi istiyor."
