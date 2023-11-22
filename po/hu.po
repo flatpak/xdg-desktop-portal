@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2022-09-21 22:58+0200\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 19.12.3\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Engedélyezi a(z) %s számára, hogy a háttérben fusson?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "A(z) %s azt kéri, hogy automatikusan elinduljon és a háttérben fusson."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "A(z) %s azt kéri, hogy a háttérben fusson."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "A „háttérben való futás” engedély bármikor megváltoztatható az alkalmazás "
 "beállításaiban."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Ne engedélyezze"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Engedélyezés"
 
@@ -110,39 +110,39 @@ msgstr "Egy alkalmazás használni szeretné a kameráját."
 msgid "%s wants to use your camera."
 msgstr "A(z) %s használni szeretné a kameráját."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Hozzáférést ad a tartózkodási helyéhez?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
 "adatvédelmi beállításokban."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Elutasítás"
 
@@ -165,7 +165,7 @@ msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Egy alkalmazás azt szeretné, hogy bármikor készíthessen képernyőképeket."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Ez az engedély bármikor megváltoztatható az adatvédelmi beállításokban."
@@ -174,20 +174,20 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Engedélyezi a(z) %s számára, hogy háttereket állítson be?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "A(z) %s azt kéri, hogy megváltoztathassa a háttérképet."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Engedélyezi az alkalmazások számára, hogy háttereket állítsanak be?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Egy alkalmazás azt kéri, hogy megváltoztathassa a háttérképet."

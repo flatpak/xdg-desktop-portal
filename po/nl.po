@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2021-07-18 14:05+0200\n"
 "Last-Translator: Heimen Stoffels <vistausss@fastmail.com>\n"
 "Language-Team: Dutch\n"
@@ -19,25 +19,25 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.0\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Wilt u %s toestaan om op de achtergrond te worden uitgevoerd?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "%s verzoekt om automatisch te mogen worden opgestart en uitgevoerd te mogen "
 "worden op de achtergrond."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr ""
 "%s verzoekt om automatisch te mogen worden uitgevoerd op de achtergrond."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -45,11 +45,11 @@ msgstr ""
 "Het toegangsrecht ‘uitvoeren op achtergrond’ kan te allen tijde worden "
 "ingetrokken in de toepassingsvoorkeuren."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Niet toestaan"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Toestaan"
 
@@ -114,39 +114,39 @@ msgstr "Een toepassing wil uw camera gebruiken."
 msgid "%s wants to use your camera."
 msgstr "%s wil uw camera gebruiken."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Toegang weigeren"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Toegang verlenen"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Wilt u %s toegang verlenen tot uw locatie?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s wil uw locatie opvragen."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Toegang verlenen tot uw locatie?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Een toepassing wil uw locatie opvragen."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "De toegang tot uw locatie kan te allen tijde worden aangepast in de "
 "privacyvoorkeuren."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Weigeren"
 
@@ -170,7 +170,7 @@ msgstr "Toepassingen toestaan achtergronden in te stellen?"
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Een toepassing wil uw microfoon gebruiken."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Dit toegangsrecht kan te allen tijde worden aangepast in de "
@@ -180,21 +180,21 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "De opgevraagde instelling bestaat niet"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "%s toestaan achtergronden in te stellen?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s verzoekt de mogelijkheid om uw achtergrondafbeelding te wijzigen."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Toepassingen toestaan achtergronden in te stellen?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 "Een toepassing verzoekt de mogelijkheid om uw achtergrondafbeelding te "

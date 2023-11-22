@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2020-09-22 14:32+0200\n"
 "Last-Translator: Dušan Kazik <prescott66@gmail.com>\n"
 "Language-Team: Slovak <gnome-sk-list@gnome.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 1 : (n>=2 && n<=4) ? 2 : 0;\n"
 "X-Generator: Poedit 2.4.1\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Umožniť aplikácii %s spustenie na pozadí?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Aplikácia %s požaduje automatické spustenie a beh na pozadí."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Aplikácia %s požaduje spustenie na pozadí."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,11 +41,11 @@ msgstr ""
 "Oprávnenie „spustenie na pozadí“ môže byť kedykoľvek zmenené z nastavení "
 "aplikácií."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Nepovoliť"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Povoliť"
 
@@ -108,38 +108,38 @@ msgstr "Aplikácia sa pokúša použiť vašu kameru."
 msgid "%s wants to use your camera."
 msgstr "Aplikácia %s sa pokúša použiť vašu kameru."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Zamietnuť prístup"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Udeliť prístup"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Umožniť aplikácii %s prístup k vašej polohe?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Aplikácia %s sa pokúša použiť vašu polohu."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Udeliť prístup k vašej polohe?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Aplikácia sa pokúša použiť vašu polohu."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Prístup k vašej polohe môže byť kedykoľvek zmenený z nastavení súkromia."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Odmietnuť"
 
@@ -163,7 +163,7 @@ msgstr "Umožniť aplikáciám nastavovať pozadia?"
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Aplikácia sa pokúša použiť váš mikrofón."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Toto oprávnenie môže byť kedykoľvek zmenené z nastavení súkromia."
 
@@ -171,20 +171,20 @@ msgstr "Toto oprávnenie môže byť kedykoľvek zmenené z nastavení súkromia
 msgid "Requested setting not found"
 msgstr "Požadované nastavenie sa nenašlo"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Umožniť aplikácii %s nastavovať pozadia?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikácia %s požaduje povolenie na zmenu obrázku pozadia."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Umožniť aplikáciám nastavovať pozadia?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Aplikácia požaduje povolenie na zmenu obrázku pozadia."

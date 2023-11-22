@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2023-11-22 18:45-0300\n"
 "PO-Revision-Date: 2020-02-10 16:11+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
@@ -18,24 +18,24 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "L'applicazione %s richiede di essere avviata automaticamente e di essere "
 "eseguita sullo sfondo."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -43,11 +43,11 @@ msgstr ""
 "Il permesso «esegui sullo sfondo» può essere modificato in qualsiasi momento "
 "attraverso le impostazioni dell'applicazione."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Non consentire"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Consenti"
 
@@ -112,39 +112,39 @@ msgstr "Un'applicazione vuole utilizzare la videocamera."
 msgid "%s wants to use your camera."
 msgstr "%s vuole utilizzare la videocamera."
 
-#: src/location.c:526
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Nega accesso"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Consenti accesso"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Consentire a %s di accedere alla propria posizione?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vuole utilizzare la propria posizione."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Consentire l'accesso alla propria posizione?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Un'applicazione vuole utilizzare la propria posizione."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "L'accesso alla posizione può essere modificato in qualsiasi momento "
 "attraverso le impostazioni della privacy."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Nega"
 
@@ -168,7 +168,7 @@ msgstr "Consentire alle applicazioni di impostare lo sfondo?"
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Un'applicazione vuole utilizzare il microfono."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Questa impostazione può essere modificata in qualsiasi momento attraverso le "
@@ -178,20 +178,20 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "La risorsa richiesta non è stata trovata"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Consentire a %s di impostare lo sfondo?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "L'applicazione %s richiede di poter cambiare l'immagine di sfondo."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Consentire alle applicazioni di impostare lo sfondo?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Un'applicazione richiede di poter cambiare l'immagine di sfondo."
