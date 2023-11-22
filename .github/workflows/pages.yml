@@ -21,37 +21,37 @@ jobs:
         run: |
           dnf install -y \
             desktop-file-utils \
-            fuse3 \
-            gcc \
-            gettext \
-            gnome-desktop-testing \
-            gtk-doc \
-            libcap \
-            libcap-devel \
             flatpak-devel \
             fontconfig-devel \
+            fuse3 \
             fuse3-devel \
+            gcc \
             gdk-pixbuf2-devel \
             geoclue2-devel \
+            gettext \
             glib2-devel \
+            gnome-desktop-testing \
+            gtk-doc \
             json-glib-devel \
-            pipewire-devel \
+            libcap \
+            libcap-devel \
             libportal-devel \
-            systemd-devel \
             llvm \
             meson \
+            pipewire-devel \
             python3-gobject \
-            shared-mime-info
+            shared-mime-info \
+            systemd-devel
 
       - name: Install dependencies for doc builds
         run: |
           dnf install -y \
             ca-certificates \
             git \
-            python3-sphinx \
-            python3-furo \
+            python-sphinx-copybutton \
             python-sphinxext-opengraph \
-            python-sphinx-copybutton
+            python3-furo \
+            python3-sphinx
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
