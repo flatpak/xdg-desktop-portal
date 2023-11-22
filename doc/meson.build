@@ -68,6 +68,7 @@ if build_documentation
     'portal-interfaces.rst',
     'implementation-interfaces.rst',
     'background-app-monitor.rst',
+    'card.png',
   ]
 
   copied_docs_sources = []

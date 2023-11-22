@@ -67,7 +67,7 @@ $ meson test -C _build
 These instructions are for fedora, where you will need these packages:
 
 ```
-sudo dnf install json-glib-devel fuse3-devel gdk-pixbuf2-devel pipewire-devel python3-sphinx flatpak-devel python3-furo
+sudo dnf install json-glib-devel fuse3-devel gdk-pixbuf2-devel pipewire-devel python3-sphinx flatpak-devel python3-furo python-sphinxext-opengraph
 ```
 
 Then you can build the website with:
