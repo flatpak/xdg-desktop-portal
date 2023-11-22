@@ -6,9 +6,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "XDG Desktop Portals"
-copyright = "2023, XDG Desktop Portal Authors"
-author = "XDG Desktop Portal Authors"
+project = "XDG Desktop Portal"
+copyright = "2023, XDG Desktop Portal authors"
+author = "XDG Desktop Portal authors"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
