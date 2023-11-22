@@ -3,12 +3,11 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-XDG Desktop Portals
-===================
+XDG Desktop Portal
+==================
 
-XDG Dekstop Portals allow `Flatpak apps <http://www.flatpak.org>`_, and other
-desktop containment frameworks, to interact with the system in a secure and well
-defined way.
+XDG Desktop Portal allow `Flatpak apps <http://www.flatpak.org>`_, and other desktop
+containment frameworks, to interact with the system in a secure and well defined way.
 
 Content Overview
 ----------------
