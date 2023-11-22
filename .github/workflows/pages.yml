@@ -49,7 +49,8 @@ jobs:
             ca-certificates \
             git \
             python3-sphinx \
-            python3-furo
+            python3-furo \
+            python-sphinxext-opengraph
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v3
