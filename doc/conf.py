@@ -15,6 +15,7 @@ author = "XDG Desktop Portal Authors"
 
 extensions = [
     "sphinxext.opengraph",
+    "sphinx_copybutton",
 ]
 
 templates_path = ["_templates"]
