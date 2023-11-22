@@ -1,3 +1,24 @@
+Changes in 1.18.2
+=================
+Released: 2023-11-22
+
+- Pass the token to the OpenURI portal and, when missing, an empty string.
+- Fix various memory and file descriptor leaks in the Document portal.
+- Make files and folders openend with the Document portal close properly. This
+  should fix cases where the Document portal prevented external devices from
+  unmounting, due to files inside them not getting closed after applications
+  stop using them.
+- Implement FUSE getlk and setlk callbacks.This should enable using sqlite3
+  through the Document portal.
+- Properly resolve fd symlinks before opening them with O_NOFOLLOW.
+- Fix cases where the portal id is assumed to match the .desktop file name.
+- Allow sending directories in the file transfer portal. This should make it
+  possible to, among other things, drag and drop folders and files simultaneously
+  from and to sandboxed applications.
+- Fallback to a hardcoded check to xdg-desktop-portal-gtk in the absence of any
+  other portal or configuration file, as a last resort mechanism.
+- Various smaller fixes to the build system.
+
 Changes in 1.18.1
 =================
 Released: 2023-10-26
