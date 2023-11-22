@@ -69,6 +69,7 @@ if build_documentation
     'implementation-interfaces.rst',
     'background-app-monitor.rst',
     'card.png',
+    'favicon.ico',
   ]
 
   copied_docs_sources = []
