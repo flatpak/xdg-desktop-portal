@@ -82,6 +82,7 @@ if build_documentation
     'impl-dbus-interfaces.rst',
     'index.rst',
     'introduction.rst',
+    'portal-internals.rst',
     'requests.rst',
     'sessions.rst',
     'window-identifiers.rst',

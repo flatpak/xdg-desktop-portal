@@ -38,6 +38,8 @@ This documentation is made up of the following sections:
   backend.
 * :doc:`Background apps monitoring <introduction>`: service that provides
   information about apps running in background to **desktop developers**.
+* :doc:`Portal internals <portal-internals>`: internals of the portal
+  for **contributors**.
 
 XDG Desktop Portal backends are selected and can be configured by using one or more
 configuration files. :doc:`Read more about them here <portals.conf>`.
