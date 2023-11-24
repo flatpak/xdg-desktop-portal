@@ -282,7 +282,6 @@ test(
 )
 
 pytest = find_program('pytest-3', 'pytest', required: get_option('pytest'))
-pymod = import('python')
 python = pymod.find_installation(
   'python3',
   modules: ['dbus', 'dbusmock', 'gi'],
