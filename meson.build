@@ -64,6 +64,7 @@ src_includes = include_directories('src')
 i18n = import('i18n')
 gnome = import('gnome')
 pkgconfig = import('pkgconfig')
+pymod = import('python')
 
 cc = meson.get_compiler('c')
 cflags = [
@@ -145,7 +146,8 @@ add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_66'], languag
 build_documentation = false
 gdbus_codegen = find_program('gdbus-codegen', native: true, required: get_option('documentation'))
 sphinx_build = find_program('sphinx-build', native: true, required: get_option('documentation'))
-if not get_option('documentation').disabled() and gdbus_codegen.found() and sphinx_build.found()
+sphinx_modules = pymod.find_installation('python3', modules: ['sphinxext.opengraph', 'sphinx_copybutton', 'furo'], required: get_option('documentation'))
+if not get_option('documentation').disabled() and gdbus_codegen.found() and sphinx_build.found() and sphinx_modules.found()
     fs = import('fs')
     # we're going to copy this file in to our build tree
     if fs.is_file(flatpak_intf_dir / 'org.freedesktop.portal.Flatpak.xml')
