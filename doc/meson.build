@@ -68,7 +68,6 @@ if build_documentation
     'portal-interfaces.rst',
     'implementation-interfaces.rst',
     'background-app-monitor.rst',
-    'card.png',
     'favicon.ico',
   ]
 
@@ -98,6 +97,7 @@ if build_documentation
     'inter.woff2',
     'xdg-portal-dark.png',
     'xdg-portal-light.png',
+    'card.png',
   ]
 
   foreach f: static_files

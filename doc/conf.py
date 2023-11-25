@@ -28,12 +28,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 html_theme = "furo"
 # add custom files that are stored in _static
-html_css_files = ['xdg.css']
+html_css_files = ["xdg.css"]
 html_static_path = ["_static"]
-html_favicon = 'img/favicon.svg'
+html_favicon = "img/favicon.svg"
 html_logo = "img/logo.svg"
 
 # -- Options for OpenGraph ---------------------------------------------------
 
 ogp_site_url = "https://flatpak.github.io/xdg-desktop-portal/docs/"
-ogp_image = "card.png"
+ogp_image = "_static/card.png"
