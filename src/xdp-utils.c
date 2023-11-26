@@ -1028,7 +1028,7 @@ xdp_filter_options (GVariant *options,
             }
         }
 
-      g_variant_builder_add (filtered, "{sv}", supported_options[i].key, g_steal_pointer (&value));
+      g_variant_builder_add (filtered, "{sv}", supported_options[i].key, value);
     }
 
   return ret;

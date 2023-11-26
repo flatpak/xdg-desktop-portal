@@ -76,7 +76,7 @@ send_response_in_thread_func (GTask        *task,
   guint response;
   GVariant *options;
   DocumentFlags flags = DOCUMENT_FLAG_WRITABLE | DOCUMENT_FLAG_DIRECTORY;
-  const char **uris;
+  g_autofree char **uris = NULL;
   GVariant *choices;
   GVariant *current_filter;
   GVariant *writable;
