@@ -388,7 +388,7 @@ init_camera_tracker (Camera *camera,
                      GError **error)
 {
   g_autofree char *pipewire_socket_path = NULL;
-  GFile *pipewire_socket;
+  g_autoptr(GFile) pipewire_socket = NULL;
   g_autoptr(GError) local_error = NULL;
 
   pipewire_socket_path = g_strdup_printf ("%s/pipewire-0",
