@@ -571,7 +571,7 @@ name_owner_changed (GDBusConnection *connection,
 {
   const char *name, *from, *to;
 
-  g_variant_get (parameters, "(sss)", &name, &from, &to);
+  g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
   if (name[0] == ':' &&
       strcmp (name, from) == 0 &&

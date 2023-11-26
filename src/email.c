@@ -149,7 +149,7 @@ validate_email_addresses (const char *key,
                           GVariant *options,
                           GError **error)
 {
-  const char *const *strings = g_variant_get_strv (value, NULL);
+  g_autofree const char *const *strings = g_variant_get_strv (value, NULL);
   int i;
 
   for (i = 0; strings[i]; i++)
