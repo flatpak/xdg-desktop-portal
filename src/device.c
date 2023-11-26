@@ -92,7 +92,6 @@ device_query_permission_sync (const char *app_id,
     {
       GVariantBuilder opt_builder;
       g_autofree char *title = NULL;
-      g_autofree char *subtitle = NULL;
       g_autofree char *body = NULL;
       guint32 response = 2;
       g_autoptr(GVariant) results = NULL;
@@ -113,40 +112,46 @@ device_query_permission_sync (const char *app_id,
         {
           g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("audio-input-microphone-symbolic"));
 
-          title = g_strdup (_("Turn On Microphone?"));
-          body = g_strdup (_("Access to your microphone can be changed "
-                             "at any time from the privacy settings."));
-
-          if (info == NULL)
-            subtitle = g_strdup (_("An application wants to use your microphone."));
+          if (info)
+            {
+              title = g_strdup_printf (_("Allow %s to Use the Microphone?"), g_app_info_get_display_name (info));
+              body = g_strdup_printf (_("%s wants to access recording devices."), g_app_info_get_display_name (info));
+            }
           else
-            subtitle = g_strdup_printf (_("%s wants to use your microphone."), g_app_info_get_display_name (info));
+            {
+              title = g_strdup (_("Allow app to Use the Microphone?"));
+              body = g_strdup (_("An app wants to access recording devices."));
+            }
         }
       else if (strcmp (device, "speakers") == 0)
         {
           g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("audio-speakers-symbolic"));
 
-          title = g_strdup (_("Turn On Speakers?"));
-          body = g_strdup (_("Access to your speakers can be changed "
-                             "at any time from the privacy settings."));
-
-          if (info == NULL)
-            subtitle = g_strdup (_("An application wants to play sound."));
+          if (info)
+            {
+              title = g_strdup_printf (_("Allow %s to Use the Speakers?"), g_app_info_get_display_name (info));
+              body = g_strdup_printf (_("%s wants to access audio devices."), g_app_info_get_display_name (info));
+            }
           else
-            subtitle = g_strdup_printf (_("%s wants to play sound."), g_app_info_get_display_name (info));
+            {
+              title = g_strdup (_("Allow app to Use the Speakers?"));
+              body = g_strdup (_("An app wants to access audio devices."));
+            }
         }
       else if (strcmp (device, "camera") == 0)
         {
           g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
 
-          title = g_strdup (_("Turn On Camera?"));
-          body = g_strdup (_("Access to your camera can be changed "
-                             "at any time from the privacy settings."));
-
-          if (info == NULL)
-            subtitle = g_strdup (_("An application wants to use your camera."));
+          if (info)
+            {
+              title = g_strdup_printf (_("Allow %s to Use the Camera?"), g_app_info_get_display_name (info));
+              body = g_strdup_printf (_("%s wants to access camera devices."), g_app_info_get_display_name (info));
+            }
           else
-            subtitle = g_strdup_printf (_("%s wants to use your camera."), g_app_info_get_display_name (info));
+            {
+              title = g_strdup (_("Allow app to Use the Camera?"));
+              body = g_strdup (_("An app wants to access camera devices."));
+            }
         }
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
@@ -166,7 +171,7 @@ device_query_permission_sync (const char *app_id,
                                                          app_id,
                                                          "",
                                                          title,
-                                                         subtitle,
+                                                         "",
                                                          body,
                                                          g_variant_builder_end (&opt_builder),
                                                          &response,
