@@ -505,8 +505,9 @@ find_recommended_choices (const char *scheme,
                           GStrv *choices,
                           guint *choices_len)
 {
-  GAppInfo *info;
-  GList *infos, *l;
+  g_autoptr(GAppInfo) info = NULL;
+  g_autolist(GAppInfo) infos = NULL;
+  GList *l;
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
@@ -533,11 +534,9 @@ find_recommended_choices (const char *scheme,
   result = g_new (char *, n_choices + 1);
   for (l = infos, i = 0; l; l = l->next)
     {
-      info = l->data;
-      result[i++] = get_app_id (info);
+      result[i++] = get_app_id (G_APP_INFO (l->data));
     }
   result[i] = NULL;
-  g_list_free_full (infos, g_object_unref);
 
   {
     g_autofree char *a = g_strjoinv (", ", result);
