@@ -101,7 +101,6 @@ jobs:
       env:
         TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Install xdg-desktop-portal
       run: $RUN_CMD meson install -C ${BUILDDIR}
@@ -117,7 +116,6 @@ jobs:
         G_MESSAGES_DEBUG: all
         TEST_IN_CI: 1
         XDG_DATA_DIRS: /usr/local/share:/usr/share
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Create dist tarball
       run: |
@@ -126,7 +124,6 @@ jobs:
       env:
         TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
-        ASAN_OPTIONS: detect_leaks=0 # Right now we're not fully clean, but this gets us use-after-free etc
 
     - name: Upload test logs
       uses: actions/upload-artifact@v3

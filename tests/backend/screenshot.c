@@ -38,6 +38,7 @@ send_response (gpointer data)
 {
   ScreenshotHandle *handle = data;
   GVariantBuilder opt_builder;
+  g_autoptr(GVariant) params = NULL;
   int response;
   g_autofree char *uri = NULL;
   double red, green, blue;
@@ -70,16 +71,17 @@ send_response (gpointer data)
 
   g_debug ("send response %d", response);
 
+  params = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
   if (handle->is_screenshot)
     xdp_dbus_impl_screenshot_complete_screenshot (handle->impl,
                                                   handle->invocation,
                                                   response,
-                                                  g_variant_builder_end (&opt_builder));
+                                                  params);
   else
     xdp_dbus_impl_screenshot_complete_pick_color (handle->impl,
                                                   handle->invocation,
                                                   response,
-                                                  g_variant_builder_end (&opt_builder));
+                                                  params);
 
   handle->timeout = 0;
 

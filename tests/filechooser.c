@@ -36,7 +36,7 @@ open_file_cb (GObject *obj,
   ret = xdp_portal_open_file_finish (portal, result, &error);
   if (response == 0)
     {
-      const char * const *uris;
+      g_autofree const char * const *uris = NULL;
       g_auto(GStrv) expected_uris = NULL;
       g_autofree char *expected_choices = NULL;
       g_autoptr(GVariant) choices = NULL;
@@ -667,14 +667,14 @@ save_file_cb (GObject *obj,
   ret = xdp_portal_save_file_finish (portal, result, &error);
   if (response == 0)
     {
-      const char * const *uris;
+      g_autofree const char * const *uris = NULL;
       g_auto(GStrv) expected = NULL;
 
       g_assert_no_error (error);
       g_variant_lookup (ret, "uris", "^a&s", &uris);
       expected = g_key_file_get_string_list (keyfile, "result", "uris", NULL, NULL);
 
-      g_assert (g_strv_equal (uris, (const char * const *)expected)); 
+      g_assert (g_strv_equal (uris, (const char * const *)expected));
     }
   else if (response == 1)
     g_assert_error (error, G_IO_ERROR, G_IO_ERROR_CANCELLED);
