@@ -274,6 +274,8 @@ global_setup (void)
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
 
+  g_clear_pointer (&argv0, g_free);
+
   if (g_getenv ("XDP_UNINSTALLED") != NULL)
     argv0 = g_test_build_filename (G_TEST_BUILT, "..", XDG_DP_BUILDDIR, "xdg-desktop-portal", NULL);
   else
