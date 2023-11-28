@@ -137,7 +137,7 @@ static Permission
 get_one_permission (const char *app_id,
                     GVariant   *perms)
 {
-  const char **permissions;
+  g_autofree const char **permissions = NULL;
 
   if (perms == NULL)
     {
