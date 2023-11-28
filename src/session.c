@@ -463,6 +463,7 @@ session_finalize (GObject *object)
 
   g_free (session->app_id);
   g_free (session->id);
+  g_free (session->token);
 
   g_mutex_clear (&session->mutex);
 
