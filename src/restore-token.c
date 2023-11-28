@@ -192,7 +192,7 @@ xdp_session_persistence_replace_restore_token_with_data (Session *session,
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
 
-  while (g_variant_iter_next (&options_iter, "{sv}", &key, &value))
+  while (g_variant_iter_next (&options_iter, "{&sv}", &key, &value))
     {
       if (g_strcmp0 (key, "restore_token") == 0)
         {
@@ -242,11 +242,10 @@ xdp_session_persistence_replace_restore_token_with_data (Session *session,
       else
         {
           g_variant_builder_add (&options_builder, "{sv}",
-                                 key, g_variant_ref (value));
+                                 key, value);
         }
 
-      g_free (key);
-      g_variant_unref (value);
+      g_clear_pointer (&value, g_variant_unref);
     }
 
   *in_out_options = g_variant_builder_end (&options_builder);
@@ -336,7 +335,7 @@ xdp_session_persistence_replace_restore_data_with_token (Session *session,
         {
           if (g_variant_check_format_string (value, RESTORE_DATA_TYPE, FALSE))
             {
-              *in_out_restore_data = g_variant_ref_sink (value);
+              *in_out_restore_data = g_variant_ref (value);
               found_restore_data = TRUE;
             }
           else
@@ -355,6 +354,7 @@ xdp_session_persistence_replace_restore_data_with_token (Session *session,
         {
           g_variant_builder_add (&results_builder, "{sv}", key, value);
         }
+      g_clear_pointer (&value, g_variant_unref);
     }
 
   if (found_restore_data)
