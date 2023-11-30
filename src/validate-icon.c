@@ -43,7 +43,7 @@ validate_icon (const char *arg_width,
   GdkPixbufFormat *format;
   int max_width, max_height;
   int width, height;
-  const char *name;
+  g_autofree char *name = NULL;
   const char *allowed_formats[] = { "png", "jpeg", "svg", NULL };
   g_autoptr(GdkPixbuf) pixbuf = NULL;
   g_autoptr(GError) error = NULL;
@@ -259,8 +259,8 @@ static GOptionEntry entries[] = {
 int
 main (int argc, char *argv[])
 {
-  GOptionContext *context;
-  GError *error = NULL;
+  g_autoptr(GOptionContext) context = NULL;
+  g_autoptr(GError) error = NULL;
 
   context = g_option_context_new ("WIDTH HEIGHT PATH");
   g_option_context_add_main_entries (context, entries, NULL);
