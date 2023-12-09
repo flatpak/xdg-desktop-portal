@@ -36,7 +36,7 @@
         This portal does NOT create it's own session. Instead, it offers existing sessions
         created from other portals the option to integrate with the clipboard. For whether
         this interface is supported for a given session, refer to that portal's documentation.
-        See #org.freedesktop.portal.RemoteDesktop to integrate clipboard with the 
+        See :ref:`org.freedesktop.portal.RemoteDesktop` to integrate clipboard with the
         remote desktop session.
     -->
     <method name="RequestClipboard">
@@ -51,7 +51,7 @@
         Sets the owner of the clipboard formats in 'mime_types' in @options to
         the session, i.e. this session has data for the advertised clipboard formats.
 
-        See #org.freedesktop.portal.FileTransfer to transfer files using the
+        See :ref:`org.freedesktop.portal.FileTransfer` to transfer files using the
         'application/vnd.portal.filetransfer' mimetype.
 
         May only be called if clipboard access was given after starting the session.
@@ -150,10 +150,10 @@
 
         Notifies the session of a request for clipboard content of the given mime type.  The 
         callee provides a serial to track the request, which any 
-        org.freedesktop.portal.Clipboard.SelectionWrite() responses must use.
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWrite` responses must use.
 
         Once the caller is done handling the 'SelectionTransfer' request, they must call
-        org.freedesktop.portal.Clipboard.SelectionWriteDone() with the corresponding request's serial
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone` with the corresponding request's serial
         and whether the request completed successfully. If the request is not handled, the caller should
         respond by setting 'success' to 'false'.
 

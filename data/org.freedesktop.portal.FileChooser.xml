@@ -128,7 +128,7 @@
         The portal implementation is free to ignore this option.
 
 
-      The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+      The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
       * ``uris`` (``as``)
 
@@ -218,7 +218,7 @@
         system. The byte array is expected to be terminated by a nul byte.
 
 
-      The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+      The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
       * ``uris`` (``as``)
 
@@ -309,7 +309,7 @@
 
 
       The following results get returned via the
-      #org.freedesktop.portal.Request::Response signal:
+      :ref:`org.freedesktop.portal.Request::Response` signal:
 
       * ``uris`` (``as``)
 

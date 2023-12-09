@@ -29,7 +29,7 @@
     <!--
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
         @app_id: App id of the application
         @options: Vardict with optional further information
         @response: Numeric response
@@ -56,7 +56,7 @@
     <!--
         SelectSources:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
         @response: Numeric response
@@ -128,7 +128,7 @@
     <!--
         Start:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information

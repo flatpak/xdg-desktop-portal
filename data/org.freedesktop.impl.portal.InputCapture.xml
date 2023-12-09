@@ -23,7 +23,7 @@
 
       The Capture Input portal allows clients to capture input from local
       devices. This portal is mostly a 1:1 mapping of the
-      #org.freedesktop.portal.InputCapture portal, see that portal's
+      :ref:`org.freedesktop.portal.InputCapture` portal, see that portal's
       documentation for details on methods, signals and arguments.
 
       This documentation describes version 1 of this interface.
@@ -32,7 +32,7 @@
     <!--
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @options: Vardict with optional further information
@@ -73,7 +73,7 @@
     <!--
         GetZones:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
         @response: Numeric response
@@ -106,7 +106,7 @@
     <!--
         SetPointerBarriers:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
         @barriers: An array of vardicts, each specifying one barrier
@@ -152,7 +152,7 @@
 
     <!--
         Enable:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
 
@@ -170,7 +170,7 @@
 
     <!--
         Disable:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
 
@@ -188,7 +188,7 @@
 
     <!--
         Release:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
 
@@ -229,10 +229,10 @@
 
         Set up the connection to an EIS implementation. Once input capturing starts,
         input events are sent via the EI protocol between the compositor and the application.
-        This call must be invoked before org.freedesktop.portal.InputCapture.Enable().
+        This call must be invoked before :ref:`org.freedesktop.portal.InputCapture.Enable`.
 
         A session only needs to set this up once, the EIS implementation is not affected by
-        calls to Disable() and org.freedesktop.portal.InputCapture.Enable() -
+        calls to Disable() and :ref:`org.freedesktop.portal.InputCapture.Enable` -
         the same context can be re-used until the session is closed.
     -->
     <method name="ConnectToEIS">
@@ -245,7 +245,7 @@
     </method>
     <!--
         Disabled:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @options: Vardict with optional further information
 
         The Disabled signal is emitted when the application will no longer
@@ -260,7 +260,7 @@
 
     <!--
         Activated:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @options: Vardict with optional further information
 
         The Activated signal is emitted when input capture starts and input events
@@ -322,12 +322,12 @@
 
     <!--
         Deactivated:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @options: Vardict with optional further information
 
         The Deactivated signal is emitted when input capture stopped and input events
         are no longer sent to the application. To prevent future input
-        capture, an application must call org.freedesktop.portal.InputCapture.Disable().
+        capture, an application must call :ref:`org.freedesktop.portal.InputCapture.Disable`.
 
         Supported keys in the @options vardict include:
 
@@ -355,12 +355,12 @@
 
     <!--
         ZonesChanged:
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @options: Vardict with optional further information
 
         The ZonesChanged signal is emitted when one or more of the zones
         available **to this session** change. An application should immediately call
-        org.freedesktop.portal.InputCapture.GetZones() to update its state of the zones.
+        :ref:`org.freedesktop.portal.InputCapture.GetZones` to update its state of the zones.
     -->
     <signal name="ZonesChanged">
       <arg type="o" name="session_handle" direction="out"/>

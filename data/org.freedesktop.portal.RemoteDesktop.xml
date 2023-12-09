@@ -38,14 +38,14 @@
 
         A remote desktop session may only be started and stopped with this interface,
         but you can use the :ref:`org.freedesktop.portal.Session` object created with this
-        method together with certain methods on the #org.freedesktop.portal.ScreenCast and
-        #org.freedesktop.portal.Clipboard interfaces. Specifically, you can call
-        org.freedesktop.portal.ScreenCast.SelectSources() to also get screen content,
-        and org.freedesktop.portal.ScreenCast.OpenPipeWireRemote() to acquire a file
-        descriptor for a PipeWire remote. See #org.freedesktop.portal.ScreenCast for
+        method together with certain methods on the :ref:`org.freedesktop.portal.ScreenCast` and
+        :ref:`org.freedesktop.portal.Clipboard` interfaces. Specifically, you can call
+        :ref:`org.freedesktop.portal.ScreenCast.SelectSources` to also get screen content,
+        and :ref:`org.freedesktop.portal.ScreenCast.OpenPipeWireRemote` to acquire a file
+        descriptor for a PipeWire remote. See :ref:`org.freedesktop.portal.ScreenCast` for
         more information on how to use those methods. To capture clipboard content,
-        you can call org.freedesktop.portal.Clipboard.RequestClipboard(). See 
-        #org.freedesktop.portal.Clipboard for more information on the clipboard
+        you can call :ref:`org.freedesktop.portal.Clipboard.RequestClipboard`. See
+        :ref:`org.freedesktop.portal.Clipboard` for more information on the clipboard
         integration.
 
         Supported keys in the @options vardict include:
@@ -63,7 +63,7 @@
           more information about the session handle.
 
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 
@@ -120,7 +120,7 @@
           - ``2``: Permissions persist until explicitly revoked
 
           If the permission for the session to persist is granted, a restore token will
-          be returned via the #org.freedesktop.portal.Request::Response signal of the
+          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
           start method used to start the session.
 
           This option was added in version 2 of this interface.
@@ -153,7 +153,7 @@
           more information about the @handle.
 
         The following results get returned via the
-        #org.freedesktop.portal.Request::Response signal:
+        :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``devices`` (``u``)
 
@@ -162,7 +162,7 @@
         * ``clipboard_enabled`` (``b``)
 
           A boolean for whether the clipboard was enabled ('true') or not ('false').
-          See the #org.freedesktop.portal.Clipboard documentation for more information.
+          See the :ref:`org.freedesktop.portal.Clipboard` documentation for more information.
           Since version 2.
 
         * ``restore_token`` (``s``)
@@ -174,7 +174,7 @@
           This response option was added in version 2 of this interface.
 
         If a screen cast source was selected, the results of the
-        #org.freedesktop.portal.ScreenCast.Start response signal may be
+        :ref:`org.freedesktop.portal.ScreenCast.Start` response signal may be
         included.
     -->
     <method name="Start">
@@ -211,7 +211,7 @@
         Notify about a new absolute pointer motion event. The (x, y) position
         represents the new pointer position in the streams logical coordinate
         space (see the logical_size stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyPointerMotionAbsolute">
       <arg type="o" name="session_handle" direction="in"/>
@@ -350,7 +350,7 @@
         Notify about a new touch down event. The (x, y) position
         represents the new touch point position in the streams logical
         coordinate space (see the logical_size stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchDown">
       <arg type="o" name="session_handle" direction="in"/>
@@ -375,7 +375,7 @@
         Notify about a new touch motion event. The (x, y) position
         represents where the touch point position in the streams logical
         coordinate space moved (see the logical_size stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchMotion">
       <arg type="o" name="session_handle" direction="in"/>

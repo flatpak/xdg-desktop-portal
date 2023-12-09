@@ -40,7 +40,7 @@
         the notification is replaced by the new one.
 
         The format of the @notification is the same as for
-        org.freedesktop.portal.Notification.AddNotification().
+        :ref:`org.freedesktop.portal.Notification.AddNotification`.
     -->
     <method name="AddNotification">
       <arg type="s" name="app_id" direction="in"/>

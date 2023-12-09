@@ -64,22 +64,22 @@
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           Request that this filter be set by default at dialog creation.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``choices`` (``a(ssa(ss)s)``)
 
           A list of serialized combo boxes.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_folder`` (``ay``)
 
           A suggested folder to open the files from.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         The following results get returned via the @results vardict:
 
@@ -91,12 +91,12 @@
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           The filter that was selected.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``writable`` (``b``)
 
@@ -142,17 +142,17 @@
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           Request that this filter be set by default at dialog creation.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``choices`` (``a(ssa(ss)s)``)
 
           A list of serialized combo boxes.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_name`` (``s``)
 
@@ -176,12 +176,12 @@
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         * ``current_filter`` (``(sa(us))``)
 
           The filter that was selected.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
     -->
     <method name="SaveFile">
       <arg type="o" name="handle" direction="in"/>
@@ -230,7 +230,7 @@
       * ``choices`` (``a(ssa(ss)s)``)
 
         List of serialized combo boxes.
-        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+        See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
       * ``current_folder`` (``ay``)
 
@@ -243,7 +243,7 @@
         arrays are expected to be null-terminated.
 
       The following results get returned via the
-      #org.freedesktop.portal.Request::Response signal:
+      :ref:`org.freedesktop.portal.Request::Response` signal:
 
       * ``uris`` (``as``)
 
@@ -257,7 +257,7 @@
       * ``choices`` (``a(ss)``)
 
         An array of pairs of strings, corresponding to the passed-in choices.
-        See org.freedesktop.portal.FileChooser.OpenFile() for details.
+        See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
     -->
     <method name="SaveFiles">
       <arg type="o" name="handle" direction="in"/>

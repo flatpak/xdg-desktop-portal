@@ -65,7 +65,7 @@
           true to use D-Bus activation for autostart.
 
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``background`` (``b``)
 

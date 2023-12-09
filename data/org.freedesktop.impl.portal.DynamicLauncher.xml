@@ -99,9 +99,9 @@
         The @response returned by this method is used to determine whether to
         give an install token to the caller, which can be used to avoid the need
         for a confirmation dialog; the token can be passed to the
-        org.freedesktop.portal.DynamicLauncher.Install() method just as if it
+        :ref:`org.freedesktop.portal.DynamicLauncher.Install` method just as if it
         were acquired via the
-        org.freedesktop.portal.DynamicLauncher.PrepareInstall() method.
+        :ref:`org.freedesktop.portal.DynamicLauncher.PrepareInstall` method.
 
         It is up to the portal implementation to decide whether this method is
         allowed based on the @app_id of the caller.
