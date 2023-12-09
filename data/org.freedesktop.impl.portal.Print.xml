@@ -111,7 +111,7 @@
           Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
           bypass the print dialog.
 
-        The org.freedesktop.portal.Print.Print() documentation has details about
+        The :ref:`org.freedesktop.portal.Print.Print` documentation has details about
         the supported keys in settings and page-setup.
     -->
     <method name="PreparePrint">

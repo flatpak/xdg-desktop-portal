@@ -138,7 +138,7 @@
           If true, the user will be able to edit the icon of the launcher,
           if the implementation supports this. Defaults to false.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``name`` (``s``)
 

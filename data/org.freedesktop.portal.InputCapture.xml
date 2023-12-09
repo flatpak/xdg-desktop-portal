@@ -61,9 +61,9 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Create a capture input session. A successfully created session can at
-        any time be closed using org.freedesktop.portal.Session.Close(), or may
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via #org.freedesktop.portal.Session::Closed.
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
 
         Supported keys in the @options vardict include:
 
@@ -84,7 +84,7 @@
           Bitmask of requested capabilities, see the SupportedCapabilities property.
           This value is required and must not be zero.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 
@@ -148,7 +148,7 @@
         the zone_set ID by a sensible amount to allow for
         wrapping detection.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``zones`` (``a(uuii)``)
 
@@ -239,7 +239,7 @@
           pointer barrier must have y1 == y2, a vertical pointer barrier
           must have x1 == x2. Diagonal pointer barriers are not supported.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``failed_barriers`` (``au``)
 

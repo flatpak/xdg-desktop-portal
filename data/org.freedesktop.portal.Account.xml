@@ -53,7 +53,7 @@
           information to be included with recipes you share with your friends".
 
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``id`` (``s``)
 

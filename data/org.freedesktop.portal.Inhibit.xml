@@ -37,7 +37,7 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Inhibits a session status changes. To remove the inhibition,
-        call org.freedesktop.portal.Request.Close() on the returned
+        call :ref:`org.freedesktop.portal.Request.Close` on the returned
         handle.
 
         The flags determine what changes are inhibited:
@@ -79,7 +79,7 @@
         A successfully created session can at any time be closed using
         org.freedesktop.portal.Session::Close, or may at any time be closed
         by the portal implementation, which will be signalled via
-        #org.freedesktop.portal.Session::Closed.
+        :ref:`org.freedesktop.portal.Session::Closed`.
 
         Supported keys in the @options vardict include:
 
@@ -95,7 +95,7 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 

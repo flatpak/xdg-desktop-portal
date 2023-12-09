@@ -63,7 +63,7 @@
           object path element. See the org.freedesktop.portal.Session documentation for
           more information about the session handle.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 
@@ -110,7 +110,7 @@
           :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the ref::`org.freedesktop.portal.Request::Response` signal:
 
         * ``shortcuts`` (``a(sa{sv})``)
 
@@ -118,7 +118,7 @@
           below, and is different from the @shortcuts variable of this method.
 
         Each element of the @shortcuts array returned by the
-        #org.freedesktop.portal.Request::Response signal is a tuple composed of
+        :ref:`org.freedesktop.portal.Request::Response` signal is a tuple composed of
         a shortcut id, and a vardict with the following keys:
 
         * ``description`` (``s``)
@@ -157,13 +157,13 @@
           :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``shortcuts`` (``a(sa{sv})``)
 
           A list of shortcuts.
 
-          See the #org.freedesktop.portal.Request::Response signal of the
+          See the :ref:`org.freedesktop.portal.Request::Response` signal of the
           org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for
           the list of supported properties of shortcuts.
     -->
@@ -215,7 +215,7 @@
 
         Indicates that the information associated with some of the shortcuts has changed.
 
-        See the #org.freedesktop.portal.Request::Response signal of the
+        See the :ref:`org.freedesktop.portal.Request::Response` signal of the
         org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for the
         list of supported properties of shortcuts.
     -->

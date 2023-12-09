@@ -32,9 +32,9 @@
     <!--
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session being created
+        @session_handle: Object path for the ref:`org.freedesktop.impl.portal.Session` object representing the session being created
         @app_id: App id of the application
-        @options: Vardict with optional further information. See org.freedesktop.portal.GlobalShortcuts.CreateSession()
+        @options: Vardict with optional further information. See :ref:`org.freedesktop.portal.GlobalShortcuts.CreateSession`
         @response: Numeric Request response
         @results: Vardict with the results of the call
 
@@ -60,8 +60,8 @@
     <!--
         BindShortcuts:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
-        @shortcuts: The list of shortcuts to bind. See @org.freedesktop.portal.GlobalShortcuts.BindShortcuts
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
+        @shortcuts: The list of shortcuts to bind. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts`
         @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
         @shortcuts: The identifier of the shortcuts we intend to register, empty for all shortcuts
         @results: Vardict with the results of the call
@@ -69,8 +69,8 @@
         Bind the shortcuts of this session. This will typically result the portal
         presenting a dialog letting the user configure shortcut triggers.
 
-        The results get returned via the #org.freedesktop.portal.Request::Response
-        signal. See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
+        The results get returned via the :ref:`org.freedesktop.portal.Request::Response`
+        signal. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` for the
         list of supported properties of shortcuts.
     -->
     <method name="BindShortcuts">
@@ -89,7 +89,7 @@
     <!--
         ListShortcuts:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @results: Vardict with the results of the call
 
         List shortcuts registered in the global shortcuts session.
@@ -100,8 +100,8 @@
 
           A list of shortcuts.
 
-          See the #org.freedesktop.portal.Request::Response signal of the
-          org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for
+          See the :ref:`org.freedesktop.portal.Request::Response` signal of the
+          :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for
           the list of supported properties of shortcuts.
     -->
     <method name="ListShortcuts">
@@ -153,8 +153,8 @@
 
         Emitted when shortcuts are changed.
 
-        The results get returned via the #org.freedesktop.portal.Request::Response
-        signal. See org.freedesktop.portal.GlobalShortcuts.BindShortcuts() for the
+        The results get returned via the :ref:`org.freedesktop.portal.Request::Response`
+        signal. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` for the
         list of supported properties of shortcuts.
     -->
     <signal name="ShortcutsChanged">

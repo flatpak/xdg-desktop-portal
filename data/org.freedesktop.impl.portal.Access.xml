@@ -37,7 +37,7 @@
         @subtitle: Subtitle for the dialog
         @body: Body text, may be ""
         @options: Vardict with optional further information
-        @response: Numeric response. The values allowed match the values allowed for #org.freedesktop.portal.Request::Response signal.
+        @response: Numeric response. The values allowed match the values allowed for :ref:`org.freedesktop.portal.Request::Response` signal.
         @results: Vardict with the results of the call
 
         Presents a "deny/grant" question to the user.
@@ -63,14 +63,14 @@
         * ``choices`` (``a(ssa(ss)s)``)
 
           List of serialized choices.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
         The following results get returned via the @results vardict:
 
         * ``choices`` (``a(ss)``)
 
           An array of pairs of strings, corresponding to the passed-in choices.
-          See org.freedesktop.portal.FileChooser.OpenFile() for details.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
      -->
     <method name="AccessDialog">
       <arg type="o" name="handle" direction="in"/>

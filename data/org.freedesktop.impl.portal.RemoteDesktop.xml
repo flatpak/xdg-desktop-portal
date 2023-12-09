@@ -60,7 +60,7 @@
     <!--
         SelectDevices:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the #org.freedesktop.impl.portal.Session object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
         @options: Vardict with optional further information
         @response: Numeric response
@@ -146,14 +146,14 @@
         * ``clipboard_enabled`` (``b``)
 
           A boolean for whether the clipboard was enabled ('true') or not ('false').
-          See the #org.freedesktop.portal.Clipboard documentation for more information.
+          See the :ref:`org.freedesktop.portal.Clipboard` documentation for more information.
 
           Since version 2.
 
         * ``streams`` (``a(ua{sv})``)
 
           Equivalent to the streams entry documented in
-          #org.freedesktop.impl.portal.ScreenCast.Start.
+          :ref:`org.freedesktop.impl.portal.ScreenCast.Start`.
 
         * ``devices`` (``u``)
 
@@ -199,7 +199,7 @@
         Notify about a new absolute pointer motion event. The (x, y) position
         represents the new pointer position in the streams logical coordinate
         space (see the logical_size stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyPointerMotionAbsolute">
       <arg type="o" name="session_handle" direction="in"/>
@@ -337,7 +337,7 @@
         Notify about a new touch down event. The (x, y) position
         represents the new touch point position in the streams logical
         coordinate space (see the ``logical_size`` stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchDown">
       <arg type="o" name="session_handle" direction="in"/>
@@ -362,7 +362,7 @@
         Notify about a new touch motion event. The (x, y) position
         represents where the touch point position in the streams logical
         coordinate space moved (see the ``logical_size`` stream property in
-        #org.freedesktop.portal.ScreenCast).
+        :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchMotion">
       <arg type="o" name="session_handle" direction="in"/>

@@ -35,9 +35,9 @@
         @handle: Object path for the created :ref:`org.freedesktop.portal.Session` object
 
         Create a location session. A successfully created session can at
-        any time be closed using org.freedesktop.portal.Session.Close(), or may
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via #org.freedesktop.portal.Session::Closed.
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
 
         Supported keys in the @options vardict include:
 

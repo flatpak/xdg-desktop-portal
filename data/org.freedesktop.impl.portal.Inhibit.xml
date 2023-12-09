@@ -38,7 +38,7 @@
         Inhibits session status changes. As a side-effect of this call,
         a :ref:`org.freedesktop.impl.portal.Request` object is exported on the
         object path @handle. To end the inhibition, call
-        org.freedesktop.impl.portal.Request.Close() on that object.
+        :ref:`org.freedesktop.impl.portal.Request.Close` on that object.
 
         The flags determine what changes are inhibited:
 
@@ -65,7 +65,7 @@
     <!--
         CreateMonitor:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the created #org.freedesktop.impl.portal.Session object
+        @session_handle: Object path for the created :ref:`org.freedesktop.impl.portal.Session` object
         @app_id: App id of the application
         @window: the parent window
         @response: the result of the operation (0 == success)
@@ -116,9 +116,9 @@
 
     <!--
       QueryEndResponse:
-      @session_handle: Object path for the #org.freedesktop.impl.portal.Session object
+      @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
 
-      Acknowledges that the caller received the #org.freedesktop.impl.portal.Inhibit::StateChanged
+      Acknowledges that the caller received the :ref:`org.freedesktop.impl.portal.Inhibit::StateChanged`
       signal. This method should be called within one second or receiving a StateChanged
       signal with the 'Query End' state.
     -->

@@ -32,9 +32,9 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Create a screen cast session. A successfully created session can at
-        any time be closed using org.freedesktop.portal.Session.Close(), or may
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
         at any time be closed by the portal implementation, which will be
-        signalled via #org.freedesktop.portal.Session::Closed.
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
 
         Supported keys in the @options vardict include:
 
@@ -50,7 +50,7 @@
               object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
               more information about the session handle.
 
-        The following results get returned via the #org.freedesktop.portal.Request::Response signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 
@@ -95,7 +95,7 @@
 
           Determines how the cursor will be drawn in the screen cast stream. It must be
           one of the cursor modes advertised in
-          #org.freedesktop.portal.ScreenCast.AvailableCursorModes. Setting a cursor mode
+          :ref:`org.freedesktop.portal.ScreenCast:AvailableCursorModes`. Setting a cursor mode
           not advertised will cause the screen cast session to be closed. The default
           cursor mode is 'Hidden'.
 
@@ -116,7 +116,7 @@
 
           Setting a restore_token is only allowed for screen cast sessions.
           Persistent remote desktop screen cast sessions can only be handled
-          via the #org.freedesktop.portal.RemoteDesktop interface.
+          via the :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
           This option was added in version 4 of this interface.
 
@@ -130,11 +130,11 @@
 
           Setting persist_mode is only allowed for screen cast sessions. Persistent
           remote desktop screen cast sessions can only be handled via the
-          #org.freedesktop.portal.RemoteDesktop interface.
+          :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
           If the permission for the session to persist is granted, a restore token will
-          be returned via the #org.freedesktop.portal.Request::Response signal of the
-          #org.freedesktop.portal.ScreenCast.Start method.
+          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
+          :ref:`org.freedesktop.portal.ScreenCast.Start` method.
 
           This option was added in version 4 of this interface.
 
@@ -169,7 +169,7 @@
           more information about the @handle.
 
         The following results get returned via the
-        #org.freedesktop.portal.Request::Response signal:
+        :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``streams`` (``a(ua{sv})``)
 
