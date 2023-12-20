@@ -600,7 +600,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   REQUEST_AUTOLOCK (request);
 
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                       G_DBUS_PROXY_FLAGS_NONE,
+                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                                        g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                                        request->id,
                                                        NULL, &error);
