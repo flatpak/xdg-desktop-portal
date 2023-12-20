@@ -313,7 +313,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                           request->id,
                                           NULL, &error);
@@ -540,7 +540,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                           request->id,
                                           NULL, &error);
@@ -757,7 +757,7 @@ handle_start (XdpDbusRemoteDesktop *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                           request->id,
                                           NULL, &error);
@@ -1682,3 +1682,4 @@ remote_desktop_session_class_init (RemoteDesktopSessionClass *klass)
   quark_request_session =
     g_quark_from_static_string ("-xdp-request-remote-desktop-session");
 }
+

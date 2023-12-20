@@ -240,7 +240,7 @@ handle_create_session (XdpDbusInputCapture   *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                           request->id,
                                           NULL, &error);
@@ -402,7 +402,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_NONE,
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
                                           g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
                                           request->id,
                                           NULL, &error);
@@ -557,10 +557,10 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                     G_DBUS_PROXY_FLAGS_NONE,
-                                     g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                     request->id,
-                                     NULL, &error);
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
