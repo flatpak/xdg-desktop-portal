@@ -40,7 +40,7 @@ msgid ""
 "The ‘run in background’ permission can be changed at any time from the application "
 "settings."
 msgstr ""
-"Разрешение на \"работу в фоне\" может быть изменено в любое время из меню настроек "
+"Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
 "приложения."
 
 #: src/background.c:759
