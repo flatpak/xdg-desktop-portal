@@ -93,8 +93,10 @@ if build_documentation
   copy = find_program('copy-subdir.py')
 
   static_files = [
+    'bullet.svg',
     'card.png',
     'inter.woff2',
+    'toc_bullet.svg',
     'xdg.css',
     'xdg-portal-dark.png',
     'xdg-portal-light.png',
