@@ -8,9 +8,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
-"PO-Revision-Date: 2022-09-20 23:38+0200\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2023-12-22 15:33+0000\n"
+"PO-Revision-Date: 2023-12-27 17:44+0100\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,128 +18,125 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 3.1.1\n"
+"X-Generator: Poedit 3.4.1\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Povolit aplikaci %s běh na pozadí?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Aplikace %s požaduje automatické spouštění a běh na pozadí."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Aplikace %s požaduje běh na pozadí."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Povolit"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Zapnout mikrofon?"
-
 #: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
+#, c-format
+msgid "Allow %s to Use the Microphone?"
+msgstr "Povolit aplikaci %s používat mikrofon?"
 
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Nějaká aplikace chce používat váš mikrofon."
+#: src/device.c:118
+#, c-format
+msgid "%s wants to access recording devices."
+msgstr "Aplikace %s chce přistupovat k záznamovým zařízením."
+
+#: src/device.c:122
+msgid "Allow app to Use the Microphone?"
+msgstr "Povolit aplikaci používat mikrofon?"
 
 #: src/device.c:123
+msgid "An app wants to access recording devices."
+msgstr "Nějaká aplikace chce přistupovat k záznamovým zařízením."
+
+#: src/device.c:132
 #, c-format
-msgid "%s wants to use your microphone."
-msgstr "Aplikace %s chce používat váš mikrofon."
+msgid "Allow %s to Use the Speakers?"
+msgstr "Povolit aplikaci %s používat reproduktory?"
 
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Zapnout reproduktory?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Nějaká aplikace chce přehrávat zvuk."
-
-#: src/device.c:136
+#: src/device.c:133
 #, c-format
-msgid "%s wants to play sound."
-msgstr "Aplikace %s chce přehrávat zvuk."
+msgid "%s wants to access audio devices."
+msgstr "Aplikace %s chce přistupovat ke zvukovým zařízením."
 
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Zapnout kameru?"
+#: src/device.c:137
+msgid "Allow app to Use the Speakers?"
+msgstr "Povolit aplikaci používat reproduktory?"
 
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr "Přístup ke své kameře můžete kdykoliv změnit v nastavení soukromí."
+#: src/device.c:138
+msgid "An app wants to access audio devices."
+msgstr "Nějaká aplikace chce přistupovat ke zvukovým zařízením."
 
 #: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Nějaká aplikace chce používat vaši kameru."
-
-#: src/device.c:149
 #, c-format
-msgid "%s wants to use your camera."
-msgstr "Aplikace %s chce používat vaši kameru."
+msgid "Allow %s to Use the Camera?"
+msgstr "Povolit aplikaci %s používat kameru?"
 
-#: src/location.c:526
+#: src/device.c:148
+#, c-format
+msgid "%s wants to access camera devices."
+msgstr "Aplikace %s chce přistupovat ke kamerám."
+
+#: src/device.c:152
+msgid "Allow app to Use the Camera?"
+msgstr "Povolit aplikaci používat kameru?"
+
+#: src/device.c:153
+msgid "An app wants to access camera devices."
+msgstr "Nějaká aplikace chce přistupovat ke kamerám."
+
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Zamítnout přístup"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Schválit přístup"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Schválit pro %s přístup k vaší poloze?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Aplikace %s chce použít vaši polohu."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Schválit přístup k vaší poloze?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Nějaká aplikace chce použít vaši polohu."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
 "soukromí."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Zamítnout"
 
@@ -161,7 +158,7 @@ msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Nějaká aplikace chce mít možnost kdykoliv pořizovat snímky obrazovky."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
 
@@ -169,20 +166,60 @@ msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Povolit aplikaci %s možnost nastavit pozadí?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikace %s požaduje mít možnost změnit obrázek na pozadí."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Povolit aplikacím možnost nastavit pozadí?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Aplikace požaduje mít možnost změnit obrázek na pozadí."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Zapnout mikrofon?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Přístup ke svému mikrofonu můžete kdykoliv změnit v nastavení soukromí."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Nějaká aplikace chce používat váš mikrofon."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "Aplikace %s chce používat váš mikrofon."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Zapnout reproduktory?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Přístup ke svým reproduktorům můžete kdykoliv změnit v nastavení soukromí."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Nějaká aplikace chce přehrávat zvuk."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "Aplikace %s chce přehrávat zvuk."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Zapnout kameru?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr "Přístup ke své kameře můžete kdykoliv změnit v nastavení soukromí."
