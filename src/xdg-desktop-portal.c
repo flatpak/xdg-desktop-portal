@@ -391,7 +391,7 @@ main (int argc, char *argv[])
       "path /org/freedesktop/portal/desktop.\n"
       "\n"
       "Documentation for the available D-Bus interfaces can be found at\n"
-      "https://flatpak.github.io/xdg-desktop-portal/portal-docs.html\n"
+      "https://flatpak.github.io/xdg-desktop-portal/docs/\n"
       "\n"
       "Please report issues at https://github.com/flatpak/xdg-desktop-portal/issues");
   g_option_context_add_main_entries (context, entries, NULL);
