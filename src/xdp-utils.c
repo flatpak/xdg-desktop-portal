@@ -575,6 +575,264 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
 }
 
 static void
+xdp_usb_rule_free (XdpUsbRule *rule)
+{
+  if (!rule)
+    return;
+
+  g_free (rule);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpUsbRule, xdp_usb_rule_free);
+
+static gboolean
+validate_hex_uint16 (const char *value,
+                     size_t      expected_length,
+                     uint16_t   *out_value)
+{
+  size_t len;
+  char *end;
+  long n;
+
+  g_assert (value != NULL);
+  g_assert (expected_length > 0 && expected_length <= 4);
+
+  len = strlen (value);
+  if (len != expected_length)
+    return FALSE;
+
+  n = strtol (value, &end, 16);
+
+  if (end - value != len)
+    return FALSE;
+
+  if (n <= 0 || n > UINT16_MAX)
+    return FALSE;
+
+  if (out_value)
+    *out_value = n;
+
+  return TRUE;
+}
+
+static gboolean
+parse_all_usb_rule (XdpUsbRule  *dest,
+                    GStrv        data)
+{
+  if (g_strv_length (data) != 1)
+    return FALSE;
+
+  dest->rule_type = XDP_USB_RULE_TYPE_ALL;
+  return TRUE;
+}
+
+static gboolean
+parse_cls_usb_rule (XdpUsbRule  *dest,
+                    GStrv        data)
+{
+  const char *subclass;
+  const char *class;
+
+  if (g_strv_length (data) < 3)
+    return FALSE;
+
+  class = data[1];
+  subclass = data[2];
+
+  if (!validate_hex_uint16 (class, 2, &dest->d.device_class.class))
+    return FALSE;
+
+  if (g_strcmp0 (subclass, "*") == 0)
+    dest->d.device_class.type = XDP_USB_RULE_CLASS_TYPE_CLASS_ONLY;
+  else if (validate_hex_uint16 (subclass, 2, &dest->d.device_class.subclass))
+    dest->d.device_class.type = XDP_USB_RULE_CLASS_TYPE_CLASS_SUBCLASS;
+  else
+    return FALSE;
+
+  dest->rule_type = XDP_USB_RULE_TYPE_CLASS;
+  return TRUE;
+}
+
+static gboolean
+parse_dev_usb_rule (XdpUsbRule *dest,
+                    GStrv       data)
+{
+  if (g_strv_length (data) != 2)
+    return FALSE;
+
+  if (!validate_hex_uint16 (data[1], 4, &dest->d.product.id))
+    return FALSE;
+
+  dest->rule_type = XDP_USB_RULE_TYPE_DEVICE;
+  return TRUE;
+}
+
+static gboolean
+parse_vnd_usb_rule (XdpUsbRule *dest,
+                    GStrv       data)
+{
+  if (g_strv_length (data) != 2)
+    return FALSE;
+
+  if (!validate_hex_uint16 (data[1], 4, &dest->d.product.id))
+    return FALSE;
+
+  dest->rule_type = XDP_USB_RULE_TYPE_VENDOR;
+  return TRUE;
+}
+
+static const struct {
+  const char *name;
+  gboolean (*parse) (XdpUsbRule *dest,
+                     GStrv       data);
+} rule_parsers[] = {
+  { "all", parse_all_usb_rule },
+  { "cls", parse_cls_usb_rule },
+  { "dev", parse_dev_usb_rule },
+  { "vnd", parse_vnd_usb_rule },
+};
+
+static XdpUsbRule *
+xdp_usb_rule_from_string (const char *string)
+{
+  g_autoptr(XdpUsbRule) usb_rule = NULL;
+  g_auto(GStrv) split = NULL;
+  gboolean parsed = FALSE;
+
+  split = g_strsplit (string, ":", 0);
+
+  if (!split || g_strv_length (split) > 3)
+    return NULL;
+
+  usb_rule = g_new0 (XdpUsbRule, 1);
+
+  for (size_t i = 0; i < G_N_ELEMENTS (rule_parsers); i++)
+    {
+      if (g_strcmp0 (rule_parsers[i].name, split[0]) == 0)
+        {
+          if (!rule_parsers[i].parse (usb_rule, split))
+            return FALSE;
+
+          parsed = TRUE;
+          break;
+        }
+    }
+
+  if (!parsed)
+    return NULL;
+
+  return g_steal_pointer (&usb_rule);
+}
+
+static void
+xdp_usb_query_free (XdpUsbQuery *query)
+{
+  if (!query)
+    return;
+
+  g_clear_pointer (&query->rules, g_ptr_array_unref);
+  g_free (query);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpUsbQuery, xdp_usb_query_free);
+
+static XdpUsbQuery *
+usb_query_from_string (XdpUsbQueryType  query_type,
+                       const char      *string)
+{
+  g_autoptr(XdpUsbQuery) usb_query = NULL;
+  g_auto(GStrv) split = NULL;
+
+  split = g_strsplit (string, "+", 0);
+  if (!split)
+    return NULL;
+
+  usb_query = g_new0 (XdpUsbQuery, 1);
+  usb_query->query_type = query_type;
+  usb_query->rules = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_rule_free);
+
+  for (size_t i = 0; split[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbRule) usb_rule = NULL;
+      const char *rule = split[i];
+
+      usb_rule = xdp_usb_rule_from_string (rule);
+      if (!usb_rule)
+        return NULL;
+
+      g_ptr_array_add (usb_query->rules, g_steal_pointer (&usb_rule));
+    }
+
+  g_assert (usb_query->rules->len > 0);
+
+  return g_steal_pointer (&usb_query);
+}
+
+GPtrArray *
+xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
+{
+  g_autoptr(GPtrArray) usb_queries = NULL;
+
+  usb_queries = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      {
+        g_auto(GStrv) allowed_devices = NULL;
+        g_auto(GStrv) blocked_devices = NULL;
+
+        allowed_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+                                                      "USB Devices",
+                                                      "allowed-devices",
+                                                      NULL, NULL);
+
+        for (size_t i = 0; allowed_devices && allowed_devices[i] != NULL; i++)
+          {
+            g_autoptr(XdpUsbQuery) query =
+              usb_query_from_string (XDP_USB_QUERY_TYPE_ALLOW, allowed_devices[i]);
+
+            if (query)
+              g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+          }
+
+        blocked_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+                                                      "USB Devices",
+                                                      "blocked-devices",
+                                                      NULL, NULL);
+
+        for (size_t i = 0; blocked_devices && blocked_devices[i] != NULL; i++)
+          {
+            g_autoptr(XdpUsbQuery) query =
+              usb_query_from_string (XDP_USB_QUERY_TYPE_BLOCK, blocked_devices[i]);
+
+            if (query)
+              g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+          }
+
+        g_message ("Found %d allowlists and %d blocks for app %s",
+                   allowed_devices ? g_strv_length (allowed_devices) : 0,
+                   blocked_devices ? g_strv_length (blocked_devices) : 0,
+                   xdp_app_info_get_id (app_info));
+      }
+      break;
+
+    case XDP_APP_INFO_KIND_SNAP:
+      break;
+
+    case XDP_APP_INFO_KIND_HOST:
+      break;
+
+    default:
+      g_assert_not_reached ();
+    }
+
+  g_ptr_array_add (usb_queries, NULL);
+
+  return g_steal_pointer (&usb_queries);
+}
+
+static void
 ensure_app_info_by_unique_name (void)
 {
   if (app_info_by_unique_name == NULL)

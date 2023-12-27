@@ -41,4 +41,5 @@ and the object path ``/org/freedesktop/portal/desktop`` on the session bus.
    doc-org.freedesktop.portal.Session.rst
    doc-org.freedesktop.portal.Settings.rst
    doc-org.freedesktop.portal.Trash.rst
+   doc-org.freedesktop.portal.Usb.rst
    doc-org.freedesktop.portal.Wallpaper.rst
