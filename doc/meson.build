@@ -62,13 +62,18 @@ if build_documentation
 
   docs_sources = [
     'conf.py',
-
-    'index.rst',
-    'common-conventions.rst',
-    'portal-interfaces.rst',
-    'implementation-interfaces.rst',
-    'background-app-monitor.rst',
     'favicon.ico',
+
+    'api-reference.rst',
+    'backends.rst',
+    'common-conventions.rst',
+    'contributing.rst',
+    'impl-dbus-interfaces.rst',
+    'index.rst',
+    'introduction.rst',
+    'requests.rst',
+    'sessions.rst',
+    'window-identifiers.rst',
   ]
 
   copied_docs_sources = []
