@@ -40,23 +40,23 @@
 
         * ``handle_token`` (``s``)
 
-              A string that will be used as the last element of the @handle. Must be a valid
-              object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
-              more information about the @handle.
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
 
         * ``session_handle_token`` (``s``)
 
-              A string that will be used as the last element of the session handle. Must be a valid
-              object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
-              more information about the session handle.
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
 
-              The session handle. An object path for the
-              :ref:`org.freedesktop.portal.Session` object representing the created
-              session.
+          The session handle. An object path for the
+          :ref:`org.freedesktop.portal.Session` object representing the created
+          session.
     -->
     <method name="CreateSession">
       <arg type="a{sv}" name="options" direction="in"/>
