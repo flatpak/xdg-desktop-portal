@@ -135,7 +135,7 @@
     <!--
         Start:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 

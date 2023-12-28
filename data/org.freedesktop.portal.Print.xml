@@ -37,7 +37,7 @@
   <interface name="org.freedesktop.portal.Print">
     <!--
         Print:
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @title: Title for the print dialog
         @fd: File descriptor for reading the content to print
         @options: Vardict with optional further information
@@ -82,7 +82,7 @@
     </method>
     <!--
         PreparePrint:
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @title: Title for the print dialog
         @settings: Serialized print settings
         @page_setup: Serialized page setup
