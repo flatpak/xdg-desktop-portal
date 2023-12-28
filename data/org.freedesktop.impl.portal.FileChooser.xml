@@ -35,7 +35,7 @@
         OpenFile:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @app_id: App id of the application
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @title: Title for the file chooser dialog
         @options: Vardict with optional further information
         @response: Numeric response
@@ -117,7 +117,7 @@
         SaveFile:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @app_id: App id of the application
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @title: Title for the file chooser dialog
         @options: Vardict with optional further information
         @response: Numeric response
@@ -196,7 +196,7 @@
     </method>
     <!--
       SaveFiles:
-      @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+      @parent_window: Identifier for the application window, see :doc:`window-identifiers`
       @title: Title for the file chooser dialog
       @options: Vardict with optional further information
       @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call

@@ -33,7 +33,7 @@
         GetUserInformation:
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
         @app_id: App id of the application
-        @window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`
+        @window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
