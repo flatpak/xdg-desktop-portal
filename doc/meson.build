@@ -60,6 +60,17 @@ if build_documentation
     command: [ gdbus_codegen, '--generate-rst', 'doc/doc', '@INPUT@' ],
   )
 
+  fix_rst_dbus = find_program('fix-rst-dbus.py')
+  fixed_rst_files = custom_target('fix_rst_dbus',
+    input: interfaces_rst,
+    output: 'rst-dbus.fixed',
+    build_always_stale: true,
+    build_by_default: true,
+    command: [ fix_rst_dbus, meson.current_build_dir(), 'doc', '@INPUT@' ],
+    depends: interfaces_rst,
+    depend_files: all_interfaces_xml,
+  )
+
   docs_sources = [
     'conf.py',
     'favicon.ico',
@@ -91,6 +102,7 @@ if build_documentation
     output: 'html',
     command: [ sphinx_build, meson.current_build_dir(), '@OUTPUT@' ],
     build_by_default: true,
+    depends: fixed_rst_files,
     depend_files: all_interfaces_xml,
   )
 
