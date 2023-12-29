@@ -31,7 +31,7 @@ This documentation is made up of the following sections:
   reasons to use portals on your apps.
 * :doc:`Common conventions <common-conventions>`: coding patterns and principles
   common when **app and desktop developers** are working with portal APIs.
-* :doc:`Application API <application-api>`: portal APIs that **apps** can use to
+* :doc:`Application API <api-reference>`: portal APIs that **apps** can use to
   interact with the host system.
 * :doc:`Portal backends <backends>`: interfaces and configuration files that
   **desktop developers** can implement and install in order to write a portal
