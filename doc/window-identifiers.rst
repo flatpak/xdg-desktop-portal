@@ -12,7 +12,7 @@ For example, ``x11:1234``.
 
 Under Wayland, it should have the form ``wayland:<HANDLE>``, where ``<HANDLE>``
 is a surface handle obtained with the `xdg_foreign
-<https://github.com/wayland-project/wayland-protocols/blob/master/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml>`_
+<https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/unstable/xdg-foreign/xdg-foreign-unstable-v2.xml>`_
 protocol. For example, ``wayland:~12l9jdl.-a``.
 
 For other windowing systems, or if you don't have a suitable handle, just pass
