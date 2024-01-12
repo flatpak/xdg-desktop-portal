@@ -109,7 +109,7 @@
  * referenced by the dcache (Directory Entry Cache) (even though we
  * will not really use the dcache info due to the 0 valid time). This
  * is unfortunate, because it means we will keep a lot of file
- * descriptor open. But, we can not know if the kernel needs the inode
+ * descriptors open. But, we can not know if the kernel needs the inode
  * for some non-dcache use so we can't close the file descriptors.
  *
  * To work around this we regularly emit entry invalidation calls
@@ -947,7 +947,7 @@ verify_doc_dir_devino (int dirfd, XdpDomain *doc_domain)
     return -ENOENT;
 
   return 0;
- }
+}
 
 /* Only for toplevel dirs, not this is a bit weird for toplevel dir
    inodes as it returns the dir itself which isn't really the dirfd
@@ -1659,7 +1659,7 @@ ensure_docdir_inode (XdpInode *parent,
         inode->domain_root_inode = xdp_inode_ref (parent->domain_root_inode);
       else
         inode->domain_root_inode = xdp_inode_ref (parent);
-     g_hash_table_insert (domain->inodes, physical, inode);
+      g_hash_table_insert (domain->inodes, physical, inode);
     }
   G_UNLOCK(domain_inodes);
 
@@ -2360,7 +2360,7 @@ xdp_fuse_opendir (fuse_req_t             req,
         }
     }
 
-   fi->fh = (gsize)d;
+  fi->fh = (gsize)d;
 
   if (fuse_reply_open (req, fi) == -ENOENT)
     {
