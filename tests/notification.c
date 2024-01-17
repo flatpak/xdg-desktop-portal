@@ -66,6 +66,7 @@ notification_action_invoked (XdpPortal *portal,
 static void
 run_notification_test (const char *notification_id,
                        const char *notification_s,
+                       const char *exp_notification_s,
                        gboolean    exp_fail)
 {
   g_autoptr(XdpPortal) portal = NULL;
@@ -79,7 +80,7 @@ run_notification_test (const char *notification_id,
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
+  g_key_file_set_string (keyfile, "notification", "data", exp_notification_s ? exp_notification_s : notification_s);
   g_key_file_set_string (keyfile, "notification", "id", notification_id);
   g_key_file_set_string (keyfile, "notification", "action", "test-action");
 
@@ -123,7 +124,7 @@ test_notification_basic (void)
                    "  'priority': <'normal'>, "
                    "  'default-action': <'test-action'> }";
 
-  run_notification_test ("test1", notification_s, FALSE);
+  run_notification_test ("test1", notification_s, NULL, FALSE);
 }
 
 void
@@ -139,19 +140,22 @@ test_notification_buttons (void)
                    "               {'label': <'button2'>, 'action': <'action2'>}]> "
                    "}";
 
-  run_notification_test ("test2", notification_s, FALSE);
+  run_notification_test ("test2", notification_s, NULL, FALSE);
 }
 
 void
 test_notification_bad_arg (void)
 {
   const char *notification_s;
+  const char *exp_notification_s;
 
   notification_s = "{ 'title': <'test notification 3'>, "
                    "  'bodx': <'test notification body 3'> "
                    "}";
 
-  run_notification_test ("test3", notification_s, TRUE);
+  exp_notification_s = "{ 'title': <'test notification 3'> }";
+
+  run_notification_test ("test3", notification_s, exp_notification_s, FALSE);
 }
 
 void
@@ -164,7 +168,7 @@ test_notification_bad_priority (void)
                    "  'priority': <'invalid'> "
                    "}";
 
-  run_notification_test ("test4", notification_s, TRUE);
+  run_notification_test ("test4", notification_s, NULL, TRUE);
 }
 
 void
@@ -178,5 +182,5 @@ test_notification_bad_button (void)
                    "               {'label': <'button2'>, 'action': <'action2'>}]> "
                    "}";
 
-  run_notification_test ("test5", notification_s, TRUE);
+  run_notification_test ("test5", notification_s, NULL, TRUE);
 }
