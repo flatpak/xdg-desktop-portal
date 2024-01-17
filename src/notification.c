@@ -234,33 +234,41 @@ check_value_type (const char *key,
 }
 
 static gboolean
-check_priority (GVariant *value,
-                GError **error)
+parse_priority (GVariantBuilder  *builder,
+                GVariant         *value,
+                GError          **error)
 {
   const char *priorities[] = { "low", "normal", "high", "urgent", NULL };
+  const char *priority;
 
   if (!check_value_type ("priority", value, G_VARIANT_TYPE_STRING, error))
     return FALSE;
 
-  if (!g_strv_contains (priorities, g_variant_get_string (value, NULL)))
+  priority = g_variant_get_string (value, NULL);
+
+  if (!g_strv_contains (priorities, priority))
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR,
                    XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "%s not a priority", g_variant_get_string (value, NULL));
+                   "%s not a priority", priority);
       return FALSE;
     }
+
+  g_variant_builder_add (builder, "{sv}", "priority", value);
 
   return TRUE;
 }
 
 static gboolean
-check_button (GVariant *button,
-              GError **error)
+parse_button (GVariantBuilder  *builder,
+              GVariant         *button,
+              GError          **error)
 {
   int i;
-  gboolean has_label = FALSE;
-  gboolean has_action = FALSE;
+  g_autoptr(GVariant) label = NULL;
+  g_autoptr(GVariant) action = NULL;
+  g_autoptr(GVariant) target = NULL;
 
   for (i = 0; i < g_variant_n_children (button); i++)
     {
@@ -268,23 +276,35 @@ check_button (GVariant *button,
       g_autoptr(GVariant) value = NULL;
 
       g_variant_get_child (button, i, "{&sv}", &key, &value);
+
       if (strcmp (key, "label") == 0)
-        has_label = TRUE;
+        {
+          if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+
+          if (!label)
+            label = g_steal_pointer (&value);
+        }
       else if (strcmp (key, "action") == 0)
-        has_action = TRUE;
+        {
+          if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+
+          if (!action)
+            action = g_steal_pointer (&value);
+        }
       else if (strcmp (key, "target") == 0)
-        ;
+        {
+          if (!target)
+            target = g_steal_pointer (&value);
+        }
       else
         {
-          g_set_error (error,
-                       XDG_DESKTOP_PORTAL_ERROR,
-                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                       "%s not valid key", key);
-          return FALSE;
+          g_debug ("Unsupported button property %s filtered from notification", key);
         }
     }
 
-  if (!has_label)
+  if (!label)
     {
       g_set_error_literal (error,
                            XDG_DESKTOP_PORTAL_ERROR,
@@ -293,7 +313,7 @@ check_button (GVariant *button,
       return FALSE;
     }
 
-  if (!has_action)
+  if (!action)
     {
       g_set_error_literal (error,
                            XDG_DESKTOP_PORTAL_ERROR,
@@ -302,61 +322,125 @@ check_button (GVariant *button,
       return FALSE;
     }
 
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("a{sv}"));
+
+  g_variant_builder_add (builder, "{sv}", "label", label);
+  g_variant_builder_add (builder, "{sv}", "action", action);
+  if (target)
+    g_variant_builder_add (builder, "{sv}", "target", target);
+
+  g_variant_builder_close (builder);
+
   return TRUE;
 }
 
 static gboolean
-check_buttons (GVariant *value,
-               GError **error)
+parse_buttons (GVariantBuilder  *builder,
+               GVariant         *value,
+               GError          **error)
 {
+  gboolean result = TRUE;
   int i;
 
   if (!check_value_type ("buttons", value, G_VARIANT_TYPE ("aa{sv}"), error))
     return FALSE;
 
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("{sv}"));
+  g_variant_builder_add (builder, "s", "buttons");
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("v"));
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("aa{sv}"));
+
   for (i = 0; i < g_variant_n_children (value); i++)
     {
       g_autoptr(GVariant) button = g_variant_get_child_value (value, i);
 
-      if (!check_button (button, error))
+      if (!parse_button (builder, button, error))
         {
           g_prefix_error (error, "invalid button: ");
+          result = FALSE;
+          break;
+        }
+    }
+
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+
+  return result;
+}
+
+static gboolean
+parse_serialized_icon (GVariantBuilder  *builder,
+                       GVariant         *icon,
+                       GError          **error)
+{
+  const char *key;
+  g_autoptr(GVariant) value = NULL;
+
+  /* Since the specs allow a single string as icon name we need to keep support for it */
+  if (g_variant_is_of_type (icon, G_VARIANT_TYPE_STRING))
+    {
+      g_autoptr(GIcon) deserialized_icon = NULL;
+
+      deserialized_icon = g_icon_deserialize (icon);
+
+      if (G_IS_THEMED_ICON (deserialized_icon))
+        {
+          g_autoptr(GVariant) serialized_icon = NULL;
+
+          serialized_icon = g_icon_serialize (deserialized_icon);
+
+          g_variant_builder_add (builder, "{sv}", "icon", serialized_icon);
+          return TRUE;
+        }
+      else
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                               "invalid icon: only themed icons can be a string");
           return FALSE;
         }
     }
+
+  if (!check_value_type ("icon", icon, G_VARIANT_TYPE("(sv)"), error))
+    return FALSE;
+
+  g_variant_get (icon, "(&sv)", &key, &value);
+
+  /* This are the same keys as for serialized GIcons */
+  if (strcmp (key, "themed") == 0)
+    {
+      if (!check_value_type (key, value, G_VARIANT_TYPE_STRING_ARRAY, error))
+        {
+          g_prefix_error (error, "invalid icon: ");
+          return FALSE;
+        }
+    }
+  else if (strcmp (key, "bytes") == 0)
+    {
+      if (!check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
+        {
+          g_prefix_error (error, "invalid icon: ");
+          return FALSE;
+        }
+    }
+  else
+    {
+      g_debug ("Unsupported icon %s filtered from notification", key);
+      return TRUE;
+    }
+
+  if (xdp_validate_serialized_icon (icon, FALSE, NULL, NULL))
+    g_variant_builder_add (builder, "{sv}", "icon", icon);
+
   return TRUE;
 }
 
 static gboolean
-check_serialized_icon (GVariant *value,
-                       GError **error)
-{
-  g_autoptr(GIcon) icon = g_icon_deserialize (value);
-
-  if (!icon)
-    {
-      g_set_error_literal (error,
-                           XDG_DESKTOP_PORTAL_ERROR,
-                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                           "invalid icon");
-      return FALSE;
-    }
-
-  if (!G_IS_BYTES_ICON (icon) && !G_IS_THEMED_ICON (icon))
-    {
-      g_set_error_literal (error,
-                           XDG_DESKTOP_PORTAL_ERROR,
-                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                           "invalid icon");
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
-static gboolean
-check_notification (GVariant *notification,
-                    GError **error)
+parse_notification (GVariantBuilder  *builder,
+                    GVariant         *notification,
+                    GError          **error)
 {
   int i;
 
@@ -374,85 +458,107 @@ check_notification (GVariant *notification,
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
+
+          g_variant_builder_add (builder, "{sv}", key, value);
         }
       else if (strcmp (key, "icon") == 0)
         {
-          if (!check_serialized_icon (value, error))
+          if (!parse_serialized_icon (builder, value, error))
             return FALSE;
         }
       else if (strcmp (key, "priority") == 0)
         {
-          if (!check_priority (value, error))
+          if (!parse_priority (builder, value, error))
             return FALSE;
         }
       else if (strcmp (key, "default-action") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
+
+          g_variant_builder_add (builder, "{sv}", key, value);
         }
       else if (strcmp (key, "default-action-target") == 0)
-        ;
+        {
+          g_variant_builder_add (builder, "{sv}", key, value);
+        }
       else if (strcmp (key, "buttons") == 0)
         {
-          if (!check_buttons (value, error))
+          if (!parse_buttons (builder, value, error))
             return FALSE;
         }
-      else
-        {
-          g_set_error (error,
-                       XDG_DESKTOP_PORTAL_ERROR,
-                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                       "%s not valid key", key);
-          return FALSE;
-        }
+      else {
+        g_debug ("Unsupported property %s filtered from notification", key);
+      }
     }
 
   return TRUE;
 }
 
-static GVariant *
-maybe_remove_icon (GVariant *notification)
+static void
+add_finished_cb (GObject      *source_object,
+                 GAsyncResult *result,
+                 gpointer      user_data)
 {
-  GVariantBuilder n;
-  int i;
+  CallData *call_data;
+  g_autoptr(GError) error = NULL;
 
-  g_variant_builder_init (&n, G_VARIANT_TYPE_VARDICT);
-  for (i = 0; i < g_variant_n_children (notification); i++)
-    {
-      const char *key;
-      g_autoptr(GVariant) value = NULL;
+  g_assert (g_task_is_valid (result, source_object));
 
-      g_variant_get_child (notification, i, "{&sv}", &key, &value);
-      if (strcmp (key, "icon") != 0 || xdp_validate_serialized_icon (value, FALSE, NULL, NULL))
-        g_variant_builder_add (&n, "{sv}", key, value);
-    }
+  call_data = g_task_get_task_data (G_TASK (result));
+  g_assert (call_data != NULL);
 
-  return g_variant_ref_sink (g_variant_builder_end (&n));
+  if (g_task_propagate_boolean (G_TASK (result), &error))
+    xdp_dbus_notification_complete_add_notification (XDP_DBUS_NOTIFICATION (source_object),
+                                                     call_data->inv);
+  else
+    g_dbus_method_invocation_return_gerror (call_data->inv, error);
 }
 
 static void
-handle_add_in_thread_func (GTask *task,
-                           gpointer source_object,
-                           gpointer task_data,
+handle_add_in_thread_func (GTask        *task,
+                           gpointer      source_object,
+                           gpointer      task_data,
                            GCancellable *cancellable)
 {
   CallData *call_data = task_data;
-  g_autoptr(GVariant) notification2 = NULL;
+  GVariantBuilder builder;
+  g_autoptr(GError) error = NULL;
 
   CALL_DATA_AUTOLOCK (call_data);
 
   if (!xdp_app_info_is_host (call_data->app_info) &&
       !get_notification_allowed (xdp_app_info_get_id (call_data->app_info)))
-    return;
+    {
+      g_set_error_literal (&error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                           "Showing notifications is not allowed");
 
-  notification2 = maybe_remove_icon (call_data->notification);
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+
+  if (!parse_notification (&builder, call_data->notification, &error))
+    {
+      g_variant_builder_clear (&builder);
+
+      g_prefix_error (&error, "invalid notification: ");
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
+    }
+
   xdp_dbus_impl_notification_call_add_notification (impl,
                                                     xdp_app_info_get_id (call_data->app_info),
                                                     call_data->id,
-                                                    notification2,
+                                                    g_variant_builder_end (&builder),
                                                     NULL,
                                                     add_done,
                                                     g_object_ref (call_data));
+
+  g_task_return_boolean (task, TRUE);
 }
 
 static gboolean
@@ -466,19 +572,10 @@ notification_handle_add_notification (XdpDbusNotification *object,
   g_autoptr(GError) error = NULL;
   CallData *call_data;
 
-  if (!check_notification (notification, &error))
-    {
-      g_prefix_error (&error, "invalid notification: ");
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
-
   call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, notification);
-  task = g_task_new (object, NULL, NULL, NULL);
+  task = g_task_new (object, NULL, add_finished_cb, NULL);
   g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
-
-  xdp_dbus_notification_complete_add_notification (object, invocation);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
