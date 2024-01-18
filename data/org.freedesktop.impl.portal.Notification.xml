@@ -40,7 +40,47 @@
         the notification is replaced by the new one.
 
         The format of the @notification is the same as for
-        :ref:`org.freedesktop.portal.Notification.AddNotification`.
+        :ref:`org.freedesktop.portal.Notification.AddNotification`,
+        expect for the following properties:
+
+        * ``icon`` (``v``)
+
+          A serialized icon to add to the notification. The format for
+          serialized icon is a tuple (sv) with the following supported keys:
+
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_.
+                    * ``icon`` (``v``)
+
+          A serialized icon to add to the notification. The format for
+          serialized icon is a tuple (sv) with the following supported keys:
+
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_.
+
+          * ``bytes`` (``ay``)
+
+            A bytes icon containing a bytestring with the icon data in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GBytesIcon
+            <https://docs.gtk.org/gio/class.BytesIcon.html>`_.
+
+          * ``file`` (``s``)
+
+            A file icon containing a path to an image file in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GFileIcon
+            <https://docs.gtk.org/gio/class.FileIcon.html>`_.
     -->
     <method name="AddNotification">
       <arg type="s" name="app_id" direction="in"/>
