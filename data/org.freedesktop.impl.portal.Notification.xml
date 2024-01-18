@@ -45,6 +45,7 @@
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
     -->
     <method name="AddNotification">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="id" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>

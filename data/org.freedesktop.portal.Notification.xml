@@ -70,16 +70,35 @@
 
         * ``icon`` (``v``)
 
-          Serialized icon (see `g_icon_serialize()
-          <https://docs.gtk.org/gio/method.Icon.serialize.html>`_).
+          A serialized icon to add to the notification. The format for
+          serialized icon is a tuple (sv) with the following supported keys:
 
-          The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
-          these have the form (sv). For themed icons, the string is "themed",
-          and the value is an array of strings containing the icon names.
-          For bytes icons, the string is "bytes", and the value is a bytestring
-          containing the icon data in png, jpeg or svg form. For historical
-          reasons, it is also possible to send a simple string for themed
-          icons with a single icon name.
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_ at the moment,
+            but this interoperability may change in the future.
+
+          * ``bytes`` (``ay``)
+
+            A bytes icon containing a bytestring with the icon data in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GBytesIcon
+            <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the moment,
+            but this interoperability may change in the future.
+
+          * ``file-descriptor`` (``h``)
+
+            A file descriptor to an image file in png, jpeg or svg form.
+            The file-descriptor used needs to be sealable, currently this is only
+            possible for file descriptors created with ``memfd_create()`` with
+            the ``MFD_ALLOW_SEALING`` flag set.
+
+          For historical reasons, it is also possible to send a simple string
+          for themed icons with a single icon name.
 
           There may be further restrictions on the supported kinds of icons.
 
@@ -120,6 +139,7 @@
             Target parameter to send along when activating the action.
       -->
     <method name="AddNotification">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="id" direction="in"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
