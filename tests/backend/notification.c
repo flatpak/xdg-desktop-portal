@@ -107,7 +107,7 @@ handle_add_notification (XdpDbusImplNotification *object,
       g_timeout_add (delay, invoke_action, data);
     }
 
-  xdp_dbus_impl_notification_complete_add_notification (object, invocation);
+  xdp_dbus_impl_notification_complete_add_notification (object, invocation, NULL);
 
   return TRUE;
 }
