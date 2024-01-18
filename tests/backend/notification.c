@@ -41,6 +41,7 @@ invoke_action (gpointer data)
 static gboolean
 handle_add_notification (XdpDbusImplNotification *object,
                          GDBusMethodInvocation *invocation,
+                         GUnixFDList *fd_list,
                          const gchar *arg_app_id,
                          const gchar *arg_id,
                          GVariant *arg_notification)
@@ -107,7 +108,7 @@ handle_add_notification (XdpDbusImplNotification *object,
       g_timeout_add (delay, invoke_action, data);
     }
 
-  xdp_dbus_impl_notification_complete_add_notification (object, invocation);
+  xdp_dbus_impl_notification_complete_add_notification (object, invocation, NULL);
 
   return TRUE;
 }
