@@ -582,7 +582,9 @@ xdp_validate_serialized_icon (GVariant  *v,
 {
   g_autoptr(GIcon) icon = NULL;
   GBytes *bytes;
-  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
+  __attribute__((cleanup(cleanup_temp_file))) char *tmp_icon_path = NULL;
+  g_autofree char *file_icon_path = NULL;
+  const char *icon_path;
   xdp_autofd int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
   int status;
@@ -614,11 +616,6 @@ xdp_validate_serialized_icon (GVariant  *v,
       return TRUE;
     }
 
-  if (!G_IS_BYTES_ICON (icon))
-    {
-      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
-      return FALSE;
-    }
 
   if (g_getenv ("XDP_VALIDATE_ICON"))
     icon_validator = g_getenv ("XDP_VALIDATE_ICON");
@@ -629,29 +626,51 @@ xdp_validate_serialized_icon (GVariant  *v,
       return FALSE;
     }
 
-  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-  fd = g_file_open_tmp ("iconXXXXXX", &name, &error);
-  if (fd == -1)
+  if (G_IS_BYTES_ICON (icon))
     {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
+      bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+      fd = g_file_open_tmp ("iconXXXXXX", &tmp_icon_path, &error);
+      if (fd == -1)
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      stream = g_unix_output_stream_new (fd, FALSE);
+
+      /* Use write_all() instead of write_bytes() so we don't have to worry about
+       * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
+       */
+      bytes_data = g_bytes_get_data (bytes, &bytes_len);
+      if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      if (!g_output_stream_close (stream, NULL, &error))
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      icon_path = tmp_icon_path;
     }
-
-  stream = g_unix_output_stream_new (fd, FALSE);
-
-  /* Use write_all() instead of write_bytes() so we don't have to worry about
-   * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
-   */
-  bytes_data = g_bytes_get_data (bytes, &bytes_len);
-  if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+  else if (G_IS_FILE_ICON (icon) && !bytes_only)
     {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
+      file_icon_path = g_file_get_path (g_file_icon_get_file (G_FILE_ICON (icon)));
+
+      if (!file_icon_path)
+        {
+          g_warning ("Icon validation: Invalid icon path");
+          return FALSE;
+        }
+
+      icon_path = file_icon_path;
     }
-
-  if (!g_output_stream_close (stream, NULL, &error))
+  else
     {
-      g_warning ("Icon validation: %s", error->message);
+      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
       return FALSE;
     }
 
@@ -659,7 +678,7 @@ xdp_validate_serialized_icon (GVariant  *v,
   args[1] = "--sandbox";
   args[2] = MAX_ICON_SIZE;
   args[3] = MAX_ICON_SIZE;
-  args[4] = name;
+  args[4] = icon_path;
   args[5] = NULL;
 
   if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
