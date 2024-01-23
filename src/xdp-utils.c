@@ -134,6 +134,10 @@ struct _XdpAppInfo {
     {
       struct
         {
+          int pidfd;
+        } host;
+      struct
+        {
           GKeyFile *keyfile;
         } flatpak;
       struct
@@ -234,10 +238,12 @@ set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 }
 
 static XdpAppInfo *
-xdp_app_info_new_host (pid_t pid)
+xdp_app_info_new_host (pid_t pid,
+                       int   pidfd)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   set_appid_from_pid (app_info, pid);
+  app_info->u.host.pidfd = pidfd;
   return app_info;
 }
 
@@ -248,6 +254,10 @@ xdp_app_info_free (XdpAppInfo *app_info)
 
   switch (app_info->kind)
     {
+    case XDP_APP_INFO_KIND_HOST:
+      xdp_close_fd (&app_info->u.host.pidfd);
+      break;
+
     case XDP_APP_INFO_KIND_FLATPAK:
       g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
       break;
@@ -256,7 +266,6 @@ xdp_app_info_free (XdpAppInfo *app_info)
       g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
       break;
 
-    case XDP_APP_INFO_KIND_HOST:
     default:
       break;
     }
@@ -1036,7 +1045,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     return NULL;
 
   if (app_info == NULL)
-    app_info = xdp_app_info_new_host (pid);
+    app_info = xdp_app_info_new_host (pid, pidfd);
 
   cache_insert_app_info (sender, app_info);
 
@@ -2278,13 +2287,38 @@ xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
     {
       int code = g_io_error_from_errno (-r);
       g_set_error (error, G_IO_ERROR, code,
-                   "Could not query /proc/%u/ns/pid: %s",
-                   (guint) pid, g_strerror (-r));
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
       return FALSE;
     }
 
   app_info->pidns_id = ns;
 
+  return TRUE;
+}
+
+static gboolean
+xdp_app_info_ensure_pidns_host (XdpAppInfo  *app_info,
+                                DIR         *proc,
+                                GError     **error)
+{
+  ino_t ns;
+  int r;
+
+  if (app_info->u.host.pidfd < 0)
+    return FALSE;
+
+  r = lookup_ns_from_pid_fd (app_info->u.host.pidfd, &ns);
+  if (r < 0)
+    {
+      int code = g_io_error_from_errno (-r);
+      g_set_error (error, G_IO_ERROR, code,
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
+      return FALSE;
+    }
+
+  app_info->pidns_id = ns;
   return TRUE;
 }
 
@@ -2300,6 +2334,9 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
 
   if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
+
+  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+    return xdp_app_info_ensure_pidns_host (app_info, proc, error);
 
   return FALSE;
 }
@@ -2320,7 +2357,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
   g_return_val_if_fail (app_info != NULL, FALSE);
   g_return_val_if_fail (pids != NULL, FALSE);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+  if (app_info->kind == XDP_APP_INFO_KIND_HOST && app_info->u.host.pidfd < 0)
     return TRUE;
 
   proc = opendir (proc_dir);
