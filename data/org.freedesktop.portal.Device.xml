@@ -23,6 +23,10 @@
       org.freedesktop.portal.Device:
       @short_description: Portal for device access
 
+      WARNING: This interface is deprecated and will be removed in a
+      future version. Please contact upstream, if you are using this
+      interface.
+
       This interface lets services ask if an application should
       get access to devices such as microphones, speakers or cameras.
       Not a portal in the strict sense, since the API is not directly
