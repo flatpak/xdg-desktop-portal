@@ -448,7 +448,7 @@ DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(notification, NOTIFICATION, 1)
-DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 4)
+DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 5)
 DEFINE_TEST_EXISTS(print, PRINT, 3)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
@@ -585,6 +585,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/openuri/cancel", test_open_uri_cancel);
   g_test_add_func ("/portal/openuri/lockdown", test_open_uri_lockdown);
   g_test_add_func ("/portal/openuri/directory", test_open_directory);
+  g_test_add_func ("/portal/openuri/scheme-supported", test_scheme_supported);
 
   g_test_add_func ("/portal/wallpaper/basic", test_wallpaper_basic);
   g_test_add_func ("/portal/wallpaper/delay", test_wallpaper_delay);
