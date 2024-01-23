@@ -873,31 +873,21 @@ xdp_get_app_info_from_pid (GDBusConnection  *connection,
                            GError          **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autoptr(GError) local_error = NULL;
   guint32 pid;
 
-  if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, &local_error))
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
-    }
+  if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, error))
+    return NULL;
 
-  app_info = parse_app_info_from_flatpak_info (pid, &local_error);
-  if (app_info == NULL && local_error)
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
-    }
+  app_info = parse_app_info_from_flatpak_info (pid, error);
+
+  if (app_info == NULL && *error)
+    return NULL;
 
   if (app_info == NULL)
-    {
-      app_info = parse_app_info_from_snap (pid, &local_error);
-      if (app_info == NULL && local_error)
-        {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return NULL;
-        }
-    }
+    app_info = parse_app_info_from_snap (pid, error);
+
+  if (app_info == NULL && *error)
+    return NULL;
 
   if (app_info == NULL)
     app_info = xdp_app_info_new_host (pid);
