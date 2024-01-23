@@ -67,7 +67,6 @@ xdg_desktop_portal_sources = files(
   'call.c',
   'camera.c',
   'clipboard.c',
-  'device.c',
   'documents.c',
   'dynamic-launcher.c',
   'email.c',
