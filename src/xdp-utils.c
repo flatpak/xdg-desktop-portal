@@ -342,6 +342,10 @@ xdp_app_info_load_app_info (XdpAppInfo *app_info)
                                           NULL);
       break;
 
+    case XDP_APP_INFO_KIND_CONTAINERS1:
+      desktop_id = g_strdup (app_info->u.containers1.desktop_file);
+      break;
+
     case XDP_APP_INFO_KIND_HOST:
     default:
       desktop_id = NULL;
@@ -398,7 +402,7 @@ xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
       g_ptr_array_add (args, NULL);
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
     }
-  else if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  else if (xdp_app_info_is_flatpak (app_info))
     {
       args = g_ptr_array_new_with_free_func (g_free);
 
@@ -489,15 +493,28 @@ xdp_app_info_get_tryexec_path (XdpAppInfo *app_info)
 char *
 xdp_app_info_get_instance (XdpAppInfo *app_info)
 {
+  char *instance = NULL;
+
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
-    return NULL;
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      instance = g_key_file_get_string (app_info->u.flatpak.keyfile,
+                                        FLATPAK_METADATA_GROUP_INSTANCE,
+                                        FLATPAK_METADATA_KEY_INSTANCE_ID,
+                                        NULL);
+      break;
 
-  return g_key_file_get_string (app_info->u.flatpak.keyfile,
-                                FLATPAK_METADATA_GROUP_INSTANCE,
-                                FLATPAK_METADATA_KEY_INSTANCE_ID,
-                                NULL);
+    case XDP_APP_INFO_KIND_CONTAINERS1:
+      instance = g_strdup (app_info->u.containers1.instance_id);
+      break;
+
+    default:
+      break;
+    }
+
+  return instance;
 }
 
 gboolean
@@ -513,7 +530,9 @@ xdp_app_info_is_flatpak (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, FALSE);
 
-  return app_info->kind == XDP_APP_INFO_KIND_FLATPAK;
+  return app_info->kind == XDP_APP_INFO_KIND_FLATPAK ||
+         (app_info->kind == XDP_APP_INFO_KIND_CONTAINERS1 &&
+          g_strcmp0 (app_info->u.containers1.container_type, "org.flatpak") == 0);
 }
 
 static gboolean
@@ -598,6 +617,10 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
       has_network = g_key_file_get_boolean (app_info->u.snap.keyfile,
                                             SNAP_METADATA_GROUP_INFO,
                                             SNAP_METADATA_KEY_NETWORK, NULL);
+      break;
+
+    case XDP_APP_INFO_KIND_CONTAINERS1:
+      has_network = app_info->u.containers1.has_network;
       break;
 
     case XDP_APP_INFO_KIND_HOST:
@@ -2379,6 +2402,42 @@ xdp_app_info_ensure_pidns_host (XdpAppInfo  *app_info,
 }
 
 static gboolean
+xdp_app_info_ensure_pidns_containers1 (XdpAppInfo  *app_info,
+                                       DIR         *proc,
+                                       GError     **error)
+{
+  ino_t ns;
+  int r;
+
+  if (xdp_app_info_is_flatpak (app_info))
+    {
+      /* Containers1 is supposed to be generic but currently flatpak still
+       * sets up the xdg-dbus-proxy which the pidfd is pointing at. When dbus
+       * learns about ACL, it can replace the proxy and the pidfd starts
+       * pointing to the right process.
+       * Until that happens, we can safely fall back to the flatpak-specific
+       * path. It uses the flatpak instance id to look up the PID and
+       * Containers1 knows the instance id.
+       */
+      return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
+    }
+
+  r = lookup_ns_from_pid_fd (app_info->u.containers1.pidfd, &ns);
+  if (r < 0)
+    {
+      int code = g_io_error_from_errno (-r);
+      g_set_error (error, G_IO_ERROR, code,
+                   "Could not lookup PID namespace from pidfd: %s",
+                   g_strerror (-r));
+
+      return FALSE;
+    }
+
+  app_info->pidns_id = ns;
+  return TRUE;
+}
+
+static gboolean
 xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
                            DIR         *proc,
                            GError     **error)
@@ -2393,6 +2452,9 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
 
   if (app_info->kind == XDP_APP_INFO_KIND_HOST)
     return xdp_app_info_ensure_pidns_host (app_info, proc, error);
+
+  if (app_info->kind == XDP_APP_INFO_KIND_CONTAINERS1)
+    return xdp_app_info_ensure_pidns_containers1 (app_info, proc, error);
 
   return FALSE;
 }
