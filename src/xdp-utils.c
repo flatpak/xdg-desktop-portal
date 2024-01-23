@@ -978,7 +978,7 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
 }
 
 static XdpAppInfo *
-lookup_cached_app_info_by_sender (const char *sender)
+cache_lookup_app_info_by_sender (const char *sender)
 {
   XdpAppInfo *app_info = NULL;
 
@@ -994,6 +994,16 @@ lookup_cached_app_info_by_sender (const char *sender)
   return app_info;
 }
 
+static void
+cache_insert_app_info (const char *sender, XdpAppInfo *app_info)
+{
+  G_LOCK (app_infos);
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       xdp_app_info_ref (app_info));
+  G_UNLOCK (app_infos);
+}
+
 static XdpAppInfo *
 xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      const char            *sender,
@@ -1004,7 +1014,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   int pidfd = -1;
   uint32_t pid;
 
-  app_info = lookup_cached_app_info_by_sender (sender);
+  app_info = cache_lookup_app_info_by_sender (sender);
   if (app_info)
     return g_steal_pointer (&app_info);
 
@@ -1020,11 +1030,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (app_info == NULL)
     app_info = xdp_app_info_new_host (pid);
 
-  G_LOCK (app_infos);
-  ensure_app_info_by_unique_name ();
-  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
-                       xdp_app_info_ref (app_info));
-  G_UNLOCK (app_infos);
+  cache_insert_app_info (sender, app_info);
 
   return g_steal_pointer (&app_info);
 }
