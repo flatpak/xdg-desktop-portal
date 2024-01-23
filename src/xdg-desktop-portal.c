@@ -37,7 +37,6 @@
 #include "call.h"
 #include "camera.h"
 #include "clipboard.h"
-#include "device.h"
 #include "documents.h"
 #include "dynamic-launcher.h"
 #include "email.h"
@@ -262,10 +261,6 @@ on_bus_acquired (GDBusConnection *connection,
     {
       PortalImplementation *tmp;
 
-      export_portal_implementation (connection,
-                                    device_create (connection,
-                                                   access_impl->dbus_name,
-                                                   lockdown));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
@@ -274,7 +269,9 @@ on_bus_acquired (GDBusConnection *connection,
 #endif
 
       export_portal_implementation (connection,
-                                    camera_create (connection, lockdown));
+                                    camera_create (connection,
+                                                   access_impl->dbus_name,
+                                                   lockdown));
 
       tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
       if (tmp != NULL)

@@ -23,7 +23,6 @@
 #include <gio/gdesktopappinfo.h>
 #include <stdio.h>
 
-#include "device.h"
 #include "request.h"
 #include "permissions.h"
 #include "pipewire.h"
@@ -31,7 +30,11 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
+#define PERMISSION_TABLE "devices"
+#define PERMISSION_DEVICE_CAMERA "camera"
+
 static XdpDbusImplLockdown *lockdown;
+static XdpDbusImplAccess *access_impl;
 
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;
@@ -66,6 +69,90 @@ static gboolean
 create_pipewire_remote (Camera *camera,
                         GError **error);
 
+static gboolean
+query_permission_sync (Request *request)
+{
+  Permission permission;
+  const char *app_id;
+  gboolean allowed;
+
+  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
+
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
+  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
+    {
+      GVariantBuilder opt_builder;
+      g_autofree char *title = NULL;
+      g_autofree char *body = NULL;
+      guint32 response = 2;
+      g_autoptr(GVariant) results = NULL;
+      g_autoptr(GError) error = NULL;
+      g_autoptr(GAppInfo) info = NULL;
+      g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+
+      if (app_id[0] != 0)
+        {
+          g_autofree char *desktop_id;
+          desktop_id = g_strconcat (app_id, ".desktop", NULL);
+          info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
+        }
+
+      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
+      g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
+
+      if (info)
+        {
+          title = g_strdup_printf (_("Allow %s to Use the Camera?"), g_app_info_get_display_name (info));
+          body = g_strdup_printf (_("%s wants to access camera devices."), g_app_info_get_display_name (info));
+        }
+      else
+        {
+          title = g_strdup (_("Allow app to Use the Camera?"));
+          body = g_strdup (_("An app wants to access camera devices."));
+        }
+
+      impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
+                                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                                           g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
+                                                           request->id,
+                                                           NULL, &error);
+      if (!impl_request)
+        return FALSE;
+
+      request_set_impl_request (request, impl_request);
+
+      g_debug ("Calling backend for device access to camera");
+
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                         request->id,
+                                                         app_id,
+                                                         "",
+                                                         title,
+                                                         "",
+                                                         body,
+                                                         g_variant_builder_end (&opt_builder),
+                                                         &response,
+                                                         &results,
+                                                         NULL,
+                                                         &error))
+        {
+          g_warning ("A backend call failed: %s", error->message);
+        }
+
+      allowed = response == 0;
+
+      if (permission == PERMISSION_UNSET)
+        {
+          set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA,
+                               allowed ? PERMISSION_YES : PERMISSION_NO);
+        }
+    }
+  else
+    allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+
+  return allowed;
+}
+
 static void
 handle_access_camera_in_thread_func (GTask *task,
                                      gpointer source_object,
@@ -73,12 +160,9 @@ handle_access_camera_in_thread_func (GTask *task,
                                      GCancellable *cancellable)
 {
   Request *request = (Request *)task_data;
-  const char *app_id;
   gboolean allowed;
 
-  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
-
-  allowed = device_query_permission_sync (app_id, "camera", request);
+  allowed = query_permission_sync (request);
 
   REQUEST_AUTOLOCK (request);
 
@@ -198,7 +282,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
   app_id = xdp_app_info_get_id (app_info);
-  permission = device_get_permission_sync (app_id, "camera");
+  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission != PERMISSION_YES)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -445,11 +529,28 @@ camera_class_init (CameraClass *klass)
 
 GDBusInterfaceSkeleton *
 camera_create (GDBusConnection *connection,
-               gpointer lockdown_proxy)
+               const char      *access_impl_dbus_name,
+               gpointer         lockdown_proxy)
 {
+  g_autoptr(GError) error = NULL;
+
   lockdown = lockdown_proxy;
 
   camera = g_object_new (camera_get_type (), NULL);
+
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     access_impl_dbus_name,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL,
+                                                     &error);
+  if (access_impl == NULL)
+    {
+      g_warning ("Failed to create access proxy: %s", error->message);
+      return NULL;
+    }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
   return G_DBUS_INTERFACE_SKELETON (camera);
 }
