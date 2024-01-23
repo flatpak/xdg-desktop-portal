@@ -867,35 +867,6 @@ xdp_connection_get_pid (GDBusConnection  *connection,
 }
 
 static XdpAppInfo *
-xdp_get_app_info_from_pid (GDBusConnection  *connection,
-                           const char       *sender,
-                           GCancellable     *cancellable,
-                           GError          **error)
-{
-  g_autoptr(XdpAppInfo) app_info = NULL;
-  guint32 pid;
-
-  if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, error))
-    return NULL;
-
-  app_info = parse_app_info_from_flatpak_info (pid, error);
-
-  if (app_info == NULL && *error)
-    return NULL;
-
-  if (app_info == NULL)
-    app_info = parse_app_info_from_snap (pid, error);
-
-  if (app_info == NULL && *error)
-    return NULL;
-
-  if (app_info == NULL)
-    app_info = xdp_app_info_new_host (pid);
-
-  return g_steal_pointer (&app_info);
-}
-
-static XdpAppInfo *
 lookup_cached_app_info_by_sender (const char *sender)
 {
   XdpAppInfo *app_info = NULL;
@@ -919,14 +890,28 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      GError               **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
+  guint32 pid;
 
   app_info = lookup_cached_app_info_by_sender (sender);
   if (app_info)
     return g_steal_pointer (&app_info);
 
-  app_info = xdp_get_app_info_from_pid (connection, sender, cancellable, error);
-  if (app_info == NULL)
+  if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, error))
     return NULL;
+
+  app_info = parse_app_info_from_flatpak_info (pid, error);
+
+  if (app_info == NULL && *error)
+    return NULL;
+
+  if (app_info == NULL)
+    app_info = parse_app_info_from_snap (pid, error);
+
+  if (app_info == NULL && *error)
+    return NULL;
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_new_host (pid);
 
   G_LOCK (app_infos);
   ensure_app_info_by_unique_name ();
