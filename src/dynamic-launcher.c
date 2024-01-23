@@ -257,7 +257,7 @@ save_icon_and_get_desktop_entry (const char  *desktop_file_id,
     return NULL;
 
   /* Don't let the app give itself access to host files */
-  if (xdp_app_info_get_kind (xdp_app_info) == XDP_APP_INFO_KIND_FLATPAK &&
+  if (xdp_app_info_is_flatpak (xdp_app_info) &&
       g_strv_contains ((const char * const *)exec_strv, "--file-forwarding"))
     {
       g_set_error (error,
@@ -284,7 +284,7 @@ save_icon_and_get_desktop_entry (const char  *desktop_file_id,
   if (tryexec_path != NULL)
     g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "TryExec", tryexec_path);
 
-  if (xdp_app_info_get_kind (xdp_app_info) == XDP_APP_INFO_KIND_FLATPAK)
+  if (xdp_app_info_is_flatpak (xdp_app_info))
     {
       /* Flatpak checks for this key */
       g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "X-Flatpak", app_id);

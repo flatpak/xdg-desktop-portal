@@ -481,6 +481,14 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
   return app_info->kind == XDP_APP_INFO_KIND_HOST;
 }
 
+gboolean
+xdp_app_info_is_flatpak (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, FALSE);
+
+  return app_info->kind == XDP_APP_INFO_KIND_FLATPAK;
+}
+
 static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
