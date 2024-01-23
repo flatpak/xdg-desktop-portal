@@ -925,6 +925,31 @@ handle_open_in_thread_func (GTask *task,
 }
 
 static gboolean
+handle_scheme_supported (XdpDbusOpenURI *object,
+                         GDBusMethodInvocation *invocation,
+                         const gchar *arg_scheme,
+                         GVariant *arg_options)
+{
+  g_autoptr(GAppInfo) app_info = NULL;
+
+  if (arg_scheme == NULL || *arg_scheme == '\0')
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "Scheme not specified");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  app_info = g_app_info_get_default_for_uri_scheme (arg_scheme);
+
+  g_debug ("Handler for scheme: %s%s found.", arg_scheme, app_info ? "" : " not");
+  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(b)", app_info != NULL));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static gboolean
 handle_open_uri (XdpDbusOpenURI *object,
                  GDBusMethodInvocation *invocation,
                  const gchar *arg_parent_window,
@@ -1093,12 +1118,13 @@ open_uri_iface_init (XdpDbusOpenURIIface *iface)
   iface->handle_open_uri = handle_open_uri;
   iface->handle_open_file = handle_open_file;
   iface->handle_open_directory = handle_open_directory;
+  iface->handle_scheme_supported = handle_scheme_supported;
 }
 
 static void
 open_uri_init (OpenURI *openuri)
 {
-  xdp_dbus_open_uri_set_version (XDP_DBUS_OPEN_URI (openuri), 4);
+  xdp_dbus_open_uri_set_version (XDP_DBUS_OPEN_URI (openuri), 5);
 }
 
 static void
