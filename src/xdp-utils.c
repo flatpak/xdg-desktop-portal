@@ -126,14 +126,15 @@ struct _XdpAppInfo {
   char *id;
   XdpAppInfoKind kind;
 
+  /* pid namespace mapping */
+  GMutex pidns_lock;
+  ino_t pidns_id;
+
   union
     {
       struct
         {
           GKeyFile *keyfile;
-	   /* pid namespace mapping */
-          GMutex pidns_lock;
-          ino_t   pidns_id;
         } flatpak;
       struct
         {
@@ -2239,23 +2240,15 @@ xdp_app_info_get_child_pid (JsonNode *root,
 }
 
 static gboolean
-xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
-                           DIR         *proc,
-                           GError     **error)
+xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
+                                   DIR         *proc,
+                                   GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  g_autoptr(GMutexLocker) guard = NULL;
   xdp_autofd int fd = -1;
   pid_t pid;
   ino_t ns;
   int r;
-
-  g_assert (app_info->kind == XDP_APP_INFO_KIND_FLATPAK);
-
-  guard = g_mutex_locker_new (&(app_info->u.flatpak.pidns_lock));
-
-  if (app_info->u.flatpak.pidns_id != 0)
-    return TRUE;
 
   root = xdp_app_info_load_bwrap_info (app_info, error);
   if (root == NULL)
@@ -2268,7 +2261,7 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
   if (ns != 0)
     {
       g_debug ("Using pid namespace info from bwrap info");
-      app_info->u.flatpak.pidns_id = ns;
+      app_info->pidns_id = ns;
       return TRUE;
     }
 
@@ -2290,9 +2283,25 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  app_info->u.flatpak.pidns_id = ns;
+  app_info->pidns_id = ns;
 
   return TRUE;
+}
+
+static gboolean
+xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
+                           DIR         *proc,
+                           GError     **error)
+{
+  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(app_info->pidns_lock));
+
+  if (app_info->pidns_id != 0)
+    return TRUE;
+
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+    return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
+
+  return FALSE;
 }
 
 /* This is the trunk for xdp_app_info_map_pids()/xdp_app_info_map_tids() */
@@ -2313,13 +2322,6 @@ app_info_map_pids (XdpAppInfo  *app_info,
 
   if (app_info->kind == XDP_APP_INFO_KIND_HOST)
     return TRUE;
-
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
-    {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                           "Mapping pids is not supported.");
-      return FALSE;
-    }
 
   proc = opendir (proc_dir);
   if (proc == NULL)
@@ -2342,7 +2344,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
    */
   uid = getuid ();
 
-  ns = app_info->u.flatpak.pidns_id;
+  ns = app_info->pidns_id;
   ok = map_pids (proc, ns, pids, n_pids, uid, error);
 
  out:
