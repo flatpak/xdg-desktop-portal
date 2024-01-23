@@ -922,45 +922,6 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
   return TRUE;
 }
 
-static gboolean
-xdp_connection_get_pid (GDBusConnection  *connection,
-                        const char       *sender,
-                        GCancellable     *cancellable,
-                        guint32          *out_pid,
-                        GError          **error)
-{
-  g_autoptr(GDBusMessage) msg = NULL;
-  g_autoptr(GDBusMessage) reply = NULL;
-  g_autoptr(XdpAppInfo) app_info = NULL;
-  GVariant *body;
-
-  msg = g_dbus_message_new_method_call (DBUS_NAME_DBUS,
-                                        DBUS_PATH_DBUS,
-                                        DBUS_INTERFACE_DBUS,
-                                        "GetConnectionUnixProcessID");
-  g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
-
-  reply = g_dbus_connection_send_message_with_reply_sync (connection, msg,
-                                                          G_DBUS_SEND_MESSAGE_FLAGS_NONE,
-                                                          30000,
-                                                          NULL,
-                                                          cancellable,
-                                                          error);
-  if (reply == NULL)
-    return FALSE;
-
-  if (g_dbus_message_get_message_type (reply) == G_DBUS_MESSAGE_TYPE_ERROR)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pid");
-      return FALSE;
-    }
-
-  body = g_dbus_message_get_body (reply);
-  g_variant_get (body, "(u)", out_pid);
-
-  return TRUE;
-}
-
 static XdpAppInfo *
 lookup_cached_app_info_by_sender (const char *sender)
 {
