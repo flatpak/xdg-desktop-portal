@@ -42,6 +42,7 @@
 #endif
 
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 #include <gio/gdesktopappinfo.h>
 
@@ -840,6 +841,88 @@ xdp_app_info_from_snap (int          pid,
 }
 
 static gboolean
+xdp_connection_get_pidfd (GDBusConnection  *connection,
+                          const char       *sender,
+                          GCancellable     *cancellable,
+                          int              *out_pidfd,
+                          guint32          *out_pid,
+                          GError          **error)
+{
+  g_autoptr(GVariant) parameters = NULL;
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GVariant) process_fd = NULL;
+  g_autoptr(GVariant) process_id = NULL;
+  guint32 pid;
+  int fd_index;
+  GUnixFDList *fd_list;
+  gint fds_len = 0;
+  const gint *fds;
+  gint pidfd;
+
+  parameters = g_variant_new ("(s)", sender);
+
+  reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
+                                                         DBUS_NAME_DBUS,
+                                                         DBUS_PATH_DBUS,
+                                                         DBUS_INTERFACE_DBUS,
+                                                         "GetConnectionCredentials",
+                                                         parameters,
+                                                         G_VARIANT_TYPE ("(a{sv})"),
+                                                         G_DBUS_CALL_FLAGS_NONE,
+                                                         30000,
+                                                         NULL,
+                                                         &fd_list,
+                                                         cancellable,
+                                                         error);
+
+  if (!reply)
+    return FALSE;
+
+  process_id = g_variant_lookup_value (reply, "ProcessID", G_VARIANT_TYPE_UINT32);
+  if (!process_id)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pid");
+      return FALSE;
+    }
+
+  pid = g_variant_get_uint32 (process_id);
+
+  process_fd = g_variant_lookup_value (reply, "ProcessFD", G_VARIANT_TYPE_HANDLE);
+  if (!process_fd)
+    {
+      *out_pidfd = -1;
+      *out_pid = pid;
+      return TRUE;
+    }
+
+  fd_index = g_variant_get_handle (process_fd);
+
+  if (fd_list == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      return FALSE;
+    }
+
+  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+  if (fds_len <= fd_index)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      return FALSE;
+    }
+
+  pidfd = dup (fds[fd_index]);
+  if (pidfd < 0)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't dup pidfd");
+      return FALSE;
+    }
+
+  *out_pidfd = pidfd;
+  *out_pid = pid;
+  return TRUE;
+}
+
+static gboolean
 xdp_connection_get_pid (GDBusConnection  *connection,
                         const char       *sender,
                         GCancellable     *cancellable,
@@ -902,13 +985,14 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      GError               **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
+  int pidfd = -1;
   guint32 pid;
 
   app_info = lookup_cached_app_info_by_sender (sender);
   if (app_info)
     return g_steal_pointer (&app_info);
 
-  if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, error))
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
   if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
