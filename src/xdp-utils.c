@@ -50,6 +50,7 @@
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
+#define DBUS_INTERFACE_DBUS_CONTAINERS1 DBUS_NAME_DBUS ".Containers1"
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
 
 G_LOCK_DEFINE (app_infos);
@@ -841,6 +842,59 @@ xdp_app_info_from_snap (int          pid,
 }
 
 static gboolean
+xdp_app_info_from_containers1 (GVariant    *containers1_data,
+                               int          pidfd,
+                               XdpAppInfo **out_app_info,
+                               GError     **error)
+{
+  *out_app_info = NULL;
+  return TRUE;
+}
+
+static gboolean
+xdp_connection_get_containers1 (GDBusConnection  *connection,
+                                const char       *sender,
+                                GCancellable     *cancellable,
+                                GVariant        **out_variant,
+                                GError          **error)
+{
+  g_autoptr(GVariant) parameters = NULL;
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GError) local_error = NULL;
+
+  parameters = g_variant_new ("(s)", sender);
+
+  reply = g_dbus_connection_call_sync (connection,
+                                       DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_DBUS_CONTAINERS1,
+                                       "GetConnectionInfo",
+                                       parameters,
+                                       G_VARIANT_TYPE ("(oa{sv}sssa{sv})"),
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       30000,
+                                       cancellable,
+                                       &local_error);
+
+  if (reply == NULL)
+    {
+      if (g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE) ||
+          g_strcmp0 (g_dbus_error_get_remote_error (local_error),
+                     "org.freedesktop.DBus.Error.NotContainer") == 0)
+        {
+          *out_variant = NULL;
+          return TRUE;
+        }
+
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return FALSE;
+    }
+
+  *out_variant = g_steal_pointer (&reply);
+  return TRUE;
+}
+
+static gboolean
 xdp_connection_get_pidfd (GDBusConnection  *connection,
                           const char       *sender,
                           GCancellable     *cancellable,
@@ -956,6 +1010,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      GError               **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GVariant) containers1_data = NULL;
   int pidfd = -1;
   guint32 pid;
 
@@ -963,10 +1018,17 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (app_info)
     return g_steal_pointer (&app_info);
 
+  if (!xdp_connection_get_containers1 (connection, sender, cancellable,
+                                       &containers1_data, error))
+      return NULL;
+
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
+  if (!xdp_app_info_from_containers1 (containers1_data, pidfd, &app_info, error))
+    return NULL;
+
+  if (app_info == NULL && !xdp_app_info_from_flatpak_info (pid, &app_info, error))
     return NULL;
 
   if (app_info == NULL && !xdp_app_info_from_snap (pid, &app_info, error))
