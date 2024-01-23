@@ -5,6 +5,7 @@
 #include <libportal/portal.h>
 #include "xdp-utils.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-dbus.h"
 
 #include "utils.h"
 
@@ -477,4 +478,57 @@ test_open_directory (void)
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
+}
+
+void
+test_scheme_supported (void)
+{
+  gboolean supported;
+  GVariantBuilder builder;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GDBusConnection) session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+
+  XdpDbusOpenURI *proxy = xdp_dbus_open_uri_proxy_new_sync (session_bus,
+                                                            G_DBUS_PROXY_FLAGS_NONE,
+                                                            "org.freedesktop.portal.Desktop",
+                                                            "/org/freedesktop/portal/desktop",
+                                                            NULL,
+                                                            &error);
+
+  g_assert_no_error (error);
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
+  options = g_variant_ref_sink (g_variant_builder_end (&builder));
+  /* Existing scheme */
+  xdp_dbus_open_uri_call_scheme_supported_sync (proxy,
+                                                "https",
+                                                options,
+                                                &supported,
+                                                NULL,
+                                                &error);
+  g_assert_no_error (error);
+  g_assert_true (supported);
+
+  /* Non existing scheme */
+  xdp_dbus_open_uri_call_scheme_supported_sync (proxy,
+                                                "bogusnonexistanthandler",
+                                                options,
+                                                &supported,
+                                                NULL,
+                                                &error);
+  g_assert_no_error (error);
+  g_assert_false (supported);
+
+  /* Missing scheme name */
+  xdp_dbus_open_uri_call_scheme_supported_sync (proxy,
+                                                "",
+                                                options,
+                                                &supported,
+                                                NULL,
+                                                &error);
+  g_assert_error (error,
+                  XDG_DESKTOP_PORTAL_ERROR,
+                  XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT);
+  g_object_unref (proxy);
 }
