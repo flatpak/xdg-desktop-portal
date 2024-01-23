@@ -144,6 +144,14 @@ struct _XdpAppInfo {
         {
           GKeyFile *keyfile;
         } snap;
+      struct
+        {
+          char *container_type;
+          char *instance_id;
+          int pidfd;
+          char *desktop_file;
+          gboolean has_network;
+        } containers1;
     } u;
 };
 
@@ -264,6 +272,13 @@ xdp_app_info_free (XdpAppInfo *app_info)
 
     case XDP_APP_INFO_KIND_SNAP:
       g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
+      break;
+
+    case XDP_APP_INFO_KIND_CONTAINERS1:
+      g_clear_pointer (&app_info->u.containers1.container_type, g_free);
+      g_clear_pointer (&app_info->u.containers1.instance_id, g_free);
+      g_clear_pointer (&app_info->u.containers1.desktop_file, g_free);
+      xdp_close_fd (&app_info->u.containers1.pidfd);
       break;
 
     default:
@@ -857,7 +872,48 @@ xdp_app_info_from_containers1 (GVariant    *containers1_data,
                                XdpAppInfo **out_app_info,
                                GError     **error)
 {
-  *out_app_info = NULL;
+  XdpAppInfo *app_info = NULL;
+  const char *container_type;
+  const char *app_id;
+  const char *instance_id;
+  GVariant *metadata;
+  const char *desktop_file;
+  gboolean network_access;
+
+  if (!containers1_data || pidfd < 0)
+    {
+      *out_app_info = NULL;
+      return TRUE;
+    }
+
+  g_variant_get (containers1_data, "(o@a{sv}sss@a{sv})",
+                 NULL,
+                 NULL,
+                 &container_type,
+                 &app_id,
+                 &instance_id,
+                 &metadata);
+
+  if (!app_id || !instance_id || !container_type)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Bad Containers1 metadata");
+      return FALSE;
+    }
+
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_CONTAINERS1);
+  app_info->id = g_strdup (app_id);
+  app_info->u.containers1.container_type = g_strdup (container_type);
+  app_info->u.containers1.instance_id = g_strdup (instance_id);
+  app_info->u.containers1.pidfd = pidfd;
+
+  if (g_variant_lookup (metadata, "DesktopFile", "&s", &desktop_file))
+    app_info->u.containers1.desktop_file = g_strdup (desktop_file);
+
+  app_info->u.containers1.has_network = TRUE;
+  if (g_variant_lookup (metadata, "NetworkAccess", "b", &network_access))
+    app_info->u.containers1.has_network = network_access;
+
+  *out_app_info = app_info;
   return TRUE;
 }
 
