@@ -481,7 +481,7 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
   return app_info->kind == XDP_APP_INFO_KIND_HOST;
 }
 
-gboolean
+static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
   return
@@ -819,8 +819,7 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   return g_steal_pointer (&app_info);
 }
 
-
-XdpAppInfo *
+static XdpAppInfo *
 xdp_get_app_info_from_pid (pid_t pid,
                            GError **error)
 {
