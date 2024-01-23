@@ -125,6 +125,9 @@ struct _XdpAppInfo {
   char *id;
   XdpAppInfoKind kind;
 
+  /* pidfd of the calling process */
+  int pidfd;
+
   /* pid namespace mapping */
   GMutex pidns_lock;
   ino_t pidns_id;
@@ -148,6 +151,7 @@ xdp_app_info_new (XdpAppInfoKind kind)
   XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
   app_info->ref_count = 1;
   app_info->kind = kind;
+  app_info->pidfd = -1;
   return app_info;
 }
 
@@ -233,10 +237,12 @@ set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 }
 
 static XdpAppInfo *
-xdp_app_info_new_host (pid_t pid)
+xdp_app_info_new_host (pid_t pid,
+                       int   pidfd)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   set_appid_from_pid (app_info, pid);
+  app_info->pidfd = pidfd;
   return app_info;
 }
 
@@ -252,6 +258,7 @@ static void
 xdp_app_info_free (XdpAppInfo *app_info)
 {
   g_free (app_info->id);
+  xdp_close_fd (&app_info->pidfd);
 
   switch (app_info->kind)
     {
@@ -801,6 +808,7 @@ end:
 
 static gboolean
 xdp_app_info_from_snap (int          pid,
+                        int          pidfd,
                         XdpAppInfo **out_app_info,
                         GError     **error)
 {
@@ -843,6 +851,7 @@ xdp_app_info_from_snap (int          pid,
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
   app_info->id = g_strconcat ("snap.", snap_name, NULL);
+  app_info->pidfd = pidfd;
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
 
   *out_app_info = g_steal_pointer (&app_info);
@@ -1025,11 +1034,11 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
     return NULL;
 
-  if (app_info == NULL && !xdp_app_info_from_snap (pid, &app_info, error))
+  if (app_info == NULL && !xdp_app_info_from_snap (pid, pidfd, &app_info, error))
     return NULL;
 
   if (app_info == NULL)
-    app_info = xdp_app_info_new_host (pid);
+    app_info = xdp_app_info_new_host (pid, pidfd);
 
   cache_insert_app_info (sender, app_info);
 
@@ -2276,13 +2285,35 @@ xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
     {
       int code = g_io_error_from_errno (-r);
       g_set_error (error, G_IO_ERROR, code,
-                   "Could not query /proc/%u/ns/pid: %s",
-                   (guint) pid, g_strerror (-r));
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
       return FALSE;
     }
 
   app_info->pidns_id = ns;
 
+  return TRUE;
+}
+
+static gboolean
+xdp_app_info_ensure_pidns_pidfd (XdpAppInfo  *app_info,
+                                 DIR         *proc,
+                                 GError     **error)
+{
+  ino_t ns;
+  int r;
+
+  r = lookup_ns_from_pid_fd (app_info->pidfd, &ns);
+  if (r < 0)
+    {
+      int code = g_io_error_from_errno (-r);
+      g_set_error (error, G_IO_ERROR, code,
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
+      return FALSE;
+    }
+
+  app_info->pidns_id = ns;
   return TRUE;
 }
 
@@ -2295,6 +2326,9 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
 
   if (app_info->pidns_id != 0)
     return TRUE;
+
+  if (app_info->pidfd >= 0)
+    return xdp_app_info_ensure_pidns_pidfd (app_info, proc, error);
 
   if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
@@ -2311,6 +2345,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
                    guint        n_pids,
                    GError     **error)
 {
+  g_autoptr(GError) local_error = NULL;
   gboolean ok;
   DIR *proc;
   uid_t uid;
@@ -2318,9 +2353,6 @@ app_info_map_pids (XdpAppInfo  *app_info,
 
   g_return_val_if_fail (app_info != NULL, FALSE);
   g_return_val_if_fail (pids != NULL, FALSE);
-
-  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
-    return TRUE;
 
   proc = opendir (proc_dir);
   if (proc == NULL)
@@ -2331,10 +2363,15 @@ app_info_map_pids (XdpAppInfo  *app_info,
     }
 
   /* Make sure we know the pid namespace the app is running in */
-  ok = xdp_app_info_ensure_pidns (app_info, proc, error);
+  ok = xdp_app_info_ensure_pidns (app_info, proc, &local_error);
   if (!ok)
     {
-      g_prefix_error (error, "Could not determine pid namespace: ");
+      /* fallback to not mapping pids if the app is on the host */
+      if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+        return TRUE;
+
+      g_propagate_prefixed_error (error, local_error,
+                                  "Could not determine pid namespace: ");
       goto out;
     }
 
