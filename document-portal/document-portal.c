@@ -1416,6 +1416,68 @@ portal_list (GDBusMethodInvocation *invocation,
   return TRUE;
 }
 
+static gboolean
+portal_get_real_path (GDBusMethodInvocation *invocation,
+             GVariant *parameters,
+             XdpAppInfo *app_info)
+{
+  const char *id = NULL;
+  g_autoptr(PermissionDbEntry) entry = NULL;
+
+  g_variant_get (parameters, "(&s)", &id);
+
+  XDP_AUTOLOCK (db);
+
+  entry = permission_db_lookup (db, id);
+
+  if (!entry)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "Invalid ID passed");
+      return TRUE;
+    }
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      g_autofree const char **apps = NULL;
+      g_autofree const char *app_id = NULL;
+      static gboolean id_found = FALSE;
+      int i;
+
+      app_id = xdp_app_info_get_id(app_info);
+
+      apps = permission_db_entry_list_apps (entry);
+      for (i = 0; apps[i] != NULL; i++)
+        {
+          if (g_strcmp0 (app_id, apps[i]) == 0)
+            {
+              id_found = TRUE;
+              break;
+            }
+        }
+
+      if (!id_found)
+        {
+          g_dbus_method_invocation_return_error (invocation,
+                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                                 "Invalid ID passed");
+          return TRUE;
+        }
+    }
+
+  g_autoptr (GVariant) data = permission_db_entry_get_data (entry);
+  const char *path;
+
+  g_variant_get (data, "(^&ayttu)", &path, NULL, NULL, NULL);
+
+  g_dbus_method_invocation_return_value (invocation,
+                                         g_variant_new ("(@s)",
+                                                        g_variant_new_string (path)));
+
+  return TRUE;
+}
+
 static void
 peer_died_cb (const char *name)
 {
@@ -1445,6 +1507,7 @@ on_bus_acquired (GDBusConnection *connection,
   g_signal_connect_swapped (dbus_api, "handle-lookup", G_CALLBACK (handle_method), portal_lookup);
   g_signal_connect_swapped (dbus_api, "handle-info", G_CALLBACK (handle_method), portal_info);
   g_signal_connect_swapped (dbus_api, "handle-list", G_CALLBACK (handle_method), portal_list);
+  g_signal_connect_swapped (dbus_api, "handle-get-real-path", G_CALLBACK (handle_method), portal_get_real_path);
 
   file_transfer = file_transfer_create ();
   g_dbus_interface_skeleton_set_flags (file_transfer,

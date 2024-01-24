@@ -273,5 +273,17 @@
       <arg type='s' name='app_id' direction='in'/>
       <arg type='a{say}' name='docs' direction='out'/>
     </method>
+
+    <!--
+        GetRealPath:
+        @doc_id: the ID of the file in the document store
+        @path: the path for the file in the host filesystem
+
+        Gets the filesystem path for a document store entry.
+    -->
+    <method name="GetRealPath">
+      <arg type='s' name='doc_id' direction='in'/>
+      <arg type='s' name='path' direction='out'/>
+    </method>
   </interface>
 </node>
