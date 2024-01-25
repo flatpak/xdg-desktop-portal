@@ -1,0 +1,25 @@
+name: Create build container
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build and push container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: .github/workflows/Containerfile
+          tags: ghcr.io/${{ github.repository_owner }}/xdg-desktop-portal-build:latest
