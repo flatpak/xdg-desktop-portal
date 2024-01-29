@@ -1442,7 +1442,7 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
     {
       g_autofree const char **apps = NULL;
       g_autofree const char *app_id = NULL;
-      static gboolean id_found = FALSE;
+      gboolean id_found = FALSE;
       int i;
 
       app_id = xdp_app_info_get_id(app_info);
