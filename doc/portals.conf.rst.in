@@ -126,8 +126,8 @@ EXAMPLE
   [preferred]
   # Use xdg-desktop-portal-gtk for every portal interface...
   default=gtk
-  # ... except for the Screencast interface
-  org.freedesktop.impl.portal.Screencast=gnome
+  # ... except for the ScreenCast interface
+  org.freedesktop.impl.portal.ScreenCast=gnome
 
 
 ENVIRONMENT
