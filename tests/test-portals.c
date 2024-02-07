@@ -51,6 +51,7 @@ static GDBusConnection *session_bus;
 static GList *test_procs = NULL;
 XdpDbusImplPermissionStore *permission_store;
 XdpDbusImplLockdown *lockdown;
+gchar *appid;
 
 int
 xdup (int oldfd)
@@ -136,6 +137,7 @@ global_setup (void)
   g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subprocess = NULL;
+  g_autoptr(XdpAppInfo) appinfo = NULL;
   guint name_timeout;
   const char *argv[4];
   GQuark portal_errors G_GNUC_UNUSED;
@@ -331,6 +333,10 @@ global_setup (void)
                                                     &error);
   g_assert_no_error (error);
 
+  appinfo = xdp_get_app_info_from_pid (getpid (), &error);
+  g_assert_no_error (error);
+  appid = g_strdup (xdp_app_info_get_id (appinfo));
+
   /* make sure errors are registered */
   portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 }
@@ -387,6 +393,7 @@ global_teardown (void)
 
   g_object_unref (lockdown);
   g_object_unref (permission_store);
+  g_free (appid);
 
   g_object_unref (session_bus);
 
