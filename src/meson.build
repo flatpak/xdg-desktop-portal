@@ -56,6 +56,10 @@ xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sou
 xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files('xdp-utils.c')
 
+if have_libsystemd
+  xdp_utils_sources += sd_escape_sources
+endif
+
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
@@ -112,10 +116,6 @@ if have_geoclue
   xdg_desktop_portal_sources += files(
     'location.c',
   )
-endif
-
-if have_libsystemd
-  xdg_desktop_portal_sources += sd_escape_sources
 endif
 
 common_deps = [
