@@ -8,6 +8,7 @@
 extern char outdir[];
 
 extern XdpDbusImplPermissionStore *permission_store;
+extern gchar *appid;
 
 static void
 set_inhibit_permissions (const char **permissions)
@@ -18,7 +19,7 @@ set_inhibit_permissions (const char **permissions)
                                                            "inhibit",
                                                            TRUE,
                                                            "inhibit",
-                                                           "",
+                                                           appid,
                                                            permissions,
                                                            NULL,
                                                            &error);
