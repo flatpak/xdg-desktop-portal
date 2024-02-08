@@ -120,6 +120,7 @@ xdp_mkstempat (int    dir_fd,
 }
 
 struct _XdpAppInfo {
+  GObject parent;
   volatile gint ref_count;
   char *id;
   XdpAppInfoKind kind;
@@ -140,11 +141,50 @@ struct _XdpAppInfo {
     } u;
 };
 
+G_DEFINE_TYPE(XdpAppInfo, xdp_app_info, G_TYPE_OBJECT);
+
+static void
+xdp_app_info_init (XdpAppInfo *app_info)
+{
+}
+
+static void
+xdp_app_info_finalize (GObject *object)
+{
+  XdpAppInfo *app_info = XDP_APP_INFO (object);
+
+  g_free (app_info->id);
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+      break;
+
+    case XDP_APP_INFO_KIND_SNAP:
+      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
+      break;
+
+    case XDP_APP_INFO_KIND_HOST:
+    default:
+      break;
+    }
+
+  G_OBJECT_CLASS (xdp_app_info_parent_class)->finalize (object);
+}
+
+static void
+xdp_app_info_class_init (XdpAppInfoClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->finalize = xdp_app_info_finalize;
+}
+
 static XdpAppInfo *
 xdp_app_info_new (XdpAppInfoKind kind)
 {
-  XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
-  app_info->ref_count = 1;
+  XdpAppInfo *app_info = g_object_new(XDP_TYPE_APP_INFO, NULL);
   app_info->kind = kind;
   return app_info;
 }
@@ -238,35 +278,17 @@ xdp_app_info_new_host (pid_t pid)
   return app_info;
 }
 
-static void
-xdp_app_info_free (XdpAppInfo *app_info)
-{
-  g_free (app_info->id);
-
-  switch (app_info->kind)
-    {
-    case XDP_APP_INFO_KIND_FLATPAK:
-      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
-      break;
-
-    case XDP_APP_INFO_KIND_SNAP:
-      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
-      break;
-
-    case XDP_APP_INFO_KIND_HOST:
-    default:
-      break;
-    }
-
-  g_free (app_info);
-}
-
+/**
+ * xdp_app_info_ref:
+ *
+ * Returns: (transfer full): the [XdpAppInfo] passed in
+ */
 XdpAppInfo *
 xdp_app_info_ref (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  g_atomic_int_inc (&app_info->ref_count);
+  g_object_ref (G_OBJECT (app_info));
   return app_info;
 }
 
@@ -275,8 +297,7 @@ xdp_app_info_unref (XdpAppInfo *app_info)
 {
   g_return_if_fail (app_info != NULL);
 
-  if (g_atomic_int_dec_and_test (&app_info->ref_count))
-    xdp_app_info_free (app_info);
+  g_object_unref (G_OBJECT (app_info));
 }
 
 const char *
@@ -295,6 +316,11 @@ xdp_app_info_get_kind (XdpAppInfo  *app_info)
   return app_info->kind;
 }
 
+/**
+ * xdp_app_info_load_app_info:
+ *
+ * Returns: (transfer full): a new [GAppInfo]
+ */
 GAppInfo *
 xdp_app_info_load_app_info (XdpAppInfo *app_info)
 {
@@ -353,6 +379,11 @@ maybe_quote (const char *arg,
     return g_shell_quote (arg);
 }
 
+/**
+ * xdp_app_info_rewrite_commandline:
+ *
+ * Returns: (transfer full): the new commandline
+ */
 char **
 xdp_app_info_rewrite_commandline (XdpAppInfo *app_info,
                                   const char * const *commandline,
@@ -819,7 +850,13 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   return g_steal_pointer (&app_info);
 }
 
-
+/**
+ * xdp_get_app_info_from_pid:
+ * @pid: the PID of the process to look up
+ * @error: return location for an error
+ *
+ * Returns: (transfer full): a new [XdpAppInfo] for this pid, if any
+ */
 XdpAppInfo *
 xdp_get_app_info_from_pid (pid_t pid,
                            GError **error)
@@ -920,6 +957,11 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   return g_steal_pointer (&app_info);
 }
 
+/**
+ * xdp_invocation_lookup_app_info_sync:
+ *
+ * Returns: (transfer full): a new [XdpAppInfo] for this pid, if any
+ */
 XdpAppInfo *
 xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
                                      GCancellable          *cancellable,

@@ -31,6 +31,8 @@
 
 #include "glib-backports.h"
 
+G_BEGIN_DECLS
+
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 #define FLATPAK_METADATA_GROUP_APPLICATION "Application"
@@ -70,6 +72,9 @@ gboolean xdp_validate_serialized_icon (GVariant  *v,
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
 typedef struct _XdpAppInfo XdpAppInfo;
+
+#define XDP_TYPE_APP_INFO (xdp_app_info_get_type ())
+G_DECLARE_FINAL_TYPE (XdpAppInfo, xdp_app_info, XDP, APP_INFO, GObject);
 
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
@@ -111,8 +116,6 @@ char **     xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
                                               const char *const *commandline,
                                               gboolean           quote_escape);
 char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 
 void  xdp_set_documents_mountpoint    (const char *path);
 char *xdp_get_alternate_document_path (const char *path, const char *app_id);
@@ -208,3 +211,5 @@ int _xdp_parse_cgroup_file (FILE     *f,
 #ifdef HAVE_LIBSYSTEMD
 char *_xdp_parse_app_id_from_unit_name (const char *unit);
 #endif
+
+G_END_DECLS
