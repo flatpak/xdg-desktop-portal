@@ -599,9 +599,10 @@ ensure_app_info_by_unique_name (void)
                                                      (GDestroyNotify)xdp_app_info_unref);
 }
 
-/* Returns NULL with error set on failure, NULL with no error set if not a flatpak, and app-info otherwise */
-static XdpAppInfo *
-parse_app_info_from_flatpak_info (int pid, GError **error)
+static gboolean
+xdp_app_info_from_flatpak_info (int          pid,
+                                XdpAppInfo **out_app_info,
+                                GError     **error)
 {
   g_autofree char *root_path = NULL;
   int root_fd = -1;
@@ -629,7 +630,10 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
            */
           if (statfs (root_path, &buf) == 0 &&
               buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-            return NULL;
+            {
+              *out_app_info = NULL;
+              return TRUE;
+            }
         }
 
       /* Otherwise, we should be able to open the root dir. Probably the app died and
@@ -637,7 +641,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
          of treating this as privileged. */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open %s", root_path);
-      return NULL;
+      return FALSE;
     }
 
   metadata = g_key_file_new ();
@@ -648,14 +652,15 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
     {
       if (errno == ENOENT)
         {
-          /* No file => on the host, return NULL with no error */
-          return NULL;
+          /* No file => on the host, return success */
+          *out_app_info = NULL;
+          return TRUE;
         }
 
       /* Some weird error => failure */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open application info file");
-      return NULL;
+      return FALSE;
     }
 
   if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
@@ -664,7 +669,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open application info file");
-      return NULL;
+      return FALSE;
     }
 
   mapped = g_mapped_file_new_from_fd  (info_fd, FALSE, &local_error);
@@ -673,7 +678,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't map .flatpak-info file: %s", local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   if (!g_key_file_load_from_data (metadata,
@@ -684,7 +689,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't load .flatpak-info file: %s", local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   group = "Application";
@@ -695,7 +700,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   if (id == NULL || !xdp_is_valid_app_id (id))
     {
       close (info_fd);
-      return NULL;
+      return FALSE;
     }
 
   close (info_fd);
@@ -704,7 +709,8 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   app_info->id = g_steal_pointer (&id);
   app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
-  return g_steal_pointer (&app_info);
+  *out_app_info = g_steal_pointer (&app_info);
+  return TRUE;
 }
 
 int
@@ -791,9 +797,10 @@ end:
   return is_snap;
 }
 
-/* Returns NULL with error set on failure, NULL with no error set if not a snap, and app-info otherwise */
-static XdpAppInfo *
-parse_app_info_from_snap (pid_t pid, GError **error)
+static gboolean
+xdp_app_info_from_snap (int          pid,
+                        XdpAppInfo **out_app_info,
+                        GError     **error)
 {
   g_autoptr(GError) local_error = NULL;
   g_autofree char *pid_str = NULL;
@@ -804,13 +811,17 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   g_autofree char *snap_name = NULL;
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
-  if (!pid_is_snap (pid, error)) return NULL;
+  if (!pid_is_snap (pid, error))
+    {
+      *out_app_info = NULL;
+      return TRUE;
+    }
 
   pid_str = g_strdup_printf ("%u", (guint) pid);
   argv[3] = pid_str;
   if (!xdp_spawnv (NULL, &output, 0, error, argv))
     {
-      return NULL;
+      return FALSE;
     }
 
   metadata = g_key_file_new ();
@@ -818,21 +829,22 @@ parse_app_info_from_snap (pid_t pid, GError **error)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't read snap info for pid %u: %s", pid, local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   snap_name = g_key_file_get_string (metadata, SNAP_METADATA_GROUP_INFO,
                                      SNAP_METADATA_KEY_INSTANCE_NAME, error);
   if (snap_name == NULL)
     {
-      return NULL;
+      return FALSE;
     }
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
   app_info->id = g_strconcat ("snap.", snap_name, NULL);
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
 
-  return g_steal_pointer (&app_info);
+  *out_app_info = g_steal_pointer (&app_info);
+  return TRUE;
 }
 
 static gboolean
@@ -907,15 +919,10 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
   if (!xdp_connection_get_pid (connection, sender, cancellable, &pid, error))
     return NULL;
 
-  app_info = parse_app_info_from_flatpak_info (pid, error);
-
-  if (app_info == NULL && *error)
+  if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
     return NULL;
 
-  if (app_info == NULL)
-    app_info = parse_app_info_from_snap (pid, error);
-
-  if (app_info == NULL && *error)
+  if (app_info == NULL && !xdp_app_info_from_snap (pid, &app_info, error))
     return NULL;
 
   if (app_info == NULL)
