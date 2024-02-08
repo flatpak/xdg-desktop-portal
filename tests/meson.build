@@ -1,6 +1,8 @@
 env_tests = environment()
 env_tests.set('XDP_UNINSTALLED', '1')
-env_tests.set('XDG_DATA_DIRS', meson.current_build_dir() / 'share')
+# Hack: g_proxy_resolver_get_default() fails if we don't have the GSchemas installed so
+# we append the default system prefix to the XDG_DATA_DIRS
+env_tests.set('XDG_DATA_DIRS', '@0@:@1@'.format(meson.current_build_dir() / 'share', '/usr/share'))
 env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())
 env_tests.set('G_TEST_BUILDDIR', meson.current_build_dir())
 env_tests.set('G_DEBUG', 'gc-friendly')  # from glib-tap.mk
@@ -315,9 +317,8 @@ if enable_pytest
       install: false
     )
 
-    pytest_env = env_tests
-    pytest_env.set('LD_LIBRARY_PATH', meson.project_build_root() / 'src')
-    pytest_env.set('GI_TYPELIB_PATH', meson.project_build_root() / 'src')
+    test_env.set('LD_LIBRARY_PATH', meson.project_build_root() / 'src')
+    test_env.set('GI_TYPELIB_PATH', meson.project_build_root() / 'src')
 
     if pytest_file.startswith('test_')
       testname = pytest_file.replace('.py', '')
@@ -326,7 +327,7 @@ if enable_pytest
         pytest,
         args: pytest_args + ['-k', testname],
         suite: ['pytest'],
-        env: pytest_env,
+        env: test_env,
         timeout: 120,
       )
     endif
