@@ -61,6 +61,7 @@ jobs:
           libfuse3-dev \
           libgdk-pixbuf-2.0-dev \
           libgeoclue-2-dev \
+          libgirepository1.0-dev \
           libglib2.0-dev \
           libjson-glib-dev \
           libpipewire-0.3-dev \

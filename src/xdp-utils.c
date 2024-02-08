@@ -1001,6 +1001,10 @@ name_owner_changed (GDBusConnection *connection,
     }
 }
 
+/**
+ * xdp_connection_track_name_owners:
+ * @peer_died_cb: (scope async)
+ */
 void
 xdp_connection_track_name_owners (GDBusConnection *connection,
                                   XdpPeerDiedCallback peer_died_cb)
