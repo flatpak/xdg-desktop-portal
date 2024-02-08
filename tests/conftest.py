@@ -2,13 +2,30 @@
 #
 # This file is formatted with Python Black
 
-from typing import Any, Iterator
+from typing import Any, Iterator, Optional
+
+import gi
+
+gi.require_version("XdpUtils", "1.0")
+from gi.repository import XdpUtils
 
 import pytest
 import dbus
 import dbusmock
+import os
 
 from tests import PortalMock
+
+
+@pytest.fixture()
+def appid() -> Optional[str]:
+    """
+    Return this process' appid or the empty string
+    """
+    app_info = XdpUtils.get_app_info_from_pid(os.getpid())
+    if app_info:
+        return app_info.get_id()
+    return ""
 
 
 @pytest.fixture()

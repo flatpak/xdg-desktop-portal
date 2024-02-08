@@ -315,6 +315,10 @@ if enable_pytest
       install: false
     )
 
+    pytest_env = env_tests
+    pytest_env.set('LD_LIBRARY_PATH', meson.project_build_root() / 'src')
+    pytest_env.set('GI_TYPELIB_PATH', meson.project_build_root() / 'src')
+
     if pytest_file.startswith('test_')
       testname = pytest_file.replace('.py', '')
       test(
@@ -322,6 +326,7 @@ if enable_pytest
         pytest,
         args: pytest_args + ['-k', testname],
         suite: ['pytest'],
+        env: pytest_env,
         timeout: 120,
       )
     endif
