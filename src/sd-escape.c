@@ -235,7 +235,7 @@ int cunescape_one(const char *p, gsize length, guint32 *ret, gboolean *eight_bit
 }
 
 /**
- * utf8_encode_unichar() - Encode single UCS-4 character as UTF-8
+ * utf8_encode_unichar: Encode single UCS-4 character as UTF-8
  * @out_utf8: output buffer of at least 4 bytes or NULL
  * @g: UCS-4 character to encode
  *
