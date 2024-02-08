@@ -151,9 +151,12 @@ typedef enum {
   XDG_DESKTOP_PORTAL_ERROR_WINDOW_DESTROYED
 } XdgDesktopPortalErrorEnum;
 
+
+#ifndef __GI_SCANNER__
 #define XDG_DESKTOP_PORTAL_ERROR xdg_desktop_portal_error_quark ()
 
 GQuark  xdg_desktop_portal_error_quark (void);
+#endif
 
 static inline int
 xdp_steal_fd (int *fdp)
