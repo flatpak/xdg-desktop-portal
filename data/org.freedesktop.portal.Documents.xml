@@ -281,7 +281,9 @@
 
         Gets the filesystem path for a document store entry.
 
-         This call is available inside the sandbox, if the application has the permission for the document.
+        This call is available inside the sandbox, if the application has the permission for the document.
+
+        This method was added in version 5 of this interface.
     -->
     <method name="GetRealPath">
       <arg type='s' name='doc_id' direction='in'/>
