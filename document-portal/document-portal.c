@@ -1461,7 +1461,7 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
         {
           g_dbus_method_invocation_return_error (invocation,
                                                  XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                                                 "Not enough permissions";
+                                                 "Not enough permissions");
           return TRUE;
         }
     }
