@@ -280,6 +280,8 @@
         @path: the path for the file in the host filesystem
 
         Gets the filesystem path for a document store entry.
+
+         This call is available inside the sandbox, if the application has the permission for the document.
     -->
     <method name="GetRealPath">
       <arg type='s' name='doc_id' direction='in'/>

@@ -1442,7 +1442,7 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
     {
       g_autofree const char **apps = NULL;
       g_autofree const char *app_id = NULL;
-      gboolean id_found = FALSE;
+      gboolean app_found = FALSE;
       int i;
 
       app_id = xdp_app_info_get_id(app_info);
@@ -1452,16 +1452,16 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
         {
           if (g_strcmp0 (app_id, apps[i]) == 0)
             {
-              id_found = TRUE;
+              app_found = TRUE;
               break;
             }
         }
 
-      if (!id_found)
+      if (!app_found)
         {
           g_dbus_method_invocation_return_error (invocation,
-                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                                 "Invalid ID passed");
+                                                 XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                                 "Not enough permissions";
           return TRUE;
         }
     }
@@ -1494,7 +1494,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
 
-  xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 4);
+  xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 5);
 
   g_signal_connect_swapped (dbus_api, "handle-get-mount-point", G_CALLBACK (handle_get_mount_point), NULL);
   g_signal_connect_swapped (dbus_api, "handle-add", G_CALLBACK (handle_method), portal_add);
