@@ -43,6 +43,7 @@
 
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
 #define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
+#define SNAP_METADATA_KEY_APP_NAME "AppName"
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
 #define SNAP_METADATA_KEY_NETWORK "HasNetworkStatus"
 
