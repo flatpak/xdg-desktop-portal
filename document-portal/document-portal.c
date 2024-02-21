@@ -1441,7 +1441,7 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
   if (!xdp_app_info_is_host (app_info))
     {
       g_autofree const char **apps = NULL;
-      g_autofree const char *app_id = NULL;
+      const char *app_id = NULL;
       gboolean app_found = FALSE;
       int i;
 
