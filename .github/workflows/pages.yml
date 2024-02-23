@@ -30,6 +30,7 @@ jobs:
             geoclue2-devel \
             gettext \
             glib2-devel \
+            gobject-introspection-devel \
             gnome-desktop-testing \
             gtk-doc \
             json-glib-devel \

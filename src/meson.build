@@ -56,6 +56,10 @@ xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sou
 xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files('xdp-utils.c')
 
+if have_libsystemd
+  xdp_utils_sources += sd_escape_sources
+endif
+
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
@@ -114,16 +118,37 @@ if have_geoclue
   )
 endif
 
-if have_libsystemd
-  xdg_desktop_portal_sources += sd_escape_sources
-endif
-
 common_deps = [
   glib_dep,
   gio_dep,
   gio_unix_dep,
   json_glib_dep,
 ]
+
+xdp_utils = shared_library('xdp-utils',
+  xdp_utils_sources,
+  include_directories: [common_includes],
+  dependencies: [common_deps, libsystemd_dep],
+  install: false,
+)
+
+xdp_utils_enums = gnome.mkenums('xdp-utils-enums',
+  sources: ['xdp-utils.h'],
+  install_header: false,
+)
+
+xdp_utils_gir = gnome.generate_gir(xdp_utils,
+  sources: ['xdp-utils.c', 'xdp-utils.h', xdp_utils_enums],
+  nsversion: '1.0',
+  namespace: 'XdpUtils',
+  symbol_prefix: 'xdp',
+  identifier_prefix: 'Xdp',
+  header: 'xdp-utils.h',
+  link_with: xdp_utils,
+  includes: ['Gio-2.0'],
+  extra_args: ['--accept-unprefixed'],
+  install: false,
+)
 
 xdg_desktop_portal_deps = common_deps + [
   geoclue_dep,

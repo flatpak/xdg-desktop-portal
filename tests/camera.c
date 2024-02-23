@@ -14,6 +14,7 @@ static int got_info;
 
 extern XdpDbusImplPermissionStore *permission_store;
 extern XdpDbusImplLockdown *lockdown;
+extern gchar *appid;
 
 static void
 set_camera_permissions (const char *permission)
@@ -26,7 +27,7 @@ set_camera_permissions (const char *permission)
                                                            "devices",
                                                            TRUE,
                                                            "camera",
-                                                           "",
+                                                           appid,
                                                            permissions,
                                                            NULL,
                                                            &error);
