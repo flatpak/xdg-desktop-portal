@@ -109,6 +109,7 @@ geoclue_dep = dependency('libgeoclue-2.0',
                          version: '>= 2.5.2',
                          required: get_option('geoclue'))
 libportal_dep = dependency('libportal',
+                           version: '>= 0.7.2',
                            required: get_option('libportal'))
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
