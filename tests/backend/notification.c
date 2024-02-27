@@ -41,6 +41,7 @@ invoke_action (gpointer data)
 static gboolean
 handle_add_notification (XdpDbusImplNotification *object,
                          GDBusMethodInvocation *invocation,
+                         GUnixFDList *fd_list,
                          const gchar *arg_app_id,
                          const gchar *arg_id,
                          GVariant *arg_notification)
