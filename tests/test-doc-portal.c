@@ -691,6 +691,7 @@ static void
 test_get_real_path (void)
 {
   g_autofree char *doc_id = NULL;
+  g_autofree char *expected_real_path = NULL;
   g_autofree char *real_path = NULL;
   const char *basename = "real-path";
   g_autoptr(GVariant) reply = NULL;
