@@ -254,6 +254,33 @@ test_bytes_icon (void)
   test_icon (serialized_icon_s, NULL, FALSE);
 }
 
+static void
+test_file_icon (void)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GFileIOStream) iostream = NULL;
+  g_autoptr(GVariant) serialized_icon = NULL;
+  g_autoptr(GIcon) icon = NULL;
+  g_autoptr(GFile) file = NULL;
+  GOutputStream *stream = NULL;
+  g_autofree char *exp_serialized_icon_s = NULL;
+  g_autofree char *serialized_icon_s = NULL;
+  g_autofree char *uri = NULL;
+
+  file = g_file_new_tmp ("iconXXXXXX", &iostream, NULL);
+  stream = g_io_stream_get_output_stream (G_IO_STREAM (iostream));
+  g_output_stream_write_all (stream, SVG_IMAGE_DATA, strlen (SVG_IMAGE_DATA), NULL, NULL, NULL);
+  g_output_stream_close (stream, NULL, NULL);
+
+  uri = g_file_get_uri (file);
+  icon = g_file_icon_new (file);
+  serialized_icon = g_icon_serialize (icon);
+  serialized_icon_s = g_variant_print (serialized_icon, TRUE);
+  test_icon (serialized_icon_s, "('file-descriptor', <handle 0>)", FALSE);
+  g_file_delete (file, NULL, &error);
+  g_assert_no_error (error);
+}
+
 void
 test_notification_icon (void)
 {
@@ -263,8 +290,11 @@ test_notification_icon (void)
 
   test_themed_icon ();
   test_bytes_icon ();
+  test_file_icon ();
 
   /* Tests that should fail */
   test_icon ("('themed', <'test-icon-symbolic'>)", NULL, TRUE);
   test_icon ("('bytes', <['test-icon-symbolic', 'test-icon']>)", NULL, TRUE);
+  test_icon ("('file-descriptor', <''>)", NULL, TRUE);
+  test_icon ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
