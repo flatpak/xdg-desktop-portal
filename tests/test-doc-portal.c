@@ -687,12 +687,6 @@ test_add_named (void)
   assert_doc_not_exist (id1, basename1, "com.test.App2");
 }
 
-static char *
-doc_get_real_path (const char *basename)
-{
-  return g_build_filename (outdir, basename, NULL);
-}
-
 static void
 test_get_real_path (void)
 {
@@ -720,7 +714,8 @@ test_get_real_path (void)
 
   g_assert_no_error (error);
   g_variant_get (reply, "(s)", &real_path);
-  g_assert_cmpstr (real_path, ==, doc_get_real_path(basename));
+  expected_real_path = g_build_filename (outdir, basename, NULL);
+  g_assert_cmpstr (real_path, ==, expected_real_path);
 }
 
 static void
