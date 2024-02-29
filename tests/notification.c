@@ -11,6 +11,20 @@ extern char outdir[];
 static int got_info;
 
 static void
+notification_succeed (GObject *source,
+                      GAsyncResult *result,
+                      gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (source);
+  g_autoptr(GError) error = NULL;
+  gboolean res;
+
+  res = xdp_portal_add_notification_finish (portal, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+}
+
+static void
 notification_action_invoked (XdpPortal *portal,
                              const char *id,
                              const char *action,
@@ -66,7 +80,7 @@ test_notification_basic (void)
   id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test", notification, 0, NULL, NULL, NULL);
+  xdp_portal_add_notification (portal, "test", notification, 0, NULL, notification_succeed, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -114,7 +128,7 @@ test_notification_buttons (void)
   id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test2", notification, 0, NULL, NULL, NULL);
+  xdp_portal_add_notification (portal, "test2", notification, 0, NULL, notification_succeed, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -140,7 +154,7 @@ notification_fail (GObject *source,
   got_info++;
   g_main_context_wakeup (NULL);
 }
-                
+
 void
 test_notification_bad_arg (void)
 {
