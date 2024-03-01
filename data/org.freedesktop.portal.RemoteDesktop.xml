@@ -424,7 +424,7 @@
 
         To see how to pair a PipeWire stream with a libei device region, see the
         documentation for the ``mapping_id`` stream property in
-        org.freedesktop.portal.RemoteDesktop.Start().
+        org.freedesktop.portal.ScreenCast.Start().
 
         This method was added in version 2 of this interface.
     -->
