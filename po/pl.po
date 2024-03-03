@@ -1,15 +1,15 @@
 # Polish translation for xdg-desktop-portal.
-# Copyright © 2016-2022 the xdg-desktop-portal authors.
+# Copyright © 2016-2024 the xdg-desktop-portal authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2016-2022.
-# Aviary.pl <community-poland@mozilla.org>, 2016-2022.
+# Piotr Drąg <piotrdrag@gmail.com>, 2016-2024.
+# Aviary.pl <community-poland@mozilla.org>, 2016-2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
-"PO-Revision-Date: 2022-09-11 15:05+0200\n"
+"POT-Creation-Date: 2024-02-14 15:35+0000\n"
+"PO-Revision-Date: 2024-03-03 14:55+0100\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: src/background.c:745
+#: src/background.c:747
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Pozwolić programowi „%s” na działanie w tle?"
 
-#: src/background.c:749
+#: src/background.c:751
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Program „%s” potrzebuje być automatycznie uruchamiany i działać w tle."
 
-#: src/background.c:751
+#: src/background.c:753
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Program „%s” potrzebuje działać w tle."
 
-#: src/background.c:752
+#: src/background.c:754
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,104 +42,100 @@ msgstr ""
 "Uprawnienie do działania w tle można zmienić w każdej chwili w ustawieniach "
 "programów."
 
-#: src/background.c:757
+#: src/background.c:759
 msgid "Don't allow"
 msgstr "Nie zezwalaj"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Zezwól"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Włączyć mikrofon?"
-
 #: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"Dostęp do mikrofonu można zmienić w każdej chwili w ustawieniach prywatności."
+#, c-format
+msgid "Allow %s to Use the Microphone?"
+msgstr "Pozwolić programowi „%s” na używanie mikrofonu?"
 
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Program potrzebuje dostępu do mikrofonu."
+#: src/device.c:118
+#, c-format
+msgid "%s wants to access recording devices."
+msgstr "Program „%s” potrzebuje dostępu do urządzeń nagrywających."
+
+#: src/device.c:122
+msgid "Allow app to Use the Microphone?"
+msgstr "Pozwolić programowi na używanie mikrofonu?"
 
 #: src/device.c:123
+msgid "An app wants to access recording devices."
+msgstr "Program potrzebuje dostępu do urządzeń nagrywających."
+
+#: src/device.c:132
 #, c-format
-msgid "%s wants to use your microphone."
-msgstr "Program „%s” potrzebuje dostępu do mikrofonu."
+msgid "Allow %s to Use the Speakers?"
+msgstr "Pozwolić programowi „%s” na używanie głośników?"
 
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Włączyć głośniki?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"Dostęp do głośników można zmienić w każdej chwili w ustawieniach prywatności."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Program potrzebuje odtwarzać dźwięk."
-
-#: src/device.c:136
+#: src/device.c:133
 #, c-format
-msgid "%s wants to play sound."
-msgstr "Program „%s” potrzebuje odtwarzać dźwięk."
+msgid "%s wants to access audio devices."
+msgstr "Program „%s” potrzebuje dostępu do urządzeń dźwiękowych."
 
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Włączyć kamerę?"
+#: src/device.c:137
+msgid "Allow app to Use the Speakers?"
+msgstr "Pozwolić programowi na używanie głośników?"
 
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr ""
-"Dostęp do kamery można zmienić w każdej chwili w ustawieniach prywatności."
+#: src/device.c:138
+msgid "An app wants to access audio devices."
+msgstr "Program potrzebuje dostępu do urządzeń dźwiękowych."
 
 #: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Program potrzebuje dostępu do kamery."
-
-#: src/device.c:149
 #, c-format
-msgid "%s wants to use your camera."
-msgstr "Program „%s” potrzebuje dostępu do kamery."
+msgid "Allow %s to Use the Camera?"
+msgstr "Pozwolić programowi „%s” na używanie kamery?"
 
-#: src/location.c:526
+#: src/device.c:148
+#, c-format
+msgid "%s wants to access camera devices."
+msgstr "Program „%s” potrzebuje dostępu do kamer."
+
+#: src/device.c:152
+msgid "Allow app to Use the Camera?"
+msgstr "Pozwolić programowi na używanie kamery?"
+
+#: src/device.c:153
+msgid "An app wants to access camera devices."
+msgstr "Program potrzebuje dostępu do kamer."
+
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Odmów dostępu"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Udziel dostępu"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Udzielić dostęp do położenia programowi „%s”?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Program „%s” potrzebuje dostępu do położenia."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Udzielić dostęp do położenia?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "Program potrzebuje dostępu do położenia."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
 msgstr "Odmów"
 
@@ -165,7 +161,7 @@ msgstr ""
 "Program potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
@@ -174,20 +170,20 @@ msgstr ""
 msgid "Requested setting not found"
 msgstr "Nie odnaleziono żądanego ustawienia"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Pozwolić programowi „%s” na ustawianie tła?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Program „%s” potrzebuje mieć możliwość zmiany obrazu tła."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Pozwolić programowi na ustawianie tła?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Program potrzebuje mieć możliwość zmiany obrazu tła."
