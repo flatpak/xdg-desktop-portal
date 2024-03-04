@@ -41,7 +41,7 @@
       #org.freedesktop.portal.Notification::ActionInvoked signal
       to the application.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Notification">
     <!--
@@ -53,37 +53,111 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set a ``display-hint`` to animate replacing the notification
+        instead of updating it.
 
         The format of the serialized notification is a vardict, with
         the following supported keys, all of which are optional:
 
+        * ``application-id`` (``s``)
+
+          An optional application ID for Flatpak applications, otherwise it's mandatory.
+          This has to be the Flatpak application ID or a desktop file ID, with optionally a postfix.
+          There is no reason to set this property if the application uses Flatpak and no postfix is set.
+          E.g ``org.libreoffice.LibreOffice.Writer`` where
+          ``org.libreoffice.LibreOffice`` is the flatpak application ID.
+          If this property isn't set it will be picked up automatically, if possible.
+
+          See `Application ID <https://flatpak-docs.readthedocs.io/en/latest/conventions.html>`_ and
+          `Desktop File ID <https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s02.html#desktop-file-id>`_
+
         * ``title`` (``s``)
 
           User-visible string to display as the title.
+          The title should be a short string, if is too
+          long it may not be fully displayed.
 
         * ``body`` (``s``)
 
-          User-visible string to display as the body.
+          User-visible string to display as the body of the notification.
+          This can be a long description but note that if it is too long
+          it may not be fully displayed.
+
+          Any markup is removed from the string including new lines.
+
+        * ``markup-body`` (``s``)
+
+          The same as ``body`` but with support for markup formatting.
+          The markup is XML-based and supports a small subset of HTML
+          ``<b>...</b>``, ``<i>...</i>`` and ``<a href="...">...</a>``.
+
+          Any markup not supported, e.g. new lines, will be removed from
+          the string. In the future, the set of supported markup may be extended.
+
+          This can be a long string but note that it may not be fully displayed.
 
         * ``icon`` (``v``)
 
-          Serialized icon (see `g_icon_serialize()
-          <https://docs.gtk.org/gio/method.Icon.serialize.html>`_).
+          A serialized icon to add to the notification.
+          Supported image formats are png, jpeg or svg.
 
-          The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
-          these have the form (sv). For themed icons, the string is "themed",
-          and the value is an array of strings containing the icon names.
-          For bytes icons, the string is "bytes", and the value is a bytestring
-          containing the icon data in png, jpeg or svg form. For historical
-          reasons, it is also possible to send a simple string for themed
-          icons with a single icon name.
+          The format for
+          serialized icon is a tuple (sv) with the following supported keys:
+
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_.
+
+          * ``bytes`` (``ay``)
+
+            A bytes icon containing a bytestring with the icon data in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GBytesIcon
+            <https://docs.gtk.org/gio/class.BytesIcon.html>`_.
+
+          * ``file-descriptor`` (``h``)
+
+            A file descriptor to an image file in png, jpeg or svg form.
+
+          For historical reasons, it is also possible to send a simple string
+          for themed icons with a single icon name.
 
           There may be further restrictions on the supported kinds of icons.
 
+        * ``image`` (``a{sv}``)
+
+          A serialized image to add to the body of the notification. The format for
+          serialized ``image`` is the same as for ``icon``.
+          Supported image formats are png, jpeg or svg.
+
+          For accessibility, an alternative textual description should be set via ``image-alt``.
+
+        * ``image-alt`` (``s``)
+
+          A textual description of the image inside the body.
+          This is used for accessibility, screen readers will read out this description.
+
+        * ``progress`` (``a{sv}``)
+
+          If set a progress bar will be shown in the notification.
+
+          For now the the supported properties for a progress are:
+
+          * ``value`` (``d``)
+
+            The ``value`` of the progress in range between ``0.0`` and ``1.0``
+
         * ``priority`` (``s``)
 
-          The priority for the notification. Supported values:
+          The priority for the notification. The notification server may
+          ignore this property if it has it's own policy.
+
+          Supported values:
 
           - ``low``
           - ``normal``
@@ -106,21 +180,361 @@
 
           * ``label`` (``s``)
 
-            User-visible label for the button. Mandatory.
+            User-visible label for the button.
+            If this property is missing the action may not be displayed.
 
           * ``action`` (``s``)
 
             Name of an action that is exported by the application. The action
-            will be activated when the user clicks on the button. Mandatory.
+            will be activated when the user clicks on the button.
+            If this property is missing the action may not be displayed.
 
           * ``target`` (``v``)
 
             Target parameter to send along when activating the action.
+
+          * ``icon`` (``v``)
+
+            A serialized icon to be added to a button. The format for
+            is the same as for the notification ``icon``.
+
+          * ``purpose`` (``s``)
+
+            The ``purpose`` of the button. This information may be used by the
+            notification server to style the button specially.
+
+            The standardized hints are defined as part of a ``content-type``.
+            Applications are allowed to use any string as a ``purpose`` but
+            should stick to the form ``class.specific``.
+            If the server doesn't understand the ``purpose` it will be
+            ignored and the button will be shown as a normal button.
+
+            Additional purposes may be defined by notification servers.
+
+          Any of the above button properties may be omitted, if the notification server
+          can't display the button with the given information it won't display it at all.
+
+        * ``actions`` (``aa{sv}``)
+
+          Array of actions that the notification server will invoke
+          automatically in specific cases. These actions may be called never or even multiple times.
+
+          Invoked actions will contain as parameter a vardict ``a{sv}`` containing the
+          ``target` and the response of the action.
+
+          The format for a serialized action is a vardict with the following supported keys:
+
+          * ``action`` (``s``)
+
+            Name of the action. This action needs to be exported by the application.
+
+          * ``purpose``
+            The purpose of the action.
+
+            * ``system.custom-alert``:
+
+              This action will be called by the notification server
+              whenever the notification is shown.
+
+              The purpose of this action is to allow apps to use custom methods of
+              notifying the user, for example, to play audio from a special
+              source like a streaming service or a radio station.
+
+            * ``user.replay-with-text``:
+
+              Inline replies for instant messaging apps.
+              The user-provided text will be added to the response vardict as ``reply-text`` (``s``);
+
+            Additional purposes may be defined by notification servers.
+
+          * ``target`` (``v``)
+
+            Target parameter to send along when activating the action.
+
+            This target will be added to the response vardict as ``target`` (``v``);
+
+        * ``content-type`` (``s``)
+
+          The ``content-type`` describes the type of content of a notification.
+          A notification server may use this information to display the
+          notification specially. Some content types also include
+          button purposes that can be set for a button so that the notification
+          can know the purpose of the button.
+
+          The following types are standarized so far:
+
+          * ``im.message``
+
+            Intended for instant messaging apps displaying notifications for new messages.
+
+          * ``alarm.ringing``
+
+            Intended for alarm clock apps
+
+          * ``call.incoming``
+
+            Intended for call apps to notify the user about an incoming call.
+
+            This type has the following button purposes:
+
+            * ``call.accept``:
+
+              Accept the incoming call.
+
+            * ``call.decline``:
+
+              Decline the incoming call.
+
+          * ``call.ongoing``
+
+            Intended for call apps while a call is ongoing.
+
+            This type has the following button purposes:
+
+            * ``call.decline``:
+
+              Hang up the ongoing call.
+
+            * ``call.enable-speakerphone``:
+
+              Enable the speakerphone for the ongoing call.
+
+            * ``call.disable-speakerphone``:
+
+              Disable the speakerphone for the ongoing call.
+
+          * ``call.missed``
+
+            Intended to be used by call apps when a call was missed.
+
+          * ``weather.warning.extreme``
+
+            Intended to be used to display an extreme weather warning.
+
+          * ``cellbroadcast.danger.extreme``
+
+            Intended to be used to display extreme danger warnings broadcasted by the cell network.
+
+          * ``cellbroadcast.danger.severe``
+
+            Intended to be used to display severe danger warnings broadcasted by the cell network.
+
+          * ``cellbroadcast.amberalert``
+
+            Intended to be used to display amber alerts broadcasted by the cell network.
+
+          * ``cellbroadcast.test``
+
+            Intended to be used to display tests broadcasted by the cell network.
+
+          * ``os.battery.low``
+
+            Intended to be used to indicate that the system is low on battery.
+
+          * ``browser.web-notification``
+
+            Intended to be used by browsers to mark notifications as web notifications
+
+          Additional types may be defined by notification servers.
+
+        * ``sound`` (``v``)
+
+        A serialized sound to add to the notification.
+        Supported image formats are oga and wav.
+
+        The format for
+        serialized sound is a tuple (sv) with the following supported keys:
+
+        * ``bytes`` (``ay``)
+
+          A bytes sound containing a bytestring with the sound data.
+
+          This is the same format as a serialized `GBytesIcon
+          <https://docs.gtk.org/gio/class.BytesIcon.html>`_.
+
+        * ``file-descriptor`` (``h``)
+
+          A file descriptor to a sound file.
+
+        * ``silent``
+
+          A "silent" sound indicates that the system setting should be ignored and
+          no sound should be played for the notification.
+
+        There may be further restrictions on the supported kinds of sounds.
+
+        * ``vibration`` (``au``)
+
+          Vibration pattern is an array of uint32 to describe
+          alternating periods in which the device should vibrate and not vibrate in milliseconds.
+          This array can contain an odd number of items since the last non-vibrating period can be omitted.
+
+          An empty array indicates to ignore system settings and don't vibrate.
+
+          This is a similar API to `Web Vibration API <https://developer.mozilla.org/en-US/docs/Web/API/Vibration_API>`_.
+
+        * ``led-color`` (``(yyyy)``)
+
+          Notification LED color as 4 bytes value ``(red, green, blue, alpha)``.
+
+          A tuple of ``(0000)`` indicates to ignore system settings and don't turn on the LED.
+
+        * ``display-hint`` (``as``)
+
+          An array of ways to display the notification. If none are set, or the notification server has its own policy, it is
+          free to decide how and where to display the notification.
+
+          * ``transient``
+
+            The notification is displayed only as a banner and won't be kept
+            by the server in a tray.
+
+            It's a programmer error to specify ``tray`` at the same time.
+
+          * ``tray``
+
+            No banner for the notification will be displayed and
+            the notification is placed in the tray.
+
+            It's a programmer error to specify ``transient`` at the same time.
+
+          * ``persistent``
+
+            Make the notification persistent in the notification tray.
+            The user can’t dismiss it using the usual close button or gesture.
+
+            Apps are only allowed to display persistent notifications
+            as long as they have a window. Once the last window of an app
+            is closed the persistent notification will be removed.
+
+          * ``hide-on-lockscreen``
+
+            Don't show the notification on the lockscreen.
+
+          * ``hide-content-on-lockscreen``
+
+            Only show the notification ``title`` and ``icon`` on the lockscreen.
+
+          * ``show-as-new``
+
+            If a notification with the same ``id`` of the app exists already
+            replace the previous notification, by removing the old notification
+            (including animation, etc) and adding a new notification.
+
+            If this hint isn't specified the notification is updated without any flickering.
+
+          Additional purposes may be defined by notification servers.
+
+        * ``grouping`` (``a{sv}``)
+          Notifications can be grouped. This behavior is often called threading.
+          For example, this is useful for multiple messages in the same chat.
+
+          * ``id`` (``s``)
+            Notifications with the same ID will be grouped.
+
+          * ``title`` (``s``)
+            The title of the notification group.
+
+          * ``icon`` (``v``)
+            The icon of the notification group.
+            This is the same format as the notification ``icon`` property.
       -->
     <method name="AddNotification">
       <arg type="s" name="id" direction="in"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
+
+    <!--
+        ListSupportedProperties:
+        @supported_properties: A list of supported properties and their supported values, if applicable
+
+        Returns a list of supported properties with
+        specific values if applicable for the property.
+
+        Applications only need to check this list for support of a property
+        if they want to implement a fallback for it to ensure that the user is
+        correctly notified.
+
+        The following list contains all possible properties:
+
+        * ``application-id``
+        * ``title``
+        * ``body``
+        * ``icon`` (``as``)
+
+          - ``themed``
+          - ``bytes``
+          - ``file-descriptor``
+
+        * ``image`` (``as``)
+
+          - ``themed``
+          - ``bytes``
+          - ``file-descriptor``
+
+        * ``image-alt``
+
+        * ``priority`` (``as``)
+
+          - ``low``
+          - ``normal``
+          - ``high``
+          - ``urgent``
+
+        * ``default-action``
+        * ``default-action-target``
+        * ``buttons`` (``a{sv}``)
+
+          - ``label``
+          - ``icon`` (``as``)
+          - ``action``
+          - ``target``
+          - ``purpose`` (``as``)
+
+        * ``actions`` (``a{sv}``)
+
+          - ``action``
+          - ``target``
+          - ``purpose`` (``as``)
+
+        * ``content-type`` (``as``)
+
+          - ``im.message``
+          - ``alarm.ringing``
+          - ``call.incoming``
+          - ``call.ongoing``
+          - ``call.missed``
+          - ``weather.warning.extreme``
+          - ``cellbroadcast.danger.extreme``
+          - ``cellbroadcast.danger.severe``
+          - ``cellbroadcast.amberalert``
+          - ``cellbroadcast.test``
+          - ``os.battery.low``
+          - ``browser.webNotification``
+
+          If the notification server uses custom content types the server advertises them in this list.
+
+        * ``sound`` (``as``)
+
+          - ``bytes``
+          - ``file-descriptor``
+          - ``silent``
+
+        * ``vibration``
+        * ``led-color``
+        * ``display-hint`` (``as``)
+
+          - ``transient``
+          - ``tray``
+          - ``persistent``
+          - ``hide-on-lockscreen``
+          - ``hide-content-on-lockscreen``
+          - ``show-as-new``
+    -->
+    <method name="ListSupportedProperties">
+      <arg type="a{sv}" name="supported_properties" direction="out"/>
+    </method>
+
     <!--
         RemoveNotification:
         @id: Application-provided ID for this notification
