@@ -102,6 +102,28 @@
 
           There may be further restrictions on the supported kinds of icons.
 
+        * ``sound`` (``v``)
+
+          A serialized sound to add to the notification.
+          Supported sound formats are ogg/opus, ogg/vorbis and wav/pcm.
+
+          The format for
+          serialized sound is a tuple (sv) with the following supported keys:
+
+          * ``file-descriptor`` (``h``)
+
+            A file descriptor to a sound file.
+            The file-descriptor used needs to be sealable, currently this is only
+            possible for file descriptors created with ``memfd_create()`` with
+            the ``MFD_ALLOW_SEALING`` flag set.
+
+          To play the default sound the string ``default`` can be passed.
+          To play no sound at all the string ``silent`` can be passed.
+          If this property isn't specified the notification server can decide
+          whether to play a sound.
+
+          There may be further restrictions on the supported kinds of sounds.
+
         * ``priority`` (``s``)
 
           The priority for the notification. Supported values:

@@ -56,6 +56,8 @@ gboolean xdp_validate_icon (XdpSealedFd  *icon,
                             char        **out_format,
                             char        **out_size);
 
+gboolean xdp_validate_sound (XdpSealedFd *sound);
+
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
 typedef int XdpFd;
