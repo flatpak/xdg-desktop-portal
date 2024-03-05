@@ -171,12 +171,25 @@ if bwrap.found()
   validate_icon_c_args += '-DHELPER="@0@"'.format(bwrap.full_path())
 endif
 
-
 xdp_validate_icon = executable(
   'xdg-desktop-portal-validate-icon',
   'validate-icon.c',
   dependencies: [gdk_pixbuf_dep, gio_unix_dep],
   c_args: validate_icon_c_args,
+  install: true,
+  install_dir: libexecdir,
+)
+
+validate_sound_c_args = ['-D_GNU_SOURCE=1']
+if bwrap.found()
+  validate_sound_c_args += '-DHELPER="@0@"'.format(bwrap.full_path())
+endif
+
+xdp_validate_sound = executable(
+  'xdg-desktop-portal-validate-sound',
+  'validate-sound.c',
+  dependencies: [gst_pbutils_dep],
+  c_args: validate_sound_c_args,
   install: true,
   install_dir: libexecdir,
 )
