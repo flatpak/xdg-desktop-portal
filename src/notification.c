@@ -480,6 +480,80 @@ parse_serialized_icon (GVariantBuilder  *builder,
 }
 
 static gboolean
+parse_serialized_sound (GVariantBuilder  *builder,
+                        GVariant         *sound,
+                        GUnixFDList      *fd_list,
+                        GError          **error)
+{
+  const char *key;
+  g_autoptr(GVariant) value = NULL;
+
+  if (g_variant_is_of_type (sound, G_VARIANT_TYPE_STRING))
+    {
+      key = g_variant_get_string (sound, NULL);
+
+      if (strcmp (key, "silent") == 0 || strcmp (key, "default") == 0)
+        {
+          g_variant_builder_add (builder, "{sv}", "sound", sound);
+          return TRUE;
+        }
+      else
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                               "invalid sound: invalid option");
+          return FALSE;
+        }
+    }
+
+  if (!check_value_type ("sound", sound, G_VARIANT_TYPE("(sv)"), error))
+    return FALSE;
+
+  g_variant_get (sound, "(&sv)", &key, &value);
+
+  if (strcmp (key, "file-descriptor") == 0)
+    {
+      g_autoptr(GError) local_error = NULL;
+      g_autoptr(XdpSealedFd) sealed_sound = NULL;
+
+      if (!check_value_type (key, value, G_VARIANT_TYPE_HANDLE, error))
+        return FALSE;
+
+      if (fd_list == NULL || g_unix_fd_list_get_length (fd_list) == 0)
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Invalid file descriptor: No Unix FD list given or empty");
+          return FALSE;
+        }
+
+      sealed_sound = xdp_sealed_fd_new_from_handle (value, fd_list, &local_error);
+      if (!sealed_sound)
+        {
+          g_warning ("Failed to seal fd: %s", local_error->message);
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Invalid file descriptor: The file descriptor needs to be sealable");
+          return FALSE;
+        }
+
+      if (!xdp_validate_sound (sealed_sound))
+        return FALSE;
+
+      g_variant_builder_add (builder, "{sv}", "sound", sound);
+    }
+  else
+    {
+      g_debug ("Unsupported sound %s filtered from notification", key);
+    }
+
+  return TRUE;
+}
+
+static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
                     GUnixFDList      *fd_list,
@@ -509,6 +583,14 @@ parse_notification (GVariantBuilder  *builder,
           if (!parse_serialized_icon (builder, value, fd_list, error))
             {
               g_prefix_error (error, "invalid icon: ");
+              return FALSE;
+            }
+        }
+      else if (strcmp (key, "sound") == 0)
+        {
+          if (!parse_serialized_sound (builder, value, fd_list, error))
+            {
+              g_prefix_error (error, "invalid sound: ");
               return FALSE;
             }
         }

@@ -558,6 +558,7 @@ xdp_has_path_prefix (const char *str,
 
 #define VALIDATOR_INPUT_FD 3
 #define ICON_VALIDATOR_GROUP "Icon Validator"
+#define SOUND_VALIDATOR_GROUP "Sound Validator"
 
 static const char *
 icon_type_to_string (XdpIconType icon_type)
@@ -634,6 +635,47 @@ xdp_validate_icon (XdpSealedFd  *icon,
     *out_format = g_steal_pointer (&format);
   if (out_size)
     *out_size = g_strdup_printf ("%d", size);
+
+  return TRUE;
+}
+
+gboolean
+xdp_validate_sound (XdpSealedFd *sound)
+{
+  const char *args[5];
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GKeyFile) key_file = NULL;
+  g_autofree char *output = NULL;
+  const char *sound_validator = LIBEXECDIR "/xdg-desktop-portal-validate-sound";
+
+  if (g_getenv ("XDP_VALIDATE_SOUND"))
+    sound_validator = g_getenv ("XDP_VALIDATE_SOUND");
+
+  if (!g_file_test (sound_validator, G_FILE_TEST_EXISTS))
+    {
+      g_warning ("Sound validation: %s not found, rejecting sound by default.", sound_validator);
+      return FALSE;
+    }
+
+  args[0] = sound_validator;
+  args[1] = "--sandbox";
+  args[2] = "--fd";
+  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[4] = NULL;
+
+  output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (sound), VALIDATOR_INPUT_FD, &error);
+  if (!output)
+    {
+      g_warning ("Sound validation: Rejecting sound because validator failed: %s", error->message);
+      return FALSE;
+    }
+
+  key_file = g_key_file_new ();
+  if (!g_key_file_load_from_data (key_file, output, -1, G_KEY_FILE_NONE, &error))
+    {
+      g_warning ("Sound validation: %s", error->message);
+      return FALSE;
+    }
 
   return TRUE;
 }
