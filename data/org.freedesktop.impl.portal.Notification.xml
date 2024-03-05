@@ -73,6 +73,27 @@
             This is the same format as a serialized `GFileIcon
             <https://docs.gtk.org/gio/class.FileIcon.html>`_ at the moment,
             but this interoperability may change in the future.
+
+        * ``sound`` (``v``)
+
+          A serialized sound to add to the notification.
+          Supported sound formats are ogg/opus, ogg/vorbis and wav/pcm.
+
+          The format for
+          serialized sound is a tuple (sv) with the following supported keys:
+
+          * ``bytes`` (``ay``)
+
+            A bytes sound containing a bytestring with the sound data.
+
+          * ``file`` (``s``)
+
+            A file sound containing an absolute path to a sound file.
+
+          To play the default sound the string ``default`` can be passed.
+          To play no sound at all the string ``silent`` can be passed.
+          If this property isn't specified the notification server can decide
+          whether to play a sound.
     -->
     <method name="AddNotification">
       <arg type="s" name="app_id" direction="in"/>

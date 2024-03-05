@@ -47,6 +47,8 @@ gboolean xdp_validate_serialized_icon (GVariant  *v,
                                        char     **out_format,
                                        char     **out_size);
 
+gboolean xdp_validate_serialized_sound (GVariant  *v);
+
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
 typedef int XdpFd;

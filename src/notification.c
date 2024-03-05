@@ -492,6 +492,69 @@ parse_serialized_icon (GVariantBuilder  *builder,
 }
 
 static gboolean
+parse_serialized_sound (GVariantBuilder  *builder,
+                        GVariant         *sound,
+                        XdpAppInfo       *app_info,
+                        GUnixFDList      *fd_list,
+                        GError          **error)
+{
+  const char *key;
+  g_autoptr(GVariant) file_sound = NULL;
+  g_autoptr(GVariant) value = NULL;
+  GVariant *out_sound = NULL;
+
+  if (g_variant_is_of_type (sound, G_VARIANT_TYPE_STRING))
+    {
+      key = g_variant_get_string (sound, NULL);
+
+      if (strcmp (key, "silent") == 0 || strcmp (key, "default") == 0)
+        {
+          g_variant_builder_add (builder, "{sv}", "sound", sound);
+          return TRUE;
+        }
+      else
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                               "invalid sound: invalid option");
+          return FALSE;
+        }
+    }
+
+  if (!check_value_type ("sound", sound, G_VARIANT_TYPE("(sv)"), error))
+    return FALSE;
+
+  g_variant_get (sound, "(&sv)", &key, &value);
+
+  if (strcmp (key, "bytes") == 0)
+    {
+      if (check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
+        out_sound = sound;
+    }
+  else if (strcmp (key, "file-descriptor") == 0)
+    {
+      out_sound = file_sound = convert_serialized_fd_to_serialized_file (value, app_info, fd_list, error);
+    }
+  else
+    {
+      g_debug ("Unsupported sound %s filtered from notification", key);
+      return TRUE;
+    }
+
+  if (!out_sound)
+    {
+      g_prefix_error (error, "invalid sound: ");
+      return FALSE;
+    }
+
+  if (xdp_validate_serialized_sound (out_sound))
+    g_variant_builder_add (builder, "{sv}", "sound", out_sound);
+
+  return TRUE;
+}
+
+static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
                     XdpAppInfo       *app_info,
@@ -520,6 +583,11 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "icon") == 0)
         {
           if (!parse_serialized_icon (builder, value, app_info, fd_list, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "sound") == 0)
+        {
+          if (!parse_serialized_sound (builder, value, app_info, fd_list, error))
             return FALSE;
         }
       else if (strcmp (key, "priority") == 0)
