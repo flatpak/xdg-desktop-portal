@@ -112,6 +112,10 @@ web_extensions_session_close (XdpSession *session)
 {
   WebExtensionsSession *web_extensions_session = (WebExtensionsSession *)session;
 
+  /* This function can be called repeatedly, e.g. by an explicit
+     "org.freedesktop.portal.Session::Close" message followed by
+     a call to finalize due to session's refcount reaching zero.
+  */
   if (web_extensions_session->state == WEB_EXTENSIONS_SESSION_STATE_CLOSED) return;
 
   web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_CLOSED;
@@ -165,6 +169,7 @@ web_extensions_session_class_init (WebExtensionsSessionClass *klass)
   object_class->finalize = web_extensions_session_finalize;
 
   session_class = (XdpSessionClass *)klass;
+  /* Register handler for org.freedesktop.portal.Session::Close */
   session_class->close = web_extensions_session_close;
 }
 
@@ -304,7 +309,7 @@ get_manifest_search_path (WebExtensionsSessionMode mode)
     {
     case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
       /* Chrome and Chromium search paths documented here:
-       * https://developer.chrome.com/docs/apps/nativeMessaging/#native-messaging-host-location
+       * https://developer.chrome.com/docs/extensions/nativeMessaging/#native-messaging-host-location
        */
       /* Add per-user directories */
       g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "google-chrome", "NativeMessagingHosts", NULL));
@@ -313,8 +318,8 @@ get_manifest_search_path (WebExtensionsSessionMode mode)
       g_ptr_array_add (search_path, g_strdup ("/etc/opt/chrome/native-messaging-hosts"));
       g_ptr_array_add (search_path, g_strdup ("/etc/chromium/native-messaging-hosts"));
       /* And the same for xdg-desktop-portal's configured prefix */
-      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "opt/chrome/native-messaging-hosts"));
-      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "chromium/native-messaging-hosts"));
+      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "/opt/chrome/native-messaging-hosts"));
+      g_ptr_array_add (search_path, g_strdup (SYSCONFDIR "/chromium/native-messaging-hosts"));
       break;
 
     case WEB_EXTENSIONS_SESSION_MODE_MOZILLA:
@@ -326,8 +331,13 @@ get_manifest_search_path (WebExtensionsSessionMode mode)
       /* Add system wide directories */
       g_ptr_array_add (search_path, g_strdup ("/usr/lib/mozilla/native-messaging-hosts"));
       g_ptr_array_add (search_path, g_strdup ("/usr/lib64/mozilla/native-messaging-hosts"));
-      /* And the same for xdg-desktop-portal's configured prefix */
-      g_ptr_array_add (search_path, g_strdup (LIBDIR "mozilla/native-messaging-hosts"));
+      /* And the same for xdg-desktop-portal's configured prefix.
+         This is helpful on Debian-based systems where LIBDIR is
+         suffixed with 'dpkg-architecture -qDEB_HOST_MULTIARCH',
+         e.g. '/usr/lib/x86_64-linux-gnu'.
+         https://salsa.debian.org/debian/debhelper/-/blob/5b96b19b456fe5e094f2870327a753b4b3ece0dc/lib/Debian/Debhelper/Buildsystem/meson.pm#L78
+       */
+      g_ptr_array_add (search_path, g_strdup (LIBDIR "/mozilla/native-messaging-hosts"));
       break;
     }
 
