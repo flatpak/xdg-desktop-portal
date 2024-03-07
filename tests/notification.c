@@ -9,6 +9,8 @@
 
 #define IMAGE_DATA "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
                    "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"16px\" width=\"16px\"/>"
+/* We currently don't validated the sound itself so it doesn't matter what we give to the test */
+#define SOUND_DATA "SOME SOUND DATA"
 
 extern char outdir[];
 
@@ -287,4 +289,60 @@ test_notification_icon (void)
   test_icon ("('bytes', <['test-icon-symbolic', 'test-icon']>)", NULL, TRUE);
   test_icon ("('file-descriptor', <''>)", NULL, TRUE);
   test_icon ("('file-descriptor', <handle 0>)", NULL, TRUE);
+}
+
+static void
+test_sound (const char *serialized_sound,
+           const char *exp_serialized_sound,
+           gboolean    exp_fail)
+{
+  g_autofree char *notification_s = NULL;
+  g_autofree char *exp_notification_s = NULL;
+
+  notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                    "  'body': <'test notification body 7'>, "
+                                    "  'sound': <%s>, "
+                                    "  'default-action': <'test-action'> "
+                                    "}", serialized_sound);
+
+  if (exp_serialized_sound)
+    exp_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                          "  'body': <'test notification body 7'>, "
+                                          "  'sound': <%s>, "
+                                          "  'default-action': <'test-action'> "
+                                          "}", exp_serialized_sound);
+
+  run_notification_test ("test-icon", notification_s, exp_notification_s, exp_fail);
+}
+
+static void
+test_file_sound ()
+{
+  g_autofree char *path = NULL;
+  g_autofree char *serialized_sound_s = NULL;
+  g_autoptr(GFile) file = NULL;
+  g_autoptr(GFileIOStream) iostream = NULL;
+  GOutputStream *stream = NULL;
+
+  file = g_file_new_tmp ("iconXXXXXX", &iostream, NULL);
+  stream = g_io_stream_get_output_stream (G_IO_STREAM (iostream));
+  g_output_stream_write_all (stream, IMAGE_DATA, strlen(IMAGE_DATA), NULL, NULL, NULL);
+  g_output_stream_close (stream, NULL, NULL);
+
+  path = g_file_get_path (file);
+  serialized_sound_s = g_strdup_printf ("('file', <'%s'>)", path);
+  test_icon (serialized_sound_s, NULL, FALSE);
+  g_assert (g_file_delete (file, NULL, NULL));
+}
+
+void
+test_notification_sound (void)
+{
+  test_sound ("('bytes', <'" SOUND_DATA "'>)", NULL, TRUE);
+  test_file_sound ();
+
+  /* Tests that should fail */
+  test_sound ("('bytes', <['test-sound', 'test-sound']>)", NULL, TRUE);
+  test_sound ("('file-descriptor', <''>)", NULL, TRUE);
+  test_sound ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
