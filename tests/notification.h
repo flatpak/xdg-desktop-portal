@@ -7,3 +7,4 @@ void test_notification_bad_arg (void);
 void test_notification_bad_priority (void);
 void test_notification_bad_button (void);
 void test_notification_icon (void);
+void test_notification_sound (void);

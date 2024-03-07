@@ -10,6 +10,13 @@
   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
   "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"16px\" width=\"16px\"/>"
 
+static const guchar SOUND_DATA[] = {
+  0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
+  0x66, 0x6d, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
+  0x44, 0xac, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00,
+  0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
+};
+
 extern char outdir[];
 
 static int got_info;
@@ -297,4 +304,62 @@ test_notification_icon (void)
   test_icon ("('bytes', <['test-icon-symbolic', 'test-icon']>)", NULL, TRUE);
   test_icon ("('file-descriptor', <''>)", NULL, TRUE);
   test_icon ("('file-descriptor', <handle 0>)", NULL, TRUE);
+}
+
+static void
+test_sound (const char *serialized_sound,
+            const char *expected_serialized_sound,
+            gboolean    expect_failure)
+{
+  g_autofree char *notification_s = NULL;
+  g_autofree char *expected_notification_s = NULL;
+
+  notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                    "  'body': <'test notification body 7'>, "
+                                    "  'sound': <%s>, "
+                                    "  'default-action': <'test-action'> "
+                                    "}", serialized_sound);
+
+  if (expected_serialized_sound)
+    expected_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                               "  'body': <'test notification body 7'>, "
+                                               "  'sound': <%s>, "
+                                               "  'default-action': <'test-action'> "
+                                               "}", expected_serialized_sound);
+
+  run_notification_test ("test-sound", notification_s, expected_notification_s, expect_failure);
+}
+
+static void
+test_file_sound (void)
+{
+  g_autoptr(GError) error = NULL;
+  g_autofree char *uri = NULL;
+  g_autofree char *serialized_sound_s = NULL;
+  g_autoptr(GFile) file = NULL;
+  g_autoptr(GFileIOStream) iostream = NULL;
+  GOutputStream *stream = NULL;
+
+  file = g_file_new_tmp ("soundXXXXXX", &iostream, NULL);
+  stream = g_io_stream_get_output_stream (G_IO_STREAM (iostream));
+  g_output_stream_write_all (stream, SOUND_DATA, sizeof (SOUND_DATA), NULL, NULL, NULL);
+  g_output_stream_close (stream, NULL, NULL);
+
+  uri = g_file_get_uri (file);
+  serialized_sound_s = g_strdup_printf ("('file', <'%s'>)", uri);
+  test_sound (serialized_sound_s, "('file-descriptor', <handle 0>)", FALSE);
+  g_file_delete (file, NULL, &error);
+  g_assert_no_error (error);
+}
+
+void
+test_notification_sound (void)
+{
+  test_sound ("'default'", NULL, FALSE);
+  test_sound ("'silent'", NULL, FALSE);
+  test_file_sound ();
+
+  /* Tests that should fail */
+  test_sound ("('file-descriptor', <''>)", NULL, TRUE);
+  test_sound ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
