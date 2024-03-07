@@ -607,6 +607,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
   g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
   g_test_add_func ("/portal/notification/icon", test_notification_icon);
+  g_test_add_func ("/portal/notification/sound", test_notification_sound);
 #endif
 
   global_setup ();
