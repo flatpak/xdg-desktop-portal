@@ -548,6 +548,77 @@ warn_please_use_portals_conf (void)
                   "configuration file");
 }
 
+static PortalImplementation *
+find_fallback_portal_implementation (const char *interface)
+{
+  /* x-d-p-gtk has historically been the portal UI backend used by desktop
+   * environments with no backend of their own.
+   * If it isn't installed, that is not an error: we just don't use it. */
+  for (const GList *l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
+        continue;
+
+      if (!g_strv_contains ((const char **)impl->interfaces, interface))
+        continue;
+
+      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
+                 impl->source, interface);
+      warn_please_use_portals_conf ();
+      return impl;
+    }
+
+  return NULL;
+}
+
+static PortalImplementation *
+find_any_portal_implementation (const char *interface)
+{
+  for (const GList *l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (!g_strv_contains ((const char **)impl->interfaces, interface))
+        continue;
+
+      g_debug ("Falling back to %s.portal for %s", impl->source, interface);
+      return impl;
+    }
+
+  return find_fallback_portal_implementation (interface);
+}
+
+static PortalImplementation *
+find_portal_implementation_iface (const PortalInterface *iface)
+{
+  for (size_t i = 0; iface->portals && iface->portals[i]; i++)
+    {
+      const char *portal = iface->portals[i];
+
+      g_debug ("Found '%s' in configuration for %s", portal, iface->dbus_name);
+
+      if (g_str_equal (portal, "none"))
+        return NULL;
+
+      if (g_str_equal (portal, "*"))
+        return find_any_portal_implementation (iface->dbus_name);
+
+      for (const GList *l = implementations; l != NULL; l = l->next)
+        {
+          PortalImplementation *impl = l->data;
+
+          if (g_str_equal (portal, impl->source))
+            return impl;
+        }
+
+      g_debug ("%s.portal is unrecognized", portal);
+    }
+
+  return find_any_portal_implementation (iface->dbus_name);
+}
+
 PortalImplementation *
 find_portal_implementation (const char *interface)
 {
@@ -555,14 +626,30 @@ find_portal_implementation (const char *interface)
   GList *l;
   int i;
 
-  for (l = implementations; l != NULL; l = l->next)
+  if (config)
     {
-      PortalImplementation *impl = l->data;
+      PortalImplementation *impl = NULL;
+      gboolean overridden = FALSE;
 
-      if (!g_strv_contains ((const char **)impl->interfaces, interface))
-        continue;
+      /* Interfaces have precedence over the "default" catch all,
+       * to allow for specific interfaces to override the default
+       */
+      for (i = 0; i < config->n_ifaces; i++)
+        {
+          const PortalInterface *iface = config->interfaces[i];
 
-      if (portal_impl_matches_config (impl, interface))
+          if (g_str_equal (iface->dbus_name, interface))
+            {
+              overridden = TRUE;
+              impl = find_portal_implementation_iface (iface);
+              break;
+            }
+        }
+
+      if (!overridden && !impl)
+        impl = find_portal_implementation_iface (config->default_portal);
+
+      if (impl != NULL)
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           return impl;
@@ -592,29 +679,7 @@ find_portal_implementation (const char *interface)
         }
     }
 
-  /* As a last resort, if nothing was selected for this desktop by
-   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
-   * itself as suitable for this desktop via the legacy UseIn mechanism,
-   * try to fall back to x-d-p-gtk, which has historically been the portal
-   * UI backend used by desktop environments with no backend of their own.
-   * If it isn't installed, that is not an error: we just don't use it. */
-  for (l = implementations; l != NULL; l = l->next)
-    {
-      PortalImplementation *impl = l->data;
-
-      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
-        continue;
-
-      if (!g_strv_contains ((const char **)impl->interfaces, interface))
-        continue;
-
-      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
-                 impl->source, interface);
-      warn_please_use_portals_conf ();
-      return impl;
-    }
-
-  return NULL;
+  return find_fallback_portal_implementation (interface);
 }
 
 GPtrArray *
