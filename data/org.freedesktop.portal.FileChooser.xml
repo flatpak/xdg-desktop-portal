@@ -236,17 +236,6 @@
         The filter that was selected.
 
         See org.freedesktop.portal.FileChooser.OpenFile() for details.
-
-      * ``current_folder`` (``ay``)
-
-        Suggested folder in which the file should be saved. The byte array
-        contains a path in the same encoding as the file system, and it's
-        expected to be terminated by a nul byte.
-
-        If the path points to a location in the document storage, it will be
-        replaced with the path to the location on the host.
-
-        The portal implementation is free to ignore this option.
     -->
     <method name="SaveFile">
       <arg type="s" name="parent_window" direction="in"/>
