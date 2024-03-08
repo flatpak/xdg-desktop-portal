@@ -708,7 +708,7 @@ notification_iface_init (XdpDbusNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 1);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 2);
 }
 
 static void
