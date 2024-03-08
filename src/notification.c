@@ -1277,7 +1277,7 @@ notification_iface_init (XdpDbusNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 1);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 2);
   g_object_bind_property (G_OBJECT (impl), "supported-options",
                           G_OBJECT (notification), "supported-options",
                           G_BINDING_SYNC_CREATE);
