@@ -576,7 +576,7 @@ handle_start_in_thread (GTask *task,
                                                          g_variant_builder_end (&opt_builder),
                                                          &access_response,
                                                          &access_results,
-                                                         NULL,
+                                                         cancellable,
                                                          &error))
         {
           g_warning ("AccessDialog call failed: %s", error->message);
