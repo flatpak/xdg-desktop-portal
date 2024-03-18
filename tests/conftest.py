@@ -57,11 +57,19 @@ def params() -> dict[str, Any]:
 
 
 @pytest.fixture
-def portal_mock(session_bus, portal_name, params, portal_has_impl) -> PortalMock:
+def app_id():
+    """
+    Default fixture providing the app id of the connecting process
+    """
+    return "org.example.App"
+
+
+@pytest.fixture
+def portal_mock(session_bus, portal_name, params, portal_has_impl, app_id) -> PortalMock:
     """
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
-    pmock = PortalMock(session_bus, portal_name)
+    pmock = PortalMock(session_bus, portal_name, app_id)
     if portal_has_impl:
         pmock.start_impl_portal(params)
     pmock.start_xdp()
