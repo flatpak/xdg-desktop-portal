@@ -240,7 +240,7 @@
               notifying the user, for example, to play audio from a special
               source like a streaming service or a radio station.
 
-            * ``user.replay-with-text``:
+            * ``user.reply-with-text``:
 
               Inline replies for instant messaging apps.
               The user-provided text will be added to the response vardict as ``reply-text`` (``s``);
