@@ -200,7 +200,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 }
 #endif /* HAVE_LIBSYSTEMD */
 
-void
+static void
 set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 {
 #ifdef HAVE_LIBSYSTEMD
