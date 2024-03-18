@@ -20,7 +20,7 @@ class TestGlobalShortcuts:
     def test_version(self, portal_mock):
         portal_mock.check_version(1)
 
-    def test_global_shortcuts_create_close_session(self, portal_mock):
+    def test_global_shortcuts_create_close_session(self, portal_mock, app_id):
         request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
@@ -38,7 +38,7 @@ class TestGlobalShortcuts:
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
-#        assert args[2] == ""  # appid, not necessary empty
+        assert args[2] == app_id
 
         session.close()
 
@@ -49,7 +49,7 @@ class TestGlobalShortcuts:
         assert session.closed
 
     @pytest.mark.parametrize("params", ({"force-close": 500},))
-    def test_global_shortcuts_create_session_signal_closed(self, portal_mock):
+    def test_global_shortcuts_create_session_signal_closed(self, portal_mock, app_id):
         request = portal_mock.create_request()
         options = {
             "session_handle_token": "session_token0",
@@ -67,7 +67,7 @@ class TestGlobalShortcuts:
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
-#        assert args[2] == ""  # appid, not necessary empty
+        assert args[2] == app_id
 
         # Now expect the backend to close it
 
