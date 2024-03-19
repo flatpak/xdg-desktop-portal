@@ -238,6 +238,56 @@ check_value_type (const char *key,
   return FALSE;
 }
 
+static gboolean
+parse_desktop_file_id (GVariantBuilder  *builder,
+                       GVariant         *value,
+                       XdpAppInfo       *app_info,
+                       GError          **error)
+{
+  const char *desktop_file_id;
+
+  if (!check_value_type ("desktop-file-id", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  desktop_file_id = g_variant_get_string (value, NULL);
+
+  if (!g_str_has_suffix (desktop_file_id, ".desktop"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Desktop file id must have .desktop suffix: %s",
+                   desktop_file_id);
+      return FALSE;
+    }
+
+  if (desktop_file_id == NULL || *desktop_file_id == '\0')
+    return TRUE;
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      const char *app_id;
+      const char *after_desktop_file_id;
+
+      app_id = xdp_app_info_get_id (app_info);
+      after_desktop_file_id = desktop_file_id + strlen (app_id);
+
+      if (!g_str_has_prefix (desktop_file_id, app_id) || *after_desktop_file_id != '.')
+        {
+          g_set_error (error,
+                      XDG_DESKTOP_PORTAL_ERROR,
+                      XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                      "Desktop file id is missing sandbox app id prefix '%s.': %s",
+                      app_id, desktop_file_id);
+          return FALSE;
+        }
+    }
+
+  g_variant_builder_add (builder, "{sv}", "desktop-file-id", value);
+
+  return TRUE;
+}
+
 static void
 markup_parser_text (GMarkupParseContext  *context,
                     const gchar          *text,
@@ -717,6 +767,7 @@ parse_serialized_sound (GVariantBuilder  *builder,
 static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
+                    XdpAppInfo       *app_info,
                     GUnixFDList      *fd_list,
                     GError          **error)
 {
@@ -781,6 +832,11 @@ parse_notification (GVariantBuilder  *builder,
           if (!parse_buttons (builder, value, error))
             return FALSE;
         }
+      else if (strcmp (key, "desktop-file-id") == 0)
+        {
+          if (!parse_desktop_file_id (builder, value, app_info, error))
+            return FALSE;
+        }
       else {
         g_debug ("Unsupported property %s filtered from notification", key);
       }
@@ -838,6 +894,7 @@ handle_add_in_thread_func (GTask        *task,
 
   if (!parse_notification (&builder,
                            call_data->notification,
+                           call_data->app_info,
                            call_data->fd_list,
                            &error))
     {
