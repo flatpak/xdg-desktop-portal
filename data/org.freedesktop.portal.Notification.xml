@@ -164,6 +164,21 @@
           * ``target`` (``v``)
 
             Target parameter to send along when activating the action.
+
+        * ``desktop-file-id`` (``s``)
+
+          An optional ``desktop-file-id``. Mendotory for un-sandboxed apps;
+
+          If set, this must be a valid
+          `Desktop File ID <https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s02.html#desktop-file-id>`_
+          with ``.desktop`` as a suffix.
+
+          For sandboxed apps, ``desktop-file-id``
+          must start with the app ID and can have a prefix after a period.
+          E.g A sandboxed app with id ``org.libreoffice.LibreOffice``
+          is allowed to specify ``org.libreoffice.LibreOffice.Writer.desktop``.
+
+          The desktop file needs to be installed on the system.
       -->
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
