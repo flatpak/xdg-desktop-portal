@@ -568,6 +568,120 @@ parse_buttons (GVariantBuilder  *builder,
   return result;
 }
 
+static gboolean
+parse_action (GVariantBuilder  *builder,
+              GVariant         *action,
+              GError          **error)
+{
+  int i;
+  g_autoptr(GVariant) action_name = NULL;
+  g_autoptr(GVariant) target = NULL;
+  g_autoptr(GVariant) purpose = NULL;
+  const char *supported_purposes[] = { "system.custom-alert", "user.reply-with-text", NULL };
+
+  for (i = 0; i < g_variant_n_children (action); i++)
+    {
+      const char *key;
+      g_autoptr(GVariant) value = NULL;
+
+      g_variant_get_child (action, i, "{&sv}", &key, &value);
+
+      if (strcmp (key, "action") == 0)
+        {
+          if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+
+          if (!action_name)
+            action_name = g_steal_pointer (&value);
+        }
+      else if (strcmp (key, "target") == 0)
+        {
+          if (!target)
+            target = g_steal_pointer (&value);
+        }
+      else if (strcmp (key, "purpose") == 0)
+        {
+          const char *value_s = NULL;
+
+          if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+
+           value_s = g_variant_get_string (value, NULL);
+
+          if (!g_strv_contains (supported_purposes, value_s) && !g_str_has_prefix (value_s, "x-"))
+            {
+              g_set_error (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "%s not a supported purpose", value_s);
+              return FALSE;
+            }
+
+          if (!purpose)
+            purpose = g_steal_pointer (&value);
+        }
+      else
+        {
+          g_debug ("Unsupported action property %s filtered from notification", key);
+        }
+    }
+
+  if (!purpose || !action_name)
+    {
+      g_set_error_literal (error,
+                      XDG_DESKTOP_PORTAL_ERROR,
+                      XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                      "Notification actions needs a purpose and action property");
+      return FALSE;
+    }
+
+    g_variant_builder_open (builder, G_VARIANT_TYPE ("a{sv}"));
+
+    g_variant_builder_add (builder, "{sv}", "purpose", purpose);
+    g_variant_builder_add (builder, "{sv}", "action", action_name);
+    if (target)
+      g_variant_builder_add (builder, "{sv}", "target", target);
+
+    g_variant_builder_close (builder);
+
+    return TRUE;
+}
+
+static gboolean
+parse_actions (GVariantBuilder  *builder,
+               GVariant         *value,
+               GError          **error)
+{
+  gboolean result = TRUE;
+  int i;
+
+  if (!check_value_type ("actions", value, G_VARIANT_TYPE ("aa{sv}"), error))
+    return FALSE;
+
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("{sv}"));
+  g_variant_builder_add (builder, "s", "actions");
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("v"));
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("aa{sv}"));
+
+  for (i = 0; i < g_variant_n_children (value); i++)
+    {
+      g_autoptr(GVariant) action = g_variant_get_child_value (value, i);
+
+      if (!parse_action (builder, action, error))
+        {
+          g_prefix_error (error, "invalid action: ");
+          result = FALSE;
+          break;
+        }
+    }
+
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+
+  return result;
+}
+
 static GVariant *
 convert_serialized_fd_to_serialized_file (GVariant         *handle,
                                           XdpAppInfo       *app_info,
@@ -927,6 +1041,11 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "content-type") == 0)
         {
           if (!parse_content_type (builder, value, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "actions") == 0)
+        {
+          if (!parse_actions (builder, value, error))
             return FALSE;
         }
       else {

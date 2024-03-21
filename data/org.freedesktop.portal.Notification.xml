@@ -180,6 +180,49 @@
             Additional purposes may be defined by notification servers using
             ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
 
+        * ``actions`` (``aa{sv}``)
+
+          Array of actions that the notification server will invoke
+          automatically in specific cases. These actions may be called never or even multiple times.
+
+          Invoked actions will contain as parameter a vardict ``a{sv}`` containing the
+          ``target` and the response of the action.
+
+          The format for a serialized action is a vardict with the following supported keys:
+
+          * ``action`` (``s``)
+
+            Name of the action. Mandatory.
+
+            This action needs to be exported by the application.
+
+          * ``purpose`` (``s``)
+            The purpose of the action. Mandatory.
+
+            * ``system.custom-alert``:
+
+              This action will be called by the notification server
+              whenever the notification is shown.
+
+              The purpose of this action is to allow apps to use custom methods of
+              notifying the user, for example, to play audio from a special
+              source like a streaming service or a radio station.
+
+            * ``user.reply-with-text``:
+
+              Inline replies for instant messaging apps.
+              The user-provided text will be added to the response vardict as ``reply-text`` (``s``);
+
+            Additional purposes may be defined by notification servers using
+            ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
+
+          * ``target`` (``v``)
+
+            Target parameter to send along when activating the action.
+
+            This target will be added to the response vardict as ``target`` (``v``);
+
+
         * ``desktop-file-id`` (``s``)
 
           An optional ``desktop-file-id``. Mendotory for un-sandboxed apps;
