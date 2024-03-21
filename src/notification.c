@@ -752,6 +752,47 @@ parse_display_hint (GVariantBuilder  *builder,
 }
 
 static gboolean
+parse_category (GVariantBuilder  *builder,
+                GVariant         *value,
+                GError          **error)
+{
+  const char *category;
+  const char *supported_categories[] = {
+    "im.message",
+    "alarm.ringing",
+    "call.incoming",
+    "call.ongoing",
+    "call.missed",
+    "weather.warning.extreme",
+    "cellbroadcast.danger.extreme",
+    "cellbroadcast.danger.severe",
+    "cellbroadcast.amberalert",
+    "cellbroadcast.test",
+    "os.battery.low",
+    "browser.web-notification",
+    NULL
+  };
+
+  if (!check_value_type ("category", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  category = g_variant_get_string (value, NULL);
+
+  if (!g_strv_contains (supported_categories, category) && !g_str_has_prefix (category, "x-"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "%s is not a supported category", category);
+      return FALSE;
+    }
+
+  g_variant_builder_add (builder, "{sv}", "category", value);
+
+  return TRUE;
+}
+
+static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
                     GUnixFDList      *fd_list,
@@ -821,6 +862,11 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "display-hint") == 0)
         {
           if (!parse_display_hint (builder, value, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "category") == 0)
+        {
+          if (!parse_category (builder, value, error))
             return FALSE;
         }
       else {
