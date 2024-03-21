@@ -414,6 +414,40 @@ parse_priority (GVariantBuilder  *builder,
 }
 
 static gboolean
+check_button_purpose (GVariant  *value,
+                      GError   **error)
+{
+  const char *purpose;
+  const char *supported_purposes[] = {
+    "system.custom-alert",
+    "im.reply-with-text",
+    "call.accept",
+    "call.decline",
+    "call.hang-up",
+    "call.enable-speakerphone",
+    "call.disable-speakerphone",
+    NULL
+  };
+
+  if (!check_value_type ("purpose", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  purpose = g_variant_get_string (value, NULL);
+
+  if (!g_strv_contains (supported_purposes, purpose) && !g_str_has_prefix (purpose, "x-"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "%s is not a supported button purpose", purpose);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+
+static gboolean
 parse_button (GVariantBuilder  *builder,
               GVariant         *button,
               GError          **error)
@@ -422,6 +456,8 @@ parse_button (GVariantBuilder  *builder,
   g_autoptr(GVariant) label = NULL;
   g_autoptr(GVariant) action = NULL;
   g_autoptr(GVariant) target = NULL;
+  g_autoptr(GVariant) purpose = NULL;
+
 
   for (i = 0; i < g_variant_n_children (button); i++)
     {
@@ -451,18 +487,26 @@ parse_button (GVariantBuilder  *builder,
           if (!target)
             target = g_steal_pointer (&value);
         }
+      else if (strcmp (key, "purpose") == 0)
+        {
+          if (!check_button_purpose (value, error))
+            return FALSE;
+
+          if (!purpose)
+            purpose = g_steal_pointer (&value);
+        }
       else
         {
           g_debug ("Unsupported button property %s filtered from notification", key);
         }
     }
 
-  if (!label)
+  if (!label && !purpose)
     {
       g_set_error_literal (error,
                            XDG_DESKTOP_PORTAL_ERROR,
                            XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                           "label key is missing");
+                           "label or purpose key is missing");
       return FALSE;
     }
 
@@ -481,6 +525,8 @@ parse_button (GVariantBuilder  *builder,
   g_variant_builder_add (builder, "{sv}", "action", action);
   if (target)
     g_variant_builder_add (builder, "{sv}", "target", target);
+  if (purpose)
+    g_variant_builder_add (builder, "{sv}", "purpose", purpose);
 
   g_variant_builder_close (builder);
 
