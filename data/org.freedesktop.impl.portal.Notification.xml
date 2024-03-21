@@ -39,7 +39,9 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set ``show-as-new`` hint in the ``display-hint`` property
+        to animate replacing the notification instead of updating it.
 
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
