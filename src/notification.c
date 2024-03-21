@@ -456,6 +456,8 @@ parse_button (GVariantBuilder  *builder,
   g_autoptr(GVariant) label = NULL;
   g_autoptr(GVariant) action = NULL;
   g_autoptr(GVariant) target = NULL;
+  g_autoptr(GVariant) purpose = NULL;
+
 
   for (i = 0; i < g_variant_n_children (button); i++)
     {
@@ -484,6 +486,14 @@ parse_button (GVariantBuilder  *builder,
         {
           if (!target)
             target = g_steal_pointer (&value);
+        }
+      else if (strcmp (key, "purpose") == 0)
+        {
+          if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
+            return FALSE;
+
+          if (!purpose)
+            purpose = g_steal_pointer (&value);
         }
       else
         {
@@ -515,6 +525,8 @@ parse_button (GVariantBuilder  *builder,
   g_variant_builder_add (builder, "{sv}", "action", action);
   if (target)
     g_variant_builder_add (builder, "{sv}", "target", target);
+  if (purpose)
+    g_variant_builder_add (builder, "{sv}", "purpose", purpose);
 
   g_variant_builder_close (builder);
 
