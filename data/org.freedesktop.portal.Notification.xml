@@ -55,7 +55,9 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set ``show-as-new`` hint in the ``display-hint`` property
+        to animate replacing the notification instead of updating it.
 
         The format of the serialized notification is a vardict, with
         the following supported keys, all of which are optional:
@@ -177,6 +179,51 @@
           * ``target`` (``v``)
 
             Target parameter to send along when activating the action.
+
+        * ``display-hint`` (``as``)
+
+          An array of ways to display the notification. If none are set, or the notification server has its own policy, it is
+          free to decide how and where to display the notification.
+
+          * ``transient``
+
+            The notification is displayed only as a banner and won't be kept
+            by the server in a tray.
+
+            It's a programmer error to specify ``tray`` at the same time.
+
+          * ``tray``
+
+            No banner for the notification will be displayed and
+            the notification is placed in the tray.
+
+            It's a programmer error to specify ``transient`` at the same time.
+
+          * ``persistent``
+
+            Make the notification persistent in the notification tray.
+            The user can’t dismiss it using the usual close button or gesture.
+
+            Apps are only allowed to display persistent notifications
+            as long as they have a window. Once the last window of an app
+            is closed the persistent notification will be removed.
+
+          * ``hide-on-lockscreen``
+
+            Don't show the notification on the lockscreen.
+
+          * ``hide-content-on-lockscreen``
+
+            All content of the notification will be hidden on the lockscreen.
+
+          * ``show-as-new``
+
+            If a notification with the same ``id`` of the app exists already
+            replace the previous notification, by removing the old notification
+            (including animation, etc) and adding a new notification.
+
+            If this hint isn't specified the notification's content is updated
+            without any flickering.
       -->
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>

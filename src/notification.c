@@ -700,6 +700,58 @@ parse_serialized_sound (GVariantBuilder  *builder,
 }
 
 static gboolean
+parse_display_hint (GVariantBuilder  *builder,
+                    GVariant         *value,
+                    GError          **error)
+{
+  int i;
+  g_autofree const char **display_hints = NULL;
+  gsize display_hints_length;
+  const char *supported_display_hints[] = {
+      "transient",
+      "tray",
+      "persistent",
+      "hide-on-lock-screen",
+      "hide-content-on-lock-screen",
+      "show-as-new",
+      NULL
+  };
+
+  if (!check_value_type ("display-hint", value, G_VARIANT_TYPE_STRING_ARRAY, error))
+    return FALSE;
+
+  display_hints = g_variant_get_strv (value, &display_hints_length);
+
+  if (display_hints_length == 0)
+    return TRUE;
+
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("{sv}"));
+  g_variant_builder_add (builder, "s", "display-hint");
+  g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+  g_variant_builder_open (builder, G_VARIANT_TYPE_STRING_ARRAY);
+
+  for (i = 0; display_hints[i]; i++)
+    {
+      if (!g_strv_contains (supported_display_hints, display_hints[i]))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "%s not a display-hint", display_hints[i]);
+          return FALSE;
+        }
+
+        g_variant_builder_add (builder, "s", display_hints[i]);
+    }
+
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+
+  return TRUE;
+}
+
+static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
                     GUnixFDList      *fd_list,
@@ -764,6 +816,11 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "buttons") == 0)
         {
           if (!parse_buttons (builder, value, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "display-hint") == 0)
+        {
+          if (!parse_display_hint (builder, value, error))
             return FALSE;
         }
       else {
