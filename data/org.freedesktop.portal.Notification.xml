@@ -377,6 +377,25 @@
     </method>
 
     <!--
+        SupportedOptions:
+
+        Some properties in :ref:`org.freedesktop.portal.Notification.AddNotification`
+        may have options advertised by the server.
+
+        Currently there are the following options the notification server can advertise:
+
+        * ``category`` (``as``)
+
+          Categories that the notification server understands and supports.
+
+        * ``button-purpose`` (``as``)
+
+          Button purposes that the notification server understands and supports.
+          This is the list of options that can be used as `purpose` for `buttons`.
+    -->
+    <property name="SupportedOptions" type="a{sv}" access="read"/>
+
+    <!--
         ActionInvoked:
         @id: the application-provided ID for the notification
         @action: the name of the action
