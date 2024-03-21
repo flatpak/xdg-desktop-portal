@@ -66,6 +66,17 @@
     </method>
 
     <!--
+        SupportedOptions:
+
+        Some properties in :ref:`org.freedesktop.impl.portal.Notification.AddNotification`
+        may have options advertised by the notification server.
+
+        The format is the same as for ``SupportedOptions`` property of
+        :ref:`org.freedesktop.portal.Notification`.
+    -->
+    <property name="SupportedOptions" type="a{sv}" access="read"/>
+
+    <!--
         ActionInvoked:
         @app_id: App id of the application
         @id: the application-provided ID for the notification
