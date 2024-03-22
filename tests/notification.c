@@ -150,6 +150,19 @@ test_notification_buttons (void)
 }
 
 void
+test_notification_markup_body (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <b>notification</b> body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, NULL, FALSE);
+}
+
+void
 test_notification_bad_arg (void)
 {
   const char *notification_s;
