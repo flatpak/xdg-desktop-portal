@@ -469,3 +469,23 @@ test_notification_sound (void)
   test_sound ("('file-descriptor', <''>)", NULL, TRUE);
   test_sound ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
+
+void
+test_notification_display_hint (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'display-hint': <['transient', 'show-as-new']>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'display-hint': <['unsupported-hint']>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
