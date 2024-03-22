@@ -12,3 +12,4 @@ void test_notification_sound (void);
 void test_notification_desktop_file_id (void);
 void test_notification_display_hint (void);
 void test_notification_content_type (void);
+void test_notification_actions (void);

@@ -426,3 +426,30 @@ test_notification_content_type (void)
 
   run_notification_test ("test5", notification_s, NULL, TRUE);
 }
+
+void
+test_notification_actions (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'system.custom-alert'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'x-vendor.custom.action'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'system.unsupported'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
