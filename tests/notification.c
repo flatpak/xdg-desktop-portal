@@ -489,3 +489,30 @@ test_notification_display_hint (void)
 
   run_notification_test ("test5", notification_s, NULL, TRUE);
 }
+
+void
+test_notification_category (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'category': <'im.message'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'category': <'x-vendor.custom'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'category': <'unsupported-type'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
