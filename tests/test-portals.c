@@ -603,6 +603,7 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/notification/basic", test_notification_basic);
   g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
+  g_test_add_func ("/portal/notification/markup-body", test_notification_markup_body);
   g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
   g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
