@@ -359,3 +359,23 @@ test_notification_sound (void)
   test_sound ("('file-descriptor', <''>)", NULL, TRUE);
   test_sound ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
+
+void
+test_notification_desktop_file_id (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'desktop-file-id': <'appid.desktop'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'desktop-file-id': <'appid'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
