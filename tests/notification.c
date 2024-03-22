@@ -60,6 +60,24 @@ notification_fail (GObject      *source,
 }
 
 static void
+notification_fail_no_error_check (GObject *source,
+                                  GAsyncResult *result,
+                                  gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (source);
+  g_autoptr(GError) error = NULL;
+  gboolean res;
+
+  res = xdp_portal_add_notification_finish (portal, result, &error);
+  g_assert_false (res);
+
+  got_info++;
+  g_main_context_wakeup (NULL);
+}
+
+
+
+static void
 notification_action_invoked (XdpPortal *portal,
                              const char *id,
                              const char *action,
@@ -81,11 +99,13 @@ notification_action_invoked (XdpPortal *portal,
   g_main_context_wakeup (NULL);
 }
 
+
 static void
-run_notification_test (const char *notification_id,
-                       const char *notification_s,
-                       const char *expected_notification_s,
-                       gboolean    expect_failure)
+run_notification_test_with_callback (const char          *notification_id,
+                                     const char          *notification_s,
+                                     const char          *expected_notification_s,
+                                     gboolean             expect_failure,
+                                     GAsyncReadyCallback  callback)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -118,12 +138,10 @@ run_notification_test (const char *notification_id,
 
   got_info = 0;
 
-  xdp_portal_add_notification (portal,
-                               notification_id,
-                               notification,
-                               0, NULL,
-                               expect_failure ? notification_fail : notification_succeed,
-                               NULL);
+  if (!callback)
+    callback = (expect_failure) ? notification_fail : notification_succeed;
+
+  xdp_portal_add_notification (portal, notification_id, notification, 0, NULL, callback, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
@@ -132,6 +150,15 @@ run_notification_test (const char *notification_id,
     g_signal_handler_disconnect (portal, id);
 
   xdp_portal_remove_notification (portal, notification_id);
+}
+
+static void
+run_notification_test (const char *notification_id,
+                       const char *notification_s,
+                       const char *expected_notification_s,
+                       gboolean    expect_failure)
+{
+    run_notification_test_with_callback (notification_id, notification_s, expected_notification_s, expect_failure, NULL);
 }
 
 void
@@ -161,6 +188,85 @@ test_notification_buttons (void)
                    "}";
 
   run_notification_test ("test2", notification_s, NULL, FALSE);
+}
+
+void
+test_notification_markup_body (void)
+{
+  const char *notification_s;
+  const char *exp_notification_s;
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <b>notification</b> body <i>italic</i>'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <a href=\"https://example.com\"><b>Some link</b></a>'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test \n newline \n\n some more space \n  with trailing space '>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  exp_notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test newline some more space with trailing space'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, exp_notification_s, FALSE);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test \n newline \n\n some more space \n  with trailing space '>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  exp_notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test newline some more space with trailing space'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, exp_notification_s, FALSE);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <custom> tag </custom>'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  exp_notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test tag'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test3", notification_s, exp_notification_s, FALSE);
+
+  /* Tests that should fail */
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <b>notification<b> body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test_with_callback ("test3", notification_s, NULL, TRUE, notification_fail_no_error_check);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'<b>foo<i>bar</b></i>'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test_with_callback ("test3", notification_s, NULL, TRUE, notification_fail_no_error_check);
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <markup><i>notification</i><markup> body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test_with_callback ("test3", notification_s, NULL, TRUE, notification_fail_no_error_check);
 }
 
 void
