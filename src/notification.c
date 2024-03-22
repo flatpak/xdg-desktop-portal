@@ -240,6 +240,152 @@ check_value_type (const char *key,
   return FALSE;
 }
 
+static void
+markup_parser_text (GMarkupParseContext  *context,
+                    const gchar          *text,
+                    gsize                 text_len,
+                    gpointer              user_data,
+                    GError              **error)
+{
+  GString *composed = user_data;
+
+  g_string_append_len (composed, text, text_len);
+}
+
+static void
+markup_parser_start_element (GMarkupParseContext *context,
+                             const gchar         *element_name,
+                             const gchar         **attribute_names,
+                             const gchar         **attribute_values,
+                             gpointer             user_data,
+                             GError              **error)
+{
+  GString *composed = user_data;
+
+  if (strcmp (element_name, "b") == 0)
+    {
+      g_string_append_len (composed, "<b>", -1);
+    }
+  else if (strcmp (element_name, "i") == 0)
+    {
+      g_string_append_len (composed, "<i>", -1);
+    }
+  else if (strcmp (element_name, "a") == 0)
+    {
+      int i;
+
+      for (i = 0;  attribute_names[i]; i++)
+        {
+          if (strcmp (attribute_names[i], "href") == 0)
+            {
+              g_string_append_printf (composed, "<a href=\"%s\">", attribute_values[i]);
+              break;
+            }
+        }
+    }
+}
+
+static void
+markup_parser_end_element (GMarkupParseContext *context,
+                           const gchar         *element_name,
+                           gpointer             user_data,
+                           GError              **error)
+{
+  GString *composed = user_data;
+
+  if (strcmp (element_name, "b") == 0)
+    g_string_append_len (composed, "</b>", -1);
+  else if (strcmp (element_name, "i") == 0)
+    g_string_append_len (composed, "</i>", -1);
+  else if (strcmp (element_name, "a") == 0)
+    g_string_append_len (composed, "</a>", -1);
+}
+
+static const GMarkupParser markup_parser = {
+  markup_parser_start_element,
+  markup_parser_end_element,
+  markup_parser_text,
+  NULL,
+  NULL,
+};
+
+static gchar *
+strip_multiple_spaces (const gchar *text,
+                       gsize        length)
+{
+  GString *composed;
+  gchar *str = (gchar *) text;
+
+  composed = g_string_sized_new (length);
+
+  while (*str)
+    {
+      gunichar c = g_utf8_get_char (str);
+      gboolean needs_space = FALSE;
+
+      while (g_unichar_isspace (c))
+        {
+          needs_space = TRUE;
+
+          str = g_utf8_next_char (str);
+
+          if (!*str)
+            break;
+
+          c = g_utf8_get_char (str);
+        }
+
+      if (*str)
+        {
+          if (needs_space)
+            g_string_append_c (composed, ' ');
+
+          g_string_append_unichar (composed, c);
+          str = g_utf8_next_char (str);
+        }
+    }
+
+  return g_string_free (composed, FALSE);
+}
+
+
+static gboolean
+parse_markup_body (GVariantBuilder  *builder,
+                   GVariant         *body,
+                   GError          **error)
+{
+  g_autoptr(GMarkupParseContext) context = NULL;
+  g_autoptr(GString) composed = NULL;
+  const gchar* text = NULL;
+  gsize text_length = 0;
+
+  if (!check_value_type ("markup-body", body, G_VARIANT_TYPE_STRING, error))
+      return FALSE;
+
+  text = g_variant_get_string (body, &text_length);
+  composed = g_string_sized_new (text_length);
+  context = g_markup_parse_context_new (&markup_parser, 0, composed, NULL);
+
+  /* The markup parser expects the markup to start with an element, therefore add one*/
+  if (g_markup_parse_context_parse (context, "<markup>", -1, error) &&
+      g_markup_parse_context_parse (context, text, -1, error) &&
+      g_markup_parse_context_parse (context, "</markup>", -1, error) &&
+      g_markup_parse_context_end_parse (context, error))
+    {
+      gchar *stripped;
+
+      stripped = strip_multiple_spaces (composed->str, composed->len);
+      g_variant_builder_add (builder, "{sv}", "markup-body", g_variant_new_take_string (stripped));
+
+      return TRUE;
+    }
+  else
+    {
+      g_prefix_error (error, "invalid markup-body: ");
+      return FALSE;
+    }
+}
+
 static gboolean
 parse_priority (GVariantBuilder  *builder,
                 GVariant         *value,
@@ -577,6 +723,11 @@ parse_notification (GVariantBuilder  *builder,
             return FALSE;
 
           g_variant_builder_add (builder, "{sv}", key, value);
+        }
+      else if (strcmp (key, "markup-body") == 0)
+        {
+          if (!parse_markup_body (builder, value, error))
+            return FALSE;
         }
       else if (strcmp (key, "icon") == 0)
         {
