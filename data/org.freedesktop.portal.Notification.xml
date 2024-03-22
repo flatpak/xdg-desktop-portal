@@ -68,6 +68,18 @@
 
           User-visible string to display as the body.
 
+        * ``markup-body`` (``s``)
+
+          The same as ``body`` but with support for markup formatting.
+          The markup is XML-based and supports a small subset of HTML
+          ``<b>...</b>``, ``<i>...</i>`` and ``<a href="...">...</a>``.
+
+          Any markup not supported, e.g. new lines, will be removed from
+          the string. In the future, the set of supported markup may be extended.
+
+          This can be a long string but if it doesn't fit the UI it may
+          be wrapped or/and truncated.
+
         * ``icon`` (``v``)
 
           A serialized icon to add to the notification. The format for
