@@ -10,3 +10,4 @@ void test_notification_bad_button (void);
 void test_notification_icon (void);
 void test_notification_sound (void);
 void test_notification_display_hint (void);
+void test_notification_category (void);
