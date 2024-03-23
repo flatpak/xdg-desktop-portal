@@ -197,7 +197,7 @@
 
         See org.freedesktop.portal.FileChooser.OpenFile() for details.
 
-      * ``current_name``(``s``)
+      * ``current_name`` (``s``)
 
         Suggested name of the file.
 
