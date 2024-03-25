@@ -498,8 +498,282 @@ should_use_default_app (const char *scheme,
   return FALSE;
 }
 
+// TODO: these will presumably be sourced from JSON or XML files
+typedef struct
+{
+  /* This probably requires generating some sort of matrix on-the-fly */
+  const char *app_id;
+  const char **schemes;
+  const char **hosts;
+  const char **paths;
+  const char **exclude_paths;
+
+  /* Alternative */
+  const char **patterns;
+  const char **exclude_patterns;
+} DomainHandler;
+
+static DomainHandler uri_handlers[] = {
+  // Maps
+  {
+    .app_id = "org.gnome.Maps",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      "maps",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "openstreetmap.org",
+      "*.openstreetmap.org",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/#map=*",
+      "/node/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
+      NULL,
+    },
+  },
+
+  // Matrix
+  {
+    .app_id = "org.gnome.Fractal",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "*.matrix.to",
+      "matrix.to",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/#/#*:*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/#/disclaimer",
+      NULL,
+    },
+  },
+
+  // Flathub
+  {
+    .app_id = "org.gnome.Software",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "flathub.org",
+      "*.flathub.org",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/apps/search?q=*",
+      "/apps/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
+      NULL,
+    },
+  },
+
+  // Jitsi
+  {
+    .app_id = "org.jitsi.jitsi-meet",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "meet.jit.si",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
+      NULL,
+    },
+  },
+
+  // YouTube
+  {
+    .app_id = "io.freetubeapp.FreeTube",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "youtu.be",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      NULL,
+    },
+  },
+  {
+    .app_id = "io.freetubeapp.FreeTube",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "youtube.com",
+      "*.youtube.com",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/watch?v=*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
+      NULL,
+    },
+  },
+};
+
+static inline char *
+compose_domain_handler (const char *scheme,
+                        const char *host,
+                        const char *path)
+{
+  if (scheme == NULL)
+    scheme = "*";
+
+  if (host == NULL)
+    host = "*";
+
+  if (path == NULL)
+    path = "";
+
+  return g_strdup_printf ("%s://%s%s", scheme, host, path);
+}
+
 static void
-find_recommended_choices (const char *scheme,
+compose_handler_patterns (GHashTable    *compositions,
+                          DomainHandler *handler)
+{
+  g_autoptr(GStrvBuilder) builder = NULL;
+  const char **patterns = NULL;
+
+  g_assert (compositions != NULL);
+  g_assert (handler != NULL);
+
+  builder = g_strv_builder_new ();
+
+  patterns = g_hash_table_lookup (compositions, handler->app_id);
+  if (patterns)
+    {
+      g_strv_builder_addv (builder, patterns);
+    }
+
+  for (size_t s = 0; handler->schemes[s] != NULL; s++)
+    {
+      const char *scheme = handler->schemes[s];
+
+      for (size_t h = 0; handler->hosts[h] != NULL; h++)
+        {
+          const char *host = handler->hosts[h];
+
+          for (size_t p = 0; handler->paths[p] != NULL; p++)
+            {
+              const char *path = handler->paths[p];
+              g_autofree char *pattern = NULL;
+
+              pattern = compose_domain_handler (scheme, host, path);
+              g_strv_builder_add (builder, pattern);
+            }
+        }
+    }
+
+  g_hash_table_replace (compositions,
+                        g_strdup (handler->app_id),
+                        g_strv_builder_end (builder));
+}
+
+static gboolean
+domain_handler_should_exclude (DomainHandler handler,
+                               const char    *uri)
+{
+  g_assert (uri != NULL);
+
+  for (size_t p = 0; handler.exclude_patterns[p] != NULL; p++)
+    {
+       if (g_pattern_match_simple (handler.exclude_patterns[p], uri))
+        {
+          g_debug ("Excluding handler for %s (%s)", uri, handler.app_id);
+          return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+static void
+find_patterned_choices (const char *uri,
+                        GStrv *choices,
+                        guint *choices_len)
+{
+  g_autoptr(GHashTable) handlers = NULL;
+  GHashTableIter iter;
+  const char *app_id = NULL;
+  GStrv patterns = NULL;
+  g_autoptr(GStrvBuilder) builder = NULL;
+  guint n_choices = 0;
+
+  g_assert (uri != NULL);
+
+  builder = g_strv_builder_new ();
+  handlers = g_hash_table_new_full (g_str_hash,
+                                    g_str_equal,
+                                    g_free,
+                                    (GDestroyNotify)g_strfreev);
+
+  for (size_t i = 0; i < G_N_ELEMENTS (uri_handlers); i++)
+    compose_handler_patterns (handlers, &uri_handlers[i]);
+
+  g_hash_table_iter_init (&iter, handlers);
+  while (g_hash_table_iter_next (&iter, (void **)&app_id, (void **)&patterns))
+    {
+      for (unsigned int i = 0; patterns[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (patterns[i], uri)) // &&
+             //!domain_handler_should_exclude (handler, uri))
+            {
+              g_debug ("Matching handler for %s (%s)", uri, app_id);
+              g_strv_builder_add (builder, app_id);
+              n_choices += 1;
+              break;
+            }
+        }
+    }
+
+  *choices = g_strv_builder_end (builder);
+  *choices_len = n_choices;
+}
+
+static void
+find_recommended_choices (const char *uri,
+                          const char *scheme,
                           const char *content_type,
                           char **default_app,
                           GStrv *choices,
@@ -511,6 +785,22 @@ find_recommended_choices (const char *scheme,
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
+
+  /* TODO: we're pre-empting the default app, since there is are hard-coded
+   *       URI scheme overrides.
+   */
+  find_patterned_choices (uri, &result, &n_choices);
+  if (n_choices > 0)
+    {
+      *choices = g_steal_pointer (&result);
+      *choices_len = n_choices;
+      return;
+    }
+  else
+    {
+      n_choices = 0;
+      g_clear_pointer (&result, g_strfreev);
+    }
 
   info = g_app_info_get_default_for_type (content_type, FALSE);
 
@@ -553,13 +843,15 @@ app_info_changed (GAppInfoMonitor *monitor,
 {
   const char *scheme;
   const char *content_type;
+  const char *uri;
   g_autofree char *default_app = NULL;
   g_auto(GStrv) choices = NULL;
   guint n_choices;
 
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_dbus_impl_app_chooser_call_update_choices (impl,
                                                  request->id,
@@ -787,7 +1079,7 @@ handle_open_in_thread_func (GTask *task,
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   /* collect all the information */
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
   /* it's never NULL, but might be empty (only contain the NULL terminator) */
   g_assert (choices != NULL);
   if (default_app != NULL && !app_exists (default_app))
