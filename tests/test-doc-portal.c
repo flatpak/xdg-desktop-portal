@@ -688,6 +688,38 @@ test_add_named (void)
 }
 
 static void
+test_get_real_path (void)
+{
+  g_autofree char *doc_id = NULL;
+  g_autofree char *expected_real_path = NULL;
+  g_autofree char *real_path = NULL;
+  const char *basename = "real-path";
+  g_autoptr(GVariant) reply = NULL;
+  GError *error = NULL;
+
+  if (!check_fuse_or_skip_test ())
+    return;
+
+  doc_id = export_new_file (basename, "content", FALSE);
+
+  reply = g_dbus_connection_call_sync (session_bus,
+                                       "org.freedesktop.portal.Documents",
+                                       "/org/freedesktop/portal/documents",
+                                       "org.freedesktop.portal.Documents",
+                                       "GetRealPath",
+                                       g_variant_new ("(s)", doc_id),
+                                       G_VARIANT_TYPE ("(s)"),
+                                       0, -1,
+                                       NULL,
+                                       &error);
+
+  g_assert_no_error (error);
+  g_variant_get (reply, "(s)", &real_path);
+  expected_real_path = g_build_filename (outdir, basename, NULL);
+  g_assert_cmpstr (real_path, ==, expected_real_path);
+}
+
+static void
 global_setup (void)
 {
   gboolean inited;
@@ -853,7 +885,7 @@ test_version (void)
   if (!check_fuse_or_skip_test ())
     return;
 
-  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 4);
+  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 5);
 }
 
 int
@@ -871,6 +903,7 @@ main (int argc, char **argv)
   g_test_add_func ("/db/recursive_doc", test_recursive_doc);
   g_test_add_func ("/db/create_docs", test_create_docs);
   g_test_add_func ("/db/add_named", test_add_named);
+  g_test_add_func ("/db/get_real_path", test_get_real_path);
 
   global_setup ();
 
