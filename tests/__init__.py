@@ -332,13 +332,14 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, session_bus, portal_name: str):
+    def __init__(self, session_bus, portal_name: str, app_id: str = "org.example.App"):
         self.bus = session_bus
         self.portal_name = portal_name
         self.p_mock = None
         self.xdp = None
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.dbus_monitor = None
+        self.app_id = app_id
 
     @property
     def interface_name(self) -> str:
@@ -412,6 +413,7 @@ class PortalMock:
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
+        env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
 
         xdp = subprocess.Popen(argv, env=env)
 

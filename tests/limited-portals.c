@@ -138,13 +138,14 @@ global_setup (void)
   g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subprocess = NULL;
-  g_autoptr(XdpAppInfo) appinfo = NULL;
   guint name_timeout;
   const char *argv[4];
   GQuark portal_errors G_GNUC_UNUSED;
   static gboolean name_appeared;
   guint watch;
   guint timeout_mult = 1;
+
+  appid = "org.example.App";
 
   update_data_dirs ();
 
@@ -154,6 +155,7 @@ global_setup (void)
   g_setenv ("XDG_CURRENT_DESKTOP", "limited", TRUE);
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
+  g_setenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID", appid, TRUE);
 
   /* Re-defining dbus-daemon with a custom script */
   setup_dbus_daemon_wrapper (outdir);
@@ -320,10 +322,6 @@ global_setup (void)
                                                     &error);
   g_assert_no_error (error);
 
-  appinfo = xdp_get_app_info_from_pid (getpid (), &error);
-  g_assert_no_error (error);
-  appid = g_strdup (xdp_app_info_get_id (appinfo));
-
   /* make sure errors are registered */
   portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 }
@@ -380,7 +378,6 @@ global_teardown (void)
 
   g_object_unref (lockdown);
   g_object_unref (permission_store);
-  g_free (appid);
 
   g_object_unref (session_bus);
 

@@ -9,7 +9,6 @@ portal_sources = files(
   'org.freedesktop.portal.Background.xml',
   'org.freedesktop.portal.Camera.xml',
   'org.freedesktop.portal.Clipboard.xml',
-  'org.freedesktop.portal.Device.xml',
   'org.freedesktop.portal.Documents.xml',
   'org.freedesktop.portal.DynamicLauncher.xml',
   'org.freedesktop.portal.Email.xml',
