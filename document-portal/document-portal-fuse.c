@@ -1847,17 +1847,21 @@ xdp_fuse_lookup (fuse_req_t req,
     }
   else
     {
+      g_autoptr(XdpInode) inode = NULL;
+      struct stat buf;
+
       g_assert (parent_domain->type == XDP_DOMAIN_DOCUMENT);
 
       fd = xdp_document_inode_open_child_fd (parent, name, open_flags, 0);
       if (fd < 0)
         return xdp_reply_err (op, req, -fd);
 
-      res = ensure_docdir_inode (parent, fd, &e, NULL); /* Takes ownership of fd */
+      res = ensure_docdir_inode (parent, fd, &e, &inode); /* Takes ownership of fd */
       if (res != 0)
         return xdp_reply_err (op, req, -res);
 
-      queue_invalidate_dentry (parent, name);
+      if (fstat (inode->physical->fd, &buf) != 0 || !S_ISDIR(buf.st_mode))
+        queue_invalidate_dentry (parent, name);
     }
 
   g_debug ("LOOKUP %lx:%s => %lx", parent_ino, name, e.ino);
