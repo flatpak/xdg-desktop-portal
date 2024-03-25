@@ -37,6 +37,7 @@ portal_sources = files(
   'org.freedesktop.portal.Settings.xml',
   'org.freedesktop.portal.Trash.xml',
   'org.freedesktop.portal.Wallpaper.xml',
+  'org.freedesktop.portal.WebExtensions.xml',
 )
 
 portal_impl_sources = files(

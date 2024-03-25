@@ -11,9 +11,11 @@ project(
 
 prefix = get_option('prefix')
 datadir = prefix / get_option('datadir')
+libdir = prefix / get_option('libdir')
 libexecdir = prefix / get_option('libexecdir')
 sysconfdir = prefix / get_option('sysconfdir')
 localedir = prefix / get_option('localedir')
+sysconfdir = prefix / get_option('sysconfdir')
 dbus_service_dir = get_option('dbus-service-dir')
 if dbus_service_dir == ''
     dbus_service_dir = prefix /  datadir / 'dbus-1' / 'services'
@@ -78,6 +80,7 @@ config_h = configuration_data()
 config_h.set('_GNU_SOURCE', 1)
 config_h.set_quoted('G_LOG_DOMAIN', 'xdg-desktop-portal')
 config_h.set_quoted('DATADIR', datadir)
+config_h.set_quoted('LIBDIR', libdir)
 config_h.set_quoted('LIBEXECDIR', libexecdir)
 config_h.set_quoted('LOCALEDIR', localedir)
 config_h.set_quoted('SYSCONFDIR', sysconfdir)
