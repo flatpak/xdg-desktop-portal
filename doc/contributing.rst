@@ -53,6 +53,13 @@ service that might already be running. To do so, run:
 
    _build/src/xdg-desktop-portal --replace
 
+If you are developing inside a ``toolbox`` container, you must use
+``flatpak-spawn`` from ``flatpak-xdg-utils`` to run the service:
+
+.. code-block:: shell
+
+   flatpak-spawn --host _build/src/xdg-desktop-portal --replace
+
 You may need to restart backends after replacing XDG Desktop Portal (please
 replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
 
