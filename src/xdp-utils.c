@@ -200,7 +200,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 }
 #endif /* HAVE_LIBSYSTEMD */
 
-void
+static void
 set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 {
 #ifdef HAVE_LIBSYSTEMD
@@ -235,6 +235,14 @@ xdp_app_info_new_host (pid_t pid)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   set_appid_from_pid (app_info, pid);
+  return app_info;
+}
+
+static XdpAppInfo *
+xdp_app_info_new_test_host (const char *app_id)
+{
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  app_info->id = g_strdup (app_id);
   return app_info;
 }
 
@@ -927,6 +935,11 @@ xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  const char *test_override_app_id;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (test_override_app_id)
+    return xdp_app_info_new_test_host (test_override_app_id);
 
   return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
