@@ -524,26 +524,17 @@ static DomainHandler uri_handlers[] = {
       NULL,
     },
     .hosts = (const char *[]){
+      "openstreetmap.org",
       "*.openstreetmap.org",
       NULL,
     },
     .paths = (const char *[]){
       "/#map=*",
+      "/node/*",
       NULL,
     },
     .exclude_paths = (const char *[]){
-      "https://www.openstreetmap.org/about",
-      NULL,
-
-    },
-
-    .patterns = (const char *[]){
-      "maps://*/#map=*",
-      "*://www.openstreetmap.org/#map=*",
-      "*://*openstreetmap.org/way/*",
-      NULL,
-    },
-    .exclude_patterns = (const char *[]){
+      "/about",
       NULL,
     },
   },
@@ -551,44 +542,29 @@ static DomainHandler uri_handlers[] = {
   // Matrix
   {
     .app_id = "org.gnome.Fractal",
-
-    //
     .schemes = (const char *[]){
       "http",
       "https",
-      "maps",
       NULL,
     },
     .hosts = (const char *[]){
-      "*.openstreetmap.org",
+      "*.matrix.to",
+      "matrix.to",
       NULL,
     },
     .paths = (const char *[]){
-      "/#map=*",
+      "/#/#*:*",
       NULL,
     },
     .exclude_paths = (const char *[]){
-      "https://www.openstreetmap.org/about",
-      NULL,
-
-    },
-
-    //
-    .patterns = (const char *[]){
-      "https://matrix.to/#/#*:gnome.org",
-      "https://matrix.to/#/#*:*",
-      NULL,
-    },
-    .exclude_patterns = (const char *[]){
+      "/#/disclaimer",
       NULL,
     },
   },
 
-  // Software
+  // Flathub
   {
     .app_id = "org.gnome.Software",
-
-    //
     .schemes = (const char *[]){
       "http",
       "https",
@@ -608,19 +584,131 @@ static DomainHandler uri_handlers[] = {
       "/about",
       NULL,
     },
+  },
 
-    //
-    .patterns = (const char *[]){
-      "https://flathub.org/apps/search?q=*",
-      "https://flathub.org/apps/*",
+  // Jitsi
+  {
+    .app_id = "org.jitsi.jitsi-meet",
+    .schemes = (const char *[]){
+      "http",
+      "https",
       NULL,
     },
-    .exclude_patterns = (const char *[]){
-      "https://flathub.org/about",
+    .hosts = (const char *[]){
+      "meet.jit.si",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
+      NULL,
+    },
+  },
+
+  // YouTube
+  {
+    .app_id = "io.freetubeapp.FreeTube",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "youtu.be",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      NULL,
+    },
+  },
+  {
+    .app_id = "io.freetubeapp.FreeTube",
+    .schemes = (const char *[]){
+      "http",
+      "https",
+      NULL,
+    },
+    .hosts = (const char *[]){
+      "youtube.com",
+      "*.youtube.com",
+      NULL,
+    },
+    .paths = (const char *[]){
+      "/watch?v=*",
+      NULL,
+    },
+    .exclude_paths = (const char *[]){
+      "/about",
       NULL,
     },
   },
 };
+
+static inline char *
+compose_domain_handler (const char *scheme,
+                        const char *host,
+                        const char *path)
+{
+  if (scheme == NULL)
+    scheme = "*";
+
+  if (host == NULL)
+    host = "*";
+
+  if (path == NULL)
+    path = "";
+
+  return g_strdup_printf ("%s://%s%s", scheme, host, path);
+}
+
+static void
+compose_handler_patterns (GHashTable    *compositions,
+                          DomainHandler *handler)
+{
+  g_autoptr(GStrvBuilder) builder = NULL;
+  const char **patterns = NULL;
+
+  g_assert (compositions != NULL);
+  g_assert (handler != NULL);
+
+  builder = g_strv_builder_new ();
+
+  patterns = g_hash_table_lookup (compositions, handler->app_id);
+  if (patterns)
+    {
+      g_strv_builder_addv (builder, patterns);
+    }
+
+  for (size_t s = 0; handler->schemes[s] != NULL; s++)
+    {
+      const char *scheme = handler->schemes[s];
+
+      for (size_t h = 0; handler->hosts[h] != NULL; h++)
+        {
+          const char *host = handler->hosts[h];
+
+          for (size_t p = 0; handler->paths[p] != NULL; p++)
+            {
+              const char *path = handler->paths[p];
+              g_autofree char *pattern = NULL;
+
+              pattern = compose_domain_handler (scheme, host, path);
+              g_strv_builder_add (builder, pattern);
+            }
+        }
+    }
+
+  g_hash_table_replace (compositions,
+                        g_strdup (handler->app_id),
+                        g_strv_builder_end (builder));
+}
 
 static gboolean
 domain_handler_should_exclude (DomainHandler handler,
@@ -645,23 +733,34 @@ find_patterned_choices (const char *uri,
                         GStrv *choices,
                         guint *choices_len)
 {
+  g_autoptr(GHashTable) handlers = NULL;
+  GHashTableIter iter;
+  const char *app_id = NULL;
+  GStrv patterns = NULL;
   g_autoptr(GStrvBuilder) builder = NULL;
   guint n_choices = 0;
 
   g_assert (uri != NULL);
 
   builder = g_strv_builder_new ();
-  for (size_t i = 0; i < G_N_ELEMENTS (uri_handlers); i++)
-    {
-      DomainHandler handler = uri_handlers[i];
+  handlers = g_hash_table_new_full (g_str_hash,
+                                    g_str_equal,
+                                    g_free,
+                                    (GDestroyNotify)g_strfreev);
 
-      for (size_t p = 0; handler.patterns[p] != NULL; p++)
+  for (size_t i = 0; i < G_N_ELEMENTS (uri_handlers); i++)
+    compose_handler_patterns (handlers, &uri_handlers[i]);
+
+  g_hash_table_iter_init (&iter, handlers);
+  while (g_hash_table_iter_next (&iter, (void **)&app_id, (void **)&patterns))
+    {
+      for (unsigned int i = 0; patterns[i] != NULL; i++)
         {
-          if (g_pattern_match_simple (handler.patterns[p], uri) &&
-             !domain_handler_should_exclude (handler, uri))
+          if (g_pattern_match_simple (patterns[i], uri)) // &&
+             //!domain_handler_should_exclude (handler, uri))
             {
-              g_debug ("Matching handler for %s (%s)", uri, handler.app_id);
-              g_strv_builder_add (builder, handler.app_id);
+              g_debug ("Matching handler for %s (%s)", uri, app_id);
+              g_strv_builder_add (builder, app_id);
               n_choices += 1;
               break;
             }
