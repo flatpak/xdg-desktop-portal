@@ -88,3 +88,9 @@ Then you can build the website with:
 
 Then just load the build website into a browser of your choice from
 ``_build/doc/html/index.html``
+
+.. toctree::
+   :maxdepth: 2
+   :hidden:
+
+   portal-internals
