@@ -161,6 +161,20 @@
       <arg type="o" name="handle" direction="out"/>
     </method>
 
+    <!--
+        SchemeSupported:
+        @scheme: The URI protocol scheme to check
+        @supported: True when URI scheme is supported on the host system
+
+        Asks whenever host system supports the protocol scheme.
+
+        The SchemeSupported method was introduced in version 4 of the OpenURI portal API.
+    -->
+    <method name="SchemeSupported">
+      <arg type="s" name="scheme" direction="in"/>
+      <arg type="b" name="supported" direction="out"/>
+    </method>
+
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
