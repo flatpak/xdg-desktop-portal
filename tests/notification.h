@@ -3,6 +3,14 @@
 
 void test_notification_basic (void);
 void test_notification_buttons (void);
+void test_notification_markup_body (void);
 void test_notification_bad_arg (void);
 void test_notification_bad_priority (void);
 void test_notification_bad_button (void);
+void test_notification_icon (void);
+void test_notification_sound (void);
+void test_notification_desktop_file_id (void);
+void test_notification_display_hint (void);
+void test_notification_content_type (void);
+void test_notification_actions (void);
+void test_notification_supported_properties (void);

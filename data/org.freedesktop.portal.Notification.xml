@@ -41,7 +41,7 @@
       #org.freedesktop.portal.Notification::ActionInvoked signal
       to the application.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Notification">
     <!--
@@ -53,7 +53,9 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set a ``display-hint`` to animate replacing the notification
+        instead of updating it.
 
         The format of the serialized notification is a vardict, with
         the following supported keys, all of which are optional:
@@ -66,20 +68,68 @@
 
           User-visible string to display as the body.
 
+        * ``markup-body`` (``s``)
+
+          The same as ``body`` but with support for markup formatting.
+          The markup is XML-based and supports a small subset of HTML
+          ``<b>...</b>``, ``<i>...</i>`` and ``<a href="...">...</a>``.
+
+          Any markup not supported, e.g. new lines, will be removed from
+          the string. In the future, the set of supported markup may be extended.
+
+          This can be a long string but note that it may not be fully displayed.
+
         * ``icon`` (``v``)
 
-          Serialized icon (see `g_icon_serialize()
-          <https://docs.gtk.org/gio/method.Icon.serialize.html>`_).
+          A serialized icon to add to the notification. The format for
+          serialized icon is a tuple (sv) with the following supported keys:
 
-          The portal only accepts serialized GThemedIcon and GBytesIcons. Both of
-          these have the form (sv). For themed icons, the string is "themed",
-          and the value is an array of strings containing the icon names.
-          For bytes icons, the string is "bytes", and the value is a bytestring
-          containing the icon data in png, jpeg or svg form. For historical
-          reasons, it is also possible to send a simple string for themed
-          icons with a single icon name.
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_.
+
+          * ``bytes`` (``ay``)
+
+            A bytes icon containing a bytestring with the icon data in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GBytesIcon
+            <https://docs.gtk.org/gio/class.BytesIcon.html>`_.
+
+          * ``file-descriptor`` (``h``)
+
+            A file descriptor to an image file in png, jpeg or svg form.
+
+          For historical reasons, it is also possible to send a simple string
+          for themed icons with a single icon name.
 
           There may be further restrictions on the supported kinds of icons.
+
+        * ``sound`` (``v``)
+
+          A serialized sound to add to the notification.
+          Supported sound formats are oga and wav.
+
+          The format for
+          serialized sound is a tuple (sv) with the following supported keys:
+
+          * ``bytes`` (``ay``)
+
+            A bytes sound containing a bytestring with the sound data.
+
+          * ``file-descriptor`` (``h``)
+
+            A file descriptor to a sound file.
+
+          To play the default sound the string ``default`` can be passed.
+          To play no sound at all the string ``silent`` can be passed.
+          If this property isn't specified the notification server can decide
+          whether to play a sound.
+
+          There may be further restrictions on the supported kinds of sounds.
 
         * ``priority`` (``s``)
 
@@ -116,8 +166,211 @@
           * ``target`` (``v``)
 
             Target parameter to send along when activating the action.
+
+          * ``purpose`` (``s``)
+
+            The ``purpose`` of the button. This information may be used by the
+            notification server to style the button specially.
+
+            The standardized hints are defined as part of a ``content-type``.
+            Depending on the ``purpose`` other fields of the button may be ignored.
+            If the server doesn't understand the ``purpose` it will be
+            ignored and the button will be shown as a normal button.
+
+            Additional purposes may be defined by notification servers using
+            ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
+
+        * ``actions`` (``aa{sv}``)
+
+          Array of actions that the notification server will invoke
+          automatically in specific cases. These actions may be called never or even multiple times.
+
+          Invoked actions will contain as parameter a vardict ``a{sv}`` containing the
+          ``target` and the response of the action.
+
+          The format for a serialized action is a vardict with the following supported keys:
+
+          * ``action`` (``s``)
+
+            Name of the action. Mandatory.
+
+            This action needs to be exported by the application.
+
+          * ``purpose`` (``s``)
+            The purpose of the action. Mandatory.
+
+            * ``system.custom-alert``:
+
+              This action will be called by the notification server
+              whenever the notification is shown.
+
+              The purpose of this action is to allow apps to use custom methods of
+              notifying the user, for example, to play audio from a special
+              source like a streaming service or a radio station.
+
+            * ``user.reply-with-text``:
+
+              Inline replies for instant messaging apps.
+              The user-provided text will be added to the response vardict as ``reply-text`` (``s``);
+
+            Additional purposes may be defined by notification servers using
+            ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
+
+          * ``target`` (``v``)
+
+            Target parameter to send along when activating the action.
+
+            This target will be added to the response vardict as ``target`` (``v``);
+
+
+        * ``desktop-file-id`` (``s``)
+
+          An optional ``desktop-file-id``. Mendotory for un-sandboxed apps;
+
+          If set, this must be a valid
+          `Desktop File ID <https://specifications.freedesktop.org/desktop-entry-spec/latest/ar01s02.html#desktop-file-id>`_
+          with ``.desktop`` as a suffix.
+
+          For sandboxed apps, ``desktop-file-id``
+          must start with the app ID and can have a prefix after a period.
+          E.g A sandboxed app with id ``org.libreoffice.LibreOffice``
+          is allowed to specify ``org.libreoffice.LibreOffice.Writer.desktop``.
+
+          The desktop file needs to be installed on the system.
+
+        * ``display-hint`` (``as``)
+
+          An array of ways to display the notification. If none are set, or the notification server has its own policy, it is
+          free to decide how and where to display the notification.
+
+          * ``transient``
+
+            The notification is displayed only as a banner and won't be kept
+            by the server in a tray.
+
+            It's a programmer error to specify ``tray`` at the same time.
+
+          * ``tray``
+
+            No banner for the notification will be displayed and
+            the notification is placed in the tray.
+
+            It's a programmer error to specify ``transient`` at the same time.
+
+          * ``persistent``
+
+            Make the notification persistent in the notification tray.
+            The user can’t dismiss it using the usual close button or gesture.
+
+            Apps are only allowed to display persistent notifications
+            as long as they have a window. Once the last window of an app
+            is closed the persistent notification will be removed.
+
+          * ``hide-on-lockscreen``
+
+            Don't show the notification on the lockscreen.
+
+          * ``hide-content-on-lockscreen``
+
+            Only show the notification ``title`` and ``icon`` on the lockscreen.
+
+          * ``show-as-new``
+
+            If a notification with the same ``id`` of the app exists already
+            replace the previous notification, by removing the old notification
+            (including animation, etc) and adding a new notification.
+
+            If this hint isn't specified the notification is updated without any flickering.
+
+          Additional purposes may be defined by notification servers.
+
+        * ``content-type`` (``s``)
+
+          The ``content-type`` describes the type of content of a notification.
+          A notification server may use this information to display the
+          notification specially. Some content types also include
+          button purposes that can be set for a button so that the notification
+          can know the purpose of the button.
+
+          The following types are standarized so far:
+
+          * ``im.message``
+
+            Intended for instant messaging apps displaying notifications for new messages.
+
+          * ``alarm.ringing``
+
+            Intended for alarm clock apps
+
+          * ``call.incoming``
+
+            Intended for call apps to notify the user about an incoming call.
+
+            This type has the following button purposes:
+
+            * ``call.accept``:
+
+              Accept the incoming call.
+
+            * ``call.decline``:
+
+              Decline the incoming call.
+
+          * ``call.ongoing``
+
+            Intended for call apps while a call is ongoing.
+
+            This type has the following button purposes:
+
+            * ``call.decline``:
+
+              Hang up the ongoing call.
+
+            * ``call.enable-speakerphone``:
+
+              Enable the speakerphone for the ongoing call.
+
+            * ``call.disable-speakerphone``:
+
+              Disable the speakerphone for the ongoing call.
+
+          * ``call.missed``
+
+            Intended to be used by call apps when a call was missed.
+
+          * ``weather.warning.extreme``
+
+            Intended to be used to display an extreme weather warning.
+
+          * ``cellbroadcast.danger.extreme``
+
+            Intended to be used to display extreme danger warnings broadcasted by the cell network.
+
+          * ``cellbroadcast.danger.severe``
+
+            Intended to be used to display severe danger warnings broadcasted by the cell network.
+
+          * ``cellbroadcast.amberalert``
+
+            Intended to be used to display amber alerts broadcasted by the cell network.
+
+          * ``cellbroadcast.test``
+
+            Intended to be used to display tests broadcasted by the cell network.
+
+          * ``os.battery.low``
+
+            Intended to be used to indicate that the system is low on battery.
+
+          * ``browser.web-notification``
+
+            Intended to be used by browsers to mark notifications as web notifications
+
+            Additional types and button purposes may be defined by notification servers using
+            ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
       -->
     <method name="AddNotification">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="id" direction="in"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
@@ -130,6 +383,30 @@
     <method name="RemoveNotification">
       <arg type="s" name="id" direction="in"/>
     </method>
+
+    <!--
+        SupportedOptions:
+
+        Some properties in :ref:`org.freedesktop.portal.Notification.AddNotification`
+        may have options advertised by the server.
+
+        Currently there are the following options the notification server can advertise:
+
+        * ``content-type`` (``a{sv}``)
+
+          Content types that the notification server understands and supports.
+
+        * ``button-purpose`` (``as``)
+
+          Button purposes that the notification server understands and supports.
+          This is the list of options that can be used as `purpose` for `buttons`.
+
+        * ``action-purpose`` (``as``)
+
+          Action purposes that the notification server understands and supports.
+          This is the list of options that can be used as `purpose` for `actions`.
+    -->
+    <property name="SupportedOptions" type="a{sv}" access="read"/>
 
     <!--
         ActionInvoked:

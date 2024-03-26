@@ -4,11 +4,48 @@
 #include "account.h"
 
 #include <libportal/portal.h>
+#include <gio/gunixoutputstream.h>
 #include "xdp-utils.h"
+
+#define IMAGE_DATA "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
+                   "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"16px\" width=\"16px\"/>"
+/* We currently don't validated the sound itself so it doesn't matter what we give to the test */
+#define SOUND_DATA "SOME SOUND DATA"
 
 extern char outdir[];
 
 static int got_info;
+
+static void
+notification_succeed (GObject *source,
+                      GAsyncResult *result,
+                      gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (source);
+  g_autoptr(GError) error = NULL;
+  gboolean res;
+
+  res = xdp_portal_add_notification_finish (portal, result, &error);
+  g_assert_no_error (error);
+  g_assert_true (res);
+}
+
+static void
+notification_fail (GObject *source,
+                   GAsyncResult *result,
+                   gpointer data)
+{
+  XdpPortal *portal = XDP_PORTAL (source);
+  g_autoptr(GError) error = NULL;
+  gboolean res;
+
+  res = xdp_portal_add_notification_finish (portal, result, &error);
+  g_assert_false (res);
+  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT);
+
+  got_info++;
+  g_main_context_wakeup (NULL);
+}
 
 static void
 notification_action_invoked (XdpPortal *portal,
@@ -32,30 +69,31 @@ notification_action_invoked (XdpPortal *portal,
   g_main_context_wakeup (NULL);
 }
 
-void
-test_notification_basic (void)
+static void
+run_notification_test (const char *notification_id,
+                       const char *notification_s,
+                       const char *exp_notification_s,
+                       gboolean    exp_fail)
 {
   g_autoptr(XdpPortal) portal = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GVariant) notification = NULL;
-  const char *notification_s;
   gulong id;
-
-  notification_s = "{ 'title': <'title'>, "
-                   "  'body': <'test notification body'>, "
-                   "  'priority': <'normal'>, "
-                   "  'default-action': <'test-action'> }";
 
   notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, NULL);
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
-  g_key_file_set_string (keyfile, "notification", "id", "test");
+  g_key_file_set_string (keyfile, "notification", "data", exp_notification_s ? exp_notification_s : notification_s);
+  g_key_file_set_string (keyfile, "notification", "id", notification_id);
   g_key_file_set_string (keyfile, "notification", "action", "test-action");
-  g_key_file_set_integer (keyfile, "backend", "delay", 200);
+
+  if (exp_fail)
+    g_key_file_set_boolean (keyfile, "backend", "expect-no-call", TRUE);
+  else
+    g_key_file_set_integer (keyfile, "backend", "delay", 200);
 
   path = g_build_filename (outdir, "notification", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -63,29 +101,42 @@ test_notification_basic (void)
 
   portal = xdp_portal_new ();
 
-  id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
+  if (!exp_fail)
+    id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
 
   got_info = 0;
-  xdp_portal_add_notification (portal, "test", notification, 0, NULL, NULL, NULL);
+
+  if (exp_fail)
+    xdp_portal_add_notification (portal, notification_id, notification, 0, NULL, notification_fail, NULL);
+  else
+    xdp_portal_add_notification (portal, notification_id, notification, 0, NULL, notification_succeed, NULL);
 
   while (!got_info)
     g_main_context_iteration (NULL, TRUE);
 
-  g_signal_handler_disconnect (portal, id);
+  if (!exp_fail)
+    g_signal_handler_disconnect (portal, id);
 
   xdp_portal_remove_notification (portal, "test");
 }
 
 void
+test_notification_basic (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'title'>, "
+                   "  'body': <'test notification body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
+
+  run_notification_test ("test1", notification_s, NULL, FALSE);
+}
+
+void
 test_notification_buttons (void)
 {
-  g_autoptr(XdpPortal) portal = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *path = NULL;
-  g_autoptr(GVariant) notification = NULL;
   const char *notification_s;
-  gulong id;
 
   notification_s = "{ 'title': <'test notification 2'>, "
                    "  'body': <'test notification body 2'>, "
@@ -95,97 +146,40 @@ test_notification_buttons (void)
                    "               {'label': <'button2'>, 'action': <'action2'>}]> "
                    "}";
 
-  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
-  g_assert_no_error (error);
-
-  keyfile = g_key_file_new ();
-
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
-  g_key_file_set_string (keyfile, "notification", "id", "test2");
-  g_key_file_set_string (keyfile, "notification", "action", "action1");
-  g_key_file_set_integer (keyfile, "backend", "delay", 200);
-
-  path = g_build_filename (outdir, "notification", NULL);
-  g_key_file_save_to_file (keyfile, path, &error);
-  g_assert_no_error (error);
-
-  portal = xdp_portal_new ();
-
-  id = g_signal_connect (portal, "notification-action-invoked", G_CALLBACK (notification_action_invoked), keyfile);
-
-  got_info = 0;
-  xdp_portal_add_notification (portal, "test2", notification, 0, NULL, NULL, NULL);
-
-  while (!got_info)
-    g_main_context_iteration (NULL, TRUE);
-
-  g_signal_handler_disconnect (portal, id);
-
-  xdp_portal_remove_notification (portal, "test2");
+  run_notification_test ("test2", notification_s, NULL, FALSE);
 }
 
-static void
-notification_fail (GObject *source,
-                   GAsyncResult *result,
-                   gpointer data)
+void
+test_notification_markup_body (void)
 {
-  XdpPortal *portal = XDP_PORTAL (source);
-  g_autoptr(GError) error = NULL;
-  gboolean res;
+  const char *notification_s;
 
-  res = xdp_portal_add_notification_finish (portal, result, &error);
-  g_assert_false (res);
-  g_assert_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT);
+  notification_s = "{ 'title': <'title'>, "
+                   "  'markup-body': <'test <b>notification</b> body'>, "
+                   "  'priority': <'normal'>, "
+                   "  'default-action': <'test-action'> }";
 
-  got_info++;
-  g_main_context_wakeup (NULL);
+  run_notification_test ("test3", notification_s, NULL, FALSE);
 }
-                
+
 void
 test_notification_bad_arg (void)
 {
-  g_autoptr(XdpPortal) portal = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *path = NULL;
-  g_autoptr(GVariant) notification = NULL;
   const char *notification_s;
+  const char *exp_notification_s;
 
   notification_s = "{ 'title': <'test notification 3'>, "
                    "  'bodx': <'test notification body 3'> "
                    "}";
 
-  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
-  g_assert_no_error (error);
+  exp_notification_s = "{ 'title': <'test notification 3'> }";
 
-  keyfile = g_key_file_new ();
-
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
-  g_key_file_set_string (keyfile, "notification", "id", "test2");
-  g_key_file_set_string (keyfile, "notification", "action", "action1");
-  g_key_file_set_boolean (keyfile, "backend", "expect-no-call", TRUE);
-
-  path = g_build_filename (outdir, "notification", NULL);
-  g_key_file_save_to_file (keyfile, path, &error);
-  g_assert_no_error (error);
-
-  portal = xdp_portal_new ();
-
-  got_info = 0;
-  xdp_portal_add_notification (portal, "test3", notification, 0, NULL, notification_fail, NULL);
-
-  while (!got_info)
-    g_main_context_iteration (NULL, TRUE);
+  run_notification_test ("test3", notification_s, exp_notification_s, FALSE);
 }
 
 void
 test_notification_bad_priority (void)
 {
-  g_autoptr(XdpPortal) portal = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *path = NULL;
-  g_autoptr(GVariant) notification = NULL;
   const char *notification_s;
 
   notification_s = "{ 'title': <'test notification 2'>, "
@@ -193,37 +187,12 @@ test_notification_bad_priority (void)
                    "  'priority': <'invalid'> "
                    "}";
 
-  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
-  g_assert_no_error (error);
-
-  keyfile = g_key_file_new ();
-
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
-  g_key_file_set_string (keyfile, "notification", "id", "test2");
-  g_key_file_set_string (keyfile, "notification", "action", "action1");
-  g_key_file_set_boolean (keyfile, "backend", "expect-no-call", TRUE);
-
-  path = g_build_filename (outdir, "notification", NULL);
-  g_key_file_save_to_file (keyfile, path, &error);
-  g_assert_no_error (error);
-
-  portal = xdp_portal_new ();
-
-  got_info = 0;
-  xdp_portal_add_notification (portal, "test4", notification, 0, NULL, notification_fail, NULL);
-
-  while (!got_info)
-    g_main_context_iteration (NULL, TRUE);
+  run_notification_test ("test4", notification_s, NULL, TRUE);
 }
 
 void
 test_notification_bad_button (void)
 {
-  g_autoptr(XdpPortal) portal = NULL;
-  g_autoptr(GKeyFile) keyfile = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *path = NULL;
-  g_autoptr(GVariant) notification = NULL;
   const char *notification_s;
 
   notification_s = "{ 'title': <'test notification 5'>, "
@@ -232,15 +201,270 @@ test_notification_bad_button (void)
                    "               {'label': <'button2'>, 'action': <'action2'>}]> "
                    "}";
 
-  notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
-  g_assert_no_error (error);
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
+
+static void
+test_icon (const char *serialized_icon,
+           const char *exp_serialized_icon,
+           gboolean    exp_fail)
+{
+  g_autofree char *notification_s = NULL;
+  g_autofree char *exp_notification_s = NULL;
+
+  notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                    "  'body': <'test notification body 7'>, "
+                                    "  'icon': <%s>, "
+                                    "  'default-action': <'test-action'> "
+                                    "}", serialized_icon);
+
+  if (exp_serialized_icon)
+    exp_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                          "  'body': <'test notification body 7'>, "
+                                          "  'icon': <%s>, "
+                                          "  'default-action': <'test-action'> "
+                                          "}", exp_serialized_icon);
+
+  run_notification_test ("test-icon", notification_s, exp_notification_s, exp_fail);
+}
+
+static void
+test_themed_icon ()
+{
+  g_autoptr(GIcon) icon = NULL;
+  g_autoptr(GVariant) serialized_icon = NULL;
+  g_autofree char *serialized_icon_s = NULL;
+
+  icon = g_themed_icon_new ("test-icon-symbolic");
+  serialized_icon = g_icon_serialize (icon);
+
+  serialized_icon_s = g_variant_print (serialized_icon, TRUE);
+  test_icon (serialized_icon_s, NULL, FALSE);
+}
+
+static void
+test_bytes_icon ()
+{
+  g_autoptr(GIcon) icon = NULL;
+  g_autoptr(GVariant) serialized_icon = NULL;
+  g_autofree char *serialized_icon_s = NULL;
+  g_autoptr(GBytes) bytes = NULL;
+
+  bytes = g_bytes_new_static (IMAGE_DATA, strlen (IMAGE_DATA));
+  icon = g_bytes_icon_new (bytes);
+  serialized_icon = g_icon_serialize (icon);
+
+  serialized_icon_s = g_variant_print (serialized_icon, TRUE);
+  test_icon (serialized_icon_s, NULL, FALSE);
+}
+
+static void
+test_file_icon ()
+{
+  g_autofree char *path = NULL;
+  g_autofree char *serialized_icon_s = NULL;
+  g_autofree char *exp_serialized_icon_s = NULL;
+  g_autoptr(GVariant) serialized_icon = NULL;
+  g_autoptr(GFile) file = NULL;
+  g_autoptr(GIcon) icon = NULL;
+  g_autoptr(GFileIOStream) iostream = NULL;
+  GOutputStream *stream = NULL;
+
+  file = g_file_new_tmp ("iconXXXXXX", &iostream, NULL);
+  stream = g_io_stream_get_output_stream (G_IO_STREAM (iostream));
+  g_output_stream_write_all (stream, IMAGE_DATA, strlen(IMAGE_DATA), NULL, NULL, NULL);
+  g_output_stream_close (stream, NULL, NULL);
+
+  path = g_file_get_path (file);
+  icon = g_file_icon_new (file);
+  serialized_icon = g_icon_serialize (icon);
+  serialized_icon_s = g_variant_print (serialized_icon, TRUE);
+  /* GFileIcon puts an URI into the serialized icon but we put a path into it,
+   * which is also valid for a GFileIcon */
+  exp_serialized_icon_s = g_strdup_printf ("('file', <'%s'>)", path);
+  test_icon (serialized_icon_s, exp_serialized_icon_s, FALSE);
+  g_assert (g_file_delete (file, NULL, NULL));
+}
+
+void
+test_notification_icon (void)
+{
+  /* For historical reasons we also accept just an icon name but it's
+   * converted to a "normal" themed icon */
+  test_icon ("'test-icon'", "('themed', <['test-icon', 'test-icon-symbolic']>)", FALSE);
+
+  test_themed_icon ();
+  test_bytes_icon ();
+  test_file_icon ();
+
+  /* Tests that should fail */
+  test_icon ("('themed', <'test-icon-symbolic'>)", NULL, TRUE);
+  test_icon ("('bytes', <['test-icon-symbolic', 'test-icon']>)", NULL, TRUE);
+  test_icon ("('file-descriptor', <''>)", NULL, TRUE);
+  test_icon ("('file-descriptor', <handle 0>)", NULL, TRUE);
+}
+
+static void
+test_sound (const char *serialized_sound,
+           const char *exp_serialized_sound,
+           gboolean    exp_fail)
+{
+  g_autofree char *notification_s = NULL;
+  g_autofree char *exp_notification_s = NULL;
+
+  notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                    "  'body': <'test notification body 7'>, "
+                                    "  'sound': <%s>, "
+                                    "  'default-action': <'test-action'> "
+                                    "}", serialized_sound);
+
+  if (exp_serialized_sound)
+    exp_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
+                                          "  'body': <'test notification body 7'>, "
+                                          "  'sound': <%s>, "
+                                          "  'default-action': <'test-action'> "
+                                          "}", exp_serialized_sound);
+
+  run_notification_test ("test-icon", notification_s, exp_notification_s, exp_fail);
+}
+
+static void
+test_file_sound ()
+{
+  g_autofree char *path = NULL;
+  g_autofree char *serialized_sound_s = NULL;
+  g_autoptr(GFile) file = NULL;
+  g_autoptr(GFileIOStream) iostream = NULL;
+  GOutputStream *stream = NULL;
+
+  file = g_file_new_tmp ("iconXXXXXX", &iostream, NULL);
+  stream = g_io_stream_get_output_stream (G_IO_STREAM (iostream));
+  g_output_stream_write_all (stream, IMAGE_DATA, strlen(IMAGE_DATA), NULL, NULL, NULL);
+  g_output_stream_close (stream, NULL, NULL);
+
+  path = g_file_get_path (file);
+  serialized_sound_s = g_strdup_printf ("('file', <'%s'>)", path);
+  test_icon (serialized_sound_s, NULL, FALSE);
+  g_assert (g_file_delete (file, NULL, NULL));
+}
+
+void
+test_notification_sound (void)
+{
+  test_sound ("('bytes', <'" SOUND_DATA "'>)", NULL, TRUE);
+  test_file_sound ();
+
+  /* Tests that should fail */
+  test_sound ("('bytes', <['test-sound', 'test-sound']>)", NULL, TRUE);
+  test_sound ("('file-descriptor', <''>)", NULL, TRUE);
+  test_sound ("('file-descriptor', <handle 0>)", NULL, TRUE);
+}
+
+void
+test_notification_desktop_file_id (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'desktop-file-id': <'appid.desktop'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'desktop-file-id': <'appid'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
+
+void
+test_notification_display_hint (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'display-hint': <['transient', 'show-as-new']>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'display-hint': <['unsupported-hint']>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
+
+void
+test_notification_content_type (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'content-type': <'im.message'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'content-type': <'x-vendor.custom'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'content-type': <'unsupported-type'>"
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
+
+void
+test_notification_actions (void)
+{
+  const char *notification_s;
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'system.custom-alert'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'x-vendor.custom.action'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, FALSE);
+
+  notification_s = "{ 'title': <'test notification 5'>, "
+                   "  'body': <'test notification body 5'>, "
+                   "  'actions': <[{'purpose': <'system.unsupported'>, 'action': <'action1'>}]> "
+                   "}";
+
+  run_notification_test ("test5", notification_s, NULL, TRUE);
+}
+
+void
+test_notification_supported_properties (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "notification", "data", notification_s);
-  g_key_file_set_string (keyfile, "notification", "id", "test2");
-  g_key_file_set_string (keyfile, "notification", "action", "action1");
-  g_key_file_set_boolean (keyfile, "backend", "expect-no-call", TRUE);
+  g_key_file_set_string (keyfile, "notification", "supported-options", "{ 'something': <'sdfs'> }"); //supported_options);
 
   path = g_build_filename (outdir, "notification", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
@@ -248,9 +472,5 @@ test_notification_bad_button (void)
 
   portal = xdp_portal_new ();
 
-  got_info = 0;
-  xdp_portal_add_notification (portal, "test5", notification, 0, NULL, notification_fail, NULL);
-
-  while (!got_info)
-    g_main_context_iteration (NULL, TRUE);
+  xdp_portal_get_supported_options (portal);
 }
