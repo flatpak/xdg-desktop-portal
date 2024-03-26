@@ -516,3 +516,24 @@ test_notification_category (void)
 
   run_notification_test ("test5", notification_s, NULL, TRUE);
 }
+
+void
+test_notification_supported_properties (void)
+{
+  g_autoptr(XdpPortal) portal = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *path = NULL;
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile, "notification", "supported-options", "{ 'something': <'sdfs'> }");
+
+  path = g_build_filename (outdir, "notification", NULL);
+  g_key_file_save_to_file (keyfile, path, &error);
+  g_assert_no_error (error);
+
+  portal = xdp_portal_new ();
+
+  xdp_portal_get_supported_options (portal);
+}
