@@ -611,6 +611,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/desktop-file-id", test_notification_desktop_file_id);
   g_test_add_func ("/portal/notification/display-hint", test_notification_display_hint);
   g_test_add_func ("/portal/notification/category", test_notification_category);
+  g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
 #endif
 
   global_setup ();
