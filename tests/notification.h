@@ -11,3 +11,4 @@ void test_notification_icon (void);
 void test_notification_sound (void);
 void test_notification_display_hint (void);
 void test_notification_category (void);
+void test_notification_supported_properties (void);
