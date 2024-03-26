@@ -8,6 +8,8 @@
 
 #include "notification.h"
 
+static GFileMonitor *config_monitor;
+
 typedef struct {
   XdpDbusImplNotification *impl;
   char *app_id;
@@ -124,10 +126,45 @@ handle_remove_notification (XdpDbusImplNotification *object,
   return TRUE;
 }
 
+static void
+update_supported_options (GFileMonitor *monitor,
+                          GFile *file,
+                          GFile *other_file,
+                          GFileMonitorEvent event_type,
+                          XdpDbusImplNotification *object)
+{
+  g_autofree char *path = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  g_autofree char *options_s = NULL;
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+
+  if (!g_file_query_exists (file, NULL))
+    return;
+
+  path = g_file_get_path (file);
+
+  keyfile = g_key_file_new ();
+  g_key_file_load_from_file (keyfile, path, 0, &error);
+  g_assert_no_error (error);
+
+  options_s = g_key_file_get_string (keyfile, "notification", "supported-options", NULL);
+
+  if (!options_s)
+      return;
+
+  options = g_variant_parse (G_VARIANT_TYPE_VARDICT, options_s, NULL, NULL, &error);
+  g_assert_no_error (error);
+
+  xdp_dbus_impl_notification_set_supported_options (object, options);
+}
+
 void
 notification_init (GDBusConnection *bus,
                    const char *object_path)
 {
+  const char *dir;
+  g_autoptr(GFile) config_file = NULL;
   g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *helper;
 
@@ -135,6 +172,15 @@ notification_init (GDBusConnection *bus,
 
   g_signal_connect (helper, "handle-add-notification", G_CALLBACK (handle_add_notification), NULL);
   g_signal_connect (helper, "handle-remove-notification", G_CALLBACK (handle_remove_notification), NULL);
+
+  dir = g_getenv ("XDG_DATA_HOME");
+  config_file = g_file_new_build_filename (dir, "notification", NULL);
+  config_monitor = g_file_monitor_file (config_file, G_FILE_MONITOR_NONE, NULL, NULL);
+
+  g_signal_connect (config_monitor,
+                    "changed",
+                    G_CALLBACK (update_supported_options),
+                    helper);
 
   if (!g_dbus_interface_skeleton_export (helper, bus, object_path, &error))
     {
