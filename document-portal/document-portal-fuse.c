@@ -260,6 +260,10 @@ typedef struct {
   char name[0];
 } XdpInvalidateData;
 
+typedef struct {
+  gboolean use_splice;
+} XdpFuseOptions;
+
 static GList *invalidate_list;
 G_LOCK_DEFINE (invalidate_list);
 
@@ -2015,6 +2019,8 @@ xdp_fuse_read (fuse_req_t req,
 {
   struct fuse_bufvec buf = FUSE_BUFVEC_INIT(size);
   XdpFile *file = (XdpFile *)fi->fh;
+  enum fuse_buf_copy_flags reply_flags = FUSE_BUF_SPLICE_MOVE;
+  XdpFuseOptions* fuse_opts = fuse_req_userdata (req);
 
   g_debug ("READ %" G_GINT64_MODIFIER "x size %" G_GSIZE_FORMAT " off %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
@@ -2022,7 +2028,10 @@ xdp_fuse_read (fuse_req_t req,
   buf.buf[0].fd = file->fd;
   buf.buf[0].pos = off;
 
-  fuse_reply_data (req, &buf, FUSE_BUF_SPLICE_MOVE);
+  if (!fuse_opts->use_splice)
+    reply_flags = FUSE_BUF_NO_SPLICE;
+
+  fuse_reply_data (req, &buf, reply_flags);
 }
 
 
@@ -2059,6 +2068,8 @@ xdp_fuse_write_buf (fuse_req_t             req,
   struct fuse_bufvec dst = FUSE_BUFVEC_INIT(fuse_buf_size(bufv));
   ssize_t res;
   const char *op = "WRITEBUF";
+  enum fuse_buf_copy_flags copy_flags = FUSE_BUF_SPLICE_NONBLOCK;
+  XdpFuseOptions* fuse_opts = fuse_req_userdata (req);
 
   g_debug ("WRITEBUF %" G_GINT64_MODIFIER "x off %" G_GOFFSET_FORMAT, ino, (goffset)off);
 
@@ -2066,7 +2077,10 @@ xdp_fuse_write_buf (fuse_req_t             req,
   dst.buf[0].fd = file->fd;
   dst.buf[0].pos = off;
 
-  res = fuse_buf_copy (&dst, bufv, FUSE_BUF_SPLICE_NONBLOCK);
+  if (!fuse_opts->use_splice)
+    copy_flags = FUSE_BUF_NO_SPLICE;
+
+  res = fuse_buf_copy (&dst, bufv, copy_flags);
   if (res >= 0)
     fuse_reply_write (req, res);
   else
@@ -3316,16 +3330,22 @@ static void
 xdp_fuse_init_cb (void                  *userdata,
                   struct fuse_conn_info *conn)
 {
+  XdpFuseOptions* fuse_opts = userdata;
+
   g_debug ("INIT");
 
-  /* splice_read: use splice() to read from fuse pipe */
-  conn->want |= FUSE_CAP_SPLICE_READ;
-  /* splice_write: use splice() to write to fuse pipe */
-  conn->want |= FUSE_CAP_SPLICE_WRITE;
-  /* splice_move: move buffers from writing app to kernel during splice write */
-  conn->want |= FUSE_CAP_SPLICE_MOVE;
   /* atomic_o_trunc: We handle O_TRUNC in create() */
   conn->want |= FUSE_CAP_ATOMIC_O_TRUNC;
+
+  if (fuse_opts->use_splice)
+    {
+      /* splice_read: use splice() to read from fuse pipe */
+      conn->want |= FUSE_CAP_SPLICE_READ;
+      /* splice_write: use splice() to write to fuse pipe */
+      conn->want |= FUSE_CAP_SPLICE_WRITE;
+      /* splice_move: move buffers from writing app to kernel during splice write */
+      conn->want |= FUSE_CAP_SPLICE_MOVE;
+    }
 }
 
 extern gboolean on_fuse_unmount (void *);
@@ -3333,10 +3353,14 @@ extern gboolean on_fuse_unmount (void *);
 static void
 xdp_fuse_destroy_cb (void *userdata)
 {
+  XdpFuseOptions* fuse_opts = userdata;
+
   g_debug ("DESTROY");
 
   /* Ensure we call this on the main thread */
   g_idle_add ((GSourceFunc) on_fuse_unmount, NULL);
+
+  g_clear_pointer (&fuse_opts, g_free);
 }
 
 static struct fuse_lowlevel_ops xdp_fuse_oper = {
@@ -3424,6 +3448,7 @@ xdp_fuse_thread (gpointer data)
   const char *path;
   struct fuse_session *se;
   XdpFuseThreadData *thread_data = data;
+  XdpFuseOptions* fuse_opts = NULL;
   struct fuse_cmdline_opts opts = {0};
   struct fuse_loop_config loop_config = {0};
 
@@ -3440,13 +3465,19 @@ xdp_fuse_thread (gpointer data)
       return NULL;
     }
 
+  fuse_opts = g_new0 (XdpFuseOptions, 1);
+#ifdef WITH_SPLICE
+  fuse_opts->use_splice = TRUE;
+#endif
+
   se = fuse_session_new (&args, &xdp_fuse_oper,
-                         sizeof (xdp_fuse_oper), NULL);
+                         sizeof (xdp_fuse_oper), fuse_opts);
   if (se == NULL)
     {
       g_set_error (&thread_data->error, XDG_DESKTOP_PORTAL_ERROR,
                    XDG_DESKTOP_PORTAL_ERROR_FAILED,
                    "Can't create fuse session");
+      g_clear_pointer (&fuse_opts, g_free);
       return NULL;
     }
 
