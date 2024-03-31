@@ -122,32 +122,6 @@ pipewire_remote_roundtrip (PipeWireRemote *remote)
                         FALSE);
 }
 
-static gboolean
-discover_node_factory_sync (PipeWireRemote *remote,
-                            GError **error)
-{
-  struct pw_registry *registry;
-
-  registry = pw_core_get_registry (remote->core, PW_VERSION_REGISTRY, 0);
-  pw_registry_add_listener (registry,
-                            &remote->registry_listener,
-                            &registry_events,
-                            remote);
-
-  pipewire_remote_roundtrip (remote);
-
-  pw_proxy_destroy((struct pw_proxy*)registry);
-
-  if (remote->node_factory_id == 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "No node factory discovered");
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
 static void
 core_event_error (void       *user_data,
                   uint32_t    id,
@@ -245,7 +219,13 @@ pipewire_remote_destroy (PipeWireRemote *remote)
       pw_loop_destroy_source (loop, g_steal_pointer (&remote->roundtrip_timeout));
     }
 
+  /* This check is a workaround for older PW versions */
+  if (remote->registry)
+    spa_hook_remove (&remote->registry_listener);
+  g_clear_pointer (&remote->registry, pw_proxy_destroy);
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
+  if (remote->core)
+    spa_hook_remove (&remote->core_listener);
   g_clear_pointer (&remote->core, pw_core_disconnect);
   g_clear_pointer (&remote->context, pw_context_destroy);
   g_clear_pointer (&remote->loop, pw_main_loop_destroy);
@@ -346,8 +326,20 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
                         &core_events,
                         remote);
 
-  if (!discover_node_factory_sync (remote, error))
+  remote->registry = (struct pw_proxy*) pw_core_get_registry (remote->core,
+                                                              PW_VERSION_REGISTRY,
+                                                              0);
+  pw_registry_add_listener (remote->registry,
+                            &remote->registry_listener,
+                            &registry_events,
+                            remote);
+
+  pipewire_remote_roundtrip (remote);
+
+  if (remote->node_factory_id == 0)
     {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "No node factory discovered");
       pipewire_remote_destroy (remote);
       return NULL;
     }
