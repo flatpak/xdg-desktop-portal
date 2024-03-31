@@ -51,6 +51,7 @@ struct _PipeWireRemote
 
   int sync_seq;
 
+  struct pw_proxy *registry;
   struct spa_hook registry_listener;
 
   GHashTable *globals;
