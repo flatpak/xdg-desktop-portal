@@ -98,9 +98,44 @@ print_done (GObject *source,
     }
 }
 
+static gboolean
+validate_supported_output_file_formats (const char  *key,
+                                        GVariant    *value,
+                                        GVariant    *options,
+                                        GError     **error)
+{
+  const char * const supported_output_file_formats[] = {
+    "pdf",
+    "ps",
+    "svg",
+    NULL,
+  };
+  g_auto(GStrv) strv = g_variant_dup_strv (value, NULL);
+
+  if (g_strv_length (strv) == 0)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Empty list of output file formats");
+      return FALSE;
+    }
+
+  for (size_t i = 0; strv && strv[i]; i++)
+    {
+      if (!g_strv_contains (supported_output_file_formats, strv[i]))
+        {
+          g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "Output file format \"%s\" is not one of: pdf, ps, svg", strv[i]);
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey print_options[] = {
   { "token", G_VARIANT_TYPE_UINT32, NULL },
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "supported_output_file_formats", G_VARIANT_TYPE_STRING_ARRAY, validate_supported_output_file_formats },
 };
 
 static gboolean
@@ -214,7 +249,8 @@ prepare_print_done (GObject *source,
 
 static XdpOptionKey prepare_print_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN },
-  { "accept_label", G_VARIANT_TYPE_STRING }
+  { "accept_label", G_VARIANT_TYPE_STRING },
+  { "supported_output_file_formats", G_VARIANT_TYPE_STRING_ARRAY, validate_supported_output_file_formats },
 };
 
 static gboolean
@@ -288,7 +324,7 @@ print_iface_init (XdpDbusPrintIface *iface)
 static void
 print_init (Print *print)
 {
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 2);
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
 }
 
 static void

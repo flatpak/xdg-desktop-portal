@@ -32,7 +32,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -64,6 +64,13 @@
           Label for the accept button. Mnemonic underlines are allowed.
 
           This option was added in version 2.
+
+        * ``supported_output_file_formats`` (``as``)
+
+          File formats supported by the app to use for print-to-file. If not set, all formats
+          are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
+
+          This option was added in version 3.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
@@ -285,6 +292,13 @@
         * ``token`` (``u``)
 
           Token that was returned by a previous org.freedesktop.portal.Print.PreparePrint() call.
+
+        * ``supported_output_file_formats`` (``as``)
+
+          File formats supported by the app to use for print-to-file. If not set, all formats
+          are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
+
+          This option was added in version 3.
     -->
     <method name="Print">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
