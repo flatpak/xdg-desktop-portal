@@ -263,9 +263,7 @@ on_bus_acquired (GDBusConnection *connection,
       PortalImplementation *tmp;
 
       export_portal_implementation (connection,
-                                    device_create (connection,
-                                                   access_impl->dbus_name,
-                                                   lockdown));
+                                    device_create (connection));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
@@ -274,7 +272,9 @@ on_bus_acquired (GDBusConnection *connection,
 #endif
 
       export_portal_implementation (connection,
-                                    camera_create (connection, lockdown));
+                                    camera_create (connection,
+                                                   access_impl->dbus_name,
+                                                   lockdown));
 
       tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
       if (tmp != NULL)
