@@ -66,6 +66,7 @@
 #include "settings.h"
 #include "trash.h"
 #include "wallpaper.h"
+#include "web-extensions.h"
 
 static GMainLoop *loop = NULL;
 
@@ -266,6 +267,9 @@ on_bus_acquired (GDBusConnection *connection,
                                     device_create (connection,
                                                    access_impl->dbus_name,
                                                    lockdown));
+      export_portal_implementation (connection,
+                                    web_extensions_create (connection,
+                                                           access_impl->dbus_name));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
