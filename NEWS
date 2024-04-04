@@ -1,3 +1,14 @@
+Changes in 1.18.3
+=================
+Released: 2024-04-04
+
+- Don't try to read D-Bus object properties of Request objects on construction.
+- Fix various memory and file descriptor leaks.
+- Minuscule optimization to the ScreenCast portal so that it stores restoration
+  data with a single D-Bus call, instead of two.
+- Fix a crash in the OpenURI file when trying to open a non-existing file.
+- Various smaller bug fixes.
+
 Changes in 1.18.2
 =================
 Released: 2023-11-22
