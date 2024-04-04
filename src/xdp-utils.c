@@ -2398,6 +2398,7 @@ xdp_validate_serialized_icon (GVariant  *v,
   if (!g_spawn_check_exit_status (status, &error))
     {
       g_warning ("Icon validation: %s", error->message);
+      g_warning ("stderr:\n%s\n", stderrlog);
       return FALSE;
     }
 
