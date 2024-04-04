@@ -35,6 +35,7 @@ jobs:
         docker run --name $BUILD_CONTAINER \
           --tty --device /dev/fuse --cap-add SYS_ADMIN \
           --security-opt apparmor:unconfined \
+          --privileged \
           -v $(pwd):/src \
           -e DEBIAN_FRONTEND \
           -e DEBCONF_NONINTERACTIVE_SEEN=true \
@@ -60,6 +61,8 @@ jobs:
           libfontconfig1-dev \
           libfuse3-dev \
           libgdk-pixbuf-2.0-dev \
+          librsvg2-2 \
+          librsvg2-common \
           libgeoclue-2-dev \
           libglib2.0-dev \
           libjson-glib-dev \
