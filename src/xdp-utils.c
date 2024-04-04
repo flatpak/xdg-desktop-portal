@@ -2346,6 +2346,9 @@ xdp_validate_serialized_icon (GVariant  *v,
       return FALSE;
     }
 
+  if (g_getenv ("XDP_VALIDATE_ICON"))
+    icon_validator = g_getenv ("XDP_VALIDATE_ICON");
+
   if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
     {
       g_warning ("Icon validation: %s not found, rejecting icon by default.", icon_validator);

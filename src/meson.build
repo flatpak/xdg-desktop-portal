@@ -167,7 +167,8 @@ if bwrap.found()
   validate_icon_c_args += '-DHELPER="@0@"'.format(bwrap.full_path())
 endif
 
-executable(
+
+xdp_validate_icon = executable(
   'xdg-desktop-portal-validate-icon',
   'validate-icon.c',
   dependencies: [gdk_pixbuf_dep],
