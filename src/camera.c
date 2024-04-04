@@ -166,8 +166,6 @@ open_pipewire_camera_remote (const char *app_id,
                                 G_N_ELEMENTS (permission_items),
                                 permission_items);
 
-  pipewire_remote_roundtrip (remote);
-
   return remote;
 }
 
