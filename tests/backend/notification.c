@@ -57,15 +57,42 @@ handle_add_notification (XdpDbusImplNotification *object,
   path = g_build_filename (dir, "notification", NULL);
   keyfile = g_key_file_new ();
   g_key_file_load_from_file (keyfile, path, 0, &error);
-  g_assert_no_error (error);
+
+  if (error)
+    {
+      g_prefix_error_literal (&error, "Notification backend");
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
 
   notification_s = g_key_file_get_string (keyfile, "notification", "data", NULL);
   notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, &error);
-  g_assert_no_error (error);
-  g_assert_true (g_variant_equal (notification, arg_notification));
+  if (error)
+    {
+      g_prefix_error_literal (&error, "Notification backend");
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return TRUE;
+    }
+
+  if (!g_variant_equal (notification, arg_notification))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_IO_ERROR,
+                                             G_IO_ERROR_FAILED,
+                                             "Notification backend: expected %s but got %s",
+                                             g_variant_print (notification, TRUE),
+                                             g_variant_print (arg_notification, TRUE));
+      return TRUE;
+    }
 
   if (g_key_file_get_boolean (keyfile, "backend", "expect-no-call", NULL))
-    g_assert_not_reached ();
+    {
+      g_dbus_method_invocation_return_error_literal (invocation,
+                                                     G_IO_ERROR,
+                                                     G_IO_ERROR_FAILED,
+                                                     "Notification backend: Adding the notification should had failed already in the front end");
+      return TRUE;
+    }
 
   delay = g_key_file_get_integer (keyfile, "backend", "delay", NULL);
   if (delay != 0)
