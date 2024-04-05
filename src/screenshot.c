@@ -257,13 +257,13 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
           /* Note: this will set the screenshot permission for all unsandboxed
            * apps for which an app ID can't be determined.
            */
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+          title = g_strdup (_("Allow Apps to Take Screenshots?"));
+          subtitle = g_strdup (_("An app wants to be able to take screenshots at any time."));
         }
       else /* permission == XDP_PERMISSION_ASK */
         {
           title = g_strdup (_("Allow to Take a Screenshot?"));
-          subtitle = g_strdup (_("An application wants to take a screenshot."));
+          subtitle = g_strdup (_("An app wants to take a screenshot."));
         }
     }
 
