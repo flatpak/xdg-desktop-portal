@@ -237,11 +237,6 @@ rerun_in_sandbox (const char *arg_width,
   add_args (args, validate_icon, arg_width, arg_height, filename, NULL);
   g_ptr_array_add (args, NULL);
 
-  {
-    g_autofree char *cmdline = g_strjoinv (" ", (char **) args->pdata);
-    g_debug ("Icon validation: Spawning %s", cmdline);
-  }
-
   execvpe (flatpak_get_bwrap (), (char **) args->pdata, NULL);
   /* If we get here, then execvpe() failed. */
   g_printerr ("Icon validation: execvpe %s: %s\n", flatpak_get_bwrap (), g_strerror (errno));
