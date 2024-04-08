@@ -77,6 +77,7 @@ xdg_desktop_portal_sources = files(
   'global-shortcuts.c',
   'inhibit.c',
   'input-capture.c',
+  'launch-context.c',
   'memory-monitor.c',
   'network-monitor.c',
   'notification.c',

@@ -42,6 +42,7 @@
 #include "xdp-utils.h"
 #include "permissions.h"
 #include "documents.h"
+#include "launch-context.h"
 
 #define FILE_MANAGER_DBUS_NAME "org.freedesktop.FileManager1"
 #define FILE_MANAGER_DBUS_IFACE "org.freedesktop.FileManager1"
@@ -239,7 +240,8 @@ launch_application_with_uri (const char *choice_id,
 {
   g_autofree char *desktop_id = g_strconcat (choice_id, ".desktop", NULL);
   g_autoptr(GDesktopAppInfo) info = g_desktop_app_info_new (desktop_id);
-  g_autoptr(GAppLaunchContext) context = g_app_launch_context_new ();
+  g_autoptr(XdpAppLaunchContext) xdp_context = xdp_app_launch_context_new ();
+  GAppLaunchContext *context = G_APP_LAUNCH_CONTEXT (xdp_context);
   g_autofree char *ruri = NULL;
   DocumentFlags flags = DOCUMENT_FLAG_NONE;
   GList uris;
@@ -274,8 +276,7 @@ launch_application_with_uri (const char *choice_id,
 
   g_app_launch_context_setenv (context, "PARENT_WINDOW_ID", parent_window);
 
-  if (activation_token)
-    g_app_launch_context_setenv (context, "XDG_ACTIVATION_TOKEN", activation_token);
+  xdp_app_launch_context_set_activation_token (xdp_context, activation_token);
 
   uris.data = (gpointer)ruri;
   uris.next = NULL;
