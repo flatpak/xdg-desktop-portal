@@ -35,9 +35,10 @@
 #include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
 
-#include "dynamic-launcher.h"
-#include "request.h"
 #include "call.h"
+#include "dynamic-launcher.h"
+#include "launch-context.h"
+#include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
@@ -947,7 +948,8 @@ handle_launch (XdpDbusDynamicLauncher *object,
   g_autofree char *desktop_dir = NULL;
   g_autofree char *desktop_path = NULL;
   const char *activation_token = NULL;
-  g_autoptr(GAppLaunchContext) launch_context = NULL;
+  g_autoptr(XdpAppLaunchContext) xdp_launch_context = NULL;
+  GAppLaunchContext *launch_context = NULL;
   g_autoptr(GDesktopAppInfo) app_info = NULL;
 
   if (!validate_desktop_file_id (app_id, arg_desktop_file_id, &error))
@@ -964,14 +966,15 @@ handle_launch (XdpDbusDynamicLauncher *object,
       goto error;
     }
 
-  /* Unset env var set in main() */
-  launch_context = g_app_launch_context_new ();
-  g_app_launch_context_unsetenv (launch_context, "GIO_USE_VFS");
-
-  /* Set activation token for focus stealing prevention */
   g_variant_lookup (arg_options, "activation_token", "&s", &activation_token);
-  if (activation_token)
-    g_app_launch_context_setenv (launch_context, "XDG_ACTIVATION_TOKEN", activation_token);
+
+  xdp_launch_context = xdp_app_launch_context_new ();
+  launch_context = G_APP_LAUNCH_CONTEXT (xdp_launch_context);
+  /* Unset env var set in main() */
+  g_app_launch_context_unsetenv (launch_context, "GIO_USE_VFS");
+  /* Set activation token for focus stealing prevention */
+  xdp_app_launch_context_set_activation_token (xdp_launch_context,
+                                               activation_token);
 
   app_info = g_desktop_app_info_new_from_filename (desktop_path);
   if (app_info == NULL)
