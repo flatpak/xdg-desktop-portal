@@ -92,8 +92,7 @@ query_permission_sync (Request *request)
 
       if (app_id[0] != 0)
         {
-          g_autofree char *desktop_id;
-          desktop_id = g_strconcat (app_id, ".desktop", NULL);
+          g_autofree char *desktop_id = g_strconcat (app_id, ".desktop", NULL);
           info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
         }
 
