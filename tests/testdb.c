@@ -67,7 +67,7 @@ create_test_db (gboolean serialized)
 static void
 verify_test_db (PermissionDb *db)
 {
-  g_auto(GStrv) ids;
+  g_auto(GStrv) ids = NULL;
   g_autofree const char **apps1 = NULL;
   g_autofree const char **apps2 = NULL;
   g_auto(GStrv) all_apps = NULL;
