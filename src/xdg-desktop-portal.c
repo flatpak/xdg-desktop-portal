@@ -131,7 +131,6 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-
   g_autoptr(GError) error = NULL;
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
@@ -363,7 +362,7 @@ main (int argc, char *argv[])
   guint owner_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GOptionContext) context;
+  g_autoptr(GOptionContext) context = NULL;
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
