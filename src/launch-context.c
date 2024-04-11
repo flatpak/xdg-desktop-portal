@@ -46,7 +46,7 @@ xdp_app_launch_context_get_startup_notify_id (GAppLaunchContext *context,
 {
   XdpAppLaunchContext *self = XDP_APP_LAUNCH_CONTEXT (context);
 
-  return self->token;
+  return g_strdup (self->token);
 }
 
 static void
