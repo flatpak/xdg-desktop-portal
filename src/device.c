@@ -175,6 +175,10 @@ device_query_permission_sync (const char *app_id,
                                                          &error))
         {
           g_warning ("A backend call failed: %s", error->message);
+          /* We do not want to set the permission if there was an error and the
+           * permission was UNSET. Setting a permission should only be done from
+           * user input. */
+          return FALSE;
         }
 
       allowed = response == 0;
