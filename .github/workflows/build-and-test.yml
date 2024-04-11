@@ -63,6 +63,9 @@ jobs:
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
 
+      - name: Check POTFILES.in
+        run: .github/workflows/check-potfiles.sh
+
       - name: Build xdg-desktop-portal
         run: |
           meson setup _build $MESON_OPTIONS
