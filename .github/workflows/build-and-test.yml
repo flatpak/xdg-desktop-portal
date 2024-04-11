@@ -38,6 +38,9 @@ jobs:
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
 
+      - name: Check POTFILES.in
+        run: .github/workflows/check-potfiles.sh
+
       - name: Check out libportal fork with a similarly named branch
         id: libportal-branched
         uses: actions/checkout@v4
