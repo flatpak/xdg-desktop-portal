@@ -21,6 +21,7 @@
 #include "config.h"
 
 #include <locale.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -499,8 +500,180 @@ should_use_default_app (const char *scheme,
   return FALSE;
 }
 
+typedef struct
+{
+  GStrv   schemes;
+  GStrv   hosts;
+  GArray *ports;
+  GStrv   paths;
+} UriHandler;
+
 static void
-find_recommended_choices (const char *scheme,
+uri_handler_free (UriHandler *handler)
+{
+  g_assert (handler != NULL);
+
+  g_clear_pointer (&handler->schemes, g_strfreev);
+  g_clear_pointer (&handler->hosts, g_strfreev);
+  g_clear_pointer (&handler->paths, g_strfreev);
+  g_clear_pointer (&handler->ports, g_array_unref);
+  g_free (handler);
+}
+
+static gboolean
+uri_handler_match (UriHandler *handler,
+                   GUri       *uri)
+{
+  const char *scheme = NULL;
+  const char *host = NULL;
+
+  scheme = g_uri_get_scheme (uri);
+  if (scheme != NULL && handler->schemes != NULL)
+    {
+      gboolean match = FALSE;
+      for (unsigned int i = 0; handler->schemes[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->schemes[i], scheme))
+            {
+              match = TRUE;
+              break;
+            }
+        }
+
+      if (!match)
+        return FALSE;
+    }
+
+  host = g_uri_get_host (uri);
+  if (host != NULL && handler->hosts != NULL)
+    {
+      gboolean match = FALSE;
+      int port = -1;
+
+      for (unsigned int i = 0; handler->hosts[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->hosts[i], host))
+            {
+              match = TRUE;
+              break;
+            }
+        }
+
+      if (!match)
+        return FALSE;
+
+      // Port matching is dependent on a host match
+      port = g_uri_get_port (uri);
+      if (port > -1 && handler->ports != NULL)
+        {
+          match = FALSE;
+          for (unsigned int i = 0; i < handler->ports->len; i++)
+            {
+              if (port == g_array_index (handler->ports, uint16_t, i))
+                {
+                  match = TRUE;
+                  break;
+                }
+            }
+
+          if (!match)
+            return FALSE;
+        }
+    }
+
+  // If at least one path is provided, at least one path must match
+  if (handler->paths != NULL)
+    {
+      const char *path = NULL;
+      const char *query = NULL;
+      const char *fragment = NULL;
+      g_autoptr(GString) path_ref = NULL;
+
+      // Compose an absolute-ref ("/" path [ "?" query ] [ "#" fragment ])
+      path = g_uri_get_path (uri);
+      if (*path != '\0')
+        path_ref = g_string_new (path);
+      else
+        path_ref = g_string_new ("/");
+
+      query = g_uri_get_query (uri);
+      if (query != NULL && *query != '\0')
+        g_string_append_printf (path_ref, "?%s", query);
+
+      fragment = g_uri_get_fragment (uri);
+      if (fragment != NULL && *fragment != '\0')
+        g_string_append_printf (path_ref, "#%s", fragment);
+
+      for (unsigned int i = 0; handler->paths[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->paths[i], path_ref->str))
+            return TRUE;
+        }
+
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+app_uri_handler_match (GPtrArray *handlers,
+                       GUri      *uri)
+{
+  for (unsigned int i = 0; i < handlers->len; i++)
+    {
+      if (uri_handler_match (g_ptr_array_index (handlers, i), uri))
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
+static void
+find_patterned_choices (const char *uri,
+                        GStrv *choices,
+                        guint *choices_len)
+{
+  g_autoptr(GUri) guri = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GHashTable) candidates = NULL;
+  GHashTableIter iter;
+  const char *app_id = NULL;
+  GPtrArray *handlers = NULL;
+  g_autoptr(GStrvBuilder) builder = NULL;
+  guint n_choices = 0;
+
+  g_assert (uri != NULL);
+
+  guri = g_uri_parse (uri, G_URI_FLAGS_NONE, &error);
+  if (guri == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
+
+  candidates = g_hash_table_new (g_str_hash, g_str_equal);
+  builder = g_strv_builder_new ();
+
+  g_hash_table_iter_init (&iter, candidates);
+  while (g_hash_table_iter_next (&iter, (void **)&app_id, (void **)&handlers))
+    {
+      if (app_uri_handler_match (handlers, guri))
+        {
+          g_debug ("Matching handler for %s (%s)", uri, app_id);
+          g_strv_builder_add (builder, app_id);
+          n_choices += 1;
+          break;
+        }
+    }
+
+  *choices = g_strv_builder_end (builder);
+  *choices_len = n_choices;
+}
+
+static void
+find_recommended_choices (const char *uri,
+                          const char *scheme,
                           const char *content_type,
                           char **default_app,
                           GStrv *choices,
@@ -512,6 +685,21 @@ find_recommended_choices (const char *scheme,
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
+
+  /* Pre-empt the default app, since there are hard-coded scheme overrides
+   */
+  find_patterned_choices (uri, &result, &n_choices);
+  if (n_choices > 0)
+    {
+      *choices = g_steal_pointer (&result);
+      *choices_len = n_choices;
+      return;
+    }
+  else
+    {
+      n_choices = 0;
+      g_clear_pointer (&result, g_strfreev);
+    }
 
   info = g_app_info_get_default_for_type (content_type, FALSE);
 
@@ -554,13 +742,15 @@ app_info_changed (GAppInfoMonitor *monitor,
 {
   const char *scheme;
   const char *content_type;
+  const char *uri;
   g_autofree char *default_app = NULL;
   g_auto(GStrv) choices = NULL;
   guint n_choices;
 
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_dbus_impl_app_chooser_call_update_choices (impl,
                                                  request->id,
@@ -791,7 +981,7 @@ handle_open_in_thread_func (GTask *task,
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   /* collect all the information */
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
   /* it's never NULL, but might be empty (only contain the NULL terminator) */
   g_assert (choices != NULL);
   if (default_app != NULL && !app_exists (default_app))
