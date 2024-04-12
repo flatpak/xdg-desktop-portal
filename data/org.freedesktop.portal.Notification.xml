@@ -64,9 +64,15 @@
 
           User-visible string to display as the title.
 
+          This should be a short string, if it doesn't fit the UI it may
+          be truncated to fit on a single line.
+
         * ``body`` (``s``)
 
           User-visible string to display as the body.
+
+          This can be a long string but if it doesn't fit the UI it may
+          be wrapped or/and truncated.
 
         * ``markup-body`` (``s``)
 
