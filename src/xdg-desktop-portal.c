@@ -348,6 +348,8 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   usb_create (connection, implementation->dbus_name));
+  else
+    g_warning ("couldn't find implementation for USB");
 #endif
 }
 

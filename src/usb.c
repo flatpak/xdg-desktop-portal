@@ -1,5 +1,5 @@
 /*
- * Copyright © 2023 GNOME Foundation Inc.
+ * Copyright © 2023-2024 GNOME Foundation Inc.
  *             2020 Endless OS Foundation LLC
  *
  * This program is free software; you can redistribute it and/or
@@ -17,6 +17,7 @@
  *
  * Authors:
  *       Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+ *       Hubert Figuière <hub@figuiere.net>
  *       Ryan Gonzalez <rymg19+github@gmail.com>
  */
 
@@ -405,6 +406,12 @@ usb_sender_info_match_device (UsbSenderInfo *sender_info,
     {
       XdpUsbQuery *query = g_ptr_array_index (sender_info->queries, i);
       gboolean query_matches = TRUE;
+
+      if (!query)
+        {
+          g_debug ("query %ld is null", i);
+          continue;
+        }
 
       for (size_t j = 0; j < query->rules->len; j++)
         {

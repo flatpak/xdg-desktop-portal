@@ -1,5 +1,6 @@
 /*
  * Copyright © 2014 Red Hat, Inc
+ * Copyright © 2023-2024 GNOME Foundation Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -16,6 +17,8 @@
  *
  * Authors:
  *       Alexander Larsson <alexl@redhat.com>
+ *       Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #include "config.h"
@@ -851,8 +854,6 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
     default:
       g_assert_not_reached ();
     }
-
-  g_ptr_array_add (usb_queries, NULL);
 
   return g_steal_pointer (&usb_queries);
 }
