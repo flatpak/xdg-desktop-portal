@@ -848,7 +848,7 @@ validate_commandline (const char *key,
                       GError **error)
 {
   gsize length;
-  const char **strv = g_variant_get_strv (value, &length);
+  g_autofree const char **strv = g_variant_get_strv (value, &length);
 
   if (strv[0] == NULL)
     {
@@ -861,6 +861,13 @@ validate_commandline (const char *key,
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Not accepting overly long commandlines");
+      return FALSE;
+    }
+
+  if (*strv[0] == ' ' || *strv[0] == '-')
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "First commandline item can't start with whitespace nor hyphens");
       return FALSE;
     }
 
