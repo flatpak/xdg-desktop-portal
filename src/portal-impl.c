@@ -508,7 +508,8 @@ find_matching_iface_config (const char *interface)
 static gboolean
 portal_default_prefers_none (void)
 {
-  if (config != NULL && g_strv_contains ((const char * const *) config->default_portal->portals, "none"))
+  if (config && config->default_portal &&
+      g_strv_contains ((const char * const *) config->default_portal->portals, "none"))
     {
       g_debug ("Found 'none' in configuration for default");
       return TRUE;
