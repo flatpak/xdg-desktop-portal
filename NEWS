@@ -16,6 +16,7 @@ Released: 2024-04-04
 - Minuscule optimization to the ScreenCast portal so that it stores restoration
   data with a single D-Bus call, instead of two.
 - Fix a crash in the OpenURI file when trying to open a non-existing file.
+- Fix a bug in PipeWire that prevented cameras from being reported reliably.
 - Various smaller bug fixes.
 
 Changes in 1.18.2
