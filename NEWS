@@ -1,3 +1,15 @@
+Changes in 1.16.1
+=================
+Released: 2024-04-18
+
+- Don't allow commandline arrays when the first commandline item starts with
+  whitespace or hyphen. (CVE-2024-32462)
+- Set writable flag of files correctly in the FileChooser portal
+- Handle bad requests more gracefully in the File Transfer portal
+- Various fixes to documentation
+- Various smaller bugfixes
+- Translation updates
+
 Changes in 1.16.0
 =================
 Released: 2022-12-12
