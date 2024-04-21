@@ -849,6 +849,12 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
       break;
 
     case XDP_APP_INFO_KIND_HOST:
+      {
+        g_autoptr(XdpUsbQuery) query =
+          usb_query_from_string (XDP_USB_QUERY_TYPE_ALLOW, "all");
+        if (query)
+          g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+      }
       break;
 
     default:
