@@ -764,7 +764,6 @@ on_gudev_client_uevent_cb (GUdevClient *client,
 /* CreateSession */
 
 static XdpOptionKey usb_create_session_options[] = {
-  { "handle_token", G_VARIANT_TYPE_STRING, NULL },
   { "session_handle_token", G_VARIANT_TYPE_STRING, NULL },
 };
 

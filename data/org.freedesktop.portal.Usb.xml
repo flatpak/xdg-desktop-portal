@@ -57,7 +57,6 @@
 
     <!--
         EnumerateDevices:
-        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
 
         Enumerates all connected USB devices that this application has permission
@@ -85,7 +84,7 @@
           org.freedesktop.portal.Usb.AcquireDevices(). If not present, then
           it should be assumed to be false.
 
-        * ``devnode`` (``s``)
+        * ``device-file`` (``s``)
 
           A string path to the device node inside the /dev filesystem.
 
@@ -174,7 +173,6 @@
 
     <!--
         ReleaseDevices:
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`.
         @devices: Array of device identifiers
         @options: Vardict with optional further information
 
