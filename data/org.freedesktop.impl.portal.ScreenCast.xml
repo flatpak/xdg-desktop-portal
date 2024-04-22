@@ -239,9 +239,9 @@
 
         A bitmask of available source types. Currently defined types are:
 
-        - ``1``: MONITOR
-        - ``2``: WINDOW
-        - ``4``: VIRTUAL
+        - ``1``: MONITOR: Share existing monitors
+        - ``2``: WINDOW: Share application windows
+        - ``4``: VIRTUAL: Extend with new virtual monitor
     -->
     <property name="AvailableSourceTypes" type="u" access="read"/>
     <!--
