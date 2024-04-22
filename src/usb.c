@@ -552,12 +552,14 @@ get_udev_allowed_properties (void)
     "ID_INPUT_JOYSTICK",
     "ID_MODEL_ID",
     "ID_MODEL_ENC",
+    "ID_MODEL_FROM_DATABASE",
     "ID_REVISION",
     "ID_SERIAL",
     "ID_SERIAL_SHORT",
     "ID_TYPE",
     "ID_VENDOR_ENC",
     "ID_VENDOR_ID",
+    "ID_VENDOR_FROM_DATABASE",
     NULL,
   };
 
