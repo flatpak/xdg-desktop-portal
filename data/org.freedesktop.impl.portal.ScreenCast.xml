@@ -239,7 +239,7 @@
 
         - ``1``: MONITOR
         - ``2``: WINDOW
-        - ``4``: VIRTUAL
+        - ``4``: VIRTUAL: Virtual monitors
     -->
     <property name="AvailableSourceTypes" type="u" access="read"/>
     <!--
