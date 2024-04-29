@@ -1416,15 +1416,12 @@ portal_list (GDBusMethodInvocation *invocation,
   return TRUE;
 }
 
-static gboolean
-portal_get_real_path (GDBusMethodInvocation *invocation,
-             GVariant *parameters,
-             XdpAppInfo *app_info)
+const char *
+get_real_path_internal (GDBusMethodInvocation *invocation,
+             XdpAppInfo *app_info,
+             const char *id)
 {
-  const char *id = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
-
-  g_variant_get (parameters, "(&s)", &id);
 
   XDP_AUTOLOCK (db);
 
@@ -1434,8 +1431,8 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                             "Invalid ID passed");
-      return TRUE;
+                                            g_strdup_printf("Invalid ID passed (%s)", id));
+      return NULL;
     }
 
   if (!xdp_app_info_is_host (app_info))
@@ -1462,7 +1459,7 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
           g_dbus_method_invocation_return_error (invocation,
                                                  XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                                  "Not enough permissions");
-          return TRUE;
+          return NULL;
         }
     }
 
@@ -1471,9 +1468,34 @@ portal_get_real_path (GDBusMethodInvocation *invocation,
 
   g_variant_get (data, "(^&ayttu)", &path, NULL, NULL, NULL);
 
-  g_dbus_method_invocation_return_value (invocation,
-                                         g_variant_new ("(@s)",
-                                                        g_variant_new_string (path)));
+  return path;
+}
+
+static gboolean
+portal_get_real_path (GDBusMethodInvocation *invocation,
+             GVariant *parameters,
+             XdpAppInfo *app_info)
+{
+  g_autofree const char **id_list = NULL;
+  const char *path;
+  int i;
+
+  g_variant_get (parameters, "(^a&s)", &id_list);
+
+  GVariantBuilder builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("aay"));
+
+  for (i = 0; id_list[i]; i++)
+    {
+      path = get_real_path_internal(invocation, app_info, id_list[i]);
+      if (path == NULL) 
+        {
+          return FALSE;
+        }
+
+      g_variant_builder_add (&builder, "^ay", path);
+    }
+
+  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(aay)", &builder));
 
   return TRUE;
 }

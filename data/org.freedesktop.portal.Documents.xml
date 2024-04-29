@@ -286,8 +286,8 @@
         This method was added in version 5 of this interface.
     -->
     <method name="GetRealPath">
-      <arg type='s' name='doc_id' direction='in'/>
-      <arg type='s' name='path' direction='out'/>
+      <arg type='as' name='doc_id' direction='in'/>
+      <arg type='aay' name='path' direction='out'/>
     </method>
   </interface>
 </node>
