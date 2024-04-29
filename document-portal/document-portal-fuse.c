@@ -49,6 +49,7 @@
 #ifdef HAVE_SYS_EXTATTR_H
 #include <sys/extattr.h>
 #endif
+#include <sys/file.h>
 #include <sys/time.h>
 #include <sys/resource.h>
 
@@ -3192,10 +3193,22 @@ xdp_fuse_flock (fuse_req_t req,
                 int lock_op)
 {
   const char *op = "FLOCK";
+  XdpFile *file = (XdpFile *)fi->fh;
+  int res;
 
   g_debug ("FLOCK %" G_GINT64_MODIFIER "x", ino);
 
-  xdp_reply_err (op, req, ENOSYS);
+  if ((lock_op & (LOCK_SH | LOCK_EX)) && (lock_op & LOCK_NB) == 0)
+    {
+      xdp_reply_err (op, req, ENOSYS);
+      return;
+    }
+
+  res = flock (file->fd, lock_op);
+  if (res == 0)
+    xdp_reply_ok (op, req);
+  else
+    xdp_reply_err (op, req, errno);
 }
 
 static void
