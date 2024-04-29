@@ -10,6 +10,7 @@ extern char outdir[];
 static int got_info = 0;
 
 extern XdpDbusImplPermissionStore *permission_store;
+extern gchar *appid;
 
 static void
 set_wallpaper_permissions (const char *permission)
@@ -22,7 +23,7 @@ set_wallpaper_permissions (const char *permission)
                                                            "wallpaper",
                                                            TRUE,
                                                            "wallpaper",
-                                                           "",
+                                                           appid,
                                                            permissions,
                                                            NULL,
                                                            &error);

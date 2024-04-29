@@ -1,6 +1,7 @@
 # List of source files containing translatable strings.
 src/background.c
-src/device.c
+src/camera.c
+src/dynamic-launcher.c
 src/location.c
 src/screenshot.c
 src/settings.c

@@ -488,6 +488,52 @@ load_portal_configuration (gboolean opt_verbose)
     return;
 }
 
+PortalInterface *
+find_matching_iface_config (const char *interface)
+{
+  if (config == NULL)
+    return NULL;
+
+  for (size_t i = 0; i < config->n_ifaces; i++)
+    {
+      PortalInterface *iface = config->interfaces[i];
+
+      if (g_strcmp0 (iface->dbus_name, interface) == 0)
+        return iface;
+    }
+
+  return NULL;
+}
+
+static gboolean
+portal_default_prefers_none (void)
+{
+  if (config && config->default_portal &&
+      g_strv_contains ((const char * const *) config->default_portal->portals, "none"))
+    {
+      g_debug ("Found 'none' in configuration for default");
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+static gboolean
+portal_interface_prefers_none (const char *interface)
+{
+  const PortalInterface *iface = find_matching_iface_config (interface);
+  if (iface == NULL)
+    return portal_default_prefers_none ();
+
+  if (g_strv_contains ((const char * const *) iface->portals, "none"))
+    {
+      g_debug ("Found 'none' in configuration for %s", iface->dbus_name);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
 static gboolean
 portal_impl_name_matches (const PortalImplementation *impl,
                           const PortalInterface      *iface)
@@ -507,7 +553,7 @@ portal_impl_name_matches (const PortalImplementation *impl,
     }
 
   /* No portal */
-  if (g_strv_contains ((const char * const *) iface->portals, "none"))
+  if (portal_interface_prefers_none (iface->dbus_name))
     {
       g_debug ("Found 'none' in configuration for %s", iface->dbus_name);
       return FALSE;
@@ -554,6 +600,9 @@ find_portal_implementation (const char *interface)
   const char **desktops;
   GList *l;
   int i;
+
+  if (portal_interface_prefers_none (interface))
+    return NULL;
 
   for (l = implementations; l != NULL; l = l->next)
     {
@@ -624,6 +673,9 @@ find_all_portal_implementations (const char *interface)
   GList *l;
 
   impls = g_ptr_array_new ();
+
+  if (portal_interface_prefers_none (interface))
+    return impls;
 
   for (l = implementations; l != NULL; l = l->next)
     {

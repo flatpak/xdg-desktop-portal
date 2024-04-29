@@ -37,7 +37,6 @@
 #include "call.h"
 #include "camera.h"
 #include "clipboard.h"
-#include "device.h"
 #include "documents.h"
 #include "dynamic-launcher.h"
 #include "email.h"
@@ -132,7 +131,6 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-
   g_autoptr(GError) error = NULL;
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
@@ -262,10 +260,6 @@ on_bus_acquired (GDBusConnection *connection,
     {
       PortalImplementation *tmp;
 
-      export_portal_implementation (connection,
-                                    device_create (connection,
-                                                   access_impl->dbus_name,
-                                                   lockdown));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
@@ -274,7 +268,9 @@ on_bus_acquired (GDBusConnection *connection,
 #endif
 
       export_portal_implementation (connection,
-                                    camera_create (connection, lockdown));
+                                    camera_create (connection,
+                                                   access_impl->dbus_name,
+                                                   lockdown));
 
       tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
       if (tmp != NULL)
@@ -366,7 +362,7 @@ main (int argc, char *argv[])
   guint owner_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
-  g_autoptr(GOptionContext) context;
+  g_autoptr(GOptionContext) context = NULL;
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);

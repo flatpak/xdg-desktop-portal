@@ -51,6 +51,7 @@ static GDBusConnection *session_bus;
 static GList *test_procs = NULL;
 XdpDbusImplPermissionStore *permission_store;
 XdpDbusImplLockdown *lockdown;
+gchar *appid;
 
 int
 xdup (int oldfd)
@@ -143,6 +144,8 @@ global_setup (void)
   guint watch;
   guint timeout_mult = 1;
 
+  appid = "org.example.App";
+
   update_data_dirs ();
 
   g_mkdtemp (outdir);
@@ -152,6 +155,7 @@ global_setup (void)
   g_setenv ("XDG_CURRENT_DESKTOP", "test", TRUE);
   g_setenv ("XDG_RUNTIME_DIR", outdir, TRUE);
   g_setenv ("XDG_DATA_HOME", outdir, TRUE);
+  g_setenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID", appid, TRUE);
 
   /* Re-defining dbus-daemon with a custom script */
   setup_dbus_daemon_wrapper (outdir);
@@ -445,7 +449,7 @@ DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(notification, NOTIFICATION, 1)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 3)
-DEFINE_TEST_EXISTS(print, PRINT, 2)
+DEFINE_TEST_EXISTS(print, PRINT, 3)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
 DEFINE_TEST_EXISTS(screenshot, SCREENSHOT, 2)
 DEFINE_TEST_EXISTS(settings, SETTINGS, 2)

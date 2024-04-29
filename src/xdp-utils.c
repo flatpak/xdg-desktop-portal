@@ -42,6 +42,7 @@
 #endif
 
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 #include <gio/gdesktopappinfo.h>
 
@@ -124,14 +125,18 @@ struct _XdpAppInfo {
   char *id;
   XdpAppInfoKind kind;
 
+  /* pidfd of the calling process */
+  int pidfd;
+
+  /* pid namespace mapping */
+  GMutex pidns_lock;
+  ino_t pidns_id;
+
   union
     {
       struct
         {
           GKeyFile *keyfile;
-	   /* pid namespace mapping */
-          GMutex pidns_lock;
-          ino_t   pidns_id;
         } flatpak;
       struct
         {
@@ -146,6 +151,7 @@ xdp_app_info_new (XdpAppInfoKind kind)
   XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
   app_info->ref_count = 1;
   app_info->kind = kind;
+  app_info->pidfd = -1;
   return app_info;
 }
 
@@ -200,7 +206,7 @@ _xdp_parse_app_id_from_unit_name (const char *unit)
 }
 #endif /* HAVE_LIBSYSTEMD */
 
-void
+static void
 set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 {
 #ifdef HAVE_LIBSYSTEMD
@@ -231,10 +237,20 @@ set_appid_from_pid (XdpAppInfo *app_info, pid_t pid)
 }
 
 static XdpAppInfo *
-xdp_app_info_new_host (pid_t pid)
+xdp_app_info_new_host (pid_t pid,
+                       int   pidfd)
 {
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   set_appid_from_pid (app_info, pid);
+  app_info->pidfd = pidfd;
+  return app_info;
+}
+
+static XdpAppInfo *
+xdp_app_info_new_test_host (const char *app_id)
+{
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  app_info->id = g_strdup (app_id);
   return app_info;
 }
 
@@ -242,6 +258,7 @@ static void
 xdp_app_info_free (XdpAppInfo *app_info)
 {
   g_free (app_info->id);
+  xdp_close_fd (&app_info->pidfd);
 
   switch (app_info->kind)
     {
@@ -482,6 +499,14 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
 }
 
 gboolean
+xdp_app_info_is_flatpak (XdpAppInfo *app_info)
+{
+  g_return_val_if_fail (app_info != NULL, FALSE);
+
+  return app_info->kind == XDP_APP_INFO_KIND_FLATPAK;
+}
+
+static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
   return
@@ -583,9 +608,10 @@ ensure_app_info_by_unique_name (void)
                                                      (GDestroyNotify)xdp_app_info_unref);
 }
 
-/* Returns NULL with error set on failure, NULL with no error set if not a flatpak, and app-info otherwise */
-static XdpAppInfo *
-parse_app_info_from_flatpak_info (int pid, GError **error)
+static gboolean
+xdp_app_info_from_flatpak_info (int          pid,
+                                XdpAppInfo **out_app_info,
+                                GError     **error)
 {
   g_autofree char *root_path = NULL;
   int root_fd = -1;
@@ -613,7 +639,10 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
            */
           if (statfs (root_path, &buf) == 0 &&
               buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-            return NULL;
+            {
+              *out_app_info = NULL;
+              return TRUE;
+            }
         }
 
       /* Otherwise, we should be able to open the root dir. Probably the app died and
@@ -621,7 +650,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
          of treating this as privileged. */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open %s", root_path);
-      return NULL;
+      return FALSE;
     }
 
   metadata = g_key_file_new ();
@@ -632,14 +661,15 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
     {
       if (errno == ENOENT)
         {
-          /* No file => on the host, return NULL with no error */
-          return NULL;
+          /* No file => on the host, return success */
+          *out_app_info = NULL;
+          return TRUE;
         }
 
       /* Some weird error => failure */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open application info file");
-      return NULL;
+      return FALSE;
     }
 
   if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
@@ -648,7 +678,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open application info file");
-      return NULL;
+      return FALSE;
     }
 
   mapped = g_mapped_file_new_from_fd  (info_fd, FALSE, &local_error);
@@ -657,7 +687,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't map .flatpak-info file: %s", local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   if (!g_key_file_load_from_data (metadata,
@@ -668,7 +698,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
       close (info_fd);
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't load .flatpak-info file: %s", local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   group = "Application";
@@ -679,7 +709,7 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   if (id == NULL || !xdp_is_valid_app_id (id))
     {
       close (info_fd);
-      return NULL;
+      return FALSE;
     }
 
   close (info_fd);
@@ -688,7 +718,8 @@ parse_app_info_from_flatpak_info (int pid, GError **error)
   app_info->id = g_steal_pointer (&id);
   app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
-  return g_steal_pointer (&app_info);
+  *out_app_info = g_steal_pointer (&app_info);
+  return TRUE;
 }
 
 int
@@ -775,9 +806,11 @@ end:
   return is_snap;
 }
 
-/* Returns NULL with error set on failure, NULL with no error set if not a snap, and app-info otherwise */
-static XdpAppInfo *
-parse_app_info_from_snap (pid_t pid, GError **error)
+static gboolean
+xdp_app_info_from_snap (int          pid,
+                        int          pidfd,
+                        XdpAppInfo **out_app_info,
+                        GError     **error)
 {
   g_autoptr(GError) local_error = NULL;
   g_autofree char *pid_str = NULL;
@@ -788,13 +821,17 @@ parse_app_info_from_snap (pid_t pid, GError **error)
   g_autofree char *snap_name = NULL;
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
-  if (!pid_is_snap (pid, error)) return NULL;
+  if (!pid_is_snap (pid, error))
+    {
+      *out_app_info = NULL;
+      return TRUE;
+    }
 
   pid_str = g_strdup_printf ("%u", (guint) pid);
   argv[3] = pid_str;
   if (!xdp_spawnv (NULL, &output, 0, error, argv))
     {
-      return NULL;
+      return FALSE;
     }
 
   metadata = g_key_file_new ();
@@ -802,56 +839,156 @@ parse_app_info_from_snap (pid_t pid, GError **error)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't read snap info for pid %u: %s", pid, local_error->message);
-      return NULL;
+      return FALSE;
     }
 
   snap_name = g_key_file_get_string (metadata, SNAP_METADATA_GROUP_INFO,
                                      SNAP_METADATA_KEY_INSTANCE_NAME, error);
   if (snap_name == NULL)
     {
-      return NULL;
+      return FALSE;
     }
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
   app_info->id = g_strconcat ("snap.", snap_name, NULL);
+  app_info->pidfd = pidfd;
   app_info->u.snap.keyfile = g_steal_pointer (&metadata);
 
-  return g_steal_pointer (&app_info);
+  *out_app_info = g_steal_pointer (&app_info);
+  return TRUE;
 }
 
-
-XdpAppInfo *
-xdp_get_app_info_from_pid (pid_t pid,
-                           GError **error)
+static gboolean
+xdp_connection_get_pid_legacy (GDBusConnection  *connection,
+                               const char       *sender,
+                               GCancellable     *cancellable,
+                               int              *out_pidfd,
+                               uint32_t         *out_pid,
+                               GError          **error)
 {
-  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GVariant) reply = NULL;
+
+  reply = g_dbus_connection_call_sync (connection,
+                                       DBUS_NAME_DBUS,
+                                       DBUS_PATH_DBUS,
+                                       DBUS_INTERFACE_DBUS,
+                                       "GetConnectionUnixProcessID",
+                                       g_variant_new ("(s)", sender),
+                                       G_VARIANT_TYPE ("(u)"),
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       30000,
+                                       cancellable,
+                                       error);
+  if (!reply)
+    return FALSE;
+
+  *out_pidfd = -1;
+  g_variant_get (reply, "(u)", out_pid);
+  return TRUE;
+}
+
+static gboolean
+xdp_connection_get_pidfd (GDBusConnection  *connection,
+                          const char       *sender,
+                          GCancellable     *cancellable,
+                          int              *out_pidfd,
+                          uint32_t         *out_pid,
+                          GError          **error)
+{
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GVariant) dict = NULL;
   g_autoptr(GError) local_error = NULL;
+  g_autoptr(GVariant) process_fd = NULL;
+  g_autoptr(GVariant) process_id = NULL;
+  uint32_t pid;
+  int fd_index;
+  GUnixFDList *fd_list;
+  int fds_len = 0;
+  const int *fds;
+  int pidfd;
 
-  app_info = parse_app_info_from_flatpak_info (pid, &local_error);
-  if (app_info == NULL && local_error)
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
-    }
+  reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
+                                                         DBUS_NAME_DBUS,
+                                                         DBUS_PATH_DBUS,
+                                                         DBUS_INTERFACE_DBUS,
+                                                         "GetConnectionCredentials",
+                                                         g_variant_new ("(s)", sender),
+                                                         G_VARIANT_TYPE ("(a{sv})"),
+                                                         G_DBUS_CALL_FLAGS_NONE,
+                                                         30000,
+                                                         NULL,
+                                                         &fd_list,
+                                                         cancellable,
+                                                         &local_error);
 
-  if (app_info == NULL)
+  if (!reply)
     {
-      app_info = parse_app_info_from_snap (pid, &local_error);
-      if (app_info == NULL && local_error)
+      if (g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE))
         {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return NULL;
+          return xdp_connection_get_pid_legacy (connection,
+                                                sender,
+                                                cancellable,
+                                                out_pidfd,
+                                                out_pid,
+                                                error);
         }
+
+      g_propagate_error (error, local_error);
+      return FALSE;
     }
 
-  if (app_info == NULL)
-    app_info = xdp_app_info_new_host (pid);
+  g_variant_get (reply, "(@a{sv})", &dict);
 
-  return g_steal_pointer (&app_info);
+  process_id = g_variant_lookup_value (dict, "ProcessID", G_VARIANT_TYPE_UINT32);
+  if (!process_id)
+    {
+      return xdp_connection_get_pid_legacy (connection,
+                                            sender,
+                                            cancellable,
+                                            out_pidfd,
+                                            out_pid,
+                                            error);
+    }
+
+  pid = g_variant_get_uint32 (process_id);
+
+  process_fd = g_variant_lookup_value (dict, "ProcessFD", G_VARIANT_TYPE_HANDLE);
+  if (!process_fd)
+    {
+      *out_pidfd = -1;
+      *out_pid = pid;
+      return TRUE;
+    }
+
+  fd_index = g_variant_get_handle (process_fd);
+
+  if (fd_list == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      return FALSE;
+    }
+
+  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
+  if (fds_len <= fd_index)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      return FALSE;
+    }
+
+  pidfd = dup (fds[fd_index]);
+  if (pidfd < 0)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't dup pidfd");
+      return FALSE;
+    }
+
+  *out_pidfd = pidfd;
+  *out_pid = pid;
+  return TRUE;
 }
 
 static XdpAppInfo *
-lookup_cached_app_info_by_sender (const char *sender)
+cache_lookup_app_info_by_sender (const char *sender)
 {
   XdpAppInfo *app_info = NULL;
 
@@ -867,55 +1004,43 @@ lookup_cached_app_info_by_sender (const char *sender)
   return app_info;
 }
 
+static void
+cache_insert_app_info (const char *sender, XdpAppInfo *app_info)
+{
+  G_LOCK (app_infos);
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       xdp_app_info_ref (app_info));
+  G_UNLOCK (app_infos);
+}
+
 static XdpAppInfo *
 xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      const char            *sender,
                                      GCancellable          *cancellable,
                                      GError               **error)
 {
-  g_autoptr(GDBusMessage) msg = NULL;
-  g_autoptr(GDBusMessage) reply = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
-  GVariant *body;
-  guint32 pid = 0;
+  int pidfd = -1;
+  uint32_t pid;
 
-  app_info = lookup_cached_app_info_by_sender (sender);
+  app_info = cache_lookup_app_info_by_sender (sender);
   if (app_info)
     return g_steal_pointer (&app_info);
 
-  msg = g_dbus_message_new_method_call (DBUS_NAME_DBUS,
-                                        DBUS_PATH_DBUS,
-                                        DBUS_INTERFACE_DBUS,
-                                        "GetConnectionUnixProcessID");
-  g_dbus_message_set_body (msg, g_variant_new ("(s)", sender));
-
-  reply = g_dbus_connection_send_message_with_reply_sync (connection, msg,
-                                                          G_DBUS_SEND_MESSAGE_FLAGS_NONE,
-                                                          30000,
-                                                          NULL,
-                                                          cancellable,
-                                                          error);
-  if (reply == NULL)
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  if (g_dbus_message_get_message_type (reply) == G_DBUS_MESSAGE_TYPE_ERROR)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer app id");
-      return NULL;
-    }
+  if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
+    return NULL;
 
-  body = g_dbus_message_get_body (reply);
-  g_variant_get (body, "(u)", &pid);
+  if (app_info == NULL && !xdp_app_info_from_snap (pid, pidfd, &app_info, error))
+    return NULL;
 
-  app_info = xdp_get_app_info_from_pid (pid, error);
   if (app_info == NULL)
-    return NULL;
+    app_info = xdp_app_info_new_host (pid, pidfd);
 
-  G_LOCK (app_infos);
-  ensure_app_info_by_unique_name ();
-  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
-                       xdp_app_info_ref (app_info));
-  G_UNLOCK (app_infos);
+  cache_insert_app_info (sender, app_info);
 
   return g_steal_pointer (&app_info);
 }
@@ -927,6 +1052,11 @@ xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  const char *test_override_app_id;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (test_override_app_id)
+    return xdp_app_info_new_test_host (test_override_app_id);
 
   return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
@@ -2117,23 +2247,15 @@ xdp_app_info_get_child_pid (JsonNode *root,
 }
 
 static gboolean
-xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
-                           DIR         *proc,
-                           GError     **error)
+xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
+                                   DIR         *proc,
+                                   GError     **error)
 {
   g_autoptr(JsonNode) root = NULL;
-  g_autoptr(GMutexLocker) guard = NULL;
   xdp_autofd int fd = -1;
   pid_t pid;
   ino_t ns;
   int r;
-
-  g_assert (app_info->kind == XDP_APP_INFO_KIND_FLATPAK);
-
-  guard = g_mutex_locker_new (&(app_info->u.flatpak.pidns_lock));
-
-  if (app_info->u.flatpak.pidns_id != 0)
-    return TRUE;
 
   root = xdp_app_info_load_bwrap_info (app_info, error);
   if (root == NULL)
@@ -2146,7 +2268,7 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
   if (ns != 0)
     {
       g_debug ("Using pid namespace info from bwrap info");
-      app_info->u.flatpak.pidns_id = ns;
+      app_info->pidns_id = ns;
       return TRUE;
     }
 
@@ -2163,14 +2285,56 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
     {
       int code = g_io_error_from_errno (-r);
       g_set_error (error, G_IO_ERROR, code,
-                   "Could not query /proc/%u/ns/pid: %s",
-                   (guint) pid, g_strerror (-r));
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
       return FALSE;
     }
 
-  app_info->u.flatpak.pidns_id = ns;
+  app_info->pidns_id = ns;
 
   return TRUE;
+}
+
+static gboolean
+xdp_app_info_ensure_pidns_pidfd (XdpAppInfo  *app_info,
+                                 DIR         *proc,
+                                 GError     **error)
+{
+  ino_t ns;
+  int r;
+
+  r = lookup_ns_from_pid_fd (app_info->pidfd, &ns);
+  if (r < 0)
+    {
+      int code = g_io_error_from_errno (-r);
+      g_set_error (error, G_IO_ERROR, code,
+                   "Could not query pidfd for pidns: %s",
+                   g_strerror (-r));
+      return FALSE;
+    }
+
+  app_info->pidns_id = ns;
+  return TRUE;
+}
+
+static gboolean
+xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
+                           DIR         *proc,
+                           GError     **error)
+{
+  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(app_info->pidns_lock));
+
+  if (app_info->pidns_id != 0)
+    return TRUE;
+
+  if (app_info->pidfd >= 0)
+    return xdp_app_info_ensure_pidns_pidfd (app_info, proc, error);
+
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+    return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
+
+  g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Could not get a pidns");
+  return FALSE;
 }
 
 /* This is the trunk for xdp_app_info_map_pids()/xdp_app_info_map_tids() */
@@ -2181,6 +2345,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
                    guint        n_pids,
                    GError     **error)
 {
+  g_autoptr(GError) local_error = NULL;
   gboolean ok;
   DIR *proc;
   uid_t uid;
@@ -2188,16 +2353,6 @@ app_info_map_pids (XdpAppInfo  *app_info,
 
   g_return_val_if_fail (app_info != NULL, FALSE);
   g_return_val_if_fail (pids != NULL, FALSE);
-
-  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
-    return TRUE;
-
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
-    {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                           "Mapping pids is not supported.");
-      return FALSE;
-    }
 
   proc = opendir (proc_dir);
   if (proc == NULL)
@@ -2208,10 +2363,15 @@ app_info_map_pids (XdpAppInfo  *app_info,
     }
 
   /* Make sure we know the pid namespace the app is running in */
-  ok = xdp_app_info_ensure_pidns (app_info, proc, error);
+  ok = xdp_app_info_ensure_pidns (app_info, proc, &local_error);
   if (!ok)
     {
-      g_prefix_error (error, "Could not determine pid namespace: ");
+      /* fallback to not mapping pids if the app is on the host */
+      if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+        return TRUE;
+
+      g_propagate_prefixed_error (error, local_error,
+                                  "Could not determine pid namespace: ");
       goto out;
     }
 
@@ -2220,7 +2380,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
    */
   uid = getuid ();
 
-  ns = app_info->u.flatpak.pidns_id;
+  ns = app_info->pidns_id;
   ok = map_pids (proc, ns, pids, n_pids, uid, error);
 
  out:

@@ -28,8 +28,8 @@
       backend will present the user with a file chooser dialog.
 
       The selected files will be made accessible to the application
-      via the document portal, and the returned URI will point
-      into the document portal fuse filesystem in ``/run/user/$UID/doc/``.
+      (which may involve adding it to the :ref:`Documents
+      portal<org.freedesktop.portal.Documents>`).
 
       This documentation describes version 4 of this interface.
   -->
@@ -197,7 +197,7 @@
 
         See org.freedesktop.portal.FileChooser.OpenFile() for details.
 
-      * ``current_name``(``s``)
+      * ``current_name`` (``s``)
 
         Suggested name of the file.
 
@@ -236,17 +236,6 @@
         The filter that was selected.
 
         See org.freedesktop.portal.FileChooser.OpenFile() for details.
-
-      * ``current_folder`` (``ay``)
-
-        Suggested folder in which the file should be saved. The byte array
-        contains a path in the same encoding as the file system, and it's
-        expected to be terminated by a nul byte.
-
-        If the path points to a location in the document storage, it will be
-        replaced with the path to the location on the host.
-
-        The portal implementation is free to ignore this option.
     -->
     <method name="SaveFile">
       <arg type="s" name="parent_window" direction="in"/>

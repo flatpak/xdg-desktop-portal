@@ -12,46 +12,46 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2023-10-26 11:13-0300\n"
-"PO-Revision-Date: 2023-06-06 02:05+0300\n"
-"Last-Translator: Berk Elyesa Yıldırım <beryesa@proton.me>\n"
+"PO-Revision-Date: 2024-02-14 03:04+0300\n"
+"Last-Translator: Sabri Ünal <libreajans@gmail.com>\n"
 "Language-Team: Türkçe <gnome-turk@gnome.org>\n"
 "Language: tr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Poedit 3.3.1\n"
+"X-Generator: Poedit 3.4.2\n"
 
 #: src/background.c:745
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr "%s, arka planda çalışmasına izin verilsin mi?"
+msgstr "%s uygulamasına arka planda çalışma izin verilsin mi?"
 
 #: src/background.c:749
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr "%s, kendiliğinden başlamayı ve arka planda çalışmayı istiyor."
+msgstr "%s kendiliğinden başlatılmayı ve arka planda çalışmayı istiyor."
 
 #: src/background.c:751
 #, c-format
 msgid "%s requests to run in the background."
-msgstr "%s, arka planda çalışmak istiyor."
+msgstr "%s arka planda çalışmak istiyor."
 
 #: src/background.c:752
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
-"‘Arka planda çalış’ ayarı, uygulama ayarlarından istediğiniz zaman "
+"‘Arka planda çalış’ izni, uygulama ayarlarından istediğiniz zaman "
 "değiştirilebilir."
 
 #: src/background.c:757
 msgid "Don't allow"
-msgstr "İzin verme"
+msgstr "İzin Verme"
 
 #: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
 msgid "Allow"
-msgstr "İzin ver"
+msgstr "İzin Ver"
 
 #: src/device.c:116
 msgid "Turn On Microphone?"
@@ -62,17 +62,17 @@ msgid ""
 "Access to your microphone can be changed at any time from the privacy "
 "settings."
 msgstr ""
-"Mikrofonunuza erişimi, istediğiniz zaman gizlilik ayarlarından "
-"değiştirebilirsiniz."
+"Mikrofonunuza erişim, gizlilik ayarlarından istediğiniz zaman "
+"değiştirilebilir."
 
 #: src/device.c:121
 msgid "An application wants to use your microphone."
-msgstr "Bir uygulama, mikrofonunuzu kullanmak istiyor."
+msgstr "Bir uygulama mikrofonunuzu kullanmak istiyor."
 
 #: src/device.c:123
 #, c-format
 msgid "%s wants to use your microphone."
-msgstr "%s, mikrofonunuzu kullanmak istiyor."
+msgstr "%s mikrofonunuzu kullanmak istiyor."
 
 #: src/device.c:129
 msgid "Turn On Speakers?"
@@ -82,17 +82,17 @@ msgstr "Hoparlörler Açılsın Mı?"
 msgid ""
 "Access to your speakers can be changed at any time from the privacy settings."
 msgstr ""
-"Hoparlörlerinize erişimi, istediğiniz zaman gizlilik ayarlarından "
-"değiştirebilirsiniz."
+"Hoparlörlerinize erişimi, gizlilik ayarlarından istediğiniz zaman "
+"değiştirilebilir."
 
 #: src/device.c:134
 msgid "An application wants to play sound."
-msgstr "Bir uygulama, ses çalmak istiyor."
+msgstr "Bir uygulama ses çalmak istiyor."
 
 #: src/device.c:136
 #, c-format
 msgid "%s wants to play sound."
-msgstr "%s, ses çalmak istiyor."
+msgstr "%s ses çalmak istiyor."
 
 #: src/device.c:142
 msgid "Turn On Camera?"
@@ -102,17 +102,16 @@ msgstr "Kamera Açılsın Mı?"
 msgid ""
 "Access to your camera can be changed at any time from the privacy settings."
 msgstr ""
-"Kameranıza erişimi, istediğiniz zaman gizlilik ayarlarından "
-"değiştirebilirsiniz."
+"Kameranıza erişim, gizlilik ayarlarından istediğiniz zaman değiştirilebilir."
 
 #: src/device.c:147
 msgid "An application wants to use your camera."
-msgstr "Bir uygulama, kameranızı kullanmak istiyor."
+msgstr "Bir uygulama kameranızı kullanmak istiyor."
 
 #: src/device.c:149
 #, c-format
 msgid "%s wants to use your camera."
-msgstr "%s, kameranızı kullanmak istiyor."
+msgstr "%s kameranızı kullanmak istiyor."
 
 #: src/location.c:526
 msgid "Deny Access"
@@ -125,20 +124,20 @@ msgstr "Erişim İzni Ver"
 #: src/location.c:546
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr "%s, Bulunduğunuz Konuma Erişsin Mi?"
+msgstr "%s, Konumunuza Erişsin Mi?"
 
 #: src/location.c:551
 #, c-format
 msgid "%s wants to use your location."
-msgstr "%s, konumunuzu kullanmak istiyor."
+msgstr "%s konumunuzu kullanmak istiyor."
 
 #: src/location.c:559
 msgid "Grant Access to Your Location?"
-msgstr "Konumunuza Erişim Verilsin Mi?"
+msgstr "Konumunuza Erişim İzni Verilsin Mi?"
 
 #: src/location.c:560
 msgid "An application wants to use your location."
-msgstr "Bir uygulama, konumunuzu kullanmak istiyor."
+msgstr "Bir uygulama konumunuzu kullanmak istiyor."
 
 #: src/location.c:563
 msgid "Location access can be changed at any time from the privacy settings."
@@ -152,7 +151,7 @@ msgstr "Reddet"
 #: src/screenshot.c:256
 #, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "%s, Ekran Görüntüsü Almasına İzin Verilsin Mi?"
+msgstr "%s Uygulamasının Ekran Görüntüsü Almasına İzin Verilsin Mi?"
 
 #: src/screenshot.c:257
 #, c-format
@@ -178,12 +177,12 @@ msgstr "İstenen ayar bulunamadı"
 #: src/wallpaper.c:200
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "%s, Arka Planı Belirlemesine İzin Verilsin Mi?"
+msgstr "%s Uygulamasının Arka Planı Belirlemesine İzin Verilsin Mi?"
 
 #: src/wallpaper.c:201
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "%s, arka planı değiştirme yetkisi istiyor."
+msgstr "%s arka plan görüntüsünü değiştirebilmek istiyor."
 
 #: src/wallpaper.c:209
 msgid "Allow Applications to Set Backgrounds?"
@@ -191,4 +190,4 @@ msgstr "Uygulamaların Arka Planı Belirlemesine İzin Verilsin Mi?"
 
 #: src/wallpaper.c:210
 msgid "An application is requesting to be able to change the background image."
-msgstr "Bir uygulama arka planı değiştirme yetkisi istiyor."
+msgstr "Bir uygulama arka plan görüntüsünü değiştirebilmek istiyor."

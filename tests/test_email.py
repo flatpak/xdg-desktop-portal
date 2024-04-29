@@ -2,7 +2,6 @@
 #
 # This file is formatted with Python Black
 
-from tests import PortalMock
 import dbus
 import pytest
 import time

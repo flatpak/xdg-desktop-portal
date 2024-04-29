@@ -46,6 +46,16 @@
       in the sRGB color space, in the range [0,1].
       Out-of-range RGB values should be treated as an unset accent color.
 
+    * ``org.freedesktop.appearance``  ``contrast`` (``u``)
+
+      Indicates the system's preferred contrast level.
+      Supported values are:
+
+      - ``0``: No preference (normal contrast)
+      - ``1``: Higher contrast
+
+      Unknown values should be treated as 0 (no preference).
+
     Implementations can provide other keys; they are entirely
     implementation details that are undocumented. If you are a
     toolkit and want to use this please open an issue.

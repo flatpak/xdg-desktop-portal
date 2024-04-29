@@ -25,9 +25,9 @@
 
       This simple portal lets sandboxed applications request a screenshot.
 
-      The screenshot will be made accessible to the application
-      via the document portal, and the returned URI will point
-      into the document portal fuse filesystem in /run/user/$UID/doc/.
+      The screenshot will be made accessible to the application (which
+      may involve adding it to the :ref:`Documents
+      portal<org.freedesktop.portal.Documents>`).
 
       This documentation describes **version 2** of this interface.
   -->
