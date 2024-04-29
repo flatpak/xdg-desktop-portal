@@ -642,10 +642,12 @@ app_uri_handler_match (GPtrArray *handlers,
 }
 
 static void
-find_patterned_choices (const char *uri,
-                        GStrv *choices,
-                        guint *choices_len)
+find_patterned_choices (XdpAppInfo *app,
+                        const char *uri,
+                        GStrv      *choices,
+                        guint      *choices_len)
 {
+  const char *source_app_id = xdp_app_info_get_id (app);
   g_autoptr(GUri) guri = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GHashTable) candidates = NULL;
@@ -670,6 +672,12 @@ find_patterned_choices (const char *uri,
   g_hash_table_iter_init (&iter, candidates);
   while (g_hash_table_iter_next (&iter, (void **)&app_id, (void **)&handlers))
     {
+      if (g_strcmp0 (source_app_id, app_id) == 0)
+        {
+          g_debug ("Skipping handler for originating app %s", app_id);
+          continue;
+        }
+
       if (app_uri_handler_match (handlers, guri))
         {
           g_debug ("Matching handler for %s (%s)", uri, app_id);
@@ -684,7 +692,8 @@ find_patterned_choices (const char *uri,
 }
 
 static void
-find_recommended_choices (const char *uri,
+find_recommended_choices (XdpAppInfo *app,
+                          const char *uri,
                           const char *scheme,
                           const char *content_type,
                           char **default_app,
@@ -700,7 +709,7 @@ find_recommended_choices (const char *uri,
 
   /* Pre-empt the default app, since there are hard-coded scheme overrides
    */
-  find_patterned_choices (uri, &result, &n_choices);
+  find_patterned_choices (app, uri, &result, &n_choices);
   if (n_choices > 0)
     {
       *choices = g_steal_pointer (&result);
@@ -762,7 +771,7 @@ app_info_changed (GAppInfoMonitor *monitor,
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
   uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
-  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
+  find_recommended_choices (request->app_info, uri, scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_dbus_impl_app_chooser_call_update_choices (impl,
                                                  request->id,
@@ -993,7 +1002,7 @@ handle_open_in_thread_func (GTask *task,
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   /* collect all the information */
-  find_recommended_choices (uri, scheme, content_type, &default_app, &choices, &n_choices);
+  find_recommended_choices (request->app_info, uri, scheme, content_type, &default_app, &choices, &n_choices);
   /* it's never NULL, but might be empty (only contain the NULL terminator) */
   g_assert (choices != NULL);
   if (default_app != NULL && !app_exists (default_app))
