@@ -520,6 +520,114 @@ uri_handler_free (UriHandler *handler)
   g_free (handler);
 }
 
+/*
+ * Temporary deserialization
+ */
+static GPtrArray *
+uri_handler_deserialize_sections (GKeyFile *keyfile)
+{
+  GPtrArray *ret = NULL;
+  g_auto (GStrv) groups = NULL;
+
+  g_assert (keyfile != NULL);
+
+  groups = g_key_file_get_groups (keyfile, NULL);
+  for (size_t i = 0; groups[i] != NULL; i++)
+    {
+      const char *group = groups[i];
+      UriHandler *handler = NULL;
+      g_auto (GStrv) ports = NULL;
+
+      if (!g_str_has_prefix (group, "URI Handler"))
+        continue;
+
+      handler = g_new0 (UriHandler, 1);
+      handler->schemes = g_key_file_get_string_list (keyfile, group, "Scheme", NULL, NULL);
+      handler->hosts = g_key_file_get_string_list (keyfile, group, "Host", NULL, NULL);
+      handler->paths = g_key_file_get_string_list (keyfile, group, "Path", NULL, NULL);
+
+      ports = g_key_file_get_string_list (keyfile, group, "Port", NULL, NULL);
+      if (ports != NULL)
+        {
+          unsigned int n_ports = g_strv_length (ports);
+
+          handler->ports = g_array_new (TRUE, TRUE, sizeof (uint16_t));
+          for (unsigned int i = 0; i < n_ports; i++)
+            {
+              guint64 port = g_ascii_strtoull (ports[i], NULL, 10);
+
+              if (port > 0 && port < UINT16_MAX)
+                g_array_append_vals (handler->ports, (uint16_t *)&port, 1);
+            }
+        }
+
+      g_ptr_array_add (ret, handler);
+    }
+
+  if (ret->len == 0)
+    g_clear_pointer (&ret, g_ptr_array_unref);
+
+  return ret;
+}
+
+static GHashTable *
+uri_handler_load_keyfiles (void)
+{
+  GHashTable *ret = NULL;
+  g_autoptr (GFile) search_path = NULL;
+  g_autoptr (GFileEnumerator) search_dir = NULL;
+
+  ret = g_hash_table_new_full (g_str_hash,
+                               g_str_equal,
+                               g_free,
+                               (GDestroyNotify)g_ptr_array_unref);
+
+  search_path = g_file_new_build_filename (g_get_user_data_dir (),
+                                           "applications",
+                                           NULL);
+  search_dir = g_file_enumerate_children (search_path,
+                                          G_FILE_ATTRIBUTE_STANDARD_NAME,
+                                          G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                          NULL,
+                                          NULL);
+
+  while (TRUE)
+    {
+      GFile *file;
+      g_autoptr (GPtrArray) handlers = NULL;
+      g_autoptr (GKeyFile) keyfile = NULL;
+      g_autofree char *filepath = NULL;
+
+      if (!g_file_enumerator_iterate (search_dir, NULL, &file, NULL, NULL))
+        break;
+
+      if (file == NULL)
+        break;
+
+      filepath = g_file_get_path (file);
+      keyfile = g_key_file_new ();
+      if (!g_key_file_load_from_file (keyfile, filepath, G_KEY_FILE_NONE, NULL))
+        continue;
+
+      handlers = uri_handler_deserialize_sections (keyfile);
+      if (handlers != NULL && handlers->len > 0)
+        {
+          g_autofree char *basename = NULL;
+          g_autofree char *app_id = NULL;
+
+          basename = g_file_get_basename (file);
+          app_id = g_strndup (basename, strlen (basename) - strlen (".desktop"));
+
+          g_debug ("Found %u handlers for %s", handlers->len, app_id);
+          g_hash_table_replace (ret,
+                                g_steal_pointer (&app_id),
+                                g_steal_pointer (&handlers));
+        }
+    }
+
+  return ret;
+}
+
 static gboolean
 uri_handler_match (UriHandler *handler,
                    GUri       *uri)
@@ -666,7 +774,7 @@ find_patterned_choices (XdpAppInfo *app,
       return;
     }
 
-  candidates = g_hash_table_new (g_str_hash, g_str_equal);
+  candidates = uri_handler_load_keyfiles ();
   builder = g_strv_builder_new ();
 
   g_hash_table_iter_init (&iter, candidates);
