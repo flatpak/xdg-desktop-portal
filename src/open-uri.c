@@ -506,6 +506,7 @@ typedef struct
   GStrv   hosts;
   GArray *ports;
   GStrv   paths;
+  GStrv   patterns;
 } UriHandler;
 
 static void
@@ -513,6 +514,7 @@ uri_handler_free (UriHandler *handler)
 {
   g_assert (handler != NULL);
 
+  g_clear_pointer (&handler->patterns, g_strfreev);
   g_clear_pointer (&handler->schemes, g_strfreev);
   g_clear_pointer (&handler->hosts, g_strfreev);
   g_clear_pointer (&handler->paths, g_strfreev);
@@ -523,6 +525,35 @@ uri_handler_free (UriHandler *handler)
 /*
  * Temporary deserialization
  */
+#define URI_HANDLER_GROUP        "org.freedesktop.UriHandler"
+#define URI_HANDLER_PATTERNS_KEY "Patterns"
+
+static GPtrArray *
+uri_handler_deserialize_patterns (GKeyFile *keyfile)
+{
+  GPtrArray *ret = NULL;
+  g_auto (GStrv) patterns = NULL;
+
+  g_assert (keyfile != NULL);
+
+  patterns = g_key_file_get_string_list (keyfile,
+                                         URI_HANDLER_GROUP,
+                                         URI_HANDLER_PATTERNS_KEY,
+                                         NULL, NULL);
+
+  if (patterns != NULL && patterns[0] != NULL)
+    {
+      UriHandler *handler = NULL;
+
+      ret = g_ptr_array_new_with_free_func ((GDestroyNotify)uri_handler_free);
+      handler = g_new0 (UriHandler, 1);
+      handler->patterns = g_steal_pointer (&patterns);
+      g_ptr_array_add (ret, handler);
+    }
+
+  return ret;
+}
+
 static GPtrArray *
 uri_handler_deserialize_sections (GKeyFile *keyfile)
 {
@@ -531,6 +562,7 @@ uri_handler_deserialize_sections (GKeyFile *keyfile)
 
   g_assert (keyfile != NULL);
 
+  ret = g_ptr_array_new_with_free_func ((GDestroyNotify)uri_handler_free);
   groups = g_key_file_get_groups (keyfile, NULL);
   for (size_t i = 0; groups[i] != NULL; i++)
     {
@@ -609,7 +641,15 @@ uri_handler_load_keyfiles (void)
       if (!g_key_file_load_from_file (keyfile, filepath, G_KEY_FILE_NONE, NULL))
         continue;
 
-      handlers = uri_handler_deserialize_sections (keyfile);
+      if (g_key_file_has_group (keyfile, "org.freedesktop.UriHandler"))
+        {
+          handlers = uri_handler_deserialize_patterns (keyfile);
+        }
+      else
+        {
+          handlers = uri_handler_deserialize_sections (keyfile);
+        }
+
       if (handlers != NULL && handlers->len > 0)
         {
           g_autofree char *basename = NULL;
@@ -634,6 +674,18 @@ uri_handler_match (UriHandler *handler,
 {
   const char *scheme = NULL;
   const char *host = NULL;
+
+  /* Simple pattern matching */
+  if (handler->patterns != NULL)
+    {
+      g_autofree char *uri_str = g_uri_to_string (uri);
+
+      for (unsigned int i = 0; handler->patterns[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->patterns[i], uri_str))
+            return TRUE;
+        }
+    }
 
   scheme = g_uri_get_scheme (uri);
   if (scheme != NULL && handler->schemes != NULL)
