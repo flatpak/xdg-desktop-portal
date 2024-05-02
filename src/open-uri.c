@@ -557,6 +557,18 @@ uri_handler_match (UriHandler *handler,
               match = TRUE;
               break;
             }
+
+          // Allow "*.example.com" to match "www.example.com" and "example.com"
+          if (g_str_has_prefix (handler->hosts[i], "*."))
+            {
+              const char *subpattern = handler->hosts[i] + 2;
+
+              if (g_pattern_match_simple (subpattern, host))
+                {
+                  match = TRUE;
+                  break;
+                }
+            }
         }
 
       if (!match)
