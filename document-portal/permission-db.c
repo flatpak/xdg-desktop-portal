@@ -838,7 +838,7 @@ save_content_callback (GObject      *source_object,
   if (ok)
     g_task_return_boolean (task, TRUE);
   else
-    g_task_return_error (task, error);
+    g_task_return_error (task, g_steal_pointer (&error));
 }
 
 void
