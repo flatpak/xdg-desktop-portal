@@ -1428,7 +1428,7 @@ xdp_fuse_getattr (fuse_req_t req,
   double attr_valid_time = 0.0;/* Time in secs for attribute validation */
   const char *op = "GETATTR";
 
-  g_debug ("GETATTR %lx", ino);
+  g_debug ("GETATTR %" G_GINT64_MODIFIER "x", ino);
 
   if (xdp_domain_is_virtual_type (domain))
     {
@@ -1468,7 +1468,7 @@ xdp_fuse_setattr (fuse_req_t             req,
   int res;
   const char *op = "SETATTR";
 
-  g_debug ("SETATTR %lx %s", ino, to_set_string);
+  g_debug ("SETATTR %" G_GINT64_MODIFIER "x %s", ino, to_set_string);
 
   if (!xdp_document_inode_checks (op, req, inode,
                                   CHECK_CAN_WRITE | CHECK_IS_PHYSICAL))
@@ -1810,7 +1810,7 @@ xdp_fuse_lookup (fuse_req_t req,
   int open_flags = O_PATH|O_NOFOLLOW;
   const char *op = "LOOKUP";
 
-  g_debug ("LOOKUP %lx:%s", parent_ino, name);
+  g_debug ("LOOKUP %" G_GINT64_MODIFIER "x:%s", parent_ino, name);
 
   if (strcmp (name, ".") == 0 || strcmp (name, "..") == 0)
     {
@@ -1860,7 +1860,7 @@ xdp_fuse_lookup (fuse_req_t req,
       queue_invalidate_dentry (parent, name);
     }
 
-  g_debug ("LOOKUP %lx:%s => %lx", parent_ino, name, e.ino);
+  g_debug ("LOOKUP %" G_GINT64_MODIFIER "x:%s => %" G_GINT64_MODIFIER "x", parent_ino, name, e.ino);
 
   if (fuse_reply_entry (req, &e) == -ENOENT)
     abort_reply_entry (&e);
@@ -1895,7 +1895,7 @@ xdp_fuse_open (fuse_req_t req,
   XdpDocumentChecks checks;
   const char *op = "OPEN";
 
-  g_debug ("OPEN %lx %s", ino, open_flags_string);
+  g_debug ("OPEN %" G_GINT64_MODIFIER "x %s", ino, open_flags_string);
 
   checks = CHECK_IS_PHYSICAL;
   if (open_flags_has_write (open_flags))
@@ -1961,7 +1961,7 @@ xdp_fuse_create (fuse_req_t             req,
   XdpFile *file = NULL;
   const char *op = "CREATE";
 
-  g_debug ("CREATE %lx %s %s, 0%o", parent_ino, filename, open_flags_string, mode);
+  g_debug ("CREATE %" G_GINT64_MODIFIER "x %s %s, 0%o", parent_ino, filename, open_flags_string, mode);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2004,7 +2004,7 @@ xdp_fuse_read (fuse_req_t req,
   struct fuse_bufvec buf = FUSE_BUFVEC_INIT(size);
   XdpFile *file = (XdpFile *)fi->fh;
 
-  g_debug ("READ %lx size %ld off %ld", ino, size, off);
+  g_debug ("READ %" G_GINT64_MODIFIER "x size %" G_GSIZE_FORMAT " off %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
   buf.buf[0].flags = FUSE_BUF_IS_FD | FUSE_BUF_FD_SEEK;
   buf.buf[0].fd = file->fd;
@@ -2026,7 +2026,7 @@ xdp_fuse_write (fuse_req_t             req,
   ssize_t res;
   const char *op = "WRITE";
 
-  g_debug ("WRITE %lx size %ld off %ld", ino, size, off);
+  g_debug ("WRITE %" G_GINT64_MODIFIER "x size %" G_GSIZE_FORMAT " off %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
   res = pwrite (file->fd, buf, size, off);
 
@@ -2048,7 +2048,7 @@ xdp_fuse_write_buf (fuse_req_t             req,
   ssize_t res;
   const char *op = "WRITEBUF";
 
-  g_debug ("WRITEBUF %lx off %ld", ino, off);
+  g_debug ("WRITEBUF %" G_GINT64_MODIFIER "x off %" G_GOFFSET_FORMAT, ino, (goffset)off);
 
   dst.buf[0].flags = FUSE_BUF_IS_FD | FUSE_BUF_FD_SEEK;
   dst.buf[0].fd = file->fd;
@@ -2071,7 +2071,7 @@ xdp_fuse_fsync (fuse_req_t             req,
   int res;
   const char *op = "FSYNC";
 
-  g_debug ("FSYNC %lx", ino);
+  g_debug ("FSYNC %" G_GINT64_MODIFIER "x", ino);
 
   if (datasync)
     res = fdatasync (file->fd);
@@ -2095,7 +2095,7 @@ xdp_fuse_fallocate (fuse_req_t req,
   int res;
   const char *op = "FALLOCATE";
 
-  g_debug ("FALLOCATE %lx", ino);
+  g_debug ("FALLOCATE %" G_GINT64_MODIFIER "x", ino);
 
 #ifdef __linux__
   res = fallocate (file->fd, mode, offset, length);
@@ -2116,7 +2116,7 @@ xdp_fuse_flush (fuse_req_t req,
 {
   const char *op = "FLUSH";
 
-  g_debug ("FLUSH %lx", ino);
+  g_debug ("FLUSH %" G_GINT64_MODIFIER "x", ino);
   xdp_reply_ok (op, req);
 }
 
@@ -2128,7 +2128,7 @@ xdp_fuse_release (fuse_req_t             req,
   XdpFile *file = (XdpFile *)fi->fh;
   const char *op = "RELEASE";
 
-  g_debug ("RELEASE %lx", ino);
+  g_debug ("RELEASE %" G_GINT64_MODIFIER "x", ino);
 
   xdp_file_free (file);
 
@@ -2141,7 +2141,7 @@ forget_one (fuse_ino_t ino,
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
 
-  g_debug ("FORGET %lx %ld", ino, nlookup);
+  g_debug ("FORGET %" G_GINT64_MODIFIER "x %ld", ino, nlookup);
   xdp_inode_kernel_unref (inode, nlookup);
 }
 
@@ -2161,7 +2161,7 @@ xdp_fuse_forget_multi (fuse_req_t req,
 {
   size_t i;
 
-  g_debug ("FORGET_MULTI %ld", count);
+  g_debug ("FORGET_MULTI %" G_GSIZE_FORMAT, count);
 
   for (i = 0; i < count; i++)
     forget_one (forgets[i].ino, forgets[i].nlookup);
@@ -2278,7 +2278,7 @@ xdp_fuse_opendir (fuse_req_t             req,
   DIR *dir;
   const char *op = "OPENDIR";
 
-  g_debug ("OPENDIR %lx domain %d", ino, inode->domain->type);
+  g_debug ("OPENDIR %" G_GINT64_MODIFIER "x domain %d", ino, inode->domain->type);
 
   if (xdp_domain_is_virtual_type (domain))
     {
@@ -2380,7 +2380,7 @@ xdp_fuse_readdir (fuse_req_t req,
   size_t rem;
   const char *op = "READDIR";
 
-  g_debug ("READDIR %lx %ld %ld", ino, size, off);
+  g_debug ("READDIR %" G_GINT64_MODIFIER "x %" G_GSIZE_FORMAT " %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
   if (d->dir)
     {
@@ -2467,7 +2467,7 @@ xdp_fuse_releasedir (fuse_req_t             req,
   XdpDir *d = (XdpDir *)fi->fh;
   const char *op = "RELEASEDIR";
 
-  g_debug ("RELEASEDIR %lx", ino);
+  g_debug ("RELEASEDIR %" G_GINT64_MODIFIER "x", ino);
 
   xdp_dir_free (d);
 
@@ -2484,7 +2484,7 @@ xdp_fuse_fsyncdir (fuse_req_t             req,
   int fd, res;
   const char *op = "FSYNCDIR";
 
-  g_debug ("FSYNCDIR %lx", ino);
+  g_debug ("FSYNCDIR %" G_GINT64_MODIFIER "x", ino);
 
   if (dir->dir)
     {
@@ -2516,7 +2516,7 @@ xdp_fuse_mkdir (fuse_req_t  req,
   int dirfd;
   const char *op = "MKDIR";
 
-  g_debug ("MKDIR %lx %s", parent_ino, name);
+  g_debug ("MKDIR %" G_GINT64_MODIFIER "x %s", parent_ino, name);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2550,7 +2550,7 @@ xdp_fuse_unlink (fuse_req_t  req,
   int res = -1;
   const char * op = "UNLINK";
 
-  g_debug ("UNLINK %lx %s", parent_ino, filename);
+  g_debug ("UNLINK %" G_GINT64_MODIFIER "x %s", parent_ino, filename);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2636,7 +2636,7 @@ xdp_fuse_rename (fuse_req_t  req,
   xdp_autofd int close_fd2 = -1;
   const char *op = "RENAME";
 
-  g_debug ("RENAME %lx %s -> %lx %s (flags: %s)", parent_ino, name,
+  g_debug ("RENAME %" G_GINT64_MODIFIER "x %s -> %" G_GINT64_MODIFIER "x %s (flags: %s)", parent_ino, name,
            newparent_ino, newname, rename_flags_string);
 
   if (!xdp_document_inode_checks (op, req, parent,
@@ -2790,7 +2790,7 @@ xdp_fuse_access (fuse_req_t req,
   int res;
   const char *op = "ACCESS";
 
-  g_debug ("ACCESS %lx", ino);
+  g_debug ("ACCESS %" G_GINT64_MODIFIER "x", ino);
 
   if (inode->domain->type != XDP_DOMAIN_DOCUMENT)
     {
@@ -2839,7 +2839,7 @@ xdp_fuse_rmdir (fuse_req_t req,
   int res;
   const char *op = "RMDIR";
 
-  g_debug ("RMDIR %lx %s", parent_ino, filename);
+  g_debug ("RMDIR %" G_GINT64_MODIFIER "x %s", parent_ino, filename);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2867,7 +2867,7 @@ xdp_fuse_readlink (fuse_req_t req,
   ssize_t res;
   const char *op = "READLINK";
 
-  g_debug ("READLINK %lx", ino);
+  g_debug ("READLINK %" G_GINT64_MODIFIER "x", ino);
 
   if (!xdp_document_inode_checks (op, req, inode,
                                   CHECK_IS_DIRECTORY |
@@ -2898,7 +2898,7 @@ xdp_fuse_symlink (fuse_req_t req,
   struct fuse_entry_param e;
   const char * op = "SYMLINK";
 
-  g_debug ("SYMLINK %s %lx %s", link, parent_ino, name);
+  g_debug ("SYMLINK %s %" G_GINT64_MODIFIER "x %s", link, parent_ino, name);
 
   if (!xdp_document_inode_checks (op, req, parent,
                                   CHECK_CAN_WRITE |
@@ -2937,7 +2937,7 @@ xdp_fuse_link (fuse_req_t req,
   struct fuse_entry_param e;
   const char * op = "LINK";
 
-  g_debug ("LINK %lx %lx %s", ino, newparent_ino, newname);
+  g_debug ("LINK %" G_GINT64_MODIFIER "x %" G_GINT64_MODIFIER "x %s", ino, newparent_ino, newname);
 
   /* hardlinks only supported in docdirs, and only physical files */
   if (!xdp_document_inode_checks (op, req, inode,
@@ -2977,7 +2977,7 @@ xdp_fuse_statfs (fuse_req_t req,
   int res;
   const char *op = "STATFS";
 
-  g_debug ("STATFS %lx", ino);
+  g_debug ("STATFS %" G_GINT64_MODIFIER "x", ino);
 
   if (!xdp_document_inode_checks (op, req, inode, 0))
     return;
@@ -3006,7 +3006,7 @@ xdp_fuse_setxattr (fuse_req_t req,
   g_autofree char *path = NULL;
   const char *op = "SETXATTR";
 
-  g_debug ("SETXATTR %lx %s", ino, name);
+  g_debug ("SETXATTR %" G_GINT64_MODIFIER "x %s", ino, name);
 
   if (!xdp_document_inode_checks (op, req, inode,
                                   CHECK_CAN_WRITE |
@@ -3041,7 +3041,7 @@ xdp_fuse_getxattr (fuse_req_t req,
   g_autofree char *path = NULL;
   const char *op = "GETXATTR";
 
-  g_debug ("GETXATTR %lx %s %ld", ino, name, size);
+  g_debug ("GETXATTR %" G_GINT64_MODIFIER "x %s %" G_GSIZE_FORMAT, ino, name, size);
 
   if (inode->domain->type != XDP_DOMAIN_DOCUMENT)
     return xdp_reply_err (op, req, ENODATA);
@@ -3082,7 +3082,7 @@ xdp_fuse_listxattr (fuse_req_t req,
   g_autofree char *path = NULL;
   const char *op = "LISTXATTR";
 
-  g_debug ("LISTXATTR %lx %ld", ino, size);
+  g_debug ("LISTXATTR %" G_GINT64_MODIFIER "x %" G_GSIZE_FORMAT, ino, size);
 
   if (inode->domain->type != XDP_DOMAIN_DOCUMENT)
     return xdp_reply_err (op, req, ENOTSUP);
@@ -3123,7 +3123,7 @@ xdp_fuse_removexattr (fuse_req_t req,
   ssize_t res;
   const char *op = "REMOVEXATTR";
 
-  g_debug ("REMOVEXATTR %lx %s", ino, name);
+  g_debug ("REMOVEXATTR %" G_GINT64_MODIFIER "x %s", ino, name);
 
   if (!xdp_document_inode_checks (op, req, inode,
                                   CHECK_CAN_WRITE |
@@ -3156,7 +3156,7 @@ xdp_fuse_getlk (fuse_req_t req,
   XdpFile *file = (XdpFile *)fi->fh;
   int res;
 
-  g_debug ("GETLK %lx", ino);
+  g_debug ("GETLK %" G_GINT64_MODIFIER "x", ino);
 
   res = fcntl (file->fd, F_GETLK, lock);
   if (res < 0)
@@ -3176,7 +3176,7 @@ xdp_fuse_setlk (fuse_req_t req,
   XdpFile *file = (XdpFile *)fi->fh;
   int res;
 
-  g_debug ("SETLK %lx", ino);
+  g_debug ("SETLK %" G_GINT64_MODIFIER "x", ino);
 
   res = fcntl (file->fd, F_SETLK, lock);
   if (res < 0)
@@ -3193,7 +3193,7 @@ xdp_fuse_flock (fuse_req_t req,
 {
   const char *op = "FLOCK";
 
-  g_debug ("FLOCK %lx", ino);
+  g_debug ("FLOCK %" G_GINT64_MODIFIER "x", ino);
 
   xdp_reply_err (op, req, ENOSYS);
 }
