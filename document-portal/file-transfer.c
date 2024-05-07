@@ -174,7 +174,7 @@ file_transfer_start (XdpAppInfo *app_info,
     g_free (transfer->key);
     key = g_random_int ();
     key = (key << 32) | g_random_int ();
-    transfer->key = g_strdup_printf ("%lu", key);
+    transfer->key = g_strdup_printf ("%" G_GUINT64_FORMAT, key);
   }
   while (g_hash_table_contains (transfers, transfer->key));
   g_hash_table_insert (transfers, transfer->key, g_object_ref (transfer));
