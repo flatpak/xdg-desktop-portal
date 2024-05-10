@@ -725,7 +725,10 @@ find_portal_implementation (const char *interface)
 GPtrArray *
 find_all_portal_implementations (const char *interface)
 {
+  const char **desktops;
   GPtrArray *impls;
+  GList *l;
+  int i;
 
   impls = g_ptr_array_new ();
 
@@ -745,6 +748,57 @@ find_all_portal_implementations (const char *interface)
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           g_ptr_array_add (impls, impl);
         }
+    }
+
+  if (impls->len > 0)
+    return impls;
+
+  desktops = get_current_lowercase_desktops ();
+
+  /* Fallback to the old UseIn key */
+  for (i = 0; desktops[i] != NULL; i++)
+    {
+      for (l = implementations; l != NULL; l = l->next)
+        {
+          PortalImplementation *impl = l->data;
+
+          if (!portal_impl_supports_iface (impl, interface))
+            continue;
+
+          if (impl->use_in != NULL && g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
+            {
+              g_warning ("Choosing %s.portal for %s via the deprecated UseIn key",
+                         impl->source, interface);
+              warn_please_use_portals_conf ();
+              g_debug ("Using %s.portal for %s in %s (fallback)", impl->source, interface, desktops[i]);
+              g_ptr_array_add (impls, impl);
+            }
+        }
+    }
+
+  if (impls->len > 0)
+    return impls;
+
+  /* As a last resort, if nothing was selected for this desktop by
+   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
+   * itself as suitable for this desktop via the legacy UseIn mechanism,
+   * try to fall back to x-d-p-gtk, which has historically been the portal
+   * UI backend used by desktop environments with no backend of their own.
+   * If it isn't installed, that is not an error: we just don't use it. */
+  for (l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
+        continue;
+
+      if (!portal_impl_supports_iface (impl, interface))
+        continue;
+
+      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
+                 impl->source, interface);
+      warn_please_use_portals_conf ();
+      g_ptr_array_add (impls, impl);
     }
 
   return impls;
