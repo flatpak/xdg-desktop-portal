@@ -1055,6 +1055,10 @@ usb_access_devices_cb (GObject      *source_object,
           g_clear_pointer (&options, g_variant_unref);
         }
     }
+  else if (response == XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED)
+    {
+      sender_info->sender_state = USB_SENDER_STATE_DEFAULT;
+    }
 
 out:
   if (request->exported)
