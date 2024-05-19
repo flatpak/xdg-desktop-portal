@@ -183,30 +183,45 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbDeviceAcquireData, usb_device_acquire_data_fre
 
 typedef struct _UsbOwnedDevice
 {
+  gatomicrefcount ref_count;
+
   char *sender_name;
   char *device_id;
   int fd;
 } UsbOwnedDevice;
 
+static UsbOwnedDevice *
+usb_owned_device_ref (UsbOwnedDevice *owned_device)
+{
+  g_assert (owned_device);
+
+  g_atomic_ref_count_inc (&owned_device->ref_count);
+
+  return owned_device;
+}
+
 static void
-usb_owned_device_free (gpointer data)
+usb_owned_device_unref (gpointer data)
 {
   UsbOwnedDevice *owned_device = (UsbOwnedDevice *) data;
 
   if (!owned_device)
     return;
 
-  if (owned_device->fd != -1)
+  if (g_atomic_ref_count_dec (&owned_device->ref_count))
     {
-      close (owned_device->fd);
-      owned_device->fd = -1;
-    }
+      if (owned_device->fd != -1)
+        {
+          close (owned_device->fd);
+          owned_device->fd = -1;
+        }
 
-  g_clear_pointer (&owned_device->device_id, g_free);
-  g_clear_pointer (&owned_device, g_free);
+      g_clear_pointer (&owned_device->device_id, g_free);
+      g_clear_pointer (&owned_device, g_free);
+    }
 }
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbOwnedDevice, usb_owned_device_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbOwnedDevice, usb_owned_device_unref)
 
 /* UsbSenderInfo */
 
@@ -259,7 +274,7 @@ usb_sender_info_new (const char *sender_name,
   sender_info->app_id = g_strdup (xdp_app_info_get_id (app_info));
   sender_info->sender_state = USB_SENDER_STATE_DEFAULT;
   sender_info->queries = xdp_app_info_get_usb_queries (app_info);
-  sender_info->owned_devices = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, usb_owned_device_free);
+  sender_info->owned_devices = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, usb_owned_device_unref);
 
   return g_steal_pointer (&sender_info);
 }
@@ -319,6 +334,7 @@ usb_sender_info_acquire_device (UsbSenderInfo *sender_info,
   g_assert (!g_hash_table_contains (sender_info->owned_devices, device_id));
 
   owned_device = g_new0 (UsbOwnedDevice, 1);
+  g_atomic_ref_count_init (&owned_device->ref_count);
   owned_device->device_id = g_strdup (device_id);
   owned_device->fd = xdp_steal_fd (&fd);
 
@@ -1325,6 +1341,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
       xdp_autofd int fd = -1;
       GVariantDict dict;
       GUdevDevice *device;
+      UsbOwnedDevice *owned_device = NULL;
       const char *device_file;
       int fd_index;
 
@@ -1357,18 +1374,27 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
           continue;
         }
 
-      fd = open (device_file, access_data->writable ? O_RDWR : O_RDONLY);
-      if (fd == -1)
+      /* Check we haven't already acquired the device */
+      owned_device = g_hash_table_lookup (sender_info->owned_devices, access_data->device_id);
+      if (!owned_device)
         {
-          g_variant_dict_insert (&dict, "success", "b", FALSE);
-          g_variant_dict_insert (&dict, "error", "s", g_strerror (errno));
-          g_variant_builder_add (&results_builder, "(s@a{sv})",
-                                 access_data->device_id,
-                                 g_variant_dict_end (&dict));
-          continue;
+          fd = open (device_file, access_data->writable ? O_RDWR : O_RDONLY);
+          if (fd == -1)
+            {
+              g_variant_dict_insert (&dict, "success", "b", FALSE);
+              g_variant_dict_insert (&dict, "error", "s", g_strerror (errno));
+              g_variant_builder_add (&results_builder, "(s@a{sv})",
+                                     access_data->device_id,
+                                     g_variant_dict_end (&dict));
+              continue;
+            }
+          fd_index = g_unix_fd_list_append (fds, fd, &error);
         }
-
-      fd_index = g_unix_fd_list_append (fds, fd, &error);
+      else
+        {
+	  /* If we have already acquired the device, just return the fd again */
+	  fd_index = g_unix_fd_list_append (fds, owned_device->fd, &error);
+	}
 
       if (error)
         {
@@ -1380,10 +1406,19 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
           continue;
         }
 
-      /* This sender now owns this device */
-      usb_sender_info_acquire_device (sender_info,
-                                      access_data->device_id,
-                                      xdp_steal_fd (&fd));
+      /* This sender now owns this device. Either create a new one
+       * or ref the existing one.
+       */
+      if (!owned_device)
+        {
+          usb_sender_info_acquire_device (sender_info,
+                                          access_data->device_id,
+                                          xdp_steal_fd (&fd));
+        }
+      else
+        {
+	  usb_owned_device_ref (owned_device);
+        }
 
       g_variant_dict_insert (&dict, "success", "b", TRUE);
       g_variant_dict_insert (&dict, "fd", "h", fd_index);
