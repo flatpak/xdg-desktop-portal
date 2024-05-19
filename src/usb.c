@@ -990,7 +990,6 @@ usb_access_devices_cb (GObject      *source_object,
 
   g_assert (sender_info != NULL);
   g_assert (sender_info->sender_state == USB_SENDER_STATE_ACQUIRING_DEVICES);
-  g_assert (sender_info->acquiring_devices == NULL);
 
   g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
@@ -1011,30 +1010,34 @@ usb_access_devices_cb (GObject      *source_object,
   if (!g_variant_lookup (results, "devices", "a(sa{sv})", &devices_iter))
     goto out;
 
-  sender_info->acquiring_devices = g_ptr_array_new_full (g_variant_iter_n_children (devices_iter),
-                                                         usb_device_acquire_data_free);
-  while (g_variant_iter_next (devices_iter, "(&s@a{sv})", &device_id, &options))
+  if (response == XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS)
     {
-      g_autoptr(UsbDeviceAcquireData) access_data = NULL;
-      GUdevDevice *device;
-      gboolean writable;
+      g_clear_pointer (&sender_info->acquiring_devices, g_ptr_array_unref);
+      sender_info->acquiring_devices = g_ptr_array_new_full (g_variant_iter_n_children (devices_iter),
+                                                             usb_device_acquire_data_free);
+      while (g_variant_iter_next (devices_iter, "(&s@a{sv})", &device_id, &options))
+        {
+          g_autoptr(UsbDeviceAcquireData) access_data = NULL;
+          GUdevDevice *device;
+          gboolean writable;
 
-      device = g_hash_table_lookup (usb->ids_to_devices, device_id);
-      if (!device)
-        continue;
+          device = g_hash_table_lookup (usb->ids_to_devices, device_id);
+          if (!device)
+            continue;
 
-      if (!g_variant_lookup (options, "writable", "b", &writable))
-        writable = FALSE;
+          if (!g_variant_lookup (options, "writable", "b", &writable))
+            writable = FALSE;
 
-      access_data = g_new0 (UsbDeviceAcquireData, 1);
-      access_data->device_id = g_strdup (device_id);
-      access_data->writable = writable;
+          access_data = g_new0 (UsbDeviceAcquireData, 1);
+          access_data->device_id = g_strdup (device_id);
+          access_data->writable = writable;
 
-      g_ptr_array_add (sender_info->acquiring_devices, g_steal_pointer (&access_data));
+          g_ptr_array_add (sender_info->acquiring_devices, g_steal_pointer (&access_data));
 
-      usb_sender_info_set_device_permission (sender_info, device, PERMISSION_YES);
+          usb_sender_info_set_device_permission (sender_info, device, PERMISSION_YES);
 
-      g_clear_pointer (&options, g_variant_unref);
+          g_clear_pointer (&options, g_variant_unref);
+        }
     }
 
 out:
