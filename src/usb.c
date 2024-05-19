@@ -1325,6 +1325,22 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
+  if (sender_info->sender_state != USB_SENDER_STATE_ACQUIRING_DEVICES || sender_info->acquiring_devices == NULL)
+    {
+      /* If the request was cancelled in some way. This would happen by calling
+       * FinishAcquireDevices after the user denied the permission.
+       */
+      sender_info->sender_state = USB_SENDER_STATE_DEFAULT;
+      g_clear_pointer (&sender_info->acquiring_devices, g_ptr_array_unref);
+
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "There is no device being acquired");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  /* We should never trigger these asserts. */
   g_assert (sender_info->sender_state == USB_SENDER_STATE_ACQUIRING_DEVICES);
   g_assert (sender_info->acquiring_devices != NULL);
 
