@@ -1416,6 +1416,101 @@ portal_list (GDBusMethodInvocation *invocation,
   return TRUE;
 }
 
+const char *
+get_host_path_internal (GDBusMethodInvocation *invocation,
+                        XdpAppInfo            *app_info,
+                        const char            *id,
+                        GError                **error)
+{
+  g_autoptr(PermissionDbEntry) entry = NULL;
+
+  XDP_AUTOLOCK (db);
+
+  entry = permission_db_lookup (db, id);
+
+  if (!entry)
+    {
+      if (error != NULL && *error == NULL)
+        {
+          g_set_error (error,
+                      XDG_DESKTOP_PORTAL_ERROR,
+                      XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                      "Invalid ID passed (%s)", id);
+        }
+
+      return NULL;
+    }
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      g_autofree const char **apps = NULL;
+      const char *app_id = NULL;
+      gboolean app_found = FALSE;
+
+      app_id = xdp_app_info_get_id (app_info);
+
+      apps = permission_db_entry_list_apps (entry);
+      for (size_t i = 0; apps[i] != NULL; i++)
+        {
+          if (g_strcmp0 (app_id, apps[i]) == 0)
+            {
+              app_found = TRUE;
+              break;
+            }
+        }
+
+      if (!app_found)
+        {
+          if (error != NULL && *error == NULL)
+            {
+              g_set_error (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                           "Not enough permissions");
+            }
+
+          return NULL;
+        }
+    }
+
+  return document_entry_get_path (entry);
+}
+
+static gboolean
+portal_get_host_paths (GDBusMethodInvocation *invocation,
+                       GVariant              *parameters,
+                       XdpAppInfo            *app_info)
+{
+  g_autofree const char **id_list = NULL;
+  GVariantBuilder builder;
+
+  g_variant_get (parameters, "(^a&s)", &id_list);
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("(a{say})"));
+  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a{say}"));
+
+  for (size_t i = 0; id_list[i] != NULL; i++)
+    {
+      g_autoptr(GError) error = NULL;
+      g_autofree const char *path = NULL;
+
+      path = get_host_path_internal (invocation, app_info, id_list[i], &error);
+      if (path == NULL)
+        {
+          g_warning ("Failed to get host path for %s: %s", id_list[i], error->message);
+          continue;
+        }
+
+      g_variant_builder_add (&builder, "{s@ay}", id_list[i], g_variant_new_bytestring (path));
+    }
+
+  g_variant_builder_close (&builder);
+
+  g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (&builder));
+
+  return TRUE;
+}
+
 static void
 peer_died_cb (const char *name)
 {
@@ -1432,7 +1527,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
 
-  xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 4);
+  xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 5);
 
   g_signal_connect_swapped (dbus_api, "handle-get-mount-point", G_CALLBACK (handle_get_mount_point), NULL);
   g_signal_connect_swapped (dbus_api, "handle-add", G_CALLBACK (handle_method), portal_add);
@@ -1445,6 +1540,7 @@ on_bus_acquired (GDBusConnection *connection,
   g_signal_connect_swapped (dbus_api, "handle-lookup", G_CALLBACK (handle_method), portal_lookup);
   g_signal_connect_swapped (dbus_api, "handle-info", G_CALLBACK (handle_method), portal_info);
   g_signal_connect_swapped (dbus_api, "handle-list", G_CALLBACK (handle_method), portal_list);
+  g_signal_connect_swapped (dbus_api, "handle-get-host-paths", G_CALLBACK (handle_method), portal_get_host_paths);
 
   file_transfer = file_transfer_create ();
   g_dbus_interface_skeleton_set_flags (file_transfer,
