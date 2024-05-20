@@ -48,7 +48,7 @@
       bus name org.freedesktop.portal.Documents and the object path
       /org/freedesktop/portal/documents.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes version 5 of this interface.
   -->
   <interface name='org.freedesktop.portal.Documents'>
     <property name="version" type="u" access="read"/>
@@ -272,6 +272,22 @@
     <method name="List">
       <arg type='s' name='app_id' direction='in'/>
       <arg type='a{say}' name='docs' direction='out'/>
+    </method>
+
+    <!--
+        GetHostPaths:
+        @doc_ids: the list of IDs of the files in the document store
+        @paths: a dictionary mapping document IDs to the paths in the host filesystem
+
+        Gets the host filesystem paths for document store entries.
+
+        This call is available inside the sandbox, if the application has the ``read`` permission for the documents.
+
+        This method was added in version 5 of this interface.
+    -->
+    <method name="GetHostPaths">
+      <arg type='as' name='doc_ids' direction='in'/>
+      <arg type='a{say}' name='paths' direction='out'/>
     </method>
   </interface>
 </node>

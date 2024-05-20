@@ -688,6 +688,57 @@ test_add_named (void)
 }
 
 static void
+test_get_host_paths (void)
+{
+  g_autofree char *doc_id = NULL;
+  g_autofree char *expected_real_path = NULL;
+  g_autofree char *real_path = NULL;
+  const char *basename = "host-path";
+  GVariant *path = NULL;
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GVariant) result = NULL;
+  g_autoptr(GVariantIter) iter = NULL;
+  GVariantBuilder builder;
+  GError *error = NULL;
+  const gchar* key = NULL;
+
+  if (!check_fuse_or_skip_test ())
+    return;
+
+  doc_id = export_new_file (basename, "content", FALSE);
+
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("(as)"));
+  g_variant_builder_open (&builder, G_VARIANT_TYPE ("as"));
+  g_variant_builder_add (&builder, "s", doc_id);
+  g_variant_builder_close (&builder);
+
+  reply = g_dbus_connection_call_sync (session_bus,
+                                       "org.freedesktop.portal.Documents",
+                                       "/org/freedesktop/portal/documents",
+                                       "org.freedesktop.portal.Documents",
+                                       "GetHostPaths", g_variant_builder_end (&builder),
+                                       G_VARIANT_TYPE ("(a{say})"),
+                                       0, -1,
+                                       NULL,
+                                       &error);
+
+  g_assert_no_error (error);
+  result = g_variant_get_child_value (reply, 0);
+
+  g_assert (g_variant_is_of_type (result, G_VARIANT_TYPE ("a{say}")));
+
+  expected_real_path = g_build_filename (outdir, basename, NULL);
+  iter = g_variant_iter_new (result);
+  while (g_variant_iter_loop (iter, "{&s@ay}", &key, &path))
+    {
+      g_assert_cmpstr (key, ==, doc_id);
+      g_assert_cmpstr (g_variant_get_bytestring (path), ==, expected_real_path);
+      g_variant_unref (path);
+      path = NULL;
+    }
+}
+
+static void
 global_setup (void)
 {
   gboolean inited;
@@ -853,7 +904,7 @@ test_version (void)
   if (!check_fuse_or_skip_test ())
     return;
 
-  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 4);
+  g_assert_cmpint (xdp_dbus_documents_get_version (documents), ==, 5);
 }
 
 int
@@ -871,6 +922,7 @@ main (int argc, char **argv)
   g_test_add_func ("/db/recursive_doc", test_recursive_doc);
   g_test_add_func ("/db/create_docs", test_create_docs);
   g_test_add_func ("/db/add_named", test_add_named);
+  g_test_add_func ("/db/get_host_paths", test_get_host_paths);
 
   global_setup ();
 
