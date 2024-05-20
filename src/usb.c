@@ -1318,7 +1318,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
                                     PERMISSION_ID);
   if (permission == PERMISSION_NO)
     {
-      /* If permission was revoken in between D-Bus calls, reset state */
+      /* If permission was revoked in between D-Bus calls, reset state */
       sender_info->sender_state = USB_SENDER_STATE_DEFAULT;
       g_clear_pointer (&sender_info->acquiring_devices, g_ptr_array_unref);
 
