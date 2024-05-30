@@ -37,6 +37,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "file-transfer.h"
+#include "src/xdp-app-info.h"
 #include "src/xdp-utils.h"
 #include "document-portal-dbus.h"
 #include "document-enums.h"

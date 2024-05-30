@@ -54,7 +54,10 @@ xdp_method_info_built_sources = configure_file(
 xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sources
 
 xdp_utils_includes = include_directories('.')
-xdp_utils_sources = files('xdp-utils.c')
+xdp_utils_sources = files(
+  'xdp-utils.c',
+  'xdp-app-info.c',
+)
 
 if have_libsystemd
   xdp_utils_sources += sd_escape_sources

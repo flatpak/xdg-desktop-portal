@@ -37,6 +37,7 @@
 #include "glib-backports.h"
 #include "document-portal-dbus.h"
 #include "document-store.h"
+#include "src/xdp-app-info.h"
 #include "src/xdp-utils.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"

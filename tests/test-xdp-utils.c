@@ -2,6 +2,7 @@
 
 #include <glib.h>
 
+#include "xdp-app-info.h"
 #include "xdp-utils.h"
 
 static void

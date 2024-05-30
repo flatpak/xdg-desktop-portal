@@ -28,12 +28,13 @@
 #include "call.h"
 #include "background.h"
 #include "background-monitor.h"
-#include "request.h"
+#include "flatpak-instance.h"
 #include "permissions.h"
+#include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-app-info.h"
 #include "xdp-utils.h"
-#include "flatpak-instance.h"
 
 /* Implementation notes:
  *
