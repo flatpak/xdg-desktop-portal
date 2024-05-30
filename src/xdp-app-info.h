@@ -90,6 +90,10 @@ gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                                           GCancellable        *cancellable,
                                           GError             **error);
 
+gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
+                                                 GKeyFile    *key_file,
+                                                 GError     **error);
+
 XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
                                                   GCancellable           *cancellable,
                                                   GError                **error);
