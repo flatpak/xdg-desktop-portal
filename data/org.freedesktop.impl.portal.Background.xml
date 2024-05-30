@@ -81,6 +81,9 @@
       @flags: Flags influencing the details of the autostarting
       @result: TRUE if autostart was enabled, FALSE otherwise
 
+      This is deprecated! New versions of xdg-desktop-portal will not
+      call this method.
+
       Enables or disables autostart for an application.
 
       The following flags are understood:

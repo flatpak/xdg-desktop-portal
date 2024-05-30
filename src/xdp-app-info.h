@@ -84,6 +84,12 @@ char ** xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
 
 char * xdp_app_info_get_tryexec_path (XdpAppInfo *app_info);
 
+gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
+                                          GKeyFile            *keyfile,
+                                          const char * const  *autostart_exec,
+                                          GCancellable        *cancellable,
+                                          GError             **error);
+
 XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
                                                   GCancellable           *cancellable,
                                                   GError                **error);
