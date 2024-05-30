@@ -98,10 +98,10 @@ file_transfer_finalize (GObject *object)
   FileTransfer *transfer = (FileTransfer *)object;
 
   g_mutex_clear (&transfer->mutex);
-  xdp_app_info_unref (transfer->app_info);
-  g_ptr_array_unref (transfer->files);
-  g_free (transfer->key);
-  g_free (transfer->sender);
+  g_clear_object (&transfer->app_info);
+  g_clear_pointer (&transfer->files, g_ptr_array_unref);
+  g_clear_pointer (&transfer->key, g_free);
+  g_clear_pointer (&transfer->sender, g_free);
 
   G_OBJECT_CLASS (file_transfer_parent_class)->finalize (object);
 }
@@ -162,7 +162,7 @@ file_transfer_start (XdpAppInfo *app_info,
 
   transfer = g_object_new (file_transfer_get_type (), NULL);
 
-  transfer->app_info = xdp_app_info_ref (app_info);
+  transfer->app_info = g_object_ref (app_info);
   transfer->sender = g_strdup (sender);
   transfer->writable = writable;
   transfer->autostop = autostop;

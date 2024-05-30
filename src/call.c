@@ -21,8 +21,8 @@
 static void
 call_free (Call *call)
 {
-  xdp_app_info_unref (call->app_info);
-  g_free (call->sender);
+  g_clear_object (&call->app_info);
+  g_clear_pointer (&call->sender, g_free);
   g_free (call);
 }
 
@@ -33,7 +33,7 @@ call_init_invocation (GDBusMethodInvocation *invocation,
   Call *call;
 
   call = g_new0 (Call, 1);
-  call->app_info = xdp_app_info_ref (app_info);
+  call->app_info = g_object_ref (app_info);
   call->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
 
   g_object_set_data_full (G_OBJECT (invocation), "call",

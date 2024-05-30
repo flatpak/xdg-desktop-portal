@@ -134,7 +134,8 @@ xdp_mkstempat (int    dir_fd,
 }
 
 struct _XdpAppInfo {
-  volatile gint ref_count;
+  GObject parent_instance;
+
   char *id;
   XdpAppInfoKind kind;
 
@@ -158,13 +159,56 @@ struct _XdpAppInfo {
     } u;
 };
 
+G_DEFINE_FINAL_TYPE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+
+static void
+xdp_app_info_dispose (GObject *object)
+{
+  XdpAppInfo *app_info = XDP_APP_INFO (object);
+
+  g_clear_pointer (&app_info->id, g_free);
+  xdp_close_fd (&app_info->pidfd);
+
+  switch (app_info->kind)
+    {
+    case XDP_APP_INFO_KIND_FLATPAK:
+      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+      break;
+
+    case XDP_APP_INFO_KIND_SNAP:
+      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
+      break;
+
+    case XDP_APP_INFO_KIND_HOST:
+    default:
+      break;
+    }
+
+  G_OBJECT_CLASS (xdp_app_info_parent_class)->dispose (object);
+}
+
+static void
+xdp_app_info_class_init (XdpAppInfoClass *klass)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = xdp_app_info_dispose;
+}
+
+static void
+xdp_app_info_init (XdpAppInfo *app_info)
+{
+}
+
 static XdpAppInfo *
 xdp_app_info_new (XdpAppInfoKind kind)
 {
-  XdpAppInfo *app_info = g_new0 (XdpAppInfo, 1);
-  app_info->ref_count = 1;
+  XdpAppInfo *app_info;
+
+  app_info = g_object_new (XDP_TYPE_APP_INFO, NULL);
   app_info->kind = kind;
   app_info->pidfd = -1;
+
   return app_info;
 }
 
@@ -265,48 +309,6 @@ xdp_app_info_new_test_host (const char *app_id)
   XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
   app_info->id = g_strdup (app_id);
   return app_info;
-}
-
-static void
-xdp_app_info_free (XdpAppInfo *app_info)
-{
-  g_free (app_info->id);
-  xdp_close_fd (&app_info->pidfd);
-
-  switch (app_info->kind)
-    {
-    case XDP_APP_INFO_KIND_FLATPAK:
-      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
-      break;
-
-    case XDP_APP_INFO_KIND_SNAP:
-      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
-      break;
-
-    case XDP_APP_INFO_KIND_HOST:
-    default:
-      break;
-    }
-
-  g_free (app_info);
-}
-
-XdpAppInfo *
-xdp_app_info_ref (XdpAppInfo *app_info)
-{
-  g_return_val_if_fail (app_info != NULL, NULL);
-
-  g_atomic_int_inc (&app_info->ref_count);
-  return app_info;
-}
-
-void
-xdp_app_info_unref (XdpAppInfo *app_info)
-{
-  g_return_if_fail (app_info != NULL);
-
-  if (g_atomic_int_dec_and_test (&app_info->ref_count))
-    xdp_app_info_free (app_info);
 }
 
 const char *
@@ -618,7 +620,7 @@ ensure_app_info_by_unique_name (void)
   if (app_info_by_unique_name == NULL)
     app_info_by_unique_name = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
-                                                     (GDestroyNotify)xdp_app_info_unref);
+                                                     g_object_unref);
 }
 
 static gboolean
@@ -1010,7 +1012,7 @@ cache_lookup_app_info_by_sender (const char *sender)
     {
       app_info = g_hash_table_lookup (app_info_by_unique_name, sender);
       if (app_info)
-        xdp_app_info_ref (app_info);
+        g_object_ref (app_info);
     }
   G_UNLOCK (app_infos);
 
@@ -1023,7 +1025,7 @@ cache_insert_app_info (const char *sender, XdpAppInfo *app_info)
   G_LOCK (app_infos);
   ensure_app_info_by_unique_name ();
   g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
-                       xdp_app_info_ref (app_info));
+                       g_object_ref (app_info));
   G_UNLOCK (app_infos);
 }
 

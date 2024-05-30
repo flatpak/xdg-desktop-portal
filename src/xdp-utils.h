@@ -56,13 +56,15 @@ gboolean xdp_validate_serialized_icon (GVariant  *v,
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
-typedef struct _XdpAppInfo XdpAppInfo;
-
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
 
-XdpAppInfo *xdp_app_info_ref             (XdpAppInfo  *app_info);
-void        xdp_app_info_unref           (XdpAppInfo  *app_info);
+#define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
+G_DECLARE_FINAL_TYPE (XdpAppInfo,
+                      xdp_app_info,
+                      XDP, APP_INFO,
+                      GObject)
+
 const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
 char *      xdp_app_info_get_instance    (XdpAppInfo  *app_info);
 gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
@@ -96,8 +98,6 @@ char **     xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
                                               const char *const *commandline,
                                               gboolean           quote_escape);
 char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpAppInfo, xdp_app_info_unref)
 
 void  xdp_set_documents_mountpoint    (const char *path);
 char *xdp_get_alternate_document_path (const char *path, const char *app_id);

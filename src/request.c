@@ -117,11 +117,10 @@ request_finalize (GObject *object)
   G_UNLOCK (requests);
 
   g_clear_object (&request->impl_request);
-
-  g_free (request->sender);
-  g_free (request->id);
+  g_clear_pointer (&request->sender, g_free);
+  g_clear_pointer (&request->id, g_free);
   g_mutex_clear (&request->mutex);
-  xdp_app_info_unref (request->app_info);
+  g_clear_object (&request->app_info);
 
   G_OBJECT_CLASS (request_parent_class)->finalize (object);
 }
@@ -211,7 +210,7 @@ request_init_invocation (GDBusMethodInvocation *invocation, XdpAppInfo *app_info
 
   request = g_object_new (request_get_type (), NULL);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
-  request->app_info = xdp_app_info_ref (app_info);
+  request->app_info = g_object_ref (app_info);
 
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
 
