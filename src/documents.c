@@ -30,6 +30,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 #include "documents.h"

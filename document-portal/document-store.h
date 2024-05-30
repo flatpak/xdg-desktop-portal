@@ -3,6 +3,7 @@
 #include <gio/gio.h>
 #include "permission-db.h"
 #include "document-enums.h"
+#include "src/xdp-app-info.h"
 #include "src/xdp-utils.h"
 
 G_BEGIN_DECLS

@@ -19,6 +19,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include "xdp-app-info.h"
 #include "xdp-utils.h"
 
 typedef struct _Call

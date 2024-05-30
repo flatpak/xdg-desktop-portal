@@ -23,6 +23,7 @@
 #include "call.h"
 #include "permissions.h"
 
+#include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
