@@ -239,7 +239,7 @@ call_data_new (GDBusMethodInvocation *inv,
   call = g_slice_new0 (CallData);
 
   call->inv = g_object_ref (inv);
-  call->app_info = xdp_app_info_ref (app_info);
+  call->app_info = g_object_ref (app_info);
   call->method = g_strdup (method);
 
   return call;
@@ -252,10 +252,10 @@ call_data_free (gpointer data)
   if (call == NULL)
     return;
 
-  g_object_unref (call->inv);
-  xdp_app_info_unref (call->app_info);
-  g_free (call->method);
-  g_clear_object(&call->fdlist);
+  g_clear_object (&call->inv);
+  g_clear_object (&call->app_info);
+  g_clear_pointer (&call->method, g_free);
+  g_clear_object (&call->fdlist);
 
   g_slice_free (CallData, call);
 }
