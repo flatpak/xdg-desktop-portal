@@ -1418,6 +1418,74 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
   return TRUE;
 }
 
+gboolean
+xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
+                                        GKeyFile    *key_file,
+                                        GError     **error)
+{
+  g_autofree char *exec = NULL;
+  g_auto(GStrv) exec_strv = NULL;
+  g_auto(GStrv) prefixed_exec_strv = NULL;
+  g_autofree char *prefixed_exec = NULL;
+  g_autofree char *tryexec_path = NULL;
+  const char *app_id = xdp_app_info_get_id (app_info);
+
+  exec = g_key_file_get_string (key_file, G_KEY_FILE_DESKTOP_GROUP, "Exec", error);
+  if (exec == NULL)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Desktop entry given to Install() has no Exec line");
+      return FALSE;
+    }
+
+  if (!g_shell_parse_argv (exec, NULL, &exec_strv, error))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Desktop entry given to Install() has invalid Exec line");
+      return FALSE;
+    }
+
+  /* Don't let the app give itself access to host files */
+  if (xdp_app_info_is_flatpak (app_info) &&
+      g_strv_contains ((const char * const *)exec_strv, "--file-forwarding"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Desktop entry given to Install() must not use --file-forwarding");
+      return FALSE;
+    }
+
+  prefixed_exec_strv = xdp_app_info_rewrite_commandline (app_info,
+                                                         (const char * const *)exec_strv,
+                                                         TRUE /* quote escape */);
+  if (prefixed_exec_strv == NULL)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                   "DynamicLauncher install not supported for: %s", app_id);
+      return FALSE;
+    }
+
+  prefixed_exec = g_strjoinv (" ", prefixed_exec_strv);
+  g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "Exec", prefixed_exec);
+
+  tryexec_path = xdp_app_info_get_tryexec_path (app_info);
+  if (tryexec_path != NULL)
+    g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "TryExec", tryexec_path);
+
+  if (xdp_app_info_is_flatpak (app_info))
+    {
+      /* Flatpak checks for this key */
+      g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "X-Flatpak", app_id);
+      /* Flatpak removes this one for security */
+      g_key_file_remove_key (key_file, G_KEY_FILE_DESKTOP_GROUP, "X-GNOME-Bugzilla-ExtraInfoScript", NULL);
+    }
+
+  return TRUE;
+}
+
 #ifdef HAVE_LIBSYSTEMD
 char *
 _xdp_parse_app_id_from_unit_name (const char *unit)
