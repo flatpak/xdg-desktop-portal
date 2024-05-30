@@ -52,6 +52,19 @@
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
 
+#define FLATPAK_METADATA_GROUP_APPLICATION "Application"
+#define FLATPAK_METADATA_KEY_NAME "name"
+#define FLATPAK_METADATA_GROUP_INSTANCE "Instance"
+#define FLATPAK_METADATA_KEY_APP_PATH "app-path"
+#define FLATPAK_METADATA_KEY_ORIGINAL_APP_PATH "original-app-path"
+#define FLATPAK_METADATA_KEY_RUNTIME_PATH "runtime-path"
+#define FLATPAK_METADATA_KEY_INSTANCE_ID "instance-id"
+
+#define SNAP_METADATA_GROUP_INFO "Snap Info"
+#define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
+#define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
+#define SNAP_METADATA_KEY_NETWORK "HasNetworkStatus"
+
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_info_by_unique_name;
 
