@@ -37,8 +37,8 @@
 #include <gio/gdesktopappinfo.h>
 #include <gio/gunixfdlist.h>
 
-#include "xdp-utils.h"
 #include "xdp-app-info.h"
+#include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
@@ -1376,6 +1376,46 @@ xdp_app_info_get_tryexec_path (XdpAppInfo *app_info)
     }
   else
     return NULL;
+}
+
+gboolean
+xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
+                                 GKeyFile            *keyfile,
+                                 const char * const  *autostart_exec,
+                                 GCancellable        *cancellable,
+                                 GError             **error)
+{
+  g_auto(GStrv) cmdv = NULL;
+  g_autofree char *cmd = NULL;
+
+  g_assert (app_info->id);
+
+  cmdv = xdp_app_info_rewrite_commandline (app_info,
+                                           autostart_exec,
+                                           FALSE /* don't quote escape */);
+  if (!cmdv)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                   "Autostart not supported for: %s", app_info->id);
+      return FALSE;
+    }
+
+  cmd = g_strjoinv (" ", cmdv);
+
+  g_key_file_set_string (keyfile,
+                         G_KEY_FILE_DESKTOP_GROUP,
+                         G_KEY_FILE_DESKTOP_KEY_EXEC,
+                         cmd);
+
+  if (xdp_app_info_is_flatpak (app_info))
+    {
+      g_key_file_set_string (keyfile,
+                             G_KEY_FILE_DESKTOP_GROUP,
+                             "X-Flatpak",
+                             app_info->id);
+    }
+
+  return TRUE;
 }
 
 #ifdef HAVE_LIBSYSTEMD

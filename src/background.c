@@ -106,11 +106,6 @@ typedef enum {
   IGNORE = 2
 } NotifyResult;
 
-typedef enum {
-  AUTOSTART_FLAGS_NONE = 0,
-  AUTOSTART_FLAGS_ACTIVATABLE = 1 << 0,
-} AutostartFlags;
-
 static GVariant *
 get_all_permissions (void)
 {
@@ -690,6 +685,81 @@ instances_changed (gpointer data)
   g_main_context_wakeup (monitor_context);
 }
 
+gboolean
+enable_autostart_sync (XdpAppInfo          *app_info,
+                       gboolean             enable,
+                       const char * const  *autostart_exec,
+                       gboolean             activatable,
+                       gboolean            *out_enabled,
+                       GError             **error)
+{
+  g_autofree char *file = NULL;
+  g_autofree char *dir = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GKeyFile) keyfile = NULL;
+  const char *appid = xdp_app_info_get_id (app_info);
+
+  if (!appid)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                   "Autostart not supported");
+      return FALSE;
+    }
+
+  file = g_strconcat (appid, ".desktop", NULL);
+  dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
+  path = g_build_filename (dir, file, NULL);
+
+  if (!enable)
+    {
+      unlink (path);
+
+      *out_enabled = FALSE;
+      return TRUE;
+    }
+
+  if (g_mkdir_with_parents (dir, 0755) != 0)
+    {
+      g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (errno),
+                   "Could not create directory for Autostart files");
+      return FALSE;
+    }
+
+
+  keyfile = g_key_file_new ();
+
+  g_key_file_set_string (keyfile,
+                         G_KEY_FILE_DESKTOP_GROUP,
+                         G_KEY_FILE_DESKTOP_KEY_TYPE,
+                         "Application");
+  g_key_file_set_string (keyfile,
+                         G_KEY_FILE_DESKTOP_GROUP,
+                         G_KEY_FILE_DESKTOP_KEY_NAME,
+                         appid); /* FIXME: The app id isn't the name */
+  g_key_file_set_string (keyfile,
+                         G_KEY_FILE_DESKTOP_GROUP,
+                         "X-XDP-Autostart",
+                         appid);
+
+  if (activatable)
+    {
+      g_key_file_set_boolean (keyfile,
+                              G_KEY_FILE_DESKTOP_GROUP,
+                              G_KEY_FILE_DESKTOP_KEY_DBUS_ACTIVATABLE,
+                              TRUE);
+    }
+
+  if (!xdp_app_info_validate_autostart (app_info, keyfile, autostart_exec,
+                                        NULL, error))
+    return FALSE;
+
+  if (!g_key_file_save_to_file (keyfile, path, error))
+    return FALSE;
+
+  *out_enabled = TRUE;
+  return TRUE;
+}
+
 static void
 handle_request_background_in_thread_func (GTask *task,
                                           gpointer source_object,
@@ -706,9 +776,7 @@ handle_request_background_in_thread_func (GTask *task,
   gboolean allowed;
   g_autoptr(GError) error = NULL;
   const char * const *autostart_exec = { NULL };
-  AutostartFlags autostart_flags = AUTOSTART_FLAGS_NONE;
   gboolean activatable = FALSE;
-  g_auto(GStrv) commandline = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -717,9 +785,6 @@ handle_request_background_in_thread_func (GTask *task,
   g_variant_lookup (options, "autostart", "b", &autostart_requested);
   g_variant_lookup (options, "commandline", "^a&s", &autostart_exec);
   g_variant_lookup (options, "dbus-activatable", "b", &activatable);
-
-  if (activatable)
-    autostart_flags |= AUTOSTART_FLAGS_ACTIVATABLE;
 
   id = xdp_app_info_get_id (request->app_info);
 
@@ -790,20 +855,12 @@ handle_request_background_in_thread_func (GTask *task,
 
   autostart_enabled = FALSE;
 
-  commandline = xdp_app_info_rewrite_commandline (request->app_info, autostart_exec,
-                                                  FALSE /* don't quote escape */);
-  if (commandline == NULL)
-    {
-      g_debug ("Autostart not supported for: %s", id);
-    }
-  else if (!xdp_dbus_impl_background_call_enable_autostart_sync (background_impl,
-                                                                 id,
-                                                                 allowed && autostart_requested,
-                                                                 (const char * const *)commandline,
-                                                                 autostart_flags,
-                                                                 &autostart_enabled,
-                                                                 NULL,
-                                                                 &error))
+  if (!enable_autostart_sync (request->app_info,
+                              allowed && autostart_requested,
+                              autostart_exec,
+                              activatable,
+                              &autostart_enabled,
+                              &error))
     {
       g_warning ("EnableAutostart call failed: %s", error->message);
       g_clear_error (&error);
