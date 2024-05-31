@@ -118,7 +118,19 @@ web_extensions_session_close (XdpSession *session)
   */
   if (web_extensions_session->state == WEB_EXTENSIONS_SESSION_STATE_CLOSED) return;
 
+  /* We can assume that it is safe to transition to
+     WEB_EXTENSIONS_SESSION_STATE_CLOSED here, because we arrive
+     at web_extensions_session_close via one of two ways:
+
+     1. via the session_class->close function pointer from the
+        session_close function in src/session.c, which expects
+        its caller to lock the session's mutex (usually via the
+        SESSION_AUTOLOCK_UNREF macro); or
+     2. from web_extensions_session_finalize, at which point
+        the last reference to the session has been released.
+  */
   web_extensions_session->state = WEB_EXTENSIONS_SESSION_STATE_CLOSED;
+
   if (web_extensions_session->child_watch_id != 0)
     {
       g_source_remove (web_extensions_session->child_watch_id);
@@ -127,6 +139,10 @@ web_extensions_session_close (XdpSession *session)
 
   if (web_extensions_session->child_pid > 0)
     {
+      /* The responsibility of gracefully killing the process is
+         delegated to the browser, and the following SIGKILL is
+         a final attempt to clean up if necessary.
+      */
       kill (web_extensions_session->child_pid, SIGKILL);
       waitpid (web_extensions_session->child_pid, NULL, 0);
       g_spawn_close_pid (web_extensions_session->child_pid);
@@ -162,10 +178,19 @@ web_extensions_session_finalize (GObject *object)
 static void
 web_extensions_session_class_init (WebExtensionsSessionClass *klass)
 {
+  /* Called at the first instantiation of WebExtensionsSession,
+     i.e. in web_extensions_session_new with the call to
+     g_initable_new.
+     https://docs.gtk.org/gobject/concepts.html#object-instantiation
+     https://docs.gtk.org/gio/type_func.Initable.new.html
+   */
   GObjectClass *object_class;
   XdpSessionClass *session_class;
 
   object_class = G_OBJECT_CLASS (klass);
+  /* finalize is called when the session refcount reaches zero.
+     https://docs.gtk.org/gobject/concepts.html#reference-count
+  */
   object_class->finalize = web_extensions_session_finalize;
 
   session_class = (XdpSessionClass *)klass;
@@ -783,6 +808,10 @@ web_extensions_init (WebExtensions *web_extensions)
 static void
 web_extensions_class_init (WebExtensionsClass *klass)
 {
+  /* Called at the first instantiation of WebExtensions,
+     i.e. in web_extensions_create with the call to g_object_new.
+     https://docs.gtk.org/gobject/concepts.html#object-instantiation
+   */
 }
 
 GDBusInterfaceSkeleton *
