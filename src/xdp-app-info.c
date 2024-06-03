@@ -1263,10 +1263,10 @@ maybe_quote (const char *arg,
     return g_shell_quote (arg);
 }
 
-char **
-xdp_app_info_rewrite_commandline (XdpAppInfo         *app_info,
-                                  const char * const *commandline,
-                                  gboolean            quote_escape)
+static char **
+rewrite_commandline (XdpAppInfo         *app_info,
+                     const char * const *commandline,
+                     gboolean            quote_escape)
 {
   g_autoptr(GPtrArray) args = NULL;
 
@@ -1319,8 +1319,8 @@ xdp_app_info_rewrite_commandline (XdpAppInfo         *app_info,
     return NULL;
 }
 
-char *
-xdp_app_info_get_tryexec_path (XdpAppInfo *app_info)
+static char *
+get_tryexec_path (XdpAppInfo *app_info)
 {
   g_return_val_if_fail (app_info != NULL, NULL);
 
@@ -1381,9 +1381,9 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
 
   g_assert (app_info->id);
 
-  cmdv = xdp_app_info_rewrite_commandline (app_info,
-                                           autostart_exec,
-                                           FALSE /* don't quote escape */);
+  cmdv = rewrite_commandline (app_info,
+                              autostart_exec,
+                              FALSE /* don't quote escape */);
   if (!cmdv)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
@@ -1448,9 +1448,9 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  prefixed_exec_strv = xdp_app_info_rewrite_commandline (app_info,
-                                                         (const char * const *)exec_strv,
-                                                         TRUE /* quote escape */);
+  prefixed_exec_strv = rewrite_commandline (app_info,
+                                            (const char * const *)exec_strv,
+                                            TRUE /* quote escape */);
   if (prefixed_exec_strv == NULL)
     {
       g_set_error (error,
@@ -1462,7 +1462,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
   prefixed_exec = g_strjoinv (" ", prefixed_exec_strv);
   g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "Exec", prefixed_exec);
 
-  tryexec_path = xdp_app_info_get_tryexec_path (app_info);
+  tryexec_path = get_tryexec_path (app_info);
   if (tryexec_path != NULL)
     g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "TryExec", tryexec_path);
 
