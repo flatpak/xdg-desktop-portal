@@ -28,7 +28,7 @@ typedef enum
 {
   XDP_APP_INFO_KIND_HOST = 0,
   XDP_APP_INFO_KIND_FLATPAK = 1,
-  XDP_APP_INFO_KIND_SNAP    = 2,
+  XDP_APP_INFO_KIND_SNAP = 2,
 } XdpAppInfoKind;
 
 #define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
@@ -37,43 +37,56 @@ G_DECLARE_FINAL_TYPE (XdpAppInfo,
                       XDP, APP_INFO,
                       GObject)
 
-const char *xdp_app_info_get_id          (XdpAppInfo  *app_info);
-char *      xdp_app_info_get_instance    (XdpAppInfo  *app_info);
-gboolean    xdp_app_info_is_host         (XdpAppInfo  *app_info);
-gboolean    xdp_app_info_is_flatpak      (XdpAppInfo  *app_info);
-XdpAppInfoKind xdp_app_info_get_kind     (XdpAppInfo  *app_info);
-char *      xdp_app_info_remap_path      (XdpAppInfo  *app_info,
-                                          const char  *path);
-gboolean    xdp_app_info_map_pids        (XdpAppInfo  *app_info,
-                                          pid_t       *pids,
-                                          guint        n_pids,
-                                          GError     **error);
-gboolean    xdp_app_info_map_tids        (XdpAppInfo  *app_info,
-                                          pid_t        owner_pid,
-                                          pid_t       *tids,
-                                          guint        n_tids,
-                                          GError     **error);
-gboolean    xdp_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
-                                         const int   *fds,
-                                         pid_t       *pids,
-                                         gint         count,
-                                         GError     **error);
-char *      xdp_app_info_get_path_for_fd (XdpAppInfo  *app_info,
-                                          int          fd,
-                                          int          require_st_mode,
-                                          struct stat *st_buf,
-                                          gboolean    *writable_out,
-                                          GError     **error);
-gboolean    xdp_app_info_has_network     (XdpAppInfo  *app_info);
-GAppInfo *  xdp_app_info_load_app_info   (XdpAppInfo *app_info);
-char **     xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
-                                              const char *const *commandline,
-                                              gboolean           quote_escape);
-char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
+gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
-XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
-                                                 GCancellable          *cancellable,
-                                                 GError               **error);
+gboolean xdp_app_info_is_flatpak (XdpAppInfo *app_info);
+
+XdpAppInfoKind xdp_app_info_get_kind (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_id (XdpAppInfo *app_info);
+
+char * xdp_app_info_get_instance (XdpAppInfo *app_info);
+
+GAppInfo * xdp_app_info_load_app_info (XdpAppInfo *app_info);
+
+gboolean xdp_app_info_has_network (XdpAppInfo *app_info);
+
+char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
+                                     int           fd,
+                                     int           require_st_mode,
+                                     struct stat  *st_buf,
+                                     gboolean     *writable_out,
+                                     GError      **error);
+
+char * xdp_app_info_remap_path (XdpAppInfo *app_info,
+                                const char *path);
+
+gboolean xdp_app_info_map_pids (XdpAppInfo  *app_info,
+                                pid_t       *pids,
+                                guint        n_pids,
+                                GError     **error);
+
+gboolean xdp_app_info_map_tids (XdpAppInfo  *app_info,
+                                pid_t        owner_pid,
+                                pid_t       *tids,
+                                guint        n_tids,
+                                GError     **error);
+
+gboolean xdp_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
+                                      const int   *fds,
+                                      pid_t       *pids,
+                                      gint         count,
+                                      GError     **error);
+
+char ** xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
+                                          const char *const *commandline,
+                                          gboolean           quote_escape);
+
+char * xdp_app_info_get_tryexec_path (XdpAppInfo *app_info);
+
+XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
+                                                  GCancellable           *cancellable,
+                                                  GError                **error);
 
 /***
  * Exposed only for TESTS!
@@ -83,5 +96,5 @@ int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
 
 #ifdef HAVE_LIBSYSTEMD
-char *_xdp_parse_app_id_from_unit_name (const char *unit);
+char * _xdp_parse_app_id_from_unit_name (const char *unit);
 #endif
