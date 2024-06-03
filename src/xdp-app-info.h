@@ -67,12 +67,6 @@ gboolean xdp_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
                                       gint         count,
                                       GError     **error);
 
-char ** xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
-                                          const char *const *commandline,
-                                          gboolean           quote_escape);
-
-char * xdp_app_info_get_tryexec_path (XdpAppInfo *app_info);
-
 gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                                           GKeyFile            *keyfile,
                                           const char * const  *autostart_exec,
