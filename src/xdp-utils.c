@@ -1029,6 +1029,15 @@ cache_insert_app_info (const char *sender, XdpAppInfo *app_info)
   G_UNLOCK (app_infos);
 }
 
+static void
+on_peer_died (const char *name)
+{
+  G_LOCK (app_infos);
+  if (app_info_by_unique_name)
+    g_hash_table_remove (app_info_by_unique_name, name);
+  G_UNLOCK (app_infos);
+}
+
 static XdpAppInfo *
 xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
                                      const char            *sender,
@@ -1056,6 +1065,8 @@ xdp_connection_lookup_app_info_sync (GDBusConnection       *connection,
     app_info = xdp_app_info_new_host (pid, pidfd);
 
   cache_insert_app_info (sender, app_info);
+
+  xdp_connection_track_name_owners (connection, on_peer_died);
 
   return g_steal_pointer (&app_info);
 }
@@ -1088,25 +1099,22 @@ name_owner_changed (GDBusConnection *connection,
   const char *name, *from, *to;
   XdpPeerDiedCallback peer_died_cb = user_data;
 
+  if (!peer_died_cb)
+    return;
+
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
-  if (name[0] == ':' &&
-      strcmp (name, from) == 0 &&
-      strcmp (to, "") == 0)
-    {
-      G_LOCK (app_infos);
-      if (app_info_by_unique_name)
-        g_hash_table_remove (app_info_by_unique_name, name);
-      G_UNLOCK (app_infos);
+  if (name[0] != ':' ||
+      strcmp (name, from) != 0 ||
+      strcmp (to, "") != 0)
+    return;
 
-      if (peer_died_cb)
-        peer_died_cb (name);
-    }
+  peer_died_cb (name);
 }
 
 void
-xdp_connection_track_name_owners (GDBusConnection *connection,
-                                  XdpPeerDiedCallback peer_died_cb)
+xdp_connection_track_name_owners (GDBusConnection     *connection,
+                                  XdpPeerDiedCallback  peer_died_cb)
 {
   g_dbus_connection_signal_subscribe (connection,
                                       DBUS_NAME_DBUS,
