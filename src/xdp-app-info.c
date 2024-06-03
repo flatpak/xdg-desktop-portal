@@ -65,9 +65,8 @@ typedef enum
   XDP_APP_INFO_KIND_SNAP    = 2,
 } XdpAppInfoKind;
 
-struct _XdpAppInfo {
-  GObject parent_instance;
-
+typedef struct _XdpAppInfoPrivate
+{
   char *id;
   XdpAppInfoKind kind;
 
@@ -89,26 +88,27 @@ struct _XdpAppInfo {
           GKeyFile *keyfile;
         } snap;
     } u;
-};
+} XdpAppInfoPrivate;
 
-G_DEFINE_FINAL_TYPE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
 
 static void
 xdp_app_info_dispose (GObject *object)
 {
-  XdpAppInfo *app_info = XDP_APP_INFO (object);
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
-  g_clear_pointer (&app_info->id, g_free);
-  xdp_close_fd (&app_info->pidfd);
+  g_clear_pointer (&priv->id, g_free);
+  xdp_close_fd (&priv->pidfd);
 
-  switch (app_info->kind)
+  switch (priv->kind)
     {
     case XDP_APP_INFO_KIND_FLATPAK:
-      g_clear_pointer (&app_info->u.flatpak.keyfile, g_key_file_free);
+      g_clear_pointer (&priv->u.flatpak.keyfile, g_key_file_free);
       break;
 
     case XDP_APP_INFO_KIND_SNAP:
-      g_clear_pointer (&app_info->u.snap.keyfile, g_key_file_free);
+      g_clear_pointer (&priv->u.snap.keyfile, g_key_file_free);
       break;
 
     case XDP_APP_INFO_KIND_HOST:
@@ -136,10 +136,14 @@ static XdpAppInfo *
 xdp_app_info_new (XdpAppInfoKind kind)
 {
   XdpAppInfo *app_info;
+  XdpAppInfoPrivate *priv;
 
   app_info = g_object_new (XDP_TYPE_APP_INFO, NULL);
-  app_info->kind = kind;
-  app_info->pidfd = -1;
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->kind = kind;
+  priv->pidfd = -1;
 
   return app_info;
 }
@@ -147,28 +151,34 @@ xdp_app_info_new (XdpAppInfoKind kind)
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_return_val_if_fail (app_info != NULL, FALSE);
 
-  return app_info->kind == XDP_APP_INFO_KIND_HOST;
+  return priv->kind == XDP_APP_INFO_KIND_HOST;
 }
 
 const char *
 xdp_app_info_get_id (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  return app_info->id;
+  return priv->id;
 }
 
 char *
 xdp_app_info_get_instance (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->kind != XDP_APP_INFO_KIND_FLATPAK)
+  if (priv->kind != XDP_APP_INFO_KIND_FLATPAK)
     return NULL;
 
-  return g_key_file_get_string (app_info->u.flatpak.keyfile,
+  return g_key_file_get_string (priv->u.flatpak.keyfile,
                                 FLATPAK_METADATA_GROUP_INSTANCE,
                                 FLATPAK_METADATA_KEY_INSTANCE_ID,
                                 NULL);
@@ -177,18 +187,19 @@ xdp_app_info_get_instance (XdpAppInfo *app_info)
 GAppInfo *
 xdp_app_info_load_app_info (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autofree char *desktop_id = NULL;
 
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  switch (app_info->kind)
+  switch (priv->kind)
     {
     case XDP_APP_INFO_KIND_FLATPAK:
-      desktop_id = g_strconcat (app_info->id, ".desktop", NULL);
+      desktop_id = g_strconcat (priv->id, ".desktop", NULL);
       break;
 
     case XDP_APP_INFO_KIND_SNAP:
-      desktop_id = g_key_file_get_string (app_info->u.snap.keyfile,
+      desktop_id = g_key_file_get_string (priv->u.snap.keyfile,
                                           SNAP_METADATA_GROUP_INFO,
                                           SNAP_METADATA_KEY_DESKTOP_FILE,
                                           NULL);
@@ -209,13 +220,14 @@ xdp_app_info_load_app_info (XdpAppInfo *app_info)
 gboolean
 xdp_app_info_has_network (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   gboolean has_network;
 
-  switch (app_info->kind)
+  switch (priv->kind)
     {
     case XDP_APP_INFO_KIND_FLATPAK:
       {
-        g_auto(GStrv) shared = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+        g_auto(GStrv) shared = g_key_file_get_string_list (priv->u.flatpak.keyfile,
                                                            "Context", "shared",
                                                            NULL, NULL);
         if (shared)
@@ -226,7 +238,7 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
       break;
 
     case XDP_APP_INFO_KIND_SNAP:
-      has_network = g_key_file_get_boolean (app_info->u.snap.keyfile,
+      has_network = g_key_file_get_boolean (priv->u.snap.keyfile,
                                             SNAP_METADATA_GROUP_INFO,
                                             SNAP_METADATA_KEY_NETWORK, NULL);
       break;
@@ -243,9 +255,11 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
 static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   return
-    app_info->kind == XDP_APP_INFO_KIND_FLATPAK ||
-    app_info->kind == XDP_APP_INFO_KIND_HOST;
+    priv->kind == XDP_APP_INFO_KIND_FLATPAK ||
+    priv->kind == XDP_APP_INFO_KIND_HOST;
 }
 
 static char *
@@ -349,6 +363,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                               gboolean     *writable_out,
                               GError      **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autofree char *proc_path = NULL;
   int fd_flags;
   struct stat st_buf_store;
@@ -448,7 +463,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                        "App \"%s\" of type %d does not support O_PATH fd passing",
-                       app_info->id, app_info->kind);
+                       priv->id, priv->kind);
           return NULL;
         }
 
@@ -518,12 +533,14 @@ char *
 xdp_app_info_remap_path (XdpAppInfo *app_info,
                          const char *path)
 {
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
-      g_autofree char *app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+      g_autofree char *app_path = g_key_file_get_string (priv->u.flatpak.keyfile,
                                                          FLATPAK_METADATA_GROUP_INSTANCE,
                                                          FLATPAK_METADATA_KEY_APP_PATH, NULL);
-      g_autofree char *runtime_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+      g_autofree char *runtime_path = g_key_file_get_string (priv->u.flatpak.keyfile,
                                                              FLATPAK_METADATA_GROUP_INSTANCE,
                                                              FLATPAK_METADATA_KEY_RUNTIME_PATH,
                                                              NULL);
@@ -554,11 +571,11 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
                                  path + strlen ("/run/flatpak/doc/"), NULL);
       else if (g_str_has_prefix (path, "/var/config/"))
         return g_build_filename (g_get_home_dir (), ".var", "app",
-                                 app_info->id, "config",
+                                 priv->id, "config",
                                  path + strlen ("/var/config/"), NULL);
       else if (g_str_has_prefix (path, "/var/data/"))
         return g_build_filename (g_get_home_dir (), ".var", "app",
-                                 app_info->id, "data",
+                                 priv->id, "data",
                                  path + strlen ("/var/data/"), NULL);
     }
 
@@ -1052,6 +1069,7 @@ xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
                                    DIR         *proc,
                                    GError     **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autoptr(JsonNode) root = NULL;
   xdp_autofd int fd = -1;
   pid_t pid;
@@ -1069,7 +1087,7 @@ xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
   if (ns != 0)
     {
       g_debug ("Using pid namespace info from bwrap info");
-      app_info->pidns_id = ns;
+      priv->pidns_id = ns;
       return TRUE;
     }
 
@@ -1091,7 +1109,7 @@ xdp_app_info_ensure_pidns_flatpak (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  app_info->pidns_id = ns;
+  priv->pidns_id = ns;
 
   return TRUE;
 }
@@ -1101,10 +1119,11 @@ xdp_app_info_ensure_pidns_pidfd (XdpAppInfo  *app_info,
                                  DIR         *proc,
                                  GError     **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   ino_t ns;
   int r;
 
-  r = lookup_ns_from_pid_fd (app_info->pidfd, &ns);
+  r = lookup_ns_from_pid_fd (priv->pidfd, &ns);
   if (r < 0)
     {
       int code = g_io_error_from_errno (-r);
@@ -1114,7 +1133,7 @@ xdp_app_info_ensure_pidns_pidfd (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  app_info->pidns_id = ns;
+  priv->pidns_id = ns;
   return TRUE;
 }
 
@@ -1123,15 +1142,16 @@ xdp_app_info_ensure_pidns (XdpAppInfo  *app_info,
                            DIR         *proc,
                            GError     **error)
 {
-  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(app_info->pidns_lock));
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(priv->pidns_lock));
 
-  if (app_info->pidns_id != 0)
+  if (priv->pidns_id != 0)
     return TRUE;
 
-  if (app_info->pidfd >= 0)
+  if (priv->pidfd >= 0)
     return xdp_app_info_ensure_pidns_pidfd (app_info, proc, error);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     return xdp_app_info_ensure_pidns_flatpak (app_info, proc, error);
 
   g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Could not get a pidns");
@@ -1146,6 +1166,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
                    guint        n_pids,
                    GError     **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autoptr(GError) local_error = NULL;
   gboolean ok;
   DIR *proc;
@@ -1168,7 +1189,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
   if (!ok)
     {
       /* fallback to not mapping pids if the app is on the host */
-      if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+      if (priv->kind == XDP_APP_INFO_KIND_HOST)
         return TRUE;
 
       g_propagate_prefixed_error (error, local_error,
@@ -1181,7 +1202,7 @@ app_info_map_pids (XdpAppInfo  *app_info,
    */
   uid = getuid ();
 
-  ns = app_info->pidns_id;
+  ns = priv->pidns_id;
   ok = map_pids (proc, ns, pids, n_pids, uid, error);
 
  out:
@@ -1266,11 +1287,13 @@ rewrite_commandline (XdpAppInfo         *app_info,
                      const char * const *commandline,
                      gboolean            quote_escape)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_autoptr(GPtrArray) args = NULL;
 
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_HOST)
+  if (priv->kind == XDP_APP_INFO_KIND_HOST)
     {
       int i;
       args = g_ptr_array_new_with_free_func (g_free);
@@ -1279,7 +1302,7 @@ rewrite_commandline (XdpAppInfo         *app_info,
       g_ptr_array_add (args, NULL);
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
     }
-  else if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  else if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       args = g_ptr_array_new_with_free_func (g_free);
 
@@ -1298,17 +1321,17 @@ rewrite_commandline (XdpAppInfo         *app_info,
            * rewriting the file simpler in case the app is renamed.
            */
           if (quote_escape)
-            g_ptr_array_add (args, g_shell_quote (app_info->id));
+            g_ptr_array_add (args, g_shell_quote (priv->id));
           else
-            g_ptr_array_add (args, g_strdup (app_info->id));
+            g_ptr_array_add (args, g_strdup (priv->id));
 
           for (i = 1; commandline[i]; i++)
             g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
         }
       else if (quote_escape)
-        g_ptr_array_add (args, g_shell_quote (app_info->id));
+        g_ptr_array_add (args, g_shell_quote (priv->id));
       else
-        g_ptr_array_add (args, g_strdup (app_info->id));
+        g_ptr_array_add (args, g_strdup (priv->id));
       g_ptr_array_add (args, NULL);
 
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
@@ -1320,9 +1343,11 @@ rewrite_commandline (XdpAppInfo         *app_info,
 static char *
 get_tryexec_path (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_return_val_if_fail (app_info != NULL, NULL);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       g_autofree char *original_app_path = NULL;
       g_autofree char *tryexec_path = NULL;
@@ -1331,10 +1356,10 @@ get_tryexec_path (XdpAppInfo *app_info)
       char *app_slash_pointer;
       char *path;
 
-      original_app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+      original_app_path = g_key_file_get_string (priv->u.flatpak.keyfile,
                                                  FLATPAK_METADATA_GROUP_INSTANCE,
                                                  FLATPAK_METADATA_KEY_ORIGINAL_APP_PATH, NULL);
-      app_path = g_key_file_get_string (app_info->u.flatpak.keyfile,
+      app_path = g_key_file_get_string (priv->u.flatpak.keyfile,
                                         FLATPAK_METADATA_GROUP_INSTANCE,
                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
       path = original_app_path ? original_app_path : app_path;
@@ -1342,7 +1367,7 @@ get_tryexec_path (XdpAppInfo *app_info)
       if (path == NULL || *path == '\0')
         return NULL;
 
-      app_slash = g_strconcat ("app/", app_info->id, NULL);
+      app_slash = g_strconcat ("app/", priv->id, NULL);
 
       app_slash_pointer = strstr (path, app_slash);
       if (app_slash_pointer == NULL)
@@ -1354,7 +1379,7 @@ get_tryexec_path (XdpAppInfo *app_info)
       /* Find the path to the wrapper script exported by Flatpak, which can be
        * used in a desktop file's TryExec=
        */
-      tryexec_path = g_strconcat (path, "exports/bin/", app_info->id, NULL);
+      tryexec_path = g_strconcat (path, "exports/bin/", priv->id, NULL);
       if (access (tryexec_path, X_OK) != 0)
         {
           g_debug ("Wrapper script unexpectedly not executable or nonexistent: %s", tryexec_path);
@@ -1374,10 +1399,12 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                                  GCancellable        *cancellable,
                                  GError             **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
   g_auto(GStrv) cmdv = NULL;
   g_autofree char *cmd = NULL;
 
-  g_assert (app_info->id);
+  g_assert (priv->id);
 
   cmdv = rewrite_commandline (app_info,
                               autostart_exec,
@@ -1385,7 +1412,7 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
   if (!cmdv)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                   "Autostart not supported for: %s", app_info->id);
+                   "Autostart not supported for: %s", priv->id);
       return FALSE;
     }
 
@@ -1396,12 +1423,12 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                          G_KEY_FILE_DESKTOP_KEY_EXEC,
                          cmd);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       g_key_file_set_string (keyfile,
                              G_KEY_FILE_DESKTOP_GROUP,
                              "X-Flatpak",
-                             app_info->id);
+                             priv->id);
     }
 
   return TRUE;
@@ -1412,6 +1439,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                         GKeyFile    *key_file,
                                         GError     **error)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autofree char *exec = NULL;
   g_auto(GStrv) exec_strv = NULL;
   g_auto(GStrv) prefixed_exec_strv = NULL;
@@ -1437,7 +1465,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
     }
 
   /* Don't let the app give itself access to host files */
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK &&
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK &&
       g_strv_contains ((const char * const *)exec_strv, "--file-forwarding"))
     {
       g_set_error (error,
@@ -1464,7 +1492,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
   if (tryexec_path != NULL)
     g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "TryExec", tryexec_path);
 
-  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       /* Flatpak checks for this key */
       g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "X-Flatpak", app_id);
@@ -1530,11 +1558,13 @@ static void
 set_appid_from_pid (XdpAppInfo *app_info,
                     pid_t       pid)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
 #ifdef HAVE_LIBSYSTEMD
   g_autofree char *unit = NULL;
   int res;
 
-  g_return_if_fail (app_info->id == NULL);
+  g_return_if_fail (priv->id == NULL);
 
   res = sd_pid_get_user_unit (pid, &unit);
   /*
@@ -1544,16 +1574,16 @@ set_appid_from_pid (XdpAppInfo *app_info,
    */
   if (res == -ENODATA || res < 0 || !unit || !g_str_has_prefix (unit, "app-"))
     {
-      app_info->id = g_strdup ("");
+      priv->id = g_strdup ("");
       return;
     }
 
-  app_info->id = _xdp_parse_app_id_from_unit_name (unit);
+  priv->id = _xdp_parse_app_id_from_unit_name (unit);
   g_debug ("Assigning app ID \"%s\" to pid %ld which has unit \"%s\"",
-           app_info->id, (long) pid, unit);
+           priv->id, (long) pid, unit);
 
 #else
-  app_info->id = g_strdup ("");
+  priv->id = g_strdup ("");
 #endif /* HAVE_LIBSYSTEMD */
 }
 
@@ -1562,6 +1592,7 @@ xdp_app_info_from_flatpak (int          pid,
                            XdpAppInfo **out_app_info,
                            GError     **error)
 {
+  XdpAppInfoPrivate *priv;
   g_autofree char *root_path = NULL;
   int root_fd = -1;
   int info_fd = -1;
@@ -1664,8 +1695,11 @@ xdp_app_info_from_flatpak (int          pid,
   close (info_fd);
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_FLATPAK);
-  app_info->id = g_steal_pointer (&id);
-  app_info->u.flatpak.keyfile = g_steal_pointer (&metadata);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->id = g_steal_pointer (&id);
+  priv->u.flatpak.keyfile = g_steal_pointer (&metadata);
 
   *out_app_info = g_steal_pointer (&app_info);
   return TRUE;
@@ -1763,6 +1797,7 @@ xdp_app_info_from_snap (int          pid,
                         XdpAppInfo **out_app_info,
                         GError     **error)
 {
+  XdpAppInfoPrivate *priv;
   g_autoptr(GError) local_error = NULL;
   g_autofree char *pid_str = NULL;
   g_autofree char *output = NULL;
@@ -1800,9 +1835,12 @@ xdp_app_info_from_snap (int          pid,
     }
 
   app_info = xdp_app_info_new (XDP_APP_INFO_KIND_SNAP);
-  app_info->id = g_strconcat ("snap.", snap_name, NULL);
-  app_info->pidfd = pidfd;
-  app_info->u.snap.keyfile = g_steal_pointer (&metadata);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->id = g_strconcat ("snap.", snap_name, NULL);
+  priv->pidfd = pidfd;
+  priv->u.snap.keyfile = g_steal_pointer (&metadata);
 
   *out_app_info = g_steal_pointer (&app_info);
   return TRUE;
@@ -1812,17 +1850,27 @@ static XdpAppInfo *
 xdp_app_info_from_host (pid_t pid,
                         int   pidfd)
 {
-  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  XdpAppInfoPrivate *priv;
+  XdpAppInfo *app_info;
+
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  priv = xdp_app_info_get_instance_private (app_info);
+
   set_appid_from_pid (app_info, pid);
-  app_info->pidfd = pidfd;
+  priv->pidfd = pidfd;
   return app_info;
 }
 
 static XdpAppInfo *
 xdp_app_info_new_test_host (const char *app_id)
 {
-  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
-  app_info->id = g_strdup (app_id);
+  XdpAppInfoPrivate *priv;
+  XdpAppInfo *app_info;
+
+  app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->id = g_strdup (app_id);
   return app_info;
 }
 
