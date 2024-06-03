@@ -24,13 +24,6 @@
 
 #include "glib-backports.h"
 
-typedef enum
-{
-  XDP_APP_INFO_KIND_HOST = 0,
-  XDP_APP_INFO_KIND_FLATPAK = 1,
-  XDP_APP_INFO_KIND_SNAP = 2,
-} XdpAppInfoKind;
-
 #define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
 G_DECLARE_FINAL_TYPE (XdpAppInfo,
                       xdp_app_info,
@@ -38,10 +31,6 @@ G_DECLARE_FINAL_TYPE (XdpAppInfo,
                       GObject)
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
-
-gboolean xdp_app_info_is_flatpak (XdpAppInfo *app_info);
-
-XdpAppInfoKind xdp_app_info_get_kind (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 
