@@ -1461,9 +1461,9 @@ set_appid_from_pid (XdpAppInfo *app_info,
 }
 
 static gboolean
-xdp_app_info_from_flatpak_info (int          pid,
-                                XdpAppInfo **out_app_info,
-                                GError     **error)
+xdp_app_info_from_flatpak (int          pid,
+                           XdpAppInfo **out_app_info,
+                           GError     **error)
 {
   g_autofree char *root_path = NULL;
   int root_fd = -1;
@@ -1712,6 +1712,24 @@ xdp_app_info_from_snap (int          pid,
   return TRUE;
 }
 
+static XdpAppInfo *
+xdp_app_info_from_host (pid_t pid,
+                        int   pidfd)
+{
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  set_appid_from_pid (app_info, pid);
+  app_info->pidfd = pidfd;
+  return app_info;
+}
+
+static XdpAppInfo *
+xdp_app_info_new_test_host (const char *app_id)
+{
+  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
+  app_info->id = g_strdup (app_id);
+  return app_info;
+}
+
 static gboolean
 xdp_connection_get_pid_legacy (GDBusConnection  *connection,
                                const char       *sender,
@@ -1842,24 +1860,6 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
 }
 
 static XdpAppInfo *
-xdp_app_info_new_host (pid_t pid,
-                       int   pidfd)
-{
-  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
-  set_appid_from_pid (app_info, pid);
-  app_info->pidfd = pidfd;
-  return app_info;
-}
-
-static XdpAppInfo *
-xdp_app_info_new_test_host (const char *app_id)
-{
-  XdpAppInfo *app_info = xdp_app_info_new (XDP_APP_INFO_KIND_HOST);
-  app_info->id = g_strdup (app_id);
-  return app_info;
-}
-
-static XdpAppInfo *
 cache_lookup_app_info_by_sender (const char *sender)
 {
   XdpAppInfo *app_info = NULL;
@@ -1922,14 +1922,14 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  if (!xdp_app_info_from_flatpak_info (pid, &app_info, error))
+  if (!xdp_app_info_from_flatpak (pid, &app_info, error))
     return NULL;
 
   if (app_info == NULL && !xdp_app_info_from_snap (pid, pidfd, &app_info, error))
     return NULL;
 
   if (app_info == NULL)
-    app_info = xdp_app_info_new_host (pid, pidfd);
+    app_info = xdp_app_info_from_host (pid, pidfd);
 
   cache_insert_app_info (sender, app_info);
 
