@@ -26,10 +26,10 @@
 #include "glib-backports.h"
 
 #define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
-G_DECLARE_FINAL_TYPE (XdpAppInfo,
-                      xdp_app_info,
-                      XDP, APP_INFO,
-                      GObject)
+G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
+                          xdp_app_info,
+                          XDP, APP_INFO,
+                          GObject)
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 

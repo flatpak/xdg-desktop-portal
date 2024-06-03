@@ -21,6 +21,11 @@
 
 #include "xdp-app-info.h"
 
+struct _XdpAppInfoClass
+{
+  GObjectClass parent_class;
+};
+
 XDP_EXPORT_TEST
 int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
