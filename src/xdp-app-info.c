@@ -60,6 +60,13 @@
 G_LOCK_DEFINE (app_infos);
 static GHashTable *app_info_by_unique_name;
 
+typedef enum
+{
+  XDP_APP_INFO_KIND_HOST = 0,
+  XDP_APP_INFO_KIND_FLATPAK = 1,
+  XDP_APP_INFO_KIND_SNAP    = 2,
+} XdpAppInfoKind;
+
 struct _XdpAppInfo {
   GObject parent_instance;
 
@@ -145,22 +152,6 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
   g_return_val_if_fail (app_info != NULL, FALSE);
 
   return app_info->kind == XDP_APP_INFO_KIND_HOST;
-}
-
-gboolean
-xdp_app_info_is_flatpak (XdpAppInfo *app_info)
-{
-  g_return_val_if_fail (app_info != NULL, FALSE);
-
-  return app_info->kind == XDP_APP_INFO_KIND_FLATPAK;
-}
-
-XdpAppInfoKind
-xdp_app_info_get_kind (XdpAppInfo  *app_info)
-{
-  g_return_val_if_fail (app_info != NULL, -1);
-
-  return app_info->kind;
 }
 
 const char *
@@ -1407,7 +1398,7 @@ xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                          G_KEY_FILE_DESKTOP_KEY_EXEC,
                          cmd);
 
-  if (xdp_app_info_is_flatpak (app_info))
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       g_key_file_set_string (keyfile,
                              G_KEY_FILE_DESKTOP_GROUP,
@@ -1448,7 +1439,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
     }
 
   /* Don't let the app give itself access to host files */
-  if (xdp_app_info_is_flatpak (app_info) &&
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK &&
       g_strv_contains ((const char * const *)exec_strv, "--file-forwarding"))
     {
       g_set_error (error,
@@ -1475,7 +1466,7 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
   if (tryexec_path != NULL)
     g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "TryExec", tryexec_path);
 
-  if (xdp_app_info_is_flatpak (app_info))
+  if (app_info->kind == XDP_APP_INFO_KIND_FLATPAK)
     {
       /* Flatpak checks for this key */
       g_key_file_set_value (key_file, G_KEY_FILE_DESKTOP_GROUP, "X-Flatpak", app_id);
