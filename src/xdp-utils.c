@@ -1249,8 +1249,9 @@ verify_proc_self_fd (XdpAppInfo *app_info,
      but there is not much to do about this. */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
     {
-      if (documents_mountpoint != NULL &&
-          g_str_has_prefix (path_buffer, documents_mountpoint))
+      const char *mountpoint = xdp_get_documents_mountpoint ();
+
+      if (mountpoint != NULL && g_str_has_prefix (path_buffer, mountpoint))
         {
           /* Unfortunately our workaround for dcache purging triggers
              o_path file descriptors on the fuse filesystem being
@@ -1278,9 +1279,16 @@ xdp_set_documents_mountpoint (const char *path)
   documents_mountpoint = g_strdup (path);
 }
 
+const char *
+xdp_get_documents_mountpoint (void)
+{
+  return documents_mountpoint;
+}
+
 /* alternate_document_path converts a file path  */
 char *
-xdp_get_alternate_document_path (const char *path, const char *app_id)
+xdp_get_alternate_document_path (const char *path,
+                                 const char *app_id)
 {
   int len;
 

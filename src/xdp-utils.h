@@ -99,8 +99,9 @@ char **     xdp_app_info_rewrite_commandline (XdpAppInfo        *app_info,
                                               gboolean           quote_escape);
 char       *xdp_app_info_get_tryexec_path (XdpAppInfo  *app_info);
 
-void  xdp_set_documents_mountpoint    (const char *path);
-char *xdp_get_alternate_document_path (const char *path, const char *app_id);
+void xdp_set_documents_mountpoint (const char *path);
+const char * xdp_get_documents_mountpoint (void);
+char * xdp_get_alternate_document_path (const char *path, const char *app_id);
 
 XdpAppInfo *xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation *invocation,
                                                  GCancellable          *cancellable,
