@@ -80,14 +80,3 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
 XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
                                                   GCancellable           *cancellable,
                                                   GError                **error);
-
-/***
- * Exposed only for TESTS!
- */
-
-int _xdp_parse_cgroup_file (FILE     *f,
-                            gboolean *is_snap);
-
-#ifdef HAVE_LIBSYSTEMD
-char * _xdp_parse_app_id_from_unit_name (const char *unit);
-#endif

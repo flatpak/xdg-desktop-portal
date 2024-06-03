@@ -37,8 +37,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <gio/gunixfdlist.h>
 
-#include "xdp-app-info.h"
-#include "xdp-utils.h"
+#include "xdp-app-info-private.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS

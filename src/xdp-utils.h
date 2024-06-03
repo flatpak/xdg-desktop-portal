@@ -137,3 +137,6 @@ gboolean xdp_spawnv     (GFile                *dir,
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
+
+#define XDP_EXPORT_TEST XDP_EXPORT
+#define XDP_EXPORT __attribute__((visibility("default"))) extern
