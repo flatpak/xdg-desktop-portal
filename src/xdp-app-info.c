@@ -34,7 +34,6 @@
 #endif
 
 #include <json-glib/json-glib.h>
-#include <gio/gdesktopappinfo.h>
 #include <gio/gunixfdlist.h>
 
 #include "xdp-app-info-private.h"
