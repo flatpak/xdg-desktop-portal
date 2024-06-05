@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 
 #include <gio/gio.h>
+#include <gio/gdesktopappinfo.h>
 
 #include "glib-backports.h"
 
