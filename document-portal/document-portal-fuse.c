@@ -2994,12 +2994,12 @@ xdp_fuse_statfs (fuse_req_t req,
 }
 
 static void
-xdp_fuse_setxattr (fuse_req_t req,
-                   fuse_ino_t ino,
+xdp_fuse_setxattr (fuse_req_t  req,
+                   fuse_ino_t  ino,
                    const char *name,
                    const char *value,
-                   size_t size,
-                   int flags)
+                   size_t      size,
+                   int         flags)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   ssize_t res;
@@ -3030,10 +3030,10 @@ xdp_fuse_setxattr (fuse_req_t req,
 }
 
 static void
-xdp_fuse_getxattr (fuse_req_t req,
-                   fuse_ino_t ino,
+xdp_fuse_getxattr (fuse_req_t  req,
+                   fuse_ino_t  ino,
                    const char *name,
-                   size_t size)
+                   size_t      size)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   ssize_t res;
@@ -3051,20 +3051,16 @@ xdp_fuse_getxattr (fuse_req_t req,
 
   path = xdp_document_inode_get_self_as_path (inode);
   if (path == NULL)
-    {
-      res = -1
-      errno = ENODATA;
-    }
-  else
-  {
+    return xdp_reply_err (op, req, ENODATA);
+
 #if defined(HAVE_SYS_XATTR_H)
-    res = getxattr (path, name, buf, size);
+  res = getxattr (path, name, buf, size);
 #elif defined(HAVE_SYS_EXTATTR_H)
-    res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
+  res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
 #else
 #error "Not implemented for your platform"
 #endif
-  }
+
   if (res < 0)
     return xdp_reply_err (op, req, errno);
 
@@ -3077,7 +3073,7 @@ xdp_fuse_getxattr (fuse_req_t req,
 static void
 xdp_fuse_listxattr (fuse_req_t req,
                     fuse_ino_t ino,
-                    size_t size)
+                    size_t     size)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   ssize_t res;
@@ -3094,18 +3090,21 @@ xdp_fuse_listxattr (fuse_req_t req,
     buf = g_malloc (size);
 
   path = xdp_document_inode_get_self_as_path (inode);
-  if (path)
-  {
+
+  if (path == NULL)
+    {
+      res = 0;
+    }
+  else
+    {
 #if defined(HAVE_SYS_XATTR_H)
-    res = listxattr (path, buf, size);
+      res = listxattr (path, buf, size);
 #elif defined(HAVE_SYS_EXTATTR_H)
-    res = extattr_list_file (path, EXTATTR_NAMESPACE_USER, buf, size);
+      res = extattr_list_file (path, EXTATTR_NAMESPACE_USER, buf, size);
 #else
 #error "Not implemented for your platform"
 #endif
-  }
-  else
-    res = 0;
+    }
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -3117,8 +3116,8 @@ xdp_fuse_listxattr (fuse_req_t req,
 }
 
 static void
-xdp_fuse_removexattr (fuse_req_t req,
-                      fuse_ino_t ino,
+xdp_fuse_removexattr (fuse_req_t  req,
+                      fuse_ino_t  ino,
                       const char *name)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
