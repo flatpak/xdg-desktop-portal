@@ -59,14 +59,23 @@ G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_DBUS_TYPE_REALTIME_SKELETON,
 static gboolean
 map_pid (XdpAppInfo *app_info, pid_t *pid, pid_t *tid, GError **error)
 {
-  if (!xdp_app_info_map_pids (app_info, pid, 1, error))
+  ino_t pidns_id;
+
+  if (!xdp_app_info_get_pidns (app_info, &pidns_id, error))
+    {
+      g_prefix_error (error, "Could not get pidns: ");
+      g_warning ("Realtime error: %s", (*error)->message);
+      return FALSE;
+    }
+
+  if (pidns_id != 0 && !xdp_map_pids (pidns_id, pid, 1, error))
     {
       g_prefix_error (error, "Could not map pid: ");
       g_warning ("Realtime error: %s", (*error)->message);
       return FALSE;
     }
 
-  if (!xdp_app_info_map_tids (app_info, *pid, tid, 1, error))
+  if (pidns_id != 0 && !xdp_map_tids (pidns_id, *pid, tid, 1, error))
     {
       g_prefix_error (error, "Could not map tid: ");
       g_warning ("Realtime error: %s", (*error)->message);
