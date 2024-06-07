@@ -121,7 +121,11 @@ xdp_close_fd (int *fdp)
   (void) G_PASTE (name ## locker, __LINE__);
 
 
-char *   xdp_quote_argv (const char           *argv[]);
+char * xdp_maybe_quote (const char *arg,
+                        gboolean    quote_escape);
+char * xdp_maybe_quote_argv (const char *argv[],
+                             gboolean    quote_escape);
+
 gboolean xdp_spawn      (GFile                *dir,
                          char                **output,
                          GSubprocessFlags      flags,
@@ -137,6 +141,36 @@ gboolean xdp_spawnv     (GFile                *dir,
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
+
+pid_t xdp_pidfd_to_pid (int      pidfd,
+                        GError **error);
+
+gboolean xdp_pidfds_to_pids (const int  *pidfds,
+                             pid_t      *pids,
+                             gint        count,
+                             GError    **error);
+
+gboolean xdp_pidfd_get_namespace (int      pidfd,
+                                  ino_t   *ns,
+                                  GError **error);
+
+gboolean xdp_map_pids_full (DIR     *proc,
+                            ino_t    pidns,
+                            pid_t   *pids,
+                            guint    n_pids,
+                            uid_t    target_uid,
+                            GError **error);
+
+gboolean xdp_map_pids (ino_t    pidns,
+                       pid_t   *pids,
+                       guint    n_pids,
+                       GError **error);
+
+gboolean xdp_map_tids (ino_t    pidns,
+                       pid_t    owner_pid,
+                       pid_t   *tids,
+                       guint    n_tids,
+                       GError **error);
 
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
