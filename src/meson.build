@@ -58,6 +58,10 @@ xdp_utils_sources = files(
   'xdp-utils.c',
   'xdp-app-info.c',
   'xdp-sealed-fd.c',
+  'xdp-app-info-host.c',
+  'xdp-app-info-flatpak.c',
+  'xdp-app-info-snap.c',
+  'xdp-app-info-test.c',
 )
 
 if have_libsystemd
