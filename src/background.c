@@ -812,9 +812,9 @@ handle_request_background_in_thread_func (GTask *task,
       guint32 response = 2;
       g_autoptr(GVariant) results = NULL;
       g_autoptr(GError) error = NULL;
-      g_autoptr(GAppInfo) info = NULL;
+      GAppInfo *info = NULL;
 
-      info = xdp_app_info_load_app_info (request->app_info);
+      info = xdp_app_info_get_gappinfo (request->app_info);
       app_id = info ? xdp_get_app_id_from_desktop_id (g_app_info_get_id (info)) : g_strdup (id);
 
       title = g_strdup_printf (_("Allow %s to run in the background?"), info ? g_app_info_get_display_name (info) : id);
