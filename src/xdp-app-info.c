@@ -650,32 +650,6 @@ xdp_app_info_remap_path (XdpAppInfo *app_info,
   return g_strdup (path);
 }
 
-static gboolean
-needs_quoting (const char *arg)
-{
-  while (*arg != 0)
-    {
-      char c = *arg;
-      if (!g_ascii_isalnum (c) &&
-          !(c == '-' || c == '/' || c == '~' ||
-            c == ':' || c == '.' || c == '_' ||
-            c == '=' || c == '@'))
-        return TRUE;
-      arg++;
-    }
-  return FALSE;
-}
-
-static char *
-maybe_quote (const char *arg,
-             gboolean    quote_escape)
-{
-  if (!quote_escape || !needs_quoting (arg))
-    return g_strdup (arg);
-  else
-    return g_shell_quote (arg);
-}
-
 static char **
 rewrite_commandline (XdpAppInfo         *app_info,
                      const char * const *commandline,
@@ -692,7 +666,7 @@ rewrite_commandline (XdpAppInfo         *app_info,
       int i;
       args = g_ptr_array_new_with_free_func (g_free);
       for (i = 0; commandline && commandline[i]; i++)
-        g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
+        g_ptr_array_add (args, xdp_maybe_quote (commandline[i], quote_escape));
       g_ptr_array_add (args, NULL);
       return (char **)g_ptr_array_free (g_steal_pointer (&args), FALSE);
     }
@@ -707,7 +681,7 @@ rewrite_commandline (XdpAppInfo         *app_info,
           int i;
           g_autofree char *quoted_command = NULL;
 
-          quoted_command = maybe_quote (commandline[0], quote_escape);
+          quoted_command = xdp_maybe_quote (commandline[0], quote_escape);
 
           g_ptr_array_add (args, g_strdup_printf ("--command=%s", quoted_command));
 
@@ -720,7 +694,7 @@ rewrite_commandline (XdpAppInfo         *app_info,
             g_ptr_array_add (args, g_strdup (priv->id));
 
           for (i = 1; commandline[i]; i++)
-            g_ptr_array_add (args, maybe_quote (commandline[i], quote_escape));
+            g_ptr_array_add (args, xdp_maybe_quote (commandline[i], quote_escape));
         }
       else if (quote_escape)
         g_ptr_array_add (args, g_shell_quote (priv->id));
