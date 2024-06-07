@@ -48,11 +48,3 @@ void xdp_app_info_initialize (XdpAppInfo *app_info,
                               gboolean    supports_opath,
                               gboolean    has_network,
                               gboolean    requires_pid_mapping);
-
-XDP_EXPORT_TEST
-int _xdp_parse_cgroup_file (FILE     *f,
-                            gboolean *is_snap);
-#ifdef HAVE_LIBSYSTEMD
-XDP_EXPORT_TEST
-char * _xdp_parse_app_id_from_unit_name (const char *unit);
-#endif
