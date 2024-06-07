@@ -132,6 +132,30 @@ xdp_app_info_init (XdpAppInfo *app_info)
 {
 }
 
+void
+xdp_app_info_initialize (XdpAppInfo *app_info,
+                         const char *engine,
+                         const char *app_id,
+                         const char *instance,
+                         int         pidfd,
+                         GAppInfo   *gappinfo,
+                         gboolean    supports_opath,
+                         gboolean    has_network,
+                         gboolean    requires_pid_mapping)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  (void)(priv);
+  (void)(engine);
+  (void)(app_id);
+  (void)(instance);
+  (void)(pidfd);
+  (void)(gappinfo);
+  (void)(supports_opath);
+  (void)(has_network);
+  (void)(requires_pid_mapping);
+}
+
 static XdpAppInfo *
 xdp_app_info_new (XdpAppInfoKind kind)
 {
