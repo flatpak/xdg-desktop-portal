@@ -1492,7 +1492,7 @@ portal_get_host_paths (GDBusMethodInvocation *invocation,
   for (size_t i = 0; id_list[i] != NULL; i++)
     {
       g_autoptr(GError) error = NULL;
-      g_autofree const char *path = NULL;
+      const char *path = NULL;
 
       path = get_host_path_internal (invocation, app_info, id_list[i], &error);
       if (path == NULL)
