@@ -1865,7 +1865,7 @@ xdp_app_info_from_snap (int          pid,
   priv = xdp_app_info_get_instance_private (app_info);
 
   priv->id = g_strconcat ("snap.", snap_name, NULL);
-  priv->pidfd = pidfd;
+  priv->pidfd = dup (pidfd);
   priv->u.snap.keyfile = g_steal_pointer (&metadata);
 
   *out_app_info = g_steal_pointer (&app_info);
@@ -1883,7 +1883,7 @@ xdp_app_info_from_host (pid_t pid,
   priv = xdp_app_info_get_instance_private (app_info);
 
   set_appid_from_pid (app_info, pid);
-  priv->pidfd = pidfd;
+  priv->pidfd = dup (pidfd);
   return app_info;
 }
 
@@ -2082,7 +2082,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
                                      GError          **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  int pidfd = -1;
+  xdp_autofd int pidfd = -1;
   uint32_t pid;
 
   app_info = cache_lookup_app_info_by_sender (sender);
