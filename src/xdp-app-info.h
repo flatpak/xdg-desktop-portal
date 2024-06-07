@@ -25,6 +25,14 @@
 
 #include "glib-backports.h"
 
+typedef enum _XdpAppInfoError
+{
+  XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+} XdpAppInfoError;
+
+#define XDP_APP_INFO_ERROR (xdp_app_info_error_quark ())
+GQuark xdp_app_info_error_quark (void);
+
 #define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
 G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           xdp_app_info,

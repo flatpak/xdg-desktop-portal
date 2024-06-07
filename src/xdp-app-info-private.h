@@ -24,12 +24,34 @@
 struct _XdpAppInfoClass
 {
   GObjectClass parent_class;
+
+  char * (*remap_path) (XdpAppInfo *app_info,
+                        const char *path);
+
+  gboolean (*validate_autostart) (XdpAppInfo          *app_info,
+                                  GKeyFile            *keyfile,
+                                  const char * const  *autostart_exec,
+                                  GCancellable        *cancellable,
+                                  GError             **error);
+
+  gboolean (*validate_dynamic_launcher) (XdpAppInfo  *app_info,
+                                         GKeyFile    *key_file,
+                                         GError     **error);
 };
+
+void xdp_app_info_initialize (XdpAppInfo *app_info,
+                              const char *engine,
+                              const char *app_id,
+                              const char *instance,
+                              int         pidfd,
+                              GAppInfo   *gappinfo,
+                              gboolean    supports_opath,
+                              gboolean    has_network,
+                              gboolean    requires_pid_mapping);
 
 XDP_EXPORT_TEST
 int _xdp_parse_cgroup_file (FILE     *f,
                             gboolean *is_snap);
-
 #ifdef HAVE_LIBSYSTEMD
 XDP_EXPORT_TEST
 char * _xdp_parse_app_id_from_unit_name (const char *unit);
