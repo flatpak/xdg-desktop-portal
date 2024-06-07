@@ -64,6 +64,18 @@
 #define ENODATA ENOATTR
 #endif
 
+#define XDP_XATTR_HOST_PATH "user.document-portal.host-path"
+/* man listxattr:
+ *   The list is the set of (null-terminated) names, one after the other.
+ *
+ * Example:
+ *   user.name1\0system.name1\0user.name2\0
+ *
+ * We can statically define the string by doing this:
+ *   XDP_XATTR_MY_ATTR "\0" XDP_XATTR_ANOTHER_ATTR
+ */
+#define XDP_XATTR_ATTRIBUTE_NAME_LIST XDP_XATTR_HOST_PATH
+
 /* Inode ownership model
  *
  * The document portal exposes something as a filesystem that it
@@ -2993,6 +3005,61 @@ xdp_fuse_statfs (fuse_req_t req,
     xdp_reply_err (op, req, errno);
 }
 
+static ssize_t
+xdp_fuse_set_host_path_xattr (XdpInode   *inode,
+                              const char *value,
+                              size_t      size)
+{
+  errno = EPERM;
+  return -1;
+}
+
+static ssize_t
+xdp_fuse_get_host_path_xattr (XdpInode *inode,
+                              char     *buf,
+                              size_t    size)
+{
+  g_autoptr(PermissionDbEntry) entry =
+    xdp_lookup_doc (inode->domain->doc_id);
+  const char *path = NULL;
+  size_t path_size;
+
+  if (!entry)
+    {
+      errno = ENODATA;
+      return -1;
+    }
+
+  path = document_entry_get_path (entry);
+
+  if (!path)
+    {
+      errno = ENODATA;
+      return -1;
+    }
+
+  path_size = strlen (path) + 1;
+
+  if (size == 0)
+    return path_size;
+
+  if (size < path_size)
+    {
+      errno = ERANGE;
+      return -1;
+    }
+
+  memcpy (buf, path, path_size);
+  return path_size;
+}
+
+static ssize_t
+xdp_fuse_remove_host_path_xattr (XdpInode *inode)
+{
+  errno = EPERM;
+  return -1;
+}
+
 static void
 xdp_fuse_setxattr (fuse_req_t  req,
                    fuse_ino_t  ino,
@@ -3014,14 +3081,21 @@ xdp_fuse_setxattr (fuse_req_t  req,
                                   CHECK_IS_PHYSICAL))
     return;
 
-  path = fd_to_path (inode->physical->fd);
+  if (g_strcmp0 (name, XDP_XATTR_HOST_PATH) == 0)
+    {
+      res = xdp_fuse_set_host_path_xattr (inode, value, size);
+    }
+  else
+    {
+      path = fd_to_path (inode->physical->fd);
 #if defined(HAVE_SYS_XATTR_H)
-  res = setxattr (path, name, value, size, flags);
+      res = setxattr (path, name, value, size, flags);
 #elif defined(HAVE_SYS_EXTATTR_H)
-  res = extattr_set_file (path, EXTATTR_NAMESPACE_USER, name, value, size);
+      res = extattr_set_file (path, EXTATTR_NAMESPACE_USER, name, value, size);
 #else
 #error "Not implemented for your platform"
 #endif
+    }
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -3053,13 +3127,20 @@ xdp_fuse_getxattr (fuse_req_t  req,
   if (path == NULL)
     return xdp_reply_err (op, req, ENODATA);
 
+  if (g_strcmp0 (name, XDP_XATTR_HOST_PATH) == 0)
+    {
+      res = xdp_fuse_get_host_path_xattr (inode, buf, size);
+    }
+  else
+    {
 #if defined(HAVE_SYS_XATTR_H)
-  res = getxattr (path, name, buf, size);
+      res = getxattr (path, name, buf, size);
 #elif defined(HAVE_SYS_EXTATTR_H)
-  res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
+      res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
 #else
 #error "Not implemented for your platform"
 #endif
+    }
 
   if (res < 0)
     return xdp_reply_err (op, req, errno);
@@ -3068,6 +3149,27 @@ xdp_fuse_getxattr (fuse_req_t  req,
     fuse_reply_xattr (req, res);
   else
     fuse_reply_buf (req, buf, res);
+}
+
+static ssize_t
+xdp_fuse_listxattr_xdp_attrs (XdpInode *inode,
+                              ssize_t   res,
+                              char     *buf,
+                              size_t    size)
+{
+  size_t attr_size = sizeof (XDP_XATTR_ATTRIBUTE_NAME_LIST);
+
+  if (size == 0)
+    return res + attr_size;
+
+  if (size < res + attr_size)
+    {
+      errno = ERANGE;
+      return -1;
+    }
+
+  memcpy (buf + res, XDP_XATTR_ATTRIBUTE_NAME_LIST, attr_size);
+  return res + attr_size;
 }
 
 static void
@@ -3104,6 +3206,9 @@ xdp_fuse_listxattr (fuse_req_t req,
 #else
 #error "Not implemented for your platform"
 #endif
+
+      if (res >= 0)
+        res = xdp_fuse_listxattr_xdp_attrs (inode, res, buf, size);
     }
 
   if (res < 0)
@@ -3133,14 +3238,21 @@ xdp_fuse_removexattr (fuse_req_t  req,
                                   CHECK_IS_PHYSICAL))
     return;
 
-  path = fd_to_path (inode->physical->fd);
+  if (g_strcmp0 (name, XDP_XATTR_HOST_PATH) == 0)
+    {
+      res = xdp_fuse_remove_host_path_xattr (inode);
+    }
+  else
+    {
+      path = fd_to_path (inode->physical->fd);
 #if defined(HAVE_SYS_XATTR_H)
-  res = removexattr (path, name);
+      res = removexattr (path, name);
 #elif defined(HAVE_SYS_EXTATTR_H)
-  res = extattr_delete_file (path, EXTATTR_NAMESPACE_USER, name);
+      res = extattr_delete_file (path, EXTATTR_NAMESPACE_USER, name);
 #else
 #error "Not implemented for your platform"
 #endif
+    }
 
   if (res < 0)
     xdp_reply_err (op, req, errno);

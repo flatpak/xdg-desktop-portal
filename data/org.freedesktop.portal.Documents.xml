@@ -281,6 +281,8 @@
 
         Gets the host filesystem paths for document store entries.
 
+        The host filesystem path is also available in the ``user.document-portal.host-path`` extended file attribute.
+
         This call is available inside the sandbox, if the application has the ``read`` permission for the documents.
 
         This method was added in version 5 of this interface.
