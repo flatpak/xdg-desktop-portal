@@ -186,10 +186,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
       if (g_strcmp0 (id, "") != 0)
         {
-          g_autoptr(GAppInfo) info = NULL;
+          GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
           const gchar *name = NULL;
-
-          info = xdp_app_info_load_app_info (request->app_info);
 
           if (info)
             {

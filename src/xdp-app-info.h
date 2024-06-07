@@ -43,9 +43,9 @@ gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 
-char * xdp_app_info_get_instance (XdpAppInfo *app_info);
+const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
 
-GAppInfo * xdp_app_info_load_app_info (XdpAppInfo *app_info);
+GAppInfo * xdp_app_info_get_gappinfo (XdpAppInfo *app_info);
 
 gboolean xdp_app_info_has_network (XdpAppInfo *app_info);
 
