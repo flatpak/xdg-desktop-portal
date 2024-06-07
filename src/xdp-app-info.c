@@ -69,11 +69,16 @@ typedef enum
 
 typedef struct _XdpAppInfoPrivate
 {
-  char *id;
   XdpAppInfoKind kind;
 
-  /* pidfd of the calling process */
+  char *engine;
+  char *id;
+  char *instance;
   int pidfd;
+  GAppInfo *gappinfo;
+  gboolean supports_opath;
+  gboolean has_network;
+  gboolean requires_pid_mapping;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
@@ -100,8 +105,11 @@ xdp_app_info_dispose (GObject *object)
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
+  g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
+  g_clear_pointer (&priv->instance, g_free);
   xdp_close_fd (&priv->pidfd);
+  g_clear_object (&priv->gappinfo);
 
   switch (priv->kind)
     {
@@ -132,6 +140,9 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
 static void
 xdp_app_info_init (XdpAppInfo *app_info)
 {
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->pidfd = -1;
 }
 
 void
@@ -147,15 +158,14 @@ xdp_app_info_initialize (XdpAppInfo *app_info,
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  (void)(priv);
-  (void)(engine);
-  (void)(app_id);
-  (void)(instance);
-  (void)(pidfd);
-  (void)(gappinfo);
-  (void)(supports_opath);
-  (void)(has_network);
-  (void)(requires_pid_mapping);
+  priv->engine = g_strdup (engine);
+  priv->id = g_strdup (app_id);
+  priv->instance = g_strdup (instance);
+  priv->pidfd = dup (pidfd);
+  g_set_object (&priv->gappinfo, gappinfo);
+  priv->supports_opath = supports_opath;
+  priv->has_network = has_network;
+  priv->requires_pid_mapping = requires_pid_mapping;
 }
 
 static XdpAppInfo *
