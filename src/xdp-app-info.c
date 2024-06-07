@@ -288,6 +288,38 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
   return has_network;
 }
 
+gboolean
+xdp_app_info_get_pidns (XdpAppInfo  *app_info,
+                        ino_t       *pidns_id_out,
+                        GError     **error)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GMutexLocker) guard = g_mutex_locker_new (&(priv->pidns_lock));
+  ino_t ns;
+
+  *pidns_id_out = 0;
+
+  if (priv->pidns_id != 0)
+    {
+      *pidns_id_out = priv->pidns_id;
+      return TRUE;
+    }
+
+  if (priv->pidfd < 0)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "pidns required but no pidfd provided");
+      return FALSE;
+    }
+
+  if (!xdp_pidfd_get_namespace (priv->pidfd, &ns, error))
+    return FALSE;
+
+  priv->pidns_id = ns;
+  *pidns_id_out = ns;
+  return TRUE;
+}
+
 static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {

@@ -49,6 +49,10 @@ GAppInfo * xdp_app_info_load_app_info (XdpAppInfo *app_info);
 
 gboolean xdp_app_info_has_network (XdpAppInfo *app_info);
 
+gboolean xdp_app_info_get_pidns (XdpAppInfo  *app_info,
+                                 ino_t       *pidns_id_out,
+                                 GError     **error);
+
 char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      int           fd,
                                      int           require_st_mode,

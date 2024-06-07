@@ -290,15 +290,22 @@ handle_call_thread (GTask        *task,
     {
       pid_t pids[2] = {0, };
       guint n_pids;
+      ino_t pidns_id;
 
       n_pids = call->n_ids;
 
       for (guint i = 0; i < n_pids; i++)
         pids[0] = (pid_t) call->ids[i];
 
-      ok = xdp_app_info_map_pids (call->app_info, pids, n_pids, &error);
+      if (!xdp_app_info_get_pidns (call->app_info, &pidns_id, &error))
+        {
+          g_prefix_error (&error, "Could not get pidns: ");
+          g_warning ("GameMode error: %s", error->message);
+          g_dbus_method_invocation_return_gerror (call->inv, error);
+          return;
+        }
 
-      if (!ok)
+      if (pidns_id != 0 && !xdp_map_pids (pidns_id, pids, n_pids, &error))
         {
           g_prefix_error (&error, "Could not map pids: ");
           g_warning ("GameMode error: %s", error->message);
@@ -323,7 +330,7 @@ handle_call_thread (GTask        *task,
       /* verify fds are actually pidfds */
       fds = g_unix_fd_list_peek_fds (fdlist, &n_pids);
 
-      ok = xdp_app_info_pidfds_to_pids (call->app_info, fds, pids, n_pids, &error);
+      ok = xdp_pidfds_to_pids (fds, pids, n_pids, &error);
 
       if (!ok || !check_pids (pids, n_pids, &error))
         {
