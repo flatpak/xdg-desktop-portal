@@ -354,7 +354,18 @@ xdp_get_app_id_from_desktop_id (const char *desktop_id)
 }
 
 char *
-xdp_quote_argv (const char *argv[])
+xdp_maybe_quote (const char *arg,
+                 gboolean    quote_escape)
+{
+  if (quote_escape && needs_quoting (arg))
+    return g_shell_quote (arg);
+  else
+    return g_strdup (arg);
+}
+
+char *
+xdp_maybe_quote_argv (const char *argv[],
+                      gboolean    quote_escape)
 {
   GString *res = g_string_new ("");
   int i;
@@ -364,7 +375,7 @@ xdp_quote_argv (const char *argv[])
       if (i != 0)
         g_string_append_c (res, ' ');
 
-      if (needs_quoting (argv[i]))
+      if (quote_escape && needs_quoting (argv[i]))
         {
           g_autofree char *quoted = g_shell_quote (argv[i]);
           g_string_append (res, quoted);
@@ -458,7 +469,7 @@ xdp_spawn_full (const char * const  *argv,
   if (source_fd != -1)
     g_subprocess_launcher_take_fd (launcher, source_fd, target_fd);
 
-  commandline = xdp_quote_argv ((const char **)argv);
+  commandline = xdp_maybe_quote_argv ((const char **)argv, TRUE);
   g_debug ("Running: %s", commandline);
 
   subp = g_subprocess_launcher_spawnv (launcher, argv, error);
@@ -653,4 +664,472 @@ xdp_variant_contains_key (GVariant *dictionary,
     }
 
   return FALSE;
+}
+
+static int
+parse_pid (const char *str,
+           pid_t      *pid)
+{
+  char *end;
+  guint64 v;
+  pid_t p;
+
+  errno = 0;
+  v = g_ascii_strtoull (str, &end, 0);
+  if (end == str)
+    return -ENOENT;
+  else if (errno != 0)
+    return -errno;
+
+  p = (pid_t) v;
+
+  if (p < 1 || (guint64) p != v)
+    return -ERANGE;
+
+  if (pid)
+    *pid = p;
+
+  return 0;
+}
+
+static int
+parse_status_field_pid (const char *val,
+                        pid_t      *pid)
+{
+  const char *t;
+
+  t = strrchr (val, '\t');
+  if (t == NULL)
+    return -ENOENT;
+
+  return parse_pid (t, pid);
+}
+
+static pid_t
+pidfd_to_pid (int         fdinfo,
+              const int   pidfd,
+              GError    **error)
+{
+  g_autofree char *name = NULL;
+  g_autofree char *key = NULL;
+  g_autofree char *val = NULL;
+  gboolean found = FALSE;
+  FILE *f = NULL;
+  size_t keylen = 0;
+  size_t vallen = 0;
+  ssize_t n;
+  int fd;
+  int r = 0;
+  pid_t pid = -1;
+
+  name = g_strdup_printf ("%d", pidfd);
+
+  fd = openat (fdinfo, name, O_RDONLY | O_CLOEXEC | O_NOCTTY);
+
+  if (fd != -1)
+    f = fdopen (fd, "r");
+
+  if (f == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Unable to open /proc/self/fdinfo/%d: %s",
+                   fd, g_strerror (errno));
+      return FALSE;
+    }
+
+  do {
+    n = getdelim (&key, &keylen, ':', f);
+    if (n == -1)
+      {
+        r = errno;
+        break;
+      }
+
+    n = getdelim (&val, &vallen, '\n', f);
+    if (n == -1)
+      {
+        r = errno;
+        break;
+      }
+
+    g_strstrip (key);
+
+    if (!strncmp (key, "Pid", 3))
+      {
+        r = parse_status_field_pid (val, &pid);
+        found = r > -1;
+      }
+
+  } while (r == 0 && !found);
+
+  fclose (f);
+
+  if (r < 0)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Could not parse fdinfo::%s: %s",
+                   key, g_strerror (-r));
+    }
+  else if (!found)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                           "Could not parse fdinfo: Pid field missing");
+    }
+
+  return pid;
+}
+
+static int
+open_fdinfo_dir (GError **error)
+{
+  int fd;
+
+  fd = open ("/proc/self/fdinfo", O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+
+  if (fd < 0)
+    g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                 "Could not to open /proc/self/fdinfo: %s",
+                 g_strerror (errno));
+
+  return fd;
+}
+
+pid_t
+xdp_pidfd_to_pid (int      pidfd,
+                  GError **error)
+{
+  int fdinfo = -1;
+  pid_t pid;
+
+  g_return_val_if_fail (pidfd >= 0, -1);
+
+  fdinfo = open_fdinfo_dir (error);
+  if (fdinfo == -1)
+    return -1;
+
+  pid = pidfd_to_pid (fdinfo, pidfd, error);
+  (void) close (fdinfo);
+
+  return pid;
+}
+
+gboolean
+xdp_pidfds_to_pids (const int  *pidfds,
+                    pid_t      *pids,
+                    gint        count,
+                    GError    **error)
+{
+  int fdinfo = -1;
+  int i;
+
+  g_return_val_if_fail (pidfds != NULL, FALSE);
+  g_return_val_if_fail (pids != NULL, FALSE);
+
+  fdinfo = open_fdinfo_dir (error);
+  if (fdinfo == -1)
+    return FALSE;
+
+  for (i = 0; i < count; i++)
+    {
+      pids[i] = pidfd_to_pid (fdinfo, pidfds[i], error);
+      if (pids[i] < 0)
+        break;
+    }
+
+  (void) close (fdinfo);
+
+  return i == count;
+}
+
+gboolean
+xdp_pidfd_get_namespace (int      pidfd,
+                         ino_t   *ns,
+                         GError **error)
+{
+  struct stat st;
+  int r;
+
+  g_return_val_if_fail (pidfd >= 0, FALSE);
+  g_return_val_if_fail (ns != NULL, FALSE);
+
+  r = fstatat (pidfd, "ns/pid", &st, 0);
+  if (r == -1)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not fstatat ns/pid: %s",
+                   g_strerror (errno));
+      return FALSE;
+    }
+
+  /* The inode number (together with the device ID) encode
+   * the identity of the pid namespace, see namespaces(7)
+   */
+  *ns = st.st_ino;
+  return TRUE;
+}
+
+static int
+parse_status_field_uid (const char *val,
+                        uid_t      *uid)
+{
+  const char *t;
+  char *end;
+  guint64 v;
+  uid_t u;
+
+  t = strrchr (val, '\t');
+  if (t == NULL)
+    return -ENOENT;
+
+  errno = 0;
+  v = g_ascii_strtoull (t, &end, 0);
+  if (end == val)
+    return -ENOENT;
+  else if (errno != 0)
+    return -errno;
+
+  u = (uid_t) v;
+
+  if ((guint64) u != v)
+    return -ERANGE;
+
+  if (uid)
+    *uid = u;
+
+  return 0;
+}
+
+static int
+parse_status_file (int    pid_fd,
+                   pid_t *pid_out,
+                   uid_t *uid_out)
+{
+  g_autofree char *key = NULL;
+  g_autofree char *val = NULL;
+  gboolean have_pid = pid_out == NULL;
+  gboolean have_uid = uid_out == NULL;
+  FILE *f;
+  size_t keylen = 0;
+  size_t vallen = 0;
+  ssize_t n;
+  int fd;
+  int r = 0;
+
+  g_return_val_if_fail (pid_fd > -1, FALSE);
+
+  fd = openat (pid_fd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (fd == -1)
+    return -errno;
+
+  f = fdopen (fd, "r");
+
+  if (f == NULL)
+    return -errno;
+
+  fd = -1; /* fd is now owned by f */
+
+  do {
+    n = getdelim (&key, &keylen, ':', f);
+    if (n == -1)
+      {
+        r = -errno;
+        break;
+      }
+
+    n = getdelim (&val, &vallen, '\n', f);
+    if (n == -1)
+      {
+        r = -errno;
+        break;
+      }
+
+    g_strstrip (key);
+    g_strstrip (val);
+
+    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+      {
+        r = parse_status_field_pid (val, pid_out);
+        have_pid = r > -1;
+      }
+    else if (!strncmp (key, "Uid", strlen ("Uid")))
+      {
+        r = parse_status_field_uid (val, uid_out);
+        have_uid = r > -1;
+      }
+
+    if (r < 0)
+      g_warning ("Failed to parse 'status::%s': %s",
+                 key, g_strerror (-r));
+
+  } while (r == 0 && (!have_uid || !have_pid));
+
+  fclose (f);
+
+  if (r != 0)
+    return r;
+  else if (!have_uid || !have_pid)
+    return -ENXIO; /* ENOENT for the fields */
+
+  return 0;
+}
+
+static inline gboolean
+find_pid (pid_t *pids,
+          guint  n_pids,
+          pid_t  want,
+          guint *idx)
+{
+  for (guint i = 0; i < n_pids; i++)
+    {
+      if (pids[i] == want)
+        {
+          *idx = i;
+          return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+gboolean
+xdp_map_pids_full (DIR     *proc,
+                   ino_t    pidns,
+                   pid_t   *pids,
+                   guint    n_pids,
+                   uid_t    target_uid,
+                   GError **error)
+{
+  pid_t *res = NULL;
+  struct dirent *de;
+  guint count = 0;
+
+  res = g_alloca (sizeof (pid_t) * n_pids);
+  memset (res, 0, sizeof (pid_t) * n_pids);
+
+  while ((de = readdir (proc)) != NULL)
+    {
+      xdp_autofd int pid_fd = -1;
+      pid_t outside = 0;
+      pid_t inside = 0;
+      uid_t uid = 0;
+      guint idx;
+      ino_t ns = 0;
+      int r;
+
+      if (de->d_type != DT_DIR)
+        continue;
+
+      pid_fd = openat (dirfd (proc), de->d_name, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+      if (pid_fd == -1)
+        continue;
+
+      if (!xdp_pidfd_get_namespace (pid_fd, &ns, NULL))
+        continue;
+
+      if (pidns != ns)
+        continue;
+
+      r = parse_pid (de->d_name, &outside);
+      if (r < 0)
+        continue;
+
+      r = parse_status_file (pid_fd, &inside, &uid);
+      if (r < 0)
+        continue;
+
+      if (!find_pid (pids, n_pids, inside, &idx))
+        continue;
+
+      /* We got a match, let's make sure the real uids match as well */
+      if (uid != target_uid)
+        {
+          g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
+                               "Matching pid doesn't belong to the target user");
+          return FALSE;
+        }
+
+      /* this handles the first occurrence, already identified by find_pid,
+       * as well as duplicate entries */
+      for (guint i = idx; i < n_pids; i++)
+        {
+          if (pids[i] == inside)
+            {
+              res[idx] = outside;
+              count++;
+            }
+        }
+    }
+
+  if (count != n_pids)
+    {
+      g_autoptr(GString) str = NULL;
+
+      str = g_string_new ("Process ids could not be found: ");
+
+      for (guint i = 0; i < n_pids; i++)
+        if (res[i] == 0)
+          g_string_append_printf (str, "%d, ", (guint32) pids[i]);
+
+      g_string_truncate (str, str->len - 2);
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND, str->str);
+
+      return FALSE;
+    }
+
+  memcpy (pids, res, sizeof (pid_t) * n_pids);
+
+  return TRUE;
+}
+
+static gboolean
+map_pids_proc (ino_t        pidns,
+               pid_t       *pids,
+               guint        n_pids,
+               const char  *proc_dir,
+               GError     **error)
+{
+  gboolean ok;
+  DIR *proc;
+  uid_t uid;
+
+  g_return_val_if_fail (pidns > 0, FALSE);
+  g_return_val_if_fail (pids != NULL, FALSE);
+
+  proc = opendir (proc_dir);
+  if (proc == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not open '%s': %s", proc_dir, g_strerror (errno));
+      return FALSE;
+    }
+
+  uid = getuid ();
+
+  ok = xdp_map_pids_full (proc, pidns, pids, n_pids, uid, error);
+  closedir (proc);
+
+  return ok;
+}
+
+gboolean
+xdp_map_pids (ino_t    pidns,
+              pid_t   *pids,
+              guint    n_pids,
+              GError **error)
+{
+  return map_pids_proc (pidns, pids, n_pids, "/proc", error);
+}
+
+gboolean
+xdp_map_tids (ino_t    pidns,
+              pid_t    owner_pid,
+              pid_t   *tids,
+              guint    n_tids,
+              GError **error)
+{
+  g_autofree char *proc_dir = NULL;
+
+  proc_dir = g_strdup_printf ("/proc/%u/task", (guint) owner_pid);
+
+  return map_pids_proc (pidns, tids, n_tids, proc_dir, error);
 }
