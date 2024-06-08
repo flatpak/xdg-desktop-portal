@@ -60,9 +60,6 @@ char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      gboolean     *writable_out,
                                      GError      **error);
 
-char * xdp_app_info_remap_path (XdpAppInfo *app_info,
-                                const char *path);
-
 gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                                           GKeyFile            *keyfile,
                                           const char * const  *autostart_exec,
