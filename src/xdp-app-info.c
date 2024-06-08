@@ -320,6 +320,59 @@ xdp_app_info_get_pidns (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static char *
+remap_path (XdpAppInfo *app_info,
+            const char *path)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
+    {
+      g_autofree char *app_path = g_key_file_get_string (priv->u.flatpak.keyfile,
+                                                         FLATPAK_METADATA_GROUP_INSTANCE,
+                                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
+      g_autofree char *runtime_path = g_key_file_get_string (priv->u.flatpak.keyfile,
+                                                             FLATPAK_METADATA_GROUP_INSTANCE,
+                                                             FLATPAK_METADATA_KEY_RUNTIME_PATH,
+                                                             NULL);
+
+      /* For apps we translate /app and /usr to the installed locations.
+         Also, we need to rewrite to drop the /newroot prefix added by
+         bubblewrap for other files to work.  See
+         https://github.com/projectatomic/bubblewrap/pull/172
+         for a bit more information on the /newroot issue.
+      */
+
+      if (g_str_has_prefix (path, "/newroot/"))
+        path = path + strlen ("/newroot");
+
+      if (app_path != NULL && g_str_has_prefix (path, "/app/"))
+        return g_build_filename (app_path, path + strlen ("/app/"), NULL);
+      else if (runtime_path != NULL && g_str_has_prefix (path, "/usr/"))
+        return g_build_filename (runtime_path, path + strlen ("/usr/"), NULL);
+      else if (g_str_has_prefix (path, "/run/host/usr/"))
+        return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
+      else if (g_str_has_prefix (path, "/run/host/etc/"))
+        return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
+      else if (g_str_has_prefix (path, "/run/flatpak/app/"))
+        return g_build_filename (g_get_user_runtime_dir (), "app",
+                                 path + strlen ("/run/flatpak/app/"), NULL);
+      else if (g_str_has_prefix (path, "/run/flatpak/doc/"))
+        return g_build_filename (g_get_user_runtime_dir (), "doc",
+                                 path + strlen ("/run/flatpak/doc/"), NULL);
+      else if (g_str_has_prefix (path, "/var/config/"))
+        return g_build_filename (g_get_home_dir (), ".var", "app",
+                                 priv->id, "config",
+                                 path + strlen ("/var/config/"), NULL);
+      else if (g_str_has_prefix (path, "/var/data/"))
+        return g_build_filename (g_get_home_dir (), ".var", "app",
+                                 priv->id, "data",
+                                 path + strlen ("/var/data/"), NULL);
+    }
+
+  return g_strdup (path);
+}
+
 static gboolean
 xdp_app_info_supports_opath (XdpAppInfo  *app_info)
 {
@@ -388,7 +441,7 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
     }
 
   /* remap from sandbox to host if needed */
-  return xdp_app_info_remap_path (app_info, path_buffer);
+  return remap_path (app_info, path_buffer);
 }
 
 static gboolean
@@ -595,59 +648,6 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
     *writable_out = writable;
 
   return g_steal_pointer (&path);
-}
-
-char *
-xdp_app_info_remap_path (XdpAppInfo *app_info,
-                         const char *path)
-{
-  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-
-  if (priv->kind == XDP_APP_INFO_KIND_FLATPAK)
-    {
-      g_autofree char *app_path = g_key_file_get_string (priv->u.flatpak.keyfile,
-                                                         FLATPAK_METADATA_GROUP_INSTANCE,
-                                                         FLATPAK_METADATA_KEY_APP_PATH, NULL);
-      g_autofree char *runtime_path = g_key_file_get_string (priv->u.flatpak.keyfile,
-                                                             FLATPAK_METADATA_GROUP_INSTANCE,
-                                                             FLATPAK_METADATA_KEY_RUNTIME_PATH,
-                                                             NULL);
-
-      /* For apps we translate /app and /usr to the installed locations.
-         Also, we need to rewrite to drop the /newroot prefix added by
-         bubblewrap for other files to work.  See
-         https://github.com/projectatomic/bubblewrap/pull/172
-         for a bit more information on the /newroot issue.
-      */
-
-      if (g_str_has_prefix (path, "/newroot/"))
-        path = path + strlen ("/newroot");
-
-      if (app_path != NULL && g_str_has_prefix (path, "/app/"))
-        return g_build_filename (app_path, path + strlen ("/app/"), NULL);
-      else if (runtime_path != NULL && g_str_has_prefix (path, "/usr/"))
-        return g_build_filename (runtime_path, path + strlen ("/usr/"), NULL);
-      else if (g_str_has_prefix (path, "/run/host/usr/"))
-        return g_build_filename ("/usr", path + strlen ("/run/host/usr/"), NULL);
-      else if (g_str_has_prefix (path, "/run/host/etc/"))
-        return g_build_filename ("/etc", path + strlen ("/run/host/etc/"), NULL);
-      else if (g_str_has_prefix (path, "/run/flatpak/app/"))
-        return g_build_filename (g_get_user_runtime_dir (), "app",
-                                 path + strlen ("/run/flatpak/app/"), NULL);
-      else if (g_str_has_prefix (path, "/run/flatpak/doc/"))
-        return g_build_filename (g_get_user_runtime_dir (), "doc",
-                                 path + strlen ("/run/flatpak/doc/"), NULL);
-      else if (g_str_has_prefix (path, "/var/config/"))
-        return g_build_filename (g_get_home_dir (), ".var", "app",
-                                 priv->id, "config",
-                                 path + strlen ("/var/config/"), NULL);
-      else if (g_str_has_prefix (path, "/var/data/"))
-        return g_build_filename (g_get_home_dir (), ".var", "app",
-                                 priv->id, "data",
-                                 path + strlen ("/var/data/"), NULL);
-    }
-
-  return g_strdup (path);
 }
 
 static char **
