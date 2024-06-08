@@ -1,21 +1,9 @@
 # Steps for doing a xdg-desktop-portal release
 
- - git clean -fxd
- - meson setup . _build && meson compile -C _build/ xdg-desktop-portal-update-po
- - git add po/*po &&  git commit -m "Update po files"
- - git clean -fxd
- - add content to NEWS
- - git commit -m <version>
- - git push origin main
- - meson setup . _build -Ddocbook-docs=enabled 
- - meson dist -C _build
- - git tag <version>
- - git push origin refs/tags/<version>
- - upload tarball to github as release
- - edit release, copy NEWS section in
- - update portal api docs in the gh-pages branch
- - bump version in meson.build
- - git commit -m "Post-release version bump"
- - git push origin main
- - Update SECURITY.md if this is a new stable release
- - Update .github/ISSUE_TEMPLATE/bug-report.yml if this is a new stable release
+- Make sure the version in `meson.build` is correct
+- Add your changelog to the `NEWS` file
+- Run the "Release new version" GitHub Action
+  - The options are taken from the last `NEWS` entry by default, you may override them if needed
+- Bump version in `meson.build`
+- Update `SECURITY.md` if this is a new stable release
+- Update `.github/ISSUE_TEMPLATE/bug-report.yml` if this is a new stable release

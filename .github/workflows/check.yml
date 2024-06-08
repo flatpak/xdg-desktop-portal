@@ -3,135 +3,66 @@ name: Portal CI
 on: [push, pull_request]
 
 env:
-  DEBIAN_FRONTEND: noninteractive
   TESTS_TIMEOUT: 10 # in minutes
 
 jobs:
   check:
-    name: Ubuntu 22.04 build
-    runs-on: ubuntu-22.04
+    name: CI Build
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
 
-    env:
-      UBUNTU_VERSION: '22.04'
-      CC: ${{ matrix.compiler }}
-      BASE_CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
-      BUILD_CONTAINER: ${{ matrix.compiler }}-build-container
-      RUN_CMD: docker exec -t -w /src -e TEST_IN_CI -e ASAN_OPTIONS -e G_MESSAGES_DEBUG -e XDG_DATA_DIRS ${{ matrix.compiler }}-build-container
-      AS_USER: runuser -u tester --
-      BUILDDIR: builddir
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/xdg-desktop-portal-build:latest
+      env:
+        CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
+        CC: ${{ matrix.compiler }}
+        TEST_IN_CI: 1
+        G_MESSAGES_DEBUG: all
+      options: --device /dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined
 
     steps:
-    - name: Prepare environment
-      id: env-setup
-      run: |
-        echo "cflags=$BASE_CFLAGS" >> $GITHUB_OUTPUT;
+      - name: Configure environment
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          echo XDG_DATA_DIRS=$GITHUB_WORKSPACE/tests/share:/usr/local/share:/usr/share | tee -a $GITHUB_ENV
 
-    - name: Prepare container
-      run: |
-        docker run --name $BUILD_CONTAINER \
-          --tty --device /dev/fuse --cap-add SYS_ADMIN \
-          --security-opt apparmor:unconfined \
-          -v $(pwd):/src \
-          -e DEBIAN_FRONTEND \
-          -e DEBCONF_NONINTERACTIVE_SEEN=true \
-          -e TERM=dumb \
-          -e MAKEFLAGS="-j $(getconf _NPROCESSORS_ONLN)" \
-          -e CC -e CFLAGS="${{ steps.env-setup.outputs.cflags }}" \
-          -d ubuntu:$UBUNTU_VERSION sleep infinity
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
 
-    - name: Install dependencies
-      run: |
-        $RUN_CMD apt-get update --quiet
-        $RUN_CMD apt-get upgrade --quiet -y
-        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
-          ${{ matrix.compiler }} \
-          desktop-file-utils \
-          fuse3 \
-          gettext \
-          git \
-          gnome-desktop-testing \
-          gtk-doc-tools \
-          libcap2-bin \
-          libflatpak-dev \
-          libfontconfig1-dev \
-          libfuse3-dev \
-          libgdk-pixbuf-2.0-dev \
-          libgeoclue-2-dev \
-          libglib2.0-dev \
-          libjson-glib-dev \
-          libpipewire-0.3-dev \
-          libportal-dev \
-          libsystemd-dev \
-          libtool \
-          llvm \
-          python3-gi \
-          shared-mime-info
+      - name: Build xdg-desktop-portal
+        run: |
+          meson setup _build $MESON_OPTIONS
+          meson compile -C _build
+        env:
+          MESON_OPTIONS: -Dinstalled-tests=true -Dpytest=enabled -Db_sanitize=${{ matrix.sanitizer }}
 
-    - name: Install dependencies for meson
-      run: |
-        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
-          meson
+      - name: Run xdg-desktop-portal tests
+        run: timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build
 
-    - name: Install dependencies for the pytest test suite
-      run: |
-        $RUN_CMD apt-get install --quiet -y --no-install-recommends \
-          python3-pytest python3-pytest-xdist python3-dbusmock python3-dbus
+      - name: Install xdg-desktop-portal
+        run: meson install -C _build
 
-    - name: Check out xdg-desktop-portal
-      uses: actions/checkout@v3
-
-    - name: Setup test user
-      run: |
-        $RUN_CMD adduser --disabled-password --gecos "" tester
-        $RUN_CMD chown tester:tester . -R
-
-    - name: Build xdg-desktop-portal
-      run: |
-        $RUN_CMD $AS_USER meson setup ${BUILDDIR} $MESON_OPTIONS
-        $RUN_CMD $AS_USER meson compile -C ${BUILDDIR}
-      env:
-        MESON_OPTIONS: -Dinstalled-tests=true -Dpytest=enabled -Db_sanitize=${{ matrix.sanitizer }}
-
-    - name: Run xdg-desktop-portal tests
-      run: $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C ${BUILDDIR}
-      env:
-        TEST_IN_CI: 1
-        G_MESSAGES_DEBUG: all
-
-    - name: Install xdg-desktop-portal
-      run: $RUN_CMD meson install -C ${BUILDDIR}
-
-    - name: Run xdg-desktop-portal installed-tests
-      run: |
-        test -n "$($RUN_CMD $AS_USER gnome-desktop-testing-runner -l xdg-desktop-portal)"
-        $RUN_CMD $AS_USER \
-          env TEST_INSTALLED_IN_CI=1 XDG_DATA_DIRS=/src/tests/share/:$XDG_DATA_DIRS \
+      - name: Run xdg-desktop-portal installed-tests
+        run: |
+          test -n "$(gnome-desktop-testing-runner -l xdg-desktop-portal)"
           gnome-desktop-testing-runner --report-directory installed-test-logs/ \
             -t $((TESTS_TIMEOUT * 60)) xdg-desktop-portal
-      env:
-        G_MESSAGES_DEBUG: all
-        TEST_IN_CI: 1
-        XDG_DATA_DIRS: /usr/local/share:/usr/share
 
-    - name: Create dist tarball
-      run: |
-        $RUN_CMD $AS_USER ls -la
-        $RUN_CMD $AS_USER timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C ${BUILDDIR}
-      env:
-        TEST_IN_CI: 1
-        G_MESSAGES_DEBUG: all
+      - name: Create dist tarball
+        run: |
+          ls -la
+          timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C _build
 
-    - name: Upload test logs
-      uses: actions/upload-artifact@v3
-      if: success() || failure()
-      with:
-        name: test logs
-        path: |
-          tests/*.log
-          test-*.log
-          installed-test-logs/
-          builddir/meson-logs/testlog.txt
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: test logs
+          path: |
+            tests/*.log
+            test-*.log
+            installed-test-logs/
+            builddir/meson-logs/testlog.txt
