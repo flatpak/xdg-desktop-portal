@@ -1,0 +1,40 @@
+FROM ubuntu:latest
+
+RUN apt update
+RUN apt upgrade -y
+
+# Install dependencies
+RUN apt install -y --no-install-recommends \
+	    gcc clang \
+	    ca-certificates \
+	    desktop-file-utils \
+	    fuse3 \
+	    gettext \
+	    git \
+	    gnome-desktop-testing \
+	    gtk-doc-tools \
+	    libcap2-bin \
+	    libflatpak-dev \
+	    libfontconfig1-dev \
+	    libfuse3-dev \
+	    libgdk-pixbuf-2.0-dev \
+	    libgeoclue-2-dev \
+	    libglib2.0-dev \
+	    libjson-glib-dev \
+	    libpipewire-0.3-dev \
+	    libportal-dev \
+	    libsystemd-dev \
+	    libtool \
+	    llvm \
+	    python3-gi \
+	    shared-mime-info
+
+# Install meson
+RUN apt install -y --no-install-recommends meson
+
+# Install pytest
+RUN apt install -y --no-install-recommends \
+	    python3-pytest \
+	    python3-pytest-xdist \
+	    python3-dbusmock \
+	    python3-dbus
