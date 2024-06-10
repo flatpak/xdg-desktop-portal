@@ -1097,7 +1097,7 @@ open_uri_iface_init (XdpDbusOpenURIIface *iface)
 static void
 open_uri_init (OpenURI *openuri)
 {
-  xdp_dbus_open_uri_set_version (XDP_DBUS_OPEN_URI (openuri), 3);
+  xdp_dbus_open_uri_set_version (XDP_DBUS_OPEN_URI (openuri), 4);
 }
 
 static void
