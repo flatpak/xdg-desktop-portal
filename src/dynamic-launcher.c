@@ -332,6 +332,7 @@ handle_install (XdpDbusDynamicLauncher *object,
   g_autofree char *relative_path = NULL;
   g_autoptr(GFile) link_file = NULL;
   gsize desktop_entry_length = G_MAXSIZE;
+  int chmod_result;
 
   launcher_data = get_launcher_data_and_revoke_token (arg_token);
   if (launcher_data == NULL)
@@ -380,6 +381,17 @@ handle_install (XdpDbusDynamicLauncher *object,
   desktop_path = g_build_filename (desktop_dir, arg_desktop_file_id, NULL);
   if (!g_key_file_save_to_file (desktop_keyfile, desktop_path, &error))
     goto error;
+
+  /* Make the desktop file executable */
+  chmod_result = chmod(desktop_path, S_IRWXU);
+  if (chmod_result == -1)
+    {
+      g_set_error (&error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                   _("chmod failed (%s): %s"),
+                   desktop_path, strerror(errno));
+      goto error;
+    }
 
   /* Make a sym link in ~/.local/share/applications so the launcher shows up in
    * the desktop environment's menu.
