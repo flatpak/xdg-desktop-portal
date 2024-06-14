@@ -751,7 +751,7 @@ handle_request_background_in_thread_func (GTask *task,
         subtitle = g_strdup_printf (_("%s requests to be started automatically and run in the background."), info ? g_app_info_get_display_name (info) : id);
       else
         subtitle = g_strdup_printf (_("%s requests to run in the background."), info ? g_app_info_get_display_name (info) : id);
-      body = g_strdup (_("The ‘run in background’ permission can be changed at any time from the application settings."));
+      body = g_strdup (_("The ‘run in background’ permission can be changed at any time from the app settings."));
 
       g_debug ("Calling backend for background access for: %s", id);
 

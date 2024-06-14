@@ -563,7 +563,7 @@ handle_start_in_thread_func (GTask *task,
           g_assert (xdp_app_info_is_host (request->app_info));
           app_id = g_strdup ("");
           title = g_strdup (_("Grant Access to Your Location?"));
-          subtitle = g_strdup (_("An application wants to use your location."));
+          subtitle = g_strdup (_("An app wants to use your location."));
         }
 
       body = _("Location access can be changed at any time from the privacy settings.");
