@@ -535,55 +535,10 @@ portal_interface_prefers_none (const char *interface)
 }
 
 static gboolean
-portal_impl_name_matches (const PortalImplementation *impl,
-                          const PortalInterface      *iface)
-{
-  /* Exact match */
-  if (g_strv_contains ((const char * const *) iface->portals, impl->source))
-    {
-      g_debug ("Found '%s' in configuration for %s", impl->source, iface->dbus_name);
-      return TRUE;
-    }
-
-  /* The "*" alias means "any" */
-  if (g_strv_contains ((const char * const *) iface->portals, "*"))
-    {
-      g_debug ("Found '*' in configuration for %s", iface->dbus_name);
-      return TRUE;
-    }
-
-  /* No portal */
-  if (portal_interface_prefers_none (iface->dbus_name))
-    {
-      g_debug ("Found 'none' in configuration for %s", iface->dbus_name);
-      return FALSE;
-    }
-
-  return FALSE;
-}
-
-static gboolean
-portal_impl_matches_config (const PortalImplementation *impl,
+portal_impl_supports_iface (const PortalImplementation *impl,
                             const char                 *interface)
 {
-  if (config == NULL)
-    return FALSE;
-
-  /* Interfaces have precedence, followed by the "default" catch all,
-   * to allow for specific interfaces to override the default
-   */
-  for (int i = 0; i < config->n_ifaces; i++)
-    {
-      const PortalInterface *iface = config->interfaces[i];
-
-      if (g_strcmp0 (iface->dbus_name, interface) == 0)
-        return portal_impl_name_matches (impl, iface);
-    }
-
-  if (config->default_portal)
-    return portal_impl_name_matches (impl, config->default_portal);
-
-  return FALSE;
+  return g_strv_contains ((const char * const *) impl->interfaces, interface);
 }
 
 static void
@@ -592,6 +547,98 @@ warn_please_use_portals_conf (void)
   g_warning_once ("The preferred method to match portal implementations "
                   "to desktop environments is to use the portals.conf(5) "
                   "configuration file");
+}
+
+static PortalImplementation *
+find_any_portal_implementation (const char *interface)
+{
+  for (const GList *l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (!portal_impl_supports_iface (impl, interface))
+        continue;
+
+      g_debug ("Falling back to %s.portal for %s", impl->source, interface);
+      return impl;
+    }
+
+  return NULL;
+}
+
+static PortalImplementation *
+find_portal_implementation_by_name (const char *portal_name)
+{
+  if (portal_name == NULL)
+    return NULL;
+
+  for (const GList *l = implementations; l != NULL; l = l->next)
+    {
+      PortalImplementation *impl = l->data;
+
+      if (g_str_equal (impl->source, portal_name))
+        return impl;
+    }
+
+  g_debug ("Requested %s.portal is unrecognized", portal_name);
+  return NULL;
+}
+
+static PortalImplementation *
+find_portal_implementation_iface (const PortalInterface *iface)
+{
+  if (iface == NULL)
+    return NULL;
+
+  for (size_t i = 0; iface->portals && iface->portals[i]; i++)
+    {
+      PortalImplementation *impl;
+      const char *portal = iface->portals[i];
+
+      g_debug ("Found '%s' in configuration for %s", portal, iface->dbus_name);
+
+      if (g_str_equal (portal, "*"))
+        return find_any_portal_implementation (iface->dbus_name);
+
+      impl = find_portal_implementation_by_name (portal);
+
+      if (!portal_impl_supports_iface (impl, iface->dbus_name))
+        {
+          g_info ("Requested backend %s.portal does not support %s. Skipping...", impl->source, iface->dbus_name);
+          continue;
+        }
+
+      return impl;
+    }
+
+  return NULL;
+}
+
+static PortalImplementation *
+find_default_implementation_iface (const char *interface)
+{
+  PortalInterface *iface;
+
+  if (config == NULL || config->default_portal == NULL)
+    return NULL;
+
+  iface = config->default_portal;
+  for (size_t i = 0; iface->portals && iface->portals[i]; i++)
+    {
+      PortalImplementation *impl;
+      const char *portal = iface->portals[i];
+
+      g_debug ("Found '%s' in configuration for default", portal);
+
+      if (g_str_equal (portal, "*"))
+        return find_any_portal_implementation (iface->dbus_name);
+
+      impl = find_portal_implementation_by_name (portal);
+
+      if (portal_impl_supports_iface (impl, interface))
+        return impl;
+    }
+  return NULL;
 }
 
 PortalImplementation *
@@ -604,14 +651,15 @@ find_portal_implementation (const char *interface)
   if (portal_interface_prefers_none (interface))
     return NULL;
 
-  for (l = implementations; l != NULL; l = l->next)
+  if (config)
     {
-      PortalImplementation *impl = l->data;
+      PortalInterface *iface = find_matching_iface_config (interface);
+      PortalImplementation *impl = find_portal_implementation_iface (iface);
 
-      if (!g_strv_contains ((const char **)impl->interfaces, interface))
-        continue;
+      if (!impl)
+        impl = find_default_implementation_iface (interface);
 
-      if (portal_impl_matches_config (impl, interface))
+      if (impl != NULL)
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           return impl;
@@ -623,11 +671,11 @@ find_portal_implementation (const char *interface)
   /* Fallback to the old UseIn key */
   for (i = 0; desktops[i] != NULL; i++)
     {
-     for (l = implementations; l != NULL; l = l->next)
+      for (l = implementations; l != NULL; l = l->next)
         {
           PortalImplementation *impl = l->data;
 
-          if (!g_strv_contains ((const char **)impl->interfaces, interface))
+          if (!portal_impl_supports_iface (impl, interface))
             continue;
 
           if (impl->use_in != NULL && g_strv_case_contains ((const char **)impl->use_in, desktops[i]))
@@ -654,7 +702,7 @@ find_portal_implementation (const char *interface)
       if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
         continue;
 
-      if (!g_strv_contains ((const char **)impl->interfaces, interface))
+      if (!portal_impl_supports_iface (impl, interface))
         continue;
 
       g_warning ("Choosing %s.portal for %s as a last-resort fallback",
@@ -670,21 +718,21 @@ GPtrArray *
 find_all_portal_implementations (const char *interface)
 {
   GPtrArray *impls;
-  GList *l;
 
   impls = g_ptr_array_new ();
 
   if (portal_interface_prefers_none (interface))
     return impls;
 
-  for (l = implementations; l != NULL; l = l->next)
+  if (config)
     {
-      PortalImplementation *impl = l->data;
+      PortalInterface *iface = find_matching_iface_config (interface);
+      PortalImplementation *impl = find_portal_implementation_iface (iface);
 
-      if (!g_strv_contains ((const char **)impl->interfaces, interface))
-        continue;
+      if (!impl)
+        impl = find_default_implementation_iface(interface);
 
-      if (portal_impl_matches_config (impl, interface))
+      if (impl != NULL)
         {
           g_debug ("Using %s.portal for %s (config)", impl->source, interface);
           g_ptr_array_add (impls, impl);
