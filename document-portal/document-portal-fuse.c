@@ -3051,7 +3051,10 @@ xdp_fuse_getxattr (fuse_req_t req,
 
   path = xdp_document_inode_get_self_as_path (inode);
   if (path == NULL)
-    res = ENODATA;
+    {
+      res = -1
+      errno = ENODATA;
+    }
   else
   {
 #if defined(HAVE_SYS_XATTR_H)
