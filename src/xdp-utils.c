@@ -807,40 +807,40 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
     {
     case XDP_APP_INFO_KIND_FLATPAK:
       {
-        g_auto(GStrv) allowed_devices = NULL;
-        g_auto(GStrv) blocked_devices = NULL;
+        g_auto(GStrv) enumerable_devices = NULL;
+        g_auto(GStrv) hidden_devices = NULL;
 
-        allowed_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+        enumerable_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
                                                       "USB Devices",
-                                                      "allowed-devices",
+                                                      "enumerable-devices",
                                                       NULL, NULL);
 
-        for (size_t i = 0; allowed_devices && allowed_devices[i] != NULL; i++)
+        for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
           {
             g_autoptr(XdpUsbQuery) query =
-              usb_query_from_string (XDP_USB_QUERY_TYPE_ALLOW, allowed_devices[i]);
+              usb_query_from_string (XDP_USB_QUERY_TYPE_ALLOW, enumerable_devices[i]);
 
             if (query)
               g_ptr_array_add (usb_queries, g_steal_pointer (&query));
           }
 
-        blocked_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
+        hidden_devices = g_key_file_get_string_list (app_info->u.flatpak.keyfile,
                                                       "USB Devices",
-                                                      "blocked-devices",
+                                                      "hidden-devices",
                                                       NULL, NULL);
 
-        for (size_t i = 0; blocked_devices && blocked_devices[i] != NULL; i++)
+        for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
           {
             g_autoptr(XdpUsbQuery) query =
-              usb_query_from_string (XDP_USB_QUERY_TYPE_BLOCK, blocked_devices[i]);
+              usb_query_from_string (XDP_USB_QUERY_TYPE_BLOCK, hidden_devices[i]);
 
             if (query)
               g_ptr_array_add (usb_queries, g_steal_pointer (&query));
           }
 
         g_message ("Found %d allowlists and %d blocks for app %s",
-                   allowed_devices ? g_strv_length (allowed_devices) : 0,
-                   blocked_devices ? g_strv_length (blocked_devices) : 0,
+                   enumerable_devices ? g_strv_length (enumerable_devices) : 0,
+                   hidden_devices ? g_strv_length (hidden_devices) : 0,
                    xdp_app_info_get_id (app_info));
       }
       break;
