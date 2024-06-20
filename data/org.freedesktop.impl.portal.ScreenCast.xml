@@ -138,6 +138,16 @@
         Start the screen cast session. This will typically result the portal presenting
         a dialog letting the user do the selection set up by SelectSources.
 
+        Supported keys in the @options vardict include:
+
+        * ``context_hint`` (``s``)
+
+          Textual hint that can be shown on the presented dialog. This allow the user to
+          know the context behind the selection dialog if the application happens use
+          multiple sessions.
+
+          The string is localized by the application.
+
         The following results get returned in the @results vardict:
 
         * ``streams`` (``a(ua{sv})``)
