@@ -68,10 +68,6 @@
 
         Bind the shortcuts of this session. This will typically result the portal
         presenting a dialog letting the user configure shortcut triggers.
-
-        The results get returned via the :ref:`org.freedesktop.portal.Request::Response`
-        signal. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` for the
-        list of supported properties of shortcuts.
     -->
     <method name="BindShortcuts">
       <arg type="o" name="handle" direction="in"/>
@@ -100,8 +96,7 @@
 
           A list of shortcuts.
 
-          See the :ref:`org.freedesktop.portal.Request::Response` signal of the
-          :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for
+          See the :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for
           the list of supported properties of shortcuts.
     -->
     <method name="ListShortcuts">
