@@ -98,8 +98,9 @@
 
         * ``preferred_trigger`` (``s``)
 
-          The preferred shortcut trigger, defined as described by the "shortcuts"
-          XDG specification. Optional.
+          The preferred shortcut trigger, defined as described by the
+          `shortcuts XDG specification <https://specifications.freedesktop.org/shortcuts-spec/shortcuts-latest.txt>`__.
+          Optional.
 
         Supported keys in the @options vardict include:
 
