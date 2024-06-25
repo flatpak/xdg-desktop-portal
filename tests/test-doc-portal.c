@@ -692,7 +692,6 @@ test_get_host_paths (void)
 {
   g_autofree char *doc_id = NULL;
   g_autofree char *expected_real_path = NULL;
-  g_autofree char *real_path = NULL;
   const char *basename = "host-path";
   GVariant *path = NULL;
   g_autoptr(GVariant) reply = NULL;
