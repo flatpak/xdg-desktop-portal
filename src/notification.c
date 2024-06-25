@@ -569,7 +569,6 @@ notification_handle_add_notification (XdpDbusNotification *object,
 {
   Call *call = call_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
-  g_autoptr(GError) error = NULL;
   CallData *call_data;
 
   call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, notification);
