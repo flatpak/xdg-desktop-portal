@@ -48,6 +48,20 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
+
+    <!--
+        ListSupportedProperties:
+        @supported_properties: A list of supported properties and their supported values, if applicable
+
+        Returns a list of supported properties with
+        specific values if applicable for the property.
+
+        The format of the @supported_properties is the same as for
+        :ref:`org.freedesktop.portal.Notification.ListSupportedProperties`.
+    -->
+    <method name="ListSupportedProperties">
+      <arg type="a{sv}" name="supported_properties" direction="out"/>
+    </method>
     <!--
         RemoveNotification:
         @app_id: App id of the application
