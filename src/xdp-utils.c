@@ -582,7 +582,9 @@ xdp_validate_serialized_icon (GVariant  *v,
 {
   g_autoptr(GIcon) icon = NULL;
   GBytes *bytes;
-  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
+  __attribute__((cleanup(cleanup_temp_file))) char *tmp_icon_path = NULL;
+  g_autofree char *file_icon_path = NULL;
+  const char *icon_path;
   xdp_autofd int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
   int status;
@@ -614,11 +616,6 @@ xdp_validate_serialized_icon (GVariant  *v,
       return TRUE;
     }
 
-  if (!G_IS_BYTES_ICON (icon))
-    {
-      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
-      return FALSE;
-    }
 
   if (g_getenv ("XDP_VALIDATE_ICON"))
     icon_validator = g_getenv ("XDP_VALIDATE_ICON");
@@ -629,29 +626,51 @@ xdp_validate_serialized_icon (GVariant  *v,
       return FALSE;
     }
 
-  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-  fd = g_file_open_tmp ("iconXXXXXX", &name, &error);
-  if (fd == -1)
+  if (G_IS_BYTES_ICON (icon))
     {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
+      bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
+      fd = g_file_open_tmp ("iconXXXXXX", &tmp_icon_path, &error);
+      if (fd == -1)
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      stream = g_unix_output_stream_new (fd, FALSE);
+
+      /* Use write_all() instead of write_bytes() so we don't have to worry about
+       * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
+       */
+      bytes_data = g_bytes_get_data (bytes, &bytes_len);
+      if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      if (!g_output_stream_close (stream, NULL, &error))
+        {
+          g_warning ("Icon validation: %s", error->message);
+          return FALSE;
+        }
+
+      icon_path = tmp_icon_path;
     }
-
-  stream = g_unix_output_stream_new (fd, FALSE);
-
-  /* Use write_all() instead of write_bytes() so we don't have to worry about
-   * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
-   */
-  bytes_data = g_bytes_get_data (bytes, &bytes_len);
-  if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+  else if (G_IS_FILE_ICON (icon) && !bytes_only)
     {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
+      file_icon_path = g_file_get_path (g_file_icon_get_file (G_FILE_ICON (icon)));
+
+      if (!file_icon_path)
+        {
+          g_warning ("Icon validation: Invalid icon path");
+          return FALSE;
+        }
+
+      icon_path = file_icon_path;
     }
-
-  if (!g_output_stream_close (stream, NULL, &error))
+  else
     {
-      g_warning ("Icon validation: %s", error->message);
+      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
       return FALSE;
     }
 
@@ -659,7 +678,7 @@ xdp_validate_serialized_icon (GVariant  *v,
   args[1] = "--sandbox";
   args[2] = MAX_ICON_SIZE;
   args[3] = MAX_ICON_SIZE;
-  args[4] = name;
+  args[4] = icon_path;
   args[5] = NULL;
 
   if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
@@ -698,6 +717,129 @@ xdp_validate_serialized_icon (GVariant  *v,
     *out_format = g_steal_pointer (&format);
   if (out_size)
     *out_size = g_strdup_printf ("%d", size);
+
+  return TRUE;
+}
+
+#define SOUND_VALIDATOR_GROUP "Sound Validator"
+
+gboolean
+xdp_validate_serialized_sound (GVariant  *v)
+{
+  const char *key;
+  g_autoptr(GVariant) value = NULL;
+  __attribute__((cleanup(cleanup_temp_file))) char *tmp_sound_path = NULL;
+  g_autofree char *file_sound_path = NULL;
+  const char *sound_path;
+  xdp_autofd int fd = -1;
+  g_autoptr(GOutputStream) stream = NULL;
+  int status;
+  g_autofree char *format = NULL;
+  g_autofree char *stdoutlog = NULL;
+  g_autofree char *stderrlog = NULL;
+  g_autoptr(GError) error = NULL;
+  const char *sound_validator = LIBEXECDIR "/xdg-desktop-portal-validate-sound";
+  const char *args[6];
+  /* same allowed formats as Flatpak */
+  const char *allowed_sound_formats[] = { "ogg/opus", "ogg/vorbis", "wav/pcm", NULL };
+  g_autoptr(GKeyFile) key_file = NULL;
+
+  if (g_getenv ("XDP_VALIDATE_SOUND"))
+    sound_validator = g_getenv ("XDP_VALIDATE_SOUND");
+
+  if (!g_file_test (sound_validator, G_FILE_TEST_EXISTS))
+    {
+      g_warning ("Sound validation: %s not found, rejecting sound by default.", sound_validator);
+      return FALSE;
+    }
+
+  g_variant_get (v, "(&sv)", &key, &value);
+
+  if (strcmp (key, "bytes") == 0 && g_variant_is_of_type (value, G_VARIANT_TYPE_BYTESTRING))
+    {
+      g_autoptr(GBytes) bytes;
+      gconstpointer bytes_data;
+      gsize bytes_len;
+
+      bytes = g_variant_get_data_as_bytes (value);
+
+      fd = g_file_open_tmp ("soundXXXXXX", &tmp_sound_path, &error);
+      if (fd == -1)
+        {
+          g_warning ("Sound validation: %s", error->message);
+          return FALSE;
+        }
+
+      stream = g_unix_output_stream_new (fd, FALSE);
+
+      /* Use write_all() instead of write_bytes() so we don't have to worry about
+       * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
+       */
+      bytes_data = g_bytes_get_data (bytes, &bytes_len);
+      if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
+        {
+          g_warning ("Sound validation: %s", error->message);
+          return FALSE;
+        }
+
+      if (!g_output_stream_close (stream, NULL, &error))
+        {
+          g_warning ("Sound validation: %s", error->message);
+          return FALSE;
+        }
+
+      sound_path = tmp_sound_path;
+    }
+  else if (strcmp (key, "file") == 0 && g_variant_is_of_type (value, G_VARIANT_TYPE_STRING))
+    {
+      file_sound_path = g_filename_from_uri (g_variant_get_string (value, NULL), NULL, &error);
+
+      if (!file_sound_path)
+        {
+          g_warning ("Sound validation: %s", error->message);
+          return FALSE;
+        }
+
+      sound_path = file_sound_path;
+    }
+  else
+    {
+      g_warning ("Unexpected sound type: %s", key);
+      return FALSE;
+    }
+
+  args[0] = sound_validator;
+  args[1] = "--sandbox";
+  args[1] = sound_path;
+  args[2] = NULL;
+
+  if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
+    {
+      g_warning ("Sound validation: %s", error->message);
+      g_warning ("stderr:\n%s\n", stderrlog);
+      return FALSE;
+    }
+
+  if (!g_spawn_check_exit_status (status, &error))
+    {
+      g_warning ("Sound validation: %s", error->message);
+      g_warning ("stderr:\n%s\n", stderrlog);
+      return FALSE;
+    }
+
+  key_file = g_key_file_new ();
+  if (!g_key_file_load_from_data (key_file, stdoutlog, -1, G_KEY_FILE_NONE, &error))
+    {
+      g_warning ("Sound validation: %s", error->message);
+      return FALSE;
+    }
+
+  if (!(format = g_key_file_get_string (key_file, SOUND_VALIDATOR_GROUP, "format", &error)) ||
+      !g_strv_contains (allowed_sound_formats, format))
+    {
+      g_warning ("Sound validation: %s", error ? error->message : "not allowed format");
+      return FALSE;
+    }
 
   return TRUE;
 }

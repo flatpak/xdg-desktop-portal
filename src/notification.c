@@ -23,6 +23,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <gio/gio.h>
+#include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
 #include "notification.h"
@@ -108,6 +109,7 @@ struct _CallData {
   char *sender;
   char *id;
   GVariant *notification;
+  GUnixFDList *fd_list;
 };
 
 G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
@@ -125,7 +127,8 @@ call_data_new (GDBusMethodInvocation *inv,
                XdpAppInfo            *app_info,
                const char            *sender,
                const char            *id,
-               GVariant              *notification)
+               GVariant              *notification,
+               GUnixFDList           *fd_list)
 {
   CallData *call_data = g_object_new (call_data_get_type(),  NULL);
 
@@ -135,6 +138,7 @@ call_data_new (GDBusMethodInvocation *inv,
   call_data->id = g_strdup (id);
   if (notification)
     call_data->notification = g_variant_ref (notification);
+  g_set_object (&call_data->fd_list, fd_list);
 
   return call_data;
 }
@@ -149,6 +153,7 @@ call_data_finalize (GObject *object)
   g_clear_pointer (&call_data->id, g_free);
   g_clear_pointer (&call_data->sender, g_free);
   g_clear_pointer (&call_data->notification, g_variant_unref);
+  g_clear_object (&call_data->fd_list);
 
   G_OBJECT_CLASS (call_data_parent_class)->finalize (object);
 }
@@ -234,6 +239,202 @@ check_value_type (const char *key,
 }
 
 static gboolean
+parse_desktop_file_id (GVariantBuilder  *builder,
+                       GVariant         *value,
+                       XdpAppInfo       *app_info,
+                       GError          **error)
+{
+  const char *desktop_file_id;
+
+  if (!check_value_type ("desktop-file-id", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  desktop_file_id = g_variant_get_string (value, NULL);
+
+  if (!g_str_has_suffix (desktop_file_id, ".desktop"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Desktop file id must have .desktop suffix: %s",
+                   desktop_file_id);
+      return FALSE;
+    }
+
+  if (desktop_file_id == NULL || *desktop_file_id == '\0')
+    return TRUE;
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      const char *app_id;
+      const char *after_desktop_file_id;
+
+      app_id = xdp_app_info_get_id (app_info);
+      after_desktop_file_id = desktop_file_id + strlen (app_id);
+
+      if (!g_str_has_prefix (desktop_file_id, app_id) || *after_desktop_file_id != '.')
+        {
+          g_set_error (error,
+                      XDG_DESKTOP_PORTAL_ERROR,
+                      XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                      "Desktop file id is missing sandbox app id prefix '%s.': %s",
+                      app_id, desktop_file_id);
+          return FALSE;
+        }
+    }
+
+  g_variant_builder_add (builder, "{sv}", "desktop-file-id", value);
+
+  return TRUE;
+}
+
+static void
+markup_parser_text (GMarkupParseContext  *context,
+                    const gchar          *text,
+                    gsize                 text_len,
+                    gpointer              user_data,
+                    GError              **error)
+{
+  GString *composed = user_data;
+
+  g_string_append_len (composed, text, text_len);
+}
+
+static void
+markup_parser_start_element (GMarkupParseContext *context,
+                             const gchar         *element_name,
+                             const gchar         **attribute_names,
+                             const gchar         **attribute_values,
+                             gpointer             user_data,
+                             GError              **error)
+{
+  GString *composed = user_data;
+
+  if (strcmp (element_name, "b") == 0)
+    {
+      g_string_append_len (composed, "<b>", -1);
+    }
+  else if (strcmp (element_name, "i") == 0)
+    {
+      g_string_append_len (composed, "<i>", -1);
+    }
+  else if (strcmp (element_name, "a") == 0)
+    {
+      int i;
+
+      for (i = 0;  attribute_names[i]; i++)
+        {
+          if (strcmp (attribute_names[i], "href") == 0)
+            {
+              g_string_append_printf (composed, "<a href=\"%s\">", attribute_values[i]);
+              break;
+            }
+        }
+    }
+}
+
+static void
+markup_parser_end_element (GMarkupParseContext *context,
+                           const gchar         *element_name,
+                           gpointer             user_data,
+                           GError              **error)
+{
+  GString *composed = user_data;
+
+  if (strcmp (element_name, "b") == 0)
+    g_string_append_len (composed, "</b>", -1);
+  else if (strcmp (element_name, "i") == 0)
+    g_string_append_len (composed, "</i>", -1);
+  else if (strcmp (element_name, "a") == 0)
+    g_string_append_len (composed, "</a>", -1);
+}
+
+static const GMarkupParser markup_parser = {
+  markup_parser_start_element,
+  markup_parser_end_element,
+  markup_parser_text,
+  NULL,
+  NULL,
+};
+
+static gchar *
+strip_multiple_spaces (const gchar *text,
+                       gsize        length)
+{
+  GString *composed;
+  gchar *str = (gchar *) text;
+
+  composed = g_string_sized_new (length);
+
+  while (*str)
+    {
+      gunichar c = g_utf8_get_char (str);
+      gboolean needs_space = FALSE;
+
+      while (g_unichar_isspace (c))
+        {
+          needs_space = TRUE;
+
+          str = g_utf8_next_char (str);
+
+          if (!*str)
+            break;
+
+          c = g_utf8_get_char (str);
+        }
+
+      if (*str)
+        {
+          if (needs_space)
+            g_string_append_c (composed, ' ');
+
+          g_string_append_unichar (composed, c);
+          str = g_utf8_next_char (str);
+        }
+    }
+
+  return g_string_free (composed, FALSE);
+}
+
+
+static gboolean
+parse_markup_body (GVariantBuilder  *builder,
+                   GVariant         *body,
+                   GError          **error)
+{
+  g_autoptr(GMarkupParseContext) context = NULL;
+  g_autoptr(GString) composed = NULL;
+  const gchar* text = NULL;
+  gsize text_length = 0;
+
+  if (!check_value_type ("markup-body", body, G_VARIANT_TYPE_STRING, error))
+      return FALSE;
+
+  text = g_variant_get_string (body, &text_length);
+  composed = g_string_sized_new (text_length);
+  context = g_markup_parse_context_new (&markup_parser, 0, composed, NULL);
+
+  /* The markup parser expects the markup to start with an element, therefore add one*/
+  if (g_markup_parse_context_parse (context, "<markup>", -1, error) &&
+      g_markup_parse_context_parse (context, text, -1, error) &&
+      g_markup_parse_context_parse (context, "</markup>", -1, error) &&
+      g_markup_parse_context_end_parse (context, error))
+    {
+      gchar *stripped;
+
+      stripped = strip_multiple_spaces (composed->str, composed->len);
+      g_variant_builder_add (builder, "{sv}", "markup-body", g_variant_new_take_string (stripped));
+
+      return TRUE;
+    }
+  else
+    {
+      g_prefix_error (error, "invalid markup-body: ");
+      return FALSE;
+    }
+}
+
+static gboolean
 parse_priority (GVariantBuilder  *builder,
                 GVariant         *value,
                 GError          **error)
@@ -261,6 +462,40 @@ parse_priority (GVariantBuilder  *builder,
 }
 
 static gboolean
+check_button_purpose (GVariant  *value,
+                      GError   **error)
+{
+  const char *purpose;
+  const char *supported_purposes[] = {
+    "system.custom-alert",
+    "im.reply-with-text",
+    "call.accept",
+    "call.decline",
+    "call.hang-up",
+    "call.enable-speakerphone",
+    "call.disable-speakerphone",
+    NULL
+  };
+
+  if (!check_value_type ("purpose", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  purpose = g_variant_get_string (value, NULL);
+
+  if (!g_strv_contains (supported_purposes, purpose) && !g_str_has_prefix (purpose, "x-"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "%s is not a supported button purpose", purpose);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+
+static gboolean
 parse_button (GVariantBuilder  *builder,
               GVariant         *button,
               GError          **error)
@@ -269,6 +504,8 @@ parse_button (GVariantBuilder  *builder,
   g_autoptr(GVariant) label = NULL;
   g_autoptr(GVariant) action = NULL;
   g_autoptr(GVariant) target = NULL;
+  g_autoptr(GVariant) purpose = NULL;
+
 
   for (i = 0; i < g_variant_n_children (button); i++)
     {
@@ -298,18 +535,26 @@ parse_button (GVariantBuilder  *builder,
           if (!target)
             target = g_steal_pointer (&value);
         }
+      else if (strcmp (key, "purpose") == 0)
+        {
+          if (!check_button_purpose (value, error))
+            return FALSE;
+
+          if (!purpose)
+            purpose = g_steal_pointer (&value);
+        }
       else
         {
           g_debug ("Unsupported button property %s filtered from notification", key);
         }
     }
 
-  if (!label)
+  if (!label && !purpose)
     {
       g_set_error_literal (error,
                            XDG_DESKTOP_PORTAL_ERROR,
                            XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                           "label key is missing");
+                           "label or purpose key is missing");
       return FALSE;
     }
 
@@ -328,6 +573,8 @@ parse_button (GVariantBuilder  *builder,
   g_variant_builder_add (builder, "{sv}", "action", action);
   if (target)
     g_variant_builder_add (builder, "{sv}", "target", target);
+  if (purpose)
+    g_variant_builder_add (builder, "{sv}", "purpose", purpose);
 
   g_variant_builder_close (builder);
 
@@ -369,13 +616,58 @@ parse_buttons (GVariantBuilder  *builder,
   return result;
 }
 
+static GVariant *
+convert_serialized_fd_to_serialized_file (GVariant         *handle,
+                                          XdpAppInfo       *app_info,
+                                          GUnixFDList      *fd_list,
+                                          GError          **error)
+{
+  int fd_id;
+  xdp_autofd int fd = -1;
+  g_autofree char *path = NULL;
+  GVariant *result;
+
+  if (!check_value_type ("file-descriptor", handle, G_VARIANT_TYPE_HANDLE, error))
+    return NULL;
+
+  if (!fd_list)
+    {
+      g_set_error_literal (error,
+                           XDG_DESKTOP_PORTAL_ERROR,
+                           XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                           "Expected file descriptor for icon but got none");
+      return NULL;
+    }
+
+  fd_id = g_variant_get_handle (handle);
+  fd = g_unix_fd_list_get (fd_list, fd_id, error);
+
+  if (fd == -1)
+    return NULL;
+
+  path = xdp_app_info_get_path_for_fd (app_info, fd, 0, NULL, NULL, error);
+
+  if (path == NULL)
+    return NULL;
+
+  result = g_variant_new ("(sv)",
+                          "file",
+                          g_variant_new_take_string (g_filename_to_uri (path, NULL, NULL)));
+
+  return g_variant_ref_sink (result);
+}
+
 static gboolean
 parse_serialized_icon (GVariantBuilder  *builder,
                        GVariant         *icon,
+                       XdpAppInfo       *app_info,
+                       GUnixFDList      *fd_list,
                        GError          **error)
 {
   const char *key;
+  g_autoptr(GVariant) file_icon = NULL;
   g_autoptr(GVariant) value = NULL;
+  GVariant *out_icon = NULL;
 
   /* Since the specs allow a single string as icon name we need to keep support for it */
   if (g_variant_is_of_type (icon, G_VARIANT_TYPE_STRING))
@@ -411,19 +703,17 @@ parse_serialized_icon (GVariantBuilder  *builder,
   /* This are the same keys as for serialized GIcons */
   if (strcmp (key, "themed") == 0)
     {
-      if (!check_value_type (key, value, G_VARIANT_TYPE_STRING_ARRAY, error))
-        {
-          g_prefix_error (error, "invalid icon: ");
-          return FALSE;
-        }
+      if (check_value_type (key, value, G_VARIANT_TYPE_STRING_ARRAY, error))
+        out_icon = icon;
     }
   else if (strcmp (key, "bytes") == 0)
     {
-      if (!check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
-        {
-          g_prefix_error (error, "invalid icon: ");
-          return FALSE;
-        }
+      if (check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
+        out_icon = icon;
+    }
+  else if (strcmp (key, "file-descriptor") == 0)
+    {
+      out_icon = file_icon = convert_serialized_fd_to_serialized_file (value, app_info, fd_list, error);
     }
   else
     {
@@ -431,8 +721,170 @@ parse_serialized_icon (GVariantBuilder  *builder,
       return TRUE;
     }
 
-  if (xdp_validate_serialized_icon (icon, FALSE, NULL, NULL))
-    g_variant_builder_add (builder, "{sv}", "icon", icon);
+  if (!out_icon)
+    {
+      g_prefix_error (error, "invalid icon: ");
+      return FALSE;
+    }
+
+  if (xdp_validate_serialized_icon (out_icon, FALSE, NULL, NULL))
+    g_variant_builder_add (builder, "{sv}", "icon", out_icon);
+
+  return TRUE;
+}
+
+static gboolean
+parse_serialized_sound (GVariantBuilder  *builder,
+                        GVariant         *sound,
+                        XdpAppInfo       *app_info,
+                        GUnixFDList      *fd_list,
+                        GError          **error)
+{
+  const char *key;
+  g_autoptr(GVariant) file_sound = NULL;
+  g_autoptr(GVariant) value = NULL;
+  GVariant *out_sound = NULL;
+
+  if (g_variant_is_of_type (sound, G_VARIANT_TYPE_STRING))
+    {
+      key = g_variant_get_string (sound, NULL);
+
+      if (strcmp (key, "silent") == 0 || strcmp (key, "default") == 0)
+        {
+          g_variant_builder_add (builder, "{sv}", "sound", sound);
+          return TRUE;
+        }
+      else
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                               "invalid sound: invalid option");
+          return FALSE;
+        }
+    }
+
+  if (!check_value_type ("sound", sound, G_VARIANT_TYPE("(sv)"), error))
+    return FALSE;
+
+  g_variant_get (sound, "(&sv)", &key, &value);
+
+  if (strcmp (key, "bytes") == 0)
+    {
+      if (check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
+        out_sound = sound;
+    }
+  else if (strcmp (key, "file-descriptor") == 0)
+    {
+      out_sound = file_sound = convert_serialized_fd_to_serialized_file (value, app_info, fd_list, error);
+    }
+  else
+    {
+      g_debug ("Unsupported sound %s filtered from notification", key);
+      return TRUE;
+    }
+
+  if (!out_sound)
+    {
+      g_prefix_error (error, "invalid sound: ");
+      return FALSE;
+    }
+
+  if (xdp_validate_serialized_sound (out_sound))
+    g_variant_builder_add (builder, "{sv}", "sound", out_sound);
+
+  return TRUE;
+}
+
+static gboolean
+parse_display_hint (GVariantBuilder  *builder,
+                    GVariant         *value,
+                    GError          **error)
+{
+  int i;
+  g_autofree const char **display_hints = NULL;
+  gsize display_hints_length;
+  const char *supported_display_hints[] = {
+      "transient",
+      "tray",
+      "persistent",
+      "hide-on-lock-screen",
+      "hide-content-on-lock-screen",
+      "show-as-new",
+      NULL
+  };
+
+  if (!check_value_type ("display-hint", value, G_VARIANT_TYPE_STRING_ARRAY, error))
+    return FALSE;
+
+  display_hints = g_variant_get_strv (value, &display_hints_length);
+
+  if (display_hints_length == 0)
+    return TRUE;
+
+  g_variant_builder_open (builder, G_VARIANT_TYPE ("{sv}"));
+  g_variant_builder_add (builder, "s", "display-hint");
+  g_variant_builder_open (builder, G_VARIANT_TYPE_VARIANT);
+  g_variant_builder_open (builder, G_VARIANT_TYPE_STRING_ARRAY);
+
+  for (i = 0; display_hints[i]; i++)
+    {
+      if (!g_strv_contains (supported_display_hints, display_hints[i]))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "%s not a display-hint", display_hints[i]);
+          return FALSE;
+        }
+
+        g_variant_builder_add (builder, "s", display_hints[i]);
+    }
+
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+  g_variant_builder_close (builder);
+
+  return TRUE;
+}
+
+static gboolean
+parse_category (GVariantBuilder  *builder,
+                GVariant         *value,
+                GError          **error)
+{
+  const char *category;
+  const char *supported_categories[] = {
+    "im.message",
+    "alarm.ringing",
+    "call.incoming",
+    "call.ongoing",
+    "call.missed",
+    "weather.warning.extreme",
+    "cellbroadcast.danger.extreme",
+    "cellbroadcast.danger.severe",
+    "cellbroadcast.amberalert",
+    "cellbroadcast.test",
+    "os.battery.low",
+    "browser.web-notification",
+    NULL
+  };
+
+  if (!check_value_type ("category", value, G_VARIANT_TYPE_STRING, error))
+    return FALSE;
+
+  category = g_variant_get_string (value, NULL);
+
+  if (!g_strv_contains (supported_categories, category) && !g_str_has_prefix (category, "x-"))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "%s is not a supported category", category);
+      return FALSE;
+    }
+
+  g_variant_builder_add (builder, "{sv}", "category", value);
 
   return TRUE;
 }
@@ -440,6 +892,8 @@ parse_serialized_icon (GVariantBuilder  *builder,
 static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
+                    XdpAppInfo       *app_info,
+                    GUnixFDList      *fd_list,
                     GError          **error)
 {
   int i;
@@ -461,9 +915,19 @@ parse_notification (GVariantBuilder  *builder,
 
           g_variant_builder_add (builder, "{sv}", key, value);
         }
+      else if (strcmp (key, "markup-body") == 0)
+        {
+          if (!parse_markup_body (builder, value, error))
+            return FALSE;
+        }
       else if (strcmp (key, "icon") == 0)
         {
-          if (!parse_serialized_icon (builder, value, error))
+          if (!parse_serialized_icon (builder, value, app_info, fd_list, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "sound") == 0)
+        {
+          if (!parse_serialized_sound (builder, value, app_info, fd_list, error))
             return FALSE;
         }
       else if (strcmp (key, "priority") == 0)
@@ -485,6 +949,21 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "buttons") == 0)
         {
           if (!parse_buttons (builder, value, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "desktop-file-id") == 0)
+        {
+          if (!parse_desktop_file_id (builder, value, app_info, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "display-hint") == 0)
+        {
+          if (!parse_display_hint (builder, value, error))
+            return FALSE;
+        }
+      else if (strcmp (key, "category") == 0)
+        {
+          if (!parse_category (builder, value, error))
             return FALSE;
         }
       else {
@@ -510,7 +989,8 @@ add_finished_cb (GObject      *source_object,
 
   if (g_task_propagate_boolean (G_TASK (result), &error))
     xdp_dbus_notification_complete_add_notification (XDP_DBUS_NOTIFICATION (source_object),
-                                                     call_data->inv);
+                                                     call_data->inv,
+                                                     NULL);
   else
     g_dbus_method_invocation_return_gerror (call_data->inv, error);
 }
@@ -541,7 +1021,11 @@ handle_add_in_thread_func (GTask        *task,
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
 
-  if (!parse_notification (&builder, call_data->notification, &error))
+  if (!parse_notification (&builder,
+                           call_data->notification,
+                           call_data->app_info,
+                           call_data->fd_list,
+                           &error))
     {
       g_variant_builder_clear (&builder);
 
@@ -564,6 +1048,7 @@ handle_add_in_thread_func (GTask        *task,
 static gboolean
 notification_handle_add_notification (XdpDbusNotification *object,
                                       GDBusMethodInvocation *invocation,
+                                      GUnixFDList *fd_list,
                                       const char *arg_id,
                                       GVariant *notification)
 {
@@ -571,7 +1056,12 @@ notification_handle_add_notification (XdpDbusNotification *object,
   g_autoptr(GTask) task = NULL;
   CallData *call_data;
 
-  call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, notification);
+  call_data = call_data_new (invocation,
+                             call->app_info,
+                             call->sender,
+                             arg_id,
+                             notification,
+                             fd_list);
   task = g_task_new (object, NULL, add_finished_cb, NULL);
   g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
@@ -611,7 +1101,12 @@ notification_handle_remove_notification (XdpDbusNotification *object,
                                          const char *arg_id)
 {
   Call *call = call_from_invocation (invocation);
-  CallData *call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, NULL);
+  CallData *call_data = call_data_new (invocation,
+                                       call->app_info,
+                                       call->sender,
+                                       arg_id,
+                                       NULL,
+                                       NULL);
 
   xdp_dbus_impl_notification_call_remove_notification (impl,
                                                        xdp_app_info_get_id (call->app_info),
@@ -699,7 +1194,10 @@ notification_iface_init (XdpDbusNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 1);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 2);
+  g_object_bind_property (G_OBJECT (impl), "supported-options",
+                          G_OBJECT (notification), "supported-options",
+                          G_BINDING_SYNC_CREATE);
 }
 
 static void

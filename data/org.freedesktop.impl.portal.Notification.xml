@@ -37,10 +37,65 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set ``show-as-new`` hint in the ``display-hint`` property
+        to animate replacing the notification instead of updating it.
 
         The format of the @notification is the same as for
-        :ref:`org.freedesktop.portal.Notification.AddNotification`.
+        :ref:`org.freedesktop.portal.Notification.AddNotification`,
+        expect for the following properties:
+
+        * ``icon`` (``v``)
+
+          A serialized icon to add to the notification. The format for
+          serialized icon is a tuple (sv) with the following supported keys:
+
+          * ``themed`` (``as``)
+
+            A themed icon containing an array of strings with the icon names.
+
+            This is the same format as a serialized `GThemedIcon
+            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_ at the moment,
+            but this interoperability may change in the future.
+
+          * ``bytes`` (``ay``)
+
+            A bytes icon containing a bytestring with the icon data in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GBytesIcon
+            <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the moment,
+            but this interoperability may change in the future.
+
+          * ``file`` (``s``)
+
+            A file icon containing a path to an image file in
+            png, jpeg or svg form.
+
+            This is the same format as a serialized `GFileIcon
+            <https://docs.gtk.org/gio/class.FileIcon.html>`_ at the moment,
+            but this interoperability may change in the future.
+
+        * ``sound`` (``v``)
+
+          A serialized sound to add to the notification.
+          Supported sound formats are ogg/opus, ogg/vorbis and wav/pcm.
+
+          The format for
+          serialized sound is a tuple (sv) with the following supported keys:
+
+          * ``bytes`` (``ay``)
+
+            A bytes sound containing a bytestring with the sound data.
+
+          * ``file`` (``s``)
+
+            A file sound containing an absolute path to a sound file.
+
+          To play the default sound the string ``default`` can be passed.
+          To play no sound at all the string ``silent`` can be passed.
+          If this property isn't specified the notification server can decide
+          whether to play a sound.
     -->
     <method name="AddNotification">
       <arg type="s" name="app_id" direction="in"/>
@@ -61,14 +116,33 @@
     </method>
 
     <!--
+        SupportedOptions:
+
+        Some properties in :ref:`org.freedesktop.impl.portal.Notification.AddNotification`
+        may have options advertised by the notification server.
+
+        The format is the same as for ``SupportedOptions`` property of
+        :ref:`org.freedesktop.portal.Notification`.
+    -->
+    <property name="SupportedOptions" type="a{sv}" access="read"/>
+
+    <!--
         ActionInvoked:
         @app_id: App id of the application
         @id: the application-provided ID for the notification
         @action: the name of the action
-        @parameter: array which will contain the target parameter for the action, if one was specified
+        @parameter: an array containing additional information
 
         Send to the application when a non-exported action is
         activated.
+
+        The @parameter contains the following values in order:
+
+        #. The `target` for the action, if one was specified.
+
+        #. The `platform-data` as vardict containing an ``activation-token`` (``s``) for
+           `XDG Activation
+           <https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/xdg-activation/xdg-activation-v1.xml>`_
     -->
     <signal name="ActionInvoked">
       <arg type="s" name="app_id"/>

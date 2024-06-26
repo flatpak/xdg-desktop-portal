@@ -50,3 +50,7 @@ option('sandboxed-image-validation',
        type: 'feature',
        value: 'enabled',
        description: 'Use Bubblewrap to sandbox image validation. Disabling this option may lead to security vulnerabilities.')
+option('sandboxed-sound-validation',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Use Bubblewrap to sandbox sound validation. Disabling this option may lead to security vulnerabilities.')

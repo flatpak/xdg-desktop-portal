@@ -447,7 +447,7 @@ DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 4)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
 DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
-DEFINE_TEST_EXISTS(notification, NOTIFICATION, 1)
+DEFINE_TEST_EXISTS(notification, NOTIFICATION, 2)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 4)
 DEFINE_TEST_EXISTS(print, PRINT, 3)
 DEFINE_TEST_EXISTS(proxy_resolver, PROXY_RESOLVER, 1)
@@ -602,10 +602,16 @@ main (int argc, char **argv)
 
   g_test_add_func ("/portal/notification/basic", test_notification_basic);
   g_test_add_func ("/portal/notification/buttons", test_notification_buttons);
+  g_test_add_func ("/portal/notification/markup-body", test_notification_markup_body);
   g_test_add_func ("/portal/notification/bad-arg", test_notification_bad_arg);
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
   g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
   g_test_add_func ("/portal/notification/icon", test_notification_icon);
+  g_test_add_func ("/portal/notification/sound", test_notification_sound);
+  g_test_add_func ("/portal/notification/desktop-file-id", test_notification_desktop_file_id);
+  g_test_add_func ("/portal/notification/display-hint", test_notification_display_hint);
+  g_test_add_func ("/portal/notification/category", test_notification_category);
+  g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
 #endif
 
   global_setup ();
