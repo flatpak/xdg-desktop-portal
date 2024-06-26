@@ -124,7 +124,7 @@ run_notification_test (const char *notification_id,
   if (!expect_failure)
     g_signal_handler_disconnect (portal, id);
 
-  xdp_portal_remove_notification (portal, "test");
+  xdp_portal_remove_notification (portal, notification_id);
 }
 
 void
