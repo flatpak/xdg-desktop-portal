@@ -713,6 +713,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
   g_autoptr(XdpAppInfo) app_info = NULL;
   xdp_autofd int pidfd = -1;
   uint32_t pid;
+  const char *test_override_app_id;
 
   app_info = cache_lookup_app_info_by_sender (sender);
   if (app_info)
@@ -721,7 +722,11 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  if (!xdp_app_info_flatpak_new (pid, pidfd, &app_info, error))
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (test_override_app_id)
+    app_info = xdp_app_info_test_new (test_override_app_id);
+
+  if (app_info == NULL && !xdp_app_info_flatpak_new (pid, pidfd, &app_info, error))
     return NULL;
 
   if (app_info == NULL && !xdp_app_info_snap_new (pid, pidfd, &app_info, error))
@@ -744,11 +749,6 @@ xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
-  const char *test_override_app_id;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (test_override_app_id)
-    return xdp_app_info_test_new (test_override_app_id);
 
   return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
 }
