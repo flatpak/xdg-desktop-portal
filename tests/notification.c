@@ -29,10 +29,6 @@ notification_succeed (GObject      *source,
   res = xdp_portal_add_notification_finish (portal, result, &error);
   g_assert_no_error (error);
   g_assert_true (res);
-
-  got_info++;
-
-  g_main_context_wakeup (NULL);
 }
 
 static void
@@ -225,7 +221,7 @@ test_icon (const char *serialized_icon,
                                                "}",
                                                expected_serialized_icon);
 
-  run_notification_test ("test-icon", notification_s, expected_serialized_icon, expect_failure);
+  run_notification_test ("test-icon", notification_s, expected_notification_s, expect_failure);
 }
 
 static void
