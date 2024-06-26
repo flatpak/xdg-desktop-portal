@@ -26,20 +26,24 @@
 #include "glib-backports.h"
 
 #define XDP_TYPE_APP_INFO (xdp_app_info_get_type())
-G_DECLARE_FINAL_TYPE (XdpAppInfo,
-                      xdp_app_info,
-                      XDP, APP_INFO,
-                      GObject)
+G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
+                          xdp_app_info,
+                          XDP, APP_INFO,
+                          GObject)
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 
-char * xdp_app_info_get_instance (XdpAppInfo *app_info);
+const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
 
-GAppInfo * xdp_app_info_load_app_info (XdpAppInfo *app_info);
+GAppInfo * xdp_app_info_get_gappinfo (XdpAppInfo *app_info);
 
 gboolean xdp_app_info_has_network (XdpAppInfo *app_info);
+
+gboolean xdp_app_info_get_pidns (XdpAppInfo  *app_info,
+                                 ino_t       *pidns_id_out,
+                                 GError     **error);
 
 char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      int           fd,
@@ -47,26 +51,6 @@ char * xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
                                      struct stat  *st_buf,
                                      gboolean     *writable_out,
                                      GError      **error);
-
-char * xdp_app_info_remap_path (XdpAppInfo *app_info,
-                                const char *path);
-
-gboolean xdp_app_info_map_pids (XdpAppInfo  *app_info,
-                                pid_t       *pids,
-                                guint        n_pids,
-                                GError     **error);
-
-gboolean xdp_app_info_map_tids (XdpAppInfo  *app_info,
-                                pid_t        owner_pid,
-                                pid_t       *tids,
-                                guint        n_tids,
-                                GError     **error);
-
-gboolean xdp_app_info_pidfds_to_pids (XdpAppInfo  *app_info,
-                                      const int   *fds,
-                                      pid_t       *pids,
-                                      gint         count,
-                                      GError     **error);
 
 gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
                                           GKeyFile            *keyfile,
