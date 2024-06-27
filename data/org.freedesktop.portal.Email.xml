@@ -111,6 +111,7 @@
     <method name="ComposeEmail">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>

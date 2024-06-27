@@ -48,7 +48,9 @@
 
         Status message reported by the application. Optional.
     -->
-    <property name="BackgroundApps" type="aa{sv}" access="read"/>
+    <property name="BackgroundApps" type="aa{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QList&lt;QVariantMap&gt;"/>
+    </property>
 
     <property name="version" type="u" access="read"/>
   </interface>

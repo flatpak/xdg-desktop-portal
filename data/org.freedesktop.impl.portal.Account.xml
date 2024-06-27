@@ -67,8 +67,10 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="window" direction="in"/>
+       <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
+       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
   </interface>

@@ -85,6 +85,7 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="name" direction="in"/>
       <arg type="v" name="icon_v" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In5" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -110,6 +111,7 @@
     -->
     <method name="RequestInstallToken">
       <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
     </method>

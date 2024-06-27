@@ -119,6 +119,7 @@
       -->
     <method name="AddNotification">
       <arg type="s" name="id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
     <!--

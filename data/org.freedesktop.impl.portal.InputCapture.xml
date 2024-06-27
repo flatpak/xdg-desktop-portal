@@ -64,7 +64,7 @@
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -96,7 +96,7 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -141,8 +141,9 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QList&lt;QVariantMap&gt;"/>
       <arg type="aa{sv}" name="barriers" direction="in"/>
       <arg type="u" name="zone_set" direction="in"/>
       <arg type="u" name="response" direction="out"/>
@@ -161,7 +162,7 @@
     <method name="Enable">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -179,7 +180,7 @@
     <method name="Disable">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -213,7 +214,7 @@
     <method name="Release">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -239,7 +240,7 @@
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>
@@ -255,6 +256,7 @@
     -->
     <signal name="Disabled">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
@@ -317,6 +319,7 @@
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
@@ -350,6 +353,7 @@
     -->
     <signal name="Deactivated">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
@@ -364,6 +368,7 @@
     -->
     <signal name="ZonesChanged">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 

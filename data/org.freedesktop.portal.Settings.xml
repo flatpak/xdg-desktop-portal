@@ -72,9 +72,10 @@
       If @namespaces is an empty array or contains an empty string it matches all. Globbing is supported but only for
       trailing sections, e.g. "org.example.*".
     -->
-    <method name='ReadAll'>
-      <arg name='namespaces' type='as'/>
-      <arg name='value' direction='out' type='a{sa{sv}}'/>
+    <method name="ReadAll">
+      <arg type="as" name="namespaces"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QVariantMap&gt;"/>
+      <arg type="a{sa{sv}}" name="value" direction="out"/>
     </method>
 
     <!--
@@ -91,11 +92,11 @@
       returned inside two layers of variant, for example
       `&lt;&lt;string "hello"&gt;&gt;`.
     -->
-    <method name='Read'>
+    <method name="Read">
       <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
-      <arg name='namespace' type='s'/>
-      <arg name='key' type='s'/>
-      <arg name='value' direction='out' type='v'/>
+      <arg type="s" name="namespace"/>
+      <arg type="s" name="key"/>
+      <arg type="v" name="value" direction="out"/>
     </method>
 
     <!--
@@ -108,10 +109,10 @@
 
       This method was added in version 2.
     -->
-    <method name='ReadOne'>
-      <arg name='namespace' type='s'/>
-      <arg name='key' type='s'/>
-      <arg name='value' direction='out' type='v'/>
+    <method name="ReadOne">
+      <arg type="s" name="namespace" direction="in"/>
+      <arg type="s" name="key" direction="in"/>
+      <arg type="v" name="value" direction="out"/>
     </method>
 
     <!--
@@ -122,10 +123,10 @@
 
       Emitted when a setting changes.
     -->
-    <signal name='SettingChanged'>
-      <arg name='namespace' direction='out' type='s'/>
-      <arg name='key' direction='out' type='s'/>
-      <arg name='value' direction='out' type='v'/>
+    <signal name="SettingChanged">
+      <arg type="s" name="namespace" direction="out"/>
+      <arg type="s" name="key" direction="out"/>
+      <arg type="v" name="value" direction="out"/>
     </signal>
 
     <property name="version" type="u" access="read"/>

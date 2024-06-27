@@ -69,6 +69,7 @@
     -->
     <method name="GetUserInformation">
       <arg type="s" name="window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>

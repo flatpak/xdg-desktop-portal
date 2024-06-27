@@ -72,9 +72,9 @@
           session.
     -->
     <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
     </method>
 
     <!--
@@ -133,13 +133,12 @@
     -->
     <method name="BindShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
-
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
     </method>
 
     <!--
@@ -170,9 +169,9 @@
     -->
     <method name="ListShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -188,8 +187,8 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
-      <arg type="a{sv}" name="options" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
     <!--
@@ -205,8 +204,8 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
-      <arg type="a{sv}" name="options" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
     <!--
@@ -222,8 +221,8 @@
     -->
     <signal name="ShortcutsChanged">
       <arg type="o" name="session_handle" direction="out"/>
-      <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
+      <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
     </signal>
 
     <property name="version" type="u" access="read"/>
