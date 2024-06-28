@@ -24,6 +24,10 @@
       The WebExtensions portal allows sandboxed web browsers to start
       native messaging hosts installed on the host system.
 
+      Accompanying documentation for Firefox's implementation is
+      available: `Native messaging for a strictly-confined Firefox
+      <https://firefox-source-docs.mozilla.org/toolkit/components/extensions/webextensions/native-messaging-portal-design.html>`_.
+
       This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.WebExtensions">
@@ -37,6 +41,18 @@
         org.freedesktop.portal.Session::Close, or may at any time be
         closed by the portal implementation, which will be signalled
         via org.freedesktop.portal.Session::Closed.
+
+        To close a session, the browser should:
+
+        1. close the process's stdin/stdout/stderr file descriptors
+           obtained from the portal;
+        2. wait for a D-Bus Closed signal from the portal on the
+           org.freedesktop.portal.Session object (which will be
+           triggered on SIGCHLD via the g_child_watch_add_full
+           handler); and
+        3. if the Closed signal from the portal doesn't come in time,
+           call the Close method on the org.freedesktop.portal.Session
+           object.
 
         Supported keys in the @options vardict include:
         <variablelist>

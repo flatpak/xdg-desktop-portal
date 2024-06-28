@@ -627,9 +627,16 @@ handle_start_in_thread (GTask *task,
   switch (web_extensions_session->mode)
     {
     case WEB_EXTENSIONS_SESSION_MODE_CHROMIUM:
+      /* Pass the origin
+         https://developer.chrome.com/docs/extensions/develop/concepts/native-messaging
+       */
       argv[1] = arg_extension_or_origin;
       break;
     case WEB_EXTENSIONS_SESSION_MODE_MOZILLA:
+      /* Pass the manifest filename and extension ID
+         https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Native_messaging
+         https://searchfox.org/mozilla-central/rev/9fcc11127fbfbdc88cbf37489dac90542e141c77/toolkit/components/extensions/NativeMessaging.sys.mjs#104-110
+       */
       argv[1] = manifest_filename;
       argv[2] = arg_extension_or_origin;
       break;
