@@ -76,10 +76,12 @@ if build_documentation
     'favicon.ico',
 
     'api-reference.rst',
+    'architecture.rst',
     'building-and-running.rst',
     'common-conventions.rst',
     'configuration-file.rst',
     'convenience-libraries.rst',
+    'documents-and-fuse.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',

@@ -16,3 +16,4 @@ more complex parts of XDG Desktop Portal.
 
    building-and-running
    pull-requests
+   architecture
