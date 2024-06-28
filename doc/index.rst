@@ -27,27 +27,21 @@ Content Overview
 
 This documentation is made up of the following sections:
 
-* :doc:`Introduction <introduction>`: learn about the goals, terminology, and
-  reasons to use portals on your apps.
 * :doc:`Common conventions <common-conventions>`: coding patterns and principles
   common when **app and desktop developers** are working with portal APIs.
-* :doc:`Application API <api-reference>`: portal APIs that **apps** can use to
-  interact with the host system.
-* :doc:`Portal backends <backends>`: interfaces and configuration files that
-  **desktop developers** can implement and install in order to write a portal
-  backend.
-* :doc:`Background apps monitoring <introduction>`: service that provides
-  information about apps running in background to **desktop developers**.
-
-XDG Desktop Portal backends are selected and can be configured by using one or more
-configuration files. :doc:`Read more about them here <portals.conf>`.
+* :doc:`App Development <for-app-developers>`: portal APIs that **apps** can use
+  to interact with the host system.
+* :doc:`Desktop Integration <for-desktop-developers>`: interfaces and
+  configuration files that **desktop developers** can implement and install in
+  order to write a portal backend.
+* :doc:`Contributing <for-contributors>`: how **contributors** can contribute to
+  the project.
 
 .. toctree::
    :maxdepth: 2
    :hidden:
 
-   introduction
    common-conventions
-   api-reference
-   backends
-   contributing
+   for-app-developers
+   for-desktop-developers
+   for-contributors

@@ -1,23 +1,7 @@
-Contributing
-============
+Building & Running
+==================
 
-Before developing features or fixing bugs, please make sure you are have done
-the following:
-
-- Your code is not on the ``main`` branch of your fork.
-- The code has been tested.
-- All commit messages are properly formatted and commits squashed where
-  appropriate.
-- You have included updates to all appropriate documentation.
-
-We use GitHub pull requests to review contributions. Please be kind and patient
-as code reviews can be long and minutious.
-
-
-Development
------------
-
-XDG Desktop Portal usually runs as a user session service, initialized on
+Normally, XDG Desktop Portal runs as a user session service, initialized on
 demand through D-Bus activation. It usually starts with the session though,
 as many desktop environments try to talk to XDG Desktop Portal on startup.
 XDG Desktop Portal initializes specific backends through D-Bus activation
