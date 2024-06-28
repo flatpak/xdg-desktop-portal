@@ -275,7 +275,7 @@ load_installed_portals (gboolean opt_verbose)
 
   /* We need to override this in the tests */
   portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
-  if (portal_dir == NULL)
+  if (portal_dir == NULL || !*portal_dir)
     portal_dir = DATADIR "/xdg-desktop-portal/portals";
 
   g_debug ("load portals from %s", portal_dir);
@@ -436,7 +436,7 @@ load_portal_configuration (gboolean opt_verbose)
   /* We need to override this in the tests */
   portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
 
-  if (portal_dir != NULL)
+  if (portal_dir != NULL && *portal_dir)
     {
       load_config_directory (portal_dir, desktops, opt_verbose);
       /* All other config directories are ignored when this is set */
