@@ -76,15 +76,21 @@ if build_documentation
     'favicon.ico',
 
     'api-reference.rst',
-    'backends.rst',
+    'building-and-running.rst',
     'common-conventions.rst',
-    'contributing.rst',
+    'configuration-file.rst',
+    'for-app-developers.rst',
+    'for-contributors.rst',
+    'for-desktop-developers.rst',
     'impl-dbus-interfaces.rst',
     'index.rst',
-    'introduction.rst',
+    'pull-requests.rst',
+    'reasons-to-use-portals.rst',
     'requests.rst',
+    'terminology.rst',
     'sessions.rst',
     'window-identifiers.rst',
+    'writing-a-new-backend.rst',
   ]
 
   copied_docs_sources = []

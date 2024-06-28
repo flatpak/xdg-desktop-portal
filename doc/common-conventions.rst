@@ -8,6 +8,7 @@ documented in the pages below:
 .. toctree::
    :maxdepth: 1
 
+   terminology
    requests
    sessions
    window-identifiers
