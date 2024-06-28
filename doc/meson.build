@@ -79,6 +79,7 @@ if build_documentation
     'building-and-running.rst',
     'common-conventions.rst',
     'configuration-file.rst',
+    'convenience-libraries.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',

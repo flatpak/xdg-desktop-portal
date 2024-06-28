@@ -17,4 +17,5 @@ loosen their sandbox restrictions.
    :maxdepth: 1
 
    reasons-to-use-portals
+   convenience-libraries
    api-reference
