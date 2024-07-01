@@ -12,8 +12,29 @@ code submission practices, as well as internal documentation about
 more complex parts of XDG Desktop Portal.
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    building-and-running
    pull-requests
    architecture
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Building-running-l.png
+      :target: building-and-running.html
+      :class: only-light
+   .. image:: _static/img/tiles/Building-running-d.png
+      :target: building-and-running.html
+      :class: only-dark
+*  .. image:: _static/img/tiles/Pull-request-l.png
+      :target: pull-requests.html
+      :class: only-light
+   .. image:: _static/img/tiles/Pull-request-d.png
+      :target: pull-requests.html
+      :class: only-dark
+*  .. image:: _static/img/tiles/Architecture-l.png
+      :target: architecture.html
+      :class: only-light
+   .. image:: _static/img/tiles/Architecture-d.png
+      :target: architecture.html
+      :class: only-dark
