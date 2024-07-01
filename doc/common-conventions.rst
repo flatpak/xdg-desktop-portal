@@ -23,14 +23,6 @@ documented in the pages below:
       :class: only-dark
 
    :doc:`Terminology </terminology>`
-*  .. image:: _static/img/tiles/Terminology-l.png
-      :target: terminology.html
-      :class: only-light
-   .. image:: _static/img/tiles/Terminology-d.png
-      :target: terminology.html
-      :class: only-dark
-
-   :doc:`Requests </requests>`
 *  .. image:: _static/img/tiles/Request-l.png
       :target: requests.html
       :class: only-light
