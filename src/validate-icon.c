@@ -34,14 +34,14 @@
 #endif
 
 #define ICON_VALIDATOR_GROUP "Icon Validator"
+#define MAX_ICON_SIZE 512
+#define MAX_SVG_ICON_SIZE 4096
 
 static int
-validate_icon (const char *arg_width,
-               const char *arg_height,
-               const char *filename)
+validate_icon (const char *filename)
 {
   GdkPixbufFormat *format;
-  int max_width, max_height;
+  int max_size;
   int width, height;
   g_autofree char *name = NULL;
   const char *allowed_formats[] = { "png", "jpeg", "svg", NULL };
@@ -57,6 +57,12 @@ validate_icon (const char *arg_width,
       return 1;
     }
 
+  if (width != height)
+    {
+      g_printerr ("Expected a square icon but got: %dx%d\n", width, height);
+      return 1;
+    }
+
   name = gdk_pixbuf_format_get_name (format);
   if (!g_strv_contains (allowed_formats, name))
     {
@@ -64,31 +70,13 @@ validate_icon (const char *arg_width,
       return 1;
     }
 
-  if (!g_str_equal (name, "svg"))
-    {
-      max_width = g_ascii_strtoll (arg_width, NULL, 10);
-      if (max_width < 16 || max_width > 4096)
-        {
-          g_printerr ("Bad width limit: %s\n", arg_width);
-          return 1;
-        }
+  /* Sanity check for vector files */
+  max_size = g_str_equal (name, "svg") ? MAX_SVG_ICON_SIZE : MAX_ICON_SIZE;
 
-      max_height = g_ascii_strtoll (arg_height, NULL, 10);
-      if (max_height < 16 || max_height > 4096)
-        {
-          g_printerr ("Bad height limit: %s\n", arg_height);
-          return 1;
-        }
-    }
-  else
+  /* The icon is a square so we only need to check one side */
+  if (width > max_size)
     {
-      /* Sanity check for vector files */
-      max_height = max_width = 4096;
-    }
-
-  if (width > max_width || height > max_height)
-    {
-      g_printerr ("Image too large (%dx%d). Max. size %dx%d\n", width, height, max_width, max_height);
+      g_printerr ("Image too large (%dx%d). Max. size %dx%d\n", width, height, max_size, max_size);
       return 1;
     }
 
@@ -96,12 +84,6 @@ validate_icon (const char *arg_width,
   if (pixbuf == NULL)
     {
       g_printerr ("Failed to load image: %s\n", error->message);
-      return 1;
-    }
-
-  if (width != height)
-    {
-      g_printerr ("Expected a square icon but got: %dx%d\n", width, height);
       return 1;
     }
 
@@ -165,9 +147,7 @@ flatpak_get_bwrap (void)
 }
 
 static int
-rerun_in_sandbox (const char *arg_width,
-                  const char *arg_height,
-                  const char *filename)
+rerun_in_sandbox (const char *filename)
 {
   const char * const usrmerged_dirs[] = { "bin", "lib32", "lib64", "lib", "sbin" };
   int i;
@@ -234,7 +214,7 @@ rerun_in_sandbox (const char *arg_width,
   if (g_getenv ("G_MESSAGES_PREFIXED"))
     add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
-  add_args (args, validate_icon, arg_width, arg_height, filename, NULL);
+  add_args (args, validate_icon, filename, NULL);
   g_ptr_array_add (args, NULL);
 
   execvpe (flatpak_get_bwrap (), (char **) args->pdata, NULL);
@@ -257,7 +237,7 @@ main (int argc, char *argv[])
   g_autoptr(GOptionContext) context = NULL;
   g_autoptr(GError) error = NULL;
 
-  context = g_option_context_new ("WIDTH HEIGHT PATH");
+  context = g_option_context_new ("PATH");
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))
     {
@@ -265,16 +245,16 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  if (argc != 4)
+  if (argc != 2)
     {
-      g_printerr ("Usage: %s [OPTION…] WIDTH HEIGHT PATH\n", argv[0]);
+      g_printerr ("Usage: %s [OPTION…] PATH\n", argv[0]);
       return 1;
     }
 
 #ifdef HELPER
   if (opt_sandbox)
-    return rerun_in_sandbox (argv[1], argv[2], argv[3]);
+    return rerun_in_sandbox (argv[1]);
   else
 #endif
-    return validate_icon (argv[1], argv[2], argv[3]);
+    return validate_icon (argv[1]);
 }
