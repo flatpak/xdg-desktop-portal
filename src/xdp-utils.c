@@ -591,11 +591,8 @@ xdp_validate_serialized_icon (GVariant  *v,
   g_autofree char *stderrlog = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
-  const char *args[6];
-  /* same allowed formats as Flatpak */
-  const char *allowed_icon_formats[] = { "png", "jpeg", "svg", NULL };
+  const char *args[4];
   int size;
-  const char *MAX_ICON_SIZE = "512";
   gconstpointer bytes_data;
   gsize bytes_len;
   g_autoptr(GKeyFile) key_file = NULL;
@@ -657,10 +654,8 @@ xdp_validate_serialized_icon (GVariant  *v,
 
   args[0] = icon_validator;
   args[1] = "--sandbox";
-  args[2] = MAX_ICON_SIZE;
-  args[3] = MAX_ICON_SIZE;
-  args[4] = name;
-  args[5] = NULL;
+  args[2] = name;
+  args[3] = NULL;
 
   if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
     {
@@ -682,10 +677,9 @@ xdp_validate_serialized_icon (GVariant  *v,
       g_warning ("Icon validation: %s", error->message);
       return FALSE;
     }
-  if (!(format = g_key_file_get_string (key_file, ICON_VALIDATOR_GROUP, "format", &error)) ||
-      !g_strv_contains (allowed_icon_formats, format))
+  if (!(format = g_key_file_get_string (key_file, ICON_VALIDATOR_GROUP, "format", &error)))
     {
-      g_warning ("Icon validation: %s", error ? error->message : "not allowed format");
+      g_warning ("Icon validation: %s", error->message);
       return FALSE;
     }
   if (!(size = g_key_file_get_integer (key_file, ICON_VALIDATOR_GROUP, "width", &error)))
