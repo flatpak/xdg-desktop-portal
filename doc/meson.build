@@ -117,6 +117,7 @@ if build_documentation
 
   # Copy static files to the appropriate output subdir
   copy = find_program('copy-subdir.py')
+  copytree = find_program('copy-subtree.py')
 
   static_files = [
     'bullet.svg',
@@ -131,4 +132,6 @@ if build_documentation
   foreach f: static_files
     run_command(copy, '_static' / f, 'html' / '_static' / f)
   endforeach
+  
+  run_command(copytree, 'img', 'html' / '_static' / 'img')
 endif
