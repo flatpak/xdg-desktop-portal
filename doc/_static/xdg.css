@@ -253,9 +253,11 @@ ul.tiled-toc {
   ul.tiled-toc li img {
     display: block;
     width: 100%;
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
   }
   ul.tiled-toc li img::after {
-    content: "Foo";
+    content: "";
   }
 
   ul.tiled-toc a {

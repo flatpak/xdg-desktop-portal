@@ -26,15 +26,22 @@ more complex parts of XDG Desktop Portal.
    .. image:: _static/img/tiles/Building-running-d.png
       :target: building-and-running.html
       :class: only-dark
+
+   :doc:`Building and Running </building-and-running>`
+
 *  .. image:: _static/img/tiles/Pull-request-l.png
       :target: pull-requests.html
       :class: only-light
    .. image:: _static/img/tiles/Pull-request-d.png
       :target: pull-requests.html
       :class: only-dark
+
+   :doc:`Pull Requests </pull-requests>`
 *  .. image:: _static/img/tiles/Architecture-l.png
       :target: architecture.html
       :class: only-light
    .. image:: _static/img/tiles/Architecture-d.png
       :target: architecture.html
       :class: only-dark
+
+   :doc:`Architecture </architecture>`
