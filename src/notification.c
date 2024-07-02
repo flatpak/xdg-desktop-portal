@@ -398,7 +398,7 @@ parse_serialized_icon (GVariantBuilder  *builder,
           g_set_error_literal (error,
                                XDG_DESKTOP_PORTAL_ERROR,
                                XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                               "invalid icon: only themed icons can be a string");
+                               "only themed icons can be a string");
           return FALSE;
         }
     }
@@ -412,27 +412,31 @@ parse_serialized_icon (GVariantBuilder  *builder,
   if (strcmp (key, "themed") == 0)
     {
       if (!check_value_type (key, value, G_VARIANT_TYPE_STRING_ARRAY, error))
-        {
-          g_prefix_error (error, "invalid icon: ");
-          return FALSE;
-        }
+        return FALSE;
+
+      g_variant_builder_add (builder, "{sv}", "icon", icon);
     }
   else if (strcmp (key, "bytes") == 0)
     {
+      g_autoptr(GBytes) icon_bytes = NULL;
+      g_autoptr(GError) local_error = NULL;
+      g_autoptr(XdpSealedFd) sealed_icon = NULL;
+
       if (!check_value_type (key, value, G_VARIANT_TYPE_BYTESTRING, error))
-        {
-          g_prefix_error (error, "invalid icon: ");
-          return FALSE;
-        }
+        return FALSE;
+
+      icon_bytes = g_variant_get_data_as_bytes (value);
+      sealed_icon = xdp_sealed_fd_new_from_bytes (icon_bytes, &local_error);
+
+      if (!sealed_icon)
+        g_warning ("Failed to read icon: %s", local_error->message);
+      else if (xdp_validate_icon (sealed_icon, NULL, NULL))
+        g_variant_builder_add (builder, "{sv}", "icon", icon);
     }
   else
     {
       g_debug ("Unsupported icon %s filtered from notification", key);
-      return TRUE;
     }
-
-  if (xdp_validate_serialized_icon (icon, FALSE, NULL, NULL))
-    g_variant_builder_add (builder, "{sv}", "icon", icon);
 
   return TRUE;
 }
@@ -464,7 +468,10 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "icon") == 0)
         {
           if (!parse_serialized_icon (builder, value, error))
-            return FALSE;
+            {
+              g_prefix_error (error, "invalid icon: ");
+              return FALSE;
+            }
         }
       else if (strcmp (key, "priority") == 0)
         {
