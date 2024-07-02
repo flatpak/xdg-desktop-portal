@@ -76,15 +76,24 @@ if build_documentation
     'favicon.ico',
 
     'api-reference.rst',
-    'backends.rst',
+    'architecture.rst',
+    'building-and-running.rst',
     'common-conventions.rst',
-    'contributing.rst',
+    'configuration-file.rst',
+    'convenience-libraries.rst',
+    'documents-and-fuse.rst',
+    'for-app-developers.rst',
+    'for-contributors.rst',
+    'for-desktop-developers.rst',
     'impl-dbus-interfaces.rst',
     'index.rst',
-    'introduction.rst',
+    'pull-requests.rst',
+    'reasons-to-use-portals.rst',
     'requests.rst',
+    'terminology.rst',
     'sessions.rst',
     'window-identifiers.rst',
+    'writing-a-new-backend.rst',
   ]
 
   copied_docs_sources = []
@@ -108,6 +117,7 @@ if build_documentation
 
   # Copy static files to the appropriate output subdir
   copy = find_program('copy-subdir.py')
+  copytree = find_program('copy-subtree.py')
 
   static_files = [
     'bullet.svg',
@@ -122,4 +132,6 @@ if build_documentation
   foreach f: static_files
     run_command(copy, '_static' / f, 'html' / '_static' / f)
   endforeach
+  
+  run_command(copytree, 'img', 'html' / '_static' / 'img')
 endif
