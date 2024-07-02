@@ -30,6 +30,7 @@
 #include <errno.h>
 
 #include "glib-backports.h"
+#include "xdp-sealed-fd.h"
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
@@ -42,10 +43,9 @@ gboolean xdp_is_valid_app_id (const char *string);
 
 char *xdp_get_app_id_from_desktop_id (const char *desktop_id);
 
-gboolean xdp_validate_serialized_icon (GVariant  *v,
-                                       gboolean   bytes_only,
-                                       char     **out_format,
-                                       char     **out_size);
+gboolean xdp_validate_icon (XdpSealedFd  *icon,
+                            char        **out_format,
+                            char        **out_size);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
