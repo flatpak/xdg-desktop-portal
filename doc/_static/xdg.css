@@ -245,6 +245,7 @@ ul.tiled-toc {
   margin: 1rem 0; padding: 0;
   text-align: center;
   margin-top: 2rem;
+  grid-template-columns: repeat(2, 1fr);
 }
   ul.tiled-toc li {
     display: block;
