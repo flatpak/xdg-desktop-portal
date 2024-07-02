@@ -549,59 +549,21 @@ xdp_has_path_prefix (const char *str,
     }
 }
 
-void
-cleanup_temp_file (void *p)
-{
-  void **pp = (void **)p;
-
-  if (*pp)
-    remove (*pp);
-  g_free (*pp);
-}
-
 #define VALIDATOR_INPUT_FD 3
 #define ICON_VALIDATOR_GROUP "Icon Validator"
 
 gboolean
-xdp_validate_serialized_icon (GVariant  *v,
-                              gboolean   bytes_only,
-                              char     **out_format,
-                              char     **out_size)
+xdp_validate_icon (XdpSealedFd  *icon,
+                   char        **out_format,
+                   char        **out_size)
 {
-  g_autoptr(GIcon) icon = NULL;
-  GBytes *bytes;
-  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
-  xdp_autofd int fd = -1;
-  g_autoptr(GOutputStream) stream = NULL;
   g_autofree char *format = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
   const char *args[5];
   int size;
-  gconstpointer bytes_data;
-  gsize bytes_len;
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
-
-  icon = g_icon_deserialize (v);
-  if (!icon)
-    {
-      g_warning ("Icon deserialization failed");
-      return FALSE;
-    }
-
-  if (!bytes_only && G_IS_THEMED_ICON (icon))
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)g_themed_icon_get_names (G_THEMED_ICON (icon)));
-      g_debug ("Icon validation: themed icon (%s) is ok", a);
-      return TRUE;
-    }
-
-  if (!G_IS_BYTES_ICON (icon))
-    {
-      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
-      return FALSE;
-    }
 
   if (g_getenv ("XDP_VALIDATE_ICON"))
     icon_validator = g_getenv ("XDP_VALIDATE_ICON");
@@ -612,39 +574,13 @@ xdp_validate_serialized_icon (GVariant  *v,
       return FALSE;
     }
 
-  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-  fd = g_file_open_tmp ("iconXXXXXX", &name, &error);
-  if (fd == -1)
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
-  stream = g_unix_output_stream_new (fd, FALSE);
-
-  /* Use write_all() instead of write_bytes() so we don't have to worry about
-   * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
-   */
-  bytes_data = g_bytes_get_data (bytes, &bytes_len);
-  if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
-  if (!g_output_stream_close (stream, NULL, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
   args[0] = icon_validator;
   args[1] = "--sandbox";
   args[2] = "--fd";
   args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
   args[4] = NULL;
 
-  output = xdp_spawn_full (args, xdp_steal_fd (&fd), VALIDATOR_INPUT_FD, &error);
+  output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (icon), VALIDATOR_INPUT_FD, &error);
   if (!output)
     {
       g_warning ("Icon validation: Rejecting icon because validator failed: %s", error->message);
