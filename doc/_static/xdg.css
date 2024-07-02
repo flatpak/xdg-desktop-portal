@@ -245,7 +245,7 @@ ul.tiled-toc {
   margin: 1rem 0; padding: 0;
   text-align: center;
   margin-top: 2rem;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
 }
   ul.tiled-toc li {
     display: block;
@@ -265,12 +265,6 @@ ul.tiled-toc {
     color: black;
     text-decoration: none;
     font-weight: 600;
-  }
-
-  @media (min-width: 700px) {
-    ul.tiled-toc {
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    }
   }
 
   @media (prefers-color-scheme: dark) {
