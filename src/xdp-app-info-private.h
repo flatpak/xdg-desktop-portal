@@ -27,6 +27,9 @@ struct _XdpAppInfoClass
 {
   GObjectClass parent_class;
 
+  gboolean (*is_valid_sub_app_id) (XdpAppInfo *app_info,
+                                   const char *sub_app_id);
+
   char * (*remap_path) (XdpAppInfo *app_info,
                         const char *path);
 

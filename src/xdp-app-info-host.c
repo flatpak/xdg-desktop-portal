@@ -34,6 +34,13 @@ struct _XdpAppInfoHost
 G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO)
 
 gboolean
+xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
+                                       const char *sub_app_id)
+{
+  return TRUE;
+}
+
+gboolean
 xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
                                       GKeyFile            *keyfile,
                                       const char * const  *autostart_exec,
