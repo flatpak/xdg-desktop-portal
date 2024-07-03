@@ -52,6 +52,134 @@ struct _XdpAppInfoFlatpak
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
 
+static gboolean
+is_valid_initial_name_character (gint c, gboolean allow_dash)
+{
+  return
+    (c >= 'A' && c <= 'Z') ||
+    (c >= 'a' && c <= 'z') ||
+    (c == '_') || (allow_dash && c == '-');
+}
+
+static gboolean
+is_valid_name_character (gint c, gboolean allow_dash)
+{
+  return
+    is_valid_initial_name_character (c, allow_dash) ||
+    (c >= '0' && c <= '9');
+}
+
+static const char *
+find_last_char (const char *str, gsize len, int c)
+{
+  const char *p = str + len - 1;
+  while (p >= str)
+    {
+      if (*p == c)
+        return p;
+      p--;
+    }
+  return NULL;
+}
+
+/**
+ * flatpak_is_valid_name:
+ * @string: The string to check
+ *
+ * Checks if @string is a valid application name.
+ *
+ * App names are composed of 3 or more elements separated by a period
+ * ('.') character. All elements must contain at least one character.
+ *
+ * Each element must only contain the ASCII characters
+ * "[A-Z][a-z][0-9]_-". Elements may not begin with a digit.
+ * Additionally "-" is only allowed in the last element.
+ *
+ * App names must not begin with a '.' (period) character.
+ *
+ * App names must not exceed 255 characters in length.
+ *
+ * The above means that any app name is also a valid DBus well known
+ * bus name, but not all DBus names are valid app names. The difference are:
+ * 1) DBus name elements may contain '-' in the non-last element.
+ * 2) DBus names require only two elements
+ *
+ * Returns: %TRUE if valid, %FALSE otherwise.
+ */
+static gboolean
+flatpak_is_valid_name (const char *string)
+{
+  gssize len;
+  const gchar *s;
+  const gchar *end;
+  const gchar *last_dot;
+  int dot_count;
+  gboolean last_element;
+
+  g_return_val_if_fail (string != NULL, FALSE);
+
+  len = strlen (string);
+  if (G_UNLIKELY (len == 0))
+    return FALSE;
+
+  if (G_UNLIKELY (len > 255))
+    return FALSE;
+
+  end = string + len;
+
+  last_dot = find_last_char (string, len, '.');
+  last_element = FALSE;
+
+  s = string;
+  if (G_UNLIKELY (*s == '.'))
+    return FALSE;
+
+  if (G_UNLIKELY (!is_valid_initial_name_character (*s, last_element)))
+    return FALSE;
+
+  s += 1;
+  dot_count = 0;
+  while (s != end)
+    {
+      if (*s == '.')
+        {
+          if (s == last_dot)
+            last_element = TRUE;
+          s += 1;
+          if (G_UNLIKELY (s == end))
+            return FALSE;
+          if (!is_valid_initial_name_character (*s, last_element))
+            return FALSE;
+          dot_count++;
+        }
+      else if (G_UNLIKELY (!is_valid_name_character (*s, last_element)))
+        return FALSE;
+      s += 1;
+    }
+
+  if (G_UNLIKELY (dot_count < 2))
+    return FALSE;
+
+  return TRUE;
+}
+
+gboolean
+xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
+                                          const char *sub_app_id)
+{
+  const char *app_id = xdp_app_info_get_id (app_info);
+
+  g_assert (app_id);
+
+  if (!g_str_has_prefix (sub_app_id, app_id))
+    return FALSE;
+
+  if (sub_app_id[strlen (app_id)] != '.')
+    return FALSE;
+
+  return flatpak_is_valid_name (sub_app_id);
+}
+
 static char *
 xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                                  const char *path)

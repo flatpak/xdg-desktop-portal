@@ -168,6 +168,17 @@ xdp_app_info_get_gappinfo (XdpAppInfo *app_info)
 }
 
 gboolean
+xdp_app_info_is_valid_sub_app_id (XdpAppInfo *app_info,
+                                  const char *sub_app_id)
+{
+  if (!XDP_APP_INFO_GET_CLASS (app_info)->is_valid_sub_app_id)
+      return FALSE;
+
+  return XDP_APP_INFO_GET_CLASS (app_info)->is_valid_sub_app_id (app_info,
+                                                                 sub_app_id);
+}
+
+gboolean
 xdp_app_info_has_network (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv;
