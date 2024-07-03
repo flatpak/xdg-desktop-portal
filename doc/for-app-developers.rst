@@ -14,8 +14,37 @@ with the desktop without requiring apps to write desktop-specific code, or
 loosen their sandbox restrictions.
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    reasons-to-use-portals
    convenience-libraries
    api-reference
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Reasons-l.png
+      :target: reasons-to-use-portals.html
+      :class: only-light
+   .. image:: _static/img/tiles/Reasons-d.png
+      :target: reasons-to-use-portals.html
+      :class: only-dark
+
+   :doc:`Reasons to Use Portals </reasons-to-use-portals>`
+
+*  .. image:: _static/img/tiles/Libraries-l.png
+      :target: convenience-libraries.html
+      :class: only-light
+   .. image:: _static/img/tiles/Libraries-d.png
+      :target: convenience-libraries.html
+      :class: only-dark
+
+   :doc:`Convenience Libraries </convenience-libraries>`
+
+*  .. image:: _static/img/tiles/APIs-l.png
+      :target: api-reference.html
+      :class: only-light
+   .. image:: _static/img/tiles/APIs-d.png
+      :target: api-reference.html
+      :class: only-dark
+
+   :doc:`API Reference </api-reference>`
