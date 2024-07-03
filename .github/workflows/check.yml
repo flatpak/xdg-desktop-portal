@@ -42,6 +42,8 @@ jobs:
           -e TERM=dumb \
           -e MAKEFLAGS="-j $(getconf _NPROCESSORS_ONLN)" \
           -e CC -e CFLAGS="${{ steps.env-setup.outputs.cflags }}" \
+          -e LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64 \
+          -e PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig \
           -d ubuntu:$UBUNTU_VERSION sleep infinity
 
     - name: Install dependencies
@@ -67,7 +69,6 @@ jobs:
           libglib2.0-dev \
           libjson-glib-dev \
           libpipewire-0.3-dev \
-          libportal-dev \
           libsystemd-dev \
           libtool \
           llvm \
@@ -87,10 +88,35 @@ jobs:
     - name: Check out xdg-desktop-portal
       uses: actions/checkout@v4
 
+    - name: Check out libportal fork with a similarly named branch
+      id: libportal-branched
+      uses: actions/checkout@v4
+      continue-on-error: true
+      with:
+        repository: ${{ github.actor }}/libportal
+        ref: ${{ github.head_ref || github.ref_name }}
+        path: libportal
+
+    - name: Check out libportal default branch
+      if: steps.libportal-branched.outcome == 'failure'
+      uses: actions/checkout@v4
+      with:
+        repository: flatpak/libportal
+        path: libportal
+
     - name: Setup test user
       run: |
         $RUN_CMD adduser --disabled-password --gecos "" tester
         $RUN_CMD chown tester:tester . -R
+
+    - name: Build libportal
+      run: |
+        $RUN_CMD $AS_USER meson setup libportal ${LIBPORTAL_BUILDDIR} $MESON_OPTIONS
+        $RUN_CMD $AS_USER meson compile -C ${LIBPORTAL_BUILDDIR}
+        $RUN_CMD meson install -C ${LIBPORTAL_BUILDDIR}
+      env:
+        MESON_OPTIONS: -Ddocs=false -Dintrospection=false -Dtests=false
+        LIBPORTAL_BUILDDIR: libportal_builddir
 
     - name: Build xdg-desktop-portal
       run: |
