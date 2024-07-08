@@ -17,10 +17,29 @@ interface is implemented by GNOME Shell.
 
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    writing-a-new-backend
    configuration-file
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Backend-l.png
+      :target: writing-a-new-backend.html
+      :class: only-light
+   .. image:: _static/img/tiles/Backend-d.png
+      :target: writing-a-new-backend.html
+      :class: only-dark
+
+   :doc:`Writing a New Backend </writing-a-new-backend>`
+*  .. image:: _static/img/tiles/Config-l.png
+      :target: configuration-file.html
+      :class: only-light
+   .. image:: _static/img/tiles/Config-d.png
+      :target: configuration-file.html
+      :class: only-dark
+
+   :doc:`Configuration File </configuration-file>`
 
 D-Bus Interfaces
 ----------------
@@ -29,9 +48,20 @@ Portal backends must implement one or more backend D-Bus interfaces. The list of
 D-Bus interfaces can be found below:
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    impl-dbus-interfaces
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Dbus-l.png
+      :target: impl-dbus-interfaces.html
+      :class: only-light
+   .. image:: _static/img/tiles/Dbus-d.png
+      :target: impl-dbus-interfaces.html
+      :class: only-dark
+
+   :doc:`Backend D-BUS Interfaces </impl-dbus-interfaces>`
 
 Background Apps Monitor
 -----------------------
@@ -46,6 +76,17 @@ manage background running applications.
 
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    doc-org.freedesktop.background.Monitor.rst
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Bmon-l.png
+      :target: doc-org.freedesktop.background.Monitor.html
+      :class: only-light
+   .. image:: _static/img/tiles/Bmon-d.png
+      :target: doc-org.freedesktop.background.Monitor.html
+      :class: only-dark
+
+   :doc:`Background Apps Monitor </doc-org.freedesktop.background.Monitor.rst>`
