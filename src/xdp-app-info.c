@@ -1765,7 +1765,6 @@ xdp_app_info_from_snap (int          pid,
 {
   g_autoptr(GError) local_error = NULL;
   g_autofree char *pid_str = NULL;
-  const char *argv[] = { "snap", "routine", "portal-info", NULL, NULL };
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) metadata = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
@@ -1779,8 +1778,8 @@ xdp_app_info_from_snap (int          pid,
     }
 
   pid_str = g_strdup_printf ("%u", (guint) pid);
-  argv[3] = pid_str;
-  if (!xdp_spawnv (NULL, &output, 0, error, argv))
+  output = xdp_spawn (error, "snap", "routine", "portal-info", pid_str, NULL);
+  if (output == NULL)
     {
       return FALSE;
     }
