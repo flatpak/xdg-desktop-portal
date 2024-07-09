@@ -522,27 +522,6 @@ portal_add (GDBusMethodInvocation *invocation,
   g_dbus_method_invocation_return_value (invocation, g_variant_new ("(s)", ids[0]));
 }
 
-static char *
-get_output (GError     **error,
-            const char  *argv0,
-            ...)
-{
-  gboolean res;
-  g_autofree char *output = NULL;
-  va_list ap;
-
-  va_start (ap, argv0);
-  res = xdp_spawn (NULL, &output, 0, error, argv0, ap);
-  va_end (ap);
-
-  if (res)
-    {
-      g_strchomp (output);
-      return g_steal_pointer (&output);
-    }
-  return NULL;
-}
-
 /* out =>
      0 == hidden
      1 == read-only
@@ -659,15 +638,17 @@ app_has_file_access (const char *target_app_id,
 
   if (g_str_has_prefix (target_app_id, "snap."))
     {
-      res = get_output (&error, "snap", "routine", "file-access",
+      res = xdp_spawn (&error, "snap", "routine", "file-access",
                         target_app_id + strlen ("snap."), path, NULL);
     }
   else
     {
       /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
       arg = g_strdup_printf ("--file-access=%s", path);
-      res = get_output (&error, "flatpak", "info", arg, target_app_id, NULL);
+      res = xdp_spawn (&error, "flatpak", "info", arg, target_app_id, NULL);
     }
+
+  g_strchomp (res);
 
   if (res)
     {
