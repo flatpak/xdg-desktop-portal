@@ -122,17 +122,11 @@ xdp_close_fd (int *fdp)
 
 
 char *   xdp_quote_argv (const char           *argv[]);
-gboolean xdp_spawn      (GFile                *dir,
-                         char                **output,
-                         GSubprocessFlags      flags,
-                         GError              **error,
-                         const gchar          *argv0,
-                         va_list               ap);
-gboolean xdp_spawnv     (GFile                *dir,
-                         char                **output,
-                         GSubprocessFlags      flags,
-                         GError              **error,
-                         const gchar * const  *argv);
+char * xdp_spawn (GError             **error,
+                  const char          *argv0,
+                  ...) G_GNUC_NULL_TERMINATED;
+char * xdp_spawnv (const char * const  *argv,
+                   GError              **error);
 
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,

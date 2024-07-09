@@ -414,37 +414,34 @@ spawn_exit_cb (GObject      *obj,
   spawn_data_exit (data);
 }
 
-gboolean
-xdp_spawn (GFile       *dir,
-           char       **output,
-           GSubprocessFlags flags,
-           GError     **error,
-           const gchar *argv0,
-           va_list      ap)
+char *
+xdp_spawn (GError     **error,
+           const char  *argv0,
+           ...)
 {
   GPtrArray *args;
-  const gchar *arg;
-  gboolean res;
+  const char *arg;
+  va_list ap;
+  char *output;
 
+  va_start (ap, argv0);
   args = g_ptr_array_new ();
-  g_ptr_array_add (args, (gchar *) argv0);
-  while ((arg = va_arg (ap, const gchar *)))
-    g_ptr_array_add (args, (gchar *) arg);
+  g_ptr_array_add (args, (char *) argv0);
+  while ((arg = va_arg (ap, const char *)))
+    g_ptr_array_add (args, (char *) arg);
   g_ptr_array_add (args, NULL);
+  va_end (ap);
 
-  res = xdp_spawnv (dir, output, flags, error, (const gchar * const *) args->pdata);
+  output = xdp_spawnv ((const char * const *) args->pdata, error);
 
   g_ptr_array_free (args, TRUE);
 
-  return res;
+  return output;
 }
 
-gboolean
-xdp_spawnv (GFile                *dir,
-            char                **output,
-            GSubprocessFlags      flags,
-            GError              **error,
-            const gchar * const  *argv)
+char *
+xdp_spawnv (const char * const  *argv,
+            GError             **error)
 {
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subp = NULL;
@@ -452,20 +449,9 @@ xdp_spawnv (GFile                *dir,
   g_autoptr(GOutputStream) out = NULL;
   g_autoptr(GMainLoop) loop = NULL;
   SpawnData data = {0};
-  g_autofree gchar *commandline = NULL;
+  g_autofree char *commandline = NULL;
 
-  launcher = g_subprocess_launcher_new (0);
-
-  if (output)
-    flags |= G_SUBPROCESS_FLAGS_STDOUT_PIPE;
-
-  g_subprocess_launcher_set_flags (launcher, flags);
-
-  if (dir)
-    {
-      g_autofree char *path = g_file_get_path (dir);
-      g_subprocess_launcher_set_cwd (launcher, path);
-    }
+  launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
 
   commandline = xdp_quote_argv ((const char **)argv);
   g_debug ("Running: %s", commandline);
@@ -473,26 +459,22 @@ xdp_spawnv (GFile                *dir,
   subp = g_subprocess_launcher_spawnv (launcher, argv, error);
 
   if (subp == NULL)
-    return FALSE;
+    return NULL;
 
   loop = g_main_loop_new (NULL, FALSE);
 
   data.loop = loop;
-  data.refs = 1;
+  data.refs = 2;
 
-  if (output)
-    {
-      data.refs++;
-      in = g_subprocess_get_stdout_pipe (subp);
-      out = g_memory_output_stream_new_resizable ();
-      g_output_stream_splice_async (out,
-                                    in,
-                                    G_OUTPUT_STREAM_SPLICE_NONE,
-                                    0,
-                                    NULL,
-                                    spawn_output_spliced_cb,
-                                    &data);
-    }
+  in = g_subprocess_get_stdout_pipe (subp);
+  out = g_memory_output_stream_new_resizable ();
+  g_output_stream_splice_async (out,
+                                in,
+                                G_OUTPUT_STREAM_SPLICE_NONE,
+                                0,
+                                NULL,
+                                spawn_output_spliced_cb,
+                                &data);
 
   g_subprocess_wait_async (subp, NULL, spawn_exit_cb, &data);
 
@@ -502,7 +484,7 @@ xdp_spawnv (GFile                *dir,
     {
       g_propagate_error (error, data.error);
       g_clear_error (&data.splice_error);
-      return FALSE;
+      return NULL;
     }
 
   if (out)
@@ -510,16 +492,16 @@ xdp_spawnv (GFile                *dir,
       if (data.splice_error)
         {
           g_propagate_error (error, data.splice_error);
-          return FALSE;
+          return NULL;
         }
 
       /* Null terminate */
       g_output_stream_write (out, "\0", 1, NULL, NULL);
       g_output_stream_close (out, NULL, NULL);
-      *output = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
+      return g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
     }
 
-  return TRUE;
+  return NULL;
 }
 
 char *
