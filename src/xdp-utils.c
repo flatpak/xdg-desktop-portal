@@ -559,6 +559,7 @@ cleanup_temp_file (void *p)
   g_free (*pp);
 }
 
+#define VALIDATOR_INPUT_FD 3
 #define ICON_VALIDATOR_GROUP "Icon Validator"
 
 gboolean
@@ -572,16 +573,14 @@ xdp_validate_serialized_icon (GVariant  *v,
   __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
   xdp_autofd int fd = -1;
   g_autoptr(GOutputStream) stream = NULL;
-  int status;
   g_autofree char *format = NULL;
-  g_autofree char *stdoutlog = NULL;
-  g_autofree char *stderrlog = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
-  const char *args[4];
+  const char *args[5];
   int size;
   gconstpointer bytes_data;
   gsize bytes_len;
+  g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
 
   icon = g_icon_deserialize (v);
@@ -641,25 +640,19 @@ xdp_validate_serialized_icon (GVariant  *v,
 
   args[0] = icon_validator;
   args[1] = "--sandbox";
-  args[2] = name;
-  args[3] = NULL;
+  args[2] = "--fd";
+  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[4] = NULL;
 
-  if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
+  output = xdp_spawn_full (args, xdp_steal_fd (&fd), VALIDATOR_INPUT_FD, &error);
+  if (!output)
     {
-      g_warning ("Icon validation: %s", error->message);
-      g_warning ("stderr:\n%s\n", stderrlog);
-      return FALSE;
-    }
-
-  if (!g_spawn_check_exit_status (status, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      g_warning ("stderr:\n%s\n", stderrlog);
+      g_warning ("Icon validation: Rejecting icon because validator failed: %s", error->message);
       return FALSE;
     }
 
   key_file = g_key_file_new ();
-  if (!g_key_file_load_from_data (key_file, stdoutlog, -1, G_KEY_FILE_NONE, &error))
+  if (!g_key_file_load_from_data (key_file, output, -1, G_KEY_FILE_NONE, &error))
     {
       g_warning ("Icon validation: %s", error->message);
       return FALSE;
