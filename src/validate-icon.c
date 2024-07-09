@@ -16,6 +16,7 @@
  *
  * Authors:
  *       Matthias Clasen <mclasen@redhat.com>
+ *       Julian Sparber <jsparber@gnome.org>
  */
 
 /* The canonical copy of this file is in:
@@ -27,7 +28,10 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib/gstdio.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <unistd.h>
+
+#include "xdp-utils.h"
 
 #ifdef __FreeBSD__
 #define execvpe exect
@@ -36,37 +40,83 @@
 #define ICON_VALIDATOR_GROUP "Icon Validator"
 #define MAX_ICON_SIZE 512
 #define MAX_SVG_ICON_SIZE 4096
+#define BUFFER_SIZE 4096
 
 static int
-validate_icon (const char *filename)
+validate_icon (int input_fd)
 {
-  GdkPixbufFormat *format;
-  int max_size;
-  int width, height;
-  g_autofree char *name = NULL;
   const char *allowed_formats[] = { "png", "jpeg", "svg", NULL };
-  g_autoptr(GdkPixbuf) pixbuf = NULL;
+  g_autoptr(GBytes) bytes = NULL;
   g_autoptr(GError) error = NULL;
+  GdkPixbufFormat *format;
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *key_file_data = NULL;
+  g_autoptr(GdkPixbufLoader) loader = NULL;
+  g_autoptr(GMappedFile) mapped = NULL;
+  int max_size, width, height;
+  g_autofree char *name = NULL;
+  GdkPixbuf *pixbuf;
 
-  format = gdk_pixbuf_get_file_info (filename, &width, &height);
-  if (format == NULL)
+  /* Ensure that we read from the beginning of the file */
+  lseek (input_fd, 0, SEEK_SET);
+
+  mapped = g_mapped_file_new_from_fd (input_fd, FALSE, &error);
+  if (!mapped)
     {
-      g_printerr ("Format not recognized\n");
+      g_printerr ("Failed to create mapped file for image: %s\n", error->message);
       return 1;
     }
 
-  if (width != height)
+  bytes = g_mapped_file_get_bytes (mapped);
+
+  if (g_bytes_get_size (bytes) == 0)
     {
-      g_printerr ("Expected a square icon but got: %dx%d\n", width, height);
+      g_printerr ("Image is 0 bytes\n");
+      return 1;
+    }
+
+  loader = gdk_pixbuf_loader_new ();
+
+  if (!gdk_pixbuf_loader_write_bytes (loader, bytes, &error))
+    {
+      g_printerr ("Failed to load image: %s\n", error->message);
+      gdk_pixbuf_loader_close (loader, NULL);
+      return 1;
+    }
+
+  if (!gdk_pixbuf_loader_close (loader, &error))
+    {
+      g_printerr ("Failed to load image: %s\n", error->message);
+      return 1;
+    }
+
+  pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+  if (!pixbuf)
+    {
+      g_printerr ("Failed to load image: %s\n", error->message);
+      return 1;
+    }
+
+  format = gdk_pixbuf_loader_get_format (loader);
+  if (!format)
+    {
+      g_printerr ("Image format not recognized\n");
       return 1;
     }
 
   name = gdk_pixbuf_format_get_name (format);
   if (!g_strv_contains (allowed_formats, name))
     {
-      g_printerr ("Format %s not accepted\n", name);
+      g_printerr ("Image format %s not accepted\n", name);
+      return 1;
+    }
+
+  width = gdk_pixbuf_get_width (pixbuf);
+  height = gdk_pixbuf_get_height (pixbuf);
+
+  if (width != height)
+    {
+      g_printerr ("Expected a square image but got: %dx%d\n", width, height);
       return 1;
     }
 
@@ -80,17 +130,9 @@ validate_icon (const char *filename)
       return 1;
     }
 
-  pixbuf = gdk_pixbuf_new_from_file (filename, &error);
-  if (pixbuf == NULL)
-    {
-      g_printerr ("Failed to load image: %s\n", error->message);
-      return 1;
-    }
-
   /* Print the format and size for consumption by (at least) the dynamic
-   * launcher portal. xdg-desktop-portal has a copy of this file. Use a
-   * GKeyFile so the output can be easily extended in the future in a backwards
-   * compatible way.
+   * launcher portal. Use a GKeyFile so the output can be easily extended
+   * in the future in a backwards compatible way.
    */
   key_file = g_key_file_new ();
   g_key_file_set_string (key_file, ICON_VALIDATOR_GROUP, "format", name);
@@ -147,13 +189,14 @@ flatpak_get_bwrap (void)
 }
 
 static int
-rerun_in_sandbox (const char *filename)
+rerun_in_sandbox (int input_fd)
 {
   const char * const usrmerged_dirs[] = { "bin", "lib32", "lib64", "lib", "sbin" };
   int i;
   g_autoptr(GPtrArray) args = g_ptr_array_new_with_free_func (g_free);
   char validate_icon[PATH_MAX + 1];
   ssize_t symlink_size;
+  g_autofree char* arg_input_fd = NULL;
 
   symlink_size = readlink ("/proc/self/exe", validate_icon, sizeof (validate_icon) - 1);
   if (symlink_size < 0 || (size_t) symlink_size >= sizeof (validate_icon))
@@ -206,7 +249,6 @@ rerun_in_sandbox (const char *filename)
             "--setenv", "GIO_USE_VFS", "local",
             "--unsetenv", "TMPDIR",
             "--die-with-parent",
-            "--ro-bind", filename, filename,
             NULL);
 
   if (g_getenv ("G_MESSAGES_DEBUG"))
@@ -214,7 +256,8 @@ rerun_in_sandbox (const char *filename)
   if (g_getenv ("G_MESSAGES_PREFIXED"))
     add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
-  add_args (args, validate_icon, filename, NULL);
+  arg_input_fd = g_strdup_printf ("%d", input_fd);
+  add_args (args, validate_icon, "--fd", arg_input_fd, NULL);
   g_ptr_array_add (args, NULL);
 
   execvpe (flatpak_get_bwrap (), (char **) args->pdata, NULL);
@@ -224,10 +267,14 @@ rerun_in_sandbox (const char *filename)
 }
 #endif
 
-static gboolean opt_sandbox;
+static gboolean  opt_sandbox;
+static char     *opt_path = NULL;
+static int       opt_fd = -1;
 
 static GOptionEntry entries[] = {
   { "sandbox", 0, 0, G_OPTION_ARG_NONE, &opt_sandbox, "Run in a sandbox", NULL },
+  { "path", 0, 0, G_OPTION_ARG_FILENAME, &opt_path, "Read icon data from given file path. Required to be from a trusted source.", "PATH" },
+  { "fd", 0, 0, G_OPTION_ARG_INT, &opt_fd, "Read icon data from given file descriptor. Required to be from a trusted source or to be sealed", "FD" },
   { NULL }
 };
 
@@ -236,8 +283,9 @@ main (int argc, char *argv[])
 {
   g_autoptr(GOptionContext) context = NULL;
   g_autoptr(GError) error = NULL;
+  xdp_autofd int fd_path = -1;
 
-  context = g_option_context_new ("PATH");
+  context = g_option_context_new (NULL);
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))
     {
@@ -245,16 +293,34 @@ main (int argc, char *argv[])
       return 1;
     }
 
-  if (argc != 2)
+  if (opt_path != NULL && opt_fd != -1)
     {
-      g_printerr ("Usage: %s [OPTION…] PATH\n", argv[0]);
+      g_printerr ("Error: Only --path or --fd can be given\n");
+      return 1;
+    }
+
+  if (opt_path)
+    {
+      opt_fd = fd_path = g_open (opt_path, O_RDONLY, 0);
+      if (opt_fd == -1)
+        {
+          g_printerr ("Error: Couldn't open file\n");
+          return 1;
+        }
+    }
+  else if (opt_fd == -1)
+    {
+      g_autofree char *help = NULL;
+
+      help = g_option_context_get_help (context, TRUE, NULL);
+      g_printerr ("Error: Either --path or --fd needs to be given\n\n%s", help);
       return 1;
     }
 
 #ifdef HELPER
   if (opt_sandbox)
-    return rerun_in_sandbox (argv[1]);
+    return rerun_in_sandbox (opt_fd);
   else
 #endif
-    return validate_icon (argv[1]);
+    return validate_icon (opt_fd);
 }
