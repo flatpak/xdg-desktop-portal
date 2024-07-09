@@ -125,8 +125,10 @@ char *   xdp_quote_argv (const char           *argv[]);
 char * xdp_spawn (GError             **error,
                   const char          *argv0,
                   ...) G_GNUC_NULL_TERMINATED;
-char * xdp_spawnv (const char * const  *argv,
-                   GError              **error);
+char * xdp_spawn_full (const char * const  *argv,
+                       int                  source_fd,
+                       int                  target_fd,
+                       GError             **error);
 
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
