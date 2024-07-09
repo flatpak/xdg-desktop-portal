@@ -432,7 +432,7 @@ xdp_spawn (GError     **error,
   g_ptr_array_add (args, NULL);
   va_end (ap);
 
-  output = xdp_spawnv ((const char * const *) args->pdata, error);
+  output = xdp_spawn_full ((const char * const *) args->pdata, -1, -1, error);
 
   g_ptr_array_free (args, TRUE);
 
@@ -440,8 +440,10 @@ xdp_spawn (GError     **error,
 }
 
 char *
-xdp_spawnv (const char * const  *argv,
-            GError             **error)
+xdp_spawn_full (const char * const  *argv,
+                int                  source_fd,
+                int                  target_fd,
+                GError             **error)
 {
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subp = NULL;
@@ -452,6 +454,9 @@ xdp_spawnv (const char * const  *argv,
   g_autofree char *commandline = NULL;
 
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
+
+  if (source_fd != -1)
+    g_subprocess_launcher_take_fd (launcher, source_fd, target_fd);
 
   commandline = xdp_quote_argv ((const char **)argv);
   g_debug ("Running: %s", commandline);
