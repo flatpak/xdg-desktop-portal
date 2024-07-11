@@ -39,6 +39,7 @@
 #define MAX_ICON_SIZE 512
 #define MAX_SVG_ICON_SIZE 4096
 #define BUFFER_SIZE 4096
+#define MAX_FILE_SIZE 4194304 /* Max file size of 4MB */
 
 static int
 validate_icon (int input_fd)
@@ -66,6 +67,12 @@ validate_icon (int input_fd)
   if (g_bytes_get_size (bytes) == 0)
     {
       g_printerr ("Image is 0 bytes\n");
+      return 1;
+    }
+
+  if (g_bytes_get_size (bytes) > MAX_FILE_SIZE)
+    {
+      g_printerr ("Image is bigger then the allowed size\n");
       return 1;
     }
 
