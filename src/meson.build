@@ -57,6 +57,7 @@ xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files(
   'xdp-utils.c',
   'xdp-app-info.c',
+  'xdp-sealed-fd.c',
 )
 
 if have_libsystemd
