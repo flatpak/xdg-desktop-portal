@@ -44,8 +44,16 @@ get_permissions_sync (const char *app_id,
                                                         NULL,
                                                         &error))
     {
-      g_dbus_error_strip_remote_error (error);
-      g_debug ("No '%s' permissions found: %s", table, error->message);
+      if (error != NULL)
+        {
+          g_dbus_error_strip_remote_error (error);
+          g_debug ("No '%s' permissions found: %s", table, error->message);
+        }
+      else
+        {
+          g_debug ("No '%s' permissions found", table);
+        }
+
       return NULL;
     }
 
