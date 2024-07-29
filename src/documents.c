@@ -39,17 +39,23 @@
 static XdpDbusDocuments *documents = NULL;
 static char *documents_mountpoint = NULL;
 
-void
-init_document_proxy (GDBusConnection *connection)
+gboolean
+init_document_proxy (GDBusConnection  *connection,
+                     GError          **error)
 {
   documents = xdp_dbus_documents_proxy_new_sync (connection, 0,
                                                  "org.freedesktop.portal.Documents",
                                                  "/org/freedesktop/portal/documents",
-                                                 NULL, NULL);
+                                                 NULL, error);
+  if (!documents)
+    return FALSE;
+
   xdp_dbus_documents_call_get_mount_point_sync (documents,
                                                 &documents_mountpoint,
                                                 NULL, NULL);
   xdp_set_documents_mountpoint (documents_mountpoint);
+
+  return TRUE;
 }
 
 char *

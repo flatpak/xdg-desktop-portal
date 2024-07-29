@@ -53,5 +53,6 @@ char **permissions_from_tristate (Permission permission);
 
 Permission permissions_to_tristate (char **permissions);
 
-void init_permission_store (GDBusConnection *connection);
+gboolean init_permission_store (GDBusConnection  *connection,
+                                GError          **error);
 XdpDbusImplPermissionStore *get_permission_store (void);
