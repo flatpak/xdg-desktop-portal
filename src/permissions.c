@@ -161,18 +161,16 @@ void set_permission_sync (const char *app_id,
   set_permissions_sync (app_id, table, id, (const char * const *)perms);
 }
 
-void
-init_permission_store (GDBusConnection *connection)
+gboolean
+init_permission_store (GDBusConnection  *connection,
+                       GError          **error)
 {
-  g_autoptr(GError) error = NULL;
-
   permission_store = xdp_dbus_impl_permission_store_proxy_new_sync (connection,
                                                                     G_DBUS_PROXY_FLAGS_NONE,
                                                                     "org.freedesktop.impl.portal.PermissionStore",
                                                                     "/org/freedesktop/impl/portal/PermissionStore",
-                                                                    NULL, &error);
-  if (permission_store == NULL)
-    g_warning ("No permission store: %s", error->message);
+                                                                    NULL, error);
+  return (permission_store != NULL);
 }
 
 XdpDbusImplPermissionStore *

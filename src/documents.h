@@ -30,7 +30,8 @@ typedef enum {
   DOCUMENT_FLAG_DELETABLE = (1 << 3),
 } DocumentFlags;
 
-void init_document_proxy (GDBusConnection *connection);
+gboolean init_document_proxy (GDBusConnection  *connection,
+                              GError          **error);
 
 char *register_document (const char *uri,
                          const char *app_id,
