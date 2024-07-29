@@ -196,8 +196,7 @@ on_bus_acquired (GDBusConnection *connection,
   PortalImplementation *implementation;
   PortalImplementation *lockdown_impl;
   PortalImplementation *access_impl;
-  g_autoptr(GError) error = NULL;
-  XdpDbusImplLockdown *lockdown;
+  XdpDbusImplLockdown *lockdown = NULL;
   GQuark portal_errors G_GNUC_UNUSED;
   GPtrArray *impls;
 
@@ -214,8 +213,9 @@ on_bus_acquired (GDBusConnection *connection,
                                                       G_DBUS_PROXY_FLAGS_NONE,
                                                       lockdown_impl->dbus_name,
                                                       DESKTOP_PORTAL_OBJECT_PATH,
-                                                      NULL, &error);
-  else
+                                                      NULL, NULL);
+
+  if (lockdown == NULL)
     lockdown = xdp_dbus_impl_lockdown_skeleton_new ();
 
   export_portal_implementation (connection, memory_monitor_create (connection));
