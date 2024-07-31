@@ -43,10 +43,10 @@ interface is implemented by GNOME Shell.
    :doc:`Configuration File </configuration-file>`
 
 *  .. image:: _static/img/tiles/System-integration-l.png
-      :target: configuration-file.html
+      :target: system-integration.html
       :class: only-light
    .. image:: _static/img/tiles/System-integration-d.png
-      :target: configuration-file.html
+      :target: system-integration.html
       :class: only-dark
 
    :doc:`System Integration </system-integration>`
