@@ -21,6 +21,7 @@ interface is implemented by GNOME Shell.
 
    writing-a-new-backend
    configuration-file
+   system-integration
 
 .. cssclass:: tiled-toc
 
@@ -40,6 +41,15 @@ interface is implemented by GNOME Shell.
       :class: only-dark
 
    :doc:`Configuration File </configuration-file>`
+
+*  .. image:: _static/img/tiles/System-integration-l.png
+      :target: configuration-file.html
+      :class: only-light
+   .. image:: _static/img/tiles/System-integration-d.png
+      :target: configuration-file.html
+      :class: only-dark
+
+   :doc:`System Integration </system-integration>`
 
 D-Bus Interfaces
 ----------------
