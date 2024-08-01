@@ -322,6 +322,26 @@ is_valid_name (const char *name)
 static GStrv
 get_manifest_search_path (WebExtensionsSessionMode mode)
 {
+  /* IMPORTANT:
+     The safety model depends on the inability of the sandboxed
+     browser to write to the search locations specified below.
+
+     As this portal allows browser extensions to run a native
+     messaging application outside of the sandbox through the portal,
+     the sandboxing mechanism must ensure that these locations are
+     inaccessible to the browser.  If the locations are both readable
+     AND writable by the sandboxed browser, then a vulnerability
+     resulting in a file writing primitive within the sandbox could
+     result in arbitrary code execution outside of the sandbox through
+     the portal.
+
+     For example, the Firefox Snap package meets this criterion,
+     because all strictly confined Snap packages (including Firefox)
+     are prohibited by AppArmor from accessing most directories and
+     files in the user's home directory, except where explicitly
+     specified, for instance using the 'personal-files' interface.
+     https://snapcraft.io/docs/personal-files-interface
+  */
   const char *hosts_path_str;
   g_autoptr(GPtrArray) search_path = NULL;
 
@@ -353,6 +373,7 @@ get_manifest_search_path (WebExtensionsSessionMode mode)
        */
       /* Add per-user directories */
       g_ptr_array_add (search_path, g_build_filename (g_get_home_dir (), ".mozilla", "native-messaging-hosts", NULL));
+      g_ptr_array_add (search_path, g_build_filename (g_get_user_config_dir (), "mozilla", "native-messaging-hosts", NULL));
       /* Add system wide directories */
       g_ptr_array_add (search_path, g_strdup ("/usr/lib/mozilla/native-messaging-hosts"));
       g_ptr_array_add (search_path, g_strdup ("/usr/lib64/mozilla/native-messaging-hosts"));
