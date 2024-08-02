@@ -86,6 +86,9 @@ config_h.set_quoted('PACKAGE_STRING', 'xdg-desktop-portal @0@'.format(meson.proj
 if cc.has_function('renameat2')
   config_h.set('HAVE_RENAMEAT2', 1)
 endif
+if cc.has_function('splice')
+  config_h.set('HAVE_SPLICE', 1)
+endif
 
 check_headers = [
   ['sys/vfs.h', 'HAVE_SYS_VFS_H'],
