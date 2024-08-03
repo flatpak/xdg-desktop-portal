@@ -110,6 +110,7 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -165,7 +166,7 @@
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
@@ -184,6 +185,7 @@
     -->
     <method name="NotifyPointerMotion">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="d" name="dx" direction="in"/>
       <arg type="d" name="dy" direction="in"/>
@@ -203,6 +205,7 @@
     -->
     <method name="NotifyPointerMotionAbsolute">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="stream" direction="in"/>
       <arg type="d" name="x" direction="in"/>
@@ -227,6 +230,7 @@
     -->
     <method name="NotifyPointerButton">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="i" name="button" direction="in"/>
       <arg type="u" name="state" direction="in"/>
@@ -255,6 +259,7 @@
     -->
     <method name="NotifyPointerAxis">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="d" name="dx" direction="in"/>
       <arg type="d" name="dy" direction="in"/>
@@ -276,6 +281,7 @@
     -->
     <method name="NotifyPointerAxisDiscrete">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="axis" direction="in"/>
       <arg type="i" name="steps" direction="in"/>
@@ -297,6 +303,7 @@
     -->
     <method name="NotifyKeyboardKeycode">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="i" name="keycode" direction="in"/>
       <arg type="u" name="state" direction="in"/>
@@ -318,6 +325,7 @@
     -->
     <method name="NotifyKeyboardKeysym">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="i" name="keysym" direction="in"/>
       <arg type="u" name="state" direction="in"/>
@@ -341,6 +349,7 @@
     -->
     <method name="NotifyTouchDown">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="stream" direction="in"/>
       <arg type="u" name="slot" direction="in"/>
@@ -366,6 +375,7 @@
     -->
     <method name="NotifyTouchMotion">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="stream" direction="in"/>
       <arg type="u" name="slot" direction="in"/>
@@ -385,6 +395,7 @@
     -->
     <method name="NotifyTouchUp">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="slot" direction="in"/>
     </method>
@@ -404,7 +415,7 @@
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="h" name="fd" direction="out"/>
     </method>

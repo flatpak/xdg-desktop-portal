@@ -91,6 +91,7 @@
       <arg type="s" name="token" direction="in"/>
       <arg type="s" name="desktop_file_id" direction="in"/>
       <arg type="s" name="desktop_entry" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
     <!--
@@ -153,6 +154,7 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="name" direction="in"/>
       <arg type="v" name="icon_v" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -176,6 +178,7 @@
     <method name="RequestInstallToken">
       <arg type="s" name="name" direction="in"/>
       <arg type="v" name="icon_v" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="s" name="token" direction="out"/>
     </method>
@@ -217,6 +220,7 @@
     -->
     <method name="Uninstall">
       <arg type="s" name="desktop_file_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
     <!--
@@ -289,6 +293,7 @@
     -->
     <method name="Launch">
       <arg type="s" name="desktop_file_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
     <!--

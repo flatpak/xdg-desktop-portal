@@ -62,6 +62,7 @@
     <method name="Inhibit">
       <arg type="s" name="window" direction="in"/>
       <arg type="u" name="flags" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -107,6 +108,7 @@
     -->
     <method name="CreateMonitor">
       <arg type="s" name="window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -142,6 +144,7 @@
     -->
     <signal name="StateChanged">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="state" direction="out"/>
     </signal>
 

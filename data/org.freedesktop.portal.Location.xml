@@ -67,6 +67,7 @@
           - ``EXACT``: 5
     -->
     <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -92,6 +93,7 @@
     <method name="Start">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -136,6 +138,7 @@
       -->
     <signal name="LocationUpdated">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="location" direction="out"/>
     </signal>
 

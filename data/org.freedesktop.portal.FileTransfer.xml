@@ -80,6 +80,7 @@
           Default: True
     -->
     <method name="StartTransfer">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="s" name="key" direction="out"/>
     </method>
@@ -103,7 +104,9 @@
     <method name="AddFiles">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="key" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QDBusUnixFileDescriptor&gt;"/>
       <arg type="ah" name="fds" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
 
@@ -125,6 +128,7 @@
     -->
     <method name="RetrieveFiles">
       <arg type="s" name="key" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="as" name="files" direction="out"/>
     </method>

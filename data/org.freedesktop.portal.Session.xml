@@ -68,6 +68,7 @@
         The content of @details is specified by the interface creating the session.
     -->
     <signal name="Closed">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
       <arg type="a{sv}" name="details"/>
     </signal>
     <property name="version" type="u" access="read"/>

@@ -43,7 +43,7 @@
 
       This document describes version 2 of the permission store interface.
   -->
-  <interface name='org.freedesktop.impl.portal.PermissionStore'>
+  <interface name="org.freedesktop.impl.portal.PermissionStore">
     <property name="version" type="u" access="read"/>
 
     <!--
@@ -57,10 +57,11 @@
         all associated application permissions and data.
     -->
     <method name="Lookup">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='permissions' type='a{sas}' direction='out'/>
-      <arg name='data' type='v' direction='out'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QStringList&gt;"/>
+      <arg name="permissions" type="a{sas}" direction="out"/>
+      <arg name="data" type="v" direction="out"/>
     </method>
 
     <!--
@@ -74,11 +75,12 @@
         Writes the entry for a resource in the given table.
     -->
     <method name="Set">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='create' type='b' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='app_permissions' type='a{sas}' direction='in'/>
-      <arg name='data' type='v' direction='in'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="create" type="b" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QMap&lt;QString,QStringList&gt;"/>
+      <arg name="app_permissions" type="a{sas}" direction="in"/>
+      <arg name="data" type="v" direction="in"/>
     </method>
 
     <!--
@@ -89,8 +91,8 @@
         Removes the entry for a resource in the given table.
     -->
     <method name="Delete">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
     </method>
 
     <!--
@@ -103,10 +105,10 @@
         Sets just the data for a resource in the given table.
     -->
     <method name="SetValue">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='create' type='b' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='data' type='v' direction='in'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="create" type="b" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <arg name="data" type="v" direction="in"/>
     </method>
 
     <!--
@@ -121,11 +123,11 @@
         in the given table.
     -->
     <method name="SetPermission">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='create' type='b' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='app' type='s' direction='in'/>
-      <arg name='permissions' type='as' direction='in'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="create" type="b" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <arg name="app" type="s" direction="in"/>
+      <arg name="permissions" type="as" direction="in"/>
     </method>
 
     <!--
@@ -140,9 +142,9 @@
         This method was added in version 2.
     -->
     <method name="DeletePermission">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='app' type='s' direction='in'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <arg name="app" type="s" direction="in"/>
     </method>
 
     <!--
@@ -156,10 +158,10 @@
         in the given table.
     -->
     <method name="GetPermission">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='id' type='s' direction='in'/>
-      <arg name='app' type='s' direction='in'/>
-      <arg name='permissions' type='as' direction='out'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="id" type="s" direction="in"/>
+      <arg name="app" type="s" direction="in"/>
+      <arg name="permissions" type="as" direction="out"/>
     </method>
 
     <!--
@@ -170,8 +172,8 @@
         Returns all the resources that are present in the table.
     -->
     <method name="List">
-      <arg name='table' type='s' direction='in'/>
-      <arg name='ids' type='as' direction='out'/>
+      <arg name="table" type="s" direction="in"/>
+      <arg name="ids" type="as" direction="out"/>
     </method>
 
     <!--
@@ -188,11 +190,12 @@
         database. If the entry was modified, they contain the new values.
     -->
     <signal name="Changed">
-      <arg name='table' type='s' direction='out'/>
-      <arg name='id' type='s' direction='out'/>
-      <arg name='deleted' type='b' direction='out'/>
-      <arg name='data' type='v' direction='out'/>
-      <arg name='permissions' type='a{sas}' direction='out'/>
+      <arg name="table" type="s" direction="out"/>
+      <arg name="id" type="s" direction="out"/>
+      <arg name="deleted" type="b" direction="out"/>
+      <arg name="data" type="v" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out4" value="QMap&lt;QString,QStringList&gt;"/>
+      <arg name="permissions" type="a{sas}" direction="out"/>
     </signal>
   </interface>
 

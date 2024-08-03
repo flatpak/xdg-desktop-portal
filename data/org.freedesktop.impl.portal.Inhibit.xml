@@ -111,6 +111,7 @@
     -->
     <signal name="StateChanged">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="state" direction="out"/>
     </signal>
 
