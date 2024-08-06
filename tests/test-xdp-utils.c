@@ -3,7 +3,12 @@
 #include <glib.h>
 
 #include "xdp-app-info-private.h"
+#include "xdp-app-info-snap-private.h"
+#include "xdp-app-info-host-private.h"
 #include "xdp-utils.h"
+
+#define snap_parse_cgroup _xdp_app_info_snap_parse_cgroup_file
+#define host_parse_app_id _xdp_app_info_host_parse_app_id_from_unit_name
 
 static void
 test_parse_cgroup_unified (void)
@@ -15,7 +20,7 @@ test_parse_cgroup_unified (void)
 
   f = fmemopen(data, sizeof(data), "r");
 
-  res = _xdp_parse_cgroup_file (f, &is_snap);
+  res = snap_parse_cgroup (f, &is_snap);
   g_assert_cmpint (res, ==, 0);
   g_assert_true (is_snap);
   fclose(f);
@@ -44,7 +49,7 @@ test_parse_cgroup_freezer (void)
 
   f = fmemopen(data, sizeof(data), "r");
 
-  res = _xdp_parse_cgroup_file (f, &is_snap);
+  res = snap_parse_cgroup (f, &is_snap);
   g_assert_cmpint (res, ==, 0);
   g_assert_true (is_snap);
   fclose(f);
@@ -60,7 +65,7 @@ test_parse_cgroup_systemd (void)
 
   f = fmemopen(data, sizeof(data), "r");
 
-  res = _xdp_parse_cgroup_file (f, &is_snap);
+  res = snap_parse_cgroup (f, &is_snap);
   g_assert_cmpint (res, ==, 0);
   g_assert_true (is_snap);
   fclose(f);
@@ -90,7 +95,7 @@ test_parse_cgroup_not_snap (void)
 
   f = fmemopen(data, sizeof(data), "r");
 
-  res = _xdp_parse_cgroup_file (f, &is_snap);
+  res = snap_parse_cgroup (f, &is_snap);
   g_assert_cmpint (res, ==, 0);
   g_assert_false (is_snap);
   fclose(f);
@@ -134,52 +139,52 @@ test_app_id_via_systemd_unit (void)
 {
   g_autofree char *app_id = NULL;
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-not-a-well-formed-unit-name");
+  app_id = host_parse_app_id ("app-not-a-well-formed-unit-name");
   g_assert_cmpstr (app_id, ==, "");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Evolution\\x2dalarm\\x2dnotify-2437.scope");
+  app_id = host_parse_app_id ("app-gnome-org.gnome.Evolution\\x2dalarm\\x2dnotify-2437.scope");
   /* Note, this is not Evolution's app ID, because the scope is for a background service */
   g_assert_cmpstr (app_id, ==, "org.gnome.Evolution-alarm-notify");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Epiphany-182352.scope");
+  app_id = host_parse_app_id ("app-gnome-org.gnome.Epiphany-182352.scope");
   g_assert_cmpstr (app_id, ==, "org.gnome.Epiphany");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-glib-spice\\x2dvdagent-1839.scope");
+  app_id = host_parse_app_id ("app-glib-spice\\x2dvdagent-1839.scope");
   g_assert_cmpstr (app_id, ==, "spice-vdagent");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-KDE-org.kde.okular@12345.service");
+  app_id = host_parse_app_id ("app-KDE-org.kde.okular@12345.service");
   g_assert_cmpstr (app_id, ==, "org.kde.okular");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-firefox.service");
+  app_id = host_parse_app_id ("app-firefox.service");
   g_assert_cmpstr (app_id, ==, "firefox");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-org.kde.amarok.service");
+  app_id = host_parse_app_id ("app-org.kde.amarok.service");
   g_assert_cmpstr (app_id, ==, "org.kde.amarok");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.SettingsDaemon.DiskUtilityNotify-autostart.service");
+  app_id = host_parse_app_id ("app-gnome-org.gnome.SettingsDaemon.DiskUtilityNotify-autostart.service");
   g_assert_cmpstr (app_id, ==, "org.gnome.SettingsDaemon.DiskUtilityNotify");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-org.gnome.Terminal-92502.slice");
+  app_id = host_parse_app_id ("app-gnome-org.gnome.Terminal-92502.slice");
   g_assert_cmpstr (app_id, ==, "org.gnome.Terminal");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-com.obsproject.Studio-d70acc38b5154a3a8b4a60accc4b15f4.scope");
+  app_id = host_parse_app_id ("app-com.obsproject.Studio-d70acc38b5154a3a8b4a60accc4b15f4.scope");
   g_assert_cmpstr (app_id, ==, "com.obsproject.Studio");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-firefox-jcfppqx.scope");
+  app_id = host_parse_app_id ("app-firefox-jcfppqx.scope");
   g_assert_cmpstr (app_id, ==, "firefox");
   g_clear_pointer (&app_id, g_free);
 
-  app_id = _xdp_parse_app_id_from_unit_name ("app-gnome-firefox.service");
+  app_id = host_parse_app_id ("app-gnome-firefox.service");
   g_assert_cmpstr (app_id, ==, "firefox");
   g_clear_pointer (&app_id, g_free);
 }
