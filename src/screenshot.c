@@ -262,8 +262,8 @@ handle_screenshot_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+          title = g_strdup (_("Allow Apps to Take Screenshots?"));
+          subtitle = g_strdup (_("An app wants to be able to take screenshots at any time."));
         }
 
       body = _("This permission can be changed at any time from the privacy settings.");
