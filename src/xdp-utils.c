@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -414,37 +415,36 @@ spawn_exit_cb (GObject      *obj,
   spawn_data_exit (data);
 }
 
-gboolean
-xdp_spawn (GFile       *dir,
-           char       **output,
-           GSubprocessFlags flags,
-           GError     **error,
+gchar *
+xdp_spawn (GError     **error,
            const gchar *argv0,
-           va_list      ap)
+           ...)
 {
   GPtrArray *args;
   const gchar *arg;
-  gboolean res;
+  va_list ap;
+  gchar *output;
 
+  va_start (ap, argv0);
   args = g_ptr_array_new ();
   g_ptr_array_add (args, (gchar *) argv0);
   while ((arg = va_arg (ap, const gchar *)))
     g_ptr_array_add (args, (gchar *) arg);
   g_ptr_array_add (args, NULL);
+  va_end (ap);
 
-  res = xdp_spawnv (dir, output, flags, error, (const gchar * const *) args->pdata);
+  output = xdp_spawn_full ((const gchar * const *) args->pdata, -1, -1, error);
 
   g_ptr_array_free (args, TRUE);
 
-  return res;
+  return output;
 }
 
-gboolean
-xdp_spawnv (GFile                *dir,
-            char                **output,
-            GSubprocessFlags      flags,
-            GError              **error,
-            const gchar * const  *argv)
+gchar *
+xdp_spawn_full (const gchar * const  *argv,
+                int                   source_fd,
+                int                   target_fd,
+                GError              **error)
 {
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subp = NULL;
@@ -454,18 +454,10 @@ xdp_spawnv (GFile                *dir,
   SpawnData data = {0};
   g_autofree gchar *commandline = NULL;
 
-  launcher = g_subprocess_launcher_new (0);
+  launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_STDOUT_PIPE);
 
-  if (output)
-    flags |= G_SUBPROCESS_FLAGS_STDOUT_PIPE;
-
-  g_subprocess_launcher_set_flags (launcher, flags);
-
-  if (dir)
-    {
-      g_autofree char *path = g_file_get_path (dir);
-      g_subprocess_launcher_set_cwd (launcher, path);
-    }
+  if (source_fd != -1)
+    g_subprocess_launcher_take_fd (launcher, source_fd, target_fd);
 
   commandline = xdp_quote_argv ((const char **)argv);
   g_debug ("Running: %s", commandline);
@@ -473,26 +465,22 @@ xdp_spawnv (GFile                *dir,
   subp = g_subprocess_launcher_spawnv (launcher, argv, error);
 
   if (subp == NULL)
-    return FALSE;
+    return NULL;
 
   loop = g_main_loop_new (NULL, FALSE);
 
   data.loop = loop;
-  data.refs = 1;
+  data.refs = 2;
 
-  if (output)
-    {
-      data.refs++;
-      in = g_subprocess_get_stdout_pipe (subp);
-      out = g_memory_output_stream_new_resizable ();
-      g_output_stream_splice_async (out,
-                                    in,
-                                    G_OUTPUT_STREAM_SPLICE_NONE,
-                                    0,
-                                    NULL,
-                                    spawn_output_spliced_cb,
-                                    &data);
-    }
+  in = g_subprocess_get_stdout_pipe (subp);
+  out = g_memory_output_stream_new_resizable ();
+  g_output_stream_splice_async (out,
+                                in,
+                                G_OUTPUT_STREAM_SPLICE_NONE,
+                                0,
+                                NULL,
+                                spawn_output_spliced_cb,
+                                &data);
 
   g_subprocess_wait_async (subp, NULL, spawn_exit_cb, &data);
 
@@ -502,7 +490,7 @@ xdp_spawnv (GFile                *dir,
     {
       g_propagate_error (error, data.error);
       g_clear_error (&data.splice_error);
-      return FALSE;
+      return NULL;
     }
 
   if (out)
@@ -510,16 +498,16 @@ xdp_spawnv (GFile                *dir,
       if (data.splice_error)
         {
           g_propagate_error (error, data.splice_error);
-          return FALSE;
+          return NULL;
         }
 
       /* Null terminate */
       g_output_stream_write (out, "\0", 1, NULL, NULL);
       g_output_stream_close (out, NULL, NULL);
-      *output = g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
+      return g_memory_output_stream_steal_data (G_MEMORY_OUTPUT_STREAM (out));
     }
 
-  return TRUE;
+  return NULL;
 }
 
 char *
@@ -562,66 +550,25 @@ xdp_has_path_prefix (const char *str,
     }
 }
 
-void
-cleanup_temp_file (void *p)
-{
-  void **pp = (void **)p;
-
-  if (*pp)
-    remove (*pp);
-  g_free (*pp);
-}
-
+#define VALIDATOR_INPUT_FD 3
 #define ICON_VALIDATOR_GROUP "Icon Validator"
+#define SOUND_VALIDATOR_GROUP "Sound Validator"
 
 gboolean
-xdp_validate_serialized_icon (GVariant  *v,
-                              gboolean   bytes_only,
-                              char     **out_format,
-                              char     **out_size)
+xdp_validate_icon (XdpSealedFd  *icon,
+                   char        **out_format,
+                   char        **out_size)
 {
-  g_autoptr(GIcon) icon = NULL;
-  GBytes *bytes;
-  __attribute__((cleanup(cleanup_temp_file))) char *name = NULL;
-  xdp_autofd int fd = -1;
-  g_autoptr(GOutputStream) stream = NULL;
-  int status;
   g_autofree char *format = NULL;
-  g_autofree char *stdoutlog = NULL;
-  g_autofree char *stderrlog = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
-  const char *args[6];
-  /* same allowed formats as Flatpak */
-  const char *allowed_icon_formats[] = { "png", "jpeg", "svg", NULL };
+  const char *args[5];
   int size;
-  const char *MAX_ICON_SIZE = "512";
-  gconstpointer bytes_data;
-  gsize bytes_len;
+  g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
 
-  icon = g_icon_deserialize (v);
-  if (!icon)
-    {
-      g_warning ("Icon deserialization failed");
-      return FALSE;
-    }
-
-  if (!bytes_only && G_IS_THEMED_ICON (icon))
-    {
-      g_autofree char *a = g_strjoinv (" ", (char **)g_themed_icon_get_names (G_THEMED_ICON (icon)));
-      g_debug ("Icon validation: themed icon (%s) is ok", a);
-      return TRUE;
-    }
-
-  if (!G_IS_BYTES_ICON (icon))
-    {
-      g_warning ("Unexpected icon type: %s", G_OBJECT_TYPE_NAME (icon));
-      return FALSE;
-    }
-
   if (g_getenv ("XDP_VALIDATE_ICON"))
-    icon_validator = g_getenv ("XDP_VALIDATE_ICON");
+      icon_validator = g_getenv ("XDP_VALIDATE_ICON");
 
   if (!g_file_test (icon_validator, G_FILE_TEST_EXISTS))
     {
@@ -629,63 +576,27 @@ xdp_validate_serialized_icon (GVariant  *v,
       return FALSE;
     }
 
-  bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
-  fd = g_file_open_tmp ("iconXXXXXX", &name, &error);
-  if (fd == -1)
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
-  stream = g_unix_output_stream_new (fd, FALSE);
-
-  /* Use write_all() instead of write_bytes() so we don't have to worry about
-   * partial writes (https://gitlab.gnome.org/GNOME/glib/-/issues/570).
-   */
-  bytes_data = g_bytes_get_data (bytes, &bytes_len);
-  if (!g_output_stream_write_all (stream, bytes_data, bytes_len, NULL, NULL, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
-  if (!g_output_stream_close (stream, NULL, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      return FALSE;
-    }
-
   args[0] = icon_validator;
   args[1] = "--sandbox";
-  args[2] = MAX_ICON_SIZE;
-  args[3] = MAX_ICON_SIZE;
-  args[4] = name;
-  args[5] = NULL;
+  args[2] = "--fd";
+  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[4] = NULL;
 
-  if (!g_spawn_sync (NULL, (char **)args, NULL, 0, NULL, NULL, &stdoutlog, &stderrlog, &status, &error))
+  if (!(output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (icon), VALIDATOR_INPUT_FD, &error)))
     {
-      g_warning ("Icon validation: %s", error->message);
-      g_warning ("stderr:\n%s\n", stderrlog);
-      return FALSE;
-    }
-
-  if (!g_spawn_check_exit_status (status, &error))
-    {
-      g_warning ("Icon validation: %s", error->message);
-      g_warning ("stderr:\n%s\n", stderrlog);
+      g_warning ("Icon validation: Rejecting icon because validator failed: %s", error->message);
       return FALSE;
     }
 
   key_file = g_key_file_new ();
-  if (!g_key_file_load_from_data (key_file, stdoutlog, -1, G_KEY_FILE_NONE, &error))
+  if (!g_key_file_load_from_data (key_file, output, -1, G_KEY_FILE_NONE, &error))
     {
       g_warning ("Icon validation: %s", error->message);
       return FALSE;
     }
-  if (!(format = g_key_file_get_string (key_file, ICON_VALIDATOR_GROUP, "format", &error)) ||
-      !g_strv_contains (allowed_icon_formats, format))
+  if (!(format = g_key_file_get_string (key_file, ICON_VALIDATOR_GROUP, "format", &error)))
     {
-      g_warning ("Icon validation: %s", error ? error->message : "not allowed format");
+      g_warning ("Icon validation: %s", error->message);
       return FALSE;
     }
   if (!(size = g_key_file_get_integer (key_file, ICON_VALIDATOR_GROUP, "width", &error)))
@@ -698,6 +609,46 @@ xdp_validate_serialized_icon (GVariant  *v,
     *out_format = g_steal_pointer (&format);
   if (out_size)
     *out_size = g_strdup_printf ("%d", size);
+
+  return TRUE;
+}
+
+gboolean
+xdp_validate_sound (XdpSealedFd  *sound)
+{
+  const char *args[5];
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GKeyFile) key_file = NULL;
+  g_autofree char *output = NULL;
+  const char *sound_validator = LIBEXECDIR "/xdg-desktop-portal-validate-sound";
+
+  if (g_getenv ("XDP_VALIDATE_SOUND"))
+    sound_validator = g_getenv ("XDP_VALIDATE_SOUND");
+
+  if (!g_file_test (sound_validator, G_FILE_TEST_EXISTS))
+    {
+      g_warning ("Sound validation: %s not found, rejecting sound by default.", sound_validator);
+      return FALSE;
+    }
+
+  args[0] = sound_validator;
+  args[1] = "--sandbox";
+  args[2] = "--fd";
+  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[4] = NULL;
+
+  if (!(output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (sound), VALIDATOR_INPUT_FD, &error)))
+    {
+      g_warning ("Sound validation: Rejecting sound because validator failed: %s", error->message);
+      return FALSE;
+    }
+
+  key_file = g_key_file_new ();
+  if (!g_key_file_load_from_data (key_file, output, -1, G_KEY_FILE_NONE, &error))
+    {
+      g_warning ("Icon validation: %s", error->message);
+      return FALSE;
+    }
 
   return TRUE;
 }

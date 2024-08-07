@@ -65,6 +65,9 @@ jobs:
           libgdk-pixbuf-2.0-dev \
           librsvg2-2 \
           librsvg2-common \
+          libgstreamer-plugins-base1.0-dev \
+          gstreamer1.0-plugins-good \
+          libgstreamer-plugins-good1.0-dev \
           libgeoclue-2-dev \
           libglib2.0-dev \
           libjson-glib-dev \

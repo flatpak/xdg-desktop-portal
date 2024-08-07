@@ -30,6 +30,7 @@
 #include <errno.h>
 
 #include "glib-backports.h"
+#include "xdp-sealed-fd.h"
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
@@ -42,10 +43,11 @@ gboolean xdp_is_valid_app_id (const char *string);
 
 char *xdp_get_app_id_from_desktop_id (const char *desktop_id);
 
-gboolean xdp_validate_serialized_icon (GVariant  *v,
-                                       gboolean   bytes_only,
-                                       char     **out_format,
-                                       char     **out_size);
+gboolean xdp_validate_icon (XdpSealedFd  *icon,
+                            char        **out_format,
+                            char        **out_size);
+
+gboolean xdp_validate_sound (XdpSealedFd *sound);
 
 typedef void (*XdpPeerDiedCallback) (const char *name);
 
@@ -122,17 +124,13 @@ xdp_close_fd (int *fdp)
 
 
 char *   xdp_quote_argv (const char           *argv[]);
-gboolean xdp_spawn      (GFile                *dir,
-                         char                **output,
-                         GSubprocessFlags      flags,
-                         GError              **error,
+char *   xdp_spawn      (GError              **error,
                          const gchar          *argv0,
-                         va_list               ap);
-gboolean xdp_spawnv     (GFile                *dir,
-                         char                **output,
-                         GSubprocessFlags      flags,
-                         GError              **error,
-                         const gchar * const  *argv);
+                         ...) G_GNUC_NULL_TERMINATED;
+char *   xdp_spawn_full (const gchar * const  *argv,
+                         int                   source_fd,
+                         int                   target_fd,
+                         GError              **error);
 
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,

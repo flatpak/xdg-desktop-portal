@@ -27,6 +27,7 @@ jobs:
             fuse3-devel \
             gcc \
             gdk-pixbuf2-devel \
+            gstreamer1-plugins-base-devel \
             geoclue2-devel \
             gettext \
             glib2-devel \

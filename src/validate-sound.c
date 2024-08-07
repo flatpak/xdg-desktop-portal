@@ -1,5 +1,6 @@
 /*
  * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2024 GNOME Foundation Inc.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -19,115 +20,167 @@
  *       Julian Sparber <jsparber@gnome.org>
  */
 
-/* The canonical copy of this file is in:
- * - https://github.com/flatpak/flatpak at icon-validator/validate-icon.c
- * Known copies of this file are in:
- * - https://github.com/flatpak/xdg-desktop-portal at src/validate-icon.c
- */
+/* This is based on src/validate-icon.c */
 
-#include <gdk-pixbuf/gdk-pixbuf.h>
-#include <glib/gstdio.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <gst/gst.h>
+#include <gst/pbutils/pbutils.h>
+#include <glib/gstdio.h>
 #include <unistd.h>
 
 #ifdef __FreeBSD__
 #define execvpe exect
 #endif
 
-#define ICON_VALIDATOR_GROUP "Icon Validator"
-#define MAX_ICON_SIZE 512
-#define MAX_SVG_ICON_SIZE 4096
-#define BUFFER_SIZE 4096
-#define MAX_FILE_SIZE 4194304 /* Max file size of 4MB */
+#define SOUND_VALIDATOR_GROUP "Sound Validator"
 
 static int
-validate_icon (int input_fd)
+validate_sound (int input_fd)
 {
-  const char *allowed_formats[] = { "png", "jpeg", "svg", NULL };
-  g_autoptr(GBytes) bytes = NULL;
-  g_autoptr(GError) error = NULL;
-  GdkPixbufFormat *format;
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *key_file_data = NULL;
-  g_autoptr(GdkPixbufLoader) loader = NULL;
-  g_autoptr(GMappedFile) mapped = NULL;
-  int max_size, width, height;
-  g_autofree char *name = NULL;
-  GdkPixbuf *pixbuf;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GstDiscoverer) discoverer = NULL;
+  g_autoptr(GstDiscovererInfo) info = NULL;
+  g_autoptr(GstDiscovererStreamInfo) audio_info = NULL;
+  g_autoptr(GstDiscovererStreamInfo) stream_info = NULL;
+  g_autoptr(GstDiscovererStreamInfo) stream_next = NULL;
+  GstDiscovererResult result;
+  const gchar *format = NULL;
+  g_autofree gchar *uri = NULL;
 
-  if (!(mapped = g_mapped_file_new_from_fd (input_fd, FALSE, &error)))
+  gst_init (NULL, NULL);
+
+  discoverer = gst_discoverer_new (GST_SECOND, &error);
+
+  if (!discoverer)
     {
-      g_printerr ("Failed to create mapped file for image: %s\n", error->message);
+      g_printerr ("validate-sound: Failed to create gstreamer discoverer: %s\n", error->message);
       return 1;
     }
 
-  bytes = g_mapped_file_get_bytes (mapped);
+  uri = g_strdup_printf ("file:///proc/self/fd/%d", input_fd);
+  info = gst_discoverer_discover_uri (discoverer, uri, &error);
+  result = gst_discoverer_info_get_result (info);
 
-  if (g_bytes_get_size (bytes) == 0)
+  switch (result) {
+    case GST_DISCOVERER_URI_INVALID:
+      g_assert_not_reached ();
+      return 1;
+    case GST_DISCOVERER_ERROR:
+      g_printerr ("validate-sound: Couldn't discover media type: %s\n", error->message);
+      return 1;
+    case GST_DISCOVERER_TIMEOUT:
+      g_printerr ("validate-sound: Couldn't discover media type: Timeout\n");
+      return 1;
+    case GST_DISCOVERER_BUSY:
+      g_printerr ("validate-sound: Couldn't discover media type: Busy\n");
+      return 1;
+    case GST_DISCOVERER_MISSING_PLUGINS:
+      {
+        g_autofree char *str = NULL;
+
+        str = g_strjoinv ("\n",
+                          (char **) gst_discoverer_info_get_missing_elements_installer_details (info));
+
+        g_printerr ("validate-sound: Couldn't discover media type: Missing plugins: %s\n", str);
+        return 1;
+      }
+    case GST_DISCOVERER_OK:
+      break;
+  }
+
+  stream_info = gst_discoverer_info_get_stream_info (info);
+  if (!stream_info)
     {
-      g_printerr ("Image is 0 bytes\n");
+      g_printerr ("validate-sound: Contains a invalid stream\n");
       return 1;
     }
 
-  if (g_bytes_get_size (bytes) > MAX_FILE_SIZE)
+  stream_next = gst_discoverer_stream_info_get_next (stream_info);
+  if (stream_next)
     {
-      g_printerr ("Image is bigger then the allowed size\n");
+      g_printerr ("validate-sound: Only a single stream is allowed\n");
       return 1;
     }
 
-  loader = gdk_pixbuf_loader_new ();
-
-  if (!gdk_pixbuf_loader_write_bytes (loader, bytes, &error) ||
-      !gdk_pixbuf_loader_close (loader, &error) ||
-      !(pixbuf = gdk_pixbuf_loader_get_pixbuf (loader)))
+  if (GST_IS_DISCOVERER_CONTAINER_INFO (stream_info))
     {
-      g_printerr ("Failed to load image: %s\n", error->message);
-      gdk_pixbuf_loader_close (loader, NULL);
+      g_autoptr(GList) streams = NULL;
+      g_autoptr(GstCaps) container_caps = NULL;
+      GstStructure *structure = NULL;
+
+      container_caps = gst_discoverer_stream_info_get_caps (stream_info);
+      structure = gst_caps_get_structure (container_caps, 0);
+
+      if (!gst_caps_is_fixed (container_caps) || gst_caps_get_size (container_caps) != 1)
+        {
+          g_printerr ("validate-sound: The media format is to complex\n");
+          return 1;
+        }
+
+      if (!gst_structure_has_name (structure, "audio/ogg"))
+        {
+          g_printerr ("validate-sound: Unsupported container format\n");
+          return 1;
+        }
+
+      streams = gst_discoverer_container_info_get_streams (GST_DISCOVERER_CONTAINER_INFO (stream_info));
+
+      if (streams->next)
+        {
+          g_printerr ("validate-sound: Only a single stream is allowed\n");
+          return 1;
+        }
+
+      audio_info = gst_discoverer_stream_info_ref (streams->data);
+    }
+  else
+    {
+      audio_info = g_steal_pointer (&stream_info);
+    }
+
+  if (GST_IS_DISCOVERER_AUDIO_INFO (audio_info))
+    {
+      g_autoptr(GstCaps) caps = NULL;
+      GstStructure *structure = NULL;
+
+      caps = gst_discoverer_stream_info_get_caps (audio_info);
+      structure = gst_caps_get_structure (caps, 0);
+
+      if (!gst_caps_is_fixed (caps) || gst_caps_get_size (caps) != 1)
+        {
+          g_printerr ("validate-sound: Media format is to complex\n");
+          return 1;
+        }
+
+      if (gst_structure_has_name (structure, "audio/x-wav"))
+        {
+          format = "wav/pcm";
+        }
+      else if (gst_structure_has_name (gst_caps_get_structure (caps, 0), "audio/x-vorbis"))
+        {
+          format = "ogg/vorbis";
+        }
+      else if (gst_structure_has_name (gst_caps_get_structure (caps, 0), "audio/x-opus"))
+        {
+          format = "ogg/opus";
+        }
+    }
+
+  if (format == NULL)
+    {
+      g_printerr ("validate-sound: Unsupported sound format\n");
       return 1;
     }
 
-  if (!(format = gdk_pixbuf_loader_get_format (loader)))
-    {
-      g_printerr ("Image format not recognized\n");
-      return 1;
-    }
-
-  name = gdk_pixbuf_format_get_name (format);
-  if (!g_strv_contains (allowed_formats, name))
-    {
-      g_printerr ("Image format %s not accepted\n", name);
-      return 1;
-    }
-
-  width = gdk_pixbuf_get_width (pixbuf);
-  height = gdk_pixbuf_get_height (pixbuf);
-
-  if (width != height)
-    {
-      g_printerr ("Expected a square image but got: %dx%d\n", width, height);
-      return 1;
-    }
-
-  /* Sanity check for vector files */
-  max_size = g_str_equal (name, "svg") ? MAX_SVG_ICON_SIZE : MAX_ICON_SIZE;
-
-  /* The icon is a square so we only need to check one side */
-  if (width > max_size)
-    {
-      g_printerr ("Image too large (%dx%d). Max. size %dx%d\n", width, height, max_size, max_size);
-      return 1;
-    }
-
-  /* Print the format and size for consumption by (at least) the dynamic
-   * launcher portal. Use a GKeyFile so the output can be easily extended
-   * in the future in a backwards compatible way.
-   */
   key_file = g_key_file_new ();
-  g_key_file_set_string (key_file, ICON_VALIDATOR_GROUP, "format", name);
-  g_key_file_set_integer (key_file, ICON_VALIDATOR_GROUP, "width", width);
+  g_key_file_set_string (key_file, SOUND_VALIDATOR_GROUP, "format", format);
   key_file_data = g_key_file_to_data (key_file, NULL, NULL);
   g_print ("%s", key_file_data);
+
+  close (input_fd);
 
   return 0;
 }
@@ -183,18 +236,18 @@ rerun_in_sandbox (int input_fd)
   const char * const usrmerged_dirs[] = { "bin", "lib32", "lib64", "lib", "sbin" };
   int i;
   g_autoptr(GPtrArray) args = g_ptr_array_new_with_free_func (g_free);
-  char validate_icon[PATH_MAX + 1];
+  char validate_sound[PATH_MAX + 1];
   ssize_t symlink_size;
   g_autofree char* arg_input_fd = NULL;
 
-  symlink_size = readlink ("/proc/self/exe", validate_icon, sizeof (validate_icon) - 1);
-  if (symlink_size < 0 || (size_t) symlink_size >= sizeof (validate_icon))
+  symlink_size = readlink ("/proc/self/exe", validate_sound, sizeof (validate_sound) - 1);
+  if (symlink_size < 0 || (size_t) symlink_size >= sizeof (validate_sound))
     {
       g_printerr ("Error: failed to read /proc/self/exe\n");
       return 1;
     }
 
-  validate_icon[symlink_size] = 0;
+  validate_sound[symlink_size] = 0;
 
   add_args (args,
             flatpak_get_bwrap (),
@@ -203,9 +256,8 @@ rerun_in_sandbox (int input_fd)
             "--unshare-pid",
             "--ro-bind", "/usr", "/usr",
             "--ro-bind-try", "/etc/ld.so.cache", "/etc/ld.so.cache",
-            "--ro-bind", validate_icon, validate_icon,
+            "--ro-bind", validate_sound, validate_sound,
             NULL);
-
 
   /* These directories might be symlinks into /usr/... */
   for (i = 0; i < G_N_ELEMENTS (usrmerged_dirs); i++)
@@ -246,13 +298,14 @@ rerun_in_sandbox (int input_fd)
   if (g_getenv ("G_MESSAGES_PREFIXED"))
     add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
+
   arg_input_fd = g_strdup_printf ("%d", input_fd);
-  add_args (args, validate_icon, "--fd", arg_input_fd, NULL);
+  add_args (args, validate_sound, "--fd", arg_input_fd, NULL);
   g_ptr_array_add (args, NULL);
 
   execvpe (flatpak_get_bwrap (), (char **) args->pdata, NULL);
   /* If we get here, then execvpe() failed. */
-  g_printerr ("Icon validation: execvpe %s: %s\n", flatpak_get_bwrap (), g_strerror (errno));
+  g_printerr ("Sound validation: execvpe %s: %s\n", flatpak_get_bwrap (), g_strerror (errno));
   return 1;
 }
 #endif
@@ -290,7 +343,7 @@ main (int argc, char *argv[])
 
   if (opt_path)
     {
-      opt_fd = g_open (opt_path, O_RDONLY | O_CLOEXEC, 0);
+      opt_fd = g_open (opt_path, O_RDONLY, 0);
       if (opt_fd == -1)
         {
           g_printerr ("Error: Couldn't open file\n");
@@ -311,5 +364,5 @@ main (int argc, char *argv[])
     return rerun_in_sandbox (opt_fd);
   else
 #endif
-    return validate_icon (opt_fd);
+    return validate_sound (opt_fd);
 }
