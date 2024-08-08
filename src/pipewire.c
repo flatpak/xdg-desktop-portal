@@ -222,7 +222,6 @@ pipewire_remote_destroy (PipeWireRemote *remote)
   /* This check is a workaround for older PW versions */
   if (remote->registry)
     spa_hook_remove (&remote->registry_listener);
-  g_clear_pointer (&remote->registry, pw_proxy_destroy);
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
   if (remote->core)
     spa_hook_remove (&remote->core_listener);
