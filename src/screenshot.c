@@ -178,9 +178,28 @@ screenshot_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
+static gboolean
+validate_type (const char *key,
+               GVariant *value,
+               GVariant *options,
+               GError **error)
+{
+  guint32 type = g_variant_get_uint32 (value);
+
+  if (type > 2)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid screenshot type: %u", type);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey screenshot_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
-  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
+  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "type", G_VARIANT_TYPE_UINT32, validate_type }
 };
 
 static void

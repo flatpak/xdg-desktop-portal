@@ -25,7 +25,7 @@
 
       This screenshot portal lets sandboxed applications request a screenshot.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Screenshot">
     <!--
@@ -49,6 +49,17 @@
 
           Hint whether the dialog should offer customization before taking a screenshot.
           Defaults to no.
+
+        * ``type`` (``u``)
+
+          Hints what type of screenshot should be taken. May preselect the type if combined with interactive.
+          Default is 0. Accepted values are:
+
+          - ``0``: Entire screen (default)
+          - ``1``: A window to be selected by the user
+          - ``2``: An area to be selected by the user
+
+          **Since version 3.**
 
         * ``permission_store_checked`` (``b``)
 
