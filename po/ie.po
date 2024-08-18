@@ -1,0 +1,230 @@
+# Interlingue translation for xdg-desktop-portal.
+# Copyright (C) 2024 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Olga Smirnova <mistresssilvara@hotmail.com>,  2024.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-08-17 15:32+0000\n"
+"PO-Revision-Date: 2024-08-18 07:46+0700\n"
+"Last-Translator: OIS <mistresssilvara@hotmail.com>\n"
+"Language-Team: Interlingue\n"
+"Language: ie\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Gtranslator 46.1\n"
+
+#: src/background.c:820
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Permisser a %s executer in li funde?"
+
+#: src/background.c:824
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "%s desira esser lansat automaticmen e executer in li funde."
+
+#: src/background.c:826
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "%s desira executer in li funde."
+
+#: src/background.c:827
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Li permission a executer in li funde posse esser alterat in chascun moment "
+"in li parametres del application."
+
+#: src/background.c:832
+msgid "Don't allow"
+msgstr "Ne permisser"
+
+#: src/background.c:833 src/screenshot.c:238 src/wallpaper.c:183
+msgid "Allow"
+msgstr "Permisser"
+
+#: src/camera.c:104
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Permisser a %s usar li cámera?"
+
+#: src/camera.c:105
+#, c-format
+msgid "%s wants to access camera devices."
+msgstr "%s desira have accesse a vor cámeras."
+
+#: src/camera.c:109
+msgid "Allow app to Use the Camera?"
+msgstr "Permisser al application usar li cámera?"
+
+#: src/camera.c:110
+msgid "An app wants to access camera devices."
+msgstr "Un application desira have accesse a vor cámeras."
+
+#: src/dynamic-launcher.c:120
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:132
+#, c-format
+msgid "Desktop file id missing app id prefix '%s.': %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:274
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:287
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:300
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:332
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:376 src/dynamic-launcher.c:806
+#: src/dynamic-launcher.c:856
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:533
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:556
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:563
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:627 src/dynamic-launcher.c:698
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:714
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:896
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:919
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:959
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:978
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:527
+msgid "Deny Access"
+msgstr "Refusar li accesse"
+
+#: src/location.c:529
+msgid "Grant Access"
+msgstr "Permisser li accesse"
+
+#: src/location.c:551
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Far %s saver vor localisation?"
+
+#: src/location.c:556
+#, c-format
+msgid "%s wants to use your location."
+msgstr "%s desira saver vor localisation."
+
+#: src/location.c:565
+msgid "Grant Access to Your Location?"
+msgstr "Far it saver vor localisation?"
+
+#: src/location.c:566
+msgid "An application wants to use your location."
+msgstr "Un application desira usar vor localisation."
+
+#: src/location.c:569
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Li accesse al localisation posse esser alterat in chascun moment in li "
+"parametres de privatie."
+
+#: src/screenshot.c:236 src/wallpaper.c:181
+msgid "Deny"
+msgstr "Refusar"
+
+#: src/screenshot.c:256
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Permisser a %s capturar li ecran?"
+
+#: src/screenshot.c:257
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "%s desira li habilitá capturar vor ecran in alquel moment."
+
+#: src/screenshot.c:265
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Permisser a applicationes capturar li ecran?"
+
+#: src/screenshot.c:266
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Un application desira li habilitá capturar vor ecran in alquel moment."
+
+#: src/screenshot.c:269 src/wallpaper.c:218
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr ""
+"Ti permission posse esser alterat in chascun moment in li parametres de "
+"privatie."
+
+#: src/settings.c:127 src/settings.c:163
+msgid "Requested setting not found"
+msgstr ""
+
+#: src/wallpaper.c:205
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Permisser a %s cambiar tapetes?"
+
+#: src/wallpaper.c:206
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "%s desira li habilitá cambiar vor tapete.."
+
+#: src/wallpaper.c:215
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Permisser a applicationes cambiar tapetes?"
+
+#: src/wallpaper.c:216
+msgid "An application is requesting to be able to change the background image."
+msgstr "Un application desira li habilitá cambiar vor tapete."
