@@ -27,7 +27,7 @@ production.
 
 xdg-desktop-portal depends on GLib and Flatpak.
 To build the documentation, you will need xmlto and the docbook stylesheets.
-For more instructions, please read [the contribution guidelines](https://flatpak.github.io/xdg-desktop-portal/docs/contributing.html).
+For more instructions, please read [the contribution guidelines](https://flatpak.github.io/xdg-desktop-portal/docs/for-contributors.html).
 
 ## Using Portals
 
