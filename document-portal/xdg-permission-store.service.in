@@ -1,6 +1,7 @@
 [Unit]
 Description=sandboxed app permission store
 PartOf=graphical-session.target
+After=graphical-session.target
 
 [Service]
 BusName=org.freedesktop.impl.portal.PermissionStore
