@@ -43,6 +43,17 @@
 #define BUFFER_SIZE 4096
 #define MAX_FILE_SIZE (1024 * 1024 * 4) /* Max file size of 4MiB */
 
+static gboolean opt_sandbox;
+static char *opt_path = NULL;
+static int opt_fd = -1;
+
+static GOptionEntry entries[] = {
+  { "sandbox", 0, 0, G_OPTION_ARG_NONE, &opt_sandbox, "Run in a sandbox", NULL },
+  { "path", 0, 0, G_OPTION_ARG_FILENAME, &opt_path, "Read icon data from given file path. Required to be from a trusted source.", "PATH" },
+  { "fd", 0, 0, G_OPTION_ARG_INT, &opt_fd, "Read icon data from given file descriptor. Required to be from a trusted source or to be sealed", "FD" },
+  { NULL }
+};
+
 static int
 validate_icon (int input_fd)
 {
@@ -272,17 +283,6 @@ rerun_in_sandbox (int input_fd)
   return 1;
 }
 #endif
-
-static gboolean opt_sandbox;
-static char *opt_path = NULL;
-static int opt_fd = -1;
-
-static GOptionEntry entries[] = {
-  { "sandbox", 0, 0, G_OPTION_ARG_NONE, &opt_sandbox, "Run in a sandbox", NULL },
-  { "path", 0, 0, G_OPTION_ARG_FILENAME, &opt_path, "Read icon data from given file path. Required to be from a trusted source.", "PATH" },
-  { "fd", 0, 0, G_OPTION_ARG_INT, &opt_fd, "Read icon data from given file descriptor. Required to be from a trusted source or to be sealed", "FD" },
-  { NULL }
-};
 
 int
 main (int argc, char *argv[])
