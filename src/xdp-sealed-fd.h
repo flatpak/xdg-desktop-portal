@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include <glib-object.h>
+#include <gio/gio.h>
 
 #define XDP_TYPE_SEALED_FD (xdp_sealed_fd_get_type())
 G_DECLARE_FINAL_TYPE (XdpSealedFd,
