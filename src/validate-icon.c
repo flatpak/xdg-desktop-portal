@@ -199,11 +199,10 @@ static int
 rerun_in_sandbox (int input_fd)
 {
   const char * const usrmerged_dirs[] = { "bin", "lib32", "lib64", "lib", "sbin" };
-  int i;
   g_autoptr(GPtrArray) args = g_ptr_array_new_with_free_func (g_free);
+  g_autofree char* arg_input_fd = NULL;
   char validate_icon[PATH_MAX + 1];
   ssize_t symlink_size;
-  g_autofree char* arg_input_fd = NULL;
 
   symlink_size = readlink ("/proc/self/exe", validate_icon, sizeof (validate_icon) - 1);
   if (symlink_size < 0 || (size_t) symlink_size >= sizeof (validate_icon))
@@ -225,7 +224,7 @@ rerun_in_sandbox (int input_fd)
             NULL);
 
   /* These directories might be symlinks into /usr/... */
-  for (i = 0; i < G_N_ELEMENTS (usrmerged_dirs); i++)
+  for (size_t i = 0; i < G_N_ELEMENTS (usrmerged_dirs); i++)
     {
       g_autofree char *absolute_dir = g_strdup_printf ("/%s", usrmerged_dirs[i]);
 
@@ -274,9 +273,9 @@ rerun_in_sandbox (int input_fd)
 }
 #endif
 
-static gboolean  opt_sandbox;
-static char     *opt_path = NULL;
-static int       opt_fd = -1;
+static gboolean opt_sandbox;
+static char *opt_path = NULL;
+static int opt_fd = -1;
 
 static GOptionEntry entries[] = {
   { "sandbox", 0, 0, G_OPTION_ARG_NONE, &opt_sandbox, "Run in a sandbox", NULL },
