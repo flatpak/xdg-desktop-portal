@@ -43,7 +43,14 @@ gboolean xdp_is_valid_app_id (const char *string);
 
 char *xdp_get_app_id_from_desktop_id (const char *desktop_id);
 
+typedef enum
+{
+  XDP_ICON_TYPE_DESKTOP,
+  XDP_ICON_TYPE_NOTIFICATION,
+} XdpIconType;
+
 gboolean xdp_validate_icon (XdpSealedFd  *icon,
+                            XdpIconType   icon_type,
                             char        **out_format,
                             char        **out_size);
 

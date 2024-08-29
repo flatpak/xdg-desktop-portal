@@ -430,7 +430,7 @@ parse_serialized_icon (GVariantBuilder  *builder,
 
       if (!sealed_icon)
         g_warning ("Failed to read icon: %s", local_error->message);
-      else if (xdp_validate_icon (sealed_icon, NULL, NULL))
+      else if (xdp_validate_icon (sealed_icon, XDP_ICON_TYPE_NOTIFICATION, NULL, NULL))
         g_variant_builder_add (builder, "{sv}", "icon", icon);
     }
   else

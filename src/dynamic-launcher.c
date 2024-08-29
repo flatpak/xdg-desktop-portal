@@ -161,7 +161,11 @@ validate_serialized_icon (GVariant  *arg_icon_v,
   bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
   sealed_icon = xdp_sealed_fd_new_from_bytes (bytes, NULL);
 
-  return sealed_icon && xdp_validate_icon (sealed_icon, icon_format, icon_size);
+  return sealed_icon &&
+         xdp_validate_icon (sealed_icon,
+                            XDP_ICON_TYPE_DESKTOP,
+                            icon_format,
+                            icon_size);
 }
 
 static gboolean
