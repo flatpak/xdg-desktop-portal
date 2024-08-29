@@ -30,7 +30,7 @@
 #include "xdp-utils.h"
 #include "xdp-sealed-fd.h"
 
-static const int required_seals = F_SEAL_GROW | F_SEAL_WRITE | F_SEAL_SHRINK;
+#define REQUIRED_SEALS (F_SEAL_GROW | F_SEAL_WRITE | F_SEAL_SHRINK)
 
 struct _XdpSealedFd
 {
@@ -89,9 +89,9 @@ xdp_sealed_fd_new_take_memfd (int      memfd,
     }
 
   /* If the seal seal is set and some required seal is missing report EPERM error directly */
-  if ((seals & F_SEAL_SEAL) && (seals & required_seals) != required_seals)
+  if ((seals & F_SEAL_SEAL) && (seals & REQUIRED_SEALS) != REQUIRED_SEALS)
     saved_errno = EPERM;
-  else if (fcntl (fd, F_ADD_SEALS, required_seals) == -1)
+  else if (fcntl (fd, F_ADD_SEALS, REQUIRED_SEALS) == -1)
     saved_errno = errno;
 
   if (saved_errno != -1)
@@ -177,7 +177,7 @@ xdp_sealed_fd_new_from_bytes (GBytes  *bytes,
       return NULL;
     }
 
-  if (fcntl (fd, F_ADD_SEALS, required_seals) == -1)
+  if (fcntl (fd, F_ADD_SEALS, REQUIRED_SEALS) == -1)
     {
       saved_errno = errno;
       g_set_error (error,
