@@ -38,19 +38,62 @@
 #endif
 
 #define ICON_VALIDATOR_GROUP "Icon Validator"
-#define MAX_ICON_SIZE 512
-#define MAX_SVG_ICON_SIZE 4096
-#define BUFFER_SIZE 4096
-#define MAX_FILE_SIZE (1024 * 1024 * 4) /* Max file size of 4MiB */
 
+typedef struct
+{
+  const char *name;
+  size_t max_icon_size;
+  size_t max_svg_icon_size;
+  size_t max_file_size;
+} XdpValidatorRuleset;
+
+static const XdpValidatorRuleset rulesets[] =
+{
+  {
+    .name = "desktop",
+    .max_icon_size = 512,
+    .max_svg_icon_size = 4096,
+    .max_file_size = 1024 * 1024 * 4 /* 4MB */,
+  },
+  {
+    .name = "notification",
+    .max_icon_size = 512,
+    .max_svg_icon_size = 4096,
+    .max_file_size = 1024 * 1024 * 4 /* 4MB */,
+  },
+};
+
+static const XdpValidatorRuleset *ruleset = NULL;
 static gboolean opt_sandbox;
 static char *opt_path = NULL;
 static int opt_fd = -1;
+
+static gboolean
+option_validator_cb (const gchar  *option_name,
+                     const gchar  *value,
+                     gpointer      data,
+                     GError      **error)
+{
+  for (size_t i = 0; i < G_N_ELEMENTS (rulesets); i++)
+    {
+      if (g_strcmp0 (value, rulesets[i].name) == 0)
+        {
+          ruleset = &rulesets[i];
+          return TRUE;
+        }
+    }
+
+  g_set_error (error, G_OPTION_ERROR, G_OPTION_ERROR_BAD_VALUE,
+               "Invalid ruleset '%s'. Accepted values are: desktop, notification",
+               value);
+  return FALSE;
+}
 
 static GOptionEntry entries[] = {
   { "sandbox", 0, 0, G_OPTION_ARG_NONE, &opt_sandbox, "Run in a sandbox", NULL },
   { "path", 0, 0, G_OPTION_ARG_FILENAME, &opt_path, "Read icon data from given file path. Required to be from a trusted source.", "PATH" },
   { "fd", 0, 0, G_OPTION_ARG_INT, &opt_fd, "Read icon data from given file descriptor. Required to be from a trusted source or to be sealed", "FD" },
+  { "ruleset", 0, 0, G_OPTION_ARG_CALLBACK, &option_validator_cb, "The icon validator ruleset to apply. Accepted values: desktop, notification", "RULESET" },
   { NULL }
 };
 
@@ -68,6 +111,8 @@ validate_icon (int input_fd)
   int max_size, width, height;
   g_autofree char *name = NULL;
   GdkPixbuf *pixbuf;
+
+  g_assert (ruleset != NULL);
 
   /* Ensure that we read from the beginning of the file */
   lseek (input_fd, 0, SEEK_SET);
@@ -87,7 +132,7 @@ validate_icon (int input_fd)
       return 1;
     }
 
-  if (g_bytes_get_size (bytes) > MAX_FILE_SIZE)
+  if (g_bytes_get_size (bytes) > ruleset->max_file_size)
     {
       g_printerr ("Image is bigger then the allowed size\n");
       return 1;
@@ -139,7 +184,7 @@ validate_icon (int input_fd)
     }
 
   /* Sanity check for vector files */
-  max_size = g_str_equal (name, "svg") ? MAX_SVG_ICON_SIZE : MAX_ICON_SIZE;
+  max_size = g_str_equal (name, "svg") ? ruleset->max_svg_icon_size : ruleset->max_icon_size;
 
   /* The icon is a square so we only need to check one side */
   if (width > max_size)
@@ -215,6 +260,8 @@ rerun_in_sandbox (int input_fd)
   char validate_icon[PATH_MAX + 1];
   ssize_t symlink_size;
 
+  g_assert (ruleset != NULL);
+
   symlink_size = readlink ("/proc/self/exe", validate_icon, sizeof (validate_icon) - 1);
   if (symlink_size < 0 || (size_t) symlink_size >= sizeof (validate_icon))
     {
@@ -274,7 +321,11 @@ rerun_in_sandbox (int input_fd)
     add_args (args, "--setenv", "G_MESSAGES_PREFIXED", g_getenv ("G_MESSAGES_PREFIXED"), NULL);
 
   arg_input_fd = g_strdup_printf ("%d", input_fd);
-  add_args (args, validate_icon, "--fd", arg_input_fd, NULL);
+  add_args (args,
+            validate_icon,
+            "--fd", arg_input_fd,
+            "--ruleset", ruleset->name,
+            NULL);
   g_ptr_array_add (args, NULL);
 
   execvpe (flatpak_get_bwrap (), (char **) args->pdata, NULL);
@@ -296,6 +347,12 @@ main (int argc, char *argv[])
   if (!g_option_context_parse (context, &argc, &argv, &error))
     {
       g_printerr ("Error: %s\n", error->message);
+      return 1;
+    }
+
+  if (ruleset == NULL)
+    {
+      g_printerr ("Error: A ruleset must be given with --ruleset\n");
       return 1;
     }
 

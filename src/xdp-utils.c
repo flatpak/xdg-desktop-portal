@@ -552,15 +552,32 @@ xdp_has_path_prefix (const char *str,
 #define VALIDATOR_INPUT_FD 3
 #define ICON_VALIDATOR_GROUP "Icon Validator"
 
+static const char *
+icon_type_to_string (XdpIconType icon_type)
+{
+  switch (icon_type)
+    {
+    case XDP_ICON_TYPE_DESKTOP:
+      return "desktop";
+
+    case XDP_ICON_TYPE_NOTIFICATION:
+      return "notification";
+
+    default:
+      g_assert_not_reached ();
+    }
+}
+
 gboolean
 xdp_validate_icon (XdpSealedFd  *icon,
+                   XdpIconType   icon_type,
                    char        **out_format,
                    char        **out_size)
 {
   g_autofree char *format = NULL;
   g_autoptr(GError) error = NULL;
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
-  const char *args[5];
+  const char *args[7];
   int size;
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
@@ -578,7 +595,9 @@ xdp_validate_icon (XdpSealedFd  *icon,
   args[1] = "--sandbox";
   args[2] = "--fd";
   args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
-  args[4] = NULL;
+  args[4] = "--ruleset";
+  args[5] = icon_type_to_string (icon_type);
+  args[6] = NULL;
 
   output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (icon), VALIDATOR_INPUT_FD, &error);
   if (!output)
