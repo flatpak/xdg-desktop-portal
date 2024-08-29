@@ -605,7 +605,7 @@ xdp_domain_new_by_app (XdpInode *root_inode)
 }
 
 static XdpDomain *
-xdp_domain_new_app (XdpInode *parent_inode,
+xdp_domain_new_app (XdpInode   *parent_inode,
                     const char *app_id)
 {
   XdpDomain *parent = parent_inode->domain;
@@ -624,8 +624,8 @@ xdp_document_domain_is_dir (XdpDomain *domain)
 }
 
 static XdpDomain *
-xdp_domain_new_document (XdpDomain *parent,
-                         const char *doc_id,
+xdp_domain_new_document (XdpDomain         *parent,
+                         const char        *doc_id,
                          PermissionDbEntry *doc_entry)
 {
   XdpDomain *domain = _xdp_domain_new (XDP_DOMAIN_DOCUMENT);
@@ -788,7 +788,7 @@ generate_persistent_ino (DevIno *backing_devino,
 
 /* takes ownership of fd */
 static XdpInode *
-xdp_inode_new (XdpDomain *domain,
+xdp_inode_new (XdpDomain        *domain,
                XdpPhysicalInode *physical)
 {
   XdpInode *inode = _xdp_inode_new ();
@@ -991,7 +991,7 @@ xdp_nonphysical_document_inode_opendir (XdpInode *inode)
 
 static int
 xdp_document_inode_ensure_dirfd (XdpInode *inode,
-                                 int *close_fd_out)
+                                 int      *close_fd_out)
 {
   int close_fd;
 
@@ -1045,21 +1045,21 @@ gen_temp_name (gchar *tmpl)
 }
 
 static int
-open_temp_at (int    dirfd,
-              const char *orig_name,
-              char **name_out,
-              mode_t mode)
+open_temp_at (int          dirfd,
+              const char  *orig_name,
+              char       **name_out,
+              mode_t       mode)
 {
-  int fd;
-  int errsv;
-  const guint count_max = 100;
   g_autofree char *tmp = g_strconcat (".xdp-", orig_name, "-XXXXXX", NULL);
+  const size_t count_max = 100;
+  int errsv;
+  int fd;
 
-  for (int count = 0; count < count_max; count++)
+  for (size_t count = 0; count < count_max; count++)
     {
       gen_temp_name (tmp);
 
-      fd = openat (dirfd, tmp, O_CREAT|O_EXCL|O_NOFOLLOW|O_NOCTTY|O_RDWR, mode);
+      fd = openat (dirfd, tmp, O_CREAT | O_EXCL | O_NOFOLLOW | O_NOCTTY | O_RDWR, mode);
       errsv = errno;
       if (fd < 0)
         {
@@ -1079,11 +1079,11 @@ open_temp_at (int    dirfd,
 /* allocates tempfile for existing file,
    Called with tempfile lock held, sets errno */
 static int
-get_tempfile_for (XdpInode *parent,
-                  XdpDomain *domain,
-                  const char *name,
-                  int dirfd,
-                  const char *tmpname,
+get_tempfile_for (XdpInode     *parent,
+                  XdpDomain    *domain,
+                  const char   *name,
+                  int           dirfd,
+                  const char   *tmpname,
                   XdpTempfile **tempfile_out)
 {
   g_autoptr(XdpTempfile) tempfile = NULL;
@@ -1117,12 +1117,12 @@ get_tempfile_for (XdpInode *parent,
 /* Creates a new file on disk,
    Called with tempfile lock held, sets errno */
 static int
-create_tempfile (XdpInode *parent,
-                 XdpDomain *domain,
-                 const char *name,
-                 int dirfd,
-                 mode_t mode,
-                  XdpTempfile **tempfile_out)
+create_tempfile (XdpInode     *parent,
+                 XdpDomain    *domain,
+                 const char   *name,
+                 int           dirfd,
+                 mode_t        mode,
+                 XdpTempfile **tempfile_out)
 {
   g_autoptr(XdpInode) inode = NULL;
   g_autofree char *real_fd_path = NULL;
@@ -1164,7 +1164,10 @@ create_tempfile (XdpInode *parent,
 }
 
 static int
-xdp_document_inode_open_child_fd (XdpInode *inode, const char *name, int open_flags, mode_t mode)
+xdp_document_inode_open_child_fd (XdpInode   *inode,
+                                  const char *name,
+                                  int         open_flags,
+                                  mode_t      mode)
 {
   XdpDomain *domain = inode->domain;
   XdpTempfile *tempfile_lookup = NULL;
@@ -1277,7 +1280,7 @@ xdp_document_inode_get_self_as_path (XdpInode *inode)
 }
 
 static void
-tweak_statbuf_for_document_inode (XdpInode *inode,
+tweak_statbuf_for_document_inode (XdpInode    *inode,
                                   struct stat *buf)
 {
   XdpDomain   *domain = inode->domain;
@@ -1294,7 +1297,9 @@ tweak_statbuf_for_document_inode (XdpInode *inode,
 }
 
 static void
-xdp_reply_err (const char *op, fuse_req_t req, int err)
+xdp_reply_err (const char *op,
+               fuse_req_t  req,
+               int         err)
 {
   if (err != 0)
     {
@@ -1345,10 +1350,10 @@ typedef enum {
 } XdpDocumentChecks;
 
 static gboolean
-xdp_document_inode_checks (const char *op,
-                           fuse_req_t  req,
-                           XdpInode *inode,
-                           XdpDocumentChecks checks)
+xdp_document_inode_checks (const char        *op,
+                           fuse_req_t         req,
+                           XdpInode          *inode,
+                           XdpDocumentChecks  checks)
 {
   XdpDomain *domain = inode->domain;
   gboolean check_is_directory = (checks & CHECK_IS_DIRECTORY) != 0;
@@ -1394,7 +1399,7 @@ xdp_document_inode_checks (const char *op,
 }
 
 static void
-stat_virtual_inode (XdpInode *inode,
+stat_virtual_inode (XdpInode    *inode,
                     struct stat *buf)
 {
   memset (buf, 0, sizeof (struct stat));
@@ -1433,15 +1438,15 @@ stat_virtual_inode (XdpInode *inode,
 }
 
 static void
-xdp_fuse_getattr (fuse_req_t req,
-                  fuse_ino_t ino,
+xdp_fuse_getattr (fuse_req_t             req,
+                  fuse_ino_t             ino,
                   struct fuse_file_info *fi)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   XdpDomain *domain = inode->domain;
+  double attr_valid_time = 0.0;/* Time in secs for attribute validation */
   struct stat buf;
   int res;
-  double attr_valid_time = 0.0;/* Time in secs for attribute validation */
   const char *op = "GETATTR";
 
   g_debug ("GETATTR %" G_GINT64_MODIFIER "x", ino);
@@ -1456,12 +1461,15 @@ xdp_fuse_getattr (fuse_req_t req,
   g_assert (domain->type == XDP_DOMAIN_DOCUMENT);
 
   if (inode->physical)
-    res = fstatat (inode->physical->fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
+    {
+      res = fstatat (inode->physical->fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
+    }
   else
     {
       stat_virtual_inode (inode, &buf);
       res = 0;
     }
+
   if (res == -1)
     return xdp_reply_err (op, req, errno);
 
@@ -1607,8 +1615,8 @@ xdp_fuse_setattr (fuse_req_t             req,
 }
 
 static void
-prepare_reply_entry (XdpInode *inode,
-                     struct stat *buf,
+prepare_reply_entry (XdpInode                *inode,
+                     struct stat             *buf,
                      struct fuse_entry_param *e)
 {
   xdp_inode_kernel_ref (inode); /* Ref given to the kernel, returned in xdp_forget() */
@@ -1620,7 +1628,7 @@ prepare_reply_entry (XdpInode *inode,
 }
 
 static void
-prepare_reply_virtual_entry (XdpInode *inode,
+prepare_reply_virtual_entry (XdpInode                *inode,
                              struct fuse_entry_param *e)
 {
   stat_virtual_inode (inode, &e->attr);
@@ -1642,17 +1650,20 @@ abort_reply_entry (struct fuse_entry_param *e)
 }
 
 static int
-ensure_docdir_inode (XdpInode *parent,
-                     int o_path_fd_in, /* Takes ownership */
-                     struct fuse_entry_param *e,
-                     XdpInode **inode_out)
+ensure_docdir_inode (XdpInode                 *parent,
+                     int                       o_path_fd_in,
+                     struct fuse_entry_param  *e,
+                     XdpInode                **inode_out)
 {
   XdpDomain *domain = parent->domain;
   g_autoptr(XdpPhysicalInode) physical = NULL;
   g_autoptr(XdpInode) inode = NULL;
-  xdp_autofd int o_path_fd = o_path_fd_in;
+  xdp_autofd int o_path_fd = -1;
   struct stat buf;
   int res;
+
+  /* Take ownership */
+  o_path_fd = xdp_steal_fd (&o_path_fd_in);
 
   res = fstatat (o_path_fd, "", &buf, AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW);
   if (res == -1)
@@ -1664,7 +1675,7 @@ ensure_docdir_inode (XdpInode *parent,
 
   physical = ensure_physical_inode (buf.st_dev, buf.st_ino, xdp_steal_fd (&o_path_fd)); /* passed ownership of fd */
 
-  G_LOCK(domain_inodes);
+  G_LOCK (domain_inodes);
   inode = g_hash_table_lookup (domain->inodes, physical);
   if (inode != NULL)
     inode = xdp_inode_ref (inode);
@@ -1677,7 +1688,7 @@ ensure_docdir_inode (XdpInode *parent,
         inode->domain_root_inode = xdp_inode_ref (parent);
       g_hash_table_insert (domain->inodes, physical, inode);
     }
-  G_UNLOCK(domain_inodes);
+  G_UNLOCK (domain_inodes);
 
   if (e)
     {
@@ -1692,9 +1703,9 @@ ensure_docdir_inode (XdpInode *parent,
 }
 
 static int
-ensure_docdir_inode_by_name (XdpInode *parent,
-                             int dirfd,
-                             const char *name,
+ensure_docdir_inode_by_name (XdpInode                *parent,
+                             int                      dirfd,
+                             const char              *name,
                              struct fuse_entry_param *e)
 {
   int o_path_fd;
@@ -1708,7 +1719,7 @@ ensure_docdir_inode_by_name (XdpInode *parent,
 
 
 static XdpInode *
-ensure_by_app_inode (XdpInode *by_app_inode,
+ensure_by_app_inode (XdpInode   *by_app_inode,
                      const char *app_id)
 {
   XdpDomain *by_app_domain = by_app_inode->domain;
@@ -1717,7 +1728,7 @@ ensure_by_app_inode (XdpInode *by_app_inode,
   if (!xdp_is_valid_app_id (app_id))
     return NULL;
 
-  G_LOCK(domain_inodes);
+  G_LOCK (domain_inodes);
   inode = g_hash_table_lookup (by_app_domain->inodes, app_id);
   if (inode != NULL)
     inode = xdp_inode_ref (inode);
@@ -1727,17 +1738,17 @@ ensure_by_app_inode (XdpInode *by_app_inode,
       inode = xdp_inode_new (app_domain, NULL);
       g_hash_table_insert (by_app_domain->inodes, app_domain->app_id, inode);
     }
-  G_UNLOCK(domain_inodes);
+  G_UNLOCK (domain_inodes);
 
   return g_steal_pointer (&inode);
 }
 
 static XdpInode *
-ensure_doc_inode (XdpInode *parent,
+ensure_doc_inode (XdpInode   *parent,
                   const char *doc_id)
 {
-  g_autoptr(XdpInode) inode = NULL;
   g_autoptr(PermissionDbEntry) doc_entry = NULL;
+  g_autoptr(XdpInode) inode = NULL;
   XdpDomain *parent_domain = parent->domain;
 
   doc_entry = xdp_lookup_doc (doc_id);
@@ -1747,7 +1758,7 @@ ensure_doc_inode (XdpInode *parent,
        !app_can_see_doc (doc_entry, parent_domain->app_id)))
     return NULL;
 
-  G_LOCK(domain_inodes);
+  G_LOCK (domain_inodes);
   inode = g_hash_table_lookup (parent_domain->inodes, doc_id);
   if (inode != NULL)
     inode = xdp_inode_ref (inode);
@@ -1758,7 +1769,7 @@ ensure_doc_inode (XdpInode *parent,
       inode = xdp_inode_new (doc_domain, NULL);
       g_hash_table_insert (parent_domain->inodes, doc_domain->doc_id, inode);
     }
-  G_UNLOCK(domain_inodes);
+  G_UNLOCK (domain_inodes);
 
   return g_steal_pointer (&inode);
 }
@@ -1792,7 +1803,8 @@ invalidate_dentry_cb (gpointer user_data)
  * which will free up a bunch of O_PATH fds in the fuse implementation.
  */
 static void
-queue_invalidate_dentry (XdpInode *parent, const char *name)
+queue_invalidate_dentry (XdpInode   *parent,
+                         const char *name)
 {
   XDP_AUTOLOCK (invalidate_list);
 
@@ -1814,8 +1826,8 @@ queue_invalidate_dentry (XdpInode *parent, const char *name)
 }
 
 static void
-xdp_fuse_lookup (fuse_req_t req,
-                 fuse_ino_t parent_ino,
+xdp_fuse_lookup (fuse_req_t  req,
+                 fuse_ino_t  parent_ino,
                  const char *name)
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
@@ -1898,8 +1910,8 @@ xdp_file_free (XdpFile *file)
 }
 
 static void
-xdp_fuse_open (fuse_req_t req,
-               fuse_ino_t ino,
+xdp_fuse_open (fuse_req_t             req,
+               fuse_ino_t             ino,
                struct fuse_file_info *fi)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
@@ -2011,16 +2023,16 @@ xdp_fuse_create (fuse_req_t             req,
 }
 
 static void
-xdp_fuse_read (fuse_req_t req,
-               fuse_ino_t ino,
-               size_t size,
-               off_t off,
+xdp_fuse_read (fuse_req_t             req,
+               fuse_ino_t             ino,
+               size_t                 size,
+               off_t                  off,
                struct fuse_file_info *fi)
 {
   struct fuse_bufvec buf = FUSE_BUFVEC_INIT(size);
   XdpFile *file = (XdpFile *)fi->fh;
   enum fuse_buf_copy_flags reply_flags = FUSE_BUF_SPLICE_MOVE;
-  XdpFuseOptions* fuse_opts = fuse_req_userdata (req);
+  XdpFuseOptions *fuse_opts = fuse_req_userdata (req);
 
   g_debug ("READ %" G_GINT64_MODIFIER "x size %" G_GSIZE_FORMAT " off %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
@@ -2069,7 +2081,7 @@ xdp_fuse_write_buf (fuse_req_t             req,
   ssize_t res;
   const char *op = "WRITEBUF";
   enum fuse_buf_copy_flags copy_flags = FUSE_BUF_SPLICE_NONBLOCK;
-  XdpFuseOptions* fuse_opts = fuse_req_userdata (req);
+  XdpFuseOptions *fuse_opts = fuse_req_userdata (req);
 
   g_debug ("WRITEBUF %" G_GINT64_MODIFIER "x off %" G_GOFFSET_FORMAT, ino, (goffset)off);
 
@@ -2110,11 +2122,11 @@ xdp_fuse_fsync (fuse_req_t             req,
 }
 
 static void
-xdp_fuse_fallocate (fuse_req_t req,
-                    fuse_ino_t ino,
-                    int mode,
-                    off_t offset,
-                    off_t length,
+xdp_fuse_fallocate (fuse_req_t             req,
+                    fuse_ino_t             ino,
+                    int                    mode,
+                    off_t                  offset,
+                    off_t                  length,
                     struct fuse_file_info *fi)
 {
   XdpFile *file = (XdpFile *)fi->fh;
@@ -2136,8 +2148,8 @@ xdp_fuse_fallocate (fuse_req_t req,
 }
 
 static void
-xdp_fuse_flush (fuse_req_t req,
-                fuse_ino_t ino,
+xdp_fuse_flush (fuse_req_t             req,
+                fuse_ino_t             ino,
                 struct fuse_file_info *fi)
 {
   const char *op = "FLUSH";
@@ -2174,15 +2186,15 @@ forget_one (fuse_ino_t ino,
 static void
 xdp_fuse_forget (fuse_req_t req,
                  fuse_ino_t ino,
-                 uint64_t nlookup)
+                 uint64_t   nlookup)
 {
   forget_one (ino, nlookup);
   fuse_reply_none (req);
 }
 
 static void
-xdp_fuse_forget_multi (fuse_req_t req,
-                       size_t count,
+xdp_fuse_forget_multi (fuse_req_t               req,
+                       size_t                   count,
                        struct fuse_forget_data *forgets)
 {
   size_t i;
@@ -2205,10 +2217,10 @@ xdp_dir_free (XdpDir *d)
 }
 
 static void
-xdp_dir_add (XdpDir        *d,
-             fuse_req_t     req,
-             const char    *name,
-             mode_t         mode)
+xdp_dir_add (XdpDir     *d,
+             fuse_req_t  req,
+             const char *name,
+             mode_t      mode)
 {
   struct stat stbuf;
 
@@ -2300,8 +2312,6 @@ xdp_fuse_opendir (fuse_req_t             req,
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   XdpDomain *domain = inode->domain;
   XdpDir *d = NULL;
-  int open_flags = O_RDONLY | O_DIRECTORY;
-  DIR *dir;
   const char *op = "OPENDIR";
 
   g_debug ("OPENDIR %" G_GINT64_MODIFIER "x domain %d", ino, inode->domain->type);
@@ -2333,7 +2343,10 @@ xdp_fuse_opendir (fuse_req_t             req,
         {
           if (inode->physical)
             {
-              int fd = openat (inode->physical->fd, ".", open_flags, 0);
+              DIR *dir;
+              int fd;
+
+              fd = openat (inode->physical->fd, ".", O_RDONLY | O_DIRECTORY, 0);
               if (fd < 0)
                 return xdp_reply_err (op, req, errno);
 
@@ -2396,22 +2409,22 @@ xdp_fuse_opendir (fuse_req_t             req,
 }
 
 static void
-xdp_fuse_readdir (fuse_req_t req,
-                  fuse_ino_t ino,
-                  size_t size,
-                  off_t off,
+xdp_fuse_readdir (fuse_req_t             req,
+                  fuse_ino_t             ino,
+                  size_t                 size,
+                  off_t                  off,
                   struct fuse_file_info *fi)
 {
   XdpDir *d = (XdpDir *)fi->fh;
-  size_t rem;
   const char *op = "READDIR";
 
   g_debug ("READDIR %" G_GINT64_MODIFIER "x %" G_GSIZE_FORMAT " %" G_GOFFSET_FORMAT, ino, size, (goffset)off);
 
   if (d->dir)
     {
-      char *p;
       g_autofree char *buf = g_try_malloc (size);
+      size_t rem;
+      char *p;
 
       if (buf == NULL)
         {
@@ -2481,7 +2494,9 @@ xdp_fuse_readdir (fuse_req_t req,
           fuse_reply_buf (req, buf, reply_size);
         }
       else
-        fuse_reply_buf (req, NULL, 0);
+        {
+          fuse_reply_buf (req, NULL, 0);
+        }
     }
 }
 
@@ -2531,9 +2546,9 @@ xdp_fuse_fsyncdir (fuse_req_t             req,
 
 static void
 xdp_fuse_mkdir (fuse_req_t  req,
-                fuse_ino_t parent_ino,
+                fuse_ino_t  parent_ino,
                 const char *name,
-                mode_t mode)
+                mode_t      mode)
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
   struct fuse_entry_param e;
@@ -2623,11 +2638,11 @@ xdp_fuse_unlink (fuse_req_t  req,
 }
 
 static int
-try_renameat (int olddirfd,
-              const char *oldpath,
-              int newdirfd,
-              const char *newpath,
-              unsigned int flags)
+try_renameat (int           olddirfd,
+              const char   *oldpath,
+              int           newdirfd,
+              const char   *newpath,
+              unsigned int  flags)
 {
 #if HAVE_RENAMEAT2
   return renameat2 (olddirfd, oldpath, newdirfd, newpath, flags);
@@ -2645,12 +2660,12 @@ try_renameat (int olddirfd,
 
 
 static void
-xdp_fuse_rename (fuse_req_t  req,
-                 fuse_ino_t  parent_ino,
-                 const char *name,
-                 fuse_ino_t  newparent_ino,
-                 const char *newname,
-                 unsigned int flags)
+xdp_fuse_rename (fuse_req_t    req,
+                 fuse_ino_t    parent_ino,
+                 const char   *name,
+                 fuse_ino_t    newparent_ino,
+                 const char   *newname,
+                 unsigned int  flags)
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
   g_autoptr(XdpInode) newparent = xdp_inode_from_ino (newparent_ino);
@@ -2809,7 +2824,7 @@ xdp_fuse_rename (fuse_req_t  req,
 static void
 xdp_fuse_access (fuse_req_t req,
                  fuse_ino_t ino,
-                 int mask)
+                 int        mask)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   g_autofree char *path = NULL;
@@ -2855,8 +2870,8 @@ xdp_fuse_access (fuse_req_t req,
 }
 
 static void
-xdp_fuse_rmdir (fuse_req_t req,
-                fuse_ino_t parent_ino,
+xdp_fuse_rmdir (fuse_req_t  req,
+                fuse_ino_t  parent_ino,
                 const char *filename)
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
@@ -2890,8 +2905,8 @@ xdp_fuse_readlink (fuse_req_t req,
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   char linkname[PATH_MAX + 1];
-  ssize_t res;
   const char *op = "READLINK";
+  ssize_t res;
 
   g_debug ("READLINK %" G_GINT64_MODIFIER "x", ino);
 
@@ -2912,17 +2927,17 @@ xdp_fuse_readlink (fuse_req_t req,
 }
 
 static void
-xdp_fuse_symlink (fuse_req_t req,
+xdp_fuse_symlink (fuse_req_t  req,
                   const char *link,
-                  fuse_ino_t parent_ino,
+                  fuse_ino_t  parent_ino,
                   const char *name)
 {
   g_autoptr(XdpInode) parent = xdp_inode_from_ino (parent_ino);
-  int res;
-  int dirfd;
   xdp_autofd int close_fd = -1;
   struct fuse_entry_param e;
   const char * op = "SYMLINK";
+  int dirfd;
+  int res;
 
   g_debug ("SYMLINK %s %" G_GINT64_MODIFIER "x %s", link, parent_ino, name);
 
@@ -2949,19 +2964,19 @@ xdp_fuse_symlink (fuse_req_t req,
 }
 
 static void
-xdp_fuse_link (fuse_req_t req,
-               fuse_ino_t ino,
-               fuse_ino_t newparent_ino,
+xdp_fuse_link (fuse_req_t  req,
+               fuse_ino_t  ino,
+               fuse_ino_t  newparent_ino,
                const char *newname)
 {
-  g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   g_autoptr(XdpInode) newparent = xdp_inode_from_ino (newparent_ino);
-  int res;
+  g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   g_autofree char *proc_path = NULL;
-  int newparent_dirfd;
   xdp_autofd int close_fd = -1;
   struct fuse_entry_param e;
   const char * op = "LINK";
+  int newparent_dirfd;
+  int res;
 
   g_debug ("LINK %" G_GINT64_MODIFIER "x %" G_GINT64_MODIFIER "x %s", ino, newparent_ino, newname);
 
@@ -3192,10 +3207,10 @@ xdp_fuse_listxattr (fuse_req_t req,
                     size_t     size)
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
-  ssize_t res;
-  g_autofree char *buf = NULL;
   g_autofree char *path = NULL;
+  g_autofree char *buf = NULL;
   const char *op = "LISTXATTR";
+  ssize_t res;
 
   g_debug ("LISTXATTR %" G_GINT64_MODIFIER "x %" G_GSIZE_FORMAT, ino, size);
 
@@ -3275,10 +3290,10 @@ xdp_fuse_removexattr (fuse_req_t  req,
 }
 
 static void
-xdp_fuse_getlk (fuse_req_t req,
-                fuse_ino_t ino,
+xdp_fuse_getlk (fuse_req_t             req,
+                fuse_ino_t             ino,
                 struct fuse_file_info *fi,
-                struct flock *lock)
+                struct flock          *lock)
 {
   const char *op = "GETLK";
   XdpFile *file = (XdpFile *)fi->fh;
@@ -3294,11 +3309,11 @@ xdp_fuse_getlk (fuse_req_t req,
 }
 
 static void
-xdp_fuse_setlk (fuse_req_t req,
-                fuse_ino_t ino,
+xdp_fuse_setlk (fuse_req_t             req,
+                fuse_ino_t             ino,
                 struct fuse_file_info *fi,
-                struct flock *lock,
-                int sleep)
+                struct flock          *lock,
+                int                    sleep)
 {
   const char *op = "SETLK";
   XdpFile *file = (XdpFile *)fi->fh;
@@ -3314,10 +3329,10 @@ xdp_fuse_setlk (fuse_req_t req,
 }
 
 static void
-xdp_fuse_flock (fuse_req_t req,
-                fuse_ino_t ino,
+xdp_fuse_flock (fuse_req_t             req,
+                fuse_ino_t             ino,
                 struct fuse_file_info *fi,
-                int lock_op)
+                int                    lock_op)
 {
   const char *op = "FLOCK";
 
@@ -3330,7 +3345,7 @@ static void
 xdp_fuse_init_cb (void                  *userdata,
                   struct fuse_conn_info *conn)
 {
-  XdpFuseOptions* fuse_opts = userdata;
+  XdpFuseOptions *fuse_opts = userdata;
 
   g_debug ("INIT");
 
@@ -3353,7 +3368,7 @@ extern gboolean on_fuse_unmount (void *);
 static void
 xdp_fuse_destroy_cb (void *userdata)
 {
-  XdpFuseOptions* fuse_opts = userdata;
+  XdpFuseOptions *fuse_opts = userdata;
 
   g_debug ("DESTROY");
 
@@ -3409,7 +3424,7 @@ typedef struct {
 } XdpFuseThreadData;
 
 static void
-xdp_fuse_mainloop (struct fuse_session *se,
+xdp_fuse_mainloop (struct fuse_session     *se,
                    struct fuse_loop_config *loop_config)
 {
   const char *status;
@@ -3443,14 +3458,14 @@ xdp_fuse_thread (gpointer data)
   };
   g_auto(XdpAutoFuseArgs) args =
     FUSE_ARGS_INIT (G_N_ELEMENTS (fusermount_argv), fusermount_argv);
-  g_autoptr(GMutexLocker) locker = NULL;
   g_autoptr(GMutexLocker) session_locker = NULL;
-  const char *path;
-  struct fuse_session *se;
-  XdpFuseThreadData *thread_data = data;
-  XdpFuseOptions* fuse_opts = NULL;
+  g_autoptr(GMutexLocker) locker = NULL;
   struct fuse_cmdline_opts opts = {0};
   struct fuse_loop_config loop_config = {0};
+  XdpFuseThreadData *thread_data = data;
+  XdpFuseOptions *fuse_opts = NULL;
+  struct fuse_session *se;
+  const char *path;
 
   locker = g_mutex_locker_new (&thread_data->lock);
   fuse_pthread = pthread_self ();
@@ -3514,14 +3529,14 @@ xdp_fuse_thread (gpointer data)
 gboolean
 xdp_fuse_init (GError **error)
 {
-  XdpFuseThreadData thread_data = {0};
-  struct stat st;
-  struct statfs stfs;
-  const char *path;
-  struct rlimit rl;
-  int statfs_res;
-  g_autoptr(XdpDomain) root_domain = NULL;
   g_autoptr(XdpDomain) by_app_domain = NULL;
+  g_autoptr(XdpDomain) root_domain = NULL;
+  XdpFuseThreadData thread_data = {0};
+  struct statfs stfs;
+  struct rlimit rl;
+  struct stat st;
+  const char *path;
+  int statfs_res;
 
   my_uid = getuid ();
   my_gid = getgid ();
@@ -3626,9 +3641,9 @@ typedef struct {
 
 /* Called with domain_inodes lock held, don't block */
 static void
-invalidate_doc_inode (XdpInode *parent_inode,
+invalidate_doc_inode (XdpInode   *parent_inode,
                       const char *doc_id,
-                      GArray *invalidates)
+                      GArray     *invalidates)
 {
   XdpInode *doc_inode = g_hash_table_lookup (parent_inode->domain->inodes, doc_id);
   Invalidate inval;
@@ -3703,8 +3718,9 @@ xdp_fuse_invalidate_doc_app (const char *doc_id,
 }
 
 char *
-xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
-                              char **real_path_out)
+xdp_fuse_lookup_id_for_inode (ino_t      ino,
+                              gboolean   directory,
+                              char     **real_path_out)
 {
   g_autoptr(XdpDomain) domain = NULL;
   g_autoptr(XdpPhysicalInode) physical = NULL;
@@ -3719,7 +3735,7 @@ xdp_fuse_lookup_id_for_inode (ino_t ino, gboolean directory,
     XdpInode *inode = g_hash_table_lookup (all_inodes, &ino);
     if (inode)
       {
-        /* We're not allowed to ressurect the inode here, but we can get the data while in the lock */
+        /* We're not allowed to resurrect the inode here, but we can get the data while in the lock */
         domain = xdp_domain_ref (inode->domain);
         if (inode->physical)
           physical = xdp_physical_inode_ref (inode->physical);
