@@ -32,7 +32,8 @@
 
 static const int required_seals = F_SEAL_GROW | F_SEAL_WRITE | F_SEAL_SHRINK;
 
-struct _XdpSealedFd {
+struct _XdpSealedFd
+{
   GObject parent_instance;
 
   int fd;
@@ -68,9 +69,9 @@ XdpSealedFd *
 xdp_sealed_fd_new_take_memfd (int      memfd,
                               GError **error)
 {
-  int saved_errno = -1;
   g_autoptr(XdpSealedFd) sealed_fd = NULL;
   xdp_autofd int fd = g_steal_fd (&memfd);
+  int saved_errno = -1;
   int seals;
 
   g_return_val_if_fail (fd != -1, NULL);
@@ -112,13 +113,13 @@ XdpSealedFd *
 xdp_sealed_fd_new_from_bytes (GBytes  *bytes,
                               GError **error)
 {
-  gconstpointer bytes_data;
-  gsize bytes_len;
-  xdp_autofd int fd = -1;
-  int saved_errno = -1;
-  g_autoptr(XdpSealedFd) sealed_fd = NULL;
-  gpointer shm;
   g_autoptr(GOutputStream) stream = NULL;
+  g_autoptr(XdpSealedFd) sealed_fd = NULL;
+  xdp_autofd int fd = -1;
+  gconstpointer bytes_data;
+  gpointer shm;
+  gsize bytes_len;
+  int saved_errno = -1;
 
   g_return_val_if_fail (bytes != NULL, NULL);
 
@@ -197,8 +198,8 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
                                GUnixFDList  *fd_list,
                                GError      **error)
 {
-  int fd_id;
   xdp_autofd int fd = -1;
+  int fd_id;
 
   g_return_val_if_fail (g_variant_is_of_type (handle, G_VARIANT_TYPE_HANDLE), NULL);
   g_return_val_if_fail (G_IS_UNIX_FD_LIST (fd_list), NULL);
