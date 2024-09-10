@@ -2,38 +2,39 @@
 # Copyright (C) 2019 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Zander Brown <zbrown@gnome.org>, 2019.
+# Andi Chandler <andi@gowling.com>, 2024.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
-"PO-Revision-Date: 2019-08-24 23:48+0100\n"
-"Last-Translator: Zander Brown <zbrown@gnome.org>\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-08-30 03:32+0000\n"
+"PO-Revision-Date: 2024-04-11 13:09+0100\n"
+"Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Gtranslator 3.32.1\n"
+"X-Generator: Poedit 3.4.2\n"
 
-#: src/background.c:745
+#: src/background.c:820
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Allow %s to run in the background?"
 
-#: src/background.c:749
+#: src/background.c:824
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s requests to be started automatically and run in the background."
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s requests to run in the background."
 
-#: src/background.c:752
+#: src/background.c:827
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,151 +42,239 @@ msgstr ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 
-#: src/background.c:757
+#: src/background.c:832
 msgid "Don't allow"
 msgstr "Don't allow"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:833 src/screenshot.c:238 src/wallpaper.c:183
 msgid "Allow"
 msgstr "Allow"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Turn On Microphone?"
-
-#: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "An application wants to use your microphone."
-
-#: src/device.c:123
+#: src/camera.c:104
 #, c-format
-msgid "%s wants to use your microphone."
-msgstr "%s wants to use your microphone."
+msgid "Allow %s to Use the Camera?"
+msgstr "Allow %s to Use the Camera?"
 
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Turn On Speakers?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"Access to your speakers can be changed at any time from the privacy settings."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "An application wants to play sound."
-
-#: src/device.c:136
+#: src/camera.c:105
 #, c-format
-msgid "%s wants to play sound."
-msgstr "%s wants to play sound."
+msgid "%s wants to access camera devices."
+msgstr "%s wants to access camera devices."
 
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Turn On Camera?"
+#: src/camera.c:109
+msgid "Allow app to Use the Camera?"
+msgstr "Allow app to Use the Camera?"
 
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr ""
-"Access to your camera can be changed at any time from the privacy settings."
+#: src/camera.c:110
+msgid "An app wants to access camera devices."
+msgstr "An app wants to access camera devices."
 
-#: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "An application wants to use your camera."
-
-#: src/device.c:149
+#: src/dynamic-launcher.c:120
 #, c-format
-msgid "%s wants to use your camera."
-msgstr "%s wants to use your camera."
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "Desktop file id missing .desktop suffix: %s"
 
-#: src/location.c:526
+#: src/dynamic-launcher.c:132
+#, c-format
+msgid "Desktop file id missing app id prefix '%s.': %s"
+msgstr "Desktop file id missing app id prefix '%s.': %s"
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr "Desktop entry given to Install() not a valid key file"
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr "Desktop entry given to Install() must have only one group"
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Desktop entry given to Install() not valid"
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Token given is invalid: %s"
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:833
+#: src/dynamic-launcher.c:883
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Desktop file exceeds max size (%d): %s"
+
+#: src/dynamic-launcher.c:564
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr "URL given is invalid: %s"
+
+#: src/dynamic-launcher.c:587
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Invalid launcher type: %x"
+
+#: src/dynamic-launcher.c:594
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Unsupported launcher type: %x"
+
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr "Dynamic launcher icon failed validation"
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "RequestInstallToken() not allowed for app id %s"
+
+#: src/dynamic-launcher.c:923
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "Desktop file '%s' icon at unrecognised path"
+
+#: src/dynamic-launcher.c:946
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "Desktop file '%s' icon failed to serialise"
+
+#: src/dynamic-launcher.c:986
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "No dynamic launcher exists with id '%s'"
+
+#: src/dynamic-launcher.c:1005
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr "Failed to create GDesktopAppInfo for launcher with id '%s'"
+
+#: src/location.c:527
 msgid "Deny Access"
 msgstr "Deny Access"
 
-#: src/location.c:528
+#: src/location.c:529
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/location.c:546
+#: src/location.c:551
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Give %s Access to Your Location?"
 
-#: src/location.c:551
+#: src/location.c:556
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s wants to use your location."
 
-#: src/location.c:559
+#: src/location.c:565
 msgid "Grant Access to Your Location?"
 msgstr "Grant Access to Your Location?"
 
-#: src/location.c:560
+#: src/location.c:566
 msgid "An application wants to use your location."
 msgstr "An application wants to use your location."
 
-#: src/location.c:563
+#: src/location.c:569
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Location access can be changed at any time from the privacy settings."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:236 src/wallpaper.c:181
 msgid "Deny"
-msgstr ""
+msgstr "Deny"
 
 #: src/screenshot.c:256
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "Allow %s to run in the background?"
+msgstr "Allow %s to Take Screenshots?"
 
 #: src/screenshot.c:257
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
+msgstr "%s wants to be able to take screenshots at any time."
 
 #: src/screenshot.c:265
-#, fuzzy
 msgid "Allow Applications to Take Screenshots?"
-msgstr "Allow %s to run in the background?"
+msgstr "Allow Applications to Take Screenshots?"
 
 #: src/screenshot.c:266
-#, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "An application wants to use your microphone."
+msgstr "An application wants to be able to take screenshots at any time."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
-#, fuzzy
+#: src/screenshot.c:269 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Location access can be changed at any time from the privacy settings."
+msgstr "This permission can be changed at any time from the privacy settings."
 
 #: src/settings.c:127 src/settings.c:163
 msgid "Requested setting not found"
 msgstr "Requested setting not found"
 
-#: src/wallpaper.c:200
-#, fuzzy, c-format
+#: src/wallpaper.c:205
+#, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Allow %s to run in the background?"
+msgstr "Allow %s to Set Backgrounds?"
 
-#: src/wallpaper.c:201
-#, fuzzy, c-format
+#: src/wallpaper.c:206
+#, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "%s requests to run in the background."
+msgstr "%s is requesting to be able to change the background image."
 
-#: src/wallpaper.c:209
-#, fuzzy
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "Allow %s to run in the background?"
+msgstr "Allow Applications to Set Backgrounds?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
+"An application is requesting to be able to change the background image."
+
+#, c-format
+#~ msgid "Desktop entry given to Install() must not use --file-forwarding"
+#~ msgstr "Desktop entry given to Install() must not use --file-forwarding"
+
+#, c-format
+#~ msgid "DynamicLauncher install not supported for: %s"
+#~ msgstr "DynamicLauncher install not supported for: %s"
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Turn On Microphone?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "An application wants to use your microphone."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "%s wants to use your microphone."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Turn On Speakers?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "An application wants to play sound."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "%s wants to play sound."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Turn On Camera?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
