@@ -1,5 +1,6 @@
 /*
  * Copyright © 2024 Red Hat, Inc
+ * Copyright © 2024 GNOME Foundation Inc.
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -15,6 +16,9 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #pragma once
@@ -74,6 +78,8 @@ gboolean xdp_app_info_validate_autostart (XdpAppInfo          *app_info,
 gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                  GKeyFile    *key_file,
                                                  GError     **error);
+
+const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
 
 XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
                                                   GCancellable           *cancellable,
