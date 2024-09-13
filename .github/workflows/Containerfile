@@ -29,6 +29,7 @@ RUN apt install -y --no-install-recommends \
     libgstreamer-plugins-good1.0-dev \
     libgeoclue-2-dev \
     libglib2.0-dev \
+    libgudev-1.0-dev \
     libjson-glib-dev \
     libpipewire-0.3-dev \
     libsystemd-dev \
