@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2023 GNOME Foundation Inc.
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Georges Basile Stavracas Neto <georges.stavracas@gmail.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.Usb:
+      @short_description: USB portal backend interface
+
+      This portal lets applications register global shortcuts so they can
+      act regardless of the system state upon an input event.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.Usb">
+
+    <!--
+        AcquireDevices:
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
+        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`.
+        @app_id: App id of the application
+        @devices: Array of device identifiers, and options for each device
+        @options: Vardict with optional further information
+        @response: Numeric Request response
+        @results: Vardict with the results of the call
+
+        Opens the given device node.
+
+        Each element of the @devices array contains the device ID, and the
+        following keys:
+
+        * ``writable`` (``b``)
+
+          Whether the device will be opened in read-write or read-only mode.
+          Default: False
+
+        There are no supported keys in the @options vardict.
+
+        The following results get returned via the @results vardict:
+
+        * ``devices`` (``a(sa{sv})``)
+
+          Which devices to open
+     -->
+    <method name="AcquireDevices">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="a(sa{sv}a{sv})" name="devices" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

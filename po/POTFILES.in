@@ -5,4 +5,5 @@ src/dynamic-launcher.c
 src/location.c
 src/screenshot.c
 src/settings.c
+src/usb.c
 src/wallpaper.c
