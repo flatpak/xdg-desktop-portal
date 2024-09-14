@@ -262,8 +262,9 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
   path_buffer[symlink_size] = 0;
 
   /* All normal paths start with /, but some weird things
-     don't, such as socket:[27345] or anon_inode:[eventfd].
-     We don't support any of these */
+   * don't, such as socket:[27345] or anon_inode:[eventfd].
+   * We don't support any of these.
+   */
   if (path_buffer[0] != '/')
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
@@ -272,11 +273,12 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
     }
 
   /* File descriptors to actually deleted files have " (deleted)"
-     appended to them. This also happens to some fake fd types
-     like shmem which are "/<name> (deleted)". All such
-     files are considered invalid. Unfortunately this also
-     matches files with filenames that actually end in " (deleted)",
-     but there is not much to do about this. */
+   * appended to them. This also happens to some fake fd types
+   * like shmem which are "/<name> (deleted)". All such
+   * files are considered invalid. Unfortunately this also
+   * matches files with filenames that actually end in " (deleted)",
+   * but there is not much to do about this.
+   */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
     {
       const char *mountpoint = xdp_get_documents_mountpoint ();
@@ -284,10 +286,11 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
       if (mountpoint != NULL && g_str_has_prefix (path_buffer, mountpoint))
         {
           /* Unfortunately our workaround for dcache purging triggers
-             o_path file descriptors on the fuse filesystem being
-             marked as deleted, so we have to allow these here and
-             rewrite them. This is safe, becase we will stat the file
-             and compare to make sure we end up on the right file. */
+           * o_path file descriptors on the fuse filesystem being
+           * marked as deleted, so we have to allow these here and
+           * rewrite them. This is safe, becase we will stat the file
+           * and compare to make sure we end up on the right file.
+           */
           path_buffer[symlink_size - strlen(" (deleted)")] = 0;
         }
       else
