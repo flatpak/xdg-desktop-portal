@@ -208,11 +208,11 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                                         NULL);
 
   /* For apps we translate /app and /usr to the installed locations.
-     Also, we need to rewrite to drop the /newroot prefix added by
-     bubblewrap for other files to work.  See
-     https://github.com/projectatomic/bubblewrap/pull/172
-     for a bit more information on the /newroot issue.
-  */
+   * Also, we need to rewrite to drop the /newroot prefix added by
+   * bubblewrap for other files to work.  See
+   * https://github.com/projectatomic/bubblewrap/pull/172
+   * for a bit more information on the /newroot issue.
+   */
 
   if (g_str_has_prefix (path, "/newroot/"))
     path = path + strlen ("/newroot");
@@ -807,7 +807,8 @@ xdp_app_info_flatpak_new (int      pid,
   /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
    * of the connected process but we can get the pidfd of the bwrap instance
    * instead. This is okay because it has the same namespaces as the calling
-   * process. */
+   * process.
+   */
   bwrap_pidfd = get_bwrap_pidfd (instance, error);
   if (bwrap_pidfd == -1)
     return NULL;
