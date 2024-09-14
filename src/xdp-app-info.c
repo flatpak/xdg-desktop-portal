@@ -234,7 +234,6 @@ static char *
 remap_path (XdpAppInfo *app_info,
             const char *path)
 {
-
   if (!XDP_APP_INFO_GET_CLASS (app_info)->remap_path)
     return g_strdup (path);
 
@@ -291,7 +290,7 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
            * rewrite them. This is safe, becase we will stat the file
            * and compare to make sure we end up on the right file.
            */
-          path_buffer[symlink_size - strlen(" (deleted)")] = 0;
+          path_buffer[symlink_size - strlen (" (deleted)")] = 0;
         }
       else
         {
@@ -879,7 +878,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
       if (is_sandboxed)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a flatpak application");
+                       "Can't manually register a Flatpak application");
           return NULL;
         }
 
@@ -889,7 +888,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
       if (is_sandboxed)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a snap application");
+                       "Can't manually register a Snap application");
           return NULL;
         }
 
