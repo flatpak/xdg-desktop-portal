@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "session.h"
+#include "xdp-session.h"
 
 typedef enum _XdpSessionPersistenceMode
 {

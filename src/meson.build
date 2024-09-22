@@ -93,7 +93,6 @@ xdg_desktop_portal_sources = files(
   'screen-cast.c',
   'screenshot.c',
   'secret.c',
-  'session.c',
   'settings.c',
   'trash.c',
   'wallpaper.c',
@@ -103,6 +102,7 @@ xdg_desktop_portal_sources = files(
   'xdp-call.c',
   'xdp-portal-impl.c',
   'xdp-request.c',
+  'xdp-session.c',
   'xdp-session-persistence.c',
 )
 

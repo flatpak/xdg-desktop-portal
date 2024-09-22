@@ -59,7 +59,6 @@ test(
 
 test_backends_sources = files(
   'backend/test-backends.c',
-  'backend/session.c',
   'backend/access.c',
   'backend/account.c',
   'backend/appchooser.c',
@@ -74,6 +73,7 @@ test_backends_sources = files(
   'backend/settings.c',
   'backend/wallpaper.c',
   'backend/xdp-request.c',
+  'backend/xdp-session.c',
   'glib-backports.c',
 )
 
