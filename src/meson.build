@@ -94,7 +94,6 @@ xdg_desktop_portal_sources = files(
   'realtime.c',
   'remote-desktop.c',
   'request.c',
-  'restore-token.c',
   'screen-cast.c',
   'screenshot.c',
   'secret.c',
@@ -105,6 +104,7 @@ xdg_desktop_portal_sources = files(
   'xdg-desktop-portal.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
+  'xdp-session-persistence.c',
 )
 
 xdg_desktop_portal_sources += [
