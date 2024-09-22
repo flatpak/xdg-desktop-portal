@@ -65,10 +65,10 @@ handle_request_clipboard (XdpDbusClipboard *object,
                           GVariant *arg_options)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
   RemoteDesktopSession *remote_desktop_session;
 
-  session = acquire_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -113,13 +113,13 @@ handle_set_selection (XdpDbusClipboard *object,
                       GVariant *arg_options)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
-  session = acquire_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -236,9 +236,9 @@ handle_selection_write (XdpDbusClipboard *object,
                         guint arg_serial)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
 
-  session = acquire_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -287,9 +287,9 @@ handle_selection_write_done (XdpDbusClipboard *object,
                              gboolean arg_success)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
 
-  session = acquire_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -391,9 +391,9 @@ handle_selection_read (XdpDbusClipboard *object,
                        const char *arg_mime_type)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
 
-  session = acquire_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -465,9 +465,9 @@ selection_transfer_cb (XdpDbusImplClipboard *impl,
 {
   GDBusConnection *connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  Session *session;
+  XdpSession *session;
 
-  session = lookup_session (arg_session_handle);
+  session = xdp_session_lookup (arg_session_handle);
   if (!session)
     {
       g_warning ("Cannot find session");
@@ -501,9 +501,9 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
 {
   GDBusConnection *connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  Session *session;
+  XdpSession *session;
 
-  session = lookup_session (arg_session_handle);
+  session = xdp_session_lookup (arg_session_handle);
   if (!session)
     {
       g_warning ("Cannot find session");
