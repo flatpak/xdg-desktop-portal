@@ -443,7 +443,7 @@ get_bwrap_pidfd (const char  *instance,
   fd = open_pid_fd (dirfd (proc), pid, error);
   closedir (proc);
 
-  return fd;
+  return xdp_steal_fd (&fd);
 }
 
 XdpAppInfo *
