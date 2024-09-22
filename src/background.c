@@ -779,7 +779,7 @@ handle_request_background_in_thread_func (GTask *task,
                                           gpointer task_data,
                                           GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   GVariant *options;
   const char *id;
   Permission permission;
@@ -896,7 +896,7 @@ handle_request_background_in_thread_func (GTask *task,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       portal_response,
                                       g_variant_builder_end (&results));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -970,7 +970,7 @@ handle_request_background (XdpDbusBackground *object,
                            const char *arg_window,
                            GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GTask) task = NULL;
@@ -1005,8 +1005,8 @@ handle_request_background (XdpDbusBackground *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_background_complete_request_background (object, invocation, request->id);
 

@@ -73,7 +73,7 @@ send_response_in_thread_func (GTask *task,
                               gpointer task_data,
                               GCancellable *cancellable)
 {
-  Request *request = task_data;
+  XdpRequest *request = task_data;
   guint response;
   g_auto(GVariantBuilder) new_results =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
@@ -87,7 +87,7 @@ send_response_in_thread_func (GTask *task,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&new_results));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -96,7 +96,7 @@ retrieve_secret_done (GObject *source,
 		      GAsyncResult *result,
 		      gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
@@ -127,7 +127,7 @@ handle_retrieve_secret (XdpDbusSecret *object,
 			GVariant *arg_fd,
 			GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -156,8 +156,8 @@ handle_retrieve_secret (XdpDbusSecret *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_secret_complete_retrieve_secret (object, invocation, NULL, request->id);
 

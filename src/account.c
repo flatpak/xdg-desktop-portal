@@ -69,7 +69,7 @@ send_response_in_thread_func (GTask        *task,
                               gpointer      task_data,
                               GCancellable *cancellable)
 {
-  Request *request = task_data;
+  XdpRequest *request = task_data;
   guint response;
   GVariant *results;
   g_auto(GVariantBuilder) new_results =
@@ -117,7 +117,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&new_results));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -126,7 +126,7 @@ get_user_information_done (GObject *source,
                            GAsyncResult *result,
                            gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
@@ -179,7 +179,7 @@ handle_get_user_information (XdpDbusAccount *object,
                              const gchar *arg_parent_window,
                              GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -201,8 +201,8 @@ handle_get_user_information (XdpDbusAccount *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &options,
                       user_information_options, G_N_ELEMENTS (user_information_options),

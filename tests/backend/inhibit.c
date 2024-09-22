@@ -15,7 +15,7 @@ static GDBusInterfaceSkeleton *inhibit;
 typedef struct {
   XdpDbusImplInhibit *impl;
   GDBusMethodInvocation *invocation;
-  Request *request;
+  XdpRequest *request;
   GKeyFile *keyfile;
   char *app_id;
   guint flags;
@@ -39,14 +39,14 @@ inhibit_handle_free (InhibitHandle *handle)
 }
 
 static gboolean
-handle_close (Request *object,
+handle_close (XdpRequest *object,
               GDBusMethodInvocation *invocation,
               gpointer data)
 {
   InhibitHandle *handle = g_object_get_data (G_OBJECT (object), "handle");
 
   if (object->exported)
-    request_unexport (object);
+    xdp_request_unexport (object);
 
   xdp_dbus_impl_request_complete_close (XDP_DBUS_IMPL_REQUEST (object), invocation);
 
@@ -102,7 +102,7 @@ handle_inhibit (XdpDbusImplInhibit *object,
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   InhibitHandle *handle;
-  g_autoptr(Request) request = NULL;
+  g_autoptr(XdpRequest) request = NULL;
   int delay;
 
   g_debug ("Handling Inhibit");
@@ -117,7 +117,7 @@ handle_inhibit (XdpDbusImplInhibit *object,
 
   g_assert_cmpuint (arg_flags, ==, g_key_file_get_integer (keyfile, "inhibit", "flags", NULL));
 
-  request = request_new (sender, arg_app_id, arg_handle);
+  request = xdp_request_new (sender, arg_app_id, arg_handle);
 
   handle = g_new0 (InhibitHandle, 1);
   handle->impl = g_object_ref (object);
@@ -130,7 +130,7 @@ handle_inhibit (XdpDbusImplInhibit *object,
   g_object_set_data (G_OBJECT (request), "handle", handle);
   handle->close_id = g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), NULL);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
 
   if (g_key_file_has_key (keyfile, "backend", "delay", NULL))

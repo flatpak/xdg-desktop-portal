@@ -72,7 +72,7 @@ create_pipewire_remote (Camera *camera,
                         GError **error);
 
 static gboolean
-query_permission_sync (Request *request)
+query_permission_sync (XdpRequest *request)
 {
   Permission permission;
   const char *app_id;
@@ -120,7 +120,7 @@ query_permission_sync (Request *request)
       if (!impl_request)
         return FALSE;
 
-      request_set_impl_request (request, impl_request);
+      xdp_request_set_impl_request (request, impl_request);
 
       g_debug ("Calling backend for device access to camera");
 
@@ -164,7 +164,7 @@ handle_access_camera_in_thread_func (GTask *task,
                                      gpointer task_data,
                                      GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   gboolean allowed;
 
   allowed = query_permission_sync (request);
@@ -183,7 +183,7 @@ handle_access_camera_in_thread_func (GTask *task,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&results));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -192,7 +192,7 @@ handle_access_camera (XdpDbusCamera *object,
                       GDBusMethodInvocation *invocation,
                       GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id;
   g_autoptr(GTask) task = NULL;
 
@@ -213,7 +213,7 @@ handle_access_camera (XdpDbusCamera *object,
 
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (app_id), g_free);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_camera_complete_access_camera (object, invocation, request->id);
 

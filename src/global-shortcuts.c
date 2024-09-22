@@ -120,7 +120,7 @@ global_shortcuts_session_class_init (GlobalShortcutsSessionClass *klass)
 
 static GlobalShortcutsSession *
 global_shortcuts_session_new (GVariant *options,
-                              Request *request,
+                              XdpRequest *request,
                               GError **error)
 {
   Session *session;
@@ -154,7 +154,7 @@ session_created_cb (GObject *source_object,
                     GAsyncResult *res,
                     gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   guint response = 2;
   g_autoptr (GVariant) results = NULL;
@@ -208,7 +208,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&results_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 
   if (should_close_session)
@@ -225,7 +225,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) options_builder =
@@ -257,8 +257,8 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   session = SESSION (global_shortcuts_session_new (options, request, &error));
   if (!session)
@@ -291,7 +291,7 @@ shortcuts_bound_cb (GObject *source_object,
                     GAsyncResult *res,
                     gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   guint response = 2;
   g_autoptr(GError) error = NULL;
@@ -320,7 +320,7 @@ shortcuts_bound_cb (GObject *source_object,
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -377,7 +377,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                        const gchar *arg_parent_window,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   Session *session;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
@@ -433,8 +433,8 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
@@ -461,7 +461,7 @@ shortcuts_listed_cb (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   guint response = 2;
   g_autoptr(GError) error = NULL;
@@ -490,7 +490,7 @@ shortcuts_listed_cb (GObject *source_object,
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -504,7 +504,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
                        const gchar *arg_session_handle,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   Session *session;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
@@ -547,8 +547,8 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,

@@ -71,7 +71,7 @@ G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELET
                                                 screenshot_iface_init));
 
 static void
-send_response (Request *request,
+send_response (XdpRequest *request,
                guint response,
                GVariant *results)
 {
@@ -79,7 +79,7 @@ send_response (Request *request,
     {
       g_debug ("sending response: %d", response);
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
   else
     {
@@ -94,7 +94,7 @@ send_response_in_thread_func (GTask *task,
                               gpointer task_data,
                               GCancellable *cancellable)
 {
-  Request *request = task_data;
+  XdpRequest *request = task_data;
   g_auto(GVariantBuilder) results =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   guint response;
@@ -158,7 +158,7 @@ screenshot_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -195,7 +195,7 @@ handle_screenshot_in_thread_func (GTask *task,
                                   gpointer task_data,
                                   GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -318,7 +318,7 @@ query_impl:
       return;
     }
 
-  request_set_impl_request (request, impl_request);
+  xdp_request_set_impl_request (request, impl_request);
 
   xdp_filter_options (options, &opt_builder,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
@@ -347,7 +347,7 @@ handle_screenshot (XdpDbusScreenshot *object,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
 
   g_debug ("Handle Screenshot");
@@ -358,7 +358,7 @@ handle_screenshot (XdpDbusScreenshot *object,
                           g_variant_ref (arg_options),
                           (GDestroyNotify)g_variant_unref);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
@@ -373,7 +373,7 @@ pick_color_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -408,7 +408,7 @@ handle_pick_color (XdpDbusScreenshot *object,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -428,8 +428,8 @@ handle_pick_color (XdpDbusScreenshot *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &opt_builder,
                       pick_color_options, G_N_ELEMENTS (pick_color_options),
