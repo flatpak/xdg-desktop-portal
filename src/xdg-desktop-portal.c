@@ -39,7 +39,7 @@
 
 #include "account.h"
 #include "background.h"
-#include "call.h"
+#include "xdp-call.h"
 #include "camera.h"
 #include "clipboard.h"
 #include "documents.h"
