@@ -31,7 +31,7 @@
 
 #include "location.h"
 #include "xdp-request.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 #include "xdp-session.h"

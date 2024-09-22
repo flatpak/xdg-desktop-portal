@@ -42,7 +42,7 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "documents.h"
 #include "xdp-app-launch-context.h"
 
