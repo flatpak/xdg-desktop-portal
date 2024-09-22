@@ -65,7 +65,7 @@ lookup_session_token (GVariant *options)
 
 Session *
 acquire_session (const char *session_handle,
-                 Request *request)
+                 XdpRequest *request)
 {
   g_autoptr(Session) session = NULL;
 

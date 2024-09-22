@@ -116,7 +116,7 @@ is_screen_cast_session (Session *session)
 
 static ScreenCastSession *
 screen_cast_session_new (GVariant *options,
-                         Request *request,
+                         XdpRequest *request,
                          GError **error)
 {
   Session *session;
@@ -150,7 +150,7 @@ create_session_done (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   guint response = 2;
   gboolean should_close_session;
@@ -204,7 +204,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&results_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
   else
     {
@@ -220,7 +220,7 @@ handle_create_session (XdpDbusScreenCast *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   Session *session;
@@ -241,8 +241,8 @@ handle_create_session (XdpDbusScreenCast *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   session = (Session *)screen_cast_session_new (arg_options, request, &error);
   if (!session)
@@ -278,7 +278,7 @@ select_sources_done (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   guint response = 2;
   gboolean should_close_session;
@@ -314,7 +314,7 @@ select_sources_done (GObject *source_object,
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 
   if (should_close_session)
@@ -479,7 +479,7 @@ handle_select_sources (XdpDbusScreenCast *object,
                        const char *arg_session_handle,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   Session *session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -565,8 +565,8 @@ handle_select_sources (XdpDbusScreenCast *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
@@ -764,7 +764,7 @@ start_done (GObject *source_object,
             GAsyncResult *res,
             gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   Session *session;
   ScreenCastSession *screen_cast_session;
   guint response = 2;
@@ -815,7 +815,7 @@ start_done (GObject *source_object,
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 
   if (should_close_session)
@@ -838,7 +838,7 @@ handle_start (XdpDbusScreenCast *object,
               const char *arg_parent_window,
               GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   Session *session;
   ScreenCastSession *screen_cast_session;
   g_autoptr(GError) error = NULL;
@@ -902,8 +902,8 @@ handle_start (XdpDbusScreenCast *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   options = g_variant_builder_end (&options_builder);
