@@ -24,7 +24,7 @@
 #include "screen-cast.h"
 #include "request.h"
 #include "pipewire.h"
-#include "call.h"
+#include "xdp-call.h"
 #include "session.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"

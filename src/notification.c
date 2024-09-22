@@ -29,7 +29,7 @@
 #include <gio/gunixoutputstream.h>
 
 #include "notification.h"
-#include "call.h"
+#include "xdp-call.h"
 #include "permissions.h"
 #include "request.h"
 #include "xdp-app-info.h"

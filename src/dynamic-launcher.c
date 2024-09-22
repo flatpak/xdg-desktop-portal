@@ -37,7 +37,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
 
-#include "call.h"
+#include "xdp-call.h"
 #include "dynamic-launcher.h"
 #include "xdp-app-launch-context.h"
 #include "request.h"
