@@ -16,7 +16,7 @@
  *
  */
 
-#include "session.h"
+#include "xdp-session.h"
 #include "xdp-request.h"
 #include "xdp-call.h"
 

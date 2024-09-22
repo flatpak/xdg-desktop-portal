@@ -22,7 +22,7 @@
 #include <glib.h>
 #include <gio/gunixfdlist.h>
 
-#include "session.h"
+#include "xdp-session.h"
 #include "input-capture.h"
 #include "xdp-request.h"
 #include "xdp-dbus.h"

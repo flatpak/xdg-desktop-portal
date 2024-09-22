@@ -17,7 +17,7 @@
  *
  */
 
-#include "session.h"
+#include "xdp-session.h"
 
 enum
 {

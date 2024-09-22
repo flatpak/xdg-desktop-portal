@@ -20,7 +20,7 @@
 
 #include <gio/gio.h>
 
-#include "session.h"
+#include "xdp-session.h"
 #include "screen-cast.h"
 
 typedef struct _RemoteDesktopSession RemoteDesktopSession;
