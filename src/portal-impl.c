@@ -68,7 +68,7 @@ portal_config_free (PortalConfig *config)
 }
 
 static void
-portal_implementation_free (PortalImplementation *impl)
+portal_implementation_free (XdpPortalImplementation *impl)
 {
   g_clear_pointer (&impl->source, g_free);
   g_clear_pointer (&impl->dbus_name, g_free);
@@ -77,7 +77,7 @@ portal_implementation_free (PortalImplementation *impl)
   g_free (impl);
 }
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalImplementation, portal_implementation_free)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpPortalImplementation, portal_implementation_free)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalInterface, portal_interface_free)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalConfig, portal_config_free)
 
@@ -170,7 +170,7 @@ register_portal (const char  *path,
                  gboolean     opt_verbose,
                  GError     **error)
 {
-  g_autoptr(PortalImplementation) impl = g_new0 (PortalImplementation, 1);
+  g_autoptr(XdpPortalImplementation) impl = g_new0 (XdpPortalImplementation, 1);
   g_autoptr(GKeyFile) keyfile = g_key_file_new ();
   g_autofree char *basename = NULL;
   int i;
@@ -241,8 +241,8 @@ static gint
 sort_impl_by_use_in_and_name (gconstpointer a,
                               gconstpointer b)
 {
-  const PortalImplementation *pa = a;
-  const PortalImplementation *pb = b;
+  const XdpPortalImplementation *pa = a;
+  const XdpPortalImplementation *pb = b;
   const char **desktops;
   int i;
 
@@ -537,8 +537,8 @@ portal_interface_prefers_none (const char *interface)
 }
 
 static gboolean
-portal_impl_supports_iface (const PortalImplementation *impl,
-                            const char                 *interface)
+portal_impl_supports_iface (const XdpPortalImplementation *impl,
+                            const char                    *interface)
 {
   return g_strv_contains ((const char * const *) impl->interfaces, interface);
 }
@@ -551,12 +551,12 @@ warn_please_use_portals_conf (void)
                   "configuration file");
 }
 
-static PortalImplementation *
+static XdpPortalImplementation *
 find_any_portal_implementation (const char *interface)
 {
   for (const GList *l = implementations; l != NULL; l = l->next)
     {
-      PortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = l->data;
 
       if (!portal_impl_supports_iface (impl, interface))
         continue;
@@ -568,7 +568,7 @@ find_any_portal_implementation (const char *interface)
   return NULL;
 }
 
-static PortalImplementation *
+static XdpPortalImplementation *
 find_portal_implementation_by_name (const char *portal_name)
 {
   if (portal_name == NULL)
@@ -576,7 +576,7 @@ find_portal_implementation_by_name (const char *portal_name)
 
   for (const GList *l = implementations; l != NULL; l = l->next)
     {
-      PortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = l->data;
 
       if (g_str_equal (impl->source, portal_name))
         return impl;
@@ -586,7 +586,7 @@ find_portal_implementation_by_name (const char *portal_name)
   return NULL;
 }
 
-static PortalImplementation *
+static XdpPortalImplementation *
 find_portal_implementation_iface (const PortalInterface *iface)
 {
   if (iface == NULL)
@@ -594,7 +594,7 @@ find_portal_implementation_iface (const PortalInterface *iface)
 
   for (size_t i = 0; iface->portals && iface->portals[i]; i++)
     {
-      PortalImplementation *impl;
+      XdpPortalImplementation *impl;
       const char *portal = iface->portals[i];
 
       g_debug ("Found '%s' in configuration for %s", portal, iface->dbus_name);
@@ -622,7 +622,7 @@ find_portal_implementation_iface (const PortalInterface *iface)
   return NULL;
 }
 
-static PortalImplementation *
+static XdpPortalImplementation *
 find_default_implementation_iface (const char *interface)
 {
   PortalInterface *iface;
@@ -633,7 +633,7 @@ find_default_implementation_iface (const char *interface)
   iface = config->default_portal;
   for (size_t i = 0; iface->portals && iface->portals[i]; i++)
     {
-      PortalImplementation *impl;
+      XdpPortalImplementation *impl;
       const char *portal = iface->portals[i];
 
       g_debug ("Found '%s' in configuration for default", portal);
@@ -649,7 +649,7 @@ find_default_implementation_iface (const char *interface)
   return NULL;
 }
 
-PortalImplementation *
+XdpPortalImplementation *
 find_portal_implementation (const char *interface)
 {
   const char **desktops;
@@ -660,7 +660,7 @@ find_portal_implementation (const char *interface)
   if (config)
     {
       PortalInterface *iface = find_matching_iface_config (interface);
-      PortalImplementation *impl = find_portal_implementation_iface (iface);
+      XdpPortalImplementation *impl = find_portal_implementation_iface (iface);
 
       if (!impl)
         impl = find_default_implementation_iface (interface);
@@ -679,7 +679,7 @@ find_portal_implementation (const char *interface)
     {
       for (GList *l = implementations; l != NULL; l = l->next)
         {
-          PortalImplementation *impl = l->data;
+          XdpPortalImplementation *impl = l->data;
 
           if (!portal_impl_supports_iface (impl, interface))
             continue;
@@ -703,7 +703,7 @@ find_portal_implementation (const char *interface)
    * If it isn't installed, that is not an error: we just don't use it. */
   for (GList *l = implementations; l != NULL; l = l->next)
     {
-      PortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = l->data;
 
       if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
         continue;
@@ -734,7 +734,7 @@ find_all_portal_implementations (const char *interface)
   if (config)
     {
       PortalInterface *iface = find_matching_iface_config (interface);
-      PortalImplementation *impl = find_portal_implementation_iface (iface);
+      XdpPortalImplementation *impl = find_portal_implementation_iface (iface);
 
       if (!impl)
         impl = find_default_implementation_iface(interface);
@@ -756,7 +756,7 @@ find_all_portal_implementations (const char *interface)
     {
       for (GList *l = implementations; l != NULL; l = l->next)
         {
-          PortalImplementation *impl = l->data;
+          XdpPortalImplementation *impl = l->data;
 
           if (!portal_impl_supports_iface (impl, interface))
             continue;
@@ -783,7 +783,7 @@ find_all_portal_implementations (const char *interface)
    * If it isn't installed, that is not an error: we just don't use it. */
   for (GList *l = implementations; l != NULL; l = l->next)
     {
-      PortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = l->data;
 
       if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
         continue;
