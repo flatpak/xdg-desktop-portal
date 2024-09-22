@@ -22,7 +22,7 @@
 
 #include "remote-desktop.h"
 #include "screen-cast.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "pipewire.h"
 #include "xdp-call.h"
 #include "session.h"

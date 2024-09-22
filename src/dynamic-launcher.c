@@ -40,7 +40,7 @@
 #include "xdp-call.h"
 #include "dynamic-launcher.h"
 #include "xdp-app-launch-context.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
