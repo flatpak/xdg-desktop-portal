@@ -61,7 +61,7 @@
 #include "proxy-resolver.h"
 #include "realtime.h"
 #include "remote-desktop.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"

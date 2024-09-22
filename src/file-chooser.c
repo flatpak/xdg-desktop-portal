@@ -35,7 +35,7 @@
 #include <gio/gio.h>
 
 #include "file-chooser.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"

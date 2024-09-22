@@ -5,7 +5,7 @@
 
 #include "xdp-impl-dbus.h"
 
-#include "request.h"
+#include "xdp-request.h"
 #include "account.h"
 
 typedef struct {

@@ -19,7 +19,7 @@
  */
 
 #include "session.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-call.h"
 
 #include <string.h>
