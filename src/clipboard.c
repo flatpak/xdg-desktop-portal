@@ -64,7 +64,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
                           const char *arg_session_handle,
                           GVariant *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   RemoteDesktopSession *remote_desktop_session;
 
@@ -112,7 +112,7 @@ handle_set_selection (XdpDbusClipboard *object,
                       const char *arg_session_handle,
                       GVariant *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
@@ -225,7 +225,7 @@ handle_selection_write (XdpDbusClipboard *object,
                         const char *arg_session_handle,
                         guint arg_serial)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
 
   session = acquire_session_from_call (arg_session_handle, call);
@@ -276,7 +276,7 @@ handle_selection_write_done (XdpDbusClipboard *object,
                              guint arg_serial,
                              gboolean arg_success)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
 
   session = acquire_session_from_call (arg_session_handle, call);
@@ -366,7 +366,7 @@ handle_selection_read (XdpDbusClipboard *object,
                        const char *arg_session_handle,
                        const char *arg_mime_type)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
 
   session = acquire_session_from_call (arg_session_handle, call);

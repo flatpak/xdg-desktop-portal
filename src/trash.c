@@ -104,7 +104,7 @@ handle_trash_file (XdpDbusTrash *object,
                    GUnixFDList *fd_list,
                    GVariant *arg_fd)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   int idx, fd;
   guint result;
 

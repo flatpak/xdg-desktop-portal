@@ -1052,9 +1052,9 @@ handle_set_status_in_thread_func (GTask        *task,
   InstanceData *data;
   const char *id = NULL;
   GVariant *options;
-  Call *call;
+  XdpCall *call;
 
-  call = call_from_invocation (invocation);
+  call = xdp_call_from_invocation (invocation);
   id = xdp_app_info_get_instance (call->app_info);
 
   options = g_object_get_data (G_OBJECT (invocation), "options");
@@ -1162,9 +1162,9 @@ handle_set_status (XdpDbusBackground     *object,
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   const char *id = NULL;
-  Call *call;
+  XdpCall *call;
 
-  call = call_from_invocation (invocation);
+  call = xdp_call_from_invocation (invocation);
 
   g_debug ("Handling SetStatus call from %s", xdp_app_info_get_id (call->app_info));
 
