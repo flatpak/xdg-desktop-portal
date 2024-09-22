@@ -75,7 +75,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
 const char * lookup_session_token (GVariant *options);
 
 Session * acquire_session (const char *session_handle,
-                           Request *request);
+                           XdpRequest *request);
 
 Session * acquire_session_from_call (const char *session_handle,
                                      XdpCall *call);

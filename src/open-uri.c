@@ -350,7 +350,7 @@ send_response_in_thread_func (GTask *task,
                               gpointer task_data,
                               GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   guint response;
   GVariant *options;
   const char *choice;
@@ -393,7 +393,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -402,7 +402,7 @@ app_chooser_done (GObject *source,
                   GAsyncResult *result,
                   gpointer data)
 {
-  g_autoptr (Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -552,7 +552,7 @@ find_recommended_choices (const char *scheme,
 
 static void
 app_info_changed (GAppInfoMonitor *monitor,
-                  Request *request)
+                  XdpRequest *request)
 {
   const char *scheme;
   const char *content_type;
@@ -591,7 +591,7 @@ handle_open_in_thread_func (GTask *task,
                             gpointer task_data,
                             GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   const char *parent_window;
   const char *app_id = xdp_app_info_get_id (request->app_info);
   const char *activation_token;
@@ -636,7 +636,7 @@ handle_open_in_thread_func (GTask *task,
           xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                           XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                           g_variant_builder_end (&opts_builder));
-          request_unexport (request);
+          xdp_request_unexport (request);
         }
       return;
     }
@@ -655,7 +655,7 @@ handle_open_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
             }
           return;
         }
@@ -670,7 +670,7 @@ handle_open_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
             }
           return;
         }
@@ -715,7 +715,7 @@ handle_open_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
             }
           return;
         }
@@ -765,7 +765,7 @@ handle_open_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS,
                                               g_variant_builder_end (&opts_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
               return;
             }
 
@@ -871,7 +871,7 @@ handle_open_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
             }
 
           return;
@@ -900,7 +900,7 @@ handle_open_in_thread_func (GTask *task,
                                           request->id,
                                           NULL, NULL);
 
-  request_set_impl_request (request, impl_request);
+  xdp_request_set_impl_request (request, impl_request);
 
   g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
 
@@ -949,7 +949,7 @@ handle_open_uri (XdpDbusOpenURI *object,
                  const gchar *arg_uri,
                  GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -982,7 +982,7 @@ handle_open_uri (XdpDbusOpenURI *object,
   if (activation_token)
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_open_uri_complete_open_uri (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
@@ -1000,7 +1000,7 @@ handle_open_file (XdpDbusOpenURI *object,
                  GVariant *arg_fd,
                  GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -1042,7 +1042,7 @@ handle_open_file (XdpDbusOpenURI *object,
   if (activation_token)
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_open_uri_complete_open_file (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
@@ -1060,7 +1060,7 @@ handle_open_directory (XdpDbusOpenURI *object,
                        GVariant *arg_fd,
                        GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
   const char *activation_token = NULL;
@@ -1095,7 +1095,7 @@ handle_open_directory (XdpDbusOpenURI *object,
   if (activation_token)
     g_object_set_data_full (G_OBJECT (request), "activation-token", g_strdup (activation_token), g_free);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_open_uri_complete_open_directory (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
