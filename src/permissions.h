@@ -25,36 +25,37 @@
 #include <gio/gio.h>
 #include "xdp-impl-dbus.h"
 
-typedef enum _Permission
+typedef enum _XdpPermission
 {
-  PERMISSION_UNSET,
-  PERMISSION_NO,
-  PERMISSION_YES,
-  PERMISSION_ASK
-} Permission;
+  XDP_PERMISSION_UNSET,
+  XDP_PERMISSION_NO,
+  XDP_PERMISSION_YES,
+  XDP_PERMISSION_ASK
+} XdpPermission;
 
-char **get_permissions_sync (const char *app_id,
-                             const char *table,
-                             const char *id);
+char **xdp_get_permissions_sync (const char *app_id,
+                                 const char *table,
+                                 const char *id);
 
-void set_permissions_sync (const char *app_id,
-                           const char *table,
-                           const char *id,
-                           const char * const *permissions);
+void xdp_set_permissions_sync (const char         *app_id,
+                               const char         *table,
+                               const char         *id,
+                               const char * const *permissions);
 
-Permission get_permission_sync (const char *app_id,
-                                const char *table,
-                                const char *id);
+XdpPermission xdp_get_permission_sync (const char *app_id,
+                                       const char *table,
+                                       const char *id);
 
-void set_permission_sync (const char *app_id,
-                          const char *table,
-                          const char *id,
-                          Permission permission);
+void xdp_set_permission_sync (const char    *app_id,
+                              const char    *table,
+                              const char    *id,
+                              XdpPermission  permission);
 
-char **permissions_from_tristate (Permission permission);
+char **xdp_permissions_from_tristate (XdpPermission permission);
 
-Permission permissions_to_tristate (char **permissions);
+XdpPermission xdp_permissions_to_tristate (char **permissions);
 
-gboolean init_permission_store (GDBusConnection  *connection,
-                                GError          **error);
-XdpDbusImplPermissionStore *get_permission_store (void);
+gboolean xdp_init_permission_store (GDBusConnection  *connection,
+                                    GError          **err);
+
+XdpDbusImplPermissionStore *xdp_get_permission_store (void);

@@ -195,7 +195,7 @@ handle_screenshot_in_thread_func (GTask *task,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;
-  Permission permission;
+  XdpPermission permission;
   GVariant *options;
   gboolean permission_store_checked = FALSE;
   gboolean interactive;
@@ -213,12 +213,12 @@ handle_screenshot_in_thread_func (GTask *task,
   if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
     goto query_impl;
 
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
 
-  if (!interactive && permission != PERMISSION_YES)
+  if (!interactive && permission != XDP_PERMISSION_YES)
     {
       g_autoptr(GVariant) access_results = NULL;
       GVariantBuilder access_opt_builder;
@@ -227,7 +227,7 @@ handle_screenshot_in_thread_func (GTask *task,
       const gchar *body;
       guint access_response = 2;
 
-      if (permission == PERMISSION_NO)
+      if (permission == XDP_PERMISSION_NO)
         {
           send_response (request, 2, g_variant_builder_end (&opt_builder));
           return;
@@ -288,8 +288,8 @@ handle_screenshot_in_thread_func (GTask *task,
           return;
         }
 
-      if (permission == PERMISSION_UNSET)
-        set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
+      if (permission == XDP_PERMISSION_UNSET)
+        xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
         {
