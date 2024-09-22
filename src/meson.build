@@ -80,7 +80,6 @@ xdg_desktop_portal_sources = files(
   'global-shortcuts.c',
   'inhibit.c',
   'input-capture.c',
-  'launch-context.c',
   'memory-monitor.c',
   'network-monitor.c',
   'notification.c',
@@ -103,6 +102,7 @@ xdg_desktop_portal_sources = files(
   'trash.c',
   'wallpaper.c',
   'xdg-desktop-portal.c',
+  'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
 )
 

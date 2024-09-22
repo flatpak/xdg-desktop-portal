@@ -39,7 +39,7 @@
 
 #include "call.h"
 #include "dynamic-launcher.h"
-#include "launch-context.h"
+#include "xdp-app-launch-context.h"
 #include "request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
