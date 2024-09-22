@@ -27,18 +27,18 @@
 
 #include <string.h>
 
-static void request_skeleton_iface_init (XdpDbusRequestIface *iface);
+static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_DBUS_TYPE_REQUEST_SKELETON,
+G_DEFINE_TYPE_WITH_CODE (XdpRequest, xdp_request, XDP_DBUS_TYPE_REQUEST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
-                                                request_skeleton_iface_init))
+                                                xdp_request_skeleton_iface_init))
 
 static void
-request_on_signal_response (XdpDbusRequest *object,
-                            guint arg_response,
-                            GVariant *arg_results)
+xdp_request_on_signal_response (XdpDbusRequest *object,
+                                guint           arg_response,
+                                GVariant       *arg_results)
 {
-  Request *request = REQUEST (object);
+  XdpRequest *request = XDP_REQUEST (object);
   XdpDbusRequestSkeleton *skeleton = XDP_DBUS_REQUEST_SKELETON (object);
   GList      *connections, *l;
   GVariant   *signal_variant;
@@ -64,10 +64,10 @@ request_on_signal_response (XdpDbusRequest *object,
 }
 
 static gboolean
-handle_close (XdpDbusRequest *object,
-              GDBusMethodInvocation *invocation)
+xd_request_handle_close (XdpDbusRequest        *object,
+                         GDBusMethodInvocation *invocation)
 {
-  Request *request = REQUEST (object);
+  XdpRequest *request = XDP_REQUEST (object);
   g_autoptr(GError) error = NULL;
 
   g_debug ("Handling Close");
@@ -84,7 +84,7 @@ handle_close (XdpDbusRequest *object,
           return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
 
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 
   if (invocation)
@@ -94,25 +94,25 @@ handle_close (XdpDbusRequest *object,
 }
 
 static void
-request_skeleton_iface_init (XdpDbusRequestIface *iface)
+xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface)
 {
-  iface->handle_close = handle_close;
-  iface->response = request_on_signal_response;
+  iface->handle_close = xd_request_handle_close;
+  iface->response = xdp_request_on_signal_response;
 }
 
 G_LOCK_DEFINE (requests);
 static GHashTable *requests;
 
 static void
-request_init (Request *request)
+xdp_request_init (XdpRequest *request)
 {
   g_mutex_init (&request->mutex);
 }
 
 static void
-request_finalize (GObject *object)
+xdp_request_finalize (GObject *object)
 {
-  Request *request = REQUEST (object);
+  XdpRequest *request = XDP_REQUEST (object);
 
   G_LOCK (requests);
   g_hash_table_remove (requests, request->id);
@@ -124,11 +124,11 @@ request_finalize (GObject *object)
   g_mutex_clear (&request->mutex);
   g_clear_object (&request->app_info);
 
-  G_OBJECT_CLASS (request_parent_class)->finalize (object);
+  G_OBJECT_CLASS (xdp_request_parent_class)->finalize (object);
 }
 
 static void
-request_class_init (RequestClass *klass)
+xdp_request_class_init (XdpRequestClass *klass)
 {
   GObjectClass *gobject_class;
 
@@ -136,7 +136,7 @@ request_class_init (RequestClass *klass)
                                     NULL, NULL);
 
   gobject_class = G_OBJECT_CLASS (klass);
-  gobject_class->finalize  = request_finalize;
+  gobject_class->finalize  = xdp_request_finalize;
 }
 
 static gboolean
@@ -201,16 +201,17 @@ get_token (GDBusMethodInvocation *invocation)
 }
 
 void
-request_init_invocation (GDBusMethodInvocation *invocation, XdpAppInfo *app_info)
+xdp_request_init_invocation (GDBusMethodInvocation *invocation,
+                             XdpAppInfo            *app_info)
 {
-  Request *request;
+  XdpRequest *request;
   guint32 r;
   char *id = NULL;
   const char *token;
   g_autofree char *sender = NULL;
   int i;
 
-  request = g_object_new (request_get_type (), NULL);
+  request = g_object_new (xdp_request_get_type (), NULL);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
   request->app_info = g_object_ref (app_info);
 
@@ -248,15 +249,15 @@ request_init_invocation (GDBusMethodInvocation *invocation, XdpAppInfo *app_info
   g_object_set_data_full (G_OBJECT (invocation), "request", request, g_object_unref);
 }
 
-Request *
-request_from_invocation (GDBusMethodInvocation *invocation)
+XdpRequest *
+xdp_request_from_invocation (GDBusMethodInvocation *invocation)
 {
   return g_object_get_data (G_OBJECT (invocation), "request");
 }
 
 void
-request_export (Request *request,
-                GDBusConnection *connection)
+xdp_request_export (XdpRequest      *request,
+                    GDBusConnection *connection)
 {
   g_autoptr(GError) error = NULL;
 
@@ -274,7 +275,7 @@ request_export (Request *request,
 }
 
 void
-request_unexport (Request *request)
+xdp_request_unexport (XdpRequest *request)
 {
   int fd;
 
@@ -288,23 +289,23 @@ request_unexport (Request *request)
 }
 
 void
-request_set_impl_request (Request *request,
-                          XdpDbusImplRequest *impl_request)
+xdp_request_set_impl_request (XdpRequest         *request,
+                              XdpDbusImplRequest *impl_request)
 {
   g_set_object (&request->impl_request, impl_request);
 }
 
-void
-close_requests_in_thread_func (GTask        *task,
-                               gpointer      source_object,
-                               gpointer      task_data,
-                               GCancellable *cancellable)
+static void
+xdp_close_requests_in_thread_func (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
 {
   const char *sender = (const char *)task_data;
   GSList *list = NULL;
   GSList *l;
   GHashTableIter iter;
-  Request *request;
+  XdpRequest *request;
 
   G_LOCK (requests);
   if (requests)
@@ -320,7 +321,7 @@ close_requests_in_thread_func (GTask        *task,
 
   for (l = list; l; l = l->next)
     {
-      Request *request = l->data;
+      XdpRequest *request = l->data;
 
       REQUEST_AUTOLOCK (request);
 
@@ -329,7 +330,7 @@ close_requests_in_thread_func (GTask        *task,
           if (request->impl_request)
             xdp_dbus_impl_request_call_close_sync (request->impl_request, NULL, NULL);
 
-          request_unexport (request);
+          xdp_request_unexport (request);
         }
     }
 
@@ -344,7 +345,7 @@ close_requests_for_sender (const char *sender)
 
   task = g_task_new (NULL, NULL, NULL, NULL);
   g_task_set_task_data (task, g_strdup (sender), g_free);
-  g_task_run_in_thread (task, close_requests_in_thread_func);
+  g_task_run_in_thread (task, xdp_close_requests_in_thread_func);
   g_object_unref (task);
 }
 

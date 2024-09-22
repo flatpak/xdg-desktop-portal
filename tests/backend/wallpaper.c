@@ -12,7 +12,7 @@
 typedef struct {
   XdpDbusImplWallpaper *impl;
   GDBusMethodInvocation *invocation;
-  Request *request;
+  XdpRequest *request;
   GKeyFile *keyfile;
   char *app_id;
   guint timeout;
@@ -50,7 +50,7 @@ send_response (gpointer data)
   response = g_key_file_get_integer (handle->keyfile, "backend", "response", NULL);
 
   if (handle->request->exported)
-    request_unexport (handle->request);
+    xdp_request_unexport (handle->request);
 
   s1 = g_key_file_get_string (handle->keyfile, "wallpaper", "target", NULL);
   g_variant_lookup (handle->options, "set-on", "&s", &s);
@@ -105,7 +105,7 @@ handle_set_wallpaper_uri (XdpDbusImplWallpaper *object,
   g_autoptr(GError) error = NULL;
   int delay;
   WallpaperHandle *handle;
-  g_autoptr(Request) request = NULL;
+  g_autoptr(XdpRequest) request = NULL;
 
   g_debug ("Handling SetWallpaperURI");
 
@@ -117,7 +117,7 @@ handle_set_wallpaper_uri (XdpDbusImplWallpaper *object,
   g_key_file_load_from_file (keyfile, path, 0, &error);
   g_assert_no_error (error);
 
-  request = request_new (sender, arg_app_id, arg_handle);
+  request = xdp_request_new (sender, arg_app_id, arg_handle);
 
   handle = g_new0 (WallpaperHandle, 1);
   handle->impl = g_object_ref (object);
@@ -130,7 +130,7 @@ handle_set_wallpaper_uri (XdpDbusImplWallpaper *object,
 
   g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), handle);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   if (g_key_file_has_key (keyfile, "backend", "delay", NULL))
     delay = g_key_file_get_integer (keyfile, "backend", "delay", NULL);

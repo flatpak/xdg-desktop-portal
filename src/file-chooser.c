@@ -72,7 +72,7 @@ send_response_in_thread_func (GTask        *task,
                               gpointer      task_data,
                               GCancellable *cancellable)
 {
-  Request *request = task_data;
+  XdpRequest *request = task_data;
   GVariantBuilder results;
   GVariantBuilder ruris;
   guint response;
@@ -150,7 +150,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&results));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 
   g_task_return_boolean (task, TRUE);
@@ -208,7 +208,7 @@ open_file_done (GObject *source,
                 GAsyncResult *result,
                 gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -527,7 +527,7 @@ handle_open_file (XdpDbusFileChooser *object,
                   const gchar *arg_title,
                   GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -589,8 +589,8 @@ handle_open_file (XdpDbusFileChooser *object,
   if (dir_option && g_variant_get_boolean (dir_option))
     g_object_set_data (G_OBJECT (request), "directory", GINT_TO_POINTER (TRUE));
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_open_file (impl,
                                              request->id,
@@ -624,7 +624,7 @@ save_file_done (GObject *source,
                 GAsyncResult *result,
                 gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -656,7 +656,7 @@ handle_save_file (XdpDbusFileChooser *object,
                   const gchar *arg_title,
                   GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
@@ -751,8 +751,8 @@ handle_save_file (XdpDbusFileChooser *object,
 
   g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (TRUE));
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_save_file (impl,
                                              request->id,
@@ -783,7 +783,7 @@ save_files_done (GObject *source,
                  GAsyncResult *result,
                  gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -815,7 +815,7 @@ handle_save_files (XdpDbusFileChooser *object,
                    const gchar *arg_title,
                    GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
@@ -856,8 +856,8 @@ handle_save_files (XdpDbusFileChooser *object,
 
   g_object_set_data (G_OBJECT (request), "for-save", GINT_TO_POINTER (TRUE));
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_impl_file_chooser_call_save_files (impl,
                                               request->id,

@@ -25,20 +25,20 @@
 
 #include <string.h>
 
-static void request_skeleton_iface_init (XdpDbusImplRequestIface *iface);
+static void xdp_request_skeleton_iface_init (XdpDbusImplRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Request, request, XDP_DBUS_IMPL_TYPE_REQUEST_SKELETON,
+G_DEFINE_TYPE_WITH_CODE (XdpRequest, xdp_request, XDP_DBUS_IMPL_TYPE_REQUEST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_IMPL_TYPE_REQUEST,
-                                                request_skeleton_iface_init))
+                                                xdp_request_skeleton_iface_init))
 
 static gboolean
 handle_close (XdpDbusImplRequest *object,
               GDBusMethodInvocation *invocation)
 {
-  Request *request = (Request *)object;
+  XdpRequest *request = (XdpRequest *)object;
 
   if (request->exported)
-    request_unexport (request);
+    xdp_request_unexport (request);
 
   xdp_dbus_impl_request_complete_close (XDP_DBUS_IMPL_REQUEST (request),
                                         invocation);
@@ -47,45 +47,45 @@ handle_close (XdpDbusImplRequest *object,
 }
 
 static void
-request_skeleton_iface_init (XdpDbusImplRequestIface *iface)
+xdp_request_skeleton_iface_init (XdpDbusImplRequestIface *iface)
 {
   iface->handle_close = handle_close;
 }
 
 static void
-request_init (Request *request)
+xdp_request_init (XdpRequest *request)
 {
 }
 
 static void
-request_finalize (GObject *object)
+xdp_request_finalize (GObject *object)
 {
-  Request *request = (Request *)object;
+  XdpRequest *request = (XdpRequest *)object;
 
   g_free (request->sender);
   g_free (request->app_id);
   g_free (request->id);
 
-  G_OBJECT_CLASS (request_parent_class)->finalize (object);
+  G_OBJECT_CLASS (xdp_request_parent_class)->finalize (object);
 }
 
 static void
-request_class_init (RequestClass *klass)
+xdp_request_class_init (XdpRequestClass *klass)
 {
   GObjectClass *gobject_class;
 
   gobject_class = G_OBJECT_CLASS (klass);
-  gobject_class->finalize  = request_finalize;
+  gobject_class->finalize  = xdp_request_finalize;
 }
 
-Request *
-request_new (const char *sender,
-             const char *app_id,
-             const char *id)
+XdpRequest *
+xdp_request_new (const char *sender,
+                 const char *app_id,
+                 const char *id)
 {
-  Request *request;
+  XdpRequest *request;
 
-  request = g_object_new (request_get_type (), NULL);
+  request = g_object_new (xdp_request_get_type (), NULL);
   request->sender = g_strdup (sender);
   request->app_id = g_strdup (app_id);
   request->id = g_strdup (id);
@@ -94,8 +94,8 @@ request_new (const char *sender,
 }
 
 void
-request_export (Request *request,
-                GDBusConnection *connection)
+xdp_request_export (XdpRequest      *request,
+                    GDBusConnection *connection)
 {
   g_autoptr(GError) error = NULL;
 
@@ -113,7 +113,7 @@ request_export (Request *request,
 }
 
 void
-request_unexport (Request *request)
+xdp_request_unexport (XdpRequest *request)
 {
   request->exported = FALSE;
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));

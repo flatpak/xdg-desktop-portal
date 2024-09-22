@@ -25,10 +25,7 @@
 
 #include "src/xdp-impl-dbus.h"
 
-typedef struct _Request Request;
-typedef struct _RequestClass RequestClass;
-
-struct _Request
+typedef struct _XdpRequest
 {
   XdpDbusImplRequestSkeleton parent_instance;
 
@@ -36,21 +33,22 @@ struct _Request
   char *sender;
   char *app_id;
   char *id;
-};
+} XdpRequest;
 
-struct _RequestClass
+typedef struct _XdpRequestClass
 {
   XdpDbusImplRequestSkeletonClass parent_class;
-};
+} XdpRequestClass;
 
-GType request_get_type (void) G_GNUC_CONST;
+GType xdp_request_get_type (void) G_GNUC_CONST;
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Request, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpRequest, g_object_unref)
 
-Request *request_new (const char *sender,
-                      const char *app_id,
-                      const char *id);
+XdpRequest *xdp_request_new (const char *sender,
+                             const char *app_id,
+                             const char *id);
 
-void request_export (Request *request,
-                     GDBusConnection *connection);
-void request_unexport (Request *request);
+void xdp_request_export (XdpRequest      *request,
+                         GDBusConnection *connection);
+
+void xdp_request_unexport (XdpRequest *request);

@@ -11,7 +11,7 @@
 typedef struct {
   XdpDbusImplAccount *impl;
   GDBusMethodInvocation *invocation;
-  Request *request;
+  XdpRequest *request;
   GKeyFile *keyfile;
   char *app_id;
   char *reason;
@@ -69,7 +69,7 @@ send_response (gpointer data)
     g_variant_builder_add (&opt_builder, "{sv}", "image", g_variant_new_string (image));
 
   if (handle->request->exported)
-    request_unexport (handle->request);
+    xdp_request_unexport (handle->request);
 
   g_debug ("send response %d", response);
 
@@ -120,7 +120,7 @@ handle_get_user_information (XdpDbusImplAccount *object,
   int delay;
   AccountDialogHandle *handle;
   const char *reason = NULL;
-  g_autoptr(Request) request = NULL;
+  g_autoptr(XdpRequest) request = NULL;
 
   g_debug ("Handling GetUserInformation");
 
@@ -132,7 +132,7 @@ handle_get_user_information (XdpDbusImplAccount *object,
   g_key_file_load_from_file (keyfile, path, 0, &error);
   g_assert_no_error (error);
 
-  request = request_new (sender, arg_app_id, arg_handle);
+  request = xdp_request_new (sender, arg_app_id, arg_handle);
 
   g_variant_lookup (arg_options, "reason", "&s", &reason);
 
@@ -146,7 +146,7 @@ handle_get_user_information (XdpDbusImplAccount *object,
 
   g_signal_connect (request, "handle-close", G_CALLBACK (handle_close), handle);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   if (g_key_file_has_key (keyfile, "backend", "delay", NULL))
     delay = g_key_file_get_integer (keyfile, "backend", "delay", NULL);
