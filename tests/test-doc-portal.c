@@ -826,7 +826,7 @@ rm_rf_dir (GFile         *dir,
 
   if (temp_error != NULL)
     {
-      g_propagate_error (error, temp_error);
+      g_propagate_error (error, g_steal_pointer (&temp_error));
       return FALSE;
     }
 

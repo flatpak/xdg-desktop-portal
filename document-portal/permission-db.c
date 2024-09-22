@@ -300,7 +300,7 @@ initable_init (GInitable    *initable,
         }
       else
         {
-          g_propagate_error (error, my_error);
+          g_propagate_error (error, g_steal_pointer (&my_error));
           return FALSE;
         }
     }
