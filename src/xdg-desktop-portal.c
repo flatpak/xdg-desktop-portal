@@ -31,6 +31,7 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
+#include "xdp-portal-impl.h"
 #include "xdp-session-persistence.h"
 
 #include "account.h"
@@ -52,7 +53,6 @@
 #include "notification.h"
 #include "open-uri.h"
 #include "permissions.h"
-#include "portal-impl.h"
 #include "power-profile-monitor.h"
 #include "print.h"
 #include "proxy-resolver.h"

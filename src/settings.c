@@ -28,8 +28,8 @@
 #include "settings.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-impl.h"
 #include "xdp-utils.h"
-#include "portal-impl.h"
 
 typedef struct _Settings Settings;
 typedef struct _SettingsClass SettingsClass;

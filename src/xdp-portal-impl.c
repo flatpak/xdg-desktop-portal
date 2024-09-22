@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#include "portal-impl.h"
+#include "xdp-portal-impl.h"
 
 #include <stdio.h>
 #include <string.h>
