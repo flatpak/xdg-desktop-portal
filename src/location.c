@@ -34,7 +34,7 @@
 #include "permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-#include "session.h"
+#include "xdp-session.h"
 #include "geoclue-dbus.h"
 #include <geoclue.h>
 
