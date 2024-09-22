@@ -939,7 +939,7 @@ handle_open_pipewire_remote (XdpDbusScreenCast *object,
                              const char *arg_session_handle,
                              GVariant *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GList *streams;
   PipeWireRemote *remote;
