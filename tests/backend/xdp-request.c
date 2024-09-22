@@ -19,7 +19,7 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-#include "request.h"
+#include "xdp-request.h"
 
 #include <string.h>
 
