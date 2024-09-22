@@ -91,7 +91,7 @@ acquire_session (const char *session_handle,
 
 Session *
 acquire_session_from_call (const char *session_handle,
-                           Call *call)
+                           XdpCall *call)
 {
   g_autoptr(Session) session = NULL;
 

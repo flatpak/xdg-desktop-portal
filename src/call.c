@@ -21,7 +21,7 @@
 #include "call.h"
 
 static void
-call_free (Call *call)
+xdp_call_free (XdpCall *call)
 {
   g_clear_object (&call->app_info);
   g_clear_pointer (&call->sender, g_free);
@@ -29,21 +29,21 @@ call_free (Call *call)
 }
 
 void
-call_init_invocation (GDBusMethodInvocation *invocation,
-                      XdpAppInfo *app_info)
+xdp_call_init_invocation (GDBusMethodInvocation *invocation,
+                          XdpAppInfo            *app_info)
 {
-  Call *call;
+  XdpCall *call;
 
-  call = g_new0 (Call, 1);
+  call = g_new0 (XdpCall, 1);
   call->app_info = g_object_ref (app_info);
   call->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
 
-  g_object_set_data_full (G_OBJECT (invocation), "call",
-                          call, (GDestroyNotify) call_free);
+  g_object_set_data_full (G_OBJECT (invocation), "xdp-call",
+                          call, (GDestroyNotify) xdp_call_free);
 }
 
-Call *
-call_from_invocation (GDBusMethodInvocation *invocation)
+XdpCall *
+xdp_call_from_invocation (GDBusMethodInvocation *invocation)
 {
-  return g_object_get_data (G_OBJECT (invocation), "call");
+  return g_object_get_data (G_OBJECT (invocation), "xdp-call");
 }
