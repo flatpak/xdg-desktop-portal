@@ -69,7 +69,6 @@ endif
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
-  'background-monitor.c',
   'call.c',
   'camera.c',
   'clipboard.c',
@@ -105,6 +104,7 @@ xdg_desktop_portal_sources = files(
   'trash.c',
   'wallpaper.c',
   'xdg-desktop-portal.c',
+  'xdp-background-monitor.c',
 )
 
 xdg_desktop_portal_sources += [

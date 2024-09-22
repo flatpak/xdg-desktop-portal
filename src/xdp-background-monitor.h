@@ -26,13 +26,13 @@
 
 G_BEGIN_DECLS
 
-#define BACKGROUND_TYPE_MONITOR (background_monitor_get_type())
-G_DECLARE_FINAL_TYPE (BackgroundMonitor,
-                      background_monitor,
-                      BACKGROUND, MONITOR,
+#define XDP_TYPE_BACKGROUND_MONITOR (xdp_background_monitor_get_type())
+G_DECLARE_FINAL_TYPE (XdpBackgroundMonitor,
+                      xdp_background_monitor,
+                      XDP, BACKGROUND_MONITOR,
                       XdpDbusBackgroundMonitorSkeleton)
 
-BackgroundMonitor *background_monitor_new (GCancellable  *cancellable,
-                                           GError       **error);
+XdpBackgroundMonitor *xdp_background_monitor_new (GCancellable  *cancellable,
+                                                  GError       **error);
 
 G_END_DECLS

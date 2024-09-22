@@ -29,7 +29,7 @@
 
 #include "call.h"
 #include "background.h"
-#include "background-monitor.h"
+#include "xdp-background-monitor.h"
 #include "flatpak-instance.h"
 #include "permissions.h"
 #include "request.h"
@@ -75,7 +75,7 @@ struct _Background
 {
   XdpDbusBackgroundSkeleton parent_instance;
 
-  BackgroundMonitor *monitor;
+  XdpBackgroundMonitor *monitor;
 };
 
 struct _BackgroundClass
@@ -1265,7 +1265,7 @@ background_create (GDBusConnection *connection,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
   background = g_object_new (background_get_type (), NULL);
-  background->monitor = background_monitor_new (NULL, &error);
+  background->monitor = xdp_background_monitor_new (NULL, &error);
   if (background->monitor == NULL)
     {
       g_warning ("Failed to create background monitor: %s", error->message);
