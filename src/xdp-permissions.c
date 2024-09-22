@@ -22,7 +22,7 @@
 
 #include <string.h>
 
-#include "permissions.h"
+#include "xdp-permissions.h"
 
 static XdpDbusImplPermissionStore *permission_store = NULL;
 
