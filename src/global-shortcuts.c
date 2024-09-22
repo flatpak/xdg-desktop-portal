@@ -28,7 +28,7 @@
 #include "global-shortcuts.h"
 #include "xdp-request.h"
 #include "xdp-session.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
