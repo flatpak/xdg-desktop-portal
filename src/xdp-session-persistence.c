@@ -21,7 +21,7 @@
 
 #include "config.h"
 
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "xdp-session-persistence.h"
 
 static GMutex transient_permissions_lock;

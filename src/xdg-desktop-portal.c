@@ -55,7 +55,7 @@
 #include "network-monitor.h"
 #include "notification.h"
 #include "open-uri.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "power-profile-monitor.h"
 #include "print.h"
 #include "proxy-resolver.h"

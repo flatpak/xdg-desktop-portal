@@ -35,7 +35,7 @@
 #include <gio/gdesktopappinfo.h>
 
 #include "screenshot.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "xdp-request.h"
 #include "documents.h"
 #include "xdp-dbus.h"

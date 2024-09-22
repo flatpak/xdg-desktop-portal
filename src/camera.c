@@ -26,7 +26,7 @@
 #include <stdio.h>
 
 #include "xdp-request.h"
-#include "permissions.h"
+#include "xdp-permissions.h"
 #include "pipewire.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
