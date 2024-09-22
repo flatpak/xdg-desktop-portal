@@ -27,7 +27,7 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "call.h"
+#include "xdp-call.h"
 #include "background.h"
 #include "xdp-background-monitor.h"
 #include "flatpak-instance.h"

@@ -18,7 +18,7 @@
  *
  */
 
-#include "call.h"
+#include "xdp-call.h"
 
 static void
 xdp_call_free (XdpCall *call)
