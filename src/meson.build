@@ -86,7 +86,6 @@ xdg_desktop_portal_sources = files(
   'open-uri.c',
   'permissions.c',
   'pipewire.c',
-  'portal-impl.c',
   'power-profile-monitor.c',
   'print.c',
   'proxy-resolver.c',
@@ -103,6 +102,7 @@ xdg_desktop_portal_sources = files(
   'xdg-desktop-portal.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
+  'xdp-portal-impl.c',
   'xdp-session-persistence.c',
 )
 
