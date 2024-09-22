@@ -25,7 +25,7 @@
 
 typedef struct _RemoteDesktopSession RemoteDesktopSession;
 
-gboolean is_remote_desktop_session (Session *session);
+gboolean is_remote_desktop_session (XdpSession *session);
 
 GList * remote_desktop_session_get_streams (RemoteDesktopSession *session);
 

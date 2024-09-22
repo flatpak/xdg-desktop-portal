@@ -57,22 +57,22 @@ G_DEFINE_TYPE_WITH_CODE (GlobalShortcuts, global_shortcuts, XDP_DBUS_TYPE_GLOBAL
 
 typedef struct _GlobalShortcutsSession
 {
-  Session parent;
+  XdpSession parent;
 
   gboolean closed;
 } GlobalShortcutsSession;
 
 typedef struct _GlobalShortcutsSessionClass
 {
-  SessionClass parent_class;
+  XdpSessionClass parent_class;
 } GlobalShortcutsSessionClass;
 
 GType global_shortcuts_session_get_type (void);
 
-G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, session_get_type ())
+G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, xdp_session_get_type ())
 
 static void
-global_shortcuts_session_close (Session *session)
+global_shortcuts_session_close (XdpSession *session)
 {
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
@@ -94,12 +94,12 @@ static void
 global_shortcuts_session_class_init (GlobalShortcutsSessionClass *klass)
 {
   GObjectClass *object_class;
-  SessionClass *session_class;
+  XdpSessionClass *session_class;
 
   object_class = G_OBJECT_CLASS (klass);
   object_class->finalize = global_shortcuts_session_finalize;
 
-  session_class = (SessionClass *)klass;
+  session_class = (XdpSessionClass *)klass;
   session_class->close = global_shortcuts_session_close;
 }
 
@@ -108,7 +108,7 @@ global_shortcuts_session_new (GVariant *options,
                               XdpRequest *request,
                               GError **error)
 {
-  Session *session;
+  XdpSession *session;
   GDBusInterfaceSkeleton *interface_skeleton =
     G_DBUS_INTERFACE_SKELETON (request);
   const char *session_token;
@@ -140,7 +140,7 @@ session_created_cb (GObject *source_object,
                     gpointer data)
 {
   g_autoptr(XdpRequest) request = data;
-  Session *session;
+  XdpSession *session;
   guint response = 2;
   g_autoptr (GVariant) results = NULL;
   gboolean should_close_session;
@@ -169,7 +169,7 @@ session_created_cb (GObject *source_object,
 
   if (request->exported && response == 0)
     {
-      if (!session_export (session, &error))
+      if (!xdp_session_export (session, &error))
         {
           g_warning ("Failed to export session: %s", error->message);
           response = 2;
@@ -178,7 +178,7 @@ session_created_cb (GObject *source_object,
         }
 
       should_close_session = FALSE;
-      session_register (session);
+      xdp_session_register (session);
     }
   else
     {
@@ -202,7 +202,7 @@ out:
     }
 
   if (should_close_session)
-    session_close (session, FALSE);
+    xdp_session_close (session, FALSE);
 }
 
 static XdpOptionKey global_shortcuts_create_session_options[] = {
@@ -220,7 +220,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
-  Session *session;
+  XdpSession *session;
 
   REQUEST_AUTOLOCK (request);
 
@@ -251,7 +251,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)global_shortcuts_session_new (options, request, &error);
+  session = (XdpSession *)global_shortcuts_session_new (options, request, &error);
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -283,7 +283,7 @@ shortcuts_bound_cb (GObject *source_object,
                     gpointer data)
 {
   g_autoptr(XdpRequest) request = data;
-  Session *session;
+  XdpSession *session;
   guint response = 2;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) results = NULL;
@@ -369,7 +369,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
                        GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) options = NULL;
@@ -402,7 +402,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
     }
   shortcuts = g_variant_builder_end (&shortcuts_builder);
 
-  session = acquire_session (arg_session_handle, request);
+  session = xdp_session_from_request (arg_session_handle, request);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -455,7 +455,7 @@ shortcuts_listed_cb (GObject *source_object,
                      gpointer data)
 {
   g_autoptr(XdpRequest) request = data;
-  Session *session;
+  XdpSession *session;
   guint response = 2;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) results = NULL;
@@ -498,7 +498,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
                        GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
@@ -519,7 +519,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
 
   options = g_variant_builder_end (&options_builder);
 
-  session = acquire_session (arg_session_handle, request);
+  session = xdp_session_from_request (arg_session_handle, request);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -590,7 +590,7 @@ activated_cb (XdpDbusImplGlobalShortcuts *impl,
               gpointer data)
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  g_autoptr(Session) session = lookup_session (session_id);
+  g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received activated %s for %s", session_id, shortcut_id);
@@ -616,7 +616,7 @@ deactivated_cb (XdpDbusImplGlobalShortcuts *impl,
                 gpointer data)
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  g_autoptr(Session) session = lookup_session (session_id);
+  g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received deactivated %s for %s", session_id, shortcut_id);
@@ -640,7 +640,7 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
                       gpointer data)
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  g_autoptr(Session) session = lookup_session (session_id);
+  g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
   GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
 
   g_debug ("Received ShortcutsChanged %s", session_id);
