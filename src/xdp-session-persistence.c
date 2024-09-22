@@ -20,7 +20,7 @@
 #include "config.h"
 
 #include "permissions.h"
-#include "restore-token.h"
+#include "xdp-session-persistence.h"
 
 static GMutex transient_permissions_lock;
 static GHashTable *transient_permissions;
