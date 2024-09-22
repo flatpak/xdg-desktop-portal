@@ -26,7 +26,7 @@
 #include <gio/gio.h>
 
 #include "power-profile-monitor.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
 

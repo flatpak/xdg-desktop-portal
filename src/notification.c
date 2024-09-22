@@ -31,7 +31,7 @@
 #include "notification.h"
 #include "xdp-call.h"
 #include "permissions.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"

@@ -30,7 +30,7 @@
 
 #include "wallpaper.h"
 #include "permissions.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"

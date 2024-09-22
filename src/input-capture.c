@@ -26,7 +26,7 @@
 
 #include "session.h"
 #include "input-capture.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"

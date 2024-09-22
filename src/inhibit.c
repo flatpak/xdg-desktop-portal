@@ -26,7 +26,7 @@
 #include <gio/gio.h>
 
 #include "inhibit.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "session.h"
 #include "permissions.h"
 #include "xdp-dbus.h"

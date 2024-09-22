@@ -91,7 +91,6 @@ xdg_desktop_portal_sources = files(
   'proxy-resolver.c',
   'realtime.c',
   'remote-desktop.c',
-  'request.c',
   'screen-cast.c',
   'screenshot.c',
   'secret.c',
@@ -104,6 +103,7 @@ xdg_desktop_portal_sources = files(
   'xdp-background-monitor.c',
   'xdp-call.c',
   'xdp-portal-impl.c',
+  'xdp-request.c',
   'xdp-session-persistence.c',
 )
 

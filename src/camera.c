@@ -25,7 +25,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <stdio.h>
 
-#include "request.h"
+#include "xdp-request.h"
 #include "permissions.h"
 #include "pipewire.h"
 #include "xdp-dbus.h"
