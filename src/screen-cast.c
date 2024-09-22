@@ -28,11 +28,11 @@
 #include "screen-cast.h"
 #include "remote-desktop.h"
 #include "request.h"
-#include "restore-token.h"
 #include "permissions.h"
 #include "pipewire.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-session-persistence.h"
 #include "xdp-utils.h"
 
 #define PERMISSION_ITEM(item_id, item_permissions) \

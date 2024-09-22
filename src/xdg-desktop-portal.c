@@ -33,6 +33,7 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
+#include "xdp-session-persistence.h"
 
 #include "account.h"
 #include "background.h"
@@ -60,7 +61,6 @@
 #include "realtime.h"
 #include "remote-desktop.h"
 #include "request.h"
-#include "restore-token.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"

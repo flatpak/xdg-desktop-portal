@@ -23,12 +23,12 @@
 #include "remote-desktop.h"
 #include "screen-cast.h"
 #include "request.h"
-#include "restore-token.h"
 #include "pipewire.h"
 #include "call.h"
 #include "session.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-session-persistence.h"
 #include "xdp-utils.h"
 
 #include <gio/gunixfdlist.h>
