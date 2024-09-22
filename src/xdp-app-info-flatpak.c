@@ -299,7 +299,7 @@ xdp_app_info_flatpak_dispose (GObject *object)
 {
   XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
 
-  g_clear_object (&app_info->flatpak_info);
+  g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
 
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
@@ -593,7 +593,7 @@ xdp_app_info_flatpak_new (int      pid,
                            FLATPAK_ENGINE_ID, id, instance,
                            bwrap_pidfd, gappinfo,
                            TRUE, has_network, TRUE);
-  g_set_object (&app_info_flatpak->flatpak_info, metadata);
+  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }
