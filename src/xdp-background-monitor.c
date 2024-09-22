@@ -18,12 +18,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "background-monitor.h"
+#include "xdp-background-monitor.h"
 
 #define BACKGROUND_MONITOR_BUS_NAME "org.freedesktop.background.Monitor"
 #define BACKGROUND_MONITOR_OBJECT_PATH "/org/freedesktop/background/monitor"
 
-struct _BackgroundMonitor
+struct _XdpBackgroundMonitor
 {
   XdpDbusBackgroundMonitorSkeleton parent_instance;
 
@@ -32,15 +32,15 @@ struct _BackgroundMonitor
 
 static void g_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (BackgroundMonitor,
-                         background_monitor,
+G_DEFINE_TYPE_WITH_CODE (XdpBackgroundMonitor,
+                         xdp_background_monitor,
                          XDP_DBUS_BACKGROUND_TYPE_MONITOR_SKELETON,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init))
 
 static gboolean
-request_freedesktop_background_name (BackgroundMonitor  *self,
-                                     GCancellable       *cancellable,
-                                     GError            **error)
+request_freedesktop_background_name (XdpBackgroundMonitor  *self,
+                                     GCancellable          *cancellable,
+                                     GError               **error)
 {
   g_autoptr(GVariant) reply = NULL;
   GBusNameOwnerFlags flags;
@@ -77,11 +77,11 @@ request_freedesktop_background_name (BackgroundMonitor  *self,
 }
 
 static gboolean
-background_monitor_initable_init (GInitable     *initable,
-                                  GCancellable  *cancellable,
-                                  GError       **error)
+xdp_background_monitor_initable_init (GInitable     *initable,
+                                      GCancellable  *cancellable,
+                                      GError       **error)
 {
-  BackgroundMonitor *self = BACKGROUND_MONITOR (initable);
+  XdpBackgroundMonitor *self = XDP_BACKGROUND_MONITOR (initable);
   g_autofree char *address = NULL;
 
   address = g_dbus_address_get_for_bus_sync (G_BUS_TYPE_SESSION, cancellable, error);
@@ -124,41 +124,41 @@ background_monitor_initable_init (GInitable     *initable,
 static void
 g_initable_iface_init (GInitableIface *iface)
 {
-  iface->init = background_monitor_initable_init;
+  iface->init = xdp_background_monitor_initable_init;
 }
 
 static void
-background_monitor_finalize (GObject *object)
+xdp_background_monitor_finalize (GObject *object)
 {
-  BackgroundMonitor *self = (BackgroundMonitor *)object;
+  XdpBackgroundMonitor *self = XDP_BACKGROUND_MONITOR (object);
 
   if (self->connection)
     g_dbus_connection_flush_sync (self->connection, NULL, NULL);
 
   g_clear_object (&self->connection);
 
-  G_OBJECT_CLASS (background_monitor_parent_class)->finalize (object);
+  G_OBJECT_CLASS (xdp_background_monitor_parent_class)->finalize (object);
 }
 
 static void
-background_monitor_class_init (BackgroundMonitorClass *klass)
+xdp_background_monitor_class_init (XdpBackgroundMonitorClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = background_monitor_finalize;
+  object_class->finalize = xdp_background_monitor_finalize;
 }
 
 static void
-background_monitor_init (BackgroundMonitor *self)
+xdp_background_monitor_init (XdpBackgroundMonitor *self)
 {
   xdp_dbus_background_monitor_set_version (XDP_DBUS_BACKGROUND_MONITOR (self), 1);
 }
 
-BackgroundMonitor *
-background_monitor_new (GCancellable  *cancellable,
-                        GError       **error)
+XdpBackgroundMonitor *
+xdp_background_monitor_new (GCancellable  *cancellable,
+                            GError       **error)
 {
-  return g_initable_new (BACKGROUND_TYPE_MONITOR,
+  return g_initable_new (XDP_TYPE_BACKGROUND_MONITOR,
                          cancellable,
                          error,
                          NULL);
