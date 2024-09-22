@@ -161,7 +161,7 @@ static guint query_end_timeout;
 static GList *active_sessions = NULL;
 
 static void
-emit_state_changed (Session *session)
+emit_state_changed (XdpSession *session)
 {
   GVariantBuilder state;
 
@@ -173,19 +173,19 @@ emit_state_changed (Session *session)
   g_signal_emit_by_name (inhibit, "state-changed", session->id, g_variant_builder_end (&state));
 }
 
-typedef struct
+typedef struct _InhibitSession
 {
-  Session parent;
+  XdpSession parent;
   gboolean pending_query_end_response;
 } InhibitSession;
 
 typedef struct _InhibitSessionClass
 {
-  SessionClass parent_class;
+  XdpSessionClass parent_class;
 } InhibitSessionClass;
 
 GType inhibit_session_get_type (void);
-G_DEFINE_TYPE (InhibitSession, inhibit_session, session_get_type ())
+G_DEFINE_TYPE (InhibitSession, inhibit_session, xdp_session_get_type ())
 
 static void
 global_set_pending_query_end_response (gboolean pending)
@@ -215,11 +215,11 @@ global_get_pending_query_end_response (void)
 }
 
 static void
-inhibit_session_close (Session *session)
+inhibit_session_close (XdpSession *session)
 {
   InhibitSession *inhibit_session = (InhibitSession *)session;
 
-  g_debug ("Closing inhibit session %s", ((Session *)inhibit_session)->id);
+  g_debug ("Closing inhibit session %s", ((XdpSession *)inhibit_session)->id);
 
   active_sessions = g_list_remove (active_sessions, session);
 }
@@ -239,12 +239,12 @@ static void
 inhibit_session_class_init (InhibitSessionClass *klass)
 {
   GObjectClass *gobject_class;
-  SessionClass *session_class;
+  XdpSessionClass *session_class;
 
   gobject_class = (GObjectClass *)klass;
   gobject_class->finalize = inhibit_session_finalize;
 
-  session_class = (SessionClass *)klass;
+  session_class = (XdpSessionClass *)klass;
   session_class->close = inhibit_session_close;
 }
 
@@ -271,7 +271,7 @@ global_emit_state_changed (void)
   GList *l;
 
   for (l = active_sessions; l; l = l->next)
-    emit_state_changed ((Session *)l->data);
+    emit_state_changed ((XdpSession *)l->data);
 }
 
 static void
@@ -372,7 +372,7 @@ handle_create_monitor (XdpDbusImplInhibit *object,
 {
   g_autoptr(GError) error = NULL;
   int response;
-  Session *session;
+  XdpSession *session;
   const char *dir;
   g_autofree char *path = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
@@ -389,9 +389,9 @@ handle_create_monitor (XdpDbusImplInhibit *object,
   g_key_file_load_from_file (keyfile, path, 0, &error);
   g_assert_no_error (error);
 
-  session = (Session *)inhibit_session_new (arg_app_id, arg_session_handle);
+  session = (XdpSession *)inhibit_session_new (arg_app_id, arg_session_handle);
 
-  if (!session_export (session, g_dbus_method_invocation_get_connection (invocation), &error))
+  if (!xdp_session_export (session, g_dbus_method_invocation_get_connection (invocation), &error))
     {
       g_clear_object (&session);
       g_warning ("Failed to create inhibit session: %s", error->message);

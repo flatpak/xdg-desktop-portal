@@ -22,37 +22,34 @@
 
 #include "src/xdp-impl-dbus.h"
 
-typedef struct _Session Session;
-typedef struct _SessionClass SessionClass;
-
-struct _Session
+typedef struct _XdpSession
 {
   XdpDbusImplSessionSkeleton parent;
 
   gboolean exported;
   gboolean closed;
   char *id;
-};
+} XdpSession;
 
-struct _SessionClass
+typedef struct _XdpSessionClass
 {
   XdpDbusImplSessionSkeletonClass parent_class;
 
-  void (*close) (Session *session);
-};
+  void (*close) (XdpSession *session);
+} XdpSessionClass;
 
-GType session_get_type (void);
+GType xdp_session_get_type (void);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpSession, g_object_unref)
 
-Session *lookup_session (const char *id);
+XdpSession *lookup_session (const char *id);
 
-Session *session_new (const char *id);
+XdpSession *xdp_session_new (const char *id);
 
-void session_close (Session *session);
+void xdp_session_close (XdpSession *session);
 
-gboolean session_export (Session *session,
-                         GDBusConnection *connection,
-                         GError **error);
+gboolean xdp_session_export (XdpSession       *session,
+                             GDBusConnection  *connection,
+                             GError          **error);
 
-void session_unexport (Session *session);
+void xdp_session_unexport (XdpSession *session);

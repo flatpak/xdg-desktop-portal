@@ -44,16 +44,16 @@ G_LOCK_DEFINE (sessions);
 static GHashTable *sessions;
 
 static void g_initable_iface_init (GInitableIface *iface);
-static void session_skeleton_iface_init (XdpDbusSessionIface *iface);
+static void xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Session, session, XDP_DBUS_TYPE_SESSION_SKELETON,
+G_DEFINE_TYPE_WITH_CODE (XdpSession, xdp_session, XDP_DBUS_TYPE_SESSION_SKELETON,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_initable_iface_init)
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SESSION,
-                                                session_skeleton_iface_init))
+                                                xdp_session_skeleton_iface_init))
 
-#define SESSION_GET_CLASS(o) \
-  (G_TYPE_INSTANCE_GET_CLASS ((o), session_get_type (), SessionClass))
+#define XDP_SESSION_GET_CLASS(o) \
+  (G_TYPE_INSTANCE_GET_CLASS ((o), xdp_session_get_type (), XdpSessionClass))
 
 const char *
 lookup_session_token (GVariant *options)
@@ -65,11 +65,11 @@ lookup_session_token (GVariant *options)
   return token;
 }
 
-Session *
-acquire_session (const char *session_handle,
-                 XdpRequest *request)
+XdpSession *
+xdp_session_from_request (const char *session_handle,
+                          XdpRequest *request)
 {
-  g_autoptr(Session) session = NULL;
+  g_autoptr(XdpSession) session = NULL;
 
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);
@@ -89,11 +89,11 @@ acquire_session (const char *session_handle,
   return g_steal_pointer (&session);
 }
 
-Session *
-acquire_session_from_call (const char *session_handle,
-                           XdpCall *call)
+XdpSession *
+xdp_session_from_call (const char *session_handle,
+                       XdpCall    *call)
 {
-  g_autoptr(Session) session = NULL;
+  g_autoptr(XdpSession) session = NULL;
 
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);
@@ -113,10 +113,10 @@ acquire_session_from_call (const char *session_handle,
   return g_steal_pointer (&session);
 }
 
-Session *
-lookup_session (const char *session_handle)
+XdpSession *
+xdp_session_lookup (const char *session_handle)
 {
-  g_autoptr(Session) session = NULL;
+  g_autoptr(XdpSession) session = NULL;
 
   G_LOCK (sessions);
   session = g_hash_table_lookup (sessions, session_handle);
@@ -128,8 +128,8 @@ lookup_session (const char *session_handle)
 }
 
 gboolean
-session_export (Session *session,
-                GError **error)
+xdp_session_export (XdpSession  *session,
+                    GError     **error)
 {
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (session),
                                          session->connection,
@@ -144,7 +144,7 @@ session_export (Session *session,
 }
 
 static void
-session_unexport (Session *session)
+xdp_session_unexport (XdpSession *session)
 {
   session->exported = FALSE;
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
@@ -152,7 +152,7 @@ session_unexport (Session *session)
 }
 
 void
-session_register (Session *session)
+xdp_session_register (XdpSession *session)
 {
   G_LOCK (sessions);
   g_hash_table_insert (sessions, session->id, session);
@@ -160,7 +160,7 @@ session_register (Session *session)
 }
 
 static void
-session_unregister (Session *session)
+xdp_session_unregister (XdpSession *session)
 {
   G_LOCK (sessions);
   g_hash_table_remove (sessions, session->id);
@@ -168,13 +168,13 @@ session_unregister (Session *session)
 }
 
 void
-session_close (Session *session,
-               gboolean notify_closed)
+xdp_session_close (XdpSession *session,
+                   gboolean    notify_closed)
 {
   if (session->closed)
     return;
 
-  SESSION_GET_CLASS (session)->close (session);
+  XDP_SESSION_GET_CLASS (session)->close (session);
 
   if (notify_closed)
     {
@@ -191,9 +191,9 @@ session_close (Session *session,
     }
 
   if (session->exported)
-    session_unexport (session);
+    xdp_session_unexport (session);
 
-  session_unregister (session);
+  xdp_session_unregister (session);
 
   if (session->impl_session)
     {
@@ -217,11 +217,11 @@ static gboolean
 handle_close (XdpDbusSession *object,
               GDBusMethodInvocation *invocation)
 {
-  Session *session = SESSION (object);
+  XdpSession *session = XDP_SESSION (object);
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
-  session_close (session, FALSE);
+  xdp_session_close (session, FALSE);
 
   xdp_dbus_session_complete_close (object, invocation);
 
@@ -229,7 +229,7 @@ handle_close (XdpDbusSession *object,
 }
 
 static void
-session_skeleton_iface_init (XdpDbusSessionIface *iface)
+xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface)
 {
   iface->handle_close = handle_close;
 }
@@ -244,7 +244,7 @@ close_sessions_in_thread_func (GTask *task,
   GSList *list = NULL;
   GSList *l;
   GHashTableIter iter;
-  Session *session;
+  XdpSession *session;
 
   G_LOCK (sessions);
   if (sessions)
@@ -260,10 +260,10 @@ close_sessions_in_thread_func (GTask *task,
 
   for (l = list; l; l = l->next)
     {
-      Session *session = l->data;
+      XdpSession *session = l->data;
 
       SESSION_AUTOLOCK (session);
-      session_close (session, FALSE);
+      xdp_session_close (session, FALSE);
     }
 
   g_slist_free_full (list, g_object_unref);
@@ -283,18 +283,18 @@ close_sessions_for_sender (const char *sender)
 static void
 on_closed (XdpDbusImplSession *object, GObject *data)
 {
-  Session *session = SESSION (data);
+  XdpSession *session = XDP_SESSION (data);
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
   g_clear_object (&session->impl_session);
-  session_close (session, TRUE);
+  xdp_session_close (session, TRUE);
 }
 
 static gboolean
-session_authorize_callback (GDBusInterfaceSkeleton *interface,
-                            GDBusMethodInvocation  *invocation,
-                            gpointer                user_data)
+xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
+                                GDBusMethodInvocation  *invocation,
+                                gpointer                user_data)
 {
   const gchar *session_owner = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
@@ -312,11 +312,11 @@ session_authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 static gboolean
-session_initable_init (GInitable *initable,
-                       GCancellable *cancellable,
-                       GError **error)
+xdp_session_initable_init (GInitable     *initable,
+                           GCancellable  *cancellable,
+                           GError       **error)
 {
-  Session *session = SESSION (initable);
+  XdpSession *session = XDP_SESSION (initable);
   g_autofree char *sender_escaped = NULL;
   g_autofree char *id = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
@@ -359,7 +359,7 @@ session_initable_init (GInitable *initable,
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (session),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
   g_signal_connect (session, "g-authorize-method",
-                    G_CALLBACK (session_authorize_callback),
+                    G_CALLBACK (xdp_session_authorize_callback),
                     session->sender);
 
   return TRUE;
@@ -368,16 +368,16 @@ session_initable_init (GInitable *initable,
 static void
 g_initable_iface_init (GInitableIface *iface)
 {
-  iface->init = session_initable_init;
+  iface->init = xdp_session_initable_init;
 }
 
 static void
-session_set_property (GObject *object,
-                      guint prop_id,
-                      const GValue *value,
-                      GParamSpec *pspec)
+xdp_session_set_property (GObject      *object,
+                          guint         prop_id,
+                          const GValue *value,
+                          GParamSpec   *pspec)
 {
-  Session *session = SESSION (object);
+  XdpSession *session = XDP_SESSION (object);
 
   switch (prop_id)
     {
@@ -411,12 +411,12 @@ session_set_property (GObject *object,
 }
 
 static void
-session_get_property (GObject *object,
-                      guint prop_id,
-                      GValue *value,
-                      GParamSpec *pspec)
+xdp_session_get_property (GObject    *object,
+                          guint       prop_id,
+                          GValue     *value,
+                          GParamSpec *pspec)
 {
-  Session *session = SESSION (object);
+  XdpSession *session = XDP_SESSION (object);
 
   switch (prop_id)
     {
@@ -450,9 +450,9 @@ session_get_property (GObject *object,
 }
 
 static void
-session_finalize (GObject *object)
+xdp_session_finalize (GObject *object)
 {
-  Session *session = SESSION (object);
+  XdpSession *session = XDP_SESSION (object);
 
   g_assert (!session->id || !g_hash_table_lookup (sessions, session->id));
 
@@ -469,17 +469,17 @@ session_finalize (GObject *object)
 
   g_mutex_clear (&session->mutex);
 
-  G_OBJECT_CLASS (session_parent_class)->finalize (object);
+  G_OBJECT_CLASS (xdp_session_parent_class)->finalize (object);
 }
 
 static void
-session_init (Session *session)
+xdp_session_init (XdpSession *session)
 {
   g_mutex_init (&session->mutex);
 }
 
 static void
-session_class_init (SessionClass *klass)
+xdp_session_class_init (XdpSessionClass *klass)
 {
   GObjectClass *gobject_class;
 
@@ -487,9 +487,9 @@ session_class_init (SessionClass *klass)
                                     NULL, NULL);
 
   gobject_class = G_OBJECT_CLASS (klass);
-  gobject_class->finalize = session_finalize;
-  gobject_class->set_property = session_set_property;
-  gobject_class->get_property = session_get_property;
+  gobject_class->finalize = xdp_session_finalize;
+  gobject_class->set_property = xdp_session_set_property;
+  gobject_class->get_property = xdp_session_get_property;
 
   obj_props[PROP_SENDER] =
     g_param_spec_string ("sender", "Sender", "Sender",
