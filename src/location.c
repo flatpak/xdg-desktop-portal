@@ -353,7 +353,7 @@ get_location_permissions (XdpAppInfo *app_info,
 
   g_debug ("Getting location permissions for '%s'", app_id);
 
-  perms = get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
   if (perms == NULL)
     return FALSE;
@@ -390,7 +390,7 @@ set_location_permissions (const char *app_id,
 
   g_debug ("set permission store accuracy: %d -> %s", accuracy, permissions[0]);
 
-  set_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, permissions);
+  xdp_set_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, permissions);
 }
 
 /*** Location boilerplace ***/

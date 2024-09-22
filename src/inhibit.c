@@ -103,7 +103,7 @@ get_allowed_inhibit (const char *app_id)
   g_auto(GStrv) perms = NULL;
   guint32 ret = 0;
 
-  perms = get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
   if (perms != NULL)
     {

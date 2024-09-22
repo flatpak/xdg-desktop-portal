@@ -209,18 +209,18 @@ add_done (GObject *source,
 static gboolean
 get_notification_allowed (const char *app_id)
 {
-  Permission permission;
+  XdpPermission permission;
 
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
 
-  if (permission == PERMISSION_NO)
+  if (permission == XDP_PERMISSION_NO)
     return FALSE;
 
-  if (permission == PERMISSION_UNSET)
+  if (permission == XDP_PERMISSION_UNSET)
     {
       g_debug ("No notification permissions stored for %s: allowing", app_id);
 
-      set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, PERMISSION_YES);
+      xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, XDP_PERMISSION_YES);
     }
 
   return TRUE;

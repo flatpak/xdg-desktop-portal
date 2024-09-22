@@ -217,7 +217,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   xdp_connection_track_name_owners (connection, peer_died_cb);
 
-  if (!init_permission_store (connection, &error))
+  if (!xdp_init_permission_store (connection, &error))
     {
       g_critical ("No permission store: %s", error->message);
       exit_with_status (1);

@@ -115,7 +115,7 @@ get_all_permissions (void)
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
 
-  if (!xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
                                                         PERMISSION_TABLE,
                                                         PERMISSION_ID,
                                                         &out_perms,
@@ -131,7 +131,7 @@ get_all_permissions (void)
   return g_steal_pointer (&out_perms);
 }
 
-static Permission
+static XdpPermission
 get_one_permission (const char *app_id,
                     GVariant   *perms)
 {
@@ -141,39 +141,39 @@ get_one_permission (const char *app_id,
     {
       g_debug ("No background permissions found");
 
-      return PERMISSION_UNSET;
+      return XDP_PERMISSION_UNSET;
     }
   else if (!g_variant_lookup (perms, app_id, "^a&s", &permissions))
     {
       g_debug ("No background permissions stored for: app %s", app_id);
 
-      return PERMISSION_UNSET;
+      return XDP_PERMISSION_UNSET;
     }
   else if (g_strv_length ((char **)permissions) != 1)
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong background permission format, ignoring (%s)", a);
-      return PERMISSION_UNSET;
+      return XDP_PERMISSION_UNSET;
     }
 
   g_debug ("permission store: background, app %s -> %s", app_id, permissions[0]);
 
   if (strcmp (permissions[0], "yes") == 0)
-    return PERMISSION_YES;
+    return XDP_PERMISSION_YES;
   else if (strcmp (permissions[0], "no") == 0)
-    return PERMISSION_NO;
+    return XDP_PERMISSION_NO;
   else if (strcmp (permissions[0], "ask") == 0)
-    return PERMISSION_ASK;
+    return XDP_PERMISSION_ASK;
   else
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
     }
 
-  return PERMISSION_UNSET;
+  return XDP_PERMISSION_UNSET;
 }
 
-static Permission
+static XdpPermission
 get_permission (const char *app_id)
 {
   g_autoptr(GVariant) perms = NULL;
@@ -182,21 +182,21 @@ get_permission (const char *app_id)
   if (perms)
     return get_one_permission (app_id, perms);
 
-  return PERMISSION_UNSET;
+  return XDP_PERMISSION_UNSET;
 }
 
 static void
 set_permission (const char *app_id,
-                Permission permission)
+                XdpPermission permission)
 {
   g_autoptr(GError) error = NULL;
   const char *permissions[2];
 
-  if (permission == PERMISSION_ASK)
+  if (permission == XDP_PERMISSION_ASK)
     permissions[0] = "ask";
-  else if (permission == PERMISSION_YES)
+  else if (permission == XDP_PERMISSION_YES)
     permissions[0] = "yes";
-  else if (permission == PERMISSION_NO)
+  else if (permission == XDP_PERMISSION_NO)
     permissions[0] = "no";
   else
     {
@@ -205,7 +205,7 @@ set_permission (const char *app_id,
     }
   permissions[1] = NULL;
 
-  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (xdp_get_permission_store (),
                                                                 PERMISSION_TABLE,
                                                                 TRUE,
                                                                 PERMISSION_ID,
@@ -282,7 +282,7 @@ typedef struct {
   AppState state;
   char *handle;
   gboolean notified;
-  Permission permission;
+  XdpPermission permission;
   char *status_message;
 } InstanceData;
 
@@ -414,7 +414,7 @@ typedef struct {
   char *app_id;
   char *id;
   char *name;
-  Permission perm;
+  XdpPermission perm;
   pid_t child_pid;
 } NotificationData;
 
@@ -461,15 +461,15 @@ notify_background_done (GObject *source,
     {
       g_debug ("Allowing app %s to run in background", nd->app_id);
 
-      if (nd->perm != PERMISSION_ASK)
-        nd->perm = PERMISSION_YES;
+      if (nd->perm != XDP_PERMISSION_ASK)
+        nd->perm = XDP_PERMISSION_YES;
     }
   else if (result == FORBID)
     {
       g_debug ("Forbid app %s to run in background", nd->app_id);
 
-      if (nd->perm != PERMISSION_ASK)
-        nd->perm = PERMISSION_NO;
+      if (nd->perm != XDP_PERMISSION_ASK)
+        nd->perm = XDP_PERMISSION_NO;
 
       g_message ("Terminating app %s (process %d) because the app does not "
                  "have permission to run in the background. You may be able to "
@@ -486,7 +486,7 @@ notify_background_done (GObject *source,
   else
     g_debug ("Unexpected response from NotifyBackground: %u", result);
 
-  if (nd->perm != PERMISSION_UNSET)
+  if (nd->perm != XDP_PERMISSION_UNSET)
     set_permission (nd->app_id, nd->perm);
 
   G_LOCK (applications);
@@ -578,15 +578,15 @@ check_background_apps (void)
 
       switch (idata->permission)
         {
-        case PERMISSION_NO:
+        case XDP_PERMISSION_NO:
           idata->stamp = 0;
 
           g_debug ("Kill app %s (pid %d)", app_id, child_pid);
           kill (child_pid, SIGKILL);
           break;
 
-        case PERMISSION_ASK:
-        case PERMISSION_UNSET:
+        case XDP_PERMISSION_ASK:
+        case XDP_PERMISSION_UNSET:
           {
             NotificationData *nd = g_new0 (NotificationData, 1);
 
@@ -610,7 +610,7 @@ check_background_apps (void)
           }
           break;
 
-        case PERMISSION_YES:
+        case XDP_PERMISSION_YES:
         default:
           break;
         }
@@ -782,7 +782,7 @@ handle_request_background_in_thread_func (GTask *task,
   XdpRequest *request = XDP_REQUEST (task_data);
   GVariant *options;
   const char *id;
-  Permission permission;
+  XdpPermission permission;
   const char *reason = NULL;
   gboolean autostart_requested = FALSE;
   gboolean autostart_enabled;
@@ -802,13 +802,13 @@ handle_request_background_in_thread_func (GTask *task,
   id = xdp_app_info_get_id (request->app_info);
 
   if (xdp_app_info_is_host (request->app_info))
-    permission = PERMISSION_YES;
+    permission = XDP_PERMISSION_YES;
   else
     permission = get_permission (id);
 
   g_debug ("Handle RequestBackground for '%s'", id);
 
-  if (permission == PERMISSION_ASK)
+  if (permission == XDP_PERMISSION_ASK)
     {
       g_auto(GVariantBuilder) opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
@@ -858,9 +858,9 @@ handle_request_background_in_thread_func (GTask *task,
     }
   else
     {
-      allowed = permission != PERMISSION_NO;
-      if (permission == PERMISSION_UNSET)
-        set_permission (id, PERMISSION_YES);
+      allowed = permission != XDP_PERMISSION_NO;
+      if (permission == XDP_PERMISSION_UNSET)
+        set_permission (id, XDP_PERMISSION_YES);
     }
 
   g_debug ("Setting autostart for %s to %s", id,

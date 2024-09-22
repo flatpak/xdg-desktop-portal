@@ -166,7 +166,7 @@ game_mode_is_allowed_for_app (const char *app_id, GError **error)
   const char **stored;
   gboolean ok;
 
-  ok = xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+  ok = xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
                                                         PERMISSION_TABLE,
                                                         PERMISSION_ID,
                                                         &perms,

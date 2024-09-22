@@ -134,7 +134,7 @@ get_latest_choice_info (const char *app_id,
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
 
-  if (!xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
                                                         PERMISSION_TABLE,
                                                         content_type,
                                                         &out_perms,
@@ -329,7 +329,7 @@ update_permissions_store (const char *app_id,
            in_permissions[PERM_APP_THRESHOLD]);
 
 
-  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_set_permission_sync (xdp_get_permission_store (),
                                                                 PERMISSION_TABLE,
                                                                 TRUE,
                                                                 content_type,
