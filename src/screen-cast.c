@@ -27,7 +27,7 @@
 #include "session.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
-#include "request.h"
+#include "xdp-request.h"
 #include "permissions.h"
 #include "pipewire.h"
 #include "xdp-dbus.h"

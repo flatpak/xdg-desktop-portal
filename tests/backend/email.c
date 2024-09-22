@@ -7,7 +7,7 @@
 #include "tests/glib-backports.h"
 
 #include "email.h"
-#include "request.h"
+#include "xdp-request.h"
 
 typedef struct {
   XdpDbusImplEmail *impl;
