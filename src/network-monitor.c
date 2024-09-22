@@ -58,7 +58,7 @@ static gboolean
 handle_get_available (XdpDbusNetworkMonitor *object,
                       GDBusMethodInvocation *invocation)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
 
   if (!xdp_app_info_has_network (call->app_info))
     {
@@ -82,7 +82,7 @@ static gboolean
 handle_get_metered (XdpDbusNetworkMonitor *object,
                     GDBusMethodInvocation *invocation)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
 
   if (!xdp_app_info_has_network (call->app_info))
     {
@@ -106,7 +106,7 @@ static gboolean
 handle_get_connectivity (XdpDbusNetworkMonitor *object,
                          GDBusMethodInvocation *invocation)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
 
   if (!xdp_app_info_has_network (call->app_info))
     {
@@ -130,7 +130,7 @@ static gboolean
 handle_get_status (XdpDbusNetworkMonitor *object,
                    GDBusMethodInvocation *invocation)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
 
   if (!xdp_app_info_has_network (call->app_info))
     {
@@ -182,7 +182,7 @@ handle_can_reach (XdpDbusNetworkMonitor *object,
                   const char            *hostname,
                   guint                  port)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
 
   if (!xdp_app_info_has_network (call->app_info))
     {

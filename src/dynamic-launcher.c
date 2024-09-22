@@ -343,7 +343,7 @@ handle_install (XdpDbusDynamicLauncher *object,
                 const gchar            *arg_desktop_entry,
                 GVariant               *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GVariant) launcher_data = NULL;
   g_autoptr(GError) error = NULL;
@@ -683,7 +683,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
                               GVariant               *arg_icon_v,
                               GVariant               *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
   GVariant *launcher_data;
@@ -751,7 +751,7 @@ handle_uninstall (XdpDbusDynamicLauncher *object,
                   const gchar            *arg_desktop_file_id,
                   GVariant               *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(GError) desktop_file_error = NULL;
@@ -810,7 +810,7 @@ handle_get_desktop_entry (XdpDbusDynamicLauncher *object,
                           GDBusMethodInvocation  *invocation,
                           const gchar            *arg_desktop_file_id)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
@@ -848,7 +848,7 @@ handle_get_icon (XdpDbusDynamicLauncher *object,
                  GDBusMethodInvocation  *invocation,
                  const gchar            *arg_desktop_file_id)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
@@ -963,7 +963,7 @@ handle_launch (XdpDbusDynamicLauncher *object,
                const gchar            *arg_desktop_file_id,
                GVariant               *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
