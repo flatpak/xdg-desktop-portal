@@ -114,7 +114,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
                                       guint32                priority)
 {
   g_autoptr (GError) error = NULL;
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   const char *app_id = xdp_app_info_get_id (call->app_info);
@@ -165,7 +165,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
                                            gint32                 priority)
 {
   g_autoptr (GError) error = NULL;
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   const char *app_id = xdp_app_info_get_id (call->app_info);

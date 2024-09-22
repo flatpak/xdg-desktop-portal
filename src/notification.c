@@ -576,7 +576,7 @@ notification_handle_add_notification (XdpDbusNotification *object,
                                       const char *arg_id,
                                       GVariant *notification)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   CallData *call_data;
 
@@ -619,7 +619,7 @@ notification_handle_remove_notification (XdpDbusNotification *object,
                                          GDBusMethodInvocation *invocation,
                                          const char *arg_id)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   CallData *call_data = call_data_new (invocation, call->app_info, call->sender, arg_id, NULL);
 
   xdp_dbus_impl_notification_call_remove_notification (impl,

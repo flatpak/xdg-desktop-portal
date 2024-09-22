@@ -621,7 +621,7 @@ handle_enable (XdpDbusInputCapture   *object,
                const char            *arg_session_handle,
                GVariant              *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
@@ -722,7 +722,7 @@ handle_disable (XdpDbusInputCapture   *object,
                 const char            *arg_session_handle,
                 GVariant              *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
@@ -823,7 +823,7 @@ handle_release (XdpDbusInputCapture   *object,
                 const char            *arg_session_handle,
                 GVariant              *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
@@ -921,7 +921,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
                        const char            *arg_session_handle,
                        GVariant              *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GUnixFDList) out_fd_list = NULL;

@@ -24,13 +24,13 @@
 #include "xdp-app-info.h"
 #include "xdp-utils.h"
 
-typedef struct _Call
+typedef struct _XdpCall
 {
   XdpAppInfo *app_info;
   char *sender;
-} Call;
+} XdpCall;
 
-void call_init_invocation (GDBusMethodInvocation *invocation,
-                           XdpAppInfo *app_info);
+void xdp_call_init_invocation (GDBusMethodInvocation *invocation,
+                               XdpAppInfo            *app_info);
 
-Call *call_from_invocation (GDBusMethodInvocation *invocation);
+XdpCall *xdp_call_from_invocation (GDBusMethodInvocation *invocation);

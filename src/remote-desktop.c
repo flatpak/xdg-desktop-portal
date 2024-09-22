@@ -849,7 +849,7 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
                               double dx,
                               double dy)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -907,7 +907,7 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
                                        double x,
                                        double y)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -975,7 +975,7 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
                               int32_t button,
                               uint32_t state)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1038,7 +1038,7 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
                             double dx,
                             double dy)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1096,7 +1096,7 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
                                      uint32_t axis,
                                      int32_t steps)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1154,7 +1154,7 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
                                 int32_t keycode,
                                 uint32_t state)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1212,7 +1212,7 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
                                int32_t keysym,
                                uint32_t state)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1272,7 +1272,7 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
                           double x,
                           double y)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1342,7 +1342,7 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
                             double x,
                             double y)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1409,7 +1409,7 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
                         GVariant *arg_options,
                         uint32_t slot)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
   g_autoptr(GVariant) options = NULL;
@@ -1468,7 +1468,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
                        const char *arg_session_handle,
                        GVariant *arg_options)
 {
-  Call *call = call_from_invocation (invocation);
+  XdpCall *call = xdp_call_from_invocation (invocation);
   Session *session;
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GUnixFDList) out_fd_list = NULL;

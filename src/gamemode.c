@@ -375,7 +375,7 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
 {
   g_autoptr(GTask) task = NULL;
   XdpAppInfo *app_info;
-  Call *call;
+  XdpCall *call;
   CallData *call_data;
 
   if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
@@ -385,7 +385,7 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
       return;
     }
 
-  call = call_from_invocation (invocation);
+  call = xdp_call_from_invocation (invocation);
   app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
@@ -406,10 +406,10 @@ handle_call_in_thread (XdpDbusGameMode       *object,
 {
   g_autoptr(GTask) task = NULL;
   XdpAppInfo *app_info;
-  Call *call;
+  XdpCall *call;
   CallData *call_data;
 
-  call = call_from_invocation (invocation);
+  call = xdp_call_from_invocation (invocation);
   app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
