@@ -267,7 +267,7 @@ launch_application_with_uri (const char *choice_id,
       if (ruri == NULL)
         {
           g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);
-          g_propagate_error (error, local_error);
+          g_propagate_error (error, g_steal_pointer (&local_error));
           return FALSE;
         }
     }

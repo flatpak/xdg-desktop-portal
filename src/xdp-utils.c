@@ -202,8 +202,7 @@ xdp_filter_options (GVariant *options,
                   ret = FALSE;
                   if (error && *error == NULL)
                     {
-                      g_propagate_error (error, local_error);
-                      local_error = NULL;
+                      g_propagate_error (error, g_steal_pointer (&local_error));
                     }
                 }
 
@@ -498,7 +497,7 @@ xdp_spawn_full (const char * const  *argv,
 
   if (data.error)
     {
-      g_propagate_error (error, data.error);
+      g_propagate_error (error, g_steal_pointer (&data.error));
       g_clear_error (&data.splice_error);
       return NULL;
     }
@@ -507,7 +506,7 @@ xdp_spawn_full (const char * const  *argv,
     {
       if (data.splice_error)
         {
-          g_propagate_error (error, data.splice_error);
+          g_propagate_error (error, g_steal_pointer (&data.splice_error));
           return NULL;
         }
 
