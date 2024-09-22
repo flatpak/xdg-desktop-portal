@@ -98,7 +98,7 @@ typedef struct _RemoteDesktopSession
   gboolean uses_eis;
 
   char *restore_token;
-  PersistMode persist_mode;
+  XdpSessionPersistenceMode persist_mode;
   GVariant *restore_data;
 } RemoteDesktopSession;
 
@@ -449,7 +449,7 @@ validate_persist_mode (const char *key,
 {
   uint32_t mode = g_variant_get_uint32 (value);
 
-  if (mode > PERSIST_MODE_PERSISTENT)
+  if (mode > XDP_SESSION_PERSISTENCE_MODE_PERSISTENT)
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR,
@@ -474,12 +474,12 @@ replace_remote_desktop_restore_token_with_data (Session *session,
 {
   RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
   g_autoptr(GVariant) options = NULL;
-  PersistMode persist_mode;
+  XdpSessionPersistenceMode persist_mode;
 
   options = *in_out_options;
 
   if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
-    persist_mode = PERSIST_MODE_NONE;
+    persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   remote_desktop_session->persist_mode = persist_mode;
   xdp_session_persistence_replace_restore_token_with_data (session,

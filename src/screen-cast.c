@@ -96,7 +96,7 @@ typedef struct _ScreenCastSession
 
   GList *streams;
   char *restore_token;
-  PersistMode persist_mode;
+  XdpSessionPersistenceMode persist_mode;
   GVariant *restore_data;
 } ScreenCastSession;
 
@@ -413,7 +413,7 @@ validate_persist_mode (const char *key,
 {
   uint32_t mode = g_variant_get_uint32 (value);
 
-  if (mode > PERSIST_MODE_PERSISTENT)
+  if (mode > XDP_SESSION_PERSISTENCE_MODE_PERSISTENT)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Invalid persist mode %x", mode);
@@ -437,16 +437,16 @@ replace_screen_cast_restore_token_with_data (Session *session,
                                              GError **error)
 {
   g_autoptr(GVariant) options = NULL;
-  PersistMode persist_mode;
+  XdpSessionPersistenceMode persist_mode;
 
   options = *in_out_options;
 
   if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
-    persist_mode = PERSIST_MODE_NONE;
+    persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   if (IS_REMOTE_DESKTOP_SESSION (session))
     {
-      if (persist_mode != PERSIST_MODE_NONE ||
+      if (persist_mode != XDP_SESSION_PERSISTENCE_MODE_NONE ||
           xdp_variant_contains_key (options, "restore_token"))
         {
           g_set_error (error,
