@@ -69,7 +69,6 @@ endif
 xdg_desktop_portal_sources = files(
   'account.c',
   'background.c',
-  'call.c',
   'camera.c',
   'clipboard.c',
   'documents.c',
@@ -103,6 +102,7 @@ xdg_desktop_portal_sources = files(
   'xdg-desktop-portal.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
+  'xdp-call.c',
   'xdp-portal-impl.c',
   'xdp-session-persistence.c',
 )
