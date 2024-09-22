@@ -53,7 +53,7 @@ typedef enum {
 
 typedef struct
 {
-  Session parent;
+  XdpSession parent;
 
   LocationSessionState state;
 
@@ -66,12 +66,12 @@ typedef struct
 
 typedef struct
 {
-  SessionClass parent_class;
+  XdpSessionClass parent_class;
 } LocationSessionClass;
 
 GType location_session_get_type (void);
 
-G_DEFINE_TYPE (LocationSession, location_session, session_get_type ())
+G_DEFINE_TYPE (LocationSession, location_session, xdp_session_get_type ())
 
 G_GNUC_UNUSED static inline LocationSession *
 LOCATION_SESSION (gpointer ptr)
@@ -94,7 +94,7 @@ location_session_init (LocationSession *session)
 }
 
 static void
-location_session_close (Session *session)
+location_session_close (XdpSession *session)
 {
   LocationSession *loc_session = LOCATION_SESSION (session);
 
@@ -120,7 +120,7 @@ static void
 location_session_class_init (LocationSessionClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  SessionClass *session_class = (SessionClass *)klass;
+  XdpSessionClass *session_class = (XdpSessionClass *)klass;
 
   object_class->finalize = location_session_finalize;
 
@@ -135,7 +135,7 @@ location_session_new (GVariant *options,
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   XdpAppInfo *app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, NULL);
-  Session *session;
+  XdpSession *session;
 
   session = g_initable_new (location_session_get_type (), NULL, error,
                             "sender", sender,
@@ -158,7 +158,7 @@ location_updated (GeoclueClient *client,
                   const char *new_location,
                   gpointer data)
 {
-  Session *session = data;
+  XdpSession *session = data;
   g_autoptr(GVariant) ret = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) dict = NULL;
@@ -243,9 +243,9 @@ location_session_start (LocationSession *loc_session)
       return FALSE;
     }
 
-  g_debug ("location session '%s', GeoClue client '%s'", ((Session*)loc_session)->id, client_id);
+  g_debug ("location session '%s', GeoClue client '%s'", ((XdpSession*)loc_session)->id, client_id);
   g_debug ("location session '%s', distance-threshold %d, time-threshold %d, accuracy %s",
-           SESSION (loc_session)->id,
+           XDP_SESSION (loc_session)->id,
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
@@ -271,7 +271,7 @@ location_session_start (LocationSession *loc_session)
   g_debug ("GeoClue client '%s' started", client_id);
 
   loc_session->state = LOCATION_SESSION_STATE_STARTED;
-  g_debug ("location session '%s' started", ((Session*)loc_session)->id);
+  g_debug ("location session '%s' started", ((XdpSession*)loc_session)->id);
 
   return TRUE;
 }
@@ -424,7 +424,7 @@ handle_create_session (XdpDbusLocation *object,
 {
   g_autoptr(GError) error = NULL;
   LocationSession *loc_session;
-  Session *session;
+  XdpSession *session;
   guint threshold;
   guint accuracy;
 
@@ -445,7 +445,7 @@ handle_create_session (XdpDbusLocation *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  session = SESSION (loc_session);
+  session = XDP_SESSION (loc_session);
 
   if (g_variant_lookup (arg_options, "distance-threshold", "u", &threshold))
     loc_session->distance_threshold = threshold;
@@ -475,18 +475,18 @@ handle_create_session (XdpDbusLocation *object,
         }
     }
 
-  if (!session_export (session, &error))
+  if (!xdp_session_export (session, &error))
     {
        g_warning ("Failed to export session: %s", error->message);
-       session_close (session, FALSE);
+       xdp_session_close (session, FALSE);
     }
   else
     {
-      g_debug ("CreateSession new session '%s'",  (session)->id);
-      session_register (session);
+      g_debug ("CreateSession new session '%s'",  session->id);
+      xdp_session_register (session);
     }
 
-  xdp_dbus_location_complete_create_session (object, invocation, (session)->id);
+  xdp_dbus_location_complete_create_session (object, invocation, session->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -505,7 +505,7 @@ handle_start_in_thread_func (GTask *task,
   gint64 last_used = 0;
   g_autoptr(GError) error = NULL;
   guint response = 2;
-  Session *session;
+  XdpSession *session;
   LocationSession *loc_session;
   GClueAccuracyLevel accuracy;
 
@@ -645,7 +645,7 @@ out:
   if (response != 0)
     {
        g_debug ("closing session");
-       session_close (session, FALSE);
+       xdp_session_close (session, FALSE);
     }
 }
 
@@ -657,7 +657,7 @@ handle_start (XdpDbusLocation *object,
               GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  Session *session;
+  XdpSession *session;
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;
 
@@ -673,7 +673,7 @@ handle_start (XdpDbusLocation *object,
 
   REQUEST_AUTOLOCK (request);
 
-  session = acquire_session (arg_session_handle, request);
+  session = xdp_session_from_request (arg_session_handle, request);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,

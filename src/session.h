@@ -25,10 +25,7 @@
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 
-typedef struct _Session Session;
-typedef struct _SessionClass SessionClass;
-
-struct _Session
+typedef struct _XdpSession
 {
   XdpDbusSessionSkeleton parent;
 
@@ -47,53 +44,53 @@ struct _Session
   char *impl_dbus_name;
   GDBusConnection *impl_connection;
   XdpDbusImplSession *impl_session;
-};
+} XdpSession;
 
-struct _SessionClass
+typedef struct _XdpSessionClass
 {
   XdpDbusSessionSkeletonClass parent_class;
 
-  void (*close) (Session *session);
-};
+  void (*close) (XdpSession *session);
+} XdpSessionClass;
 
-GType session_get_type (void);
+GType xdp_session_get_type (void);
 
-G_GNUC_UNUSED static inline Session *
-SESSION (gpointer ptr)
+G_GNUC_UNUSED static inline XdpSession *
+XDP_SESSION (gpointer ptr)
 {
-  return G_TYPE_CHECK_INSTANCE_CAST (ptr, session_get_type (), Session);
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, xdp_session_get_type (), XdpSession);
 }
 
 G_GNUC_UNUSED static inline gboolean
-IS_SESSION (gpointer ptr)
+XDP_IS_SESSION (gpointer ptr)
 {
-  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, session_get_type ());
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, xdp_session_get_type ());
 }
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpSession, g_object_unref)
 
 const char * lookup_session_token (GVariant *options);
 
-Session * acquire_session (const char *session_handle,
-                           XdpRequest *request);
+XdpSession * xdp_session_from_request (const char *session_handle,
+                                       XdpRequest *request);
 
-Session * acquire_session_from_call (const char *session_handle,
-                                     XdpCall *call);
+XdpSession * xdp_session_from_call (const char *session_handle,
+                                    XdpCall    *call);
 
-Session * lookup_session (const char *session_handle);
+XdpSession * xdp_session_lookup (const char *session_handle);
 
-void session_register (Session *session);
+void xdp_session_register (XdpSession *session);
 
-gboolean session_export (Session *session,
-                         GError **error);
+gboolean xdp_session_export (XdpSession  *session,
+                             GError     **error);
 
 void close_sessions_for_sender (const char *sender);
 
-void session_close (Session *session,
-                    gboolean notify_close);
+void xdp_session_close (XdpSession *session,
+                        gboolean    notify_close);
 
 static inline void
-auto_session_unlock_unref_helper (Session **session)
+auto_session_unlock_unref_helper (XdpSession **session)
 {
   if (!*session)
     return;
@@ -102,8 +99,8 @@ auto_session_unlock_unref_helper (Session **session)
   g_object_unref (*session);
 }
 
-static inline Session *
-auto_session_lock_helper (Session *session)
+static inline XdpSession *
+auto_session_lock_helper (XdpSession *session)
 {
   if (session)
     g_mutex_lock (&session->mutex);
@@ -117,5 +114,5 @@ auto_session_lock_helper (Session *session)
 
 #define SESSION_AUTOLOCK_UNREF(session) \
   G_GNUC_UNUSED __attribute__((cleanup (auto_session_unlock_unref_helper))) \
-  Session * G_PASTE (session_auto_unlock_unref, __LINE__) = \
+  XdpSession * G_PASTE (session_auto_unlock_unref, __LINE__) = \
     auto_session_lock_helper (session);
