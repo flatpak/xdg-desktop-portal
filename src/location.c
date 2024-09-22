@@ -499,7 +499,7 @@ handle_start_in_thread_func (GTask *task,
                              gpointer task_data,
                              GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   const char *parent_window;
   const char *id;
   gint64 last_used = 0;
@@ -538,7 +538,7 @@ handle_start_in_thread_func (GTask *task,
                                                            request->id,
                                                            NULL, NULL);
 
-      request_set_impl_request (request, impl_request);
+      xdp_request_set_impl_request (request, impl_request);
 
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny Access")));
@@ -600,7 +600,7 @@ handle_start_in_thread_func (GTask *task,
           goto out;
         }
 
-      request_set_impl_request (request, NULL);
+      xdp_request_set_impl_request (request, NULL);
 
       accuracy = (access_response == 0) ? GCLUE_ACCURACY_LEVEL_EXACT : GCLUE_ACCURACY_LEVEL_NONE;
     }
@@ -639,7 +639,7 @@ out:
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }  
 
   if (response != 0)
@@ -656,7 +656,7 @@ handle_start (XdpDbusLocation *object,
               const char *arg_parent_window,
               GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   Session *session;
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;
@@ -705,7 +705,7 @@ handle_start (XdpDbusLocation *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
 

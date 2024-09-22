@@ -63,7 +63,7 @@ G_DEFINE_TYPE_WITH_CODE (Wallpaper, wallpaper, XDP_DBUS_TYPE_WALLPAPER_SKELETON,
                                                 wallpaper_iface_init));
 
 static void
-send_response (Request *request,
+send_response (XdpRequest *request,
                guint response)
 {
   if (request->exported)
@@ -75,7 +75,7 @@ send_response (Request *request,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -86,7 +86,7 @@ handle_set_wallpaper_uri_done (GObject *source,
 {
   guint response = 2;
   g_autoptr(GError) error = NULL;
-  Request *request = data;
+  XdpRequest *request = data;
 
   if (!xdp_dbus_impl_wallpaper_call_set_wallpaper_uri_finish (XDP_DBUS_IMPL_WALLPAPER (source),
                                                               &response,
@@ -125,7 +125,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                                      gpointer task_data,
                                      GCancellable *cancellable)
 {
-  Request *request = REQUEST (task_data);
+  XdpRequest *request = XDP_REQUEST (task_data);
   const char *parent_window;
   const char *id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -155,7 +155,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                           XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                           g_variant_builder_end (&opt_builder));
-          request_unexport (request);
+          xdp_request_unexport (request);
         }
       return;
     }
@@ -262,7 +262,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opt_builder));
-              request_unexport (request);
+              xdp_request_unexport (request);
             }
           return;
         }
@@ -284,7 +284,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       return;
     }
 
-  request_set_impl_request (request, impl_request);
+  xdp_request_set_impl_request (request, impl_request);
 
   xdp_filter_options (options, &opt_builder,
                       wallpaper_options, G_N_ELEMENTS (wallpaper_options),
@@ -309,7 +309,7 @@ handle_set_wallpaper_uri (XdpDbusWallpaper *object,
                           const char *arg_uri,
                           GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
 
   g_debug ("Handle SetWallpaperURI");
@@ -321,7 +321,7 @@ handle_set_wallpaper_uri (XdpDbusWallpaper *object,
                           g_variant_ref (arg_options),
                           (GDestroyNotify)g_variant_unref);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
@@ -339,7 +339,7 @@ handle_set_wallpaper_file (XdpDbusWallpaper *object,
                            GVariant *arg_fd,
                            GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
   g_autoptr(GError) error = NULL;
@@ -370,7 +370,7 @@ handle_set_wallpaper_file (XdpDbusWallpaper *object,
                           g_variant_ref (arg_options),
                           (GDestroyNotify)g_variant_unref);
 
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);

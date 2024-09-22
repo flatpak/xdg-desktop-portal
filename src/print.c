@@ -69,7 +69,7 @@ print_done (GObject *source,
             GAsyncResult *result,
             gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -95,7 +95,7 @@ print_done (GObject *source,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -148,7 +148,7 @@ handle_print (XdpDbusPrint *object,
               GVariant *arg_fd,
               GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -179,8 +179,8 @@ handle_print (XdpDbusPrint *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &opt_builder,
                       print_options, G_N_ELEMENTS (print_options), NULL);
@@ -212,7 +212,7 @@ prepare_print_done (GObject *source,
                     GAsyncResult *result,
                     gpointer data)
 {
-  g_autoptr(Request) request = data;
+  g_autoptr(XdpRequest) request = data;
   guint response = 2;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -243,7 +243,7 @@ prepare_print_done (GObject *source,
                                       response,
                                       g_variant_builder_end (&opt_builder));
 
-      request_unexport (request);
+      xdp_request_unexport (request);
     }
 }
 
@@ -262,7 +262,7 @@ handle_prepare_print (XdpDbusPrint *object,
                       GVariant *arg_page_setup,
                       GVariant *arg_options)
 {
-  Request *request = request_from_invocation (invocation);
+  XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -292,8 +292,8 @@ handle_prepare_print (XdpDbusPrint *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  request_set_impl_request (request, impl_request);
-  request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &opt_builder,
                       prepare_print_options, G_N_ELEMENTS (prepare_print_options), NULL);
