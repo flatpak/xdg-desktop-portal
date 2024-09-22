@@ -18,7 +18,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "launch-context.h"
+#include "xdp-app-launch-context.h"
 
 struct _XdpAppLaunchContext
 {
