@@ -254,7 +254,7 @@ xdp_session_persistence_replace_restore_token_with_data (Session *session,
 void
 xdp_session_persistence_generate_and_save_restore_token (Session *session,
                                                          const char *table,
-                                                         PersistMode persist_mode,
+                                                         XdpSessionPersistenceMode persist_mode,
                                                          char **in_out_restore_token,
                                                          GVariant **in_out_restore_data)
 {
@@ -275,7 +275,7 @@ xdp_session_persistence_generate_and_save_restore_token (Session *session,
 
   switch (persist_mode)
     {
-    case PERSIST_MODE_NONE:
+    case XDP_SESSION_PERSISTENCE_MODE_NONE:
       if (*in_out_restore_token)
         {
           xdp_session_persistence_delete_persistent_permissions (session,
@@ -289,7 +289,7 @@ xdp_session_persistence_generate_and_save_restore_token (Session *session,
       g_clear_pointer (in_out_restore_data, g_variant_unref);
       break;
 
-    case PERSIST_MODE_TRANSIENT:
+    case XDP_SESSION_PERSISTENCE_MODE_TRANSIENT:
       if (!*in_out_restore_token)
         *in_out_restore_token = g_uuid_string_random ();
 
@@ -298,7 +298,7 @@ xdp_session_persistence_generate_and_save_restore_token (Session *session,
                                                          *in_out_restore_data);
       break;
 
-    case PERSIST_MODE_PERSISTENT:
+    case XDP_SESSION_PERSISTENCE_MODE_PERSISTENT:
       if (!*in_out_restore_token)
         *in_out_restore_token = g_uuid_string_random ();
 
@@ -315,7 +315,7 @@ void
 xdp_session_persistence_replace_restore_data_with_token (Session *session,
                                                          const char *table,
                                                          GVariant **in_out_results,
-                                                         PersistMode *in_out_persist_mode,
+                                                         XdpSessionPersistenceMode *in_out_persist_mode,
                                                          char **in_out_restore_token,
                                                          GVariant **in_out_restore_data)
 {
@@ -371,7 +371,7 @@ xdp_session_persistence_replace_restore_data_with_token (Session *session,
     }
   else
     {
-      *in_out_persist_mode = PERSIST_MODE_NONE;
+      *in_out_persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
     }
 
   *in_out_results = g_variant_builder_end (&results_builder);
