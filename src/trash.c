@@ -33,7 +33,7 @@
 #include <gio/gunixfdlist.h>
 
 #include "trash.h"
-#include "call.h"
+#include "xdp-call.h"
 #include "documents.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"

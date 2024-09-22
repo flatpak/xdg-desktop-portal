@@ -20,7 +20,7 @@
 
 #include "config.h"
 
-#include "call.h"
+#include "xdp-call.h"
 #include "permissions.h"
 
 #include "xdp-app-info.h"

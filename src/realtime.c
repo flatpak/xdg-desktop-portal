@@ -24,7 +24,7 @@
 #include <gio/gio.h>
 
 #include "realtime.h"
-#include "call.h"
+#include "xdp-call.h"
 #include "permissions.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
