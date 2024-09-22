@@ -31,10 +31,10 @@ typedef struct {
   char **interfaces;
   char **use_in;
   int priority;
-} PortalImplementation;
+} XdpPortalImplementation;
 
-void                  load_installed_portals          (gboolean opt_verbose);
-void                  load_portal_configuration       (gboolean opt_verbose);
-PortalImplementation *find_portal_implementation      (const char *interface);
-GPtrArray            *find_all_portal_implementations (const char *interface);
+void load_installed_portals (gboolean opt_verbose);
+void load_portal_configuration (gboolean opt_verbose);
+XdpPortalImplementation *find_portal_implementation (const char *interface);
+GPtrArray *find_all_portal_implementations (const char *interface);
 

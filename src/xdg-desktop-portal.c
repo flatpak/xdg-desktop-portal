@@ -204,9 +204,9 @@ on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  PortalImplementation *implementation;
-  PortalImplementation *lockdown_impl;
-  PortalImplementation *access_impl;
+  XdpPortalImplementation *implementation;
+  XdpPortalImplementation *lockdown_impl;
+  XdpPortalImplementation *access_impl;
   XdpDbusImplLockdown *lockdown = NULL;
   GQuark portal_errors G_GNUC_UNUSED;
   GPtrArray *impls;
@@ -282,7 +282,7 @@ on_bus_acquired (GDBusConnection *connection,
   access_impl = find_portal_implementation ("org.freedesktop.impl.portal.Access");
   if (access_impl != NULL)
     {
-      PortalImplementation *tmp;
+      XdpPortalImplementation *tmp;
 
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
