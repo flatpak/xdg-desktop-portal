@@ -24,7 +24,7 @@
 #include <pipewire/pipewire.h>
 #include <gio/gunixfdlist.h>
 
-#include "session.h"
+#include "xdp-session.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
 #include "xdp-request.h"

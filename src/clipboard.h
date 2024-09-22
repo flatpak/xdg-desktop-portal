@@ -22,7 +22,7 @@
 
 #include <gio/gio.h>
 
-#include "session.h"
+#include "xdp-session.h"
 
 GDBusInterfaceSkeleton *clipboard_create (GDBusConnection *connection,
                                           const char *dbus_name);

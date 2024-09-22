@@ -7,7 +7,7 @@
 #include "xdp-impl-dbus.h"
 
 #include "xdp-request.h"
-#include "session.h"
+#include "xdp-session.h"
 #include "inhibit.h"
 
 static GDBusInterfaceSkeleton *inhibit;

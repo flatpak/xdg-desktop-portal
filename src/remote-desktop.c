@@ -25,7 +25,7 @@
 #include "xdp-request.h"
 #include "pipewire.h"
 #include "xdp-call.h"
-#include "session.h"
+#include "xdp-session.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-session-persistence.h"
