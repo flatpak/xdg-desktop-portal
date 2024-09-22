@@ -136,7 +136,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   GVariant *options;
   gboolean show_preview = FALSE;
   int fd;
-  Permission permission;
+  XdpPermission permission;
 
   REQUEST_AUTOLOCK (request);
 
@@ -159,16 +159,16 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     }
 
 
-  permission = get_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID);
 
-  if (permission == PERMISSION_NO)
+  if (permission == XDP_PERMISSION_NO)
     {
       send_response (request, 2);
       return;
     }
 
   g_variant_lookup (options, "show-preview", "b", &show_preview);
-  if (!show_preview && permission != PERMISSION_YES)
+  if (!show_preview && permission != XDP_PERMISSION_YES)
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
@@ -235,8 +235,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           return;
         }
 
-      if (permission == PERMISSION_UNSET)
-        set_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? PERMISSION_YES : PERMISSION_NO);
+      if (permission == XDP_PERMISSION_UNSET)
+        xdp_set_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
         {

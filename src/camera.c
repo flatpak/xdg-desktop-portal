@@ -74,14 +74,14 @@ create_pipewire_remote (Camera *camera,
 static gboolean
 query_permission_sync (XdpRequest *request)
 {
-  Permission permission;
+  XdpPermission permission;
   const char *app_id;
   gboolean allowed;
 
   app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
 
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
-  if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
+  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
+  if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
     {
       g_auto(GVariantBuilder) opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
@@ -146,14 +146,14 @@ query_permission_sync (XdpRequest *request)
 
       allowed = response == 0;
 
-      if (permission == PERMISSION_UNSET)
+      if (permission == XDP_PERMISSION_UNSET)
         {
-          set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA,
-                               allowed ? PERMISSION_YES : PERMISSION_NO);
+          xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA,
+                               allowed ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
         }
     }
   else
-    allowed = permission == PERMISSION_YES ? TRUE : FALSE;
+    allowed = permission == XDP_PERMISSION_YES ? TRUE : FALSE;
 
   return allowed;
 }
@@ -267,7 +267,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
   const char *app_id;
-  Permission permission;
+  XdpPermission permission;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   int fd;
   int fd_id;
@@ -286,8 +286,8 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
   app_id = xdp_app_info_get_id (app_info);
-  permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
-  if (permission != PERMISSION_YES)
+  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
+  if (permission != XDP_PERMISSION_YES)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,

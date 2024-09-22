@@ -112,11 +112,11 @@ xdp_session_persistence_set_persistent_permissions (XdpSession *session,
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a{sas}"));
   g_auto(GStrv) permission = NULL;
 
-  permission = permissions_from_tristate (PERMISSION_YES);
+  permission = xdp_permissions_from_tristate (XDP_PERMISSION_YES);
 
   g_variant_builder_add (&permissions_builder, "{s^a&s}", session->app_id, permission);
 
-  if (!xdp_dbus_impl_permission_store_call_set_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_set_sync (xdp_get_permission_store (),
                                                      table,
                                                      TRUE,
                                                      restore_token,
@@ -138,7 +138,7 @@ xdp_session_persistence_delete_persistent_permissions (XdpSession *session,
 
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_dbus_impl_permission_store_call_delete_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_delete_sync (xdp_get_permission_store (),
                                                         table,
                                                         restore_token,
                                                         NULL,
@@ -159,7 +159,7 @@ xdp_session_persistence_get_persistent_permissions (XdpSession *session,
   g_autoptr(GError) error = NULL;
   const char **permissions;
 
-  if (!xdp_dbus_impl_permission_store_call_lookup_sync (get_permission_store (),
+  if (!xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
                                                         table,
                                                         restore_token,
                                                         &perms,

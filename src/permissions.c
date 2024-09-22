@@ -29,9 +29,9 @@
 static XdpDbusImplPermissionStore *permission_store = NULL;
 
 char **
-get_permissions_sync (const char *app_id,
-                      const char *table,
-                      const char *id)
+xdp_get_permissions_sync (const char *app_id,
+                          const char *table,
+                          const char *id)
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
@@ -61,48 +61,48 @@ get_permissions_sync (const char *app_id,
   return g_strdupv (permissions);
 }
 
-Permission
-permissions_to_tristate (char **permissions)
+XdpPermission
+xdp_permissions_to_tristate (char **permissions)
 {
   if (g_strv_length ((char **)permissions) != 1)
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
-      return PERMISSION_UNSET;
+      return XDP_PERMISSION_UNSET;
     }
 
   if (strcmp (permissions[0], "yes") == 0)
-    return PERMISSION_YES;
+    return XDP_PERMISSION_YES;
   else if (strcmp (permissions[0], "no") == 0)
-    return PERMISSION_NO;
+    return XDP_PERMISSION_NO;
   else if (strcmp (permissions[0], "ask") == 0)
-    return PERMISSION_ASK;
+    return XDP_PERMISSION_ASK;
   else
     {
       g_autofree char *a = g_strjoinv (" ", (char **)permissions);
       g_warning ("Wrong permission format, ignoring (%s)", a);
     }
 
-  return PERMISSION_UNSET;
+  return XDP_PERMISSION_UNSET;
 }
 
 char **
-permissions_from_tristate (Permission permission)
+xdp_permissions_from_tristate (XdpPermission permission)
 {
   char *permission_str;
   char **permissions;
 
   switch (permission)
     {
-    case PERMISSION_UNSET:
+    case XDP_PERMISSION_UNSET:
       return NULL;
-    case PERMISSION_NO:
+    case XDP_PERMISSION_NO:
       permission_str = g_strdup ("no");
       break;
-    case PERMISSION_YES:
+    case XDP_PERMISSION_YES:
       permission_str = g_strdup ("yes");
       break;
-    case PERMISSION_ASK:
+    case XDP_PERMISSION_ASK:
       permission_str = g_strdup ("ask");
       break;
     default:
@@ -117,10 +117,10 @@ permissions_from_tristate (Permission permission)
 }
 
 void
-set_permissions_sync (const char *app_id,
-                      const char *table,
-                      const char *id,
-                      const char * const *permissions)
+xdp_set_permissions_sync (const char         *app_id,
+                          const char         *table,
+                          const char         *id,
+                          const char * const *permissions)
 {
   g_autoptr(GError) error = NULL;
 
@@ -138,34 +138,35 @@ set_permissions_sync (const char *app_id,
     }
 }
 
-Permission
-get_permission_sync (const char *app_id,
-                     const char *table,
-                     const char *id)
+XdpPermission
+xdp_get_permission_sync (const char *app_id,
+                         const char *table,
+                         const char *id)
 {
   g_auto(GStrv) perms = NULL;
 
-  perms = get_permissions_sync (app_id, table, id);
+  perms = xdp_get_permissions_sync (app_id, table, id);
   if (perms)
-    return permissions_to_tristate (perms);
+    return xdp_permissions_to_tristate (perms);
 
-  return PERMISSION_UNSET;
+  return XDP_PERMISSION_UNSET;
 }
 
-void set_permission_sync (const char *app_id,
-                          const char *table,
-                          const char *id,
-                          Permission permission)
+void
+xdp_set_permission_sync (const char    *app_id,
+                         const char    *table,
+                         const char    *id,
+                         XdpPermission  permission)
 {
   g_auto(GStrv) perms = NULL;
 
-  perms = permissions_from_tristate (permission);
-  set_permissions_sync (app_id, table, id, (const char * const *)perms);
+  perms = xdp_permissions_from_tristate (permission);
+  xdp_set_permissions_sync (app_id, table, id, (const char * const *)perms);
 }
 
 gboolean
-init_permission_store (GDBusConnection  *connection,
-                       GError          **error)
+xdp_init_permission_store (GDBusConnection  *connection,
+                           GError          **error)
 {
   permission_store = xdp_dbus_impl_permission_store_proxy_new_sync (connection,
                                                                     G_DBUS_PROXY_FLAGS_NONE,
@@ -176,7 +177,7 @@ init_permission_store (GDBusConnection  *connection,
 }
 
 XdpDbusImplPermissionStore *
-get_permission_store (void)
+xdp_get_permission_store (void)
 {
   return permission_store;
 }
