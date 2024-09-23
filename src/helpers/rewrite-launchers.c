@@ -25,7 +25,7 @@
 #include <glib.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "dynamic-launcher.h"
+#include "portals/dynamic-launcher.h"
 #include "xdp-utils.h"
 
 static char *
