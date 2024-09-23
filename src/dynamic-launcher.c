@@ -451,7 +451,7 @@ set_launcher_data_for_token (const char *token,
 {
   g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
   guint timeout_id;
-  GVariant *launcher_data_wrapped;
+  g_autoptr(GVariant) launcher_data_wrapped = NULL;
 
   if (!transient_permissions)
     {
@@ -464,11 +464,12 @@ set_launcher_data_for_token (const char *token,
    */
   timeout_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 300, install_token_timeout,
                                            g_strdup (token), g_free);
-  launcher_data_wrapped = g_variant_new ("(vu)", launcher_data, timeout_id);
+  launcher_data_wrapped =
+    g_variant_ref_sink (g_variant_new ("(vu)", launcher_data, timeout_id));
 
   g_hash_table_insert (transient_permissions,
                        g_strdup (token),
-                       g_variant_ref_sink (launcher_data_wrapped));
+                       g_steal_pointer (&launcher_data_wrapped));
 }
 
 static void
@@ -477,7 +478,6 @@ prepare_install_done (GObject      *source,
                       gpointer      data)
 {
   g_autoptr(Request) request = data;
-  GVariant *launcher_data;
   guint response = 2;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
@@ -524,6 +524,8 @@ prepare_install_done (GObject      *source,
         }
       else
         {
+          GVariant *launcher_data;
+
           /* Save the token in memory and return it to the caller */
           launcher_data = g_variant_new ("(svss)", chosen_name, chosen_icon, icon_format, icon_size);
           set_launcher_data_for_token (token, launcher_data);
@@ -686,7 +688,6 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
   Call *call = call_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GError) error = NULL;
-  GVariant *launcher_data;
   g_autofree char *token = NULL;
   g_autofree char *icon_format = NULL;
   g_autofree char *icon_size = NULL;
@@ -716,6 +717,8 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
 
   if (response == 0)
     {
+      GVariant *launcher_data;
+
       /* Do some validation on the icon before saving it */
       if (!validate_serialized_icon (arg_icon_v, &icon_format, &icon_size))
         {

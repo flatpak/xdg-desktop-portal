@@ -241,7 +241,7 @@ handle_create_session (XdpDbusInputCapture   *object,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
   Session *session;
 
   REQUEST_AUTOLOCK (request);
@@ -277,7 +277,7 @@ handle_create_session (XdpDbusInputCapture   *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
@@ -333,12 +333,12 @@ get_zones_done (GObject      *source_object,
 
   if (request->exported)
     {
-      if (response != 0)
+      if (!results)
         {
           GVariantBuilder results_builder;
 
           g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
-          results = g_variant_builder_end (&results_builder);
+          results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
@@ -365,7 +365,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
   Session *session;
 
   REQUEST_AUTOLOCK (request);
@@ -433,7 +433,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
@@ -494,7 +494,7 @@ set_pointer_barriers_done (GObject      *source_object,
           GVariantBuilder results_builder;
 
           g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
-          results = g_variant_builder_end (&results_builder);
+          results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
@@ -521,7 +521,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
   Session *session;
 
   REQUEST_AUTOLOCK (request);
@@ -589,7 +589,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
