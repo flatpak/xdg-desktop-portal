@@ -36,7 +36,7 @@ request_on_signal_response (XdpDbusRequest *object,
                             guint arg_response,
                             GVariant *arg_results)
 {
-  Request *request = (Request *)object;
+  Request *request = REQUEST (object);
   XdpDbusRequestSkeleton *skeleton = XDP_DBUS_REQUEST_SKELETON (object);
   GList      *connections, *l;
   GVariant   *signal_variant;
@@ -65,7 +65,7 @@ static gboolean
 handle_close (XdpDbusRequest *object,
               GDBusMethodInvocation *invocation)
 {
-  Request *request = (Request *)object;
+  Request *request = REQUEST (object);
   g_autoptr(GError) error = NULL;
 
   g_debug ("Handling Close");
@@ -110,7 +110,7 @@ request_init (Request *request)
 static void
 request_finalize (GObject *object)
 {
-  Request *request = (Request *)object;
+  Request *request = REQUEST (object);
 
   G_LOCK (requests);
   g_hash_table_remove (requests, request->id);

@@ -189,7 +189,7 @@ handle_screenshot_in_thread_func (GTask *task,
                                   gpointer task_data,
                                   GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder opt_builder;

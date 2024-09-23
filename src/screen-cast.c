@@ -107,11 +107,16 @@ GType screen_cast_session_get_type (void);
 
 G_DEFINE_TYPE (ScreenCastSession, screen_cast_session, session_get_type ())
 
-
-static gboolean
-is_screen_cast_session (Session *session)
+G_GNUC_UNUSED static inline ScreenCastSession *
+SCREEN_CAST_SESSION (gpointer ptr)
 {
-  return G_TYPE_CHECK_INSTANCE_TYPE (session, screen_cast_session_get_type ());
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, screen_cast_session_get_type (), ScreenCastSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_SCREEN_CAST_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, screen_cast_session_get_type ());
 }
 
 static ScreenCastSession *
@@ -244,7 +249,7 @@ handle_create_session (XdpDbusScreenCast *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)screen_cast_session_new (arg_options, request, &error);
+  session = SESSION (screen_cast_session_new (arg_options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -323,19 +328,19 @@ select_sources_done (GObject *source_object,
     }
   else if (!session->closed)
     {
-      if (is_screen_cast_session (session))
+      if (IS_SCREEN_CAST_SESSION (session))
         {
-          ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+          ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
           g_assert_cmpint (screen_cast_session->state,
                            ==,
                            SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES);
           screen_cast_session->state = SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED;
         }
-      else if (is_remote_desktop_session (session))
+      else if (IS_REMOTE_DESKTOP_SESSION (session))
         {
           RemoteDesktopSession *remote_desktop_session =
-            (RemoteDesktopSession *)session;
+            REMOTE_DESKTOP_SESSION (session);
 
           remote_desktop_session_sources_selected (remote_desktop_session);
         }
@@ -442,7 +447,7 @@ replace_screen_cast_restore_token_with_data (Session *session,
   if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
     persist_mode = PERSIST_MODE_NONE;
 
-  if (is_remote_desktop_session (session))
+  if (IS_REMOTE_DESKTOP_SESSION (session))
     {
       if (persist_mode != PERSIST_MODE_NONE ||
           xdp_variant_contains_key (options, "restore_token"))
@@ -455,9 +460,9 @@ replace_screen_cast_restore_token_with_data (Session *session,
         }
     }
 
-  if (is_screen_cast_session (session))
+  if (IS_SCREEN_CAST_SESSION (session))
     {
-      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+      ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
       screen_cast_session->persist_mode = persist_mode;
       xdp_session_persistence_replace_restore_token_with_data (session,
@@ -500,9 +505,9 @@ handle_select_sources (XdpDbusScreenCast *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (is_screen_cast_session (session))
+  if (IS_SCREEN_CAST_SESSION (session))
     {
-      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+      ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
       switch (screen_cast_session->state)
         {
@@ -530,10 +535,10 @@ handle_select_sources (XdpDbusScreenCast *object,
           return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
     }
-  else if (is_remote_desktop_session (session))
+  else if (IS_REMOTE_DESKTOP_SESSION (session))
     {
       RemoteDesktopSession *remote_desktop_session =
-        (RemoteDesktopSession *)session;
+        REMOTE_DESKTOP_SESSION (session);
 
       if (!remote_desktop_session_can_select_sources (remote_desktop_session))
         {
@@ -594,9 +599,9 @@ handle_select_sources (XdpDbusScreenCast *object,
                            quark_request_session,
                            g_object_ref (session),
                            g_object_unref);
-  if (is_screen_cast_session (session))
+  if (IS_SCREEN_CAST_SESSION (session))
     {
-      ((ScreenCastSession *)session)->state =
+      SCREEN_CAST_SESSION (session)->state =
         SCREEN_CAST_SESSION_STATE_SELECTING_SOURCES;
     }
 
@@ -731,7 +736,7 @@ static void
 replace_restore_screen_cast_data_with_token (ScreenCastSession *screen_cast_session,
                                              GVariant **in_out_results)
 {
-  xdp_session_persistence_replace_restore_data_with_token ((Session *) screen_cast_session,
+  xdp_session_persistence_replace_restore_data_with_token (SESSION (screen_cast_session),
                                                            SCREEN_CAST_TABLE,
                                                            in_out_results,
                                                            &screen_cast_session->persist_mode,
@@ -790,7 +795,7 @@ start_done (GObject *source_object,
 
   should_close_session = !request->exported || response != 0;
 
-  screen_cast_session = (ScreenCastSession *)session;
+  screen_cast_session = SCREEN_CAST_SESSION (session);
 
   if (request->exported)
     {
@@ -860,7 +865,7 @@ handle_start (XdpDbusScreenCast *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  screen_cast_session = (ScreenCastSession *)session;
+  screen_cast_session = SCREEN_CAST_SESSION (session);
   switch (screen_cast_session->state)
     {
     case SCREEN_CAST_SESSION_STATE_SOURCES_SELECTED:
@@ -957,16 +962,16 @@ handle_open_pipewire_remote (XdpDbusScreenCast *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (is_screen_cast_session (session))
+  if (IS_SCREEN_CAST_SESSION (session))
     {
-      ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+      ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
       streams = screen_cast_session->streams;
     }
-  else if (is_remote_desktop_session (session))
+  else if (IS_REMOTE_DESKTOP_SESSION (session))
     {
       RemoteDesktopSession *remote_desktop_session =
-        (RemoteDesktopSession *)session;
+        REMOTE_DESKTOP_SESSION (session);
 
       streams = remote_desktop_session_get_streams (remote_desktop_session);
     }
@@ -1119,7 +1124,7 @@ screen_cast_create (GDBusConnection *connection,
 static void
 screen_cast_session_close (Session *session)
 {
-  ScreenCastSession *screen_cast_session = (ScreenCastSession *)session;
+  ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (session);
 
   screen_cast_session->state = SCREEN_CAST_SESSION_STATE_CLOSED;
 
@@ -1135,7 +1140,7 @@ screen_cast_session_close (Session *session)
 static void
 screen_cast_session_finalize (GObject *object)
 {
-  ScreenCastSession *screen_cast_session = (ScreenCastSession *)object;
+  ScreenCastSession *screen_cast_session = SCREEN_CAST_SESSION (object);
 
   g_clear_pointer (&screen_cast_session->restore_token, g_free);
   g_clear_pointer (&screen_cast_session->restore_data, g_variant_unref);

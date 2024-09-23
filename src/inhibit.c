@@ -136,7 +136,7 @@ handle_inhibit_in_thread_func (GTask *task,
                                gpointer task_data,
                                GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   const char *window;
   guint32 flags;
   GVariant *options;
@@ -263,10 +263,22 @@ GType inhibit_session_get_type (void);
 
 G_DEFINE_TYPE (InhibitSession, inhibit_session, session_get_type ())
 
+G_GNUC_UNUSED static inline InhibitSession *
+INHIBIT_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, inhibit_session_get_type (), InhibitSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_INHIBIT_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, inhibit_session_get_type ());
+}
+
 static void
 inhibit_session_close (Session *session)
 {
-  InhibitSession *inhibit_session = (InhibitSession *)session;
+  InhibitSession *inhibit_session = INHIBIT_SESSION (session);
 
   inhibit_session->closed = TRUE;
 
@@ -419,7 +431,7 @@ handle_create_monitor (XdpDbusInhibit *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)inhibit_session_new (arg_options, request, &error);
+  session = SESSION (inhibit_session_new (arg_options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -493,7 +505,7 @@ state_changed_cb (XdpDbusImplInhibit *impl,
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
-  InhibitSession *inhibit_session = (InhibitSession *)session;
+  InhibitSession *inhibit_session = INHIBIT_SESSION (session);
   gboolean active = FALSE;
   guint32 session_state = 0;
 

@@ -123,7 +123,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
                                      gpointer task_data,
                                      GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   const char *parent_window;
   const char *id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;

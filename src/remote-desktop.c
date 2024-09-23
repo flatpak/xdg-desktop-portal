@@ -105,16 +105,7 @@ typedef struct _RemoteDesktopSessionClass
   SessionClass parent_class;
 } RemoteDesktopSessionClass;
 
-GType remote_desktop_session_get_type (void);
-
 G_DEFINE_TYPE (RemoteDesktopSession, remote_desktop_session, session_get_type ())
-
-gboolean
-is_remote_desktop_session (Session *session)
-{
-  return G_TYPE_CHECK_INSTANCE_TYPE (session,
-                                     remote_desktop_session_get_type ());
-}
 
 gboolean
 remote_desktop_session_can_select_sources (RemoteDesktopSession *session)
@@ -225,7 +216,7 @@ remote_desktop_session_new (GVariant *options,
   if (session)
     g_debug ("remote desktop session owned by '%s' created", session->sender);
 
-  return (RemoteDesktopSession *)session;
+  return REMOTE_DESKTOP_SESSION (session);
 }
 
 static void
@@ -326,7 +317,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)remote_desktop_session_new (arg_options, request, &error);
+  session = SESSION (remote_desktop_session_new (arg_options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -406,7 +397,8 @@ select_devices_done (GObject *source_object,
     }
   else if (!session->closed)
     {
-      RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)session;
+      RemoteDesktopSession *remote_desktop_session =
+        REMOTE_DESKTOP_SESSION (session);
 
       remote_desktop_session->devices_selected = TRUE;
     }
@@ -481,7 +473,7 @@ replace_remote_desktop_restore_token_with_data (Session *session,
                                                 GVariant **in_out_options,
                                                 GError **error)
 {
-  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *) session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
   g_autoptr(GVariant) options = NULL;
   PersistMode persist_mode;
 
@@ -527,7 +519,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  remote_desktop_session = (RemoteDesktopSession *)session;
+  remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (!remote_desktop_session_can_select_devices (remote_desktop_session))
     {
@@ -598,7 +590,7 @@ static void
 replace_restore_remote_desktop_data_with_token (RemoteDesktopSession *remote_desktop_session,
                                                 GVariant **in_out_results)
 {
-  xdp_session_persistence_replace_restore_data_with_token ((Session *) remote_desktop_session,
+  xdp_session_persistence_replace_restore_data_with_token (SESSION (remote_desktop_session),
                                                            REMOTE_DESKTOP_TABLE,
                                                            in_out_results,
                                                            &remote_desktop_session->persist_mode,
@@ -650,7 +642,7 @@ start_done (GObject *source_object,
   REQUEST_AUTOLOCK (request);
 
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
-  remote_desktop_session = (RemoteDesktopSession *)session;
+  remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
@@ -733,7 +725,7 @@ handle_start (XdpDbusRemoteDesktop *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  remote_desktop_session = (RemoteDesktopSession *)session;
+  remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
   switch (remote_desktop_session->state)
     {
     case REMOTE_DESKTOP_SESSION_STATE_INIT:
@@ -797,7 +789,7 @@ static gboolean
 check_notify (Session *session,
               DeviceType device_type)
 {
-  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (!remote_desktop_session->devices_selected || remote_desktop_session->uses_eis)
     return FALSE;
@@ -823,7 +815,7 @@ check_position (Session *session,
                 double x,
                 double y)
 {
-  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
   GList *l;
 
   for (l = remote_desktop_session->streams; l; l = l->next)
@@ -1491,7 +1483,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -1500,7 +1492,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  remote_desktop_session = (RemoteDesktopSession *)session;
+  remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (remote_desktop_session->uses_eis)
     {
@@ -1644,7 +1636,7 @@ remote_desktop_create (GDBusConnection *connection,
 static void
 remote_desktop_session_close (Session *session)
 {
-  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_CLOSED;
 
@@ -1654,7 +1646,7 @@ remote_desktop_session_close (Session *session)
 static void
 remote_desktop_session_finalize (GObject *object)
 {
-  RemoteDesktopSession *remote_desktop_session = (RemoteDesktopSession *)object;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (object);
 
   g_list_free_full (remote_desktop_session->streams,
                     (GDestroyNotify)screen_cast_stream_free);

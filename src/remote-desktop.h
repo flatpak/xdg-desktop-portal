@@ -25,7 +25,19 @@
 
 typedef struct _RemoteDesktopSession RemoteDesktopSession;
 
-gboolean is_remote_desktop_session (Session *session);
+GType remote_desktop_session_get_type (void);
+
+G_GNUC_UNUSED static inline RemoteDesktopSession *
+REMOTE_DESKTOP_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, remote_desktop_session_get_type (), RemoteDesktopSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_REMOTE_DESKTOP_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, remote_desktop_session_get_type ());
+}
 
 GList * remote_desktop_session_get_streams (RemoteDesktopSession *session);
 

@@ -71,10 +71,23 @@ GType global_shortcuts_session_get_type (void);
 
 G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, session_get_type ())
 
+G_GNUC_UNUSED static inline GlobalShortcutsSession *
+GLOBAL_SHORTCUTS_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, global_shortcuts_session_get_type (), GlobalShortcutsSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_GLOBAL_SHORTCUTS_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, global_shortcuts_session_get_type ());
+}
+
 static void
 global_shortcuts_session_close (Session *session)
 {
-  GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
+  GlobalShortcutsSession *global_shortcuts_session =
+    GLOBAL_SHORTCUTS_SESSION (session);
 
   global_shortcuts_session->closed = TRUE;
 }
@@ -131,7 +144,7 @@ global_shortcuts_session_new (GVariant *options,
   if (session)
     g_debug ("global shortcuts session owned by '%s' created", session->sender);
 
-  return (GlobalShortcutsSession *) session;
+  return GLOBAL_SHORTCUTS_SESSION (session);
 }
 
 static void
@@ -251,7 +264,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)global_shortcuts_session_new (options, request, &error);
+  session = SESSION (global_shortcuts_session_new (options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -591,7 +604,8 @@ activated_cb (XdpDbusImplGlobalShortcuts *impl,
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
-  GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
+  GlobalShortcutsSession *global_shortcuts_session =
+    GLOBAL_SHORTCUTS_SESSION (session);
 
   g_debug ("Received activated %s for %s", session_id, shortcut_id);
 
@@ -617,7 +631,8 @@ deactivated_cb (XdpDbusImplGlobalShortcuts *impl,
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
-  GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
+  GlobalShortcutsSession *global_shortcuts_session =
+    GLOBAL_SHORTCUTS_SESSION (session);
 
   g_debug ("Received deactivated %s for %s", session_id, shortcut_id);
 
@@ -641,7 +656,8 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
 {
   GDBusConnection *connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   g_autoptr(Session) session = lookup_session (session_id);
-  GlobalShortcutsSession *global_shortcuts_session = (GlobalShortcutsSession *)session;
+  GlobalShortcutsSession *global_shortcuts_session =
+    GLOBAL_SHORTCUTS_SESSION (session);
 
   g_debug ("Received ShortcutsChanged %s", session_id);
 

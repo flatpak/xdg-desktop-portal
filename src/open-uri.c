@@ -348,7 +348,7 @@ send_response_in_thread_func (GTask *task,
                               gpointer task_data,
                               GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   guint response;
   GVariant *options;
   const char *choice;
@@ -589,7 +589,7 @@ handle_open_in_thread_func (GTask *task,
                             gpointer task_data,
                             GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   const char *parent_window;
   const char *app_id = xdp_app_info_get_id (request->app_info);
   const char *activation_token;

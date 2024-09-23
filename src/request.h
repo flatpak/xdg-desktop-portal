@@ -55,6 +55,18 @@ struct _RequestClass
 
 GType request_get_type (void) G_GNUC_CONST;
 
+G_GNUC_UNUSED static inline Request *
+REQUEST (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, request_get_type (), Request);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_REQUEST (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, request_get_type ());
+}
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Request, g_object_unref)
 
 void request_init_invocation (GDBusMethodInvocation  *invocation, XdpAppInfo *app_info);
