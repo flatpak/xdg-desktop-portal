@@ -28,7 +28,9 @@
 #include <glib/gi18n.h>
 
 #include "xdp-utils.h"
+#include "xdp-call.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
 #include "xdp-portal-impl.h"
@@ -36,10 +38,8 @@
 
 #include "account.h"
 #include "background.h"
-#include "xdp-call.h"
 #include "camera.h"
 #include "clipboard.h"
-#include "documents.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"

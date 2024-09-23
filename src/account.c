@@ -33,7 +33,7 @@
 
 #include "account.h"
 #include "xdp-request.h"
-#include "documents.h"
+#include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
