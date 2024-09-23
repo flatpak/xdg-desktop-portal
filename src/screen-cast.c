@@ -232,7 +232,7 @@ handle_create_session (XdpDbusScreenCast *object,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   Session *session;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -259,7 +259,7 @@ handle_create_session (XdpDbusScreenCast *object,
     }
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
@@ -491,7 +491,7 @@ handle_select_sources (XdpDbusScreenCast *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -585,7 +585,7 @@ handle_select_sources (XdpDbusScreenCast *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   /* If 'restore_token' is passed, lookup the corresponding data in the
    * permission store and / or the GHashTable with transient permissions.
@@ -776,7 +776,7 @@ start_done (GObject *source_object,
   ScreenCastSession *screen_cast_session;
   guint response = 2;
   gboolean should_close_session;
-  GVariant *results = NULL;
+  g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -793,6 +793,7 @@ start_done (GObject *source_object,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
+      g_clear_error (&error);
     }
 
   should_close_session = !request->exported || response != 0;
@@ -818,7 +819,7 @@ start_done (GObject *source_object,
           GVariantBuilder results_builder;
 
           g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
-          results = g_variant_builder_end (&results_builder);
+          results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
@@ -851,7 +852,7 @@ handle_start (XdpDbusScreenCast *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
@@ -913,7 +914,7 @@ handle_start (XdpDbusScreenCast *object,
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,

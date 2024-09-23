@@ -115,7 +115,7 @@ handle_set_selection (XdpDbusClipboard *object,
   Call *call = call_from_invocation (invocation);
   Session *session;
   GVariantBuilder options_builder;
-  GVariant *options;
+  g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
   session = acquire_session_from_call (arg_session_handle, call);
@@ -158,7 +158,7 @@ handle_set_selection (XdpDbusClipboard *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   xdp_dbus_impl_clipboard_call_set_selection (
     impl, arg_session_handle, options, NULL, NULL, NULL);
