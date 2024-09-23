@@ -24,7 +24,7 @@ background_monitor_built_sources = gnome.gdbus_codegen(
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
     'geoclue-dbus',
-    sources: 'org.freedesktop.GeoClue2.Client.xml',
+    sources: 'portals/org.freedesktop.GeoClue2.Client.xml',
     interface_prefix: 'org.freedesktop.GeoClue2',
     namespace: 'Geoclue',
   )
@@ -52,13 +52,13 @@ xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sou
 xdp_utils_deps = []
 xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files(
-  'xdp-utils.c',
   'xdp-app-info.c',
-  'xdp-sealed-fd.c',
   'xdp-app-info-host.c',
   'xdp-app-info-flatpak.c',
   'xdp-app-info-snap.c',
   'xdp-app-info-test.c',
+  'xdp-sealed-fd.c',
+  'xdp-utils.c',
 )
 
 if have_libsystemd
@@ -66,35 +66,44 @@ if have_libsystemd
   xdp_utils_deps += [libsystemd_dep]
 endif
 
-xdg_desktop_portal_sources = files(
-  'account.c',
-  'background.c',
-  'camera.c',
-  'clipboard.c',
-  'dynamic-launcher.c',
-  'email.c',
-  'file-chooser.c',
+xdp_portals_sources = files(
+  'portals/account.c',
+  'portals/background.c',
+  'portals/camera.c',
+  'portals/clipboard.c',
+  'portals/dynamic-launcher.c',
+  'portals/email.c',
+  'portals/file-chooser.c',
+  'portals/gamemode.c',
+  'portals/global-shortcuts.c',
+  'portals/inhibit.c',
+  'portals/input-capture.c',
+  'portals/memory-monitor.c',
+  'portals/network-monitor.c',
+  'portals/notification.c',
+  'portals/open-uri.c',
+  'portals/pipewire.c',
+  'portals/power-profile-monitor.c',
+  'portals/print.c',
+  'portals/proxy-resolver.c',
+  'portals/realtime.c',
+  'portals/remote-desktop.c',
+  'portals/screenshot.c',
+  'portals/screen-cast.c',
+  'portals/secret.c',
+  'portals/settings.c',
+  'portals/trash.c',
+  'portals/wallpaper.c',
+)
+
+if have_geoclue
+  xdp_portals_sources += files(
+    'portals/location.c',
+  )
+endif
+
+xdp_sources = files(
   'flatpak-instance.c',
-  'gamemode.c',
-  'global-shortcuts.c',
-  'inhibit.c',
-  'input-capture.c',
-  'memory-monitor.c',
-  'network-monitor.c',
-  'notification.c',
-  'open-uri.c',
-  'pipewire.c',
-  'power-profile-monitor.c',
-  'print.c',
-  'proxy-resolver.c',
-  'realtime.c',
-  'remote-desktop.c',
-  'screen-cast.c',
-  'screenshot.c',
-  'secret.c',
-  'settings.c',
-  'trash.c',
-  'wallpaper.c',
   'xdg-desktop-portal.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
@@ -107,7 +116,8 @@ xdg_desktop_portal_sources = files(
   'xdp-session-persistence.c',
 )
 
-xdg_desktop_portal_sources += [
+xdp_sources += [
+  xdp_portals_sources,
   xdp_utils_sources,
   xdp_method_info_sources,
   portal_built_sources,
@@ -116,12 +126,6 @@ xdg_desktop_portal_sources += [
   geoclue_built_sources,
   built_resources,
 ]
-
-if have_geoclue
-  xdg_desktop_portal_sources += files(
-    'location.c',
-  )
-endif
 
 common_deps = [
   glib_dep,
@@ -144,7 +148,7 @@ incs_xdg_desktop_portal = [
 
 xdg_desktop_portal = executable(
   'xdg-desktop-portal',
-  xdg_desktop_portal_sources,
+  xdp_sources,
   dependencies: xdg_desktop_portal_deps,
   include_directories: incs_xdg_desktop_portal,
   install: true,
