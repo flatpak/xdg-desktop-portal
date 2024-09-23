@@ -247,7 +247,7 @@ load_all_properties (GDBusProxy *proxy)
 
   for (guint i = 0; i < G_N_ELEMENTS (properties); ++i)
     {
-      GVariant *result;
+      g_autoptr (GVariant) result = NULL;
       GVariant *parameters;
       g_autoptr (GError) error = NULL;
 
@@ -266,7 +266,7 @@ load_all_properties (GDBusProxy *proxy)
         }
       else
         {
-          GVariant *value;
+          g_autoptr (GVariant) value = NULL;
           g_variant_get (result, "(v)", &value);
 
           if (i == MAX_REALTIME_PRIORITY)
@@ -282,8 +282,6 @@ load_all_properties (GDBusProxy *proxy)
             g_assert_not_reached ();
 
           g_dbus_proxy_set_cached_property (proxy, properties[i], value);
-          g_variant_unref (value);
-          g_variant_unref (result);
         }
     }
 }
