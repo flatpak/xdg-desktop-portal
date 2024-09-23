@@ -28,43 +28,43 @@
 #include <glib/gi18n.h>
 
 #include "xdp-utils.h"
+#include "xdp-call.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-impl.h"
+#include "xdp-request.h"
+#include "xdp-session-persistence.h"
 
-#include "account.h"
-#include "background.h"
-#include "call.h"
-#include "camera.h"
-#include "clipboard.h"
-#include "documents.h"
-#include "dynamic-launcher.h"
-#include "email.h"
-#include "file-chooser.h"
-#include "gamemode.h"
-#include "global-shortcuts.h"
-#include "inhibit.h"
-#include "input-capture.h"
-#include "location.h"
-#include "memory-monitor.h"
-#include "network-monitor.h"
-#include "notification.h"
-#include "open-uri.h"
-#include "permissions.h"
-#include "portal-impl.h"
-#include "power-profile-monitor.h"
-#include "print.h"
-#include "proxy-resolver.h"
-#include "realtime.h"
-#include "remote-desktop.h"
-#include "request.h"
-#include "restore-token.h"
-#include "screen-cast.h"
-#include "screenshot.h"
-#include "secret.h"
-#include "settings.h"
-#include "trash.h"
-#include "wallpaper.h"
+#include "portals/account.h"
+#include "portals/background.h"
+#include "portals/camera.h"
+#include "portals/clipboard.h"
+#include "portals/dynamic-launcher.h"
+#include "portals/email.h"
+#include "portals/file-chooser.h"
+#include "portals/gamemode.h"
+#include "portals/global-shortcuts.h"
+#include "portals/inhibit.h"
+#include "portals/input-capture.h"
+#include "portals/location.h"
+#include "portals/memory-monitor.h"
+#include "portals/network-monitor.h"
+#include "portals/notification.h"
+#include "portals/open-uri.h"
+#include "portals/power-profile-monitor.h"
+#include "portals/print.h"
+#include "portals/proxy-resolver.h"
+#include "portals/realtime.h"
+#include "portals/remote-desktop.h"
+#include "portals/screen-cast.h"
+#include "portals/screenshot.h"
+#include "portals/secret.h"
+#include "portals/settings.h"
+#include "portals/trash.h"
+#include "portals/wallpaper.h"
 
 static int global_exit_status = 0;
 static GMainLoop *loop = NULL;
@@ -145,9 +145,9 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   if (method_needs_request (invocation))
-    request_init_invocation (invocation, app_info);
+    xdp_request_init_invocation (invocation, app_info);
   else
-    call_init_invocation (invocation, app_info);
+    xdp_call_init_invocation (invocation, app_info);
 
   return TRUE;
 }
@@ -201,9 +201,9 @@ on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  PortalImplementation *implementation;
-  PortalImplementation *lockdown_impl;
-  PortalImplementation *access_impl;
+  XdpPortalImplementation *implementation;
+  XdpPortalImplementation *lockdown_impl;
+  XdpPortalImplementation *access_impl;
   XdpDbusImplLockdown *lockdown = NULL;
   GQuark portal_errors G_GNUC_UNUSED;
   GPtrArray *impls;
@@ -214,14 +214,14 @@ on_bus_acquired (GDBusConnection *connection,
 
   xdp_connection_track_name_owners (connection, peer_died_cb);
 
-  if (!init_permission_store (connection, &error))
+  if (!xdp_init_permission_store (connection, &error))
     {
       g_critical ("No permission store: %s", error->message);
       exit_with_status (1);
       return;
     }
 
-  if (!init_document_proxy (connection, &error))
+  if (!xdp_init_document_proxy (connection, &error))
     {
       g_critical ("No document portal: %s", error->message);
       exit_with_status (1);
@@ -279,7 +279,7 @@ on_bus_acquired (GDBusConnection *connection,
   access_impl = find_portal_implementation ("org.freedesktop.impl.portal.Access");
   if (access_impl != NULL)
     {
-      PortalImplementation *tmp;
+      XdpPortalImplementation *tmp;
 
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
