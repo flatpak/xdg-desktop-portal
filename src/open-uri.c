@@ -643,12 +643,11 @@ handle_open_in_thread_func (GTask *task,
 
   if (uri)
     {
-      GError *error = NULL;
+      g_autoptr (GError) local_error = NULL;
 
-      if (!g_uri_is_valid (uri, G_URI_FLAGS_NONE, &error))
+      if (!g_uri_is_valid (uri, G_URI_FLAGS_NONE, &local_error))
         {
-          g_debug ("Rejecting open request for invalid uri '%s': %s", uri, error->message);
-          g_clear_error (&error);
+          g_debug ("Rejecting open request for invalid uri '%s': %s", uri, local_error->message);
 
           /* Reject the request */
           if (request->exported)
