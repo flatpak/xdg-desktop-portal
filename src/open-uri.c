@@ -43,8 +43,8 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 #include "xdp-permissions.h"
-#include "documents.h"
 #include "xdp-app-launch-context.h"
+#include "xdp-documents.h"
 
 #define FILE_MANAGER_DBUS_NAME "org.freedesktop.FileManager1"
 #define FILE_MANAGER_DBUS_IFACE "org.freedesktop.FileManager1"
