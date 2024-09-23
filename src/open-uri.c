@@ -245,7 +245,7 @@ launch_application_with_uri (const char *choice_id,
   g_autoptr(XdpAppLaunchContext) xdp_context = xdp_app_launch_context_new ();
   GAppLaunchContext *context = G_APP_LAUNCH_CONTEXT (xdp_context);
   g_autofree char *ruri = NULL;
-  DocumentFlags flags = DOCUMENT_FLAG_NONE;
+  XdpDocumentFlags flags = XDP_DOCUMENT_FLAG_NONE;
   GList uris;
 
   if (info == NULL)
@@ -263,9 +263,9 @@ launch_application_with_uri (const char *choice_id,
 
       g_debug ("Registering %s for %s", uri, choice_id);
       if (writable)
-        flags |= DOCUMENT_FLAG_WRITABLE;
+        flags |= XDP_DOCUMENT_FLAG_WRITABLE;
 
-      ruri = register_document (uri, choice_id, flags, &local_error);
+      ruri = xdp_register_document (uri, choice_id, flags, &local_error);
       if (ruri == NULL)
         {
           g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);
@@ -686,7 +686,7 @@ handle_open_in_thread_func (GTask *task,
 
       if (path != NULL)
         {
-          host_path = get_real_path_for_doc_path (path, request->app_info);
+          host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
           if (host_path)
             {
               g_debug ("OpenFile: translating path value '%s' to host path '%s'", path, host_path);
@@ -722,7 +722,7 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          g_autofree char *real_path = get_real_path_for_doc_path (path, request->app_info);
+          g_autofree char *real_path = xdp_get_real_path_for_doc_path (path, request->app_info);
           /* Try opening the directory via the file manager interface, then
              fall back to a plain URI open */
           g_autoptr(GError) local_error = NULL;

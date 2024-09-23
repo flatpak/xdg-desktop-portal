@@ -25,22 +25,22 @@
 #include <gio/gio.h>
 
 typedef enum {
-  DOCUMENT_FLAG_NONE      = 0,
-  DOCUMENT_FLAG_FOR_SAVE  = (1 << 0),
-  DOCUMENT_FLAG_WRITABLE  = (1 << 1),
-  DOCUMENT_FLAG_DIRECTORY = (1 << 2),
-  DOCUMENT_FLAG_DELETABLE = (1 << 3),
-} DocumentFlags;
+  XDP_DOCUMENT_FLAG_NONE      = 0,
+  XDP_DOCUMENT_FLAG_FOR_SAVE  = (1 << 0),
+  XDP_DOCUMENT_FLAG_WRITABLE  = (1 << 1),
+  XDP_DOCUMENT_FLAG_DIRECTORY = (1 << 2),
+  XDP_DOCUMENT_FLAG_DELETABLE = (1 << 3),
+} XdpDocumentFlags;
 
-gboolean init_document_proxy (GDBusConnection  *connection,
-                              GError          **error);
+gboolean xdp_init_document_proxy (GDBusConnection  *connection,
+                                  GError          **error);
 
-char *register_document (const char *uri,
-                         const char *app_id,
-                         DocumentFlags flags,
-                         GError **error);
+char *xdp_register_document (const char        *uri,
+                             const char        *app_id,
+                             XdpDocumentFlags   flags,
+                             GError           **error);
 
-char *get_real_path_for_doc_path (const char *path,
-                                  XdpAppInfo *app_info);
+char *xdp_get_real_path_for_doc_path (const char *path,
+                                      XdpAppInfo *app_info);
 
-char *get_real_path_for_doc_id (const char *doc_id);
+char *xdp_get_real_path_for_doc_id (const char *doc_id);
