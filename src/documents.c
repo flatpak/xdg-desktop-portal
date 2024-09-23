@@ -40,8 +40,8 @@ static XdpDbusDocuments *documents = NULL;
 static char *documents_mountpoint = NULL;
 
 gboolean
-init_document_proxy (GDBusConnection  *connection,
-                     GError          **error)
+xdp_init_document_proxy (GDBusConnection  *connection,
+                         GError          **error)
 {
   documents = xdp_dbus_documents_proxy_new_sync (connection, 0,
                                                  "org.freedesktop.portal.Documents",
@@ -59,10 +59,10 @@ init_document_proxy (GDBusConnection  *connection,
 }
 
 char *
-register_document (const char *uri,
-                   const char *app_id,
-                   DocumentFlags flags,
-                   GError **error)
+xdp_register_document (const char        *uri,
+                       const char        *app_id,
+                       XdpDocumentFlags   flags,
+                       GError           **error)
 {
   g_autofree char *doc_id = NULL;
   g_auto(GStrv) doc_ids = NULL;
@@ -87,7 +87,7 @@ register_document (const char *uri,
   basename = g_path_get_basename (path);
   dirname = g_path_get_dirname (path);
 
-  if (flags & DOCUMENT_FLAG_FOR_SAVE)
+  if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
     fd = open (dirname, O_PATH | O_CLOEXEC);
   else
     fd = open (path, O_PATH | O_CLOEXEC);
@@ -107,19 +107,19 @@ register_document (const char *uri,
 
   i = 0;
   permissions[i++] = "read";
-  if ((flags & DOCUMENT_FLAG_WRITABLE) || (flags & DOCUMENT_FLAG_FOR_SAVE))
+  if ((flags & XDP_DOCUMENT_FLAG_WRITABLE) || (flags & XDP_DOCUMENT_FLAG_FOR_SAVE))
     permissions[i++] = "write";
   permissions[i++] = "grant-permissions";
-  if (flags & DOCUMENT_FLAG_DELETABLE)
+  if (flags & XDP_DOCUMENT_FLAG_DELETABLE)
     permissions[i++] = "delete";
   permissions[i++] = NULL;
 
   version = xdp_dbus_documents_get_version (documents);
   full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
-  if (flags & DOCUMENT_FLAG_DIRECTORY)
+  if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
     full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
-  if (flags & DOCUMENT_FLAG_FOR_SAVE)
+  if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
     {
       if (version >= 3)
         {
@@ -209,8 +209,8 @@ register_document (const char *uri,
 }
 
 char *
-get_real_path_for_doc_path (const char *path,
-                            XdpAppInfo *app_info)
+xdp_get_real_path_for_doc_path (const char *path,
+                                XdpAppInfo *app_info)
 {
   g_autofree char *doc_id = NULL;
   gboolean ret = FALSE;
@@ -232,11 +232,11 @@ get_real_path_for_doc_path (const char *path,
       return g_strdup (path);
     }
 
-  return get_real_path_for_doc_id (doc_id);
+  return xdp_get_real_path_for_doc_id (doc_id);
 }
 
 char *
-get_real_path_for_doc_id (const char *doc_id)
+xdp_get_real_path_for_doc_id (const char *doc_id)
 {
   gboolean ret = FALSE;
   char *real_path = NULL;
