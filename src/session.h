@@ -58,6 +58,18 @@ struct _SessionClass
 
 GType session_get_type (void);
 
+G_GNUC_UNUSED static inline Session *
+SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, session_get_type (), Session);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, session_get_type ());
+}
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDbusImplSession, g_object_unref)
 

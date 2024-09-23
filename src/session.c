@@ -217,7 +217,7 @@ static gboolean
 handle_close (XdpDbusSession *object,
               GDBusMethodInvocation *invocation)
 {
-  Session *session = (Session *)object;
+  Session *session = SESSION (object);
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
@@ -283,7 +283,7 @@ close_sessions_for_sender (const char *sender)
 static void
 on_closed (XdpDbusImplSession *object, GObject *data)
 {
-  Session *session = (Session *)data;
+  Session *session = SESSION (data);
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
@@ -316,7 +316,7 @@ session_initable_init (GInitable *initable,
                        GCancellable *cancellable,
                        GError **error)
 {
-  Session *session = (Session *)initable;
+  Session *session = SESSION (initable);
   g_autofree char *sender_escaped = NULL;
   g_autofree char *id = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
@@ -377,7 +377,7 @@ session_set_property (GObject *object,
                       const GValue *value,
                       GParamSpec *pspec)
 {
-  Session *session = (Session *)object;
+  Session *session = SESSION (object);
 
   switch (prop_id)
     {
@@ -416,7 +416,7 @@ session_get_property (GObject *object,
                       GValue *value,
                       GParamSpec *pspec)
 {
-  Session *session = (Session *)object;
+  Session *session = SESSION (object);
 
   switch (prop_id)
     {
@@ -452,7 +452,7 @@ session_get_property (GObject *object,
 static void
 session_finalize (GObject *object)
 {
-  Session *session = (Session *)object;
+  Session *session = SESSION (object);
 
   g_assert (!session->id || !g_hash_table_lookup (sessions, session->id));
 

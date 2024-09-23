@@ -80,7 +80,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -88,7 +88,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
                                              "Invalid session type");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-  remote_desktop_session = (RemoteDesktopSession *)session;
+  remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (!remote_desktop_session_can_request_clipboard (remote_desktop_session))
     {
@@ -130,7 +130,7 @@ handle_set_selection (XdpDbusClipboard *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -139,7 +139,7 @@ handle_set_selection (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   else if (!remote_desktop_session_is_clipboard_enabled (
-             (RemoteDesktopSession *)session))
+             REMOTE_DESKTOP_SESSION (session)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -240,7 +240,7 @@ handle_selection_write (XdpDbusClipboard *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -249,7 +249,7 @@ handle_selection_write (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   else if (!remote_desktop_session_is_clipboard_enabled (
-             (RemoteDesktopSession *)session))
+             REMOTE_DESKTOP_SESSION (session)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -291,7 +291,7 @@ handle_selection_write_done (XdpDbusClipboard *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -300,7 +300,7 @@ handle_selection_write_done (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   else if (!remote_desktop_session_is_clipboard_enabled (
-             (RemoteDesktopSession *)session))
+             REMOTE_DESKTOP_SESSION (session)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -381,7 +381,7 @@ handle_selection_read (XdpDbusClipboard *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_remote_desktop_session (session))
+  if (!IS_REMOTE_DESKTOP_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -390,7 +390,7 @@ handle_selection_read (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
   else if (!remote_desktop_session_is_clipboard_enabled (
-             (RemoteDesktopSession *)session))
+              REMOTE_DESKTOP_SESSION (session)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -452,8 +452,7 @@ selection_transfer_cb (XdpDbusImplClipboard *impl,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  RemoteDesktopSession *remote_desktop_session =
-    (RemoteDesktopSession *)session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (remote_desktop_session &&
       remote_desktop_session_is_clipboard_enabled (remote_desktop_session) &&
@@ -489,8 +488,7 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  RemoteDesktopSession *remote_desktop_session =
-    (RemoteDesktopSession *)session;
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
 
   if (remote_desktop_session &&
       remote_desktop_session_is_clipboard_enabled (remote_desktop_session) &&

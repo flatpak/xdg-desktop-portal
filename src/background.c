@@ -775,7 +775,7 @@ handle_request_background_in_thread_func (GTask *task,
                                           gpointer task_data,
                                           GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   GVariant *options;
   const char *id;
   Permission permission;

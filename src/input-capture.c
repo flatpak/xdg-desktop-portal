@@ -84,10 +84,16 @@ GType input_capture_session_get_type (void);
 
 G_DEFINE_TYPE (InputCaptureSession, input_capture_session, session_get_type ())
 
-static gboolean
-is_input_capture_session (Session *session)
+G_GNUC_UNUSED static inline InputCaptureSession *
+INPUT_CAPTURE_SESSION (gpointer ptr)
 {
-  return G_TYPE_CHECK_INSTANCE_TYPE (session, input_capture_session_get_type ());
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, input_capture_session_get_type (), InputCaptureSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_INPUT_CAPTURE_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
 }
 
 static InputCaptureSession *
@@ -255,7 +261,7 @@ handle_create_session (XdpDbusInputCapture   *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = (Session *)input_capture_session_new (arg_options, request, &error);
+  session = SESSION (input_capture_session_new (arg_options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -305,7 +311,7 @@ get_zones_done (GObject      *source_object,
   gboolean should_close_session;
   uint32_t response = 2;
 
-  request = (Request *)data;
+  request = REQUEST (data);
 
   REQUEST_AUTOLOCK (request);
 
@@ -376,7 +382,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -385,7 +391,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  input_capture_session = (InputCaptureSession *)session;
+  input_capture_session = INPUT_CAPTURE_SESSION (session);
 
   switch (input_capture_session->state)
     {
@@ -460,7 +466,7 @@ set_pointer_barriers_done (GObject      *source_object,
   Session *session;
   uint32_t response = 2;
 
-  request = (Request *)data;
+  request = REQUEST (data);
 
   REQUEST_AUTOLOCK (request);
 
@@ -531,7 +537,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -540,7 +546,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  input_capture_session = (InputCaptureSession *)session;
+  input_capture_session = INPUT_CAPTURE_SESSION (session);
 
   switch (input_capture_session->state)
     {
@@ -632,7 +638,7 @@ handle_enable (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -641,7 +647,7 @@ handle_enable (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-   input_capture_session = (InputCaptureSession *)session;
+   input_capture_session = INPUT_CAPTURE_SESSION (session);
 
    switch (input_capture_session->state)
      {
@@ -733,7 +739,7 @@ handle_disable (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -742,7 +748,7 @@ handle_disable (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-   input_capture_session = (InputCaptureSession *)session;
+   input_capture_session = INPUT_CAPTURE_SESSION (session);
 
    switch (input_capture_session->state)
      {
@@ -834,7 +840,7 @@ handle_release (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -843,7 +849,7 @@ handle_release (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  input_capture_session = (InputCaptureSession *)session;
+  input_capture_session = INPUT_CAPTURE_SESSION (session);
 
   switch (input_capture_session->state)
     {
@@ -934,7 +940,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -943,7 +949,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  input_capture_session = (InputCaptureSession *)session;
+  input_capture_session = INPUT_CAPTURE_SESSION (session);
 
   switch (input_capture_session->state)
     {
@@ -1027,7 +1033,7 @@ on_disabled_cb (XdpDbusImplInputCapture *impl,
   g_autoptr(Session) session = lookup_session (session_id);
   InputCaptureSession *input_capture_session;
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_critical ("Invalid session type for signal");
       return;
@@ -1060,7 +1066,7 @@ on_activated_cb (XdpDbusImplInputCapture *impl,
   g_autoptr(Session) session = lookup_session (session_id);
   InputCaptureSession *input_capture_session;
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_critical ("Invalid session type for signal");
       return;
@@ -1092,7 +1098,7 @@ on_deactivated_cb (XdpDbusImplInputCapture *impl,
   g_autoptr(Session) session = lookup_session (session_id);
   InputCaptureSession *input_capture_session;
 
-  if (!is_input_capture_session (session))
+  if (!IS_INPUT_CAPTURE_SESSION (session))
     {
       g_critical ("Invalid session type for signal");
       return;
@@ -1142,7 +1148,7 @@ input_capture_class_init (InputCaptureClass *klass)
 static void
 input_capture_session_close (Session *session)
 {
-  InputCaptureSession *input_capture_session = (InputCaptureSession *)session;
+  InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
 
   input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_CLOSED;
 

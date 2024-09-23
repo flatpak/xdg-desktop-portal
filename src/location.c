@@ -73,6 +73,18 @@ GType location_session_get_type (void);
 
 G_DEFINE_TYPE (LocationSession, location_session, session_get_type ())
 
+G_GNUC_UNUSED static inline LocationSession *
+LOCATION_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, location_session_get_type (), LocationSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_LOCATION_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, location_session_get_type ());
+}
+
 static void
 location_session_init (LocationSession *session)
 {
@@ -84,7 +96,7 @@ location_session_init (LocationSession *session)
 static void
 location_session_close (Session *session)
 {
-  LocationSession *loc_session = (LocationSession *)session;
+  LocationSession *loc_session = LOCATION_SESSION (session);
 
   loc_session->state = LOCATION_SESSION_STATE_CLOSED;
 
@@ -97,7 +109,7 @@ location_session_close (Session *session)
 static void
 location_session_finalize (GObject *object)
 {
-  LocationSession *loc_session = (LocationSession *)object;
+  LocationSession *loc_session = LOCATION_SESSION (object);
 
   g_clear_object (&loc_session->client);
 
@@ -233,7 +245,7 @@ location_session_start (LocationSession *loc_session)
 
   g_debug ("location session '%s', GeoClue client '%s'", ((Session*)loc_session)->id, client_id);
   g_debug ("location session '%s', distance-threshold %d, time-threshold %d, accuracy %s",
-           ((Session *)loc_session)->id,
+           SESSION (loc_session)->id,
            loc_session->distance_threshold,
            loc_session->time_threshold,
            gclue_accuracy_level_to_string (loc_session->accuracy));
@@ -411,7 +423,8 @@ handle_create_session (XdpDbusLocation *object,
                        GVariant *arg_options)
 {
   g_autoptr(GError) error = NULL;
-  LocationSession *session;
+  LocationSession *loc_session;
+  Session *session;
   guint threshold;
   guint accuracy;
 
@@ -425,31 +438,33 @@ handle_create_session (XdpDbusLocation *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  session = location_session_new (arg_options, invocation, &error);
-  if (!session)
+  loc_session = location_session_new (arg_options, invocation, &error);
+  if (!loc_session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
+  session = SESSION (loc_session);
+
   if (g_variant_lookup (arg_options, "distance-threshold", "u", &threshold))
-    session->distance_threshold = threshold;
+    loc_session->distance_threshold = threshold;
   if (g_variant_lookup (arg_options, "time-threshold", "u", &threshold))
-    session->time_threshold = threshold;
+    loc_session->time_threshold = threshold;
   if (g_variant_lookup (arg_options, "accuracy", "u", &accuracy))
     {
       if (accuracy == 0)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_NONE;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_NONE;
       else if (accuracy == 1)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_COUNTRY;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_COUNTRY;
       else if (accuracy == 2)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_CITY;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_CITY;
       else if (accuracy == 3)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_NEIGHBORHOOD;
       else if (accuracy == 4)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_STREET;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_STREET;
       else if (accuracy == 5)
-        session->accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
+        loc_session->accuracy = GCLUE_ACCURACY_LEVEL_EXACT;
       else
         {
           g_dbus_method_invocation_return_error (invocation,
@@ -460,18 +475,18 @@ handle_create_session (XdpDbusLocation *object,
         }
     }
 
-  if (!session_export ((Session *)session, &error))
+  if (!session_export (session, &error))
     {
        g_warning ("Failed to export session: %s", error->message);
-       session_close ((Session *)session, FALSE);
+       session_close (session, FALSE);
     }
   else
     {
-      g_debug ("CreateSession new session '%s'",  ((Session *)session)->id);
-      session_register ((Session *)session);
+      g_debug ("CreateSession new session '%s'",  (session)->id);
+      session_register (session);
     }
 
-  xdp_dbus_location_complete_create_session (object, invocation, ((Session *)session)->id);
+  xdp_dbus_location_complete_create_session (object, invocation, (session)->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -484,7 +499,7 @@ handle_start_in_thread_func (GTask *task,
                              gpointer task_data,
                              GCancellable *cancellable)
 {
-  Request *request = (Request *)task_data;
+  Request *request = REQUEST (task_data);
   const char *parent_window;
   const char *id;
   gint64 last_used = 0;
@@ -499,7 +514,7 @@ handle_start_in_thread_func (GTask *task,
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
-  loc_session = (LocationSession *)session;
+  loc_session = LOCATION_SESSION (session);
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
 
@@ -609,7 +624,7 @@ handle_start_in_thread_func (GTask *task,
       loc_session->accuracy = accuracy;
     }
 
-  if (location_session_start ((LocationSession*)session))
+  if (location_session_start (loc_session))
     response = 0;
   else
     response = 2;
@@ -630,7 +645,7 @@ out:
   if (response != 0)
     {
        g_debug ("closing session");
-       session_close ((Session *)session, FALSE);
+       session_close (session, FALSE);
     }
 }
 
@@ -670,7 +685,7 @@ handle_start (XdpDbusLocation *object,
 
   SESSION_AUTOLOCK_UNREF (session);
 
-  loc_session = (LocationSession *)session;
+  loc_session = LOCATION_SESSION (session);
   switch (loc_session->state)
     {
     case LOCATION_SESSION_STATE_INIT:
