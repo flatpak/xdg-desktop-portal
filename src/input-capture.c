@@ -479,16 +479,17 @@ set_pointer_barriers_done (GObject      *source_object,
                                                                      &results,
                                                                      res,
                                                                      &error))
-  {
+    {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
+      g_clear_error (&error);
     }
 
   should_close_session = !request->exported || response != 0;
 
   if (request->exported)
     {
-      if (response != 0)
+      if (!results)
         {
           GVariantBuilder results_builder;
 
