@@ -249,7 +249,7 @@ load_all_properties (GDBusProxy *proxy)
     {
       GVariant *result;
       GVariant *parameters;
-      GError *error = NULL;
+      g_autoptr (GError) error = NULL;
 
       parameters = g_variant_new ("(ss)", "org.freedesktop.RealtimeKit1", properties[i]);
       result = g_dbus_proxy_call_sync (proxy,
@@ -260,10 +260,9 @@ load_all_properties (GDBusProxy *proxy)
                                         NULL,
                                         &error);
 
-      if (error)
+      if (!result)
         {
           g_warning ("Failed to load RealtimeKit property: %s", error->message);
-          g_error_free (error);
         }
       else
         {
