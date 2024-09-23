@@ -79,7 +79,7 @@ send_response_in_thread_func (GTask        *task,
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_STRING_ARRAY);
   guint response;
   GVariant *options;
-  DocumentFlags flags = DOCUMENT_FLAG_WRITABLE | DOCUMENT_FLAG_DIRECTORY;
+  XdpDocumentFlags flags = XDP_DOCUMENT_FLAG_WRITABLE | XDP_DOCUMENT_FLAG_DIRECTORY;
   g_autofree char **uris = NULL;
   GVariant *choices;
   GVariant *current_filter;
@@ -88,9 +88,9 @@ send_response_in_thread_func (GTask        *task,
   REQUEST_AUTOLOCK (request);
 
   if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save")) == TRUE)
-    flags |= DOCUMENT_FLAG_FOR_SAVE;
+    flags |= XDP_DOCUMENT_FLAG_FOR_SAVE;
   if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory")) == FALSE)
-    flags &= ~DOCUMENT_FLAG_DIRECTORY;
+    flags &= ~XDP_DOCUMENT_FLAG_DIRECTORY;
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
@@ -99,7 +99,7 @@ send_response_in_thread_func (GTask        *task,
 
   writable = g_variant_lookup_value (options, "writable", G_VARIANT_TYPE("b"));
   if (writable && !g_variant_get_boolean (writable))
-    flags &= ~DOCUMENT_FLAG_WRITABLE;
+    flags &= ~XDP_DOCUMENT_FLAG_WRITABLE;
 
   choices = g_variant_lookup_value (options, "choices", G_VARIANT_TYPE ("a(ss)"));
   if (choices)
@@ -129,7 +129,7 @@ send_response_in_thread_func (GTask        *task,
           if (xdp_app_info_is_host (request->app_info))
             ruri = g_strdup (uris[i]);
           else
-            ruri = register_document (uris[i], xdp_app_info_get_id (request->app_info), flags, &error);
+            ruri = xdp_register_document (uris[i], xdp_app_info_get_id (request->app_info), flags, &error);
 
           if (ruri == NULL)
             {
@@ -193,7 +193,7 @@ looks_like_document_portal_path (const char *path,
 static char *
 get_host_folder_for_doc_id (const char *doc_id)
 {
-  g_autofree char *real_path = get_real_path_for_doc_id (doc_id);
+  g_autofree char *real_path = xdp_get_real_path_for_doc_id (doc_id);
   g_autofree char *host_folder = NULL;
 
   if (real_path != NULL)
@@ -692,13 +692,13 @@ handle_save_file (XdpDbusFileChooser *object,
     if (value)
       {
         const char *path = g_variant_get_bytestring (value);
-        g_autofree char *host_path = get_real_path_for_doc_path (path, request->app_info);
+        g_autofree char *host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
         g_autofree char *doc_id = NULL;
 
         if (strcmp (path, host_path) == 0 &&
             looks_like_document_portal_path (path, &doc_id))
           {
-            char *real_path = get_real_path_for_doc_id (doc_id);
+            char *real_path = xdp_get_real_path_for_doc_id (doc_id);
 
             if (real_path)
               {

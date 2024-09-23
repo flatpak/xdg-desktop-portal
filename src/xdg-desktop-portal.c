@@ -224,7 +224,7 @@ on_bus_acquired (GDBusConnection *connection,
       return;
     }
 
-  if (!init_document_proxy (connection, &error))
+  if (!xdp_init_document_proxy (connection, &error))
     {
       g_critical ("No document portal: %s", error->message);
       exit_with_status (1);
