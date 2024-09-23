@@ -35,7 +35,7 @@
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-#include "documents.h"
+#include "xdp-documents.h"
 #include "document-enums.h"
 
 static XdpDbusDocuments *documents = NULL;
