@@ -42,4 +42,5 @@ void screen_cast_remove_transient_permissions_for_sender (const char *sender);
 GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
 
 GDBusInterfaceSkeleton * screen_cast_create (GDBusConnection *connection,
-                                             const char      *dbus_name);
+                                             const char      *dbus_name_access,
+                                             const char      *dbus_name_screen_cast);
