@@ -99,4 +99,4 @@ manage background running applications.
       :target: doc-org.freedesktop.background.Monitor.html
       :class: only-dark
 
-   :doc:`Background Apps Monitor </doc-org.freedesktop.background.Monitor.rst>`
+   :doc:`Background Apps Monitor </doc-org.freedesktop.background.Monitor>`
