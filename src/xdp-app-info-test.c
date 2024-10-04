@@ -133,7 +133,11 @@ xdp_app_info_test_new (const char *app_id,
 {
   g_autoptr (XdpAppInfoTest) app_info_test = NULL;
 
-  app_info_test = g_object_new (XDP_TYPE_APP_INFO_TEST, NULL);
+  app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
+                                  NULL,
+                                  NULL,
+                                  NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
                            "", app_id, NULL,
                            -1, NULL,

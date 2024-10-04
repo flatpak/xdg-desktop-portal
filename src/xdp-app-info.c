@@ -72,7 +72,25 @@ typedef struct _XdpAppInfoPrivate
   ino_t pidns_id;
 } XdpAppInfoPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+static void g_initable_init_iface (GInitableIface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (XdpAppInfo)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
+
+static gboolean
+xdp_app_info_initable_init (GInitable     *initable,
+                            GCancellable  *cancellable,
+                            GError       **error)
+{
+  return TRUE;
+}
+
+static void
+g_initable_init_iface (GInitableIface *iface)
+{
+  iface->init = xdp_app_info_initable_init;
+}
 
 static void
 xdp_app_info_dispose (GObject *object)

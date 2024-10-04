@@ -226,7 +226,11 @@ xdp_app_info_snap_new (int      pid,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
-  app_info_snap = g_object_new (XDP_TYPE_APP_INFO_SNAP, NULL);
+  app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
+                                  NULL,
+                                  error,
+                                  NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
                            "io.snapcraft", snap_id, NULL,
                            pidfd, gappinfo, flags);
