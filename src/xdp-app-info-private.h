@@ -53,7 +53,6 @@ struct _XdpAppInfoClass
 };
 
 void xdp_app_info_initialize (XdpAppInfo      *app_info,
-                              const char      *instance,
                               int              pidfd,
                               GAppInfo        *gappinfo,
                               XdpAppInfoFlags  flags);
