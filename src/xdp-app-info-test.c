@@ -137,10 +137,11 @@ xdp_app_info_test_new (const char *app_id,
                                   NULL,
                                   NULL,
                                   "engine", NULL,
+                                  "id", app_id,
                                   NULL);
 
   xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
-                           app_id, NULL,
+                           NULL,
                            -1, NULL,
                            XDP_APP_INFO_FLAG_HAS_NETWORK |
                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
