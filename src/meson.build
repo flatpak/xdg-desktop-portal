@@ -39,7 +39,14 @@ else
   geoclue_built_sources = []
 endif
 
-built_resources = gnome.compile_resources(
+enums_sources = gnome.mkenums_simple(
+  'xdp-enum-types',
+  sources: files(
+    'xdp-app-info-private.h',
+  ),
+)
+
+built_resources = enums_sources + gnome.compile_resources(
   'xdg-desktop-resources',
   'xdg-desktop-portal.gresource.xml',
   c_name: '_xdg_desktop',
@@ -58,7 +65,7 @@ xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sou
 
 xdp_utils_deps = []
 xdp_utils_includes = include_directories('.')
-xdp_utils_sources = files(
+xdp_utils_sources = enums_sources + files(
   'xdp-utils.c',
   'xdp-app-info.c',
   'xdp-sealed-fd.c',

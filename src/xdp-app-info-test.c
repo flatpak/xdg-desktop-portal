@@ -138,12 +138,11 @@ xdp_app_info_test_new (const char *app_id,
                                   NULL,
                                   "engine", NULL,
                                   "id", app_id,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                   NULL);
 
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
-                           NULL,
-                           XDP_APP_INFO_FLAG_HAS_NETWORK |
-                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
+  xdp_app_info_initialize (XDP_APP_INFO (app_info_test), NULL);
 
   app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
 
