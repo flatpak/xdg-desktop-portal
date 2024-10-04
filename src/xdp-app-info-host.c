@@ -186,13 +186,18 @@ get_appid_from_pid (pid_t pid)
 }
 
 static XdpAppInfoHost *
-xdp_app_info_host_new_full (const char *app_id,
-                            int         pidfd,
-                            GAppInfo   *gappinfo)
+xdp_app_info_host_new_full (const char  *app_id,
+                            int          pidfd,
+                            GAppInfo    *gappinfo,
+                            GError     **error)
 {
   XdpAppInfoHost *app_info_host;
 
-  app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
+  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
+                                  NULL,
+                                  error,
+                                  NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
                            /* engine, app id, instance */
                            NULL, app_id, NULL,
@@ -220,7 +225,10 @@ xdp_app_info_host_new_registered (int          pidfd,
       return NULL;
     }
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
+  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pidfd,
+                                                   gappinfo,
+                                                   error));
 }
 
 XdpAppInfo *
@@ -235,5 +243,8 @@ xdp_app_info_host_new (int pid,
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
+  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pidfd,
+                                                   gappinfo,
+                                                   NULL));
 }
