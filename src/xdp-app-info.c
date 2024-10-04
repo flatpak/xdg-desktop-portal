@@ -835,7 +835,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
       app_info_kind = "derived host";
     }
 
-  g_return_val_if_fail (app_info != NULL, NULL);
+  g_assert (XDP_IS_APP_INFO (app_info));
 
   g_debug ("Adding %s app '%s'", app_info_kind, xdp_app_info_get_id (app_info));
 
