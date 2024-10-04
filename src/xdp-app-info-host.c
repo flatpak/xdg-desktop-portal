@@ -199,12 +199,11 @@ xdp_app_info_host_new_full (const char  *app_id,
                                   "engine", NULL,
                                   "id", app_id,
                                   "pidfd", pidfd,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                   NULL);
 
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
-                           gappinfo,
-                           XDP_APP_INFO_FLAG_HAS_NETWORK |
-                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
+  xdp_app_info_initialize (XDP_APP_INFO (app_info_host), gappinfo);
 
   return app_info_host;
 }
