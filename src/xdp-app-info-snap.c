@@ -231,10 +231,10 @@ xdp_app_info_snap_new (int      pid,
                                   error,
                                   "engine", "io.snapcraft",
                                   "id", snap_id,
+                                  "pidfd", pidfd,
                                   NULL);
 
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
-                           pidfd, gappinfo, flags);
+  xdp_app_info_initialize (XDP_APP_INFO (app_info_snap), gappinfo, flags);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }
