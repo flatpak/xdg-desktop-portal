@@ -56,7 +56,15 @@ struct _XdpAppInfoFlatpak
   GPtrArray *queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoFlatpak,
+                               xdp_app_info_flatpak,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
 
 static gboolean
 is_valid_initial_name_character (gint c, gboolean allow_dash)
@@ -493,6 +501,27 @@ xdp_app_info_flatpak_dispose (GObject *object)
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
 
+static gboolean
+xdp_app_info_flatpak_initable_init (GInitable     *initable,
+                                    GCancellable  *cancellable,
+                                    GError       **error)
+{
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_flatpak_init (XdpAppInfoFlatpak *app_info_flatpak)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = xdp_app_info_flatpak_initable_init;
+}
+
 static void
 xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
 {
@@ -511,11 +540,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
-}
-
-static void
-xdp_app_info_flatpak_init (XdpAppInfoFlatpak *app_info_flatpak)
-{
 }
 
 static int
@@ -800,7 +824,11 @@ xdp_app_info_flatpak_new (int      pid,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
-  app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
+  app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
+                                     NULL,
+                                     error,
+                                     NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
                            FLATPAK_ENGINE_ID, id, instance,
                            bwrap_pidfd, gappinfo, flags);

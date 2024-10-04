@@ -30,7 +30,15 @@ struct _XdpAppInfoTest
   GPtrArray *usb_queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoTest, xdp_app_info_test, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoTest,
+                               xdp_app_info_test,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
 
 static gboolean
 xdp_app_info_test_validate_autostart (XdpAppInfo          *app_info,
@@ -75,6 +83,27 @@ xdp_app_info_test_dispose (GObject *object)
   G_OBJECT_CLASS (xdp_app_info_test_parent_class)->dispose (object);
 }
 
+static gboolean
+app_info_test_initable_init (GInitable     *initable,
+                             GCancellable  *cancellable,
+                             GError       **error)
+{
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_test_init (XdpAppInfoTest *app_info_test)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = app_info_test_initable_init;
+}
+
 static void
 xdp_app_info_test_class_init (XdpAppInfoTestClass *klass)
 {
@@ -91,11 +120,6 @@ xdp_app_info_test_class_init (XdpAppInfoTestClass *klass)
     xdp_app_info_test_get_usb_queries;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_test_is_valid_sub_app_id;
-}
-
-static void
-xdp_app_info_test_init (XdpAppInfoTest *app_info_test)
-{
 }
 
 static GPtrArray *
@@ -133,7 +157,11 @@ xdp_app_info_test_new (const char *app_id,
 {
   g_autoptr (XdpAppInfoTest) app_info_test = NULL;
 
-  app_info_test = g_object_new (XDP_TYPE_APP_INFO_TEST, NULL);
+  app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
+                                  NULL,
+                                  NULL,
+                                  NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
                            "", app_id, NULL,
                            -1, NULL,

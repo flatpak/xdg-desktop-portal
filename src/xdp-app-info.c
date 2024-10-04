@@ -83,7 +83,11 @@ typedef struct _XdpAppInfoPrivate
   ino_t pidns_id;
 } XdpAppInfoPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+static void g_initable_init_iface (GInitableIface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (XdpAppInfo)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
 
 static void
 xdp_app_info_get_property (GObject    *object,
@@ -154,6 +158,29 @@ xdp_app_info_dispose (GObject *object)
   G_OBJECT_CLASS (xdp_app_info_parent_class)->dispose (object);
 }
 
+static gboolean
+xdp_app_info_initable_init (GInitable     *initable,
+                            GCancellable  *cancellable,
+                            GError       **error)
+{
+  return TRUE;
+}
+
+static void
+xdp_app_info_init (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->pid = -1;
+  priv->pidfd = -1;
+}
+
+static void
+g_initable_init_iface (GInitableIface *iface)
+{
+  iface->init = xdp_app_info_initable_init;
+}
+
 static void
 xdp_app_info_class_init (XdpAppInfoClass *klass)
 {
@@ -178,15 +205,6 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                       G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
-}
-
-static void
-xdp_app_info_init (XdpAppInfo *app_info)
-{
-  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-
-  priv->pid = -1;
-  priv->pidfd = -1;
 }
 
 static XdpAppInfo *

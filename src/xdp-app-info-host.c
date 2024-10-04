@@ -34,7 +34,15 @@ struct _XdpAppInfoHost
   GPtrArray *usb_queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoHost,
+                               xdp_app_info_host,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
 
 static const GPtrArray *
 xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
@@ -79,6 +87,37 @@ xdp_app_info_host_dispose (GObject *object)
   G_OBJECT_CLASS (xdp_app_info_host_parent_class)->dispose (object);
 }
 
+static gboolean
+app_info_host_initable_init (GInitable     *initable,
+                             GCancellable  *cancellable,
+                             GError       **error)
+{
+  XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (initable);
+  g_autoptr(XdpUsbQuery) query = NULL;
+
+  app_info_host->usb_queries =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
+  if (query)
+    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
+
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = app_info_host_initable_init;
+}
+
 static void
 xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
 {
@@ -95,19 +134,6 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
     xdp_app_info_host_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_host_is_valid_sub_app_id;
-}
-
-static void
-xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
-{
-  g_autoptr(XdpUsbQuery) query = NULL;
-
-  app_info_host->usb_queries =
-    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
-
-  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
-  if (query)
-    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
 }
 
 #ifdef HAVE_LIBSYSTEMD
@@ -186,13 +212,18 @@ get_appid_from_pid (pid_t pid)
 }
 
 static XdpAppInfoHost *
-xdp_app_info_host_new_full (const char *app_id,
-                            int         pidfd,
-                            GAppInfo   *gappinfo)
+xdp_app_info_host_new_full (const char  *app_id,
+                            int          pidfd,
+                            GAppInfo    *gappinfo,
+                            GError     **error)
 {
   XdpAppInfoHost *app_info_host;
 
-  app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
+  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
+                                  NULL,
+                                  error,
+                                  NULL);
+
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
                            /* engine, app id, instance */
                            NULL, app_id, NULL,
@@ -220,7 +251,10 @@ xdp_app_info_host_new_registered (int          pidfd,
       return NULL;
     }
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
+  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pidfd,
+                                                   gappinfo,
+                                                   error));
 }
 
 XdpAppInfo *
@@ -235,5 +269,8 @@ xdp_app_info_host_new (int pid,
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
+  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pidfd,
+                                                   gappinfo,
+                                                   NULL));
 }
