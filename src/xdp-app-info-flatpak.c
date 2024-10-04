@@ -823,11 +823,13 @@ xdp_app_info_flatpak_new (int      pid,
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
+                                     "engine", FLATPAK_ENGINE_ID,
                                      NULL);
 
   xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
-                           FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo, flags);
+                           id, instance, bwrap_pidfd, gappinfo,
+                           flags);
+
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));

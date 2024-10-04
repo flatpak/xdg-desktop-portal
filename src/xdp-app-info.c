@@ -78,6 +78,15 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
                                   G_ADD_PRIVATE (XdpAppInfo)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
 
+enum
+{
+  PROP_0,
+  PROP_ENGINE,
+  N_PROPS
+};
+
+static GParamSpec *properties [N_PROPS];
+
 static gboolean
 xdp_app_info_initable_init (GInitable     *initable,
                             GCancellable  *cancellable,
@@ -111,11 +120,63 @@ xdp_app_info_dispose (GObject *object)
 }
 
 static void
+xdp_app_info_get_property (GObject    *object,
+                           guint       prop_id,
+                           GValue     *value,
+                           GParamSpec *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_ENGINE:
+      g_value_set_string (value, priv->engine);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_set_property (GObject      *object,
+                           guint         prop_id,
+                           const GValue *value,
+                           GParamSpec   *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_ENGINE:
+      g_assert (priv->engine == NULL);
+      priv->engine = g_value_dup_string (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
 xdp_app_info_class_init (XdpAppInfoClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_app_info_dispose;
+  object_class->get_property = xdp_app_info_get_property;
+  object_class->set_property = xdp_app_info_set_property;
+
+  properties[PROP_ENGINE] =
+    g_param_spec_string ("engine", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 static void
@@ -128,7 +189,6 @@ xdp_app_info_init (XdpAppInfo *app_info)
 
 void
 xdp_app_info_initialize (XdpAppInfo      *app_info,
-                         const char      *engine,
                          const char      *app_id,
                          const char      *instance,
                          int              pidfd,
@@ -137,7 +197,6 @@ xdp_app_info_initialize (XdpAppInfo      *app_info,
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  priv->engine = g_strdup (engine);
   priv->id = g_strdup (app_id);
   priv->instance = g_strdup (instance);
   priv->pidfd = dup (pidfd);

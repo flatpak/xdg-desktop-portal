@@ -196,11 +196,12 @@ xdp_app_info_host_new_full (const char  *app_id,
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   error,
+                                  "engine", NULL,
                                   NULL);
 
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
-                           /* engine, app id, instance */
-                           NULL, app_id, NULL,
+                           /* app id, instance */
+                           app_id, NULL,
                            pidfd, gappinfo,
                            XDP_APP_INFO_FLAG_HAS_NETWORK |
                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
