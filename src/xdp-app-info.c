@@ -47,6 +47,7 @@
 #include "xdp-app-info-snap-private.h"
 #include "xdp-app-info-host-private.h"
 #include "xdp-app-info-test-private.h"
+#include "xdp-enum-types.h"
 #include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
@@ -82,6 +83,7 @@ enum
 {
   PROP_0,
   PROP_ENGINE,
+  PROP_FLAGS,
   PROP_ID,
   PROP_INSTANCE,
   PROP_PIDFD,
@@ -137,6 +139,10 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_string (value, priv->engine);
       break;
 
+    case PROP_FLAGS:
+      g_value_set_flags (value, priv->flags);
+      break;
+
     case PROP_ID:
       g_value_set_string (value, priv->id);
       break;
@@ -168,6 +174,11 @@ xdp_app_info_set_property (GObject      *object,
     case PROP_ENGINE:
       g_assert (priv->engine == NULL);
       priv->engine = g_value_dup_string (value);
+      break;
+
+    case PROP_FLAGS:
+      g_assert (priv->flags == 0);
+      priv->flags = g_value_get_flags (value);
       break;
 
     case PROP_ID:
@@ -206,6 +217,14 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
+  properties[PROP_FLAGS] =
+    g_param_spec_flags ("flags", NULL, NULL,
+                        XDP_TYPE_APP_INFO_FLAGS,
+                        0,
+                        G_PARAM_READWRITE |
+                        G_PARAM_CONSTRUCT_ONLY |
+                        G_PARAM_STATIC_STRINGS);
+
   properties[PROP_ID] =
     g_param_spec_string ("id", NULL, NULL,
                          NULL,
@@ -239,14 +258,12 @@ xdp_app_info_init (XdpAppInfo *app_info)
 }
 
 void
-xdp_app_info_initialize (XdpAppInfo      *app_info,
-                         GAppInfo        *gappinfo,
-                         XdpAppInfoFlags  flags)
+xdp_app_info_initialize (XdpAppInfo *app_info,
+                         GAppInfo   *gappinfo)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
   g_set_object (&priv->gappinfo, gappinfo);
-  priv->flags = flags;
 }
 
 gboolean
