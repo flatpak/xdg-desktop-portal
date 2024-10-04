@@ -84,6 +84,7 @@ enum
   PROP_ENGINE,
   PROP_ID,
   PROP_INSTANCE,
+  PROP_PIDFD,
   N_PROPS
 };
 
@@ -144,6 +145,10 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_string (value, priv->instance);
       break;
 
+    case PROP_PIDFD:
+      g_value_set_int (value, priv->pidfd);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -173,6 +178,11 @@ xdp_app_info_set_property (GObject      *object,
     case PROP_INSTANCE:
       g_assert (priv->instance == NULL);
       priv->instance = g_value_dup_string (value);
+      break;
+
+    case PROP_PIDFD:
+      g_assert (priv->pidfd == -1);
+      priv->pidfd = dup (g_value_get_int (value));
       break;
 
     default:
@@ -210,6 +220,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
+  properties[PROP_PIDFD] =
+    g_param_spec_int ("pidfd", NULL, NULL,
+                      -1, G_MAXINT, -1,
+                      G_PARAM_READWRITE |
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
@@ -223,13 +240,11 @@ xdp_app_info_init (XdpAppInfo *app_info)
 
 void
 xdp_app_info_initialize (XdpAppInfo      *app_info,
-                         int              pidfd,
                          GAppInfo        *gappinfo,
                          XdpAppInfoFlags  flags)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  priv->pidfd = dup (pidfd);
   g_set_object (&priv->gappinfo, gappinfo);
   priv->flags = flags;
 }
