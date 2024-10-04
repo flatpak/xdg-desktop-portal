@@ -233,9 +233,8 @@ xdp_app_info_snap_new (int      pid,
                                   "id", snap_id,
                                   "pidfd", pidfd,
                                   "flags", flags,
+                                  "g-app-info", gappinfo,
                                   NULL);
-
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_snap), gappinfo);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }

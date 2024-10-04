@@ -52,5 +52,3 @@ struct _XdpAppInfoClass
                                          GError     **error);
 };
 
-void xdp_app_info_initialize (XdpAppInfo *app_info,
-                              GAppInfo   *gappinfo);
