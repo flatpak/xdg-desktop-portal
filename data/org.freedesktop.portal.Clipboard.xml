@@ -45,6 +45,7 @@
     -->
     <method name="RequestClipboard">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
     <!-- 
@@ -68,6 +69,7 @@
      -->
     <method name="SetSelection">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
     <!--
@@ -144,6 +146,7 @@
      -->
     <signal name="SelectionOwnerChanged">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
     <!-- 

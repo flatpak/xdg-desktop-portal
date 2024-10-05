@@ -61,6 +61,7 @@
     <method name="Lookup">
       <arg name='table' type='s' direction='in'/>
       <arg name='id' type='s' direction='in'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QStringList&gt;"/>
       <arg name='permissions' type='a{sas}' direction='out'/>
       <arg name='data' type='v' direction='out'/>
     </method>
@@ -79,6 +80,7 @@
       <arg name='table' type='s' direction='in'/>
       <arg name='create' type='b' direction='in'/>
       <arg name='id' type='s' direction='in'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QMap&lt;QString,QStringList&gt;"/>
       <arg name='app_permissions' type='a{sas}' direction='in'/>
       <arg name='data' type='v' direction='in'/>
     </method>
@@ -194,6 +196,7 @@
       <arg name='id' type='s' direction='out'/>
       <arg name='deleted' type='b' direction='out'/>
       <arg name='data' type='v' direction='out'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out4" value="QMap&lt;QString,QStringList&gt;"/>
       <arg name='permissions' type='a{sas}' direction='out'/>
     </signal>
   </interface>

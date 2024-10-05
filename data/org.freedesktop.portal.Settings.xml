@@ -76,6 +76,7 @@
     -->
     <method name='ReadAll'>
       <arg name='namespaces' type='as'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QVariantMap&gt;"/>
       <arg name='value' direction='out' type='a{sa{sv}}'/>
     </method>
 

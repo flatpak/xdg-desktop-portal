@@ -98,6 +98,7 @@
     <method name="AddNamed">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type='h' name='o_path_parent_fd' direction='in'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QByteArray"/>
       <arg type='ay' name='filename' direction='in'/>
       <arg type='b' name='reuse_existing' direction='in'/>
       <arg type='b' name='persistent' direction='in'/>
@@ -135,11 +136,13 @@
     -->
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QList&lt;QDBusUnixFileDescriptor&gt;"/>
       <arg type='ah' name='o_path_fds' direction='in'/>
       <arg type='u' name='flags' direction='in'/>
       <arg type='s' name='app_id' direction='in'/>
       <arg type='as' name='permissions' direction='in'/>
       <arg type='as' name='doc_ids' direction='out'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type='a{sv}' name='extra_out' direction='out'/>
     </method>
 
@@ -177,6 +180,7 @@
       <arg type='s' name='app_id' direction='in'/>
       <arg type='as' name='permissions' direction='in'/>
       <arg type='s' name='doc_id' direction='out'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type='a{sv}' name='extra_out' direction='out'/>
     </method>
 
@@ -258,6 +262,7 @@
     <method name="Info">
       <arg type='s' name='doc_id' direction='in'/>
       <arg type='ay' name='path' direction='out'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QMap&lt;QString,QStringList&gt;"/>
       <arg type='a{sas}' name='apps' direction='out'/>
     </method>
 
@@ -273,6 +278,7 @@
     -->
     <method name="List">
       <arg type='s' name='app_id' direction='in'/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QByteArray&gt;"/>
       <arg type='a{say}' name='docs' direction='out'/>
     </method>
 
