@@ -647,8 +647,6 @@ PortalImplementation *
 find_portal_implementation (const char *interface)
 {
   const char **desktops;
-  GList *l;
-  int i;
 
   if (portal_interface_prefers_none (interface))
     return NULL;
@@ -671,9 +669,9 @@ find_portal_implementation (const char *interface)
   desktops = get_current_lowercase_desktops ();
 
   /* Fallback to the old UseIn key */
-  for (i = 0; desktops[i] != NULL; i++)
+  for (size_t i = 0; desktops[i] != NULL; i++)
     {
-      for (l = implementations; l != NULL; l = l->next)
+      for (GList *l = implementations; l != NULL; l = l->next)
         {
           PortalImplementation *impl = l->data;
 
@@ -697,7 +695,7 @@ find_portal_implementation (const char *interface)
    * try to fall back to x-d-p-gtk, which has historically been the portal
    * UI backend used by desktop environments with no backend of their own.
    * If it isn't installed, that is not an error: we just don't use it. */
-  for (l = implementations; l != NULL; l = l->next)
+  for (GList *l = implementations; l != NULL; l = l->next)
     {
       PortalImplementation *impl = l->data;
 
@@ -721,8 +719,6 @@ find_all_portal_implementations (const char *interface)
 {
   const char **desktops;
   GPtrArray *impls;
-  GList *l;
-  int i;
 
   impls = g_ptr_array_new ();
 
@@ -750,9 +746,9 @@ find_all_portal_implementations (const char *interface)
   desktops = get_current_lowercase_desktops ();
 
   /* Fallback to the old UseIn key */
-  for (i = 0; desktops[i] != NULL; i++)
+  for (size_t i = 0; desktops[i] != NULL; i++)
     {
-      for (l = implementations; l != NULL; l = l->next)
+      for (GList *l = implementations; l != NULL; l = l->next)
         {
           PortalImplementation *impl = l->data;
 
@@ -779,7 +775,7 @@ find_all_portal_implementations (const char *interface)
    * try to fall back to x-d-p-gtk, which has historically been the portal
    * UI backend used by desktop environments with no backend of their own.
    * If it isn't installed, that is not an error: we just don't use it. */
-  for (l = implementations; l != NULL; l = l->next)
+  for (GList *l = implementations; l != NULL; l = l->next)
     {
       PortalImplementation *impl = l->data;
 
