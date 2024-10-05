@@ -51,7 +51,7 @@
         the available property.
     -->
     <method name="GetAvailable">
-      <arg type='b' name='available' direction='out'/>
+      <arg type="b" name="available" direction="out"/>
     </method>
     <!--
         GetMetered:
@@ -66,7 +66,7 @@
         the metered property.
     -->
     <method name="GetMetered">
-      <arg type='b' name='metered' direction='out'/>
+      <arg type="b" name="metered" direction="out"/>
     </method>
     <!--
         GetConnectivity:
@@ -84,7 +84,7 @@
         the connectivity property.
     -->
     <method name="GetConnectivity">
-      <arg type='u' name='connectivity' direction='out'/>
+      <arg type="u" name="connectivity" direction="out"/>
     </method>
     <!--
         GetStatus:
@@ -110,7 +110,7 @@
     -->
     <method name="GetStatus">
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
-      <arg type='a{sv}' name='status' direction='out'/>
+      <arg type="a{sv}" name="status" direction="out"/>
     </method>
 
     <!--
@@ -123,9 +123,9 @@
         This method was added in version 3.
     -->
     <method name="CanReach">
-      <arg type='s' name='hostname' direction='in'/>
-      <arg type='u' name='port' direction='in'/>
-      <arg type='b' name='reachable' direction='out'/>
+      <arg type="s" name="hostname" direction="in"/>
+      <arg type="u" name="port" direction="in"/>
+      <arg type="b" name="reachable" direction="out"/>
     </method>
 
     <property name="version" type="u" access="read"/>
