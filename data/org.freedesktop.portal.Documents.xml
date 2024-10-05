@@ -52,7 +52,7 @@
 
       This documentation describes version 5 of this interface.
   -->
-  <interface name='org.freedesktop.portal.Documents'>
+  <interface name="org.freedesktop.portal.Documents">
     <property name="version" type="u" access="read"/>
 
     <!--
@@ -63,7 +63,7 @@
         is mounted. This will typically be ``/run/user/$UID/doc/``.
     -->
     <method name="GetMountPoint">
-      <arg type='ay' name='path' direction='out'/>
+      <arg type="ay" name="path" direction="out"/>
     </method>
 
     <!--
@@ -79,10 +79,10 @@
     -->
     <method name="Add">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
-      <arg type='h' name='o_path_fd' direction='in'/>
-      <arg type='b' name='reuse_existing' direction='in'/>
-      <arg type='b' name='persistent' direction='in'/>
-      <arg type='s' name='doc_id' direction='out'/>
+      <arg type="h" name="o_path_fd" direction="in"/>
+      <arg type="b" name="reuse_existing" direction="in"/>
+      <arg type="b" name="persistent" direction="in"/>
+      <arg type="s" name="doc_id" direction="out"/>
     </method>
 
     <!--
@@ -97,12 +97,12 @@
     -->
     <method name="AddNamed">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
-      <arg type='h' name='o_path_parent_fd' direction='in'/>
+      <arg type="h" name="o_path_parent_fd" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QByteArray"/>
-      <arg type='ay' name='filename' direction='in'/>
-      <arg type='b' name='reuse_existing' direction='in'/>
-      <arg type='b' name='persistent' direction='in'/>
-      <arg type='s' name='doc_id' direction='out'/>
+      <arg type="ay" name="filename" direction="in"/>
+      <arg type="b" name="reuse_existing" direction="in"/>
+      <arg type="b" name="persistent" direction="in"/>
+      <arg type="s" name="doc_id" direction="out"/>
     </method>
 
     <!--
@@ -137,12 +137,12 @@
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QList&lt;QDBusUnixFileDescriptor&gt;"/>
-      <arg type='ah' name='o_path_fds' direction='in'/>
-      <arg type='u' name='flags' direction='in'/>
-      <arg type='s' name='app_id' direction='in'/>
-      <arg type='as' name='permissions' direction='in'/>
-      <arg type='as' name='doc_ids' direction='out'/>
-      <arg type='a{sv}' name='extra_out' direction='out'/>
+      <arg type="ah" name="o_path_fds" direction="in"/>
+      <arg type="u" name="flags" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="as" name="permissions" direction="in"/>
+      <arg type="as" name="doc_ids" direction="out"/>
+      <arg type="a{sv}" name="extra_out" direction="out"/>
     </method>
 
     <!--
@@ -173,13 +173,13 @@
     -->
     <method name="AddNamedFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
-      <arg type='h' name='o_path_fd' direction='in'/>
-      <arg type='ay' name='filename' direction='in'/>
-      <arg type='u' name='flags' direction='in'/>
-      <arg type='s' name='app_id' direction='in'/>
-      <arg type='as' name='permissions' direction='in'/>
-      <arg type='s' name='doc_id' direction='out'/>
-      <arg type='a{sv}' name='extra_out' direction='out'/>
+      <arg type="h" name="o_path_fd" direction="in"/>
+      <arg type="ay" name="filename" direction="in"/>
+      <arg type="u" name="flags" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="as" name="permissions" direction="in"/>
+      <arg type="s" name="doc_id" direction="out"/>
+      <arg type="a{sv}" name="extra_out" direction="out"/>
     </method>
 
     <!--
@@ -195,9 +195,9 @@
         has the ``grant-permissions`` permission for the document.
     -->
     <method name="GrantPermissions">
-      <arg type='s' name='doc_id' direction='in'/>
-      <arg type='s' name='app_id' direction='in'/>
-      <arg type='as' name='permissions' direction='in'/>
+      <arg type="s" name="doc_id" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="as" name="permissions" direction="in"/>
     </method>
 
     <!--
@@ -213,9 +213,9 @@
         has the ``grant-permissions`` permission for the document.
     -->
     <method name="RevokePermissions">
-      <arg type='s' name='doc_id' direction='in'/>
-      <arg type='s' name='app_id' direction='in'/>
-      <arg type='as' name='permissions' direction='in'/>
+      <arg type="s" name="doc_id" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="as" name="permissions" direction="in"/>
     </method>
 
     <!--
@@ -229,7 +229,7 @@
         has the ``delete`` permission for the document.
     -->
     <method name="Delete">
-      <arg type='s' name='doc_id' direction='in'/>
+      <arg type="s" name="doc_id" direction="in"/>
     </method>
 
     <!--
@@ -242,8 +242,8 @@
         This call is not available inside the sandbox.
     -->
     <method name="Lookup">
-      <arg type='ay' name='filename' direction='in'/>
-      <arg type='s' name='doc_id' direction='out'/>
+      <arg type="ay" name="filename" direction="in"/>
+      <arg type="s" name="doc_id" direction="out"/>
     </method>
 
     <!--
@@ -258,10 +258,10 @@
         This call is not available inside the sandbox.
     -->
     <method name="Info">
-      <arg type='s' name='doc_id' direction='in'/>
-      <arg type='ay' name='path' direction='out'/>
+      <arg type="s" name="doc_id" direction="in"/>
+      <arg type="ay" name="path" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QMap&lt;QString,QStringList&gt;"/>
-      <arg type='a{sas}' name='apps' direction='out'/>
+      <arg type="a{sas}" name="apps" direction="out"/>
     </method>
 
     <!--
@@ -275,9 +275,9 @@
         This call is not available inside the sandbox.
     -->
     <method name="List">
-      <arg type='s' name='app_id' direction='in'/>
+      <arg type="s" name="app_id" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QByteArray&gt;"/>
-      <arg type='a{say}' name='docs' direction='out'/>
+      <arg type="a{say}" name="docs" direction="out"/>
     </method>
 
     <!--
@@ -294,9 +294,9 @@
         This method was added in version 5 of this interface.
     -->
     <method name="GetHostPaths">
-      <arg type='as' name='doc_ids' direction='in'/>
+      <arg type="as" name="doc_ids" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QMap&lt;QString,QByteArray&gt;"/>
-      <arg type='a{say}' name='paths' direction='out'/>
+      <arg type="a{say}" name="paths" direction="out"/>
     </method>
   </interface>
 </node>
