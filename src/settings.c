@@ -56,6 +56,8 @@ G_DEFINE_TYPE_WITH_CODE (Settings, settings, XDP_DBUS_TYPE_SETTINGS_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SETTINGS,
                                                 settings_iface_init));
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Settings, g_object_unref)
+
 static gboolean
 settings_handle_read_all (XdpDbusSettings       *object,
                           GDBusMethodInvocation *invocation,
@@ -217,7 +219,7 @@ GDBusInterfaceSkeleton *
 settings_create (GDBusConnection *connection,
                  GPtrArray       *implementations)
 {
-  Settings *settings;
+  g_autoptr(Settings) settings = NULL;
   g_autoptr(GError) error = NULL;
   int i;
   int n_impls_tmp;
@@ -255,5 +257,5 @@ settings_create (GDBusConnection *connection,
       return NULL;
     }
 
-  return G_DBUS_INTERFACE_SKELETON (settings);
+  return G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings));
 }
