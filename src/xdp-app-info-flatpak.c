@@ -500,7 +500,7 @@ load_bwrap_info (const char  *instance,
   g_autoptr(JsonNode) root = NULL;
   g_autofree char *data = NULL;
   gsize len;
-  char *path;
+  g_autofree char *path = NULL;
 
   g_return_val_if_fail (instance != NULL, 0);
 
