@@ -43,15 +43,15 @@ class TestClipboard:
 
         return (session, start_session_response.results.get("clipboard_enabled"))
 
-    def test_request_clipboard_and_start_session(self, session_bus):
-        pmock = PortalMock(session_bus, "Clipboard")
+    def test_request_clipboard_and_start_session(self, dbus_test_case):
+        pmock = PortalMock(dbus_test_case, "Clipboard")
         params = {"force-clipboard-enabled": True}
         _, clipboard_enabled = self.start_session(pmock, params)
 
         assert clipboard_enabled
 
-    def test_clipboard_checks_clipboard_enabled(self, session_bus):
-        pmock = PortalMock(session_bus, "Clipboard")
+    def test_clipboard_checks_clipboard_enabled(self, dbus_test_case):
+        pmock = PortalMock(dbus_test_case, "Clipboard")
         session, clipboard_enabled = self.start_session(pmock)
         clipboard_interface = pmock.get_dbus_interface()
 
@@ -60,16 +60,16 @@ class TestClipboard:
         with pytest.raises(dbus.exceptions.DBusException):
             clipboard_interface.SetSelection(session.handle, {})
 
-    def test_clipboard_set_selection(self, session_bus):
-        pmock = PortalMock(session_bus, "Clipboard")
+    def test_clipboard_set_selection(self, dbus_test_case):
+        pmock = PortalMock(dbus_test_case, "Clipboard")
         params = {"force-clipboard-enabled": True}
         session, _ = self.start_session(pmock, params)
         clipboard_interface = pmock.get_dbus_interface()
 
         clipboard_interface.SetSelection(session.handle, {})
 
-    def test_clipboard_selection_write(self, session_bus):
-        pmock = PortalMock(session_bus, "Clipboard")
+    def test_clipboard_selection_write(self, dbus_test_case):
+        pmock = PortalMock(dbus_test_case, "Clipboard")
         params = {"force-clipboard-enabled": True}
         session, _ = self.start_session(pmock, params)
         clipboard_interface = pmock.get_dbus_interface()
@@ -87,8 +87,8 @@ class TestClipboard:
 
         clipboard_interface.SelectionWriteDone(session.handle, 1234, True)
 
-    def test_clipboard_selection_read(self, session_bus):
-        pmock = PortalMock(session_bus, "Clipboard")
+    def test_clipboard_selection_read(self, dbus_test_case):
+        pmock = PortalMock(dbus_test_case, "Clipboard")
         params = {"force-clipboard-enabled": True}
         session, _ = self.start_session(pmock, params)
         clipboard_interface = pmock.get_dbus_interface()
