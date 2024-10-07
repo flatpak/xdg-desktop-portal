@@ -11,7 +11,7 @@ from tests import PortalMock
 
 
 @pytest.fixture()
-def session_bus() -> Iterator[dbusmock.DBusTestCase]:
+def dbus_test_case() -> Iterator[dbusmock.DBusTestCase]:
     """
     Fixture to yield a DBusTestCase with a started session bus.
     """
@@ -64,11 +64,11 @@ def app_id():
 
 
 @pytest.fixture
-def portal_mock(session_bus, portal_name, params, portal_has_impl, app_id) -> PortalMock:
+def portal_mock(dbus_test_case, portal_name, params, portal_has_impl, app_id) -> PortalMock:
     """
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
-    pmock = PortalMock(session_bus, portal_name, app_id)
+    pmock = PortalMock(dbus_test_case, portal_name, app_id)
     if portal_has_impl:
         pmock.start_impl_portal(params)
     pmock.start_xdp()
