@@ -60,6 +60,32 @@ def params() -> dict[str, Any]:
 
 
 @pytest.fixture
+def template_params(portal_name, params) -> dict[str, dict[str, Any]]:
+    """
+    Default fixture for overriding the parameters which should be passed to the
+    mocking templates. Use required_templates to specify the default parameters
+    and override it for specific test cases via
+
+        @pytest.mark.parametrize("template_params", ({"Template": {"foo": "bar"}},))
+
+    """
+    return {portal_name: params}
+
+
+@pytest.fixture
+def required_templates(portal_name, portal_has_impl) -> dict[str, dict[str, Any]]:
+    """
+    Default fixture for enumerating the mocking templates the test case requires
+    to be started. This is a map from a name of a template in the templates
+    directory to the parameters which should be passed to the template.
+    """
+    if portal_has_impl:
+        return {portal_name: {}}
+
+    return {}
+
+
+@pytest.fixture
 def app_id():
     """
     Default fixture providing the app id of the connecting process
@@ -68,12 +94,13 @@ def app_id():
 
 
 @pytest.fixture
-def portal_mock(dbus_test_case, portal_name, params, portal_has_impl, app_id) -> PortalMock:
+def portal_mock(dbus_test_case, portal_name, required_templates, template_params, app_id) -> PortalMock:
     """
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
     pmock = PortalMock(dbus_test_case, portal_name, app_id)
-    if portal_has_impl:
-        pmock.start_template(portal_name, params)
+    for template, params in required_templates.items():
+        params = template_params.get(template, params)
+        pmock.start_template(template, params)
     pmock.start_xdp()
     return pmock
