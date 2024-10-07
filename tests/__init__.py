@@ -349,6 +349,10 @@ class PortalMock:
     def dbus_con(self):
         return self.dbus_test_case.dbus_con
 
+    @property
+    def dbus_con_sys(self):
+        return self.dbus_test_case.dbus_con_sys
+
     def start_impl_portal(self, params=None, portal=None):
         """
         Start the impl.portal for the given portal name. If missing,
