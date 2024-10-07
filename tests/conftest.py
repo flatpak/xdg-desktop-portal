@@ -74,6 +74,6 @@ def portal_mock(dbus_test_case, portal_name, params, portal_has_impl, app_id) ->
     """
     pmock = PortalMock(dbus_test_case, portal_name, app_id)
     if portal_has_impl:
-        pmock.start_impl_portal(params)
+        pmock.start_template(portal_name, params)
     pmock.start_xdp()
     return pmock
