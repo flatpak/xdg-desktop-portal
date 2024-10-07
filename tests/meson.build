@@ -321,7 +321,7 @@ if enable_pytest
     if pytest_file.startswith('test_')
       testname = pytest_file.replace('.py', '')
       test(
-        'pytest @0@'.format(testname),
+        'pytest/@0@'.format(testname),
         pytest,
         args: pytest_args + ['-k', testname],
         suite: ['pytest'],
