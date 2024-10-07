@@ -18,9 +18,13 @@ def dbus_test_case() -> Iterator[dbusmock.DBusTestCase]:
     bus = dbusmock.DBusTestCase()
     bus.setUp()
     bus.start_session_bus()
+    bus.start_system_bus()
     con = bus.get_dbus(system_bus=False)
+    con_sys = bus.get_dbus(system_bus=True)
     assert con
+    assert con_sys
     setattr(bus, "dbus_con", con)
+    setattr(bus, "dbus_con_sys", con_sys)
     yield bus
     bus.tearDown()
     bus.tearDownClass()
