@@ -332,8 +332,8 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, session_bus, portal_name: str, app_id: str = "org.example.App"):
-        self.bus = session_bus
+    def __init__(self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"):
+        self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
         self.p_mock = None
         self.xdp = None
@@ -347,7 +347,7 @@ class PortalMock:
 
     @property
     def dbus_con(self):
-        return self.bus.dbus_con
+        return self.dbus_test_case.dbus_con
 
     def start_impl_portal(self, params=None, portal=None):
         """
@@ -356,7 +356,7 @@ class PortalMock:
         ``TestFoo`` will start ``org.freedesktop.impl.portal.Foo``.
         """
         portal = portal or self.portal_name
-        self.p_mock, self.obj_portal = self.bus.spawn_server_template(
+        self.p_mock, self.obj_portal = self.dbus_test_case.spawn_server_template(
             template=f"tests/templates/{portal.lower()}.py",
             parameters=params,
             stdout=subprocess.PIPE,
@@ -418,7 +418,7 @@ class PortalMock:
         xdp = subprocess.Popen(argv, env=env)
 
         for _ in range(50):
-            if self.bus.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
                 break
             time.sleep(0.1)
         else:
@@ -460,7 +460,7 @@ class PortalMock:
         try:
             return self._xdp_dbus_object
         except AttributeError:
-            obj = self.bus.dbus_con.get_object(
+            obj = self.dbus_test_case.dbus_con.get_object(
                 "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
             )
             # Useful for debugging:
