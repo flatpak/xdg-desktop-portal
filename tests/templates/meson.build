@@ -2,6 +2,7 @@ template_files = [
   '__init__.py',
   'clipboard.py',
   'email.py',
+  'geoclue2.py',
   'globalshortcuts.py',
   'inputcapture.py',
   'remotedesktop.py',

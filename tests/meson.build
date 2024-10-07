@@ -307,6 +307,7 @@ if enable_pytest
     'test_email.py',
     'test_globalshortcuts.py',
     'test_inputcapture.py',
+    'test_location.py',
     'test_remotedesktop.py',
     'test_trash.py',
   ]
