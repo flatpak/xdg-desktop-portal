@@ -203,7 +203,7 @@ def Enable(self, session_handle, app_id, options):
 
             def disable():
                 logger.debug("emitting Disabled")
-                self.EmitSignal("", "Disabled", "oa{sv}", [session_handle, {}])
+                self.EmitSignal(MAIN_IFACE, "Disabled", "oa{sv}", [session_handle, {}])
 
             GLib.timeout_add(self.disable_delay, disable)
 
@@ -218,7 +218,7 @@ def Enable(self, session_handle, app_id, options):
                         pos, signature="dd", variant_level=1
                     ),
                 }
-                self.EmitSignal("", "Activated", "oa{sv}", [session_handle, options])
+                self.EmitSignal(MAIN_IFACE, "Activated", "oa{sv}", [session_handle, options])
 
             GLib.timeout_add(self.activated_delay, activated)
 
@@ -232,7 +232,7 @@ def Enable(self, session_handle, app_id, options):
                         pos, signature="dd", variant_level=1
                     ),
                 }
-                self.EmitSignal("", "Deactivated", "oa{sv}", [session_handle, options])
+                self.EmitSignal(MAIN_IFACE, "Deactivated", "oa{sv}", [session_handle, options])
 
             GLib.timeout_add(self.deactivated_delay, deactivated)
 
