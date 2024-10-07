@@ -18,8 +18,8 @@ class TestClipboard:
         portal_mock.check_version(1)
 
     def start_session(self, pmock, params={}):
-        pmock.start_impl_portal(params=params)
-        pmock.add_template(portal="RemoteDesktop", params=params)
+        pmock.start_template("Clipboard", params=params)
+        pmock.start_template("RemoteDesktop", params=params)
         pmock.start_xdp()
 
         create_session_request = pmock.create_request("RemoteDesktop")
