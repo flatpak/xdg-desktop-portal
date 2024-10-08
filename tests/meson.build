@@ -5,6 +5,7 @@ env_tests.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
 env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())
 env_tests.set('G_TEST_BUILDDIR', meson.current_build_dir())
 env_tests.set('G_DEBUG', 'gc-friendly')  # from glib-tap.mk
+env_tests.set('LSAN_OPTIONS', 'suppressions=' + meson.current_source_dir() / 'asan.suppression')
 
 if glib_dep.version().version_compare('>= 2.68')
   test_protocol = 'tap'

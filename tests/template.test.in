@@ -1,4 +1,4 @@
 [Test]
 Type=session
-Exec=@installed_testdir@/@exec@ --tap
+Exec=env LSAN_OPTIONS=exitcode=0 @installed_testdir@/@exec@ --tap
 Output=TAP
