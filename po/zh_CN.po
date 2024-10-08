@@ -10,247 +10,201 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-02-14 15:35+0000\n"
-"PO-Revision-Date: 2024-02-22 19:27+0800\n"
+"POT-Creation-Date: 2024-10-04 15:34+0000\n"
+"PO-Revision-Date: 2024-10-08 08:42+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
-"Language-Team: Chinese - China <i18n-zh@googlegroups.com>\n"
+"Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Gtranslator 45.3\n"
-"Plural-Forms: nplurals=1; plural=0\n"
+"X-Generator: Gtranslator 47.0\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 
-#: src/background.c:747
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "允许 %s 在后台运行吗？"
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s 请求自动启动并在后台运行。"
 
-#: src/background.c:753
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s 请求在后台运行。"
 
-#: src/background.c:754
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "您可随时在应用设置中修改“后台运行”的权限。"
 
-#: src/background.c:759
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "禁止"
 
-#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "允许"
 
-#: src/device.c:117
-#, c-format
-msgid "Allow %s to Use the Microphone?"
-msgstr "允许 %s 使用麦克风吗？"
-
-#: src/device.c:118
-#, c-format
-msgid "%s wants to access recording devices."
-msgstr "%s 想访问录音设备。"
-
-#: src/device.c:122
-msgid "Allow app to Use the Microphone?"
-msgstr "允许应用使用麦克风吗？"
-
-#: src/device.c:123
-msgid "An app wants to access recording devices."
-msgstr "有应用想访问录音设备。"
-
-#: src/device.c:132
-#, c-format
-msgid "Allow %s to Use the Speakers?"
-msgstr "允许 %s 使用扬声器吗？"
-
-#: src/device.c:133
-#, c-format
-msgid "%s wants to access audio devices."
-msgstr "%s 想访问音频设备。"
-
-#: src/device.c:137
-msgid "Allow app to Use the Speakers?"
-msgstr "允许应用使用扬声器吗？"
-
-#: src/device.c:138
-msgid "An app wants to access audio devices."
-msgstr "有应用想访问音频设备。"
-
-#: src/device.c:147
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "允许 %s 使用摄像头吗？"
 
-#: src/device.c:148
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s 想访问摄像设备。"
 
-#: src/device.c:152
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "允许应用使用摄像头吗？"
 
-#: src/device.c:153
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "有应用想访问摄像设备。"
 
-#: src/dynamic-launcher.c:119
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "桌面文件标识缺少 .desktop 后缀：%s"
 
-#: src/dynamic-launcher.c:131
+#: src/dynamic-launcher.c:133
 #, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr "桌面文件标识缺少应用标识前缀“%s”：%s"
+msgid "Desktop file id is not valid"
+msgstr "桌面文件标识无效"
 
-#: src/dynamic-launcher.c:211
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "传递给 Install() 的桌面入口文件不是有效的设定键文件"
 
-#: src/dynamic-launcher.c:223
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr "传递给 Install() 的桌面入口文件只能有一个分组"
 
-#: src/dynamic-launcher.c:265
-#, c-format
-msgid "Desktop entry given to Install() must not use --file-forwarding"
-msgstr "传递给 Install() 的桌面入口文件不能使用 --file-forwarding"
-
-#: src/dynamic-launcher.c:276
-#, c-format
-msgid "DynamicLauncher install not supported for: %s"
-msgstr "不支持动态启动器安装：%s"
-
-#: src/dynamic-launcher.c:300
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "传递给 Install() 的桌面入口文件无效"
 
-#: src/dynamic-launcher.c:341
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "提供的令牌无效：%s"
 
-#: src/dynamic-launcher.c:369 src/dynamic-launcher.c:811
-#: src/dynamic-launcher.c:861
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "桌面文件超出最大尺寸（%d）：%s"
 
-#: src/dynamic-launcher.c:538
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "提供的 URL 无效：%s"
 
-#: src/dynamic-launcher.c:561
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "无效的启动器类型：%x"
 
-#: src/dynamic-launcher.c:568
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "不支持的启动器类型：%x"
 
-#: src/dynamic-launcher.c:632 src/dynamic-launcher.c:703
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "动态启动器图标验证失败"
 
-#: src/dynamic-launcher.c:719
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "应用标识 %s 不允许使用 RequestInstallToken()"
 
-#: src/dynamic-launcher.c:901
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "桌面文件“%s”图标位于未识别的路径"
 
-#: src/dynamic-launcher.c:924
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "桌面文件“%s”图标序列化失败"
 
-#: src/dynamic-launcher.c:963
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "带有标识“%s”的动态启动器不存在"
 
-#: src/dynamic-launcher.c:981
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "为带有标识“%s”的启动器创建 GDesktopAppInfo 失败"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "拒绝访问"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "授权访问"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "授予 %s 访问您的位置信息权限？"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s 想使用您的位置信息。"
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "授权访问您的位置信息？"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "有应用程序想使用您的位置信息。"
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改位置信息的访问权限。"
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "拒绝"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "允许 %s 获取截屏吗？"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s 想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "允许应用程序获取截屏吗？"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "有应用程序想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改该权限。"
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:129 src/settings.c:165
 msgid "Requested setting not found"
 msgstr "未找到请求的设置"
 
@@ -271,6 +225,46 @@ msgstr "允许应用程序设置背景吗？"
 #: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "一个应用程序正在请求允许修改背景图像。"
+
+#, c-format
+#~ msgid "Allow %s to Use the Microphone?"
+#~ msgstr "允许 %s 使用麦克风吗？"
+
+#, c-format
+#~ msgid "%s wants to access recording devices."
+#~ msgstr "%s 想访问录音设备。"
+
+#~ msgid "Allow app to Use the Microphone?"
+#~ msgstr "允许应用使用麦克风吗？"
+
+#~ msgid "An app wants to access recording devices."
+#~ msgstr "有应用想访问录音设备。"
+
+#, c-format
+#~ msgid "Allow %s to Use the Speakers?"
+#~ msgstr "允许 %s 使用扬声器吗？"
+
+#, c-format
+#~ msgid "%s wants to access audio devices."
+#~ msgstr "%s 想访问音频设备。"
+
+#~ msgid "Allow app to Use the Speakers?"
+#~ msgstr "允许应用使用扬声器吗？"
+
+#~ msgid "An app wants to access audio devices."
+#~ msgstr "有应用想访问音频设备。"
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr "桌面文件标识缺少应用标识前缀“%s”：%s"
+
+#, c-format
+#~ msgid "Desktop entry given to Install() must not use --file-forwarding"
+#~ msgstr "传递给 Install() 的桌面入口文件不能使用 --file-forwarding"
+
+#, c-format
+#~ msgid "DynamicLauncher install not supported for: %s"
+#~ msgstr "不支持动态启动器安装：%s"
 
 #~ msgid "Turn On Microphone?"
 #~ msgstr "要打开麦克风吗？"
