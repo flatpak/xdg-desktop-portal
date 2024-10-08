@@ -1,0 +1,52 @@
+name: Create build container
+
+env:
+  IMAGE_TAG: 20241008-1
+
+on:
+  workflow_call:
+    outputs:
+      image:
+        description: "The build image"
+        value: ${{ jobs.build-container.outputs.image }}
+      image_options:
+        description: "The options to use with the image"
+        value: --device /dev/fuse --cap-add SYS_ADMIN --security-opt apparmor:unconfined --privileged
+
+jobs:
+  build-container:
+    name: Create build container
+    runs-on: ubuntu-latest
+
+    outputs:
+      image: ${{ steps.check.outputs.image }}
+
+    steps:
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Set lower case owner name
+        env:
+          OWNER: '${{ github.repository_owner }}'
+        run: |
+          echo "OWNER_LOWERCASE=${OWNER,,}" >>${GITHUB_ENV}
+
+      - name: Check if image already exists on GHCR
+        id: check
+        run: |
+          image=ghcr.io/${{ env.OWNER_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
+          echo "exists=$(docker manifest inspect $image >/dev/null && echo 'true' || echo 'false')" \
+            >> "$GITHUB_OUTPUT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        if: ${{ steps.check.outputs.exists == 'false' }}
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          file: .github/workflows/Containerfile
+          tags: ghcr.io/${{ env.OWNER_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}

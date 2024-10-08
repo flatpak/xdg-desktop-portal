@@ -12,47 +12,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  build-container:
+    uses: ./.github/workflows/container.yml
+    permissions:
+      packages: write
+
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
+    needs: build-container
+    permissions:
+      contents: write
+
     container:
-      image: fedora:latest
+      image: ${{ needs.build-container.outputs.image }}
+      options: ${{ needs.build-container.outputs.image_options }}
+
     steps:
-      - name: Install dependencies
-        run: |
-          dnf install -y \
-            desktop-file-utils \
-            flatpak-devel \
-            fontconfig-devel \
-            fuse3 \
-            fuse3-devel \
-            gcc \
-            gdk-pixbuf2-devel \
-            geoclue2-devel \
-            gettext \
-            glib2-devel \
-            gnome-desktop-testing \
-            gtk-doc \
-            json-glib-devel \
-            libcap \
-            libcap-devel \
-            libportal-devel \
-            llvm \
-            meson \
-            pipewire-devel \
-            python3-gobject \
-            shared-mime-info \
-            systemd-devel
-
-      - name: Install dependencies for doc builds
-        run: |
-          dnf install -y \
-            ca-certificates \
-            git \
-            python-sphinx-copybutton \
-            python-sphinxext-opengraph \
-            python3-furo \
-            python3-sphinx
-
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
 
@@ -77,12 +52,13 @@ jobs:
 
   # Deployment job
   deploy:
+    runs-on: ubuntu-latest
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') }}
+
     steps:
       - name: Deploy to GitHub Pages
         id: deployment

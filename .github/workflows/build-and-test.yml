@@ -1,0 +1,98 @@
+name: Build and Test
+
+on: [push, pull_request]
+
+env:
+  TESTS_TIMEOUT: 10 # in minutes
+
+jobs:
+  build-container:
+    uses: ./.github/workflows/container.yml
+    permissions:
+      packages: write
+
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    needs: build-container
+    strategy:
+      matrix:
+        compiler: ['gcc', 'clang']
+        sanitizer: ['address']
+
+    container:
+      image: ${{ needs.build-container.outputs.image }}
+      env:
+        CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
+        CC: ${{ matrix.compiler }}
+        TEST_IN_CI: 1
+        G_MESSAGES_DEBUG: all
+      options: ${{ needs.build-container.outputs.image_options }}
+
+    steps:
+      - name: Configure environment
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          echo XDG_DATA_DIRS=$GITHUB_WORKSPACE/tests/share:/usr/local/share:/usr/share | tee -a $GITHUB_ENV
+
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Check out libportal fork with a similarly named branch
+        id: libportal-branched
+        uses: actions/checkout@v4
+        continue-on-error: true
+        with:
+          repository: ${{ github.actor }}/libportal
+          ref: ${{ github.head_ref || github.ref_name }}
+          path: libportal
+
+      - name: Check out libportal default branch
+        if: steps.libportal-branched.outcome == 'failure'
+        uses: actions/checkout@v4
+        with:
+          repository: flatpak/libportal
+          path: libportal
+
+      - name: Build libportal
+        run: |
+          meson setup libportal _build_libportal $MESON_OPTIONS
+          meson compile -C _build_libportal
+          meson install -C _build_libportal
+        env:
+          MESON_OPTIONS: --prefix=/usr -Ddocs=false -Dintrospection=false -Dtests=false
+
+      - name: Build xdg-desktop-portal
+        run: |
+          meson setup _build $MESON_OPTIONS
+          meson compile -C _build
+        env:
+          MESON_OPTIONS: -Dinstalled-tests=true -Dpytest=enabled -Db_sanitize=${{ matrix.sanitizer }}
+
+      - name: Run xdg-desktop-portal tests
+        run: timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build
+
+      - name: Install xdg-desktop-portal
+        run: meson install -C _build
+
+      - name: Run xdg-desktop-portal installed-tests
+        run: |
+          test -n "$(gnome-desktop-testing-runner -l xdg-desktop-portal)"
+          gnome-desktop-testing-runner --report-directory installed-test-logs/ \
+            -t $((TESTS_TIMEOUT * 60)) xdg-desktop-portal
+
+      - name: Create dist tarball
+        run: |
+          ls -la
+          timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C _build
+
+      - name: Upload test logs
+        uses: actions/upload-artifact@v4
+        if: success() || failure()
+        with:
+          name: test logs (${{ matrix.compiler }}, ${{ matrix.sanitizer }})
+          path: |
+            tests/*.log
+            test-*.log
+            installed-test-logs/
+            _build/meson-logs/testlog.txt
