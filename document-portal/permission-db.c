@@ -1144,9 +1144,7 @@ add_permissions (GVariant *app_permissions,
   const char *new_app_id;
   const char *child_app_id;
 
-  g_autoptr(GVariant) new_perms_array = NULL;
-
-  g_variant_get (permissions, "{&s@as}", &new_app_id, &new_perms_array);
+  g_variant_get (permissions, "{&s@as}", &new_app_id, NULL);
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
 
@@ -1203,9 +1201,7 @@ remove_permissions (GVariant   *app_permissions,
   g_variant_iter_init (&iter, app_permissions);
   while ((child = g_variant_iter_next_value (&iter)))
     {
-      g_autoptr(GVariant) old_perms_array = NULL;
-
-      g_variant_get (child, "{&s@as}", &child_app_id, &old_perms_array);
+      g_variant_get (child, "{&s@as}", &child_app_id, NULL);
 
       if (strcmp (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
