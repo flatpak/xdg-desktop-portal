@@ -39,12 +39,15 @@
 
         The ID can be used to later withdraw the notification.
         If the application reuses the same ID without withdrawing,
-        the notification is replaced by the new one.
+        the notification is updated with the new one. It's possible
+        to set ``show-as-new`` hint in the ``display-hint`` property
+        to animate replacing the notification instead of updating it.
 
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
     -->
     <method name="AddNotification">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="id" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
@@ -63,14 +66,33 @@
     </method>
 
     <!--
+        SupportedOptions:
+
+        Some properties in :ref:`org.freedesktop.impl.portal.Notification.AddNotification`
+        may have options advertised by the notification server.
+
+        The format is the same as for ``SupportedOptions`` property of
+        :ref:`org.freedesktop.portal.Notification`.
+    -->
+    <property name="SupportedOptions" type="a{sv}" access="read"/>
+
+    <!--
         ActionInvoked:
         @app_id: App id of the application
         @id: the application-provided ID for the notification
         @action: the name of the action
-        @parameter: array which will contain the target parameter for the action, if one was specified
+        @parameter: an array containing additional information
 
         Send to the application when a non-exported action is
         activated.
+
+        The @parameter contains the following values in order:
+
+        #. The `target` for the action, if one was specified.
+
+        #. The `platform-data` as vardict containing an ``activation-token`` (``s``) for
+           `XDG Activation
+           <https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/xdg-activation/xdg-activation-v1.xml>`_
     -->
     <signal name="ActionInvoked">
       <arg type="s" name="app_id"/>
