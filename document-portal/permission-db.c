@@ -770,7 +770,7 @@ permission_db_update (PermissionDb *self)
       /* We should never list an app that has empty id lists */
       g_assert (app_ids[0] != NULL);
 
-      g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+      g_variant_builder_init (&builder, G_VARIANT_TYPE ("as"));
       for (j = 0; app_ids[j] != NULL; j++)
         g_variant_builder_add (&builder, "s", app_ids[j]);
 
@@ -1196,7 +1196,7 @@ remove_permissions (GVariant   *app_permissions,
   GVariant *child;
   const char *child_app_id;
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE_ARRAY);
+  g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sas}"));
 
   g_variant_iter_init (&iter, app_permissions);
   while ((child = g_variant_iter_next_value (&iter)))
