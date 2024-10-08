@@ -1,0 +1,53 @@
+# This Containerfile builds the image that we use in all github workflows.
+# When this file is changed, or one needs to rebuild the image for another
+# reason, bump the `IMAGE_TAG` in the container.yml workflow.
+
+FROM ubuntu:latest
+
+RUN apt update
+RUN apt upgrade -y
+
+# Install dependencies
+RUN apt install -y --no-install-recommends \
+    gcc clang \
+    ca-certificates \
+    desktop-file-utils \
+    fuse3 \
+    gettext \
+    git \
+    gnome-desktop-testing \
+    gtk-doc-tools \
+    libcap2-bin \
+    libflatpak-dev \
+    libfontconfig1-dev \
+    libfuse3-dev \
+    libgdk-pixbuf-2.0-dev \
+    librsvg2-2 \
+    librsvg2-common \
+    libgeoclue-2-dev \
+    libglib2.0-dev \
+    libjson-glib-dev \
+    libpipewire-0.3-dev \
+    libsystemd-dev \
+    libtool \
+    llvm \
+    libclang-rt-18-dev \
+    python3-gi \
+    shared-mime-info
+
+# Install meson
+RUN apt install -y --no-install-recommends meson
+
+# Install pytest
+RUN apt install -y --no-install-recommends \
+    python3-pytest \
+    python3-pytest-xdist \
+    python3-dbusmock \
+    python3-dbus
+
+# Install doc dependencies
+RUN apt install -y --no-install-recommends \
+    python3-sphinx-copybutton \
+    python3-sphinxext-opengraph \
+    furo \
+    python3-sphinx
