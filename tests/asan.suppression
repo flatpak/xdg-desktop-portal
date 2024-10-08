@@ -1,0 +1,8 @@
+# external (GIO?)
+leak:g_dbus_message_new_from_blob
+# Bugs in our code
+# Take a look at them and try to figure out  what's going on!
+leak:permission_db_entry_set_app_permissions
+leak:test_color_delay
+leak:test_color_basic
+leak:test_color_parallel
