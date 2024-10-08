@@ -1,0 +1,101 @@
+name: Release new version
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version (MAJOR.MINOR.PATCH, default: extracted from NEWS)"
+      preRelease:
+        description: "Is this a pre-release? (true/false, default: true if release version minor number is odd)"
+      dryRun:
+        description: "Dry Run (true/false, default: true)"
+        default: true
+
+jobs:
+  build-container:
+    uses: ./.github/workflows/container.yml
+    permissions:
+      packages: write
+
+  release:
+    name: Build and publish a release
+    runs-on: ubuntu-latest
+    needs: build-container
+    permissions:
+      contents: write
+
+    container:
+      image: ${{ needs.build-container.outputs.image }}
+      options: ${{ needs.build-container.outputs.image_options }}
+
+    steps:
+      - name: Configure git user
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+
+      - name: Update translation files
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        run: |
+          meson setup . _build
+          meson compile -C _build/ xdg-desktop-portal-update-po
+          git add po/*po
+          git commit -m "Update po files"
+          git push
+          git clean -fxd
+
+      - name: Build xdg-desktop-portal
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        run: |
+          meson setup . _build
+          meson dist -C _build
+
+      - name: Extract release information
+        env:
+          releaseVersion: ${{ github.event.inputs.version }}
+          preRelease: ${{ github.event.inputs.preRelease }}
+        run: |
+          # Extract the release version
+          if [ -z $releaseVersion ]; then
+            releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS`
+          fi
+          echo "releaseVersion=$releaseVersion" | tee -a $GITHUB_ENV
+
+          # Extract the changelog
+          {
+            echo "releaseChangelog<<EOF"
+            perl -0777nE 'print $& if /(?<=\n\n).*?(?=\n\n)/sg' NEWS
+            echo "\nEOF"
+          } | tee -a $GITHUB_ENV
+
+          # Check if version is a pre-release
+          if [ -z $preRelease ]; then
+            preRelease=$((`echo $releaseVersion | cut -d '.' -f2` % 2))
+          fi
+          {
+            echo -n "preRelease="
+            if [ $preRelease = 1 ] || [ $preRelease = "true" ]; then
+              echo "true";
+            else
+              echo "false";
+            fi
+          } | tee -a $GITHUB_ENV
+
+      - name: Tag release
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        run: |
+          git tag $releaseVersion
+          git push --tags
+
+      - name: Create release
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        uses: ncipollo/release-action@v1.14.0
+        with:
+          tag: ${{ env.releaseVersion }}
+          body: ${{ env.releaseChangelog }}
+          prerelease: ${{ env.preRelease }}
+          artifacts: _build/meson-dist/*
