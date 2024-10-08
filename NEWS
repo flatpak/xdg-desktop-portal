@@ -1,3 +1,53 @@
+Changes in 1.19.0
+=================
+Released: 2024-10-09
+
+- Completely rework and restructure the documentation website. Documentation is
+  now segmented by target audience (app developers, desktop developers, and
+  contributors). It also documents how the Document portal operates, the FUSE
+  filesystem, and custom file attributes. This is available in the following
+  address: https://flatpak.github.io/xdg-desktop-portal/docs/index.html
+- The portals.conf parser is now able to handle fallback backends better, and
+  respects the order of backends in the config file.
+- Try to use the xdg-desktop-portal-gtk backend as a last resort backend, if
+  everything else fails.
+- Implement getlk and setlk, and honour O_NOFOLLOW, in the Document portal's
+  FUSE filesystem.
+- Neutralize the Devices portal. Originally the Devices portal was introduced
+  so that services like PulseAudio or PipeWire could request access to
+  microphones and cameras on the behalf of apps. It was not meant to be used by
+  sandboxed apps directly, which is unusual for a portal. Practically, however,
+  it didn't take off.
+- Implement PID/TID mapping for host system apps.
+- Add a new "supported_output_file_formats" option to the Print portal. This
+  can be used by apps like browsers to limit the output file formats presented
+  by the Print portal backend. For example, an app can limit file printing to
+  PDF files.
+- Add a new "GetHostPaths" method to the Document portal, which allows mapping
+  file descriptors to paths on the host system. This can be used by apps to
+  show more meaningful file paths in the user interface.
+- Like the new method above, the Document portal sets the
+  "user.document-portal.host-path" xattr on files, pointing to the the host
+  system file path. The use case is similar to "GetHostPaths".
+- Make the Background portal more robust when validating autostart files.
+- Clarify behavior of the File Chooser portal in the documentation pages.
+- Improve robustness against deleted o_path fds in the Document portal.
+- Fix a warning in some systems while trying to load Request D-Bus object
+  properties.
+- Fix a physical inode leak in the Document portal.
+- Various improvements to the test suite. Python-based tests now run in parallel
+  and are more careful when setting up the mock D-Bus server. Tests also start
+  dbus-monitor if necessary now. FUSE tests of the Document portal have been
+  made more TAP-alike now.
+- Memory leak fixes in a variety of portals and services, including the
+  permissions database, the Document portal, the File Transfer portal, the
+  Location portal, the Background portal, tests, and the icon validator. And
+  more. There's a lot of memory leak fixes everywhere, really.
+- Major refactorings of the icon validator. Icons are now limited to 4MB files.
+- Update XML specification specifying session handle type to match current
+  actual ABI in GlobalShortcuts, Inhibit, RemoteDesktop, and ScreenCast portals.
+- New and updated translations.
+
 Changes in 1.18.1
 =================
 Released: 2023-10-26
