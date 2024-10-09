@@ -109,13 +109,13 @@ validate_xdg_desktop (const char *desktop)
 }
 
 static char **
-get_valid_current_desktops (const char *value)
+get_valid_current_desktops (void)
 {
   GPtrArray *valid_desktops;
+  const char *value;
   char **tmp;
 
-  if (value == NULL)
-    value = g_getenv ("XDG_CURRENT_DESKTOP");
+  value = g_getenv ("XDG_CURRENT_DESKTOP");
   if (value == NULL)
     value = "";
 
@@ -146,7 +146,7 @@ get_current_lowercase_desktops (void)
 
   if (g_once_init_enter (&result))
     {
-      char **tmp = get_valid_current_desktops (NULL);
+      char **tmp = get_valid_current_desktops ();
 
       for (size_t i = 0; tmp[i] != NULL; i++)
         {
