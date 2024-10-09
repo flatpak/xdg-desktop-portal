@@ -22,6 +22,10 @@ option('geoclue',
        type: 'feature',
        value: 'auto',
        description: 'Enable Geoclue support. Needed for location portal')
+option('gudev',
+       type: 'feature',
+       value: 'auto',
+       description: 'Enable udev support. Needed for the USB portal.')
 option('systemd',
        type: 'feature',
        value: 'auto',
