@@ -490,7 +490,7 @@ load_portal_configuration (gboolean opt_verbose)
     return;
 }
 
-PortalInterface *
+static PortalInterface *
 find_matching_iface_config (const char *interface)
 {
   if (config == NULL)
