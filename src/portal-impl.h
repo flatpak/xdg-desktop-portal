@@ -21,8 +21,7 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-#ifndef __PORTAL_IMPL_H__
-#define __PORTAL_IMPL_H__
+#pragma once
 
 #include <glib.h>
 
@@ -39,4 +38,3 @@ void                  load_portal_configuration       (gboolean opt_verbose);
 PortalImplementation *find_portal_implementation      (const char *interface);
 GPtrArray            *find_all_portal_implementations (const char *interface);
 
-#endif  /* __PORTAL_IMPL_H__ */
