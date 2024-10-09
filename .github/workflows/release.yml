@@ -13,6 +13,7 @@ on:
 
 jobs:
   build-container:
+    name: Container
     uses: ./.github/workflows/container.yml
     permissions:
       packages: write

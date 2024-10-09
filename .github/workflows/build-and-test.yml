@@ -1,33 +1,33 @@
-name: Build and Test
-
-on: [push, pull_request]
-
 env:
   TESTS_TIMEOUT: 10 # in minutes
 
-jobs:
-  build-container:
-    uses: ./.github/workflows/container.yml
-    permissions:
-      packages: write
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      image_options:
+        required: true
+        type: string
 
+jobs:
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
-    needs: build-container
     strategy:
       matrix:
         compiler: ['gcc', 'clang']
         sanitizer: ['address']
 
     container:
-      image: ${{ needs.build-container.outputs.image }}
+      image: ${{ inputs.image }}
       env:
         CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
         CC: ${{ matrix.compiler }}
         TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
-      options: ${{ needs.build-container.outputs.image_options }}
+      options: ${{ inputs.image_options }}
 
     steps:
       - name: Configure environment

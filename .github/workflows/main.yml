@@ -1,0 +1,30 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build-container:
+    name: Container
+    uses: ./.github/workflows/container.yml
+    permissions:
+      packages: write
+
+  build-and-test:
+    name: Build and Test
+    uses: ./.github/workflows/build-and-test.yml
+    needs: build-container
+    with:
+      image: ${{ needs.build-container.outputs.image }}
+      image_options: ${{ needs.build-container.outputs.image_options }}
+
+  pages:
+    name: Documentation & Website
+    uses: ./.github/workflows/pages.yml
+    needs: build-container
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      image: ${{ needs.build-container.outputs.image }}
+      image_options: ${{ needs.build-container.outputs.image_options }}
