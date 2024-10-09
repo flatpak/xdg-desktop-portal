@@ -45,7 +45,6 @@ jobs:
           meson compile -C _build/ xdg-desktop-portal-update-po
           git add po/*po
           git commit -m "Update po files"
-          git push
           git clean -fxd
 
       - name: Build xdg-desktop-portal
@@ -53,6 +52,11 @@ jobs:
         run: |
           meson setup . _build
           meson dist -C _build
+
+      - name: Push updated translations
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        run: |
+          git push
 
       - name: Extract release information
         env:
