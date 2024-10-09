@@ -121,8 +121,11 @@
 
         * ``shortcuts`` (``a(sa{sv})``)
 
-          A list of shortcuts. The list of keys it may contain is described
-          below, and is different from the @shortcuts variable of this method.
+          The list of shortcuts which were bound. This is a subset of the
+          shortcuts which were passed in from the @shortcuts variable of this
+          method (this includes the set of all shortcuts and the empty set).
+          The keys they may contain are described below, and are different from
+          the keys in the @shortcuts variable of this method.
 
         Each element of the @shortcuts array returned by the
         :ref:`org.freedesktop.portal.Request::Response` signal is a tuple composed of
