@@ -68,6 +68,7 @@ jobs:
             releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS`
           fi
           echo "releaseVersion=$releaseVersion" | tee -a $GITHUB_ENV
+          echo $releaseVersion
 
           # Extract the changelog
           {
@@ -75,6 +76,7 @@ jobs:
             perl -0777nE 'print $& if /(?<=\n\n).*?(?=\n\n)/sg' NEWS
             echo "\nEOF"
           } | tee -a $GITHUB_ENV
+          echo $releaseChangelog
 
           # Check if version is a pre-release
           if [ -z $preRelease ]; then
@@ -88,6 +90,7 @@ jobs:
               echo "false";
             fi
           } | tee -a $GITHUB_ENV
+          echo $preRelease
 
       - name: Tag release
         if: ${{ !fromJSON(github.event.inputs.dryRun) }}
