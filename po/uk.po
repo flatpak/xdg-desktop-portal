@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-06-21 03:34+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-08-06 09:55+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -15,26 +15,26 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
-"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : "
+"n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 "X-Generator: Lokalize 23.04.3\n"
 
-#: src/background.c:813
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Дозволити запуск %s у фоновому режимі?"
 
-#: src/background.c:817
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s надіслано запит щодо автоматичного запуску у фоновому режимі."
 
-#: src/background.c:819
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s надіслано запит щодо запуску у фоновому режимі."
 
-#: src/background.c:820
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,187 +42,182 @@ msgstr ""
 "Параметри запуску у фоновому режимі може бути будь-коли змінено за допомогою "
 "налаштовування параметрів програми."
 
-#: src/background.c:825
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Не дозволяти"
 
-#: src/background.c:826 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Дозволити"
 
-#: src/camera.c:104
+#: src/camera.c:106
 #, c-format
-#| msgid "Allow %s to run in the background?"
 msgid "Allow %s to Use the Camera?"
 msgstr "Дозволити %s використання камери?"
 
-#: src/camera.c:105
+#: src/camera.c:107
 #, c-format
-#| msgid "%s wants to use your camera."
 msgid "%s wants to access camera devices."
 msgstr "%s потрібен доступ до пристроїв камери."
 
-#: src/camera.c:109
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "Дозволити програмі використовувати камеру?"
 
-#: src/camera.c:110
-#| msgid "An application wants to use your camera."
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "Програмі потрібен доступ до пристроїв камери."
 
-#: src/dynamic-launcher.c:120
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Ідентифікатор стільничного файла не містить суфікса .desktop: %s"
 
-#: src/dynamic-launcher.c:132
-#, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr ""
-"В ідентифікаторі стільничного файла пропущено префікс ідентифікатора"
-" програми «%s.»: %s"
+#: src/dynamic-launcher.c:133
+#, fuzzy, c-format
+msgid "Desktop file id is not valid"
+msgstr "Надано некоректний стільничний запис Install()"
 
-#: src/dynamic-launcher.c:274
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Стільничний запис, який надано Install(), не є коректним ключовим файлом"
 
-#: src/dynamic-launcher.c:287
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr ""
-"Стільничний запис, який надано Install(), повинен належати лише до однієї"
-" групи"
+"Стільничний запис, який надано Install(), повинен належати лише до однієї "
+"групи"
 
-#: src/dynamic-launcher.c:300
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Надано некоректний стільничний запис Install()"
 
-#: src/dynamic-launcher.c:332
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Наданий жетон є некоректним: %s"
 
-#: src/dynamic-launcher.c:376 src/dynamic-launcher.c:806
-#: src/dynamic-launcher.c:856
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Перевищено граничний розмір стільничного файла (%d): %s"
 
-#: src/dynamic-launcher.c:533
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Надана адреса є некоректною: %s"
 
-#: src/dynamic-launcher.c:556
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Некоректний тип засобу запуску: %x"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Непідтримуваний тип засобу запуску: %x"
 
-#: src/dynamic-launcher.c:627 src/dynamic-launcher.c:698
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "Піктограма динамічного засобу запуску не пройшла перевірки"
 
-#: src/dynamic-launcher.c:714
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 "RequestInstallToken() не можна використовувати для ідентифікатора програми %s"
 
-#: src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Піктограма стільничного файла «%s» у невідомому каталозі"
 
-#: src/dynamic-launcher.c:919
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
-"Не вдалося перетворити у послідовну форму піктограму у стільничному файлі «"
-"%s»"
+"Не вдалося перетворити у послідовну форму піктограму у стільничному файлі "
+"«%s»"
 
-#: src/dynamic-launcher.c:959
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Немає динамічного засобу запуску з ідентифікатором «%s»"
 
-#: src/dynamic-launcher.c:978
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Не вдалося створити GDesktopAppInfo для засобу запуску з ідентифікатором «%s»"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Заборонити доступ"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Надати доступ"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Надати %s доступ до даних щодо вашого перебування?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr ""
 "%s потрібен доступ до використання даних щодо вашого місця перебування."
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Надати доступ до даних щодо вашого перебування?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr ""
 "Програмі потрібен доступ до використання даних щодо вашого місця перебування."
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Параметри доступу до даних щодо вашого місця перебування може бути будь-коли "
 "змінено за допомогою налаштувань конфіденційності."
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Заборонити"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Дозволити %s робити знімки вікон?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s потрібна можливість будь-коли створювати знімки вікон."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Дозволити програмам робити знімки вікон?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Програмі потрібна можливість будь-коли створювати знімки вікон."
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Параметри цього доступу може бути будь-коли змінено за допомогою налаштувань "
 "конфіденційності."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Потрібного вам параметра не знайдено"
 
@@ -241,6 +236,11 @@ msgid "Allow Applications to Set Backgrounds?"
 msgstr "Дозволити програмам встановлювати фонове зображення?"
 
 #: src/wallpaper.c:216
-msgid ""
-"An application is requesting to be able to change the background image."
+msgid "An application is requesting to be able to change the background image."
 msgstr "Програмою надіслано запит щодо доступу до зміни фонового зображення."
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr ""
+#~ "В ідентифікаторі стільничного файла пропущено префікс ідентифікатора "
+#~ "програми «%s.»: %s"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2023-01-04 01:42+0300\n"
 "Last-Translator: Yuras Shumovich <shumovichy@gmail.com>\n"
 "Language-Team: Belarusian <i18n-bel-gnome@googlegroups.com>\n"
@@ -19,167 +19,249 @@ msgstr ""
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 3.2.2\n"
 
-#: src/background.c:745
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Дазволіць %s выкананне ў фоне?"
 
-#: src/background.c:749
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s хоча атрымаць доступ на аўтаматычны запуск і выкананне ў фоне."
 
-#: src/background.c:751
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s хоча атрымаць доступ на выкананне ў фоне."
 
-#: src/background.c:752
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "Дазвол на «выкананне ў фоне» заўсёды можна змяніць праз налады праграм."
 
-#: src/background.c:757
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Не дазваляць"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Дазволіць"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Уключыць мікрафон?"
+#: src/camera.c:106
+#, fuzzy, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Дазволіць %s выкананне ў фоне?"
 
-#: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr "Доступ да мікрафона заўсёды можна змяніць праз налады прыватнасці."
-
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Праграма хоча атрымаць доступ да мікрафона."
-
-#: src/device.c:123
-#, c-format
-msgid "%s wants to use your microphone."
-msgstr "%s хоча атрымаць доступ да мікрафона."
-
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Уключыць дынамікі?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr "Доступ да дынамікаў заўсёды можна змяніць праз налады прыватнасці."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Праграма хоча атрымаць доступ на прайграванне гуку."
-
-#: src/device.c:136
-#, c-format
-msgid "%s wants to play sound."
-msgstr "%s хоча атрымаць доступ на прайграванне гуку."
-
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Уключыць камеру?"
-
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr "Доступ да камеры заўсёды можна змяніць праз налады прыватнасці."
-
-#: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Праграма хоча атрымаць доступ да камеры."
-
-#: src/device.c:149
-#, c-format
-msgid "%s wants to use your camera."
+#: src/camera.c:107
+#, fuzzy, c-format
+msgid "%s wants to access camera devices."
 msgstr "%s хоча атрымаць доступ да камеры."
 
-#: src/location.c:526
+#: src/camera.c:111
+msgid "Allow app to Use the Camera?"
+msgstr ""
+
+#: src/camera.c:112
+#, fuzzy
+msgid "An app wants to access camera devices."
+msgstr "Праграма хоча атрымаць доступ да камеры."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:564
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:587
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:594
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:920
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:943
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:982
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1001
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Забараніць доступ"
 
-#: src/location.c:528
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Дазволіць доступ"
 
-#: src/location.c:546
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Даць %s доступ да вашага месцазнаходжання?"
 
-#: src/location.c:551
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s хоча атрымаць доступ да месцазнаходжання."
 
-#: src/location.c:559
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Дазволіць доступ да вашага месцазнаходжання?"
 
-#: src/location.c:560
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Праграма хоча атрымаць доступ да месцазнаходжання."
 
-#: src/location.c:563
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Доступ да месцазнаходжанне заўсёды можна змяніць праз налады прыватнасці."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Забараніць"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Дазволіць %s рабіць здымкі экрана?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s хоча атрымаць доступ у любы час рабіць здымкі экрана."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Дазволіць праграмам рабіць здымкі экрана?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Праграма хоча атрымаць доступ у любы час рабіць здымкі экрана."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Доступ да месцазнаходжанне заўсёды можна змяніць праз налады прыватнасці."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Запытаная налада не знойдзена"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Дазволіць %s змяняць фон?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s хоча атрымаць доступ на змяненне фонавай выявы."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Дазволіць праграмам змяняць фон?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Праграма запытвае доступ на змяненне фонавай выявы."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Уключыць мікрафон?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr "Доступ да мікрафона заўсёды можна змяніць праз налады прыватнасці."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Праграма хоча атрымаць доступ да мікрафона."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "%s хоча атрымаць доступ да мікрафона."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Уключыць дынамікі?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr "Доступ да дынамікаў заўсёды можна змяніць праз налады прыватнасці."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Праграма хоча атрымаць доступ на прайграванне гуку."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "%s хоча атрымаць доступ на прайграванне гуку."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Уключыць камеру?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr "Доступ да камеры заўсёды можна змяніць праз налады прыватнасці."

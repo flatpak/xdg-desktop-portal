@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2022-09-21 22:58+0200\n"
 "Last-Translator: Balázs Úr <ur.balazs at fsf dot hu>\n"
 "Language-Team: Hungarian <gnome-hu-list at gnome dot org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms:  nplurals=2; plural=(n != 1);\n"
 "X-Generator: Lokalize 19.12.3\n"
 
-#: src/background.c:745
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Engedélyezi a(z) %s számára, hogy a háttérben fusson?"
 
-#: src/background.c:749
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "A(z) %s azt kéri, hogy automatikusan elinduljon és a háttérben fusson."
 
-#: src/background.c:751
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "A(z) %s azt kéri, hogy a háttérben fusson."
 
-#: src/background.c:752
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,153 +41,235 @@ msgstr ""
 "A „háttérben való futás” engedély bármikor megváltoztatható az alkalmazás "
 "beállításaiban."
 
-#: src/background.c:757
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Ne engedélyezze"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Engedélyezés"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Mikrofon bekapcsolása?"
+#: src/camera.c:106
+#, fuzzy, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Engedélyezi a(z) %s számára, hogy a háttérben fusson?"
 
-#: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"A mikrofonhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
-"beállításokban."
-
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Egy alkalmazás használni szeretné a mikrofonját."
-
-#: src/device.c:123
-#, c-format
-msgid "%s wants to use your microphone."
-msgstr "A(z) %s használni szeretné a mikrofonját."
-
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Hangszórók bekapcsolása?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
-"beállításokban."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Egy alkalmazás hangot szeretne lejátszani."
-
-#: src/device.c:136
-#, c-format
-msgid "%s wants to play sound."
-msgstr "A(z) %s hangot szeretne lejátszani."
-
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Kamera bekapcsolása?"
-
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr ""
-"A kamerához való hozzáférés bármikor megváltoztatható az adatvédelmi "
-"beállításokban."
-
-#: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Egy alkalmazás használni szeretné a kameráját."
-
-#: src/device.c:149
-#, c-format
-msgid "%s wants to use your camera."
+#: src/camera.c:107
+#, fuzzy, c-format
+msgid "%s wants to access camera devices."
 msgstr "A(z) %s használni szeretné a kameráját."
 
-#: src/location.c:526
+#: src/camera.c:111
+msgid "Allow app to Use the Camera?"
+msgstr ""
+
+#: src/camera.c:112
+#, fuzzy
+msgid "An app wants to access camera devices."
+msgstr "Egy alkalmazás használni szeretné a kameráját."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:564
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:587
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:594
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:920
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:943
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:982
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1001
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:528
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:546
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:551
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:559
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Hozzáférést ad a tartózkodási helyéhez?"
 
-#: src/location.c:560
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:563
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
 "adatvédelmi beállításokban."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Elutasítás"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Engedélyezi a(z) %s számára, hogy képernyőképeket készítsen?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "A(z) %s azt szeretné, hogy bármikor készíthessen képernyőképeket."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Engedélyezi az alkalmazások számára, hogy képernyőképeket készítsenek?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Egy alkalmazás azt szeretné, hogy bármikor készíthessen képernyőképeket."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Ez az engedély bármikor megváltoztatható az adatvédelmi beállításokban."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Engedélyezi a(z) %s számára, hogy háttereket állítson be?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "A(z) %s azt kéri, hogy megváltoztathassa a háttérképet."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Engedélyezi az alkalmazások számára, hogy háttereket állítsanak be?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Egy alkalmazás azt kéri, hogy megváltoztathassa a háttérképet."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Mikrofon bekapcsolása?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "A mikrofonhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
+#~ "beállításokban."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Egy alkalmazás használni szeretné a mikrofonját."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "A(z) %s használni szeretné a mikrofonját."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Hangszórók bekapcsolása?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "A hangszórókhoz való hozzáférés bármikor megváltoztatható az adatvédelmi "
+#~ "beállításokban."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Egy alkalmazás hangot szeretne lejátszani."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "A(z) %s hangot szeretne lejátszani."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Kamera bekapcsolása?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "A kamerához való hozzáférés bármikor megváltoztatható az adatvédelmi "
+#~ "beállításokban."

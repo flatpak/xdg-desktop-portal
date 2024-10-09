@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-08-30 03:32+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-04-11 13:09+0100\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.4.2\n"
 
-#: src/background.c:820
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Allow %s to run in the background?"
 
-#: src/background.c:824
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s requests to be started automatically and run in the background."
 
-#: src/background.c:826
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s requests to run in the background."
 
-#: src/background.c:827
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,41 +42,41 @@ msgstr ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 
-#: src/background.c:832
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Don't allow"
 
-#: src/background.c:833 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Allow"
 
-#: src/camera.c:104
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Allow %s to Use the Camera?"
 
-#: src/camera.c:105
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s wants to access camera devices."
 
-#: src/camera.c:109
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "Allow app to Use the Camera?"
 
-#: src/camera.c:110
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "An app wants to access camera devices."
 
-#: src/dynamic-launcher.c:120
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Desktop file id missing .desktop suffix: %s"
 
-#: src/dynamic-launcher.c:132
-#, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr "Desktop file id missing app id prefix '%s.': %s"
+#: src/dynamic-launcher.c:133
+#, fuzzy, c-format
+msgid "Desktop file id is not valid"
+msgstr "Desktop entry given to Install() not valid"
 
 #: src/dynamic-launcher.c:305
 #, c-format
@@ -98,8 +98,8 @@ msgstr "Desktop entry given to Install() not valid"
 msgid "Token given is invalid: %s"
 msgstr "Token given is invalid: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:833
-#: src/dynamic-launcher.c:883
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop file exceeds max size (%d): %s"
@@ -128,83 +128,83 @@ msgstr "Dynamic launcher icon failed validation"
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() not allowed for app id %s"
 
-#: src/dynamic-launcher.c:923
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop file '%s' icon at unrecognised path"
 
-#: src/dynamic-launcher.c:946
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop file '%s' icon failed to serialise"
 
-#: src/dynamic-launcher.c:986
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "No dynamic launcher exists with id '%s'"
 
-#: src/dynamic-launcher.c:1005
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Failed to create GDesktopAppInfo for launcher with id '%s'"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Deny Access"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Grant Access"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Give %s Access to Your Location?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s wants to use your location."
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Grant Access to Your Location?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "An application wants to use your location."
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Location access can be changed at any time from the privacy settings."
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Deny"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Allow %s to Take Screenshots?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s wants to be able to take screenshots at any time."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Allow Applications to Take Screenshots?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "An application wants to be able to take screenshots at any time."
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "This permission can be changed at any time from the privacy settings."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Requested setting not found"
 
@@ -226,6 +226,10 @@ msgstr "Allow Applications to Set Backgrounds?"
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 "An application is requesting to be able to change the background image."
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr "Desktop file id missing app id prefix '%s.': %s"
 
 #, c-format
 #~ msgid "Desktop entry given to Install() must not use --file-forwarding"

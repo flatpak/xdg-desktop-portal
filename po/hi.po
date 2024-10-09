@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-05-18 03:33+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-05-18 09:47+0530\n"
 "Last-Translator: Scrambled777 <weblate.scrambled777@simplelogin.com>\n"
 "Language-Team: Hindi <indlinux-hindi@lists.sourceforge.net>\n"
@@ -19,202 +19,190 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 46.1\n"
 
-#: src/background.c:747
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "%s को पृष्ठभूमि में चलने की अनुमति दें?"
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s स्वचालित रूप से प्रारंभ करने और पृष्ठभूमि में चलाने का अनुरोध कर रहा है।"
 
-#: src/background.c:753
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s पृष्ठभूमि में चलने का अनुरोध कर रहा है।"
 
-#: src/background.c:754
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "‘पृष्ठभूमि में चलाएं’ अनुमति को अनुप्रयोग सेटिंग्स से किसी भी समय बदला जा सकता है।"
 
-#: src/background.c:759
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "अनुमति न दें"
 
-#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "अनुमति दें"
 
-#: src/camera.c:104
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "%s को कैमरा उपयोग करने की अनुमति दें?"
 
-#: src/camera.c:105
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s कैमरा उपकरणों तक पहुंचना चाहता है।"
 
-#: src/camera.c:109
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "ऐप को कैमरे का उपयोग करने की अनुमति दें?"
 
-#: src/camera.c:110
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "ऐप कैमरा उपकरण तक पहुंचना चाहता है।"
 
-#: src/dynamic-launcher.c:120
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "डेस्कटॉप फाइल ID में .desktop प्रत्यय मौजूद नहीं है: %s"
 
-#: src/dynamic-launcher.c:132
-#, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr "डेस्कटॉप फाइल ID में ऐप ID उपसर्ग '%s.' नहीं है: %s"
+#: src/dynamic-launcher.c:133
+#, fuzzy, c-format
+msgid "Desktop file id is not valid"
+msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:212
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य कुंजी फाइल नहीं है"
 
-#: src/dynamic-launcher.c:224
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि में केवल एक समूह होना चाहिए"
 
-#: src/dynamic-launcher.c:266
-#, c-format
-msgid "Desktop entry given to Install() must not use --file-forwarding"
-msgstr ""
-"Install() को दी गई डेस्कटॉप प्रविष्टि को --file-forwarding का उपयोग नहीं करना "
-"चाहिए"
-
-#: src/dynamic-launcher.c:277
-#, c-format
-msgid "DynamicLauncher install not supported for: %s"
-msgstr "डायनैमिक लॉन्चर स्थापना इसके लिए समर्थित नहीं है: %s"
-
-#: src/dynamic-launcher.c:301
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:342
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "दिया गया टोकन अमान्य है: %s"
 
-#: src/dynamic-launcher.c:370 src/dynamic-launcher.c:812
-#: src/dynamic-launcher.c:862
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "डेस्कटॉप फाइल अधिकतम आकार (%d) से अधिक है: %s"
 
-#: src/dynamic-launcher.c:539
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "दिया गया URL अमान्य है: %s"
 
-#: src/dynamic-launcher.c:562
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "अमान्य लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:569
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "असमर्थित लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:633 src/dynamic-launcher.c:704
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "डायनैमिक लॉन्चर आइकन का सत्यापन विफल रहा"
 
-#: src/dynamic-launcher.c:720
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "ऐप ID %s के लिए RequestInstallToken() की अनुमति नहीं है"
 
-#: src/dynamic-launcher.c:902
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "अज्ञात पथ पर डेस्कटॉप फाइल '%s' आइकन"
 
-#: src/dynamic-launcher.c:925
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "डेस्कटॉप फाइल '%s' आइकन क्रमबद्ध करने में विफल रहा"
 
-#: src/dynamic-launcher.c:965
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "ID '%s' के साथ कोई डायनैमिक लॉन्चर मौजूद नहीं है"
 
-#: src/dynamic-launcher.c:984
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "'%s' ID वाले लॉन्चर के लिए GDesktopAppInfo बनाने में विफल"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "पहुंच अस्वीकारें"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "पहुंच स्वीकारें"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "%s को अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "एक अनुप्रयोग आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान तक पहुंच को बदला जा सकता है।"
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "अस्वीकारें"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "%s को स्क्रीनशॉट लेने की अनुमति दें?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s किसी भी समय स्क्रीनशॉट लेने में सक्षम होना चाहता है।"
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "अनुप्रयोग को स्क्रीनशॉट लेने की अनुमति दें?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "एक अनुप्रयोग किसी भी समय स्क्रीनशॉट लेने में सक्षम होना चाहता है।"
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "अनुरोधित सेटिंग नहीं मिली"
 
@@ -235,3 +223,17 @@ msgstr "अनुप्रयोग को पृष्ठभूमि निर
 #: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "एक अनुप्रयोग पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr "डेस्कटॉप फाइल ID में ऐप ID उपसर्ग '%s.' नहीं है: %s"
+
+#, c-format
+#~ msgid "Desktop entry given to Install() must not use --file-forwarding"
+#~ msgstr ""
+#~ "Install() को दी गई डेस्कटॉप प्रविष्टि को --file-forwarding का उपयोग नहीं करना "
+#~ "चाहिए"
+
+#, c-format
+#~ msgid "DynamicLauncher install not supported for: %s"
+#~ msgstr "डायनैमिक लॉन्चर स्थापना इसके लिए समर्थित नहीं है: %s"

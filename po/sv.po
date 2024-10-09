@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-02-14 15:35+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-02-14 23:53+0100\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.4.2\n"
 
-#: src/background.c:747
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s begär att startas automatiskt och köras i bakgrunden."
 
-#: src/background.c:753
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s begär att köras i bakgrunden."
 
-#: src/background.c:754
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,216 +42,170 @@ msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
 "programinställningarna."
 
-#: src/background.c:759
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Tillåt"
 
-#: src/device.c:117
-#, c-format
-msgid "Allow %s to Use the Microphone?"
-msgstr "Tillåt %s att använda mikrofonen?"
-
-#: src/device.c:118
-#, c-format
-msgid "%s wants to access recording devices."
-msgstr "%s vill komma åt inspelningsenheter."
-
-#: src/device.c:122
-msgid "Allow app to Use the Microphone?"
-msgstr "Tillåt program att använda mikrofonen?"
-
-#: src/device.c:123
-msgid "An app wants to access recording devices."
-msgstr "Ett program vill komma åt inspelningsenheter."
-
-#: src/device.c:132
-#, c-format
-msgid "Allow %s to Use the Speakers?"
-msgstr "Tillåt %s att använda högtalarna?"
-
-#: src/device.c:133
-#, c-format
-msgid "%s wants to access audio devices."
-msgstr "%s vill komma åt ljudenheter."
-
-#: src/device.c:137
-msgid "Allow app to Use the Speakers?"
-msgstr "Tillåt program att använda högtalarna?"
-
-#: src/device.c:138
-msgid "An app wants to access audio devices."
-msgstr "Ett program vill komma åt ljudenheter."
-
-#: src/device.c:147
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Tillåt %s att använda kameran?"
 
-#: src/device.c:148
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s vill komma åt kameraenheter."
 
-#: src/device.c:152
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "Tillåt program att använda kameran?"
 
-#: src/device.c:153
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "Ett program vill komma åt kameraenheter."
 
-#: src/dynamic-launcher.c:119
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Desktop-filens ID saknar .desktop-ändelse: %s"
 
-#: src/dynamic-launcher.c:131
-#, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr "Desktop-filens ID saknar program-ID-prefixet ”%s.”: %s"
+#: src/dynamic-launcher.c:133
+#, fuzzy, c-format
+msgid "Desktop file id is not valid"
+msgstr "Desktop-post som ges till Install() är ogiltig"
 
-#: src/dynamic-launcher.c:211
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Desktop-post som ges till Install() är inte en giltig nyckelfil"
 
-#: src/dynamic-launcher.c:223
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr "Desktop-post som ges till Install() får endast ha en grupp"
 
-#: src/dynamic-launcher.c:265
-#, c-format
-msgid "Desktop entry given to Install() must not use --file-forwarding"
-msgstr "Desktop-post som ges till Install() får inte använda --file-forwarding"
-
-#: src/dynamic-launcher.c:276
-#, c-format
-msgid "DynamicLauncher install not supported for: %s"
-msgstr "DynamicLauncher-installation stöds inte för: %s"
-
-#: src/dynamic-launcher.c:300
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop-post som ges till Install() är ogiltig"
 
-#: src/dynamic-launcher.c:341
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Angiven token är ogiltig: %s"
 
-#: src/dynamic-launcher.c:369 src/dynamic-launcher.c:811
-#: src/dynamic-launcher.c:861
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-filen överskrider maximal storlek (%d): %s"
 
-#: src/dynamic-launcher.c:538
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Angiven URL är ogiltig: %s"
 
-#: src/dynamic-launcher.c:561
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Ogiltig startartyp: %x"
 
-#: src/dynamic-launcher.c:568
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Startartyp som inte stöds: %x"
 
-#: src/dynamic-launcher.c:632 src/dynamic-launcher.c:703
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "Dynamisk startarikon kunde inte valideras"
 
-#: src/dynamic-launcher.c:719
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() inte tillåtet för program-ID %s"
 
-#: src/dynamic-launcher.c:901
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop-filen ”%s” har ikon på okänd sökväg"
 
-#: src/dynamic-launcher.c:924
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop-filen ”%s” har ikon som inte kunde serialiseras"
 
-#: src/dynamic-launcher.c:963
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Ingen dynamisk startare finns med ID ”%s”"
 
-#: src/dynamic-launcher.c:981
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Misslyckades med att skapa GDesktopAppInfo för startare med ID ”%s”"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Neka åtkomst"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Bevilja åtkomst"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Ge %s åtkomst till din plats?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vill använda din plats."
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Bevilja åtkomst till din plats?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Ett program vill använda din plats."
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Neka"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Tillåt %s att ta skärmbilder?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Tillåt program att ta skärmbilder?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Ett program vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Denna rättighet kan ändras när som helst från sekretessinställningarna."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Begärd inställning hittades inte"
 
@@ -272,3 +226,44 @@ msgstr "Tillåt program att ställa in bakgrunder?"
 #: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Ett program begär att kunna ändra bakgrundsbilden."
+
+#, c-format
+#~ msgid "Allow %s to Use the Microphone?"
+#~ msgstr "Tillåt %s att använda mikrofonen?"
+
+#, c-format
+#~ msgid "%s wants to access recording devices."
+#~ msgstr "%s vill komma åt inspelningsenheter."
+
+#~ msgid "Allow app to Use the Microphone?"
+#~ msgstr "Tillåt program att använda mikrofonen?"
+
+#~ msgid "An app wants to access recording devices."
+#~ msgstr "Ett program vill komma åt inspelningsenheter."
+
+#, c-format
+#~ msgid "Allow %s to Use the Speakers?"
+#~ msgstr "Tillåt %s att använda högtalarna?"
+
+#, c-format
+#~ msgid "%s wants to access audio devices."
+#~ msgstr "%s vill komma åt ljudenheter."
+
+#~ msgid "Allow app to Use the Speakers?"
+#~ msgstr "Tillåt program att använda högtalarna?"
+
+#~ msgid "An app wants to access audio devices."
+#~ msgstr "Ett program vill komma åt ljudenheter."
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr "Desktop-filens ID saknar program-ID-prefixet ”%s.”: %s"
+
+#, c-format
+#~ msgid "Desktop entry given to Install() must not use --file-forwarding"
+#~ msgstr ""
+#~ "Desktop-post som ges till Install() får inte använda --file-forwarding"
+
+#, c-format
+#~ msgid "DynamicLauncher install not supported for: %s"
+#~ msgstr "DynamicLauncher-installation stöds inte för: %s"

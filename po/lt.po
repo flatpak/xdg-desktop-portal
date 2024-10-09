@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2020-03-07 20:26+0200\n"
 "Last-Translator: Moo\n"
 "Language-Team: Lithuanian <gnome-lt@lists.akl.lt>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "(n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 2.3\n"
 
-#: src/background.c:745
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Leisti %s vykdyti fone?"
 
-#: src/background.c:749
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s prašo, kad būtų paleidžiama automatiškai ir vykdoma fone."
 
-#: src/background.c:751
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s prašo, kad būtų vykdoma fone."
 
-#: src/background.c:752
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,154 +42,236 @@ msgstr ""
 "Leidimas \"vykdyti fone\" bet kuriuo metu gali būti pakeistas programos "
 "nustatymuose."
 
-#: src/background.c:757
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Neleisti"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Leisti"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Įjungti mikrofoną?"
+#: src/camera.c:106
+#, fuzzy, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Leisti %s vykdyti fone?"
 
-#: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"Prieiga prie jūsų mikrofono bet kuriuo metu gali būti pakeista privatumo "
-"nustatymuose."
-
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Programa nori naudoti jūsų mikrofoną."
-
-#: src/device.c:123
-#, c-format
-msgid "%s wants to use your microphone."
-msgstr "%s nori naudoti jūsų mikrofoną."
-
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Įjungti garsiakalbius?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"Prieiga prie jūsų garsiakalbių bet kuriuo metu gali būti pakeista privatumo "
-"nustatymuose."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Programa nori atkurti garsą."
-
-#: src/device.c:136
-#, c-format
-msgid "%s wants to play sound."
-msgstr "%s nori atkurti garsą."
-
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Įjungti kamerą?"
-
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr ""
-"Prieiga prie jūsų kameros bet kuriuo metu gali būti pakeista privatumo "
-"nustatymuose."
-
-#: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Programa nori naudoti jūsų kamerą."
-
-#: src/device.c:149
-#, c-format
-msgid "%s wants to use your camera."
+#: src/camera.c:107
+#, fuzzy, c-format
+msgid "%s wants to access camera devices."
 msgstr "%s nori naudoti jūsų kamerą."
 
-#: src/location.c:526
+#: src/camera.c:111
+msgid "Allow app to Use the Camera?"
+msgstr ""
+
+#: src/camera.c:112
+#, fuzzy
+msgid "An app wants to access camera devices."
+msgstr "Programa nori naudoti jūsų kamerą."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:564
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:587
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:594
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:920
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:943
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:982
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1001
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Drausti prieigą"
 
-#: src/location.c:528
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Suteikti prieigą"
 
-#: src/location.c:546
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Suteikti %s prieigą prie jūsų buvimo vietos?"
 
-#: src/location.c:551
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s nori naudoti jūsų buvimo vietą."
 
-#: src/location.c:559
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Suteikti prieigą prie jūsų buvimo vietos?"
 
-#: src/location.c:560
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Programa nori naudoti jūsų buvimo vietą."
 
-#: src/location.c:563
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Prieiga prie jūsų buvimo vietos bet kuriuo metu gali būti pakeista privatumo "
 "nustatymuose."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Drausti"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Leisti %s nustatyti fonus?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Leisti programoms nustatyti fonus?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Programa nori naudoti jūsų mikrofoną."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Šis leidimas bet kuriuo metu gali būti pakeistas privatumo nustatymuose."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Užklaustas nustatymas nerastas"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Leisti %s nustatyti fonus?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s prašo galimybės keisti fono paveikslą."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Leisti programoms nustatyti fonus?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Programa prašo galimybės keisti fono paveikslą."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Įjungti mikrofoną?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Prieiga prie jūsų mikrofono bet kuriuo metu gali būti pakeista privatumo "
+#~ "nustatymuose."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Programa nori naudoti jūsų mikrofoną."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "%s nori naudoti jūsų mikrofoną."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Įjungti garsiakalbius?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Prieiga prie jūsų garsiakalbių bet kuriuo metu gali būti pakeista "
+#~ "privatumo nustatymuose."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Programa nori atkurti garsą."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "%s nori atkurti garsą."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Įjungti kamerą?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Prieiga prie jūsų kameros bet kuriuo metu gali būti pakeista privatumo "
+#~ "nustatymuose."

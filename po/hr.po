@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-26 11:13-0300\n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2020-01-25 16:44+0100\n"
 "Last-Translator: Milo Ivir <mail@milotype.de>\n"
 "Language-Team: \n"
@@ -18,22 +18,22 @@ msgstr ""
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 1.8.12\n"
 
-#: src/background.c:745
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Dozvoliti da %s radi u pozadini?"
 
-#: src/background.c:749
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s traži da se automatski pokrene i da radi u pozadini."
 
-#: src/background.c:751
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s traži da radi u pozadini."
 
-#: src/background.c:752
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,150 +41,234 @@ msgstr ""
 "Dozvolu za „radi u pozadini” je uvijek moguće promijeniti u postavkama "
 "programa."
 
-#: src/background.c:757
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Nemoj dozvoliti"
 
-#: src/background.c:758 src/screenshot.c:238 src/wallpaper.c:182
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Dozvoli"
 
-#: src/device.c:116
-msgid "Turn On Microphone?"
-msgstr "Uključiti mikrofon?"
+#: src/camera.c:106
+#, fuzzy, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Dozvoliti da %s radi u pozadini?"
 
-#: src/device.c:117
-msgid ""
-"Access to your microphone can be changed at any time from the privacy "
-"settings."
-msgstr ""
-"Pristup tvom mikrofonu je uvijek moguće promijeniti u postavkama privatnosti."
-
-#: src/device.c:121
-msgid "An application wants to use your microphone."
-msgstr "Jedan program želi koristiti tvoj mikrofon."
-
-#: src/device.c:123
-#, c-format
-msgid "%s wants to use your microphone."
-msgstr "%s želi koristiti tvoj mikrofon."
-
-#: src/device.c:129
-msgid "Turn On Speakers?"
-msgstr "Uključiti zvučnike?"
-
-#: src/device.c:130
-msgid ""
-"Access to your speakers can be changed at any time from the privacy settings."
-msgstr ""
-"Pristup tvojim zvučnicima je uvijek moguće promijeniti u postavkama "
-"privatnosti."
-
-#: src/device.c:134
-msgid "An application wants to play sound."
-msgstr "Jedan program želi svirati zvuk."
-
-#: src/device.c:136
-#, c-format
-msgid "%s wants to play sound."
-msgstr "%s želi svirati zvuk."
-
-#: src/device.c:142
-msgid "Turn On Camera?"
-msgstr "Uključiti kameru?"
-
-#: src/device.c:143
-msgid ""
-"Access to your camera can be changed at any time from the privacy settings."
-msgstr ""
-"Pristup tvojoj kameri je uvijek moguće promijeniti u postavkama privatnosti."
-
-#: src/device.c:147
-msgid "An application wants to use your camera."
-msgstr "Jedan program želi koristiti tvoju kameru."
-
-#: src/device.c:149
-#, c-format
-msgid "%s wants to use your camera."
+#: src/camera.c:107
+#, fuzzy, c-format
+msgid "%s wants to access camera devices."
 msgstr "%s želi koristiti tvoju kameru."
 
-#: src/location.c:526
+#: src/camera.c:111
+msgid "Allow app to Use the Camera?"
+msgstr ""
+
+#: src/camera.c:112
+#, fuzzy
+msgid "An app wants to access camera devices."
+msgstr "Jedan program želi koristiti tvoju kameru."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:564
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:587
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:594
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:920
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:943
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:982
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1001
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Zabrani pristup"
 
-#: src/location.c:528
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Dozvoli pristup"
 
-#: src/location.c:546
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Dozvoliti da %s pristupi tvojoj lokaciji?"
 
-#: src/location.c:551
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s želi koristiti tvoju lokaciju."
 
-#: src/location.c:559
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Dozvoliti pristup tvojoj lokaciji?"
 
-#: src/location.c:560
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Jedan program želi koristiti tvoju lokaciju."
 
-#: src/location.c:563
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Pristup lokaciji je uvijek moguće promijeniti u postavkama privatnosti."
 
-#: src/screenshot.c:236 src/wallpaper.c:180
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Zabrani"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Dozvoliti da %s postavi pozadine?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Dozvoliti programu da postavi pozadine?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Jedan program želi koristiti tvoj mikrofon."
 
-#: src/screenshot.c:269 src/wallpaper.c:213
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Ovu dozvolu je uvijek moguće promijeniti u postavkama privatnosti."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "Zatražena postavka nije nađena"
 
-#: src/wallpaper.c:200
+#: src/wallpaper.c:205
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Dozvoliti da %s postavi pozadine?"
 
-#: src/wallpaper.c:201
+#: src/wallpaper.c:206
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s traži dozvolu za mijenjanje slike pozadine."
 
-#: src/wallpaper.c:209
+#: src/wallpaper.c:215
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Dozvoliti programu da postavi pozadine?"
 
-#: src/wallpaper.c:210
+#: src/wallpaper.c:216
 msgid "An application is requesting to be able to change the background image."
 msgstr "Jedan program traži dozvolu za mijenjanje slike pozadine."
+
+#~ msgid "Turn On Microphone?"
+#~ msgstr "Uključiti mikrofon?"
+
+#~ msgid ""
+#~ "Access to your microphone can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Pristup tvom mikrofonu je uvijek moguće promijeniti u postavkama "
+#~ "privatnosti."
+
+#~ msgid "An application wants to use your microphone."
+#~ msgstr "Jedan program želi koristiti tvoj mikrofon."
+
+#, c-format
+#~ msgid "%s wants to use your microphone."
+#~ msgstr "%s želi koristiti tvoj mikrofon."
+
+#~ msgid "Turn On Speakers?"
+#~ msgstr "Uključiti zvučnike?"
+
+#~ msgid ""
+#~ "Access to your speakers can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Pristup tvojim zvučnicima je uvijek moguće promijeniti u postavkama "
+#~ "privatnosti."
+
+#~ msgid "An application wants to play sound."
+#~ msgstr "Jedan program želi svirati zvuk."
+
+#, c-format
+#~ msgid "%s wants to play sound."
+#~ msgstr "%s želi svirati zvuk."
+
+#~ msgid "Turn On Camera?"
+#~ msgstr "Uključiti kameru?"
+
+#~ msgid ""
+#~ "Access to your camera can be changed at any time from the privacy "
+#~ "settings."
+#~ msgstr ""
+#~ "Pristup tvojoj kameri je uvijek moguće promijeniti u postavkama "
+#~ "privatnosti."

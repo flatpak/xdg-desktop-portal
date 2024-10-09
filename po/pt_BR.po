@@ -6,8 +6,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-04-04 15:33+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-04-05 16:40-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "X-Generator: Gtranslator 46.0\n"
 
-#: src/background.c:747
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir que %s execute em segundo plano?"
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:753
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita ser executado em segundo plano."
 
-#: src/background.c:754
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -41,223 +41,175 @@ msgstr ""
 "A permissão “executar em segundo plano” pode ser alterada a qualquer tempo a "
 "partir das configurações do aplicativo."
 
-#: src/background.c:759
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "Permitir"
 
-#: src/device.c:117
-#, c-format
-msgid "Allow %s to Use the Microphone?"
-msgstr "Permitir que %s use o microfone?"
-
-#: src/device.c:118
-#, c-format
-msgid "%s wants to access recording devices."
-msgstr "%s deseja acessar dispositivos de gravação."
-
-#: src/device.c:122
-msgid "Allow app to Use the Microphone?"
-msgstr "Permitir que o aplicativo use o microfone?"
-
-#: src/device.c:123
-msgid "An app wants to access recording devices."
-msgstr "Um aplicativo deseja acessar dispositivos de gravação."
-
-#: src/device.c:132
-#, c-format
-msgid "Allow %s to Use the Speakers?"
-msgstr "Permitir que %s use os alto-falantes?"
-
-#: src/device.c:133
-#, c-format
-msgid "%s wants to access audio devices."
-msgstr "%s deseja acessar dispositivos de áudio."
-
-#: src/device.c:137
-msgid "Allow app to Use the Speakers?"
-msgstr "Permitir que o aplicativo use os alto-falantes?"
-
-#: src/device.c:138
-msgid "An app wants to access audio devices."
-msgstr "Um aplicativo deseja acessar os dispositivos de áudio."
-
-#: src/device.c:147
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Permitir que %s use a câmera?"
 
-#: src/device.c:148
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s deseja acessar dispositivos de câmera."
 
-#: src/device.c:152
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "Permitir que o aplicativo use a câmera?"
 
-#: src/device.c:153
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "Um aplicativo deseja acessar dispositivos de câmera."
 
-#: src/dynamic-launcher.c:119
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Faltando sufixo .desktop no id do arquivo desktop: %s"
 
-#: src/dynamic-launcher.c:131
-#, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
-msgstr ""
-"Faltando prefixo de id de aplicativo no id do arquivo desktop: “%s.”: %s"
+#: src/dynamic-launcher.c:133
+#, fuzzy, c-format
+msgid "Desktop file id is not valid"
+msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:211
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "A entrada desktop fornecida para Install() não é um arquivo de chave válido"
 
-#: src/dynamic-launcher.c:223
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr "A entrada desktop fornecida para Install() deve ter apenas um grupo"
 
-#: src/dynamic-launcher.c:265
-#, c-format
-msgid "Desktop entry given to Install() must not use --file-forwarding"
-msgstr ""
-"A entrada desktop fornecida para Install() não deve usar --file-forwarding"
-
-#: src/dynamic-launcher.c:276
-#, c-format
-msgid "DynamicLauncher install not supported for: %s"
-msgstr "Instalação por DynamicLauncher não suportada para: %s"
-
-#: src/dynamic-launcher.c:300
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:341
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "O token fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:369 src/dynamic-launcher.c:811
-#: src/dynamic-launcher.c:861
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O arquivo desktop excede o tamanho máximo (%d): %s"
 
-#: src/dynamic-launcher.c:538
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "URL fornecida é inválida: %s"
 
-#: src/dynamic-launcher.c:561
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipo de lançador inválido: %x"
 
-#: src/dynamic-launcher.c:568
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipo de lançador não suportado: %x"
 
-#: src/dynamic-launcher.c:632 src/dynamic-launcher.c:703
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "O ícone do lançador dinâmico falhou na validação"
 
-#: src/dynamic-launcher.c:719
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() não permitido para o id de aplicativo %s"
 
-#: src/dynamic-launcher.c:901
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "O ícone do arquivo desktop “%s” está em um caminho irreconhecível"
 
-#: src/dynamic-launcher.c:924
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "O ícone do arquivo desktop “%s” falhou na serialização"
 
-#: src/dynamic-launcher.c:963
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Nenhum lançador dinâmico existe com o id “%s”"
 
-#: src/dynamic-launcher.c:981
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id “%s”"
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "Negar acesso"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "Conceder acesso"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Dar %s acesso a sua localização?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s deseja usar sua localização."
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "Conceder acesso à sua localização?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "Um aplicativo deseja usar sua localização."
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
 "configurações de privacidades."
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "Negar"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permitir que %s faça capturas de tela?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s deseja ser capaz de capturar a tela a qualquer momento."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Permitir que aplicativos façam capturas de tela?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Um aplicativo deseja ser capaz de fazer capturas de tela a qualquer momento."
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Essa permissão pode ser alterada a qualquer momento a partir das "
 "configurações de privacidades."
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "A configuração requisitada não foi encontrada"
 
@@ -281,6 +233,48 @@ msgid "An application is requesting to be able to change the background image."
 msgstr ""
 "Um aplicativo está solicitando a capacidade de alterar a imagem de plano de "
 "fundo."
+
+#, c-format
+#~ msgid "Allow %s to Use the Microphone?"
+#~ msgstr "Permitir que %s use o microfone?"
+
+#, c-format
+#~ msgid "%s wants to access recording devices."
+#~ msgstr "%s deseja acessar dispositivos de gravação."
+
+#~ msgid "Allow app to Use the Microphone?"
+#~ msgstr "Permitir que o aplicativo use o microfone?"
+
+#~ msgid "An app wants to access recording devices."
+#~ msgstr "Um aplicativo deseja acessar dispositivos de gravação."
+
+#, c-format
+#~ msgid "Allow %s to Use the Speakers?"
+#~ msgstr "Permitir que %s use os alto-falantes?"
+
+#, c-format
+#~ msgid "%s wants to access audio devices."
+#~ msgstr "%s deseja acessar dispositivos de áudio."
+
+#~ msgid "Allow app to Use the Speakers?"
+#~ msgstr "Permitir que o aplicativo use os alto-falantes?"
+
+#~ msgid "An app wants to access audio devices."
+#~ msgstr "Um aplicativo deseja acessar os dispositivos de áudio."
+
+#, c-format
+#~ msgid "Desktop file id missing app id prefix '%s.': %s"
+#~ msgstr ""
+#~ "Faltando prefixo de id de aplicativo no id do arquivo desktop: “%s.”: %s"
+
+#, c-format
+#~ msgid "Desktop entry given to Install() must not use --file-forwarding"
+#~ msgstr ""
+#~ "A entrada desktop fornecida para Install() não deve usar --file-forwarding"
+
+#, c-format
+#~ msgid "DynamicLauncher install not supported for: %s"
+#~ msgstr "Instalação por DynamicLauncher não suportada para: %s"
 
 #~ msgid "Turn On Microphone?"
 #~ msgstr "Ligar o microfone?"

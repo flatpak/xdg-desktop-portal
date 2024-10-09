@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-08 10:06+0900\n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-06-08 19:16+0900\n"
 "Last-Translator: Ryo Nakano <ryonakaknock3@gmail.com>\n"
 "Language-Team: none\n"
@@ -17,22 +17,22 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: src/background.c:747
+#: src/background.c:822
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "%s にバックグラウンドでの実行を許可しますか?"
 
-#: src/background.c:751
+#: src/background.c:826
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s が自動起動とバックグラウンドでの実行を要求しています。"
 
-#: src/background.c:753
+#: src/background.c:828
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s がバックグラウンドでの実行を要求しています。"
 
-#: src/background.c:754
+#: src/background.c:829
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -40,180 +40,170 @@ msgstr ""
 "‘バックグラウンドでの実行’ の権限は、アプリケーションの設定からいつでも変更可"
 "能です。"
 
-#: src/background.c:759
+#: src/background.c:834
 msgid "Don't allow"
 msgstr "許可しない"
 
-#: src/background.c:760 src/screenshot.c:238 src/wallpaper.c:183
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
 msgid "Allow"
 msgstr "許可"
 
-#: src/camera.c:104
+#: src/camera.c:106
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "%s にカメラの使用を許可しますか?"
 
-#: src/camera.c:105
+#: src/camera.c:107
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s がカメラデバイスへのアクセスを求めています。"
 
-#: src/camera.c:109
+#: src/camera.c:111
 msgid "Allow app to Use the Camera?"
 msgstr "アプリにカメラの使用を許可しますか?"
 
-#: src/camera.c:110
+#: src/camera.c:112
 msgid "An app wants to access camera devices."
 msgstr "アプリがカメラデバイスへのアクセスを求めています。"
 
-#: src/dynamic-launcher.c:120
+#: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:132
+#: src/dynamic-launcher.c:133
 #, c-format
-msgid "Desktop file id missing app id prefix '%s.': %s"
+msgid "Desktop file id is not valid"
 msgstr ""
 
-#: src/dynamic-launcher.c:212
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 
-#: src/dynamic-launcher.c:224
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
 msgstr ""
 
-#: src/dynamic-launcher.c:266
-#, c-format
-msgid "Desktop entry given to Install() must not use --file-forwarding"
-msgstr ""
-
-#: src/dynamic-launcher.c:277
-#, c-format
-msgid "DynamicLauncher install not supported for: %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:301
+#: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr ""
 
-#: src/dynamic-launcher.c:342
+#: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:370 src/dynamic-launcher.c:812
-#: src/dynamic-launcher.c:862
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:539
+#: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:562
+#: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:569
+#: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:633 src/dynamic-launcher.c:704
+#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr ""
 
-#: src/dynamic-launcher.c:720
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:902
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr ""
 
-#: src/dynamic-launcher.c:925
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
 
-#: src/dynamic-launcher.c:965
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr ""
 
-#: src/dynamic-launcher.c:984
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:527
+#: src/location.c:544
 msgid "Deny Access"
 msgstr "アクセスを拒否"
 
-#: src/location.c:529
+#: src/location.c:546
 msgid "Grant Access"
 msgstr "アクセスを許可"
 
-#: src/location.c:551
+#: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "%s に位置情報へのアクセスを許可しますか?"
 
-#: src/location.c:556
+#: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s が位置情報の使用を求めています。"
 
-#: src/location.c:565
+#: src/location.c:580
 msgid "Grant Access to Your Location?"
 msgstr "位置情報へのアクセスを許可しますか?"
 
-#: src/location.c:566
+#: src/location.c:581
 msgid "An application wants to use your location."
 msgstr "アプリケーションが位置情報の使用を求めています。"
 
-#: src/location.c:569
+#: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "位置情報へのアクセスは、プライバシーの設定からいつでも変更可能です。"
 
-#: src/screenshot.c:236 src/wallpaper.c:181
+#: src/screenshot.c:238 src/wallpaper.c:183
 msgid "Deny"
 msgstr "拒否"
 
-#: src/screenshot.c:256
+#: src/screenshot.c:258
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "%s にスクリーンショットの撮影を許可しますか?"
 
-#: src/screenshot.c:257
+#: src/screenshot.c:259
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s が随時スクリーンショットを撮影できる権限を求めています。"
 
-#: src/screenshot.c:265
+#: src/screenshot.c:267
 msgid "Allow Applications to Take Screenshots?"
 msgstr "アプリケーションにスクリーンショットの撮影を許可しますか?"
 
-#: src/screenshot.c:266
+#: src/screenshot.c:268
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "アプリケーションが随時スクリーンショットを撮影できる権限を求めています。"
 
-#: src/screenshot.c:269 src/wallpaper.c:218
+#: src/screenshot.c:271 src/wallpaper.c:218
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "この権限は、プライバシーの設定からいつでも変更可能です。"
 
-#: src/settings.c:127 src/settings.c:163
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "要求された設定が見つかりませんでした"
 

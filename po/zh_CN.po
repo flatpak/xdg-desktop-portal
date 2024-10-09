@@ -9,8 +9,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-10-04 15:34+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-10-09 21:02+0000\n"
 "PO-Revision-Date: 2024-10-08 08:42+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
@@ -204,7 +204,7 @@ msgstr "有应用程序想要在任何时候都能获取截屏。"
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改该权限。"
 
-#: src/settings.c:129 src/settings.c:165
+#: src/settings.c:131 src/settings.c:167
 msgid "Requested setting not found"
 msgstr "未找到请求的设置"
 
