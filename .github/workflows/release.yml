@@ -92,8 +92,9 @@ jobs:
       - name: Tag release
         if: ${{ !fromJSON(github.event.inputs.dryRun) }}
         run: |
-          git tag $releaseVersion
-          git push --tags
+          git commit --allow-empty -m $releaseVersion
+          git tag -a $releaseVersion -m $releaseVersion
+          git push --follow-tags
 
       - name: Create release
         if: ${{ !fromJSON(github.event.inputs.dryRun) }}
