@@ -51,11 +51,6 @@ jobs:
           meson setup . _build
           meson dist -C _build
 
-      - name: Push updated translations
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
-        run: |
-          git push
-
       - name: Extract release information
         env:
           releaseVersion: ${{ github.event.inputs.version }}
@@ -97,9 +92,10 @@ jobs:
           git commit --allow-empty -m $releaseVersion
           git tag -a $releaseVersion -m $releaseVersion
 
-          if [ "$DRY_RUN" = "false" ]; then
-            git push --follow-tags
-          fi
+      - name: Push translations, release commit, and tag
+        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        run: |
+          git push --atomic --follow-tags
 
       - name: Create release
         if: ${{ !fromJSON(github.event.inputs.dryRun) }}
