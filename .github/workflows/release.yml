@@ -39,7 +39,6 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update translation files
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
         run: |
           meson setup . _build
           meson compile -C _build/ xdg-desktop-portal-update-po
@@ -48,7 +47,6 @@ jobs:
           git clean -fxd
 
       - name: Build xdg-desktop-portal
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
         run: |
           meson setup . _build
           meson dist -C _build
@@ -93,11 +91,15 @@ jobs:
           echo $preRelease
 
       - name: Tag release
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
+        env:
+          DRY_RUN: ${{ github.event.inputs.dryRun }}
         run: |
           git commit --allow-empty -m $releaseVersion
           git tag -a $releaseVersion -m $releaseVersion
-          git push --follow-tags
+
+          if [ "$DRY_RUN" = "false" ]; then
+            git push --follow-tags
+          fi
 
       - name: Create release
         if: ${{ !fromJSON(github.event.inputs.dryRun) }}
