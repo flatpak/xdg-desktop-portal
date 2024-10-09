@@ -604,6 +604,12 @@ find_portal_implementation_iface (const PortalInterface *iface)
 
       impl = find_portal_implementation_by_name (portal);
 
+      if (!impl)
+        {
+          g_info ("Requested backend %s does not exist. Skipping...", portal);
+          continue;
+        }
+
       if (!portal_impl_supports_iface (impl, iface->dbus_name))
         {
           g_info ("Requested backend %s.portal does not support %s. Skipping...", impl->source, iface->dbus_name);
@@ -637,7 +643,7 @@ find_default_implementation_iface (const char *interface)
 
       impl = find_portal_implementation_by_name (portal);
 
-      if (portal_impl_supports_iface (impl, interface))
+      if (impl && portal_impl_supports_iface (impl, interface))
         return impl;
     }
   return NULL;
