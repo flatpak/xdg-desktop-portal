@@ -332,14 +332,14 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, session_bus, portal_name: str, app_id: str = "org.example.App"):
-        self.bus = session_bus
+    def __init__(self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"):
+        self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
-        self.p_mock = None
         self.xdp = None
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.dbus_monitor = None
         self.app_id = app_id
+        self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
 
     @property
     def interface_name(self) -> str:
@@ -347,41 +347,78 @@ class PortalMock:
 
     @property
     def dbus_con(self):
-        return self.bus.dbus_con
+        return self.dbus_test_case.dbus_con
 
-    def start_impl_portal(self, params=None, portal=None):
-        """
-        Start the impl.portal for the given portal name. If missing,
-        the portal name is derived from the class name of the test, e.g.
-        ``TestFoo`` will start ``org.freedesktop.impl.portal.Foo``.
-        """
-        portal = portal or self.portal_name
-        self.p_mock, self.obj_portal = self.bus.spawn_server_template(
-            template=f"tests/templates/{portal.lower()}.py",
-            parameters=params,
-            stdout=subprocess.PIPE,
-        )
-        flags = fcntl.fcntl(self.p_mock.stdout, fcntl.F_GETFL)
-        fcntl.fcntl(self.p_mock.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        self.mock_interface = dbus.Interface(self.obj_portal, dbusmock.MOCK_IFACE)
+    @property
+    def dbus_con_sys(self):
+        return self.dbus_test_case.dbus_con_sys
 
-        self.start_dbus_monitor()
+    def _get_server_for_module(self, module, bustype):
+        try:
+            return self.busses[bustype][module.BUS_NAME]
+        except KeyError:
+            server = dbusmock.SpawnedMock.spawn_for_name(
+                module.BUS_NAME,
+                "/dbusmock",
+                dbusmock.OBJECT_MANAGER_IFACE,
+                bustype,
+                stdout=subprocess.PIPE,
+            )
 
-    def add_template(self, portal, params: Dict[str, Any] = {}):
+            flags = fcntl.fcntl(server.process.stdout, fcntl.F_GETFL)
+            fcntl.fcntl(server.process.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+            self.busses[bustype][module.BUS_NAME] = server
+            return server
+
+    def _get_main_obj_for_module(self, server, module, bustype):
+        try:
+            server.obj.AddObject(
+                module.MAIN_OBJ,
+                "com.example.EmptyInterface",
+                {},
+                [],
+                dbus_interface=dbusmock.MOCK_IFACE,
+            )
+        except:
+            pass
+
+        bustype.wait_for_bus_object(module.BUS_NAME, module.MAIN_OBJ)
+        bus = bustype.get_connection()
+        return bus.get_object(module.BUS_NAME, module.MAIN_OBJ)
+
+    def start_template(self, template: str, params: Dict[str, Any] = {}):
         """
-        Add an additional template to the portal object
+        Start the template and potentially start a server for it
         """
 
-        self.obj_portal.AddTemplate(
-            f"tests/templates/{portal.lower()}.py",
+        template = f"tests/templates/{template.lower()}.py"
+        module = dbusmock.mockobject.load_module(template)
+        bustype = dbusmock.BusType.SYSTEM if module.SYSTEM_BUS else dbusmock.BusType.SESSION
+
+        server = self._get_server_for_module(module, bustype)
+        main_obj = self._get_main_obj_for_module(server, module, bustype)
+
+        main_obj.AddTemplate(
+            template,
             dbus.Dictionary(params, signature="sv"),
             dbus_interface=dbusmock.MOCK_IFACE,
         )
+
+    @property
+    def mock_interface(self):
+        obj = self.dbus_test_case.dbus_con.get_object(
+            "org.freedesktop.impl.portal.Test",
+            "/org/freedesktop/portal/desktop"
+        )
+        return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
     def start_xdp(self):
         """
         Start the xdg-desktop-portal process
         """
+
+        self.start_dbus_monitor()
 
         # This roughly resembles test-portals.c and glib's test behavior
         # but preferences in-tree testing by running pytest in meson's
@@ -418,7 +455,7 @@ class PortalMock:
         xdp = subprocess.Popen(argv, env=env)
 
         for _ in range(50):
-            if self.bus.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
                 break
             time.sleep(0.1)
         else:
@@ -444,14 +481,19 @@ class PortalMock:
             self.xdp.terminate()
             self.xdp.wait()
 
-        if self.p_mock:
-            if self.p_mock.stdout:
-                out = (self.p_mock.stdout.read() or b"").decode("utf-8")
-                if out:
-                    print(out)
-                self.p_mock.stdout.close()
-            self.p_mock.terminate()
-            self.p_mock.wait()
+        for server in self.busses[dbusmock.BusType.SYSTEM]:
+            self._terminate_mock_p (server.process)
+        for server in self.busses[dbusmock.BusType.SESSION]:
+            self._terminate_mock_p (server.process)
+
+    def _terminate_mock_p(self, process):
+        if process.stdout:
+            out = (process.stdout.read() or b"").decode("utf-8")
+            if out:
+                print(out)
+            process.stdout.close()
+        process.terminate()
+        process.wait()
 
     def get_xdp_dbus_object(self) -> dbus.proxies.ProxyObject:
         """
@@ -460,7 +502,7 @@ class PortalMock:
         try:
             return self._xdp_dbus_object
         except AttributeError:
-            obj = self.bus.dbus_con.get_object(
+            obj = self.dbus_test_case.dbus_con.get_object(
                 "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
             )
             # Useful for debugging:

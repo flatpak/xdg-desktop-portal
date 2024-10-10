@@ -109,7 +109,6 @@ if have_libportal
     'email.c',
     'filechooser.c',
     'inhibit.c',
-    'location.c',
     'notification.c',
     'openuri.c',
     'print.c',
@@ -167,7 +166,6 @@ portal_tests = [
   'color',
   'email',
   'inhibit',
-  'location',
   'notification',
   'openfile',
   'openuri',
@@ -306,6 +304,7 @@ if enable_pytest
     'test_email.py',
     'test_globalshortcuts.py',
     'test_inputcapture.py',
+    'test_location.py',
     'test_remotedesktop.py',
     'test_trash.py',
   ]
@@ -320,7 +319,7 @@ if enable_pytest
     if pytest_file.startswith('test_')
       testname = pytest_file.replace('.py', '')
       test(
-        'pytest @0@'.format(testname),
+        'pytest/@0@'.format(testname),
         pytest,
         args: pytest_args + ['-k', testname],
         suite: ['pytest'],
