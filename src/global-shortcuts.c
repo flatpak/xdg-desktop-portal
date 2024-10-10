@@ -250,7 +250,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
@@ -405,7 +405,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_variant_builder_init (&shortcuts_builder, G_VARIANT_TYPE_ARRAY);
   if (!xdp_verify_shortcuts (arg_shortcuts, &shortcuts_builder,
@@ -415,7 +415,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-  shortcuts = g_variant_builder_end (&shortcuts_builder);
+  shortcuts = g_variant_ref_sink (g_variant_builder_end (&shortcuts_builder));
 
   session = acquire_session (arg_session_handle, request);
   if (!session)
@@ -532,7 +532,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  options = g_variant_builder_end (&options_builder);
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   session = acquire_session (arg_session_handle, request);
   if (!session)

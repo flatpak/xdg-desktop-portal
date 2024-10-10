@@ -74,11 +74,11 @@ proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
   else
     {
       g_auto (GStrv) proxies = NULL;
-      GError *error = NULL;
+      g_autoptr (GError) error = NULL;
 
       proxies = g_proxy_resolver_lookup (resolver->resolver, arg_uri, NULL, &error);
-      if (error)
-        g_dbus_method_invocation_take_error (invocation, error);
+      if (!proxies)
+        g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       else
         g_dbus_method_invocation_return_value (invocation,
                                                g_variant_new ("(^as)", proxies));

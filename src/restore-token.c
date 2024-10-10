@@ -250,7 +250,7 @@ xdp_session_persistence_replace_restore_token_with_data (Session *session,
       g_clear_pointer (&value, g_variant_unref);
     }
 
-  *in_out_options = g_variant_builder_end (&options_builder);
+  *in_out_options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 }
 
 void
@@ -376,5 +376,5 @@ xdp_session_persistence_replace_restore_data_with_token (Session *session,
       *in_out_persist_mode = PERSIST_MODE_NONE;
     }
 
-  *in_out_results = g_variant_builder_end (&results_builder);
+  *in_out_results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
 }

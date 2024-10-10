@@ -247,9 +247,9 @@ load_all_properties (GDBusProxy *proxy)
 
   for (guint i = 0; i < G_N_ELEMENTS (properties); ++i)
     {
-      GVariant *result;
+      g_autoptr (GVariant) result = NULL;
       GVariant *parameters;
-      GError *error = NULL;
+      g_autoptr (GError) error = NULL;
 
       parameters = g_variant_new ("(ss)", "org.freedesktop.RealtimeKit1", properties[i]);
       result = g_dbus_proxy_call_sync (proxy,
@@ -260,14 +260,13 @@ load_all_properties (GDBusProxy *proxy)
                                         NULL,
                                         &error);
 
-      if (error)
+      if (!result)
         {
           g_warning ("Failed to load RealtimeKit property: %s", error->message);
-          g_error_free (error);
         }
       else
         {
-          GVariant *value;
+          g_autoptr (GVariant) value = NULL;
           g_variant_get (result, "(v)", &value);
 
           if (i == MAX_REALTIME_PRIORITY)
@@ -283,8 +282,6 @@ load_all_properties (GDBusProxy *proxy)
             g_assert_not_reached ();
 
           g_dbus_proxy_set_cached_property (proxy, properties[i], value);
-          g_variant_unref (value);
-          g_variant_unref (result);
         }
     }
 }
