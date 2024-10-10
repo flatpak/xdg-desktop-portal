@@ -163,6 +163,22 @@
       <arg type="o" name="handle" direction="out"/>
     </method>
 
+    <!--
+        SchemeSupported:
+        @scheme: The URI protocol scheme to check
+        @options: Vardict with optional further information - currently unused 
+        @supported: True if the URI scheme is supported
+
+        Checks if OpenURI supports the protocol scheme @scheme.
+
+        The SchemeSupported method was introduced in version 5 of the OpenURI portal API.
+    -->
+    <method name="SchemeSupported">
+      <arg type="s" name="scheme" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="b" name="supported" direction="out"/>
+    </method>
+
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
