@@ -42,11 +42,7 @@
 
         Create a global shortcuts session.
 
-        The following results get returned in the @results vardict:
-
-        * ``session_id`` (``s``)
-
-          The session id. A string representing the created global shortcuts session.
+        There are currently no supported keys in the @results vardict.
     -->
     <method name="CreateSession">
       <arg type="o" name="handle" direction="in"/>
