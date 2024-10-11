@@ -199,14 +199,9 @@ xdp_filter_options (GVariant *options,
 
           if (!supported_options[i].validate (supported_options[i].key, value, options, &local_error))
             {
-              if (ret)
-                {
-                  ret = FALSE;
-                  if (error && *error == NULL)
-                    {
-                      g_propagate_error (error, g_steal_pointer (&local_error));
-                    }
-                }
+              if (error && *error == NULL)
+                g_propagate_error (error, g_steal_pointer (&local_error));
+              ret = FALSE;
 
               continue;
             }
