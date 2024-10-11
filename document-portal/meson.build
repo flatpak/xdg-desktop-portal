@@ -3,7 +3,6 @@ permission_store_built_sources = gnome.gdbus_codegen(
   sources: '../data/org.freedesktop.impl.portal.PermissionStore.xml',
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'Xdg',
-  autocleanup: 'none',
 )
 
 db_sources = files(
@@ -46,7 +45,6 @@ document_portal_built_sources = gnome.gdbus_codegen(
   ],
   interface_prefix: 'org.freedesktop.portal',
   namespace: 'XdpDbus',
-  autocleanup: 'none',
 )
 
 xdg_document_portal_sources = [

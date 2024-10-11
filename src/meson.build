@@ -6,7 +6,6 @@ portal_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.portal',
   namespace: 'XdpDbus',
   docbook: 'portal',
-  autocleanup: 'none',
 )
 impl_built_sources = gnome.gdbus_codegen(
   'xdp-impl-dbus',
@@ -22,7 +21,6 @@ background_monitor_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.background',
   namespace: 'XdpDbusBackground',
   docbook: 'portal',
-  autocleanup: 'all',
 )
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
@@ -30,7 +28,6 @@ if have_geoclue
     sources: 'org.freedesktop.GeoClue2.Client.xml',
     interface_prefix: 'org.freedesktop.GeoClue2',
     namespace: 'Geoclue',
-    autocleanup: 'none',
   )
 else
   geoclue_built_sources = []
