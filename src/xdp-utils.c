@@ -181,7 +181,7 @@ xdp_filter_options (GVariant *options,
           value = g_variant_lookup_value (options, supported_options[i].key, NULL);
           if (value)
             {
-              if (*error == NULL)
+              if (error && *error == NULL)
                 g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                              "Expected type '%s' for option '%s', got '%s'",
                              g_variant_type_peek_string (supported_options[i].type),
