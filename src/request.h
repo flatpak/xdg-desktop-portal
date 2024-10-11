@@ -78,8 +78,6 @@ void request_export (Request *request,
 void request_unexport (Request *request);
 void close_requests_for_sender (const char *sender);
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDbusImplRequest, g_object_unref)
-
 void request_set_impl_request (Request *request,
                                XdpDbusImplRequest *impl_request);
 

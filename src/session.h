@@ -71,7 +71,6 @@ IS_SESSION (gpointer ptr)
 }
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Session, g_object_unref)
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpDbusImplSession, g_object_unref)
 
 const char * lookup_session_token (GVariant *options);
 
