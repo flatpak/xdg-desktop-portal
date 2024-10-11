@@ -13,7 +13,6 @@ impl_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
-  autocleanup: 'none',
 )
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
