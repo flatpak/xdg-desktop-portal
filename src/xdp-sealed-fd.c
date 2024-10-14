@@ -230,3 +230,13 @@ xdp_sealed_fd_dup_fd (XdpSealedFd *sealed_fd)
 
   return dup (sealed_fd->fd);
 }
+
+GBytes *
+xdp_sealed_fd_get_bytes (XdpSealedFd  *sealed_fd,
+                         GError      **error)
+{
+  g_autoptr(GMappedFile) mapped = NULL;
+
+  mapped = g_mapped_file_new_from_fd (sealed_fd->fd, FALSE, error);
+  return g_mapped_file_get_bytes (mapped);
+}
