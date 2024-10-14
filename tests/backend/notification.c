@@ -170,6 +170,7 @@ notification_init (GDBusConnection *bus,
 
   helper = G_DBUS_INTERFACE_SKELETON (xdp_dbus_impl_notification_skeleton_new ());
 
+  xdp_dbus_impl_notification_set_version (XDP_DBUS_IMPL_NOTIFICATION (helper), 2);
   g_signal_connect (helper, "handle-add-notification", G_CALLBACK (handle_add_notification), NULL);
   g_signal_connect (helper, "handle-remove-notification", G_CALLBACK (handle_remove_notification), NULL);
 
