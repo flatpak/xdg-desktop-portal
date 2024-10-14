@@ -27,6 +27,8 @@
 
       This notification interface lets sandboxed applications
       send and withdraw notifications.
+
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Notification">
     <!--
@@ -100,5 +102,7 @@
       <arg type="s" name="action"/>
       <arg type="av" name="parameter"/>
     </signal>
+
+    <property name="version" type="u" access="read"/>
   </interface>
 </node>
