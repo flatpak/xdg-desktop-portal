@@ -488,7 +488,7 @@ parse_button (GVariantBuilder  *builder,
           if (!target)
             target = g_steal_pointer (&value);
         }
-      else if (strcmp (key, "purpose") == 0)
+      else if (strcmp (key, "purpose") == 0 && impl_version > 1)
         {
           if (!check_button_purpose (value, error))
             return FALSE;
@@ -662,7 +662,30 @@ parse_serialized_icon (GVariantBuilder  *builder,
         }
 
       if (xdp_validate_icon (sealed_icon, XDP_ICON_TYPE_NOTIFICATION, NULL, NULL))
-        g_variant_builder_add (builder, "{sv}", "icon", icon);
+        {
+          /* Convert file descriptor icons to byte icons for backwards compatibility */
+          if (impl_version < 2)
+            {
+                g_autoptr(GBytes) bytes = NULL;
+                GVariant *bytes_icon;
+
+                bytes = xdp_sealed_fd_get_bytes (sealed_icon, &local_error);
+                if (!bytes)
+                  {
+                    g_warning ("Failed to get bytes from file-descriptor icon: %s", local_error->message);
+                    return TRUE;
+                  }
+
+              bytes_icon = g_variant_new ("(sv)", "bytes",
+                                          g_variant_new_from_bytes (G_VARIANT_TYPE_BYTESTRING, bytes, TRUE));
+
+              g_variant_builder_add (builder, "{sv}", "icon", bytes_icon);
+            }
+          else
+            {
+              g_variant_builder_add (builder, "{sv}", "icon", icon);
+            }
+        }
     }
   else
     {
@@ -864,7 +887,7 @@ parse_notification (GVariantBuilder  *builder,
 
           g_variant_builder_add (builder, "{sv}", key, value);
         }
-      else if (strcmp (key, "markup-body") == 0)
+      else if (strcmp (key, "markup-body") == 0 && impl_version > 1)
         {
           if (!parse_markup_body (builder, value, error))
             return FALSE;
@@ -877,7 +900,7 @@ parse_notification (GVariantBuilder  *builder,
               return FALSE;
             }
         }
-      else if (strcmp (key, "sound") == 0)
+      else if (strcmp (key, "sound") == 0 && impl_version > 1)
         {
           if (!parse_serialized_sound (builder, value, fd_list, error))
             {
@@ -906,12 +929,12 @@ parse_notification (GVariantBuilder  *builder,
           if (!parse_buttons (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "display-hint") == 0)
+      else if (strcmp (key, "display-hint") == 0 && impl_version > 1)
         {
           if (!parse_display_hint (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "category") == 0)
+      else if (strcmp (key, "category") == 0 && impl_version > 1)
         {
           if (!parse_category (builder, value, error))
             return FALSE;
