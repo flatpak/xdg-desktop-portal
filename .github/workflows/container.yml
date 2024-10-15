@@ -1,5 +1,5 @@
 env:
-  IMAGE_TAG: 20241015-1
+  IMAGE_TAG: 20241008-1
 
 on:
   workflow_call:
@@ -27,16 +27,16 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Set lower case actor name
+      - name: Set lower case owner name
         env:
-          OWNER: '${{ github.actor }}'
+          OWNER: '${{ github.repository_owner }}'
         run: |
-          echo "ACTOR_LOWERCASE=${OWNER,,}" >>${GITHUB_ENV}
+          echo "OWNER_LOWERCASE=${OWNER,,}" >>${GITHUB_ENV}
 
       - name: Check if image already exists on GHCR
         id: check
         run: |
-          image=ghcr.io/${{ env.ACTOR_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
+          image=ghcr.io/${{ env.OWNER_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
           echo "exists=$(docker manifest inspect $image >/dev/null && echo 'true' || echo 'false')" \
             >> "$GITHUB_OUTPUT"
           echo "image=$image" >> "$GITHUB_OUTPUT"
@@ -47,4 +47,4 @@ jobs:
         with:
           push: true
           file: .github/workflows/Containerfile
-          tags: ghcr.io/${{ env.ACTOR_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
+          tags: ghcr.io/${{ env.OWNER_LOWERCASE }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
