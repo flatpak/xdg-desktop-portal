@@ -630,9 +630,28 @@ parse_serialized_icon (GVariantBuilder  *builder,
       sealed_icon = xdp_sealed_fd_new_from_bytes (icon_bytes, &local_error);
 
       if (!sealed_icon)
-        g_warning ("Failed to read icon: %s", local_error->message);
+        {
+          g_warning ("Failed to read icon: %s", local_error->message);
+        }
       else if (xdp_validate_icon (sealed_icon, XDP_ICON_TYPE_NOTIFICATION, NULL, NULL))
-        g_variant_builder_add (builder, "{sv}", "icon", icon);
+        {
+          /* Since version 2 we only use file-descriptor icon */
+          if (impl_version > 1)
+            {
+              g_autoptr(GVariant) fd_icon = NULL;
+
+              fd_icon = xdp_sealed_fd_to_handle (sealed_icon, fd_list, &local_error);
+
+              if (!fd_icon)
+                g_warning ("Failed to get create file-descriptor icon from bytes icon: %s", local_error->message);
+
+              g_variant_builder_add (builder, "{sv}", "icon", fd_icon);
+            }
+          else
+            {
+              g_variant_builder_add (builder, "{sv}", "icon", icon);
+            }
+        }
     }
   else if (strcmp (key, "file-descriptor") == 0)
     {
@@ -1027,7 +1046,11 @@ notification_handle_add_notification (XdpDbusNotification *object,
 {
   Call *call = call_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
+  g_autoptr(GUnixFDList) empty_fd_list = NULL;
   CallData *call_data;
+
+  if (!fd_list)
+    fd_list = empty_fd_list = g_unix_fd_list_new ();
 
   call_data = call_data_new (invocation,
                              call->app_info,

@@ -109,6 +109,9 @@
 
           * ``bytes`` (``ay``)
 
+            Since version 2, this is deprecated and should not be used.
+            Please use the `themed` or `file-descriptor` option to set an icon.
+
             A bytes icon containing a bytestring with the icon data in
             png, jpeg or svg form.
 

@@ -240,3 +240,21 @@ xdp_sealed_fd_get_bytes (XdpSealedFd  *sealed_fd,
   mapped = g_mapped_file_new_from_fd (sealed_fd->fd, FALSE, error);
   return g_mapped_file_get_bytes (mapped);
 }
+
+GVariant *
+xdp_sealed_fd_to_handle (XdpSealedFd  *sealed_fd,
+                         GUnixFDList  *fd_list,
+                         GError      **error)
+{
+  int fd_out;
+
+  g_return_val_if_fail (XDP_IS_SEALED_FD (sealed_fd), NULL);
+  g_return_val_if_fail (G_IS_UNIX_FD_LIST (fd_list), NULL);
+
+  fd_out = g_unix_fd_list_append (fd_list, sealed_fd->fd, error);
+
+  if (fd_out == -1)
+    return NULL;
+
+  return g_variant_ref_sink (g_variant_new ("(sv)", "file-descriptor", g_variant_new_handle (fd_out)));
+}
