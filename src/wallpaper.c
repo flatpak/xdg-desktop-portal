@@ -212,8 +212,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
            */
           g_assert (xdp_app_info_is_host (request->app_info));
           app_id = g_strdup ("");
-          title = g_strdup (_("Allow Applications to Set Backgrounds?"));
-          subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
+          title = g_strdup (_("Allow Apps to Set Backgrounds?"));
+          subtitle = g_strdup (_("An app is requesting to be able to change the background image."));
         }
       body = _("This permission can be changed at any time from the privacy settings.");
 
