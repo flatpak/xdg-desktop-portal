@@ -39,3 +39,6 @@ int xdp_sealed_fd_dup_fd (XdpSealedFd  *sealed_fd);
 
 GBytes *xdp_sealed_fd_get_bytes (XdpSealedFd  *sealed_fd,
                                  GError      **error);
+GVariant *xdp_sealed_fd_to_handle (XdpSealedFd  *sealed_fd,
+                                   GUnixFDList  *fd_list,
+                                   GError      **error);

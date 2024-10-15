@@ -364,7 +364,7 @@ test_bytes_icon (void)
   serialized_icon = g_icon_serialize (icon);
 
   serialized_icon_s = g_variant_print (serialized_icon, TRUE);
-  test_icon (serialized_icon_s, NULL, FALSE);
+  test_icon (serialized_icon_s, "('file-descriptor', <handle 0>)", FALSE);
 }
 
 static void

@@ -47,6 +47,8 @@
 
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
+
+        Since version 2, the icon property never uses the ``bytes`` option.
     -->
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
