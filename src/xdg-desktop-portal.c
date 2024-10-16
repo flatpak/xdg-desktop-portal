@@ -27,6 +27,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <glib-unix.h>
 #include <glib/gi18n.h>
 
 #include "xdp-utils.h"
@@ -379,12 +380,21 @@ on_name_lost (GDBusConnection *connection,
   g_main_loop_quit (loop);
 }
 
+static gboolean
+signal_handler_cb (gpointer user_data)
+{
+  g_main_loop_quit (loop);
+  g_debug ("Terminated with signal.");
+  return G_SOURCE_REMOVE;
+}
+
 int
 main (int argc, char *argv[])
 {
   guint owner_id;
   g_autoptr(GError) error = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
+  g_autoptr(GSource) signal_handler_source = NULL;
   g_autoptr(GOptionContext) context = NULL;
 
   setlocale (LC_ALL, "");
@@ -441,6 +451,13 @@ main (int argc, char *argv[])
   load_installed_portals (opt_verbose);
 
   loop = g_main_loop_new (NULL, FALSE);
+
+  /* Setup a signal handler so that we can quit cleanly.
+   * This is useful for triggering asan.
+   */
+  signal_handler_source = g_unix_signal_source_new (SIGHUP);
+  g_source_set_callback (signal_handler_source, G_SOURCE_FUNC (signal_handler_cb), NULL, NULL);
+  g_source_attach (signal_handler_source, g_main_loop_get_context (loop));
 
   session_bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
   if (session_bus == NULL)
