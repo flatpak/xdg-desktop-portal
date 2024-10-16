@@ -588,7 +588,7 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
   g_autoptr(GVariant) process_id = NULL;
   uint32_t pid;
   int fd_index;
-  GUnixFDList *fd_list;
+  g_autoptr(GUnixFDList) fd_list = NULL;
   int fds_len = 0;
   const int *fds;
   int pidfd;
