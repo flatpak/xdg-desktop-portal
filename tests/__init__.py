@@ -337,9 +337,9 @@ class PortalMock:
     ):
         self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
-        self.xdp = None
-        self.portal_interfaces: Dict[str, dbus.Interface] = {}
+        self.portal_frontend = None
         self.dbus_monitor = None
+        self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
         self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
 
@@ -424,24 +424,26 @@ class PortalMock:
         """
 
         self.start_dbus_monitor()
+        self.start_portal_frontend()
 
+    def start_portal_frontend(self):
         # This roughly resembles test-portals.c and glib's test behavior
         # but preferences in-tree testing by running pytest in meson's
         # project_build_root
         libexecdir = os.getenv("LIBEXECDIR")
         if libexecdir:
-            xdp_path = Path(libexecdir) / "xdg-desktop-portal"
+            portal_frontend = Path(libexecdir) / "xdg-desktop-portal"
         else:
-            xdp_path = (
+            portal_frontend = (
                 Path(os.getenv("G_TEST_BUILDDIR") or "tests")
                 / ".."
                 / "src"
                 / "xdg-desktop-portal"
             )
 
-        if not xdp_path.exists():
+        if not portal_frontend.exists():
             raise FileNotFoundError(
-                f"{xdp_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+                f"{portal_frontend} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
             )
 
         portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals" / "test"
@@ -450,14 +452,14 @@ class PortalMock:
                 f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
             )
 
-        argv = [xdp_path]
+        argv = [portal_frontend]
         env = os.environ.copy()
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
 
-        xdp = subprocess.Popen(argv, env=env)
+        portal_frontend = subprocess.Popen(argv, env=env)
 
         for _ in range(50):
             if self.dbus_test_case.dbus_con.name_has_owner(
@@ -470,7 +472,7 @@ class PortalMock:
                 False
             ), "Timeout while waiting for xdg-desktop-portal to claim the bus"
 
-        self.xdp = xdp
+        self.portal_frontend = portal_frontend
 
     def start_dbus_monitor(self):
         if not os.getenv("XDP_DBUS_MONITOR"):
@@ -484,9 +486,9 @@ class PortalMock:
             self.dbus_monitor.terminate()
             self.dbus_monitor.wait()
 
-        if self.xdp:
-            self.xdp.terminate()
-            self.xdp.wait()
+        if self.portal_frontend:
+            self.portal_frontend.terminate()
+            self.portal_frontend.wait()
 
         for server in self.busses[dbusmock.BusType.SYSTEM].values():
             self._terminate_mock_p(server.process)
