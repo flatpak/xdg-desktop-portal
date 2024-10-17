@@ -332,14 +332,22 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, session_bus, portal_name: str, app_id: str = "org.example.App"):
-        self.bus = session_bus
+    def __init__(
+        self,
+        dbus_test_case,
+        portal_name: str,
+        app_id: str = "org.example.App",
+        umockdev = None,
+    ):
+        self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
-        self.p_mock = None
-        self.xdp = None
-        self.portal_interfaces: Dict[str, dbus.Interface] = {}
+        self.portal_frontend = None
+        self.permission_store = None
         self.dbus_monitor = None
+        self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
+        self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
+        self.umockdev = umockdev
 
     @property
     def interface_name(self) -> str:
@@ -347,78 +355,127 @@ class PortalMock:
 
     @property
     def dbus_con(self):
-        return self.bus.dbus_con
+        return self.dbus_test_case.dbus_con
 
-    def start_impl_portal(self, params=None, portal=None):
-        """
-        Start the impl.portal for the given portal name. If missing,
-        the portal name is derived from the class name of the test, e.g.
-        ``TestFoo`` will start ``org.freedesktop.impl.portal.Foo``.
-        """
-        portal = portal or self.portal_name
-        self.p_mock, self.obj_portal = self.bus.spawn_server_template(
-            template=f"tests/templates/{portal.lower()}.py",
-            parameters=params,
-            stdout=subprocess.PIPE,
-        )
-        flags = fcntl.fcntl(self.p_mock.stdout, fcntl.F_GETFL)
-        fcntl.fcntl(self.p_mock.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-        self.mock_interface = dbus.Interface(self.obj_portal, dbusmock.MOCK_IFACE)
+    @property
+    def dbus_con_sys(self):
+        return self.dbus_test_case.dbus_con_sys
 
-        self.start_dbus_monitor()
+    def _get_server_for_module(self, module, bustype):
+        assert bustype in dbusmock.BusType
 
-    def add_template(self, portal, params: Dict[str, Any] = {}):
+        try:
+            return self.busses[bustype][module.BUS_NAME]
+        except KeyError:
+            server = dbusmock.SpawnedMock.spawn_for_name(
+                module.BUS_NAME,
+                "/dbusmock",
+                dbusmock.OBJECT_MANAGER_IFACE,
+                bustype,
+                stdout=subprocess.PIPE,
+            )
+
+            flags = fcntl.fcntl(server.process.stdout, fcntl.F_GETFL)
+            fcntl.fcntl(server.process.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+            self.busses[bustype][module.BUS_NAME] = server
+            return server
+
+    def _get_main_obj_for_module(self, server, module, bustype):
+        try:
+            server.obj.AddObject(
+                module.MAIN_OBJ,
+                "com.example.EmptyInterface",
+                {},
+                [],
+                dbus_interface=dbusmock.MOCK_IFACE,
+            )
+        except:
+            pass
+
+        bustype.wait_for_bus_object(module.BUS_NAME, module.MAIN_OBJ)
+        bus = bustype.get_connection()
+        return bus.get_object(module.BUS_NAME, module.MAIN_OBJ)
+
+    def start_template(self, template: str, params: Dict[str, Any] = {}):
         """
-        Add an additional template to the portal object
+        Start the template and potentially start a server for it
         """
 
-        self.obj_portal.AddTemplate(
-            f"tests/templates/{portal.lower()}.py",
+        template = f"tests/templates/{template.lower()}.py"
+        module = dbusmock.mockobject.load_module(template)
+        bustype = dbusmock.BusType.SYSTEM if module.SYSTEM_BUS else dbusmock.BusType.SESSION
+
+        server = self._get_server_for_module(module, bustype)
+        main_obj = self._get_main_obj_for_module(server, module, bustype)
+
+        main_obj.AddTemplate(
+            template,
             dbus.Dictionary(params, signature="sv"),
             dbus_interface=dbusmock.MOCK_IFACE,
         )
+
+    @property
+    def mock_interface(self):
+        obj = self.dbus_test_case.dbus_con.get_object(
+            "org.freedesktop.impl.portal.Test",
+            "/org/freedesktop/portal/desktop"
+        )
+        return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
     def start_xdp(self):
         """
         Start the xdg-desktop-portal process
         """
 
-        # This roughly resembles test-portals.c and glib's test behavior
-        # but preferences in-tree testing by running pytest in meson's
-        # project_build_root
-        libexecdir = os.getenv("LIBEXECDIR")
-        if libexecdir:
-            xdp_path = Path(libexecdir) / "xdg-desktop-portal"
-        else:
-            xdp_path = (
-                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
-                / ".."
-                / "src"
-                / "xdg-desktop-portal"
-            )
+        portal_dir = (
+            Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+            / "portals"
+            / "test"
+        )
 
-        if not xdp_path.exists():
-            raise FileNotFoundError(
-                f"{xdp_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
-            )
-
-        portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals" / "test"
         if not portal_dir.exists():
             raise FileNotFoundError(
                 f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
             )
 
-        argv = [xdp_path]
         env = os.environ.copy()
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
 
-        xdp = subprocess.Popen(argv, env=env)
+        if self.umockdev:
+            env["UMOCKDEV_DIR"] = self.umockdev.get_root_dir()
+
+        self.start_dbus_monitor()
+        self.start_portal_frontend(env)
+        self.start_permission_store(env)
+
+    def start_portal_frontend(self, env):
+        # This roughly resembles test-portals.c and glib's test behavior
+        # but preferences in-tree testing by running pytest in meson's
+        # project_build_root
+        libexecdir = os.getenv("LIBEXECDIR")
+        if libexecdir:
+            portal_frontend = Path(libexecdir) / "xdg-desktop-portal"
+        else:
+            portal_frontend = (
+                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+                / ".."
+                / "src"
+                / "xdg-desktop-portal"
+            )
+
+        if not portal_frontend.exists():
+            raise FileNotFoundError(
+                f"{portal_frontend} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+            )
+
+        portal_frontend = subprocess.Popen([portal_frontend], env=env)
 
         for _ in range(50):
-            if self.bus.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
                 break
             time.sleep(0.1)
         else:
@@ -426,32 +483,77 @@ class PortalMock:
                 False
             ), "Timeout while waiting for xdg-desktop-portal to claim the bus"
 
-        self.xdp = xdp
+        self.portal_frontend = portal_frontend
+
+    def start_permission_store(self, env):
+        """
+        Start the xdg-permission-store process
+        """
+
+        # This roughly resembles test-portals.c and glib's test behavior
+        # but preferences in-tree testing by running pytest in meson's
+        # project_build_root
+        libexecdir = os.getenv("LIBEXECDIR")
+        if libexecdir:
+            permission_store_path = Path(libexecdir) / "xdg-permission-store"
+        else:
+            permission_store_path = (
+                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+                / ".."
+                / "document-portal"
+                / "xdg-permission-store"
+             )
+
+        if not permission_store_path.exists():
+            raise FileNotFoundError(
+                f"{permission_store_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+            )
+
+        permission_store = subprocess.Popen([permission_store_path], env=env)
+
+        for _ in range(50):
+            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
+                break
+            time.sleep(0.1)
+        else:
+            assert (
+                False
+            ), "Timeout while waiting for xdg-permission-store to claim the bus"
+
+        self.permission_store = permission_store
 
     def start_dbus_monitor(self):
         if not os.getenv("XDP_DBUS_MONITOR"):
             return
 
-        argv = ["dbus-monitor", "--session"]
-        self.dbus_monitor = subprocess.Popen(argv)
+        self.dbus_monitor = subprocess.Popen(["dbus-monitor", "--session"])
 
     def tearDown(self):
         if self.dbus_monitor:
             self.dbus_monitor.terminate()
             self.dbus_monitor.wait()
 
-        if self.xdp:
-            self.xdp.terminate()
-            self.xdp.wait()
+        if self.portal_frontend:
+            self.portal_frontend.terminate()
+            self.portal_frontend.wait()
 
-        if self.p_mock:
-            if self.p_mock.stdout:
-                out = (self.p_mock.stdout.read() or b"").decode("utf-8")
-                if out:
-                    print(out)
-                self.p_mock.stdout.close()
-            self.p_mock.terminate()
-            self.p_mock.wait()
+        if self.permission_store:
+            self.permission_store.terminate()
+            self.permission_store.wait()
+
+        for server in self.busses[dbusmock.BusType.SYSTEM]:
+            self._terminate_mock_p (server.process)
+        for server in self.busses[dbusmock.BusType.SESSION]:
+            self._terminate_mock_p (server.process)
+
+    def _terminate_mock_p(self, process):
+        if process.stdout:
+            out = (process.stdout.read() or b"").decode("utf-8")
+            if out:
+                print(out)
+            process.stdout.close()
+        process.terminate()
+        process.wait()
 
     def get_xdp_dbus_object(self) -> dbus.proxies.ProxyObject:
         """
@@ -460,7 +562,7 @@ class PortalMock:
         try:
             return self._xdp_dbus_object
         except AttributeError:
-            obj = self.bus.dbus_con.get_object(
+            obj = self.dbus_test_case.dbus_con.get_object(
                 "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
             )
             # Useful for debugging:

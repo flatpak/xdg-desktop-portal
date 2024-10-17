@@ -16,7 +16,6 @@
 #include "email.h"
 #include "filechooser.h"
 #include "inhibit.h"
-#include "location.h"
 #include "notification.h"
 #include "openuri.h"
 #include "print.h"
@@ -399,17 +398,6 @@ global_teardown (void)
   g_object_unref (dbus);
 }
 
-#ifdef HAVE_GEOCLUE
-#define check_geoclue(name)
-#else
-#define check_geoclue(name) \
- if (strcmp (name , "location") == 0) \
-   { \
-     g_test_skip ("Skipping tests that require geoclue"); \
-     return; \
-   }
-#endif
-
 /* Just check that the portal is there, and has the
  * expected version. This will fail if the backend
  * is not found.
@@ -421,8 +409,6 @@ test_##pp##_exists (void) \
   g_autoptr(GDBusProxy) proxy = NULL; \
   g_autoptr(GError) error = NULL; \
   g_autofree char *owner = NULL; \
- \
- check_geoclue ( #pp ) \
  \
   proxy = G_DBUS_PROXY (xdp_dbus_##pp##_proxy_new_sync (session_bus, \
                                                         0, \
@@ -445,7 +431,6 @@ DEFINE_TEST_EXISTS(email, EMAIL, 4)
 DEFINE_TEST_EXISTS(file_chooser, FILE_CHOOSER, 4)
 DEFINE_TEST_EXISTS(game_mode, GAME_MODE, 4)
 DEFINE_TEST_EXISTS(inhibit, INHIBIT, 3)
-DEFINE_TEST_EXISTS(location, LOCATION, 1)
 DEFINE_TEST_EXISTS(network_monitor, NETWORK_MONITOR, 3)
 DEFINE_TEST_EXISTS(notification, NOTIFICATION, 2)
 DEFINE_TEST_EXISTS(open_uri, OPEN_URI, 5)
@@ -478,7 +463,6 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/filechooser/exists", test_file_chooser_exists);
   g_test_add_func ("/portal/gamemode/exists", test_game_mode_exists);
   g_test_add_func ("/portal/inhibit/exists", test_inhibit_exists);
-  g_test_add_func ("/portal/location/exists", test_location_exists);
   g_test_add_func ("/portal/networkmonitor/exists", test_network_monitor_exists);
   g_test_add_func ("/portal/notification/exists", test_notification_exists);
   g_test_add_func ("/portal/openuri/exists", test_open_uri_exists);
@@ -592,9 +576,6 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/wallpaper/cancel1", test_wallpaper_cancel1);
   g_test_add_func ("/portal/wallpaper/cancel2", test_wallpaper_cancel2);
   g_test_add_func ("/portal/wallpaper/permission", test_wallpaper_permission);
-
-  g_test_add_func ("/portal/location/basic", test_location_basic);
-  g_test_add_func ("/portal/location/accuracy", test_location_accuracy);
 
   g_test_add_func ("/portal/background/basic1", test_background_basic1);
   g_test_add_func ("/portal/background/basic2", test_background_basic2);
