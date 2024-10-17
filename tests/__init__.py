@@ -338,6 +338,7 @@ class PortalMock:
         dbus_test_case,
         portal_name: str,
         app_id: str = "org.example.App",
+        usb_queries: Optional[str] = None,
         umockdev=None,
     ):
         self.dbus_test_case = dbus_test_case
@@ -347,6 +348,7 @@ class PortalMock:
         self.dbus_monitor = None
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
+        self.usb_queries = usb_queries
         self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
         self.umockdev = umockdev
 
@@ -457,6 +459,9 @@ class PortalMock:
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
+
+        if self.usb_queries:
+            env["XDG_DESKTOP_PORTAL_TEST_USB_QUERIES"] = self.usb_queries
 
         if self.umockdev:
             env["UMOCKDEV_DIR"] = self.umockdev.get_root_dir()
