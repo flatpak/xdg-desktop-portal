@@ -334,7 +334,11 @@ class PortalMock:
     """
 
     def __init__(
-        self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"
+        self,
+        dbus_test_case,
+        portal_name: str,
+        app_id: str = "org.example.App",
+        umockdev=None,
     ):
         self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
@@ -344,6 +348,7 @@ class PortalMock:
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
         self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
+        self.umockdev = umockdev
 
     @property
     def interface_name(self) -> str:
@@ -420,6 +425,22 @@ class PortalMock:
         )
         return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
+    def _maybe_add_asan_preload(self, executable, env):
+        # ASAN really wants to be the first library to get loaded but we also
+        # LD_PRELOAD umockdev and LD_PRELOAD gets loaded before any "normally"
+        # linked libraries. This uses ldd to find the version of libasan.so that
+        # should be loaded and puts it in front of LD_PRELOAD.
+        # This way, LD_PRELOAD and ASAN can be used at the same time.
+        ldd = subprocess.check_output(["ldd", executable]).decode("utf-8")
+        libs = [line.split()[0] for line in ldd.splitlines()]
+        try:
+            libasan = next(filter(lambda lib: lib.startswith("libasan"), libs))
+        except StopIteration:
+            return
+
+        preload = env.get("LD_PRELOAD", "")
+        env["LD_PRELOAD"] = f"{libasan}:{preload}"
+
     def start_xdp(self):
         """
         Start the xdg-desktop-portal process
@@ -436,6 +457,9 @@ class PortalMock:
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
+
+        if self.umockdev:
+            env["UMOCKDEV_DIR"] = self.umockdev.get_root_dir()
 
         asan_suppression = (
             Path(os.getenv("G_TEST_SRCDIR", "tests")) / "asan.suppression"
@@ -470,6 +494,9 @@ class PortalMock:
             raise FileNotFoundError(
                 f"{portal_frontend} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
             )
+
+        env = env.copy()
+        self._maybe_add_asan_preload(portal_frontend, env)
 
         portal_frontend = subprocess.Popen([portal_frontend], env=env)
 
@@ -509,6 +536,9 @@ class PortalMock:
             raise FileNotFoundError(
                 f"{permission_store_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
             )
+
+        env = env.copy()
+        self._maybe_add_asan_preload(permission_store_path, env)
 
         permission_store = subprocess.Popen([permission_store_path], env=env)
 
