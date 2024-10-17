@@ -32,4 +32,5 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoTest,
                       XDP, APP_INFO_TEST,
                       XdpAppInfo)
 
-XdpAppInfo * xdp_app_info_test_new (const char *app_id);
+XdpAppInfo * xdp_app_info_test_new (const char *app_id,
+                                    const char *usb_queries_str);

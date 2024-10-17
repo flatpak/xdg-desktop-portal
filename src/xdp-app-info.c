@@ -751,6 +751,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
   g_autofd int pidfd = -1;
   uint32_t pid;
   const char *test_override_app_id;
+  const char *test_override_usb_queries;
   g_autoptr(GError) local_error = NULL;
 
   app_info = cache_lookup_app_info_by_sender (sender);
@@ -761,8 +762,12 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
     return NULL;
 
   test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
   if (test_override_app_id)
-    app_info = xdp_app_info_test_new (test_override_app_id);
+    {
+      app_info = xdp_app_info_test_new (test_override_app_id,
+                                        test_override_usb_queries);
+    }
 
   if (app_info == NULL)
     app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
