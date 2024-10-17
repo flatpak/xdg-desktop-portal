@@ -44,3 +44,6 @@ of them:
 
 * `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
     build directory
+
+* `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
+    portal testing.
