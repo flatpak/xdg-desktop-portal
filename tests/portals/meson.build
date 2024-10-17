@@ -15,6 +15,7 @@ test_portals = [
   'org.freedesktop.impl.portal.RemoteDesktop',
   'org.freedesktop.impl.portal.Screenshot',
   'org.freedesktop.impl.portal.Settings',
+  'org.freedesktop.impl.portal.Usb',
   'org.freedesktop.impl.portal.Wallpaper',
 ]
 
