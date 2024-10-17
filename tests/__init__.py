@@ -336,7 +336,8 @@ class PortalMock:
         self,
         dbus_test_case,
         portal_name: str,
-        app_id: str = "org.example.App"
+        app_id: str = "org.example.App",
+        umockdev = None,
     ):
         self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
@@ -346,6 +347,7 @@ class PortalMock:
         self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
         self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
+        self.umockdev = umockdev
 
     @property
     def interface_name(self) -> str:
@@ -442,6 +444,9 @@ class PortalMock:
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
+
+        if self.umockdev:
+            env["UMOCKDEV_DIR"] = self.umockdev.get_root_dir()
 
         self.start_dbus_monitor()
         self.start_portal_frontend(env)
