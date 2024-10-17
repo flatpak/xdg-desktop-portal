@@ -47,7 +47,11 @@ RUN apt install -y --no-install-recommends \
     python3-pytest \
     python3-pytest-xdist \
     python3-dbusmock \
-    python3-dbus
+    python3-dbus \
+    libumockdev0 \
+    libumockdev-dev \
+    umockdev \
+    gir1.2-umockdev-1.0
 
 # Install pip
 RUN apt install -y --no-install-recommends python3-pip
