@@ -94,13 +94,25 @@ def app_id():
 
 
 @pytest.fixture
-def portal_mock(dbus_test_case, portal_name, required_templates, template_params, app_id) -> PortalMock:
+def portal_mock(
+    dbus_test_case,
+    portal_name,
+    required_templates,
+    template_params,
+    app_id,
+) -> PortalMock:
     """
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
-    pmock = PortalMock(dbus_test_case, portal_name, app_id)
+    pmock = PortalMock(
+        dbus_test_case,
+        portal_name,
+        app_id=app_id,
+    )
+
     for template, params in required_templates.items():
         params = template_params.get(template, params)
         pmock.start_template(template, params)
+
     pmock.start_xdp()
     return pmock
