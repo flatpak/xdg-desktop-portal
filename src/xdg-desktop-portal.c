@@ -67,6 +67,7 @@
 #include "secret.h"
 #include "settings.h"
 #include "trash.h"
+#include "usb.h"
 #include "wallpaper.h"
 
 static int global_exit_status = 0;
@@ -362,6 +363,13 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   input_capture_create (connection, implementation->dbus_name));
+
+#ifdef HAVE_GUDEV
+  implementation = find_portal_implementation ("org.freedesktop.impl.portal.Usb");
+  if (implementation != NULL)
+    export_portal_implementation (connection,
+                                  xdp_usb_create (connection, implementation->dbus_name));
+#endif
 }
 
 static void

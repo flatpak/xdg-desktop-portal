@@ -25,13 +25,24 @@
 #endif
 
 #include "xdp-app-info-host-private.h"
+#include "xdp-usb-query.h"
 
 struct _XdpAppInfoHost
 {
   XdpAppInfo parent;
+
+  GPtrArray *usb_queries;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO)
+
+static const GPtrArray *
+xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
+{
+  XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (app_info);
+
+  return app_info_host->usb_queries;
+}
 
 gboolean
 xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
@@ -58,12 +69,26 @@ xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static void
+xdp_app_info_host_dispose (GObject *object)
+{
+  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
+
+  g_clear_pointer (&app_info->usb_queries, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (xdp_app_info_host_parent_class)->dispose (object);
+}
 
 static void
 xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
 {
   XdpAppInfoClass *app_info_class = XDP_APP_INFO_CLASS (klass);
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->dispose = xdp_app_info_host_dispose;
+
+  app_info_class->get_usb_queries =
+    xdp_app_info_host_get_usb_queries;
   app_info_class->validate_autostart =
     xdp_app_info_host_validate_autostart;
   app_info_class->validate_dynamic_launcher =
@@ -73,6 +98,14 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
 static void
 xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
 {
+  g_autoptr(XdpUsbQuery) query = NULL;
+
+  app_info_host->usb_queries =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
+  if (query)
+    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
 }
 
 #ifdef HAVE_LIBSYSTEMD
