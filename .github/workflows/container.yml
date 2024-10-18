@@ -27,22 +27,28 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ github.token }}
 
-      - name: Find the registry owner to use
-        run: |
-          if [[ "${{github.event_name}}" == "pull_request" ]] ; then
-              OWNER="${{ github.actor }}"
-          else
-              OWNER="${{ github.repository_owner }}"
-          fi
-          echo "REGISTRY_OWNER=${OWNER,,}" >> ${GITHUB_ENV}
-
       - name: Check if image already exists on GHCR
         id: check
         run: |
-          image=ghcr.io/${{ env.REGISTRY_OWNER }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
-          echo "exists=$(docker manifest inspect $image >/dev/null && echo 'true' || echo 'false')" \
-            >> "$GITHUB_OUTPUT"
-          echo "image=$image" >> "$GITHUB_OUTPUT"
+          ACTOR="${{ github.actor }}"
+          OWNER="${{ github.repository_owner }}"
+          image_actor="ghcr.io/${ACTOR,,}/xdg-desktop-portal:${{ env.IMAGE_TAG }}"
+          image_owner="ghcr.io/${OWNER,,}/xdg-desktop-portal:${{ env.IMAGE_TAG }}"
+
+          if docker manifest inspect "${image_owner}" >/dev/null ; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "image=${image_owner}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if docker manifest inspect "${image_actor}" >/dev/null ; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "image=${image_actor}" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "exists=false" >> "$GITHUB_OUTPUT"
+          echo "image=${image_owner}" >> "$GITHUB_OUTPUT"
 
       - name: Build and push
         if: ${{ steps.check.outputs.exists == 'false' }}
@@ -50,4 +56,4 @@ jobs:
         with:
           push: true
           file: .github/workflows/Containerfile
-          tags: ghcr.io/${{ env.REGISTRY_OWNER }}/xdg-desktop-portal:${{ env.IMAGE_TAG }}
+          tags: ${{ steps.check.outputs.image }}
