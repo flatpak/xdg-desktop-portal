@@ -58,7 +58,10 @@ test(
   protocol: test_protocol,
 )
 
-test_backends_sources = files(
+# We build this in the tests/ subdirectory so that it can be accessed
+# via G_TEST_BUILT
+test_backends = executable(
+  'test-backends',
   'backend/test-backends.c',
   'backend/request.c',
   'backend/session.c',
@@ -76,13 +79,6 @@ test_backends_sources = files(
   'backend/settings.c',
   'backend/wallpaper.c',
   'glib-backports.c',
-)
-
-# We build this in the tests/ subdirectory so that it can be accessed
-# via G_TEST_BUILT
-test_backends = executable(
-  'test-backends',
-  test_backends_sources,
   document_portal_built_sources,
   document_portal_built_sources,
   impl_built_sources,
@@ -92,18 +88,13 @@ test_backends = executable(
   install_dir: installed_tests_dir,
 )
 
-test_portals_sources = files(
-  'test-portals.c',
-  'utils.c',
-)
-
-limited_portals_sources = files(
-  'limited-portals.c',
-  'utils.c',
-)
+portals_test_deps = []
+portals_test_sources = files()
 
 if have_libportal
-  extra_portals_sources = files(
+  portals_test_deps += [libportal_dep]
+
+  portals_test_sources += files(
     'account.c',
     'background.c',
     'camera.c',
@@ -118,19 +109,18 @@ if have_libportal
     'wallpaper.c',
     'glib-backports.c',
   )
-
-  test_portals_sources += extra_portals_sources
-  limited_portals_sources += extra_portals_sources
 endif
 
 test_portals = executable(
   'test-portals',
+  'test-portals.c',
+  'utils.c',
+  portals_test_sources,
   impl_built_sources,
   permission_store_built_sources,
   portal_built_sources,
-  test_portals_sources,
   xdp_utils_sources,
-  dependencies: [common_deps, libportal_dep, libsystemd_dep],
+  dependencies: [common_deps, portals_test_deps, xdp_utils_deps],
   include_directories: [common_includes, xdp_utils_includes],
   c_args: [
     '-DXDG_DP_BUILDDIR="src"',
@@ -142,12 +132,14 @@ test_portals = executable(
 
 limited_portals = executable(
   'limited-portals',
+  'limited-portals.c',
+  'utils.c',
+  portals_test_sources,
   impl_built_sources,
   permission_store_built_sources,
   portal_built_sources,
-  limited_portals_sources,
   xdp_utils_sources,
-  dependencies: [common_deps, libportal_dep, libsystemd_dep],
+  dependencies: [common_deps, portals_test_deps, xdp_utils_deps],
   include_directories: [common_includes, xdp_utils_includes],
   c_args: [
     '-DXDG_DP_BUILDDIR="src"',
@@ -230,7 +222,7 @@ test_permission_store = executable(
   'utils.c',
   permission_store_built_sources,
   xdp_utils_sources,
-  dependencies: [common_deps, libsystemd_dep],
+  dependencies: [common_deps, xdp_utils_deps],
   include_directories: [common_includes, xdp_utils_includes],
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
@@ -248,7 +240,7 @@ test_xdp_utils = executable(
   'test-xdp-utils.c',
   'utils.c',
   xdp_utils_sources,
-  dependencies: [common_deps, libsystemd_dep],
+  dependencies: [common_deps, xdp_utils_deps],
   include_directories: [common_includes, xdp_utils_includes],
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
@@ -355,6 +347,7 @@ if enable_installed_tests
   foreach tf : testfiles
       data = configuration_data()
       data.set('installed_testdir', installed_tests_dir)
+      data.set('libdir', libdir)
       data.set('exec', tf)
       configure_file(
         input: 'template.test.in',
@@ -368,6 +361,7 @@ if enable_installed_tests
   foreach p : portal_tests
       data = configuration_data()
       data.set('installed_testdir', installed_tests_dir)
+      data.set('libdir', libdir)
       data.set('exec', 'test-portals -p /portal/@0@'.format(p))
       configure_file(
         input: 'template.test.in',
@@ -381,7 +375,8 @@ if enable_installed_tests
   foreach p : portal_limited
       data = configuration_data()
       data.set('installed_testdir', installed_tests_dir)
-      data.set('exec', 'test-portals -p /limited/@0@'.format(p))
+      data.set('libdir', libdir)
+      data.set('exec', 'limited-portals -p /limited/@0@'.format(p))
       configure_file(
         input: 'template.test.in',
         output: 'test-limited-@0@.test'.format(p),

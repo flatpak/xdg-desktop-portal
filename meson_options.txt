@@ -18,6 +18,10 @@ option('libportal',
        type: 'feature',
        value: 'auto',
        description: 'Enable libportal support. Needed for tests')
+option('libportal-subproject',
+        type: 'boolean',
+        value: true,
+        description: 'Use libportal as subproject')
 option('geoclue',
        type: 'feature',
        value: 'auto',

@@ -11,6 +11,7 @@ project(
 
 prefix = get_option('prefix')
 datadir = prefix / get_option('datadir')
+libdir = prefix / get_option('libdir')
 libexecdir = prefix / get_option('libexecdir')
 sysconfdir = prefix / get_option('sysconfdir')
 localedir = prefix / get_option('localedir')
@@ -112,8 +113,6 @@ gst_pbutils_dep = dependency('gstreamer-pbutils-1.0')
 geoclue_dep = dependency('libgeoclue-2.0',
                          version: '>= 2.5.2',
                          required: get_option('geoclue'))
-libportal_dep = dependency('libportal',
-                           required: get_option('libportal'))
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
@@ -129,7 +128,23 @@ if not bwrap.found()
     ''')
 endif
 
-have_libportal = libportal_dep.found()
+if get_option('libportal-subproject')
+  libportal_proj = subproject(
+    'libportal',
+    default_options: [
+      'introspection=false',
+      'vapi=false',
+      'docs=false',
+      'tests=false',
+    ],
+  )
+  libportal_dep = libportal_proj.get_variable('libportal_dep')
+else
+  libportal_dep = dependency('libportal', required: false)
+endif
+
+libportal_option = get_option('libportal').require(libportal_dep.found())
+have_libportal = libportal_option.allowed()
 if have_libportal
   config_h.set('HAVE_LIBPORTAL', 1)
 endif
