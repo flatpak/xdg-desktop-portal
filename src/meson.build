@@ -49,6 +49,7 @@ xdp_method_info_built_sources = configure_file(
 
 xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sources
 
+xdp_utils_deps = []
 xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files(
   'xdp-utils.c',
@@ -62,6 +63,7 @@ xdp_utils_sources = files(
 
 if have_libsystemd
   xdp_utils_sources += sd_escape_sources
+  xdp_utils_deps += [libsystemd_dep]
 endif
 
 xdg_desktop_portal_sources = files(
@@ -132,7 +134,7 @@ common_deps = [
 xdg_desktop_portal_deps = common_deps + [
   geoclue_dep,
   pipewire_dep,
-  libsystemd_dep,
+  xdp_utils_deps,
 ]
 
 incs_xdg_desktop_portal = [
