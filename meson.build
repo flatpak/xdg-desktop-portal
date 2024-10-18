@@ -11,6 +11,7 @@ project(
 
 prefix = get_option('prefix')
 datadir = prefix / get_option('datadir')
+libdir = prefix / get_option('libdir')
 libexecdir = prefix / get_option('libexecdir')
 sysconfdir = prefix / get_option('sysconfdir')
 localedir = prefix / get_option('localedir')
