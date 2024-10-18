@@ -1,0 +1,4 @@
+[wrap-git]
+directory=libportal
+url=https://github.com/jsparber/libportal.git
+revision=implement_v2_notification_spec
