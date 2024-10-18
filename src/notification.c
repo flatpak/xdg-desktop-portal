@@ -112,7 +112,8 @@ struct _CallData {
   char *sender;
   char *id;
   GVariant *notification;
-  GUnixFDList *fd_list;
+  GUnixFDList *in_fd_list;
+  GUnixFDList *out_fd_list;
 };
 
 G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
@@ -131,7 +132,7 @@ call_data_new (GDBusMethodInvocation *inv,
                const char            *sender,
                const char            *id,
                GVariant              *notification,
-               GUnixFDList           *fd_list)
+               GUnixFDList           *in_fd_list)
 {
   CallData *call_data = g_object_new (call_data_get_type(),  NULL);
 
@@ -141,7 +142,8 @@ call_data_new (GDBusMethodInvocation *inv,
   call_data->id = g_strdup (id);
   if (notification)
     call_data->notification = g_variant_ref (notification);
-  g_set_object (&call_data->fd_list, fd_list);
+  g_set_object (&call_data->in_fd_list, in_fd_list);
+  call_data->out_fd_list = g_unix_fd_list_new ();
 
   return call_data;
 }
@@ -156,7 +158,8 @@ call_data_finalize (GObject *object)
   g_clear_pointer (&call_data->id, g_free);
   g_clear_pointer (&call_data->sender, g_free);
   g_clear_pointer (&call_data->notification, g_variant_unref);
-  g_clear_object (&call_data->fd_list);
+  g_clear_object (&call_data->in_fd_list);
+  g_clear_object (&call_data->out_fd_list);
 
   G_OBJECT_CLASS (call_data_parent_class)->finalize (object);
 }
@@ -254,11 +257,11 @@ markup_parser_text (GMarkupParseContext  *context,
 }
 
 static void
-markup_parser_start_element (GMarkupParseContext *context,
-                             const gchar         *element_name,
+markup_parser_start_element (GMarkupParseContext  *context,
+                             const gchar          *element_name,
                              const gchar         **attribute_names,
                              const gchar         **attribute_values,
-                             gpointer             user_data,
+                             gpointer              user_data,
                              GError              **error)
 {
   GString *composed = user_data;
@@ -287,9 +290,9 @@ markup_parser_start_element (GMarkupParseContext *context,
 }
 
 static void
-markup_parser_end_element (GMarkupParseContext *context,
-                           const gchar         *element_name,
-                           gpointer             user_data,
+markup_parser_end_element (GMarkupParseContext  *context,
+                           const gchar          *element_name,
+                           gpointer              user_data,
                            GError              **error)
 {
   GString *composed = user_data;
@@ -361,7 +364,7 @@ parse_markup_body (GVariantBuilder  *builder,
   gsize text_length = 0;
 
   if (!check_value_type ("markup-body", body, G_VARIANT_TYPE_STRING, error))
-      return FALSE;
+    return FALSE;
 
   text = g_variant_get_string (body, &text_length);
   composed = g_string_sized_new (text_length);
@@ -572,7 +575,8 @@ parse_buttons (GVariantBuilder  *builder,
 static gboolean
 parse_serialized_icon (GVariantBuilder  *builder,
                        GVariant         *icon,
-                       GUnixFDList      *fd_list,
+                       GUnixFDList      *in_fd_list,
+                       GUnixFDList      *out_fd_list,
                        GError          **error)
 {
   const char *key;
@@ -640,12 +644,19 @@ parse_serialized_icon (GVariantBuilder  *builder,
             {
               g_autoptr(GVariant) fd_icon = NULL;
 
-              fd_icon = xdp_sealed_fd_to_handle (sealed_icon, fd_list, &local_error);
+              fd_icon = xdp_sealed_fd_to_handle (sealed_icon,
+                                                 out_fd_list,
+                                                 &local_error);
 
               if (!fd_icon)
-                g_warning ("Failed to get create file-descriptor icon from bytes icon: %s", local_error->message);
-
-              g_variant_builder_add (builder, "{sv}", "icon", fd_icon);
+                {
+                  g_warning ("Failed to get create file-descriptor icon from bytes icon: %s",
+                             local_error->message);
+                }
+              else
+                {
+                  g_variant_builder_add (builder, "{sv}", "icon", fd_icon);
+                }
             }
           else
             {
@@ -661,7 +672,7 @@ parse_serialized_icon (GVariantBuilder  *builder,
       if (!check_value_type (key, value, G_VARIANT_TYPE_HANDLE, error))
         return FALSE;
 
-      if (fd_list == NULL || g_unix_fd_list_get_length (fd_list) == 0)
+      if (in_fd_list == NULL || g_unix_fd_list_get_length (in_fd_list) == 0)
         {
           g_set_error_literal (error,
                                XDG_DESKTOP_PORTAL_ERROR,
@@ -670,7 +681,9 @@ parse_serialized_icon (GVariantBuilder  *builder,
           return FALSE;
         }
 
-      if (!(sealed_icon = xdp_sealed_fd_new_from_handle (value, fd_list, &local_error)))
+      if (!(sealed_icon = xdp_sealed_fd_new_from_handle (value,
+                                                         in_fd_list,
+                                                         &local_error)))
         {
           g_warning ("Failed to seal fd: %s", local_error->message);
           g_set_error_literal (error,
@@ -702,7 +715,20 @@ parse_serialized_icon (GVariantBuilder  *builder,
             }
           else
             {
-              g_variant_builder_add (builder, "{sv}", "icon", icon);
+              g_autoptr(GVariant) fd_icon = NULL;
+
+              fd_icon = xdp_sealed_fd_to_handle (sealed_icon,
+                                                 out_fd_list,
+                                                 &local_error);
+              if (!fd_icon)
+                {
+                  g_warning ("Failed to get create file-descriptor icon from icon fd: %s",
+                             local_error->message);
+                }
+              else
+                {
+                  g_variant_builder_add (builder, "{sv}", "icon", fd_icon);
+                }
             }
         }
     }
@@ -717,7 +743,8 @@ parse_serialized_icon (GVariantBuilder  *builder,
 static gboolean
 parse_serialized_sound (GVariantBuilder  *builder,
                         GVariant         *sound,
-                        GUnixFDList      *fd_list,
+                        GUnixFDList      *in_fd_list,
+                        GUnixFDList      *out_fd_list,
                         GError          **error)
 {
   const char *key;
@@ -751,11 +778,12 @@ parse_serialized_sound (GVariantBuilder  *builder,
     {
       g_autoptr(GError) local_error = NULL;
       g_autoptr(XdpSealedFd) sealed_sound = NULL;
+      g_autoptr(GVariant) fd_sound = NULL;
 
       if (!check_value_type (key, value, G_VARIANT_TYPE_HANDLE, error))
         return FALSE;
 
-      if (fd_list == NULL || g_unix_fd_list_get_length (fd_list) == 0)
+      if (in_fd_list == NULL || g_unix_fd_list_get_length (in_fd_list) == 0)
         {
           g_set_error_literal (error,
                                XDG_DESKTOP_PORTAL_ERROR,
@@ -764,7 +792,9 @@ parse_serialized_sound (GVariantBuilder  *builder,
           return FALSE;
         }
 
-      sealed_sound = xdp_sealed_fd_new_from_handle (value, fd_list, &local_error);
+      sealed_sound = xdp_sealed_fd_new_from_handle (value,
+                                                    in_fd_list,
+                                                    &local_error);
       if (!sealed_sound)
         {
           g_warning ("Failed to seal fd: %s", local_error->message);
@@ -778,7 +808,19 @@ parse_serialized_sound (GVariantBuilder  *builder,
       if (!xdp_validate_sound (sealed_sound))
         return FALSE;
 
-      g_variant_builder_add (builder, "{sv}", "sound", sound);
+      fd_sound = xdp_sealed_fd_to_handle (sealed_sound,
+                                          out_fd_list,
+                                          &local_error);
+
+      if (!fd_sound)
+        {
+          g_warning ("Failed to get create file-descriptor icon from sound fd: %s",
+                     local_error->message);
+        }
+      else
+        {
+          g_variant_builder_add (builder, "{sv}", "sound", fd_sound);
+        }
     }
   else
     {
@@ -797,13 +839,13 @@ parse_display_hint (GVariantBuilder  *builder,
   g_autofree const char **display_hints = NULL;
   gsize display_hints_length;
   const char *supported_display_hints[] = {
-      "transient",
-      "tray",
-      "persistent",
-      "hide-on-lock-screen",
-      "hide-content-on-lock-screen",
-      "show-as-new",
-      NULL
+    "transient",
+    "tray",
+    "persistent",
+    "hide-on-lock-screen",
+    "hide-content-on-lock-screen",
+    "show-as-new",
+    NULL
   };
 
   if (!check_value_type ("display-hint", value, G_VARIANT_TYPE_STRING_ARRAY, error))
@@ -884,7 +926,8 @@ parse_category (GVariantBuilder  *builder,
 static gboolean
 parse_notification (GVariantBuilder  *builder,
                     GVariant         *notification,
-                    GUnixFDList      *fd_list,
+                    GUnixFDList      *in_fd_list,
+                    GUnixFDList      *out_fd_list,
                     GError          **error)
 {
   int i;
@@ -913,7 +956,11 @@ parse_notification (GVariantBuilder  *builder,
         }
       else if (strcmp (key, "icon") == 0)
         {
-          if (!parse_serialized_icon (builder, value, fd_list, error))
+          if (!parse_serialized_icon (builder,
+                                      value,
+                                      in_fd_list,
+                                      out_fd_list,
+                                      error))
             {
               g_prefix_error (error, "invalid icon: ");
               return FALSE;
@@ -921,7 +968,11 @@ parse_notification (GVariantBuilder  *builder,
         }
       else if (strcmp (key, "sound") == 0 && impl_version > 1)
         {
-          if (!parse_serialized_sound (builder, value, fd_list, error))
+          if (!parse_serialized_sound (builder,
+                                       value,
+                                       in_fd_list,
+                                       out_fd_list,
+                                       error))
             {
               g_prefix_error (error, "invalid sound: ");
               return FALSE;
@@ -1015,7 +1066,8 @@ handle_add_in_thread_func (GTask        *task,
 
   if (!parse_notification (&builder,
                            call_data->notification,
-                           call_data->fd_list,
+                           call_data->in_fd_list,
+                           call_data->out_fd_list,
                            &error))
     {
       g_variant_builder_clear (&builder);
@@ -1029,7 +1081,7 @@ handle_add_in_thread_func (GTask        *task,
                                                     xdp_app_info_get_id (call_data->app_info),
                                                     call_data->id,
                                                     g_variant_builder_end (&builder),
-                                                    call_data->fd_list,
+                                                    call_data->out_fd_list,
                                                     NULL,
                                                     add_done,
                                                     g_object_ref (call_data));
@@ -1040,24 +1092,20 @@ handle_add_in_thread_func (GTask        *task,
 static gboolean
 notification_handle_add_notification (XdpDbusNotification *object,
                                       GDBusMethodInvocation *invocation,
-                                      GUnixFDList *fd_list,
+                                      GUnixFDList *in_fd_list,
                                       const char *arg_id,
                                       GVariant *notification)
 {
   Call *call = call_from_invocation (invocation);
   g_autoptr(GTask) task = NULL;
-  g_autoptr(GUnixFDList) empty_fd_list = NULL;
   CallData *call_data;
-
-  if (!fd_list)
-    fd_list = empty_fd_list = g_unix_fd_list_new ();
 
   call_data = call_data_new (invocation,
                              call->app_info,
                              call->sender,
                              arg_id,
                              notification,
-                             fd_list);
+                             in_fd_list);
   task = g_task_new (object, NULL, add_finished_cb, NULL);
   g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
