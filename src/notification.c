@@ -254,11 +254,11 @@ markup_parser_text (GMarkupParseContext  *context,
 }
 
 static void
-markup_parser_start_element (GMarkupParseContext *context,
-                             const gchar         *element_name,
+markup_parser_start_element (GMarkupParseContext  *context,
+                             const gchar          *element_name,
                              const gchar         **attribute_names,
                              const gchar         **attribute_values,
-                             gpointer             user_data,
+                             gpointer              user_data,
                              GError              **error)
 {
   GString *composed = user_data;
@@ -287,9 +287,9 @@ markup_parser_start_element (GMarkupParseContext *context,
 }
 
 static void
-markup_parser_end_element (GMarkupParseContext *context,
-                           const gchar         *element_name,
-                           gpointer             user_data,
+markup_parser_end_element (GMarkupParseContext  *context,
+                           const gchar          *element_name,
+                           gpointer              user_data,
                            GError              **error)
 {
   GString *composed = user_data;
