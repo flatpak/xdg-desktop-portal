@@ -361,7 +361,7 @@ parse_markup_body (GVariantBuilder  *builder,
   gsize text_length = 0;
 
   if (!check_value_type ("markup-body", body, G_VARIANT_TYPE_STRING, error))
-      return FALSE;
+    return FALSE;
 
   text = g_variant_get_string (body, &text_length);
   composed = g_string_sized_new (text_length);
@@ -797,13 +797,13 @@ parse_display_hint (GVariantBuilder  *builder,
   g_autofree const char **display_hints = NULL;
   gsize display_hints_length;
   const char *supported_display_hints[] = {
-      "transient",
-      "tray",
-      "persistent",
-      "hide-on-lock-screen",
-      "hide-content-on-lock-screen",
-      "show-as-new",
-      NULL
+    "transient",
+    "tray",
+    "persistent",
+    "hide-on-lock-screen",
+    "hide-content-on-lock-screen",
+    "show-as-new",
+    NULL
   };
 
   if (!check_value_type ("display-hint", value, G_VARIANT_TYPE_STRING_ARRAY, error))
