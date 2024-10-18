@@ -381,7 +381,7 @@ if enable_installed_tests
       data = configuration_data()
       data.set('installed_testdir', installed_tests_dir)
       data.set('libdir', libdir)
-      data.set('exec', 'test-portals -p /limited/@0@'.format(p))
+      data.set('exec', 'limited-portals -p /limited/@0@'.format(p))
       configure_file(
         input: 'template.test.in',
         output: 'test-limited-@0@.test'.format(p),
