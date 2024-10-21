@@ -517,6 +517,8 @@ test_notification_category (void)
   run_notification_test ("test5", notification_s, NULL, TRUE);
 }
 
+/* reenable when the proper PR in libportal is merged */
+#if 0
 void
 test_notification_supported_properties (void)
 {
@@ -537,3 +539,4 @@ test_notification_supported_properties (void)
 
   xdp_portal_get_supported_options (portal);
 }
+#endif
