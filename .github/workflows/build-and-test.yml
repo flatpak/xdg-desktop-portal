@@ -47,36 +47,15 @@ jobs:
       - name: Check POTFILES.in
         run: .github/workflows/check-potfiles.sh
 
-      - name: Check out libportal fork with a similarly named branch
-        id: libportal-branched
-        uses: actions/checkout@v4
-        continue-on-error: true
-        with:
-          repository: ${{ github.actor }}/libportal
-          ref: ${{ github.head_ref || github.ref_name }}
-          path: libportal
-
-      - name: Check out libportal default branch
-        if: steps.libportal-branched.outcome == 'failure'
-        uses: actions/checkout@v4
-        with:
-          repository: flatpak/libportal
-          path: libportal
-
-      - name: Build libportal
-        run: |
-          meson setup libportal _build_libportal $MESON_OPTIONS
-          meson compile -C _build_libportal
-          meson install -C _build_libportal
-        env:
-          MESON_OPTIONS: --prefix=/usr -Ddocs=false -Dintrospection=false -Dtests=false
-
       - name: Build xdg-desktop-portal
         run: |
-          meson setup _build $MESON_OPTIONS
+          meson setup _build \
+            -Dinstalled-tests=true \
+            -Dpytest=enabled \
+            -Db_sanitize=${{ matrix.sanitizer }} \
+            -Db_lundef=false \
+            -Dforce_fallback_for=libportal
           meson compile -C _build
-        env:
-          MESON_OPTIONS: -Dinstalled-tests=true -Dpytest=enabled -Db_sanitize=${{ matrix.sanitizer }}
 
       - name: Run xdg-desktop-portal tests
         run: timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build
