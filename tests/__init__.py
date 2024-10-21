@@ -332,14 +332,22 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"):
+    def __init__(
+        self,
+        dbus_test_case,
+        portal_name: str,
+        app_id: str = "org.example.App",
+        umockdev = None,
+    ):
         self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
-        self.xdp = None
-        self.portal_interfaces: Dict[str, dbus.Interface] = {}
+        self.portal_frontend = None
+        self.permission_store = None
         self.dbus_monitor = None
+        self.portal_interfaces: Dict[str, dbus.Interface] = {}
         self.app_id = app_id
         self.busses = {dbusmock.BusType.SYSTEM: {}, dbusmock.BusType.SESSION: {}}
+        self.umockdev = umockdev
 
     @property
     def interface_name(self) -> str:
@@ -420,41 +428,51 @@ class PortalMock:
         Start the xdg-desktop-portal process
         """
 
-        self.start_dbus_monitor()
+        portal_dir = (
+            Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+            / "portals"
+            / "test"
+        )
 
-        # This roughly resembles test-portals.c and glib's test behavior
-        # but preferences in-tree testing by running pytest in meson's
-        # project_build_root
-        libexecdir = os.getenv("LIBEXECDIR")
-        if libexecdir:
-            xdp_path = Path(libexecdir) / "xdg-desktop-portal"
-        else:
-            xdp_path = (
-                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
-                / ".."
-                / "src"
-                / "xdg-desktop-portal"
-            )
-
-        if not xdp_path.exists():
-            raise FileNotFoundError(
-                f"{xdp_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
-            )
-
-        portal_dir = Path(os.getenv("G_TEST_BUILDDIR") or "tests") / "portals" / "test"
         if not portal_dir.exists():
             raise FileNotFoundError(
                 f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
             )
 
-        argv = [xdp_path]
         env = os.environ.copy()
         env["G_DEBUG"] = "fatal-criticals"
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
 
-        xdp = subprocess.Popen(argv, env=env)
+        if self.umockdev:
+            env["UMOCKDEV_DIR"] = self.umockdev.get_root_dir()
+
+        self.start_dbus_monitor()
+        self.start_portal_frontend(env)
+        self.start_permission_store(env)
+
+    def start_portal_frontend(self, env):
+        # This roughly resembles test-portals.c and glib's test behavior
+        # but preferences in-tree testing by running pytest in meson's
+        # project_build_root
+        libexecdir = os.getenv("LIBEXECDIR")
+        if libexecdir:
+            portal_frontend = Path(libexecdir) / "xdg-desktop-portal"
+        else:
+            portal_frontend = (
+                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+                / ".."
+                / "src"
+                / "xdg-desktop-portal"
+            )
+
+        if not portal_frontend.exists():
+            raise FileNotFoundError(
+                f"{portal_frontend} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+            )
+
+        portal_frontend = subprocess.Popen([portal_frontend], env=env)
 
         for _ in range(50):
             if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
@@ -465,23 +483,63 @@ class PortalMock:
                 False
             ), "Timeout while waiting for xdg-desktop-portal to claim the bus"
 
-        self.xdp = xdp
+        self.portal_frontend = portal_frontend
+
+    def start_permission_store(self, env):
+        """
+        Start the xdg-permission-store process
+        """
+
+        # This roughly resembles test-portals.c and glib's test behavior
+        # but preferences in-tree testing by running pytest in meson's
+        # project_build_root
+        libexecdir = os.getenv("LIBEXECDIR")
+        if libexecdir:
+            permission_store_path = Path(libexecdir) / "xdg-permission-store"
+        else:
+            permission_store_path = (
+                Path(os.getenv("G_TEST_BUILDDIR") or "tests")
+                / ".."
+                / "document-portal"
+                / "xdg-permission-store"
+             )
+
+        if not permission_store_path.exists():
+            raise FileNotFoundError(
+                f"{permission_store_path} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
+            )
+
+        permission_store = subprocess.Popen([permission_store_path], env=env)
+
+        for _ in range(50):
+            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
+                break
+            time.sleep(0.1)
+        else:
+            assert (
+                False
+            ), "Timeout while waiting for xdg-permission-store to claim the bus"
+
+        self.permission_store = permission_store
 
     def start_dbus_monitor(self):
         if not os.getenv("XDP_DBUS_MONITOR"):
             return
 
-        argv = ["dbus-monitor", "--session"]
-        self.dbus_monitor = subprocess.Popen(argv)
+        self.dbus_monitor = subprocess.Popen(["dbus-monitor", "--session"])
 
     def tearDown(self):
         if self.dbus_monitor:
             self.dbus_monitor.terminate()
             self.dbus_monitor.wait()
 
-        if self.xdp:
-            self.xdp.terminate()
-            self.xdp.wait()
+        if self.portal_frontend:
+            self.portal_frontend.terminate()
+            self.portal_frontend.wait()
+
+        if self.permission_store:
+            self.permission_store.terminate()
+            self.permission_store.wait()
 
         for server in self.busses[dbusmock.BusType.SYSTEM]:
             self._terminate_mock_p (server.process)
