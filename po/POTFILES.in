@@ -1,8 +1,8 @@
 # List of source files containing translatable strings.
-src/background.c
-src/camera.c
-src/dynamic-launcher.c
-src/location.c
-src/screenshot.c
-src/settings.c
-src/wallpaper.c
+src/portals/background.c
+src/portals/camera.c
+src/portals/dynamic-launcher.c
+src/portals/location.c
+src/portals/screenshot.c
+src/portals/settings.c
+src/portals/wallpaper.c

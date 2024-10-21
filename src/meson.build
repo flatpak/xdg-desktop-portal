@@ -24,7 +24,7 @@ background_monitor_built_sources = gnome.gdbus_codegen(
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
     'geoclue-dbus',
-    sources: 'org.freedesktop.GeoClue2.Client.xml',
+    sources: 'portals/org.freedesktop.GeoClue2.Client.xml',
     interface_prefix: 'org.freedesktop.GeoClue2',
     namespace: 'Geoclue',
   )
@@ -51,62 +51,72 @@ xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sou
 
 xdp_utils_includes = include_directories('.')
 xdp_utils_sources = files(
-  'xdp-utils.c',
   'xdp-app-info.c',
-  'xdp-sealed-fd.c',
   'xdp-app-info-host.c',
   'xdp-app-info-flatpak.c',
   'xdp-app-info-snap.c',
   'xdp-app-info-test.c',
+  'xdp-sealed-fd.c',
+  'xdp-utils.c',
 )
 
 if have_libsystemd
   xdp_utils_sources += sd_escape_sources
 endif
 
-xdg_desktop_portal_sources = files(
-  'account.c',
-  'background.c',
-  'background-monitor.c',
-  'call.c',
-  'camera.c',
-  'clipboard.c',
-  'documents.c',
-  'dynamic-launcher.c',
-  'email.c',
-  'file-chooser.c',
-  'flatpak-instance.c',
-  'gamemode.c',
-  'glib-backports.c',
-  'global-shortcuts.c',
-  'inhibit.c',
-  'input-capture.c',
-  'launch-context.c',
-  'memory-monitor.c',
-  'network-monitor.c',
-  'notification.c',
-  'open-uri.c',
-  'permissions.c',
-  'pipewire.c',
-  'portal-impl.c',
-  'power-profile-monitor.c',
-  'print.c',
-  'proxy-resolver.c',
-  'realtime.c',
-  'remote-desktop.c',
-  'request.c',
-  'restore-token.c',
-  'screen-cast.c',
-  'screenshot.c',
-  'secret.c',
-  'session.c',
-  'settings.c',
-  'trash.c',
-  'wallpaper.c',
-  'xdg-desktop-portal.c',
+xdp_portals_sources = files(
+  'portals/account.c',
+  'portals/background.c',
+  'portals/camera.c',
+  'portals/clipboard.c',
+  'portals/dynamic-launcher.c',
+  'portals/email.c',
+  'portals/file-chooser.c',
+  'portals/gamemode.c',
+  'portals/global-shortcuts.c',
+  'portals/inhibit.c',
+  'portals/input-capture.c',
+  'portals/memory-monitor.c',
+  'portals/network-monitor.c',
+  'portals/notification.c',
+  'portals/open-uri.c',
+  'portals/pipewire.c',
+  'portals/power-profile-monitor.c',
+  'portals/print.c',
+  'portals/proxy-resolver.c',
+  'portals/realtime.c',
+  'portals/remote-desktop.c',
+  'portals/screenshot.c',
+  'portals/screen-cast.c',
+  'portals/secret.c',
+  'portals/settings.c',
+  'portals/trash.c',
+  'portals/wallpaper.c',
 )
 
-xdg_desktop_portal_sources += [
+if have_geoclue
+  xdp_portals_sources += files(
+    'portals/location.c',
+  )
+endif
+
+xdp_sources = files(
+  'flatpak-instance.c',
+  'glib-backports.c',
+  'xdg-desktop-portal.c',
+  'xdp-app-launch-context.c',
+  'xdp-background-monitor.c',
+  'xdp-call.c',
+  'xdp-documents.c',
+  'xdp-permissions.c',
+  'xdp-portal-impl.c',
+  'xdp-request.c',
+  'xdp-session.c',
+  'xdp-session-persistence.c',
+)
+
+xdp_sources += [
+  xdp_portals_sources,
   xdp_utils_sources,
   xdp_method_info_sources,
   portal_built_sources,
@@ -115,12 +125,6 @@ xdg_desktop_portal_sources += [
   geoclue_built_sources,
   built_resources,
 ]
-
-if have_geoclue
-  xdg_desktop_portal_sources += files(
-    'location.c',
-  )
-endif
 
 common_deps = [
   glib_dep,
@@ -143,7 +147,7 @@ incs_xdg_desktop_portal = [
 
 xdg_desktop_portal = executable(
   'xdg-desktop-portal',
-  xdg_desktop_portal_sources,
+  xdp_sources,
   dependencies: xdg_desktop_portal_deps,
   include_directories: incs_xdg_desktop_portal,
   install: true,
@@ -173,7 +177,7 @@ endif
 
 xdp_validate_icon = executable(
   'xdg-desktop-portal-validate-icon',
-  'validate-icon.c',
+  'helpers/validate-icon.c',
   dependencies: [gdk_pixbuf_dep, gio_unix_dep],
   c_args: validate_icon_c_args,
   install: true,
@@ -195,7 +199,7 @@ xdp_validate_sound = executable(
 )
 
 configure_file(
-  input: 'xdg-desktop-portal-rewrite-launchers.service.in',
+  input: 'helpers/xdg-desktop-portal-rewrite-launchers.service.in',
   output: '@BASENAME@',
   configuration: base_config,
   install: true,
@@ -204,7 +208,7 @@ configure_file(
 
 executable(
   'xdg-desktop-portal-rewrite-launchers',
-  'rewrite-launchers.c',
+  'helpers/rewrite-launchers.c',
   'glib-backports.c',
   dependencies: common_deps,
   include_directories: common_includes,
