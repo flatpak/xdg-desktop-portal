@@ -17,7 +17,6 @@
 #include "email.h"
 #include "filechooser.h"
 #include "inhibit.h"
-#include "location.h"
 #include "notification.h"
 #include "openuri.h"
 #include "print.h"
