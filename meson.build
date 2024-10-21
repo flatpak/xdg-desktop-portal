@@ -4,7 +4,10 @@ project(
   version: '1.19.1',
   meson_version: '>= 0.60',
   license: 'LGPL-2.0-or-later',
-  default_options: ['warning_level=2'])
+  default_options: [
+    'warning_level=2',
+  ],
+)
 
 ###### various directories we'll use later
 # foodir are built-in ones, foo_dir are our options
@@ -110,11 +113,23 @@ json_glib_dep = dependency('json-glib-1.0')
 fuse3_dep = dependency('fuse3', version: '>= 3.10.0')
 gdk_pixbuf_dep = dependency('gdk-pixbuf-2.0')
 gst_pbutils_dep = dependency('gstreamer-pbutils-1.0')
-geoclue_dep = dependency('libgeoclue-2.0',
-                         version: '>= 2.5.2',
-                         required: get_option('geoclue'))
-libportal_dep = dependency('libportal',
-                           required: get_option('libportal'))
+geoclue_dep = dependency(
+  'libgeoclue-2.0',
+  version: '>= 2.5.2',
+  required: get_option('geoclue'),
+)
+libportal_dep = dependency(
+  'libportal',
+  version: '>= 0.8.1',
+  required: get_option('libportal'),
+  fallback: ['libportal', 'libportal_dep'],
+  default_options: [
+    'introspection=false',
+    'vapi=false',
+    'docs=false',
+    'tests=false',
+  ],
+)
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 
