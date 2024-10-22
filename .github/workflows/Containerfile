@@ -49,8 +49,6 @@ RUN apt install -y --no-install-recommends \
     python3-dbus
 
 # Install doc dependencies
-RUN apt install -y --no-install-recommends \
-    python3-sphinx-copybutton \
-    python3-sphinxext-opengraph \
-    furo \
-    python3-sphinx
+RUN apt install -y --no-install-recommends python3-pip
+RUN pip install --user --break-system-packages furo">=2024.04.27" \
+    sphinx-copybutton sphinxext-opengraph matplotlib

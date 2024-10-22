@@ -27,6 +27,8 @@ jobs:
 
       - name: Build docs
         run: |
+          export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
+          export PATH="/root/.local/bin:$PATH"
           meson setup builddir -Ddocumentation=enabled
           ninja -C builddir doc/html
 
