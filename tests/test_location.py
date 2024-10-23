@@ -31,6 +31,26 @@ class TestLocation:
         )
         return geoclue_mock
 
+    @pytest.mark.parametrize("required_templates", ({},))
+    def test_no_geoclue(self, portals, dbus_con):
+        location_intf = xdp.get_portal_iface(dbus_con, "Location")
+
+        session = xdp.Session(
+            dbus_con,
+            location_intf.CreateSession({"session_handle_token": "session_token0"}),
+        )
+
+        start_session_request = xdp.Request(dbus_con, location_intf)
+        start_session_response = start_session_request.call(
+            "Start",
+            session_handle=session.handle,
+            parent_window="window-hndl",
+            options={},
+        )
+
+        assert start_session_response
+        assert start_session_response.response == 2
+
     def test_session_update(self, portals, dbus_con, dbus_con_sys):
         location_intf = xdp.get_portal_iface(dbus_con, "Location")
         geoclue_mock_intf = self.get_geoclue_mock(dbus_con_sys)
