@@ -34,6 +34,7 @@ import logging
 import os
 import subprocess
 import time
+import signal
 
 DBusGMainLoop(set_as_default=True)
 
@@ -425,10 +426,9 @@ class PortalMock:
         """
 
         portal_dir = Path(os.getenv("G_TEST_BUILDDIR", "tests")) / "portals" / "test"
-
         if not portal_dir.exists():
             raise FileNotFoundError(
-                f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
+                f"{portal_dir} does not exist, try running from meson build dir or setting G_TEST_BUILDDIR"
             )
 
         env = os.environ.copy()
@@ -436,6 +436,16 @@ class PortalMock:
         env["XDG_DESKTOP_PORTAL_DIR"] = portal_dir
         env["XDG_CURRENT_DESKTOP"] = "test"
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
+
+        asan_suppression = (
+            Path(os.getenv("G_TEST_SRCDIR", "tests")) / "asan.suppression"
+        )
+        if not asan_suppression.exists():
+            raise FileNotFoundError(
+                f"{asan_suppression} does not exist, try running from meson build dir or setting G_TEST_SRCDIR"
+            )
+
+        env["LSAN_OPTIONS"] = f"suppressions={asan_suppression}"
 
         self.start_dbus_monitor()
         self.start_portal_frontend(env)
@@ -527,8 +537,10 @@ class PortalMock:
             self.dbus_monitor.wait()
 
         if self.portal_frontend:
-            self.portal_frontend.terminate()
-            self.portal_frontend.wait()
+            # give it a chance to shut down cleanly
+            self.portal_frontend.send_signal(signal.SIGHUP)
+            returncode = self.portal_frontend.wait()
+            assert returncode == 0
 
         if self.permission_store:
             self.permission_store.terminate()
