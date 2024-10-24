@@ -61,6 +61,15 @@ with ``-Dlibportal=enabled``, and run:
 
    meson test -C _build
 
+Enable the pre-commit hooks to catch issues early:
+
+.. code-block:: shell
+
+   git config --local core.hooksPath .githooks/
+
+When a branch is pushed to github, CI will also run tests in a few more
+configurations.
+
 Documentation
 -------------
 
