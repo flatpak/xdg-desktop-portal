@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests import PortalMock, Session
+from tests import Session
 import dbus
 import pytest
 import os
@@ -52,7 +52,9 @@ class TestClipboard:
 
         assert clipboard_enabled
 
-    @pytest.mark.parametrize("template_params", ({"RemoteDesktop": {"force-clipboard-enabled": False}},))
+    @pytest.mark.parametrize(
+        "template_params", ({"RemoteDesktop": {"force-clipboard-enabled": False}},)
+    )
     def test_clipboard_checks_clipboard_enabled(self, portal_mock):
         session, clipboard_enabled = self.start_session(portal_mock)
         clipboard_interface = portal_mock.get_dbus_interface()

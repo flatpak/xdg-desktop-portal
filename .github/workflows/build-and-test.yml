@@ -38,6 +38,12 @@ jobs:
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
 
+      - name: Run pre-commit hooks
+        run: |
+          export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
+          export PATH="/root/.local/bin:$PATH"
+          pre-commit run --show-diff-on-failure --color=always --all-files
+
       - name: Check POTFILES.in
         run: .github/workflows/check-potfiles.sh
 

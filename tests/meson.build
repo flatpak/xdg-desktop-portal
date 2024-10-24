@@ -292,6 +292,10 @@ if enable_pytest
 
   pytest_args = ['--verbose', '--log-level=DEBUG']
 
+  pytest_env = environment()
+  pytest_env.set('G_TEST_SRCDIR', meson.current_source_dir())
+  pytest_env.set('G_TEST_BUILDDIR', meson.current_build_dir())
+
   # pytest xdist is nice because it significantly speeds up our
   # test process, but it's not required
   if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
@@ -323,6 +327,7 @@ if enable_pytest
         'pytest/@0@'.format(testname),
         pytest,
         args: pytest_args + ['-k', testname],
+        env: pytest_env,
         suite: ['pytest'],
         timeout: 120,
       )

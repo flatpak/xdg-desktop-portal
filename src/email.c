@@ -72,9 +72,6 @@ send_response_in_thread_func (GTask        *task,
 {
   Request *request = task_data;
   guint response;
-  GVariantBuilder new_results;
-
-  g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
@@ -82,6 +79,9 @@ send_response_in_thread_func (GTask        *task,
 
   if (request->exported)
     {
+      GVariantBuilder new_results;
+
+      g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&new_results));
@@ -213,7 +213,7 @@ handle_compose_email (XdpDbusEmail *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options;
   g_autoptr(GVariant) attachment_fds = NULL;
 
   g_debug ("Handling ComposeEmail");

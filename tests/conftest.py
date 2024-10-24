@@ -6,8 +6,48 @@ from typing import Any, Iterator
 
 import pytest
 import dbusmock
+import os
+import sys
+import tempfile
 
 from tests import PortalMock
+
+
+def pytest_configure():
+    ensure_umockdev_loaded()
+    create_test_dirs()
+
+
+def ensure_umockdev_loaded():
+    umockdev_preload = "libumockdev-preload.so"
+    preload = os.environ.get("LD_PRELOAD", "")
+    if umockdev_preload not in preload:
+        os.environ["LD_PRELOAD"] = f"{umockdev_preload}:{preload}"
+        os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
+def create_test_dirs():
+    env_dirs = [
+        "HOME",
+        "TMPDIR",
+        "XDG_CACHE_HOME",
+        "XDG_CONFIG_HOME",
+        "XDG_DATA_HOME",
+        "XDG_RUNTIME_DIR",
+    ]
+
+    test_root = tempfile.TemporaryDirectory(
+        prefix="xdp-testroot-", ignore_cleanup_errors=True
+    )
+
+    for env_dir in env_dirs:
+        directory = test_root / env_dir.lower()
+        directory.mkdir(mode=0o700, parents=True)
+        os.environ[env_dir] = directory.absolute()
+
+    yield
+
+    test_root.cleanup()
 
 
 @pytest.fixture()
@@ -94,13 +134,27 @@ def app_id():
 
 
 @pytest.fixture
-def portal_mock(dbus_test_case, portal_name, required_templates, template_params, app_id) -> PortalMock:
+def umockdev():
+    """
+    Default fixture providing a umockdev testbed
+    """
+    return None
+
+
+@pytest.fixture
+def portal_mock(
+    dbus_test_case, portal_name, required_templates, template_params, app_id, umockdev
+) -> PortalMock:
     """
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
-    pmock = PortalMock(dbus_test_case, portal_name, app_id)
+    pmock = PortalMock(dbus_test_case, portal_name, app_id, umockdev)
+
     for template, params in required_templates.items():
         params = template_params.get(template, params)
         pmock.start_template(template, params)
+
     pmock.start_xdp()
-    return pmock
+    yield pmock
+
+    pmock.tear_down()
