@@ -12,23 +12,29 @@ output_dir = sys.argv[1]
 filename_prefix = sys.argv[2]
 inputs = sys.argv[3:]
 
+
 def adjust_title(lines):
     title = lines[3].strip()
 
-    if title.startswith('org.freedesktop.portal.'):
-        adjusted_title = title.replace('org.freedesktop.portal.', '')
-    elif title.startswith('org.freedesktop.impl.portal'):
-        adjusted_title = title.replace('org.freedesktop.impl.portal.', '')
-    elif title.startswith('org.freedesktop.background.Monitor'):
-        adjusted_title = title.replace('org.freedesktop.background.Monitor', 'Background Apps Monitor')
+    if title.startswith("org.freedesktop.portal."):
+        adjusted_title = title.replace("org.freedesktop.portal.", "")
+    elif title.startswith("org.freedesktop.impl.portal"):
+        adjusted_title = title.replace("org.freedesktop.impl.portal.", "")
+    elif title.startswith("org.freedesktop.background.Monitor"):
+        adjusted_title = title.replace(
+            "org.freedesktop.background.Monitor", "Background Apps Monitor"
+        )
     else:
         adjusted_title = title
 
     # CamelCase → Camel Case
-    if adjusted_title not in ['OpenURI', 'ScreenCast']:
-        adjusted_title = ''.join(map(lambda x: x if x.islower() else f' {x}', adjusted_title))
+    if adjusted_title not in ["OpenURI", "ScreenCast"]:
+        adjusted_title = "".join(
+            map(lambda x: x if x.islower() else f" {x}", adjusted_title)
+        )
 
-    lines[3] = f'{adjusted_title}\n'
+    lines[3] = f"{adjusted_title}\n"
+
 
 # Temporary fix for '.. {title}:' strings in the generated files. Should be
 # removed after GLib 2.78.4 hits the CI images.
@@ -36,13 +42,14 @@ def adjust_title(lines):
 # See: https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3751
 def fix_title_template_string(lines):
     for index, line in enumerate(lines):
-        if line.strip() == '.. _{title}:':
+        if line.strip() == ".. _{title}:":
             next_title = lines[index + 2].strip()
-            lines[index] = f'.. _{next_title}:\n'
+            lines[index] = f".. _{next_title}:\n"
+
 
 for file in inputs:
     basename = os.path.basename(file)
-    fullpath = os.path.join(output_dir, f'{filename_prefix}-{basename}')
+    fullpath = os.path.join(output_dir, f"{filename_prefix}-{basename}")
 
     with open(fullpath) as f:
         lines = f.readlines()
@@ -50,5 +57,5 @@ for file in inputs:
     adjust_title(lines)
     fix_title_template_string(lines)
 
-    with open(fullpath, 'w') as f:
+    with open(fullpath, "w") as f:
         lines = f.writelines(lines)

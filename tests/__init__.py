@@ -332,7 +332,9 @@ class PortalMock:
     Parent class for portal tests.
     """
 
-    def __init__(self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"):
+    def __init__(
+        self, dbus_test_case, portal_name: str, app_id: str = "org.example.App"
+    ):
         self.dbus_test_case = dbus_test_case
         self.portal_name = portal_name
         self.xdp = None
@@ -396,7 +398,9 @@ class PortalMock:
 
         template = f"tests/templates/{template.lower()}.py"
         module = dbusmock.mockobject.load_module(template)
-        bustype = dbusmock.BusType.SYSTEM if module.SYSTEM_BUS else dbusmock.BusType.SESSION
+        bustype = (
+            dbusmock.BusType.SYSTEM if module.SYSTEM_BUS else dbusmock.BusType.SESSION
+        )
 
         server = self._get_server_for_module(module, bustype)
         main_obj = self._get_main_obj_for_module(server, module, bustype)
@@ -410,8 +414,7 @@ class PortalMock:
     @property
     def mock_interface(self):
         obj = self.dbus_test_case.dbus_con.get_object(
-            "org.freedesktop.impl.portal.Test",
-            "/org/freedesktop/portal/desktop"
+            "org.freedesktop.impl.portal.Test", "/org/freedesktop/portal/desktop"
         )
         return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
@@ -457,7 +460,9 @@ class PortalMock:
         xdp = subprocess.Popen(argv, env=env)
 
         for _ in range(50):
-            if self.dbus_test_case.dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+            if self.dbus_test_case.dbus_con.name_has_owner(
+                "org.freedesktop.portal.Desktop"
+            ):
                 break
             time.sleep(0.1)
         else:
@@ -484,9 +489,9 @@ class PortalMock:
             self.xdp.wait()
 
         for server in self.busses[dbusmock.BusType.SYSTEM]:
-            self._terminate_mock_p (server.process)
+            self._terminate_mock_p(server.process)
         for server in self.busses[dbusmock.BusType.SESSION]:
-            self._terminate_mock_p (server.process)
+            self._terminate_mock_p(server.process)
 
     def _terminate_mock_p(self, process):
         if process.stdout:

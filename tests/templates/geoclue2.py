@@ -22,7 +22,12 @@ def load(mock, parameters={}):
     mock.AddMethods(
         MAIN_IFACE,
         [
-            ("GetClient", "", "o", 'ret = dbus.ObjectPath("/org/freedesktop/GeoClue2/Client/1")'),
+            (
+                "GetClient",
+                "",
+                "o",
+                'ret = dbus.ObjectPath("/org/freedesktop/GeoClue2/Client/1")',
+            ),
         ],
     )
     mock.AddObject(
@@ -43,11 +48,7 @@ def load(mock, parameters={}):
     mock.client.manager = mock
     mock.client.started = False
     mock.client.location = 0
-    mock.client.props = {
-        "Latitude": 0,
-        "Longitude": 0,
-        "Accuracy": 0
-    }
+    mock.client.props = {"Latitude": 0, "Longitude": 0, "Accuracy": 0}
 
     mock.client.AddMethod(MOCK_IFACE, "ChangeLocation", "a{sv}", "", ChangeLocation)
 
@@ -116,4 +117,3 @@ def ChangeLocation(self, props):
             dbus.ObjectPath(new_path),
         ],
     )
-

@@ -478,6 +478,7 @@ class DocPortal:
     def app_path(self, app_id):
         return self.mountpoint + "/by-app/" + app_id
 
+
 class FileTransferPortal(DocPortal):
     def __init__(self):
         super().__init__()
@@ -492,7 +493,9 @@ class FileTransferPortal(DocPortal):
         )
 
     def start_transfer(self):
-        res = self.ft_proxy.call_sync("StartTransfer", GLib.Variant("(a{sv})", ([None])), 0, -1, None)
+        res = self.ft_proxy.call_sync(
+            "StartTransfer", GLib.Variant("(a{sv})", ([None])), 0, -1, None
+        )
         return res[0]
 
     def add_files(self, key, files):
@@ -533,6 +536,7 @@ class FileTransferPortal(DocPortal):
             None,
         )
         return res
+
 
 def check_virtual_stat(info, writable=False):
     assert info.st_uid == os.getuid()
@@ -1129,6 +1133,7 @@ def add_an_app(portal, num_docs):
         doc.apps.append(write_app)
     logv("granted acces to %s and %s for %s" % (read_app, write_app, ids))
 
+
 def file_transfer_portal_test():
     log("File transfer tests")
     ft_portal = FileTransferPortal()
@@ -1162,22 +1167,46 @@ def file_transfer_portal_test():
     # Test that an invalid key is rejected
     key = ft_portal.start_transfer()
     assert key != "1234"
-    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, "1234", [file1, file2])
+    assertRaisesGError(
+        "GDBus.Error:org.freedesktop.DBus.Error.AccessDenied",
+        9,
+        ft_portal.add_files,
+        "1234",
+        [file1, file2],
+    )
 
     # Test stop transfer
     key = ft_portal.start_transfer()
     ft_portal.add_files(key, [file1, file2])
     ft_portal.stop_transfer(key)
-    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.retrieve_files, key)
-    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, key, [file1, file2])
+    assertRaisesGError(
+        "GDBus.Error:org.freedesktop.DBus.Error.AccessDenied",
+        9,
+        ft_portal.retrieve_files,
+        key,
+    )
+    assertRaisesGError(
+        "GDBus.Error:org.freedesktop.DBus.Error.AccessDenied",
+        9,
+        ft_portal.add_files,
+        key,
+        [file1, file2],
+    )
 
     # Test that we can't reuse an old key
     new_key = ft_portal.start_transfer()
-    assertRaisesGError("GDBus.Error:org.freedesktop.DBus.Error.AccessDenied", 9, ft_portal.add_files, key, [file1, file2])
+    assertRaisesGError(
+        "GDBus.Error:org.freedesktop.DBus.Error.AccessDenied",
+        9,
+        ft_portal.add_files,
+        key,
+        [file1, file2],
+    )
     res = ft_portal.add_files(new_key, [file1, file2])
     log("filetransfer key ok")
 
     log("File transfer tests ok")
+
 
 try:
     log("Connecting to portal")
