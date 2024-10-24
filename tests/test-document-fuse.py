@@ -138,7 +138,7 @@ def assertRaisesErrno(error_nr, func, *args, **kwargs):
 
     if not raised_exc:
         raise AssertionError("No assertion was raised")
-    if raised_exc != OSError:
+    if isinstance(raised_exc, OSError):
         raise AssertionError("OSError was not raised")
     if raised_exc_value.errno != error_nr:
         raise AssertionError(

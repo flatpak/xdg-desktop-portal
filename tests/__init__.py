@@ -382,7 +382,7 @@ class PortalMock:
                 [],
                 dbus_interface=dbusmock.MOCK_IFACE,
             )
-        except:
+        except Exception:
             pass
 
         bustype.wait_for_bus_object(module.BUS_NAME, module.MAIN_OBJ)
