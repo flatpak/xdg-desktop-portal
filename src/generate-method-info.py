@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-from typing import Callable
-
 import argparse
 import xml.etree.ElementTree as ElementTree
 

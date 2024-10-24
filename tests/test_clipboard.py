@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests import PortalMock, Session
+from tests import Session
 import dbus
 import pytest
 import os

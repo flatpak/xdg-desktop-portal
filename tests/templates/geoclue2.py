@@ -3,11 +3,8 @@
 from tests.templates import init_template_logger
 import dbus.service
 import dbus
-import tempfile
 
 from dbusmock import mockobject
-
-from gi.repository import GLib
 
 BUS_NAME = "org.freedesktop.GeoClue2"
 MAIN_OBJ = "/org/freedesktop/GeoClue2/Manager"
@@ -61,7 +58,7 @@ def load(mock, parameters={}):
     out_signature="",
 )
 def Start(self):
-    logger.debug(f"Start()")
+    logger.debug("Start()")
     self.started = True
     self.ChangeLocation(self.props)
 
@@ -72,7 +69,7 @@ def Start(self):
     out_signature="",
 )
 def Stop(self):
-    logger.debug(f"Stop()")
+    logger.debug("Stop()")
     self.started = False
     self.RemoveObject(f"/org/freedesktop/GeoClue2/Location/{self.location}")
 
@@ -87,7 +84,7 @@ def ChangeLocation(self, props):
 
     self.props = props
 
-    if self.started != True:
+    if not self.started:
         return
 
     old_path = "/"

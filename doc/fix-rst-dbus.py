@@ -5,7 +5,8 @@
 # the online documentation of XDG Desktop Portal. It's not a
 # general purpose script.
 
-import os, sys
+import os
+import sys
 
 output_dir = sys.argv[1]
 filename_prefix = sys.argv[2]

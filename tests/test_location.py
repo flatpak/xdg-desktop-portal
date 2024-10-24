@@ -2,12 +2,9 @@
 
 
 from tests import Session
-from pathlib import Path
 from gi.repository import GLib
 
-import os
 import pytest
-import tempfile
 import dbus
 
 
@@ -46,7 +43,7 @@ class TestLocation:
         )
         client_mock = dbus.Interface(
             geoclue_client_proxy,
-            f"org.freedesktop.GeoClue2.Mock"
+            "org.freedesktop.GeoClue2.Mock"
         )
         return client_mock
 
