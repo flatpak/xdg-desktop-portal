@@ -48,7 +48,12 @@ RUN apt install -y --no-install-recommends \
     python3-dbusmock \
     python3-dbus
 
-# Install doc dependencies
+# Install pip
 RUN apt install -y --no-install-recommends python3-pip
+
+# Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
     sphinx-copybutton sphinxext-opengraph matplotlib
+
+# Install pre-commit
+RUN pip install --user --break-system-packages pre-commit
