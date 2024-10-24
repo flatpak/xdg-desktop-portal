@@ -38,7 +38,7 @@ class TestRemoteDesktop:
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
-#        assert args[2] == ""  # appid, not necessary empty
+        # assert args[2] == ""  # appid, not necessary empty
 
         session.close()
 
@@ -67,7 +67,7 @@ class TestRemoteDesktop:
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[1] == session.handle
-#        assert args[2] == ""  # appid, not necessary empty
+        # assert args[2] == ""  # appid, not necessary empty
 
         # Now expect the backend to close it
 
@@ -211,7 +211,7 @@ class TestRemoteDesktop:
                 func(
                     session.handle,
                     dbus.Dictionary({}, signature="sv"),
-                    *notifyfunc["args"]
+                    *notifyfunc["args"],
                 )
             # Not the best error message but...
             assert (
