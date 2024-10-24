@@ -101,8 +101,12 @@ def portal_mock(
     Fixture yielding a PortalMock object with the impl started, if applicable.
     """
     pmock = PortalMock(dbus_test_case, portal_name, app_id)
+
     for template, params in required_templates.items():
         params = template_params.get(template, params)
         pmock.start_template(template, params)
+
     pmock.start_xdp()
-    return pmock
+    yield pmock
+
+    pmock.tear_down()

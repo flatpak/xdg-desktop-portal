@@ -479,7 +479,7 @@ class PortalMock:
         argv = ["dbus-monitor", "--session"]
         self.dbus_monitor = subprocess.Popen(argv)
 
-    def tearDown(self):
+    def tear_down(self):
         if self.dbus_monitor:
             self.dbus_monitor.terminate()
             self.dbus_monitor.wait()
@@ -488,9 +488,9 @@ class PortalMock:
             self.xdp.terminate()
             self.xdp.wait()
 
-        for server in self.busses[dbusmock.BusType.SYSTEM]:
+        for server in self.busses[dbusmock.BusType.SYSTEM].values():
             self._terminate_mock_p(server.process)
-        for server in self.busses[dbusmock.BusType.SESSION]:
+        for server in self.busses[dbusmock.BusType.SESSION].values():
             self._terminate_mock_p(server.process)
 
     def _terminate_mock_p(self, process):
