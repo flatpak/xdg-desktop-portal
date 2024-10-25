@@ -157,18 +157,17 @@ xdp_app_info_host_new (int pid,
   g_autoptr (XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *appid = NULL;
   g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
 
   appid = get_appid_from_pid (pid);
 
-  desktop_id = g_strconcat (appid, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+  if (g_strcmp0 (appid, "") != 0)
+    desktop_id = g_strconcat (appid, ".desktop", NULL);
 
   app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
                             /* engine, app id, instance */
                            NULL, appid, NULL,
-                           pidfd, gappinfo,
+                           pidfd, desktop_id,
                            /* supports_opath */ TRUE,
                            /* has_network */ TRUE,
                            /* requires_pid_mapping */ FALSE);

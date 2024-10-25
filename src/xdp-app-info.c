@@ -59,6 +59,7 @@ typedef struct _XdpAppInfoPrivate
   char *id;
   char *instance;
   int pidfd;
+  char *desktop_file_id;
   GAppInfo *gappinfo;
   gboolean supports_opath;
   gboolean has_network;
@@ -80,6 +81,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
+  g_clear_pointer (&priv->desktop_file_id, g_free);
   xdp_close_fd (&priv->pidfd);
   g_clear_object (&priv->gappinfo);
 
@@ -108,18 +110,29 @@ xdp_app_info_initialize (XdpAppInfo *app_info,
                          const char *app_id,
                          const char *instance,
                          int         pidfd,
-                         GAppInfo   *gappinfo,
+                         const char *desktop_file_id,
                          gboolean    supports_opath,
                          gboolean    has_network,
                          gboolean    requires_pid_mapping)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GAppInfo) gappinfo = NULL;
+
+  if (desktop_file_id != NULL)
+    {
+      g_autoptr(GDesktopAppInfo) desktop_appinfo = NULL;
+
+      desktop_appinfo = g_desktop_app_info_new (desktop_file_id);
+      if (desktop_appinfo)
+        gappinfo = G_APP_INFO (g_steal_pointer (&desktop_appinfo));
+    }
 
   priv->engine = g_strdup (engine);
   priv->id = g_strdup (app_id);
   priv->instance = g_strdup (instance);
   priv->pidfd = dup (pidfd);
-  g_set_object (&priv->gappinfo, gappinfo);
+  priv->desktop_file_id = g_strdup (desktop_file_id);
+  g_set_object (&priv->gappinfo, g_steal_pointer (&gappinfo));
   priv->supports_opath = supports_opath;
   priv->has_network = has_network;
   priv->requires_pid_mapping = requires_pid_mapping;
@@ -153,6 +166,18 @@ xdp_app_info_get_instance (XdpAppInfo *app_info)
   priv = xdp_app_info_get_instance_private (app_info);
 
   return priv->instance;
+}
+
+const char *
+xdp_app_info_get_desktop_file_id (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->desktop_file_id;
 }
 
 GAppInfo *

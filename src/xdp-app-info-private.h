@@ -49,7 +49,7 @@ void xdp_app_info_initialize (XdpAppInfo *app_info,
                               const char *app_id,
                               const char *instance,
                               int         pidfd,
-                              GAppInfo   *gappinfo,
+                              const char *desktop_file_id,
                               gboolean    supports_opath,
                               gboolean    has_network,
                               gboolean    requires_pid_mapping);
