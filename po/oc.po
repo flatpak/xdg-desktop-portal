@@ -5,9 +5,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
-"PO-Revision-Date: 2023-02-13 18:49+0100\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-10-10 03:33+0000\n"
+"PO-Revision-Date: 2024-10-26 19:05+0200\n"
 "Last-Translator: Quentin PAGÈS\n"
 "Language-Team: Occitan\n"
 "Language: oc\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.5\n"
 
 #: src/background.c:822
 #, c-format
@@ -50,103 +50,102 @@ msgid "Allow"
 msgstr "Permetre"
 
 #: src/camera.c:106
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "Permetre a %s de s’executar en rèireplan ?"
+msgstr "Permetre a %s d’utilizar la camèra ?"
 
 #: src/camera.c:107
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to access camera devices."
-msgstr "%s vòl utilizar la camèra."
+msgstr "%s vòl utilizar als periferics de camèra."
 
 #: src/camera.c:111
 msgid "Allow app to Use the Camera?"
-msgstr ""
+msgstr "Permetre a l’aplicacion d’utilizar la camèra ?"
 
 #: src/camera.c:112
-#, fuzzy
 msgid "An app wants to access camera devices."
-msgstr "Una aplicacion vòl utilizar la camèra."
+msgstr "Una aplicacion vòl accedir als periferics de camèra."
 
 #: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
+msgstr "Identificant de fichièr burèu sens sufix .desktop : %s"
 
 #: src/dynamic-launcher.c:133
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr ""
+msgstr "Fichièr desktop non valid"
 
 #: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
-msgstr ""
+msgstr "Entrada Desktop donada per Install() pas un fichièr clau valid"
 
 #: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have only one group"
-msgstr ""
+msgstr "Entrada Desktop donada per Install() deu aver sonque un grop"
 
 #: src/dynamic-launcher.c:331
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr ""
+msgstr "Entrada Desktop donada per Install() pas valida"
 
 #: src/dynamic-launcher.c:363
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr ""
+msgstr "Lo geton donat es invalid : %s"
 
 #: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
+msgstr "Lo fichièr desktop subrepassa la talha maximala (%d) : %s"
 
 #: src/dynamic-launcher.c:564
 #, c-format
 msgid "URL given is invalid: %s"
-msgstr ""
+msgstr "L’URL donada es invalida : %s"
 
 #: src/dynamic-launcher.c:587
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr ""
+msgstr "Tipe d’aviador invalid : %x"
 
 #: src/dynamic-launcher.c:594
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr ""
+msgstr "Tipe d’aviador pas pres en carga : %x"
 
 #: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
-msgstr ""
+msgstr "L’icòna de l’aviador dinamic a pas capitat la validacion"
 
 #: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
+msgstr "RequestInstallToken() non permés per l’id d’aplicacion %s"
 
 #: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
+msgstr "Icòna de fichièr Desktop « %s » a un emplaçament non reconegut"
 
 #: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
+msgstr "Icòna de fichièr Desktop « %s » a pas capitat de serializar"
 
 #: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
+msgstr "Cap d’aviador dinamic existís pas amb l’id « %s »"
 
 #: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr ""
+msgstr "Fracàs de la creacion de GDesktopAppInfo per l’aviador amb id « %s »"
 
 #: src/location.c:544
 msgid "Deny Access"
@@ -243,7 +242,6 @@ msgstr "Una aplicacion demanda de poder modificar l’imatge de rèireplan."
 #~ msgid "An application wants to use your microphone."
 #~ msgstr "Una aplicacion vòl utilizar lo microfòn."
 
-#, c-format
 #~ msgid "%s wants to use your microphone."
 #~ msgstr "%s vòl utilizar lo microfòn."
 
@@ -260,7 +258,6 @@ msgstr "Una aplicacion demanda de poder modificar l’imatge de rèireplan."
 #~ msgid "An application wants to play sound."
 #~ msgstr "Una aplicacion vòl legir de son."
 
-#, c-format
 #~ msgid "%s wants to play sound."
 #~ msgstr "%s vòl legir de son."
 
