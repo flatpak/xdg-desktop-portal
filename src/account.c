@@ -72,12 +72,11 @@ send_response_in_thread_func (GTask        *task,
   Request *request = task_data;
   guint response;
   GVariant *results;
-  GVariantBuilder new_results;
+  g_auto(GVariantBuilder) new_results =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) idv = NULL;
   g_autoptr(GVariant) namev = NULL;
   const char *image;
-
-  g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
