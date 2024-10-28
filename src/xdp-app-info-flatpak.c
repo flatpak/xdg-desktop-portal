@@ -593,7 +593,6 @@ xdp_app_info_flatpak_new (int      pid,
   g_autofree char *id = NULL;
   g_autofree char *instance = NULL;
   g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
   xdp_autofd int bwrap_pidfd = -1;
@@ -692,7 +691,6 @@ xdp_app_info_flatpak_new (int      pid,
     return NULL;
 
   desktop_id = g_strconcat (id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
   shared = g_key_file_get_string_list (metadata,
                                        FLATPAK_METADATA_GROUP_CONTEXT,
@@ -721,7 +719,7 @@ xdp_app_info_flatpak_new (int      pid,
   app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
                            FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo,
+                           bwrap_pidfd, desktop_id,
                            TRUE, has_network, TRUE);
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 

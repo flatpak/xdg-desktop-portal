@@ -1046,6 +1046,7 @@ handle_add_in_thread_func (GTask        *task,
 {
   CallData *call_data = task_data;
   GVariantBuilder builder;
+  const char *desktop_file_id;
   g_autoptr(GError) error = NULL;
 
   CALL_DATA_AUTOLOCK (call_data);
@@ -1076,6 +1077,10 @@ handle_add_in_thread_func (GTask        *task,
       g_task_return_error (task, g_steal_pointer (&error));
       return;
     }
+
+  desktop_file_id = xdp_app_info_get_desktop_file_id (call_data->app_info);
+  if (desktop_file_id)
+    g_variant_builder_add (&builder, "{ss}", "desktop-file-id", desktop_file_id);
 
   xdp_dbus_impl_notification_call_add_notification (impl,
                                                     xdp_app_info_get_id (call_data->app_info),

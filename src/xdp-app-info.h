@@ -47,6 +47,8 @@ const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
 
+const char * xdp_app_info_get_desktop_file_id (XdpAppInfo *app_info);
+
 GAppInfo * xdp_app_info_get_gappinfo (XdpAppInfo *app_info);
 
 gboolean xdp_app_info_is_valid_sub_app_id (XdpAppInfo *app_info,

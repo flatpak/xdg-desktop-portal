@@ -47,6 +47,13 @@
 
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
+        It additionally can contain the following keys:
+
+        * ``desktop-file-id`` (``s``)
+
+          The desktop file ID of the app adding the notification. A desktop
+          file ID is the basename of the desktop file, including the
+          .desktop extension.
 
         Since version 2, the icon property never uses the ``bytes`` option.
     -->
