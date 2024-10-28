@@ -81,6 +81,11 @@ send_response (Request *request,
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request), response, results);
       request_unexport (request);
     }
+  else
+    {
+      g_variant_ref_sink (results);
+      g_variant_unref (results);
+    }
 }
 
 static void
