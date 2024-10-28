@@ -541,20 +541,30 @@ void
 test_notification_supported_properties (void)
 {
   g_autoptr(XdpPortal) portal = NULL;
+  const char *expected_serialized;
   g_autoptr(GKeyFile) keyfile = NULL;
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
+  g_autoptr(GVariant) expected_response = NULL;
+  g_autoptr(GVariant) response = NULL;
 
   keyfile = g_key_file_new ();
 
-  g_key_file_set_string (keyfile, "notification", "supported-options", "{ 'something': <'sdfs'> }");
+  expected_serialized = "{ 'something': <'sdfs'> }";
+  g_key_file_set_string (keyfile, "notification", "supported-options", expected_serialized);
 
   path = g_build_filename (outdir, "notification", NULL);
   g_key_file_save_to_file (keyfile, path, &error);
   g_assert_no_error (error);
 
+  /* Wait for the backend to update the supported options */
+  sleep (1);
+
   portal = xdp_portal_new ();
 
-  xdp_portal_get_supported_options (portal);
+  response = xdp_portal_get_supported_notification_options (portal, &error);
+  g_assert_no_error (error);
+  expected_response = g_variant_parse (G_VARIANT_TYPE_VARDICT, expected_serialized, NULL, NULL, NULL);
+  g_assert_true (g_variant_equal (expected_response, response));
 }
 #endif
