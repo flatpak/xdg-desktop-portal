@@ -710,8 +710,6 @@ enable_autostart_sync (XdpAppInfo          *app_info,
       return FALSE;
     }
 
-  cmd = g_strjoinv (" ", exec);
-
   file = g_strconcat (appid, ".desktop", NULL);
   dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
   path = g_build_filename (dir, file, NULL);
@@ -743,12 +741,19 @@ enable_autostart_sync (XdpAppInfo          *app_info,
                          appid); /* FIXME: The app id isn't the name */
   g_key_file_set_string (keyfile,
                          G_KEY_FILE_DESKTOP_GROUP,
-                         G_KEY_FILE_DESKTOP_KEY_EXEC,
-                         cmd);
-  g_key_file_set_string (keyfile,
-                         G_KEY_FILE_DESKTOP_GROUP,
                          "X-XDP-Autostart",
                          appid);
+
+  if (exec)
+    cmd = g_strjoinv (" ", exec);
+
+  if (cmd)
+    {
+      g_key_file_set_string (keyfile,
+                             G_KEY_FILE_DESKTOP_GROUP,
+                             G_KEY_FILE_DESKTOP_KEY_EXEC,
+                             cmd);
+    }
 
   if (activatable)
     {
