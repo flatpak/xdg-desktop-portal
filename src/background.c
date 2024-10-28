@@ -784,7 +784,7 @@ handle_request_background_in_thread_func (GTask *task,
   gboolean autostart_enabled;
   gboolean allowed;
   g_autoptr(GError) error = NULL;
-  const char * const *autostart_exec = { NULL };
+  g_autofree const char **autostart_exec = { NULL };
   gboolean activatable = FALSE;
 
   REQUEST_AUTOLOCK (request);
@@ -970,12 +970,12 @@ handle_request_background (XdpDbusBackground *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GTask) task = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &opt_builder,
                            background_options, G_N_ELEMENTS (background_options),
                            &error))
