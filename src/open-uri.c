@@ -354,14 +354,11 @@ send_response_in_thread_func (GTask *task,
   guint response;
   GVariant *options;
   const char *choice;
-  GVariantBuilder opt_builder;
 
   REQUEST_AUTOLOCK (request);
 
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
-
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
 
   if (response != 0)
     goto out;
@@ -390,6 +387,9 @@ send_response_in_thread_func (GTask *task,
 out:
   if (request->exported)
     {
+      g_auto(GVariantBuilder) opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
