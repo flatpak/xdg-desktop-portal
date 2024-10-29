@@ -76,12 +76,15 @@ xdp_app_info_dispose (GObject *object)
 {
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+  g_autoptr(GError) error = NULL;
 
   g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
-  xdp_close_fd (&priv->pidfd);
   g_clear_object (&priv->gappinfo);
+
+  if (!g_clear_fd (&priv->pidfd, &error))
+    g_warning ("Error closing pidfd: %s", error->message);
 
   G_OBJECT_CLASS (xdp_app_info_parent_class)->dispose (object);
 }
@@ -726,7 +729,7 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
                                      GError          **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  xdp_autofd int pidfd = -1;
+  g_autofd int pidfd = -1;
   uint32_t pid;
   const char *test_override_app_id;
   g_autoptr(GError) local_error = NULL;

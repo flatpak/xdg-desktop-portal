@@ -1046,7 +1046,7 @@ xdp_map_pids_full (DIR     *proc,
 
   while ((de = readdir (proc)) != NULL)
     {
-      xdp_autofd int pid_fd = -1;
+      g_autofd int pid_fd = -1;
       pid_t outside = 0;
       pid_t inside = 0;
       uid_t uid = 0;

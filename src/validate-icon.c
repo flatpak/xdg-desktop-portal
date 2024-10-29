@@ -340,7 +340,7 @@ main (int argc, char *argv[])
 {
   g_autoptr(GOptionContext) context = NULL;
   g_autoptr(GError) error = NULL;
-  xdp_autofd int fd_path = -1;
+  g_autofd int fd_path = -1;
 
   context = g_option_context_new (NULL);
   g_option_context_add_main_entries (context, entries, NULL);

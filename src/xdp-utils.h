@@ -99,33 +99,6 @@ typedef enum {
 
 GQuark  xdg_desktop_portal_error_quark (void);
 
-static inline int
-xdp_steal_fd (int *fdp)
-{
-  int fd = *fdp;
-  *fdp = -1;
-  return fd;
-}
-
-static inline void
-xdp_close_fd (int *fdp)
-{
-  int errsv;
-
-  g_assert (fdp);
-
-  int fd = xdp_steal_fd (fdp);
-  if (fd >= 0)
-    {
-      errsv = errno;
-      if (close (fd) < 0)
-        g_assert (errno != EBADF);
-      errno = errsv;
-    }
-}
-
-#define xdp_autofd __attribute__((cleanup(xdp_close_fd)))
-
 #define XDP_AUTOLOCK(name) \
   g_autoptr(GMutexLocker) G_PASTE (name ## locker, __LINE__) = \
     g_mutex_locker_new (&G_LOCK_NAME (name)); \
