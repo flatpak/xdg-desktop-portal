@@ -2492,7 +2492,7 @@ xdp_fuse_readdir (fuse_req_t             req,
       if (off < d->dirbuf_size)
         {
           gsize reply_size = MIN (d->dirbuf_size - off, size);
-          g_autofree char *buf = g_memdup (d->dirbuf + off, reply_size);
+          g_autofree char *buf = g_memdup2 (d->dirbuf + off, reply_size);
           fuse_reply_buf (req, buf, reply_size);
         }
       else
