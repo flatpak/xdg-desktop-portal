@@ -47,8 +47,10 @@ static void
 xdp_sealed_fd_finalize (GObject *object)
 {
   XdpSealedFd *sealed_fd = XDP_SEALED_FD (object);
+  g_autoptr(GError) error = NULL;
 
-  xdp_close_fd (&sealed_fd->fd);
+  if (!g_clear_fd (&sealed_fd->fd, &error))
+    g_warning ("Error closing sealed fd: %s", error->message);
 
   G_OBJECT_CLASS (xdp_sealed_fd_parent_class)->finalize (object);
 }
@@ -72,7 +74,7 @@ xdp_sealed_fd_new_take_memfd (int      memfd,
                               GError **error)
 {
   g_autoptr(XdpSealedFd) sealed_fd = NULL;
-  xdp_autofd int fd = g_steal_fd (&memfd);
+  g_autofd int fd = g_steal_fd (&memfd);
   int saved_errno = -1;
   int seals;
 
@@ -106,7 +108,7 @@ xdp_sealed_fd_new_take_memfd (int      memfd,
     }
 
   sealed_fd = g_object_new (XDP_TYPE_SEALED_FD, NULL);
-  sealed_fd->fd = xdp_steal_fd (&fd);
+  sealed_fd->fd = g_steal_fd (&fd);
 
   return g_steal_pointer (&sealed_fd);
 }
@@ -117,7 +119,7 @@ xdp_sealed_fd_new_from_bytes (GBytes  *bytes,
 {
   g_autoptr(GOutputStream) stream = NULL;
   g_autoptr(XdpSealedFd) sealed_fd = NULL;
-  xdp_autofd int fd = -1;
+  g_autofd int fd = -1;
   gconstpointer bytes_data;
   gpointer shm;
   gsize bytes_len;
@@ -190,7 +192,7 @@ xdp_sealed_fd_new_from_bytes (GBytes  *bytes,
     }
 
   sealed_fd = g_object_new (XDP_TYPE_SEALED_FD, NULL);
-  sealed_fd->fd = xdp_steal_fd (&fd);
+  sealed_fd->fd = g_steal_fd (&fd);
 
   return g_steal_pointer (&sealed_fd);
 }
@@ -200,7 +202,7 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
                                GUnixFDList  *fd_list,
                                GError      **error)
 {
-  xdp_autofd int fd = -1;
+  g_autofd int fd = -1;
   int fd_id;
 
   g_return_val_if_fail (g_variant_is_of_type (handle, G_VARIANT_TYPE_HANDLE), NULL);
@@ -212,7 +214,7 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
   if (fd == -1)
     return NULL;
 
-  return xdp_sealed_fd_new_take_memfd (xdp_steal_fd (&fd), error);
+  return xdp_sealed_fd_new_take_memfd (g_steal_fd (&fd), error);
 }
 
 int

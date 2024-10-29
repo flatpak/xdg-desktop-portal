@@ -382,7 +382,7 @@ validate_fd (int fd,
   g_autofree char *path = NULL;
   g_autofree char *dirname = NULL;
   g_autofree char *name = NULL;
-  xdp_autofd int dir_fd = -1;
+  g_autofd int dir_fd = -1;
   struct stat real_st_buf;
   g_autoptr(GError) local_error = NULL;
 
@@ -1209,7 +1209,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
 {
   const char *filename;
   g_autofree char *path = NULL;
-  xdp_autofd int fd = -1;
+  g_autofd int fd = -1;
   struct stat st_buf, real_dir_st_buf;
   g_autofree char *id = NULL;
   GError *error = NULL;

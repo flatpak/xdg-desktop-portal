@@ -544,7 +544,7 @@ get_bwrap_pidfd (const char  *instance,
 {
   g_autoptr(JsonNode) root = NULL;
   DIR *proc;
-  xdp_autofd int fd = -1;
+  g_autofd int fd = -1;
   pid_t pid;
 
   if (instance == NULL)
@@ -573,7 +573,7 @@ get_bwrap_pidfd (const char  *instance,
   fd = open_pid_fd (dirfd (proc), pid, error);
   closedir (proc);
 
-  return xdp_steal_fd (&fd);
+  return g_steal_fd (&fd);
 }
 
 XdpAppInfo *
@@ -583,8 +583,8 @@ xdp_app_info_flatpak_new (int      pid,
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
   g_autofree char *root_path = NULL;
-  xdp_autofd int root_fd = -1;
-  xdp_autofd int info_fd = -1;
+  g_autofd int root_fd = -1;
+  g_autofd int info_fd = -1;
   struct stat stat_buf;
   g_autoptr(GError) local_error = NULL;
   g_autoptr(GMappedFile) mapped = NULL;
@@ -596,7 +596,7 @@ xdp_app_info_flatpak_new (int      pid,
   g_autoptr(GAppInfo) gappinfo = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
-  xdp_autofd int bwrap_pidfd = -1;
+  g_autofd int bwrap_pidfd = -1;
 
   root_path = g_strdup_printf ("/proc/%u/root", pid);
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
