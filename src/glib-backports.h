@@ -67,21 +67,3 @@ _g_clear_fd_ignore_error (int *fd_ptr)
 
 #define g_autofd __attribute__((cleanup(_g_clear_fd_ignore_error)))
 #endif
-
-#if !GLIB_CHECK_VERSION (2, 68, 0)
-guint g_string_replace (GString     *string,
-                        const gchar *find,
-                        const gchar *replace,
-                        guint        limit);
-#endif
-
-#if !GLIB_CHECK_VERSION (2, 68, 0)
-static inline void
-g_log_writer_default_set_use_stderr (gboolean use_stderr)
-{
-  /* Does nothing because outside of the tests we don't really care that it
-   * doesn't work correctly after this call and those tests can run on newer
-   * GLibs
-   */
-}
-#endif

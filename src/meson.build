@@ -79,7 +79,6 @@ xdg_desktop_portal_sources = files(
   'file-chooser.c',
   'flatpak-instance.c',
   'gamemode.c',
-  'glib-backports.c',
   'global-shortcuts.c',
   'inhibit.c',
   'input-capture.c',
@@ -207,7 +206,6 @@ configure_file(
 executable(
   'xdg-desktop-portal-rewrite-launchers',
   'rewrite-launchers.c',
-  'glib-backports.c',
   dependencies: common_deps,
   include_directories: common_includes,
   install: true,
