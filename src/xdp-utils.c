@@ -587,6 +587,7 @@ xdp_validate_icon (XdpSealedFd  *icon,
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
   const char *args[7];
   int size;
+  size_t i;
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
 
@@ -599,13 +600,15 @@ xdp_validate_icon (XdpSealedFd  *icon,
       return FALSE;
     }
 
-  args[0] = icon_validator;
-  args[1] = "--sandbox";
-  args[2] = "--fd";
-  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
-  args[4] = "--ruleset";
-  args[5] = icon_type_to_string (icon_type);
-  args[6] = NULL;
+  i = 0;
+  args[i++] = icon_validator;
+  args[i++] = "--sandbox";
+  args[i++] = "--fd";
+  args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[i++] = "--ruleset";
+  args[i++] = icon_type_to_string (icon_type);
+  g_assert (i < G_N_ELEMENTS (args));
+  args[i++] = NULL;
 
   output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (icon), VALIDATOR_INPUT_FD, &error);
   if (!output)
