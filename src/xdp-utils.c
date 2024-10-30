@@ -666,7 +666,10 @@ xdp_validate_sound (XdpSealedFd *sound)
 
   i = 0;
   args[i++] = sound_validator;
-  args[i++] = "--sandbox";
+
+  if (g_getenv ("XDP_VALIDATE_SOUND_INSECURE") == NULL)
+    args[i++] = "--sandbox";
+
   args[i++] = "--fd";
   args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
   g_assert (i < G_N_ELEMENTS (args));
