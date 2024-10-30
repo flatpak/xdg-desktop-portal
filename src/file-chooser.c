@@ -73,8 +73,10 @@ send_response_in_thread_func (GTask        *task,
                               GCancellable *cancellable)
 {
   Request *request = task_data;
-  GVariantBuilder results;
-  GVariantBuilder ruris;
+  g_auto(GVariantBuilder) results =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_auto(GVariantBuilder) ruris =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_STRING_ARRAY);
   guint response;
   GVariant *options;
   DocumentFlags flags = DOCUMENT_FLAG_WRITABLE | DOCUMENT_FLAG_DIRECTORY;
@@ -82,9 +84,6 @@ send_response_in_thread_func (GTask        *task,
   GVariant *choices;
   GVariant *current_filter;
   GVariant *writable;
-
-  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
-  g_variant_builder_init (&ruris, G_VARIANT_TYPE_STRING_ARRAY);
 
   REQUEST_AUTOLOCK (request);
 
@@ -531,14 +530,14 @@ handle_open_file (XdpDbusFileChooser *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) dir_option = NULL;
 
   g_debug ("Handling OpenFile");
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options,
                            open_file_options, G_N_ELEMENTS (open_file_options),
                            &error))
@@ -660,7 +659,8 @@ handle_save_file (XdpDbusFileChooser *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   g_debug ("Handling SaveFile");
 
@@ -676,7 +676,6 @@ handle_save_file (XdpDbusFileChooser *object,
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options,
                            save_file_options, G_N_ELEMENTS (save_file_options),
                            &error))
@@ -819,7 +818,8 @@ handle_save_files (XdpDbusFileChooser *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   if (xdp_dbus_impl_lockdown_get_disable_save_to_disk (lockdown))
     {
@@ -833,7 +833,6 @@ handle_save_files (XdpDbusFileChooser *object,
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options,
                            save_files_options, G_N_ELEMENTS (save_files_options),
                            &error))
