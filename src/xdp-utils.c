@@ -653,6 +653,7 @@ xdp_validate_sound (XdpSealedFd *sound)
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *output = NULL;
   const char *sound_validator = LIBEXECDIR "/xdg-desktop-portal-validate-sound";
+  gsize i;
 
   if (g_getenv ("XDP_VALIDATE_SOUND"))
     sound_validator = g_getenv ("XDP_VALIDATE_SOUND");
@@ -663,11 +664,13 @@ xdp_validate_sound (XdpSealedFd *sound)
       return FALSE;
     }
 
-  args[0] = sound_validator;
-  args[1] = "--sandbox";
-  args[2] = "--fd";
-  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
-  args[4] = NULL;
+  i = 0;
+  args[i++] = sound_validator;
+  args[i++] = "--sandbox";
+  args[i++] = "--fd";
+  args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  g_assert (i < G_N_ELEMENTS (args));
+  args[i++] = NULL;
 
   output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (sound), VALIDATOR_INPUT_FD, &error);
   if (!output)
