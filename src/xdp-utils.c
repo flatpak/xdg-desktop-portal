@@ -602,7 +602,10 @@ xdp_validate_icon (XdpSealedFd  *icon,
 
   i = 0;
   args[i++] = icon_validator;
-  args[i++] = "--sandbox";
+
+  if (g_getenv ("XDP_VALIDATE_ICON_INSECURE") == NULL)
+    args[i++] = "--sandbox";
+
   args[i++] = "--fd";
   args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
   args[i++] = "--ruleset";
