@@ -515,7 +515,7 @@ test_notification_category (void)
 
   notification_s = "{ 'title': <'test notification 5'>, "
                    "  'body': <'test notification body 5'>, "
-                   "  'category': <'im.message'>"
+                   "  'category': <'im.received'>"
                    "}";
 
   run_notification_test ("test5", notification_s, NULL, FALSE);
