@@ -877,11 +877,11 @@ parse_category (GVariantBuilder  *builder,
 {
   const char *category;
   const char *supported_categories[] = {
-    "im.message",
+    "im.received",
     "alarm.ringing",
     "call.incoming",
     "call.ongoing",
-    "call.missed",
+    "call.unanswered",
     "weather.warning.extreme",
     "cellbroadcast.danger.extreme",
     "cellbroadcast.danger.severe",

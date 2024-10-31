@@ -279,7 +279,7 @@
 
           The following categories are standarized so far:
 
-          * ``im.message``
+          * ``im.received``
 
             Intended for instant messaging apps displaying notifications for new messages.
 
@@ -331,7 +331,7 @@
 
               Disable the speakerphone for the ongoing call.
 
-          * ``call.missed``
+          * ``call.unanswered``
 
             Intended to be used by call apps when a call was missed.
 
