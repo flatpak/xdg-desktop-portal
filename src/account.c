@@ -183,7 +183,8 @@ handle_get_user_information (XdpDbusAccount *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   g_debug ("Handling GetUserInformation");
 
@@ -203,7 +204,6 @@ handle_get_user_information (XdpDbusAccount *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &options,
                       user_information_options, G_N_ELEMENTS (user_information_options),
                       NULL);

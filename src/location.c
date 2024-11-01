@@ -525,7 +525,8 @@ handle_start_in_thread_func (GTask *task,
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-      GVariantBuilder access_opt_builder;
+      g_auto(GVariantBuilder) access_opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
@@ -539,7 +540,6 @@ handle_start_in_thread_func (GTask *task,
 
       request_set_impl_request (request, impl_request);
 
-      g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny Access")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
@@ -632,10 +632,10 @@ handle_start_in_thread_func (GTask *task,
 out:
   if (request->exported)
     {
-      GVariantBuilder opt_builder;
+      g_auto(GVariantBuilder) opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
       g_debug ("sending response: %d", response);
-      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));

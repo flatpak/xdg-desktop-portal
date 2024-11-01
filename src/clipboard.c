@@ -114,7 +114,8 @@ handle_set_selection (XdpDbusClipboard *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -148,7 +149,6 @@ handle_set_selection (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options,
                            &options_builder,
                            clipboard_set_selection_options,

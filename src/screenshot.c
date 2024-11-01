@@ -95,15 +95,14 @@ send_response_in_thread_func (GTask *task,
                               GCancellable *cancellable)
 {
   Request *request = task_data;
-  GVariantBuilder results;
+  g_auto(GVariantBuilder) results =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   guint response;
   GVariant *options;
   g_autoptr(GError) error = NULL;
   const char *retval;
 
   REQUEST_AUTOLOCK (request);
-
-  g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
@@ -199,7 +198,8 @@ handle_screenshot_in_thread_func (GTask *task,
   Request *request = REQUEST (task_data);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   Permission permission;
   GVariant *options;
   gboolean permission_store_checked = FALSE;
@@ -208,8 +208,6 @@ handle_screenshot_in_thread_func (GTask *task,
   const char *app_id;
 
   REQUEST_AUTOLOCK (request);
-
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
 
   app_id = xdp_app_info_get_id (request->app_info);
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
@@ -226,7 +224,8 @@ handle_screenshot_in_thread_func (GTask *task,
   if (!interactive && permission != PERMISSION_YES)
     {
       g_autoptr(GVariant) access_results = NULL;
-      GVariantBuilder access_opt_builder;
+      g_auto(GVariantBuilder) access_opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree gchar *subtitle = NULL;
       g_autofree gchar *title = NULL;
       const gchar *body;
@@ -238,7 +237,6 @@ handle_screenshot_in_thread_func (GTask *task,
           return;
         }
 
-      g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
@@ -413,7 +411,8 @@ handle_pick_color (XdpDbusScreenshot *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
@@ -432,7 +431,6 @@ handle_pick_color (XdpDbusScreenshot *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
                       pick_color_options, G_N_ELEMENTS (pick_color_options),
                       NULL);

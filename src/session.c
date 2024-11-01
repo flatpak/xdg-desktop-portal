@@ -178,9 +178,9 @@ session_close (Session *session,
 
   if (notify_closed)
     {
-      GVariantBuilder details_builder;
+      g_auto(GVariantBuilder) details_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-      g_variant_builder_init (&details_builder, G_VARIANT_TYPE_VARDICT);
       g_dbus_connection_emit_signal (session->connection,
                                      session->sender,
                                      session->id,

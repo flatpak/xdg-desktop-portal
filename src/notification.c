@@ -1051,7 +1051,8 @@ handle_add_in_thread_func (GTask        *task,
                            GCancellable *cancellable)
 {
   CallData *call_data = task_data;
-  GVariantBuilder builder;
+  g_auto(GVariantBuilder) builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
   CALL_DATA_AUTOLOCK (call_data);
@@ -1068,16 +1069,12 @@ handle_add_in_thread_func (GTask        *task,
       return;
     }
 
-  g_variant_builder_init (&builder, G_VARIANT_TYPE_VARDICT);
-
   if (!parse_notification (&builder,
                            call_data->notification,
                            call_data->in_fd_list,
                            call_data->out_fd_list,
                            &error))
     {
-      g_variant_builder_clear (&builder);
-
       g_prefix_error (&error, "invalid notification: ");
       g_task_return_error (task, g_steal_pointer (&error));
       return;

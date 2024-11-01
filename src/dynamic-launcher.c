@@ -481,11 +481,10 @@ prepare_install_done (GObject      *source,
   guint response = 2;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_dynamic_launcher_call_prepare_install_finish (XDP_DBUS_IMPL_DYNAMIC_LAUNCHER (source),
                                                                    &response,
@@ -541,10 +540,6 @@ out:
                                       g_variant_builder_end (&results_builder));
 
       request_unexport (request);
-    }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
     }
 }
 
@@ -620,7 +615,8 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autofree char *icon_format = NULL;
   g_autofree char *icon_size = NULL;
   g_autoptr(GVariant) icon_v = NULL;
@@ -641,7 +637,6 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &opt_builder,
                            prepare_install_options, G_N_ELEMENTS (prepare_install_options), &error))
     {

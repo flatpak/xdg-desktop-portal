@@ -134,7 +134,8 @@ create_session_done (GObject      *source_object,
 {
   g_autoptr(Request) request = data;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   GVariant *results;
   Session *session;
   gboolean should_close_session;
@@ -146,8 +147,6 @@ create_session_done (GObject      *source_object,
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_input_capture_call_create_session_finish (impl,
                                                                &response,
@@ -200,10 +199,6 @@ out:
                                       g_variant_builder_end (&results_builder));
       request_unexport (request);
     }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
-    }
 
   if (should_close_session)
     session_close (session, FALSE);
@@ -240,7 +235,8 @@ handle_create_session (XdpDbusInputCapture   *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   Session *session;
 
@@ -268,7 +264,6 @@ handle_create_session (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_create_session_options,
                            G_N_ELEMENTS (input_capture_create_session_options),
@@ -335,9 +330,9 @@ get_zones_done (GObject      *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -364,7 +359,8 @@ handle_get_zones (XdpDbusInputCapture   *object,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   Session *session;
 
@@ -423,7 +419,6 @@ handle_get_zones (XdpDbusInputCapture   *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_get_zones_options,
                            G_N_ELEMENTS (input_capture_get_zones_options),
@@ -491,9 +486,9 @@ set_pointer_barriers_done (GObject      *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -520,7 +515,8 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   Session *session;
 
@@ -579,7 +575,6 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_set_pointer_barriers_options,
                            G_N_ELEMENTS (input_capture_set_pointer_barriers_options),
@@ -625,7 +620,8 @@ handle_enable (XdpDbusInputCapture   *object,
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
@@ -670,8 +666,6 @@ handle_enable (XdpDbusInputCapture   *object,
          return G_DBUS_METHOD_INVOCATION_HANDLED;
      }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
-
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_enable_options,
                            G_N_ELEMENTS (input_capture_enable_options),
@@ -703,7 +697,7 @@ handle_enable (XdpDbusInputCapture   *object,
   xdp_dbus_impl_input_capture_call_enable (impl,
                                            arg_session_handle,
                                            xdp_app_info_get_id (call->app_info),
-					   g_variant_builder_end (&options_builder),
+                                           g_variant_builder_end (&options_builder),
                                            NULL,
                                            NULL,
                                            NULL);
@@ -726,7 +720,8 @@ handle_disable (XdpDbusInputCapture   *object,
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
@@ -771,7 +766,6 @@ handle_disable (XdpDbusInputCapture   *object,
          return G_DBUS_METHOD_INVOCATION_HANDLED;
      }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_disable_options,
                            G_N_ELEMENTS (input_capture_disable_options),
@@ -827,7 +821,8 @@ handle_release (XdpDbusInputCapture   *object,
   Session *session;
   InputCaptureSession *input_capture_session;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   session = acquire_session_from_call (arg_session_handle, call);
   if (!session)
@@ -872,7 +867,6 @@ handle_release (XdpDbusInputCapture   *object,
         return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_release_options,
                            G_N_ELEMENTS (input_capture_release_options),
@@ -926,7 +920,8 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
   InputCaptureSession *input_capture_session;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder empty;
+  g_auto(GVariantBuilder) empty =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   GVariant *fd;
 
   session = acquire_session_from_call (arg_session_handle, call);
@@ -971,8 +966,6 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
                                                  "Invalid session");
           return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  g_variant_builder_init (&empty, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_input_capture_call_connect_to_eis_sync (impl,
                                                              arg_session_handle,

@@ -83,7 +83,8 @@ query_permission_sync (Request *request)
   permission = get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission == PERMISSION_ASK || permission == PERMISSION_UNSET)
     {
-      GVariantBuilder opt_builder;
+      g_auto(GVariantBuilder) opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree char *title = NULL;
       g_autofree char *body = NULL;
       guint32 response = 2;
@@ -98,7 +99,6 @@ query_permission_sync (Request *request)
           info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
         }
 
-      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
 
       if (info)
@@ -173,10 +173,9 @@ handle_access_camera_in_thread_func (GTask *task,
 
   if (request->exported)
     {
-      GVariantBuilder results;
+      g_auto(GVariantBuilder) results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       guint32 response;
-
-      g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
 
       response = allowed ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS
                          : XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;

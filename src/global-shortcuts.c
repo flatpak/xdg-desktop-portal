@@ -159,7 +159,8 @@ session_created_cb (GObject *source_object,
   guint response = 2;
   g_autoptr (GVariant) results = NULL;
   gboolean should_close_session;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -167,8 +168,6 @@ session_created_cb (GObject *source_object,
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_global_shortcuts_call_create_session_finish (impl,
                                                                   &response,
@@ -210,10 +209,6 @@ out:
                                       response,
                                       g_variant_builder_end (&results_builder));
       request_unexport (request);
-    }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
     }
 
   if (should_close_session)
@@ -318,9 +313,9 @@ shortcuts_bound_cb (GObject *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -346,7 +341,8 @@ xdp_verify_shortcuts (GVariant *shortcuts,
   iter = g_variant_iter_new (shortcuts);
   while (g_variant_iter_loop (iter, "(s@a{sv})", &shortcut_name, &values))
     {
-      GVariantBuilder shortcut_builder;
+      g_auto(GVariantBuilder) shortcut_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
       if (shortcut_name[0] == 0)
         {
@@ -357,7 +353,6 @@ xdp_verify_shortcuts (GVariant *shortcuts,
           return FALSE;
         }
 
-      g_variant_builder_init (&shortcut_builder, G_VARIANT_TYPE_VARDICT);
       if (!xdp_filter_options (values, &shortcut_builder,
                                global_shortcuts_keys,
                                G_N_ELEMENTS (global_shortcuts_keys),
@@ -488,9 +483,9 @@ shortcuts_listed_cb (GObject *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -513,18 +508,17 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
   Session *session;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_list_shortcuts_options,
                            G_N_ELEMENTS (global_shortcuts_list_shortcuts_options),
                            &error))
     {
-      g_variant_builder_clear (&options_builder);
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }

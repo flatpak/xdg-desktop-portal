@@ -144,11 +144,11 @@ handle_get_status (XdpDbusNetworkMonitor *object,
   else
     {
       NetworkMonitor *nm = (NetworkMonitor *)object;
-      GVariantBuilder status;
+      g_auto(GVariantBuilder) status =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       gboolean b;
       guint c;
 
-      g_variant_builder_init (&status, G_VARIANT_TYPE_VARDICT);
       b = g_network_monitor_get_network_available (nm->monitor);
       g_variant_builder_add (&status, "{sv}",
                              "available", g_variant_new_boolean (b));
