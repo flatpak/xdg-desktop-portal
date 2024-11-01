@@ -161,7 +161,8 @@ create_session_done (GObject *source_object,
   Session *session;
   guint response = 2;
   gboolean should_close_session;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -169,8 +170,6 @@ create_session_done (GObject *source_object,
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_screen_cast_call_create_session_finish (impl,
                                                              &response,
@@ -213,10 +212,6 @@ out:
                                       g_variant_builder_end (&results_builder));
       request_unexport (request);
     }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
-    }
 
   if (should_close_session)
     session_close (session, FALSE);
@@ -231,7 +226,8 @@ handle_create_session (XdpDbusScreenCast *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -258,7 +254,6 @@ handle_create_session (XdpDbusScreenCast *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
@@ -314,9 +309,9 @@ select_sources_done (GObject *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -490,7 +485,8 @@ handle_select_sources (XdpDbusScreenCast *object,
   Session *session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -575,7 +571,6 @@ handle_select_sources (XdpDbusScreenCast *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            screen_cast_select_sources_options,
                            G_N_ELEMENTS (screen_cast_select_sources_options),
@@ -816,9 +811,9 @@ start_done (GObject *source_object,
 
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -851,7 +846,8 @@ handle_start (XdpDbusScreenCast *object,
   ScreenCastSession *screen_cast_session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -913,7 +909,6 @@ handle_start (XdpDbusScreenCast *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),

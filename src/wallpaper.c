@@ -68,10 +68,10 @@ send_response (Request *request,
 {
   if (request->exported)
     {
-      GVariantBuilder opt_builder;
+      g_auto(GVariantBuilder) opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
       g_debug ("sending response: %d", response);
-      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&opt_builder));
@@ -130,7 +130,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   const char *id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *uri = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariant *options;
   gboolean show_preview = FALSE;
@@ -149,7 +150,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_warning ("Rejecting invalid set-wallpaper request (both URI and fd are set)");
       if (request->exported)
         {
-          g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
           xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                           XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                           g_variant_builder_end (&opt_builder));
@@ -172,13 +172,13 @@ handle_set_wallpaper_in_thread_func (GTask *task,
     {
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
-      GVariantBuilder access_opt_builder;
+      g_auto(GVariantBuilder) access_opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree gchar *app_id = NULL;
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
       const gchar *body;
 
-      g_variant_builder_init (&access_opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
@@ -257,7 +257,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           /* Reject the request */
           if (request->exported)
             {
-              g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opt_builder));
@@ -287,7 +286,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
   request_set_impl_request (request, impl_request);
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (options, &opt_builder,
                       wallpaper_options, G_N_ELEMENTS (wallpaper_options),
                       NULL);

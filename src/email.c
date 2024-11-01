@@ -79,9 +79,9 @@ send_response_in_thread_func (GTask        *task,
 
   if (request->exported)
     {
-      GVariantBuilder new_results;
+      g_auto(GVariantBuilder) new_results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-      g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
                                       g_variant_builder_end (&new_results));
@@ -235,10 +235,10 @@ handle_compose_email (XdpDbusEmail *object,
   attachment_fds = g_variant_lookup_value (arg_options, "attachment_fds", G_VARIANT_TYPE ("ah"));
   if (attachment_fds)
     {
-      GVariantBuilder attachments;
+      g_auto(GVariantBuilder) attachments =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_STRING_ARRAY);
       int i;
 
-      g_variant_builder_init (&attachments, G_VARIANT_TYPE_STRING_ARRAY);
       for (i = 0; i < g_variant_n_children (attachment_fds); i++)
         {
           g_autofree char *path = NULL;

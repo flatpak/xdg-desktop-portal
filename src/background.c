@@ -352,18 +352,18 @@ remove_outdated_instances (int stamp)
 static void
 update_background_monitor_properties (void)
 {
-  GVariantBuilder builder;
+  g_auto(GVariantBuilder) builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("aa{sv}"));
   GHashTableIter iter;
   InstanceData *data;
   char *id;
-
-  g_variant_builder_init (&builder, G_VARIANT_TYPE ("aa{sv}"));
 
   G_LOCK (applications);
   g_hash_table_iter_init (&iter, applications);
   while (g_hash_table_iter_next (&iter, (gpointer *)&id, (gpointer *)&data))
     {
-      GVariantBuilder app_builder;
+      g_auto(GVariantBuilder) app_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       const char *app_id;
       const char *id;
 
@@ -377,7 +377,6 @@ update_background_monitor_properties (void)
       app_id = flatpak_instance_get_app (data->instance);
       g_assert (app_id != NULL);
 
-      g_variant_builder_init (&app_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&app_builder, "{sv}", "app_id", g_variant_new_string (app_id));
       g_variant_builder_add (&app_builder, "{sv}", "instance", g_variant_new_string (id));
       if (data->status_message)
@@ -811,7 +810,8 @@ handle_request_background_in_thread_func (GTask *task,
 
   if (permission == PERMISSION_ASK)
     {
-      GVariantBuilder opt_builder;
+      g_auto(GVariantBuilder) opt_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
@@ -835,7 +835,6 @@ handle_request_background_in_thread_func (GTask *task,
 
       g_debug ("Calling backend for background access for: %s", id);
 
-      g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
@@ -883,9 +882,9 @@ handle_request_background_in_thread_func (GTask *task,
   if (request->exported)
     {
       XdgDesktopPortalResponseEnum portal_response;
-      GVariantBuilder results;
+      g_auto(GVariantBuilder) results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-      g_variant_builder_init (&results, G_VARIANT_TYPE_VARDICT);
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
       g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
 
@@ -1160,7 +1159,8 @@ handle_set_status (XdpDbusBackground     *object,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   const char *id = NULL;
   Call *call;
 
@@ -1187,7 +1187,6 @@ handle_set_status (XdpDbusBackground     *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &opt_builder,
                            set_status_options,
                            G_N_ELEMENTS (set_status_options),

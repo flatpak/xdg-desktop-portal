@@ -88,9 +88,8 @@ inhibit_done (GObject *source,
 
   if (request->exported)
     {
-      GVariantBuilder new_results;
-
-      g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
+      g_auto(GVariantBuilder) new_results =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
@@ -201,7 +200,8 @@ handle_inhibit (XdpDbusInhibit *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GTask) task = NULL;
-  GVariantBuilder opt_builder;
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -215,7 +215,6 @@ handle_inhibit (XdpDbusInhibit *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&opt_builder, G_VARIANT_TYPE_VARDICT);
   xdp_filter_options (arg_options, &opt_builder,
                       inhibit_options, G_N_ELEMENTS (inhibit_options),
                       NULL);
@@ -348,7 +347,8 @@ create_monitor_done (GObject *source_object,
   Session *session;
   guint response = 2;
   gboolean should_close_session;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -356,8 +356,6 @@ create_monitor_done (GObject *source_object,
   session = g_object_get_data (G_OBJECT (request), "session");
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_data (G_OBJECT (request), "session", NULL);
-
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_dbus_impl_inhibit_call_create_monitor_finish (impl, &response, res, &error))
     {
@@ -395,10 +393,6 @@ out:
                                       response,
                                       g_variant_builder_end (&results_builder));
       request_unexport (request);
-    }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
     }
 
   if (should_close_session)

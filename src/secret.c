@@ -75,9 +75,8 @@ send_response_in_thread_func (GTask *task,
 {
   Request *request = task_data;
   guint response;
-  GVariantBuilder new_results;
-
-  g_variant_builder_init (&new_results, G_VARIANT_TYPE_VARDICT);
+  g_auto(GVariantBuilder) new_results =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
@@ -132,7 +131,8 @@ handle_retrieve_secret (XdpDbusSecret *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
@@ -147,8 +147,6 @@ handle_retrieve_secret (XdpDbusSecret *object,
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_filter_options (arg_options, &options,
                            retrieve_secret_options, G_N_ELEMENTS (retrieve_secret_options),

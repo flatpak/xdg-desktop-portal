@@ -230,14 +230,14 @@ create_session_done (GObject *source_object,
   Session *session;
   guint response = 2;
   gboolean should_close_session;
-  GVariantBuilder results_builder;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
   REQUEST_AUTOLOCK (request);
 
   session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
 
-  g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
   g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
 
@@ -281,10 +281,6 @@ out:
                                       g_variant_builder_end (&results_builder));
       request_unexport (request);
     }
-  else
-    {
-      g_variant_builder_clear (&results_builder);
-    }
 
   if (should_close_session)
     session_close (session, FALSE);
@@ -299,7 +295,8 @@ handle_create_session (XdpDbusRemoteDesktop *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -326,7 +323,6 @@ handle_create_session (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
@@ -383,9 +379,9 @@ select_devices_done (GObject *source_object,
     {
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -505,7 +501,8 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -548,7 +545,6 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_select_devices_options,
                            G_N_ELEMENTS (remote_desktop_select_devices_options),
@@ -679,9 +675,9 @@ start_done (GObject *source_object,
 
       if (!results)
         {
-          GVariantBuilder results_builder;
+          g_auto(GVariantBuilder) results_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-          g_variant_builder_init (&results_builder, G_VARIANT_TYPE_VARDICT);
           results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
         }
 
@@ -713,7 +709,8 @@ handle_start (XdpDbusRemoteDesktop *object,
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
 
   REQUEST_AUTOLOCK (request);
@@ -767,7 +764,6 @@ handle_start (XdpDbusRemoteDesktop *object,
   request_set_impl_request (request, impl_request);
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),
@@ -851,7 +847,8 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -876,7 +873,6 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -909,7 +905,8 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -943,7 +940,6 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -977,7 +973,8 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1002,7 +999,6 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1040,7 +1036,8 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1065,7 +1062,6 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_pointer_axis_options,
                            G_N_ELEMENTS (remote_desktop_notify_pointer_axis_options),
@@ -1098,7 +1094,8 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1123,7 +1120,6 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1156,7 +1152,8 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1181,7 +1178,6 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1214,7 +1210,8 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1239,7 +1236,6 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1274,7 +1270,8 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1308,7 +1305,6 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1344,7 +1340,8 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1378,7 +1375,6 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1411,7 +1407,8 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
 {
   Call *call = call_from_invocation (invocation);
   Session *session;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -1436,7 +1433,6 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_notify_options,
                            G_N_ELEMENTS (remote_desktop_notify_options),
@@ -1473,7 +1469,8 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
   RemoteDesktopSession *remote_desktop_session;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   g_autoptr(GError) error = NULL;
-  GVariantBuilder options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   GVariant *fd;
 
   session = acquire_session_from_call (arg_session_handle, call);
@@ -1526,7 +1523,6 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            remote_desktop_connect_to_eis_options,
                            G_N_ELEMENTS (remote_desktop_connect_to_eis_options),

@@ -607,7 +607,8 @@ handle_open_in_thread_func (GTask *task,
   gint latest_count;
   gint latest_threshold;
   gboolean ask_for_content_type;
-  GVariantBuilder opts_builder;
+  g_auto(GVariantBuilder) opts_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   gboolean skip_app_chooser = FALSE;
   g_auto(XdpFd) fd = -1;
   gboolean writable = FALSE;
@@ -632,7 +633,6 @@ handle_open_in_thread_func (GTask *task,
       g_warning ("Rejecting invalid open-uri request (both URI and fd are set)");
       if (request->exported)
         {
-          g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
           xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                           XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                           g_variant_builder_end (&opts_builder));
@@ -652,7 +652,6 @@ handle_open_in_thread_func (GTask *task,
           /* Reject the request */
           if (request->exported)
             {
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
@@ -668,7 +667,6 @@ handle_open_in_thread_func (GTask *task,
           if (request->exported)
             {
               g_debug ("Rejecting open request as content-type couldn't be fetched for '%s'", uri);
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
@@ -714,7 +712,6 @@ handle_open_in_thread_func (GTask *task,
 
           if (request->exported)
             {
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
@@ -765,7 +762,6 @@ handle_open_in_thread_func (GTask *task,
             }
           else
             {
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS,
                                               g_variant_builder_end (&opts_builder));
@@ -872,7 +868,6 @@ handle_open_in_thread_func (GTask *task,
             {
               if (!result)
                 g_debug ("Open request for '%s' failed: %s", uri, error->message);
-              g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
               xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                               result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
                                               g_variant_builder_end (&opts_builder));
@@ -882,8 +877,6 @@ handle_open_in_thread_func (GTask *task,
           return;
         }
     }
-
-  g_variant_builder_init (&opts_builder, G_VARIANT_TYPE_VARDICT);
 
   if (latest_id != NULL)
     g_variant_builder_add (&opts_builder, "{sv}", "last_choice", g_variant_new_string (latest_id));
