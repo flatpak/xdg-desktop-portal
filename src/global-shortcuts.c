@@ -233,13 +233,13 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
   Request *request = request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_auto(GVariantBuilder) options_builder;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   Session *session;
 
   REQUEST_AUTOLOCK (request);
 
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_create_session_options,
                            G_N_ELEMENTS (global_shortcuts_create_session_options),
@@ -388,13 +388,12 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GVariant) shortcuts = NULL;
-  g_auto(GVariantBuilder) shortcuts_builder;
-  g_auto(GVariantBuilder) options_builder;
+  g_auto(GVariantBuilder) shortcuts_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_ARRAY);
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
-
-  g_variant_builder_init (&shortcuts_builder, G_VARIANT_TYPE_ARRAY);
-  g_variant_builder_init (&options_builder, G_VARIANT_TYPE_VARDICT);
 
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_bind_shortcuts_options,

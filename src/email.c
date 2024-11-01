@@ -213,12 +213,11 @@ handle_compose_email (XdpDbusEmail *object,
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_auto(GVariantBuilder) options;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) attachment_fds = NULL;
 
   g_debug ("Handling ComposeEmail");
-
-  g_variant_builder_init (&options, G_VARIANT_TYPE_VARDICT);
 
   REQUEST_AUTOLOCK (request);
 
