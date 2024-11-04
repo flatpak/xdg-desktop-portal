@@ -199,7 +199,7 @@
             notification server to treat the button specially.
 
             Depending on the ``purpose`` other fields of the button may be ignored.
-            If the server doesn't understand the ``purpose` it will be
+            If the server doesn't understand the ``purpose`` it will be
             ignored and the button will be shown as a normal button.
 
             Most standardized hints are defined as part of a ``category``.
@@ -208,18 +208,18 @@
 
             The following purposes are defined outside of a ``category``:
 
-              * ``system.custom-alert``:
+            * ``system.custom-alert``:
 
-                Not a button in a strict sense. This action may be called,
-                depending on system policies, automatically by the notification
-                server whenever the notification is shown.
+              Not a button in a strict sense. This action may be called,
+              depending on system policies, automatically by the notification
+              server whenever the notification is shown.
 
-                This allows apps to use custom methods for notifying the user,
-                for example, to play audio from a special
-                source like a streaming service or a radio station.
+              This allows apps to use custom methods for notifying the user,
+              for example, to play audio from a special
+              source like a streaming service or a radio station.
 
-                No ``label`` should be given when this purpose is used, so that
-                the server can ignore the button if it doesn't understand the purpose.
+              No ``label`` should be given when this purpose is used, so that
+              the server can ignore the button if it doesn't understand the purpose.
 
         * ``display-hint`` (``as``)
 
@@ -319,11 +319,11 @@
 
             This type has the following button purposes:
 
-            * ``call.hang-up``:
+          * ``call.hang-up``:
 
-              Hang up the ongoing call.
+            Hang up the ongoing call.
 
-           * ``call.enable-speakerphone``:
+            * ``call.enable-speakerphone``:
 
               Enable the speakerphone for the ongoing call.
 
