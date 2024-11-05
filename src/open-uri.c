@@ -1025,6 +1025,15 @@ handle_open_file (XdpDbusOpenURI *object,
     ask = FALSE;
 
   g_variant_get (arg_fd, "h", &fd_id);
+  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "Bad file descriptor index");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   fd = g_unix_fd_list_get (fd_list, fd_id, &error);
   if (fd == -1)
     {
@@ -1077,6 +1086,15 @@ handle_open_directory (XdpDbusOpenURI *object,
     }
 
   g_variant_get (arg_fd, "h", &fd_id);
+  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "Bad file descriptor index");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   fd = g_unix_fd_list_get (fd_list, fd_id, &error);
   if (fd == -1)
     {
