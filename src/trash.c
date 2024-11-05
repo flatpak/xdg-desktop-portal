@@ -105,7 +105,8 @@ handle_trash_file (XdpDbusTrash *object,
                    GVariant *arg_fd)
 {
   Call *call = call_from_invocation (invocation);
-  int idx, fd;
+  int idx;
+  g_autofd int fd = -1;
   guint result;
 
   g_debug ("Handling TrashFile");
