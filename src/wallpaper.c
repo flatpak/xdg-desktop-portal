@@ -135,7 +135,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   GVariant *options;
   gboolean show_preview = FALSE;
-  int fd;
+  g_autofd int fd = -1;
   Permission permission;
 
   REQUEST_AUTOLOCK (request);
@@ -144,6 +144,8 @@ handle_set_wallpaper_in_thread_func (GTask *task,
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
   fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
+
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
 
   if (uri != NULL && fd != -1)
     {
@@ -267,8 +269,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
       uri = g_filename_to_uri (path, NULL, NULL);
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
-      close (fd);
-      g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
     }
 
   impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),

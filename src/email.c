@@ -243,7 +243,7 @@ handle_compose_email (XdpDbusEmail *object,
         {
           g_autofree char *path = NULL;
           int fd_id;
-          int fd;
+          g_autofd int fd = -1;
 
           g_variant_get_child (attachment_fds, i, "h", &fd_id);
           if (fd_id >= g_unix_fd_list_get_length (fd_list))

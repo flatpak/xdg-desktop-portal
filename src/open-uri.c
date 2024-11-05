@@ -610,12 +610,14 @@ handle_open_in_thread_func (GTask *task,
   g_auto(GVariantBuilder) opts_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   gboolean skip_app_chooser = FALSE;
-  g_auto(XdpFd) fd = -1;
+  g_autofd int fd = -1;
   gboolean writable = FALSE;
   gboolean ask = FALSE;
   gboolean open_dir = FALSE;
   gboolean use_default_app = FALSE;
   const char *reason;
+
+  REQUEST_AUTOLOCK (request);
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
   uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
@@ -625,7 +627,7 @@ handle_open_in_thread_func (GTask *task,
   open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
   activation_token = (const char *)g_object_get_data (G_OBJECT (request), "activation-token");
 
-  REQUEST_AUTOLOCK (request);
+  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
 
   /* Verify that either uri or fd is set, not both */
   if (uri != NULL && fd != -1)
@@ -779,9 +781,6 @@ handle_open_in_thread_func (GTask *task,
       scheme = g_strdup ("file");
       uri = g_filename_to_uri (path, NULL, NULL);
       g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
-      close (fd);
-      fd = -1;
-      g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
     }
 
   g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
