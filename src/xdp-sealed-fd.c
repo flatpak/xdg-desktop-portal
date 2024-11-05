@@ -207,9 +207,15 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
 
   g_return_val_if_fail (g_variant_is_of_type (handle, G_VARIANT_TYPE_HANDLE), NULL);
   g_return_val_if_fail (G_IS_UNIX_FD_LIST (fd_list), NULL);
-  g_return_val_if_fail (g_unix_fd_list_get_length (fd_list) > 0, NULL);
 
   fd_id = g_variant_get_handle (handle);
+  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                           "Invalid file descriptor: index not found");
+      return NULL;
+    }
+
   fd = g_unix_fd_list_get (fd_list, fd_id, error);
   if (fd == -1)
     return NULL;
