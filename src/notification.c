@@ -806,7 +806,13 @@ parse_serialized_sound (GVariantBuilder  *builder,
         }
 
       if (!xdp_validate_sound (sealed_sound))
-        return FALSE;
+        {
+          g_set_error_literal (error,
+                               XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Invalid sound: The sound data is invalid");
+          return FALSE;
+        }
 
       fd_sound = xdp_sealed_fd_to_handle (sealed_sound,
                                           out_fd_list,
