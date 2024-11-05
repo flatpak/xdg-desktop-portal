@@ -199,16 +199,17 @@ selection_write_done (GObject *source_object,
       out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
 
       close (fd);
+    }
 
-      if (out_fd_id == -1)
-        {
-          g_dbus_method_invocation_return_error (
-            invocation,
-            XDG_DESKTOP_PORTAL_ERROR,
-            XDG_DESKTOP_PORTAL_ERROR_FAILED,
-            "Failed to append fd: %s",
-            error->message);
-        }
+  if (out_fd_id == -1)
+    {
+      g_dbus_method_invocation_return_error (
+        invocation,
+        XDG_DESKTOP_PORTAL_ERROR,
+        XDG_DESKTOP_PORTAL_ERROR_FAILED,
+        "Failed to append fd: %s",
+        error->message);
+      return;
     }
 
   xdp_dbus_clipboard_complete_selection_write (
@@ -330,7 +331,7 @@ selection_read_done (GObject *source_object,
 
   int fd;
   int fd_id;
-  int out_fd_id;
+  int out_fd_id = -1;
 
   if (!xdp_dbus_impl_clipboard_call_selection_read_finish (
         impl, &fd_handle, &fd_list, res, &error))
@@ -339,12 +340,17 @@ selection_read_done (GObject *source_object,
       g_warning ("A backend call failed: %s", error->message);
     }
 
-  fd_id = g_variant_get_handle (fd_handle);
-  fd = g_unix_fd_list_get (fd_list, fd_id, &error);
-
   out_fd_list = g_unix_fd_list_new ();
-  out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
-  close (fd);
+
+  if (fd_handle)
+    {
+      fd_id = g_variant_get_handle (fd_handle);
+      fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+
+      out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+
+      close (fd);
+    }
 
   if (out_fd_id == -1)
     {
@@ -353,6 +359,7 @@ selection_read_done (GObject *source_object,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "Failed to append fd: %s",
                                              error->message);
+      return;
     }
 
   xdp_dbus_clipboard_complete_selection_read (
