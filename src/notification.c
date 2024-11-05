@@ -672,15 +672,6 @@ parse_serialized_icon (GVariantBuilder  *builder,
       if (!check_value_type (key, value, G_VARIANT_TYPE_HANDLE, error))
         return FALSE;
 
-      if (in_fd_list == NULL || g_unix_fd_list_get_length (in_fd_list) == 0)
-        {
-          g_set_error_literal (error,
-                               XDG_DESKTOP_PORTAL_ERROR,
-                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                               "Invalid file descriptor: No Unix FD list given or empty");
-          return FALSE;
-        }
-
       if (!(sealed_icon = xdp_sealed_fd_new_from_handle (value,
                                                          in_fd_list,
                                                          &local_error)))
@@ -782,15 +773,6 @@ parse_serialized_sound (GVariantBuilder  *builder,
 
       if (!check_value_type (key, value, G_VARIANT_TYPE_HANDLE, error))
         return FALSE;
-
-      if (in_fd_list == NULL || g_unix_fd_list_get_length (in_fd_list) == 0)
-        {
-          g_set_error_literal (error,
-                               XDG_DESKTOP_PORTAL_ERROR,
-                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                               "Invalid file descriptor: No Unix FD list given or empty");
-          return FALSE;
-        }
 
       sealed_sound = xdp_sealed_fd_new_from_handle (value,
                                                     in_fd_list,

@@ -205,8 +205,19 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
   g_autofd int fd = -1;
   int fd_id;
 
-  g_return_val_if_fail (g_variant_is_of_type (handle, G_VARIANT_TYPE_HANDLE), NULL);
-  g_return_val_if_fail (G_IS_UNIX_FD_LIST (fd_list), NULL);
+  if (!g_variant_is_of_type (handle, G_VARIANT_TYPE_HANDLE))
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                           "GVariant is not a file descriptor handle");
+      return NULL;
+    }
+
+  if (!fd_list)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                           "Invalid file descriptor: index not found (empty list)");
+      return NULL;
+    }
 
   fd_id = g_variant_get_handle (handle);
   if (fd_id >= g_unix_fd_list_get_length (fd_list))
