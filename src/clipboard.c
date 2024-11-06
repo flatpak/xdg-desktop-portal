@@ -178,8 +178,6 @@ selection_write_done (GObject *source_object,
   g_autoptr(GUnixFDList) fd_list = NULL;
   g_autoptr(GVariant) fd_handle = NULL;
   g_autoptr(GError) error = NULL;
-  int fd;
-  int fd_id;
   int out_fd_id = -1;
 
   if (!xdp_dbus_impl_clipboard_call_selection_write_finish (
@@ -193,12 +191,13 @@ selection_write_done (GObject *source_object,
 
   if (fd_handle)
     {
+      g_autofd int fd = -1;
+      int fd_id;
+
       fd_id = g_variant_get_handle (fd_handle);
       fd = g_unix_fd_list_get (fd_list, fd_id, &error);
 
       out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
-
-      close (fd);
     }
 
   if (out_fd_id == -1)
@@ -328,9 +327,6 @@ selection_read_done (GObject *source_object,
   g_autoptr(GUnixFDList) fd_list = NULL;
   g_autoptr(GVariant) fd_handle = NULL;
   g_autoptr(GError) error = NULL;
-
-  int fd;
-  int fd_id;
   int out_fd_id = -1;
 
   if (!xdp_dbus_impl_clipboard_call_selection_read_finish (
@@ -344,12 +340,13 @@ selection_read_done (GObject *source_object,
 
   if (fd_handle)
     {
+      g_autofd int fd = -1;
+      int fd_id;
+
       fd_id = g_variant_get_handle (fd_handle);
       fd = g_unix_fd_list_get (fd_list, fd_id, &error);
 
       out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
-
-      close (fd);
     }
 
   if (out_fd_id == -1)
