@@ -191,13 +191,23 @@ selection_write_done (GObject *source_object,
 
   if (fd_handle)
     {
-      g_autofd int fd = -1;
-      int fd_id;
+      int fd_id = g_variant_get_handle (fd_handle);
 
-      fd_id = g_variant_get_handle (fd_handle);
-      fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+      if (fd_id < g_unix_fd_list_get_length (fd_list))
+        {
+          g_autofd int fd = -1;
 
-      out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+          fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+
+          if (fd >= 0)
+            out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+        }
+      else
+        {
+          g_set_error_literal (&error, XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Bad file descriptor index");
+        }
     }
 
   if (out_fd_id == -1)
@@ -340,13 +350,23 @@ selection_read_done (GObject *source_object,
 
   if (fd_handle)
     {
-      g_autofd int fd = -1;
-      int fd_id;
+      int fd_id = g_variant_get_handle (fd_handle);
 
-      fd_id = g_variant_get_handle (fd_handle);
-      fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+      if (fd_id < g_unix_fd_list_get_length (fd_list))
+        {
+          g_autofd int fd = -1;
 
-      out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+          fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+
+          if (fd >= 0)
+            out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
+        }
+      else
+        {
+          g_set_error_literal (&error, XDG_DESKTOP_PORTAL_ERROR,
+                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                               "Bad file descriptor index");
+        }
     }
 
   if (out_fd_id == -1)
