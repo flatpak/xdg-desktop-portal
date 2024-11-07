@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
-"PO-Revision-Date: 2024-02-14 23:53+0100\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-10-11 15:33+0000\n"
+"PO-Revision-Date: 2024-10-07 18:22+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.5\n"
 
 #: src/background.c:822
 #, c-format
@@ -74,9 +74,9 @@ msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Desktop-filens ID saknar .desktop-ändelse: %s"
 
 #: src/dynamic-launcher.c:133
-#, fuzzy, c-format
+#, c-format
 msgid "Desktop file id is not valid"
-msgstr "Desktop-post som ges till Install() är ogiltig"
+msgstr "Desktop-filens ID är ogiltigt"
 
 #: src/dynamic-launcher.c:305
 #, c-format
@@ -98,52 +98,52 @@ msgstr "Desktop-post som ges till Install() är ogiltig"
 msgid "Token given is invalid: %s"
 msgstr "Angiven token är ogiltig: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:834
+#: src/dynamic-launcher.c:883
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-filen överskrider maximal storlek (%d): %s"
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:566
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Angiven URL är ogiltig: %s"
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:589
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Ogiltig startartyp: %x"
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:596
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Startartyp som inte stöds: %x"
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:658 src/dynamic-launcher.c:728
 msgid "Dynamic launcher icon failed validation"
 msgstr "Dynamisk startarikon kunde inte valideras"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:744
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() inte tillåtet för program-ID %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop-filen ”%s” har ikon på okänd sökväg"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:946
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop-filen ”%s” har ikon som inte kunde serialiseras"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Ingen dynamisk startare finns med ID ”%s”"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1004
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Misslyckades med att skapa GDesktopAppInfo för startare med ID ”%s”"
