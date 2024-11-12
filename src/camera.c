@@ -76,7 +76,10 @@ handle_access_camera_in_thread_func (GTask *task,
   const char *app_id;
   gboolean allowed;
 
-  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
+  if (xdp_app_info_is_host (request->app_info))
+    app_id = "";
+  else
+    app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
 
   allowed = device_query_permission_sync (app_id, "camera", request);
 
