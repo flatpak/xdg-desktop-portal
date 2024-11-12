@@ -748,11 +748,27 @@ parse_status_field_pid (const char *val,
 {
   const char *t;
 
+  /* Takes "Pid: 12345" */
   t = strrchr (val, '\t');
-  if (t == NULL)
-    return -ENOENT;
+  g_assert (t);
 
   return parse_pid (t, pid);
+}
+
+
+static int
+parse_status_field_nspid (const char *val,
+                          pid_t      *pid)
+{
+  const char *t;
+
+  /* This is a tab separated list of namespaces.
+   * We only want the innermost namespace. */
+  t = strrchr (val, '\t');
+  if (t != NULL)
+    val = t;
+
+  return parse_pid (val, pid);
 }
 
 static pid_t
@@ -998,7 +1014,7 @@ parse_status_file (int    pid_fd,
 
     if (!strncmp (key, "NSpid", strlen ("NSpid")))
       {
-        r = parse_status_field_pid (val, pid_out);
+        r = parse_status_field_nspid (val, pid_out);
         have_pid = r > -1;
       }
     else if (!strncmp (key, "Uid", strlen ("Uid")))
