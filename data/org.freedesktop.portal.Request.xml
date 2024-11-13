@@ -87,7 +87,6 @@
     <signal name="Response">
       <arg type="u" name="response"/>
       <arg type="a{sv}" name="results"/>
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
     </signal>
   </interface>
 </node>
