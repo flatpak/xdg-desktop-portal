@@ -319,9 +319,9 @@
 
             This type has the following button purposes:
 
-          * ``call.hang-up``:
+            * ``call.hang-up``:
 
-            Hang up the ongoing call.
+              Hang up the ongoing call.
 
             * ``call.enable-speakerphone``:
 
