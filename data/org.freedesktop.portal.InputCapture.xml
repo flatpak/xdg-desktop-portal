@@ -251,6 +251,7 @@
     <method name="SetPointerBarriers">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QList&lt;QVariantMap&gt;"/>
       <arg type="aa{sv}" name="barriers" direction="in"/>
       <arg type="u" name="zone_set" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
