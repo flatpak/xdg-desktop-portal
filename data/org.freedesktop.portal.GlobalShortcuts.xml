@@ -141,12 +141,11 @@
     -->
     <method name="BindShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
-
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
     </method>
 
     <!--
@@ -226,8 +225,8 @@
     -->
     <signal name="ShortcutsChanged">
       <arg type="o" name="session_handle" direction="out"/>
-      <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
+      <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
     </signal>
 
     <property name="version" type="u" access="read"/>
