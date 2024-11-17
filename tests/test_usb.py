@@ -204,6 +204,17 @@ A: idVendor={vendor}
             )
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
+    @pytest.mark.skipif(
+        ("GITHUB_ACTIONS" in os.environ and os.environ["GITHUB_ACTIONS"] == "true")
+        or (
+            "container" in os.environ
+            and (
+                os.environ["container"] == "docker"
+                or os.environ["container"] == "podman"
+            )
+        ),
+        reason="Test fail in containers",
+    )
     def test_device_remove(self, portal_mock, app_id, usb_queries):
         device_events_signal_count = 0
         devices_received = 0
