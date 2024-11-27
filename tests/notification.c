@@ -326,16 +326,16 @@ test_icon (const char *serialized_icon,
 
   notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
                                     "  'body': <'test notification body 7'>, "
-                                    "  'icon': <%s>, "
-                                    "  'default-action': <'test-action'> "
+                                    "  'default-action': <'test-action'>, "
+                                    "  'icon': <%s> "
                                     "}",
                                     serialized_icon);
 
   if (expected_serialized_icon)
     expected_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
                                                "  'body': <'test notification body 7'>, "
-                                               "  'icon': <%s>, "
-                                               "  'default-action': <'test-action'> "
+                                               "  'default-action': <'test-action'>, "
+                                               "  'icon': <%s> "
                                                "}",
                                                expected_serialized_icon);
 
@@ -435,15 +435,15 @@ test_sound (const char *serialized_sound,
 
   notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
                                     "  'body': <'test notification body 7'>, "
-                                    "  'sound': <%s>, "
-                                    "  'default-action': <'test-action'> "
+                                    "  'default-action': <'test-action'>, "
+                                    "  'sound': <%s> "
                                     "}", serialized_sound);
 
   if (expected_serialized_sound)
     expected_notification_s = g_strdup_printf ("{ 'title': <'test notification 7'>, "
                                                "  'body': <'test notification body 7'>, "
-                                               "  'sound': <%s>, "
-                                               "  'default-action': <'test-action'> "
+                                               "  'default-action': <'test-action'>, "
+                                               "  'sound': <%s> "
                                                "}", expected_serialized_sound);
 
   run_notification_test ("test-sound", notification_s, expected_notification_s, expect_failure);
