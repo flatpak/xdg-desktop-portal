@@ -75,7 +75,9 @@ static gboolean
 query_permission_sync (XdpRequest *request)
 {
   XdpPermission permission;
-  const char *app_id;
+  XdpAppInfo *app_info = request->app_info;
+  const char *app_id = xdp_app_info_get_id (app_info);
+  GAppInfo *info = xdp_app_info_get_gappinfo (app_info);
   gboolean allowed;
 
   /* The app id detection is still unreliable and some backends do check if the
@@ -84,9 +86,10 @@ query_permission_sync (XdpRequest *request)
    * This should be removed when app id detection has become more reliable.
    */
   if (xdp_app_info_is_host (request->app_info))
-    app_id = "";
-  else
-    app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
+    {
+      app_id = "";
+      info = NULL;
+    }
 
   permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
@@ -98,14 +101,8 @@ query_permission_sync (XdpRequest *request)
       guint32 response = 2;
       g_autoptr(GVariant) results = NULL;
       g_autoptr(GError) error = NULL;
-      g_autoptr(GAppInfo) info = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
 
-      if (app_id[0] != 0)
-        {
-          g_autofree char *desktop_id = g_strconcat (app_id, ".desktop", NULL);
-          info = (GAppInfo*)g_desktop_app_info_new (desktop_id);
-        }
 
       g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
 
