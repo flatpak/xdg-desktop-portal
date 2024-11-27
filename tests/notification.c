@@ -119,6 +119,7 @@ run_notification_test_with_callback (const char          *notification_id,
   gulong id;
 
   notification = g_variant_parse (G_VARIANT_TYPE_VARDICT, notification_s, NULL, NULL, NULL);
+  g_assert_nonnull (notification);
 
   keyfile = g_key_file_new ();
 
