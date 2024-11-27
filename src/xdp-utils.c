@@ -587,6 +587,7 @@ xdp_validate_icon (XdpSealedFd  *icon,
   const char *icon_validator = LIBEXECDIR "/xdg-desktop-portal-validate-icon";
   const char *args[7];
   int size;
+  size_t i;
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) key_file = NULL;
 
@@ -599,13 +600,18 @@ xdp_validate_icon (XdpSealedFd  *icon,
       return FALSE;
     }
 
-  args[0] = icon_validator;
-  args[1] = "--sandbox";
-  args[2] = "--fd";
-  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
-  args[4] = "--ruleset";
-  args[5] = icon_type_to_string (icon_type);
-  args[6] = NULL;
+  i = 0;
+  args[i++] = icon_validator;
+
+  if (g_getenv ("XDP_VALIDATE_ICON_INSECURE") == NULL)
+    args[i++] = "--sandbox";
+
+  args[i++] = "--fd";
+  args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  args[i++] = "--ruleset";
+  args[i++] = icon_type_to_string (icon_type);
+  g_assert (i < G_N_ELEMENTS (args));
+  args[i++] = NULL;
 
   output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (icon), VALIDATOR_INPUT_FD, &error);
   if (!output)
@@ -647,6 +653,7 @@ xdp_validate_sound (XdpSealedFd *sound)
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *output = NULL;
   const char *sound_validator = LIBEXECDIR "/xdg-desktop-portal-validate-sound";
+  gsize i;
 
   if (g_getenv ("XDP_VALIDATE_SOUND"))
     sound_validator = g_getenv ("XDP_VALIDATE_SOUND");
@@ -657,11 +664,16 @@ xdp_validate_sound (XdpSealedFd *sound)
       return FALSE;
     }
 
-  args[0] = sound_validator;
-  args[1] = "--sandbox";
-  args[2] = "--fd";
-  args[3] = G_STRINGIFY (VALIDATOR_INPUT_FD);
-  args[4] = NULL;
+  i = 0;
+  args[i++] = sound_validator;
+
+  if (g_getenv ("XDP_VALIDATE_SOUND_INSECURE") == NULL)
+    args[i++] = "--sandbox";
+
+  args[i++] = "--fd";
+  args[i++] = G_STRINGIFY (VALIDATOR_INPUT_FD);
+  g_assert (i < G_N_ELEMENTS (args));
+  args[i++] = NULL;
 
   output = xdp_spawn_full (args, xdp_sealed_fd_dup_fd (sound), VALIDATOR_INPUT_FD, &error);
   if (!output)
@@ -736,11 +748,27 @@ parse_status_field_pid (const char *val,
 {
   const char *t;
 
+  /* Takes "Pid: 12345" */
   t = strrchr (val, '\t');
-  if (t == NULL)
-    return -ENOENT;
+  g_assert (t);
 
   return parse_pid (t, pid);
+}
+
+
+static int
+parse_status_field_nspid (const char *val,
+                          pid_t      *pid)
+{
+  const char *t;
+
+  /* This is a tab separated list of namespaces.
+   * We only want the innermost namespace. */
+  t = strrchr (val, '\t');
+  if (t != NULL)
+    val = t;
+
+  return parse_pid (val, pid);
 }
 
 static pid_t
@@ -986,7 +1014,7 @@ parse_status_file (int    pid_fd,
 
     if (!strncmp (key, "NSpid", strlen ("NSpid")))
       {
-        r = parse_status_field_pid (val, pid_out);
+        r = parse_status_field_nspid (val, pid_out);
         have_pid = r > -1;
       }
     else if (!strncmp (key, "Uid", strlen ("Uid")))

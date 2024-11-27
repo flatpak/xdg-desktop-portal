@@ -3,21 +3,22 @@
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Артемий Судаков <finziyr@yandex.ru>, 2020.
 #
+# SPDX-FileCopyrightText: 2024 SPDX-FileCopyrightText :
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
-"PO-Revision-Date: 2024-02-16 19:13+0300\n"
-"Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
-"Language-Team: Russian <gnome-cyr@gnome.org>\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-10-12 03:33+0000\n"
+"PO-Revision-Date: 2024-11-22 15:55+0300\n"
+"Last-Translator: Дронова Юлия <juliette.tux@gmail.com>\n"
+"Language-Team: RU\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
-"n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 3.4.2\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<="
+"4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 24.08.1\n"
 
 #: src/background.c:822
 #, c-format
@@ -76,9 +77,9 @@ msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "В идентификаторе desktop-файла отсутствует суффикс .desktop: %s"
 
 #: src/dynamic-launcher.c:133
-#, fuzzy, c-format
+#, c-format
 msgid "Desktop file id is not valid"
-msgstr "Desktop-запись, переданная в Install(), недействительна"
+msgstr "Идентификатор desktop-файла недействителен"
 
 #: src/dynamic-launcher.c:305
 #, c-format
@@ -103,52 +104,52 @@ msgstr "Desktop-запись, переданная в Install(), недейст�
 msgid "Token given is invalid: %s"
 msgstr "Указанный токен недействителен: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:834
+#: src/dynamic-launcher.c:883
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-файл превышает максимальный размер (%d): %s"
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:566
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Указанный URL недействителен: %s"
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:589
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Недействительный тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:596
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Неподдерживаемый тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:658 src/dynamic-launcher.c:728
 msgid "Dynamic launcher icon failed validation"
 msgstr "Значок динамической программы запуска не прошел проверку"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:744
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() не разрешен для идентификатора приложения %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Значок desktop-файла '%s' находится по нераспознанному пути"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:946
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Не удалось сериализовать значок desktop-файла '%s'"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Не существует динамической программы запуска с идентификатором '%s'"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1004
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
