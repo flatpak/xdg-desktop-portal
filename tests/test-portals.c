@@ -592,10 +592,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/sound", test_notification_sound);
   g_test_add_func ("/portal/notification/display-hint", test_notification_display_hint);
   g_test_add_func ("/portal/notification/category", test_notification_category);
-/* reenable when the proper PR in libportal is merged */
-#if 0
   g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
-#endif
 #endif
 
   global_setup ();

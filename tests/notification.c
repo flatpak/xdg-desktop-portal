@@ -10,16 +10,12 @@
   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" \
   "<svg xmlns=\"http://www.w3.org/2000/svg\" height=\"16px\" width=\"16px\"/>"
 
-
-/* reenable when the proper PR in libportal is merged */
-#if 0
 static const guchar SOUND_DATA[] = {
   0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x41, 0x56, 0x45,
   0x66, 0x6d, 0x74, 0x20, 0x10, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00,
   0x44, 0xac, 0x00, 0x00, 0x88, 0x58, 0x01, 0x00, 0x02, 0x00, 0x10, 0x00,
   0x64, 0x61, 0x74, 0x61, 0x00, 0x00, 0x00, 0x00
 };
-#endif
 
 extern char outdir[];
 
@@ -373,8 +369,6 @@ test_bytes_icon (void)
 }
 
 
-/* reenable when the proper PR in libportal is merged */
-#if 0
 static void
 test_file_icon (void)
 {
@@ -401,7 +395,6 @@ test_file_icon (void)
   g_file_delete (file, NULL, &error);
   g_assert_no_error (error);
 }
-#endif
 
 void
 test_notification_icon (void)
@@ -413,10 +406,7 @@ test_notification_icon (void)
   test_themed_icon ();
   test_bytes_icon ();
 
-/* reenable when the proper PR in libportal is merged */
-#if 0
   test_file_icon ();
-#endif
 
   /* Tests that should fail */
   test_icon ("('themed', <'test-icon-symbolic'>)", NULL, TRUE);
@@ -448,8 +438,6 @@ test_sound (const char *serialized_sound,
   run_notification_test ("test-sound", notification_s, expected_notification_s, expect_failure);
 }
 
-/* reenable when the proper PR in libportal is merged */
-#if 0
 static void
 test_file_sound (void)
 {
@@ -471,17 +459,14 @@ test_file_sound (void)
   g_file_delete (file, NULL, &error);
   g_assert_no_error (error);
 }
-#endif
 
 void
 test_notification_sound (void)
 {
   test_sound ("'default'", NULL, FALSE);
   test_sound ("'silent'", NULL, FALSE);
-/* reenable when the proper PR in libportal is merged */
-#if 0
+
   test_file_sound ();
-#endif
 
   /* Tests that should fail */
   test_sound ("('file-descriptor', <''>)", NULL, TRUE);
@@ -535,8 +520,6 @@ test_notification_category (void)
   run_notification_test ("test5", notification_s, NULL, TRUE);
 }
 
-/* reenable when the proper PR in libportal is merged */
-#if 0
 void
 test_notification_supported_properties (void)
 {
@@ -567,4 +550,3 @@ test_notification_supported_properties (void)
   expected_response = g_variant_parse (G_VARIANT_TYPE_VARDICT, expected_serialized, NULL, NULL, NULL);
   g_assert_true (g_variant_equal (expected_response, response));
 }
-#endif
