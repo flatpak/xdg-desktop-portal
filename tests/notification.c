@@ -546,7 +546,7 @@ test_notification_supported_properties (void)
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
   g_autoptr(GVariant) expected_response = NULL;
-  g_autoptr(GVariant) response = NULL;
+  GVariant *response = NULL;
 
   keyfile = g_key_file_new ();
 
