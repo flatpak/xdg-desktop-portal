@@ -19,15 +19,21 @@ extern gchar *appid;
 static void
 set_camera_permissions (const char *permission)
 {
+  const char *permission_app_id;
   const char *permissions[2] = { NULL, NULL };
   g_autoptr(GError) error = NULL;
+
+  /* x-d-p currently defaults to the empty app id for the camera portal for
+   * host XdpAppInfos (which the XdpAppInfoTest is). So instead of using the
+   * `extern gchar *appid` we have to use "" for now. */
+  permission_app_id = "";
 
   permissions[0] = permission;
   xdp_dbus_impl_permission_store_call_set_permission_sync (permission_store,
                                                            "devices",
                                                            TRUE,
                                                            "camera",
-                                                           "",
+                                                           permission_app_id,
                                                            permissions,
                                                            NULL,
                                                            &error);

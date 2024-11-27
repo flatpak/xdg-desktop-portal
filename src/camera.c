@@ -78,6 +78,11 @@ query_permission_sync (XdpRequest *request)
   const char *app_id;
   gboolean allowed;
 
+  /* The app id detection is still unreliable and some backends do check if the
+   * window matches the app id. Because that app id for host apps comes from the
+   * app itself through wayland, the checks can fail.
+   * This should be removed when app id detection has become more reliable.
+   */
   if (xdp_app_info_is_host (request->app_info))
     app_id = "";
   else
