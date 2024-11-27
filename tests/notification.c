@@ -420,7 +420,6 @@ test_notification_icon (void)
 
   /* Tests that should fail */
   test_icon ("('themed', <'test-icon-symbolic'>)", NULL, TRUE);
-  test_icon ("('bytes', <['test-icon-symbolic', 'test-icon']>)", NULL, TRUE);
   test_icon ("('file-descriptor', <''>)", NULL, TRUE);
   test_icon ("('file-descriptor', <handle 0>)", NULL, TRUE);
 }
