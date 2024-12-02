@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2024 Red Hat, Inc.
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Jonas Ådahl <jadahl@redhat.com>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.host.portal.Registry:
+      @short_description: Interface to associate D-Bus peers with application
+      ids.
+
+      This simple interface lets unsandboxed applications register their
+      D-Bus connections and associate it with an application ID that will be
+      used in portals.
+
+      This interface will not work with applications xdg-desktop-portal
+      identifies as sandboxed.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.host.portal.Registry">
+    <!--
+        Register:
+        @app_id: Application identifier
+        @options: Vardict with optional further information
+
+        Register a D-Bus peer and associate it with an application ID. The
+        application ID must be able to match the basename of a .desktop file
+        that describes the application.
+
+        The application ID will be used in org.freedesktop.portal APIs to
+        associate a portal action with an application.
+
+        Registering can only done at most once; any subsequent call will result
+        in an error.
+
+        Registering must be done before any portal method call; registering
+        after such a call will result in an error.
+    -->
+    <method name="Register">
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+    </method>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
