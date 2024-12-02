@@ -60,6 +60,7 @@
 #include "print.h"
 #include "proxy-resolver.h"
 #include "realtime.h"
+#include "registry.h"
 #include "remote-desktop.h"
 #include "xdp-request.h"
 #include "screen-cast.h"
@@ -174,6 +175,33 @@ export_portal_implementation (GDBusConnection *connection,
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
   g_signal_connect (skeleton, "g-authorize-method",
                     G_CALLBACK (authorize_callback), NULL);
+
+  if (!g_dbus_interface_skeleton_export (skeleton,
+                                         connection,
+                                         DESKTOP_PORTAL_OBJECT_PATH,
+                                         &error))
+    {
+      g_warning ("Error: %s", error->message);
+      return;
+    }
+
+  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+}
+
+static void
+export_host_portal_implementation (GDBusConnection        *connection,
+                                   GDBusInterfaceSkeleton *skeleton)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (skeleton == NULL)
+    {
+      g_warning ("No skeleton to export");
+      return;
+    }
+
+  g_dbus_interface_skeleton_set_flags (skeleton,
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          connection,
@@ -372,6 +400,8 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   xdp_usb_create (connection, implementation->dbus_name));
 #endif
+
+  export_host_portal_implementation (connection, registry_create (connection));
 }
 
 static void
