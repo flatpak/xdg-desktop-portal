@@ -7,16 +7,6 @@ import dbus
 
 
 @pytest.fixture
-def portal_name():
-    return "Location"
-
-
-@pytest.fixture
-def portal_has_impl():
-    return False
-
-
-@pytest.fixture
 def required_templates():
     return {"geoclue2": {}}
 

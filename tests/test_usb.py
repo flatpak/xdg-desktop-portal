@@ -13,8 +13,8 @@ from gi.repository import GLib, UMockdev  # noqa E402
 
 
 @pytest.fixture
-def portal_name():
-    return "Usb"
+def required_templates():
+    return {"usb": {}}
 
 
 @pytest.fixture
@@ -262,7 +262,9 @@ A: idVendor={vendor}
             assert devices_removed == 1
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9;vnd:04aa"])
-    @pytest.mark.parametrize("params", [{"filters": {"vendor": "04a9"}}])
+    @pytest.mark.parametrize(
+        "template_params", [{"usb": {"filters": {"vendor": "04a9"}}}]
+    )
     def test_acquire(self, portals, dbus_con, app_id, umockdev):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
@@ -330,15 +332,15 @@ A: idVendor={vendor}
 
     @pytest.mark.parametrize("usb_queries", ["vnd:0001"])
     @pytest.mark.parametrize(
-        "expected,params",
+        "expected,template_params",
         [
-            (1, {"filters": {"model": "0000"}}),
-            (1, {"filters": {"model": "0001"}}),
-            (0, {"filters": {"model": "0002"}}),
-            (2, {"filters": {"vendor": "0001"}}),
-            (0, {"filters": {"vendor": "0002"}}),
-            (1, {"filters": {"vendor": "0001", "model": "0000"}}),
-            (0, {"filters": {"vendor": "0002", "model": "0000"}}),
+            (1, {"usb": {"filters": {"model": "0000"}}}),
+            (1, {"usb": {"filters": {"model": "0001"}}}),
+            (0, {"usb": {"filters": {"model": "0002"}}}),
+            (2, {"usb": {"filters": {"vendor": "0001"}}}),
+            (0, {"usb": {"filters": {"vendor": "0002"}}}),
+            (1, {"usb": {"filters": {"vendor": "0001", "model": "0000"}}}),
+            (0, {"usb": {"filters": {"vendor": "0002", "model": "0000"}}}),
         ],
     )
     def test_queries(self, portals, dbus_con, expected, app_id, usb_queries, umockdev):

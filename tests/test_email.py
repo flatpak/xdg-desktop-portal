@@ -10,13 +10,8 @@ import time
 
 
 @pytest.fixture
-def portal_name():
-    yield "Email"
-
-
-@pytest.fixture
-def portal_has_impl():
-    yield True
+def required_templates():
+    return {"email": {}}
 
 
 class TestEmail:
@@ -176,7 +171,7 @@ class TestEmail:
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    @pytest.mark.parametrize("params", ({"delay": 2000},))
+    @pytest.mark.parametrize("template_params", ({"email": {"delay": 2000}},))
     def test_email_delay(self, portals, dbus_con):
         """
         Test that everything works as expected when the backend takes some
@@ -219,7 +214,7 @@ class TestEmail:
         assert args[3]["addresses"] == addresses
         assert args[3]["subject"] == subject
 
-    @pytest.mark.parametrize("params", ({"response": 1},))
+    @pytest.mark.parametrize("template_params", ({"email": {"response": 1}},))
     def test_email_cancel(self, portals, dbus_con):
         """
         Test that user cancellation works as expected.
@@ -257,7 +252,7 @@ class TestEmail:
         assert args[3]["addresses"] == addresses
         assert args[3]["subject"] == subject
 
-    @pytest.mark.parametrize("params", ({"expect-close": True},))
+    @pytest.mark.parametrize("template_params", ({"email": {"expect-close": True}},))
     def test_email_close(self, portals, dbus_con):
         """
         Test that app-side cancellation works as expected.
