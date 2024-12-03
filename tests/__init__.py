@@ -23,7 +23,7 @@
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple
+from typing import Any, Dict, Optional, NamedTuple, Callable
 from pathlib import Path
 
 import dbus
@@ -46,6 +46,117 @@ _counter = count()
 ASV = Dict[str, Any]
 
 logger = logging.getLogger("tests")
+
+
+def wait(ms: int):
+    """
+    Waits for the specified amount of milliseconds.
+    """
+    mainloop = GLib.MainLoop()
+    GLib.timeout_add(ms, mainloop.quit)
+    mainloop.run()
+
+
+def wait_for(fn: Callable[[], bool]):
+    """
+    Waits and dispatches to mainloop until the function fn returns true. This is
+    useful in combination with a lambda which captures a variable:
+
+        my_var = False
+        def callback():
+            my_var = True
+        do_something_later(callback)
+        xdp.wait_for(lambda: my_var)
+    """
+    mainloop = GLib.MainLoop()
+    while not fn():
+        GLib.timeout_add(50, mainloop.quit)
+        mainloop.run()
+
+
+def get_permission_store_iface(bus: dbus.Bus):
+    """
+    Returns the dbus interface of the xdg-permission-store.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.impl.portal.PermissionStore",
+        "/org/freedesktop/impl/portal/PermissionStore",
+    )
+    return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
+
+
+def get_mock_iface(bus: dbus.Bus):
+    """
+    Returns the mock interface of the xdg-desktop-portal.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.impl.portal.Test", "/org/freedesktop/portal/desktop"
+    )
+    return dbus.Interface(obj, dbusmock.MOCK_IFACE)
+
+
+def portal_interface_name(portal_name) -> str:
+    """
+    Returns the fully qualified interface for a portal name.
+    """
+    return f"org.freedesktop.portal.{portal_name}"
+
+
+def get_portal_iface(bus: dbus.Bus, name: str) -> dbus.Interface:
+    """
+    Returns the dbus interface for a portal name.
+    """
+    name = portal_interface_name(name)
+    return get_iface(bus, name)
+
+
+def get_iface(bus: dbus.Bus, name: str) -> dbus.Interface:
+    """
+    Returns a named interface of the main portal object.
+    """
+    try:
+        ifaces = bus._xdp_portal_ifaces
+    except AttributeError:
+        ifaces = bus._xdp_portal_ifaces = {}
+
+    try:
+        intf = ifaces[name]
+    except KeyError:
+        intf = dbus.Interface(get_xdp_dbus_object(bus), name)
+        assert intf
+        ifaces[name] = intf
+    return intf
+
+
+def get_xdp_dbus_object(bus: dbus.Bus) -> dbus.proxies.ProxyObject:
+    """
+    Returns the main portal object.
+    """
+    try:
+        obj = getattr(bus, "_xdp_dbus_object")
+    except AttributeError:
+        obj = bus.get_object(
+            "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
+        )
+        assert obj
+        bus._xdp_dbus_object = obj
+    return obj
+
+
+def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
+    """
+    Checks that the portal_name portal version is equal to expected_version.
+    """
+    properties_intf = dbus.Interface(
+        get_xdp_dbus_object(bus), "org.freedesktop.DBus.Properties"
+    )
+    portal_iface_name = portal_interface_name(portal_name)
+    try:
+        portal_version = properties_intf.Get(portal_iface_name, "version")
+        assert int(portal_version) == expected_version
+    except dbus.exceptions.DBusException as e:
+        logger.critical(e)
+        assert e is None, str(e)
 
 
 class Response(NamedTuple):
