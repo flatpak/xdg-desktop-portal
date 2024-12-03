@@ -277,7 +277,11 @@ python = pymod.find_installation(
   required: get_option('pytest'),
 )
 
-enable_pytest = pytest.found() and python.found() and python.language_version().version_compare('>=3.9')
+enable_pytest = \
+  pytest.found() and \
+  python.found() and \
+  python.language_version().version_compare('>=3.9') and \
+  umockdev_dep.found()
 
 if enable_pytest
   subdir('templates')

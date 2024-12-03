@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from typing import Any, Iterator
+from typing import Any, Iterator, Optional
 
 import pytest
 import dbusmock
@@ -11,6 +11,11 @@ import sys
 import tempfile
 
 from tests import PortalMock
+
+import gi
+
+gi.require_version("UMockdev", "1.0")
+from gi.repository import UMockdev  # noqa E402
 
 
 def pytest_configure():
@@ -134,7 +139,7 @@ def app_id():
 
 
 @pytest.fixture
-def umockdev():
+def umockdev() -> Optional[UMockdev.Testbed]:
     """
     Default fixture providing a umockdev testbed
     """
