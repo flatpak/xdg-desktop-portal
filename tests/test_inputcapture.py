@@ -20,8 +20,8 @@ def default_zones():
 
 
 @pytest.fixture
-def portal_name():
-    return "InputCapture"
+def required_templates():
+    return {"inputcapture": {}}
 
 
 @pytest.fixture
@@ -206,10 +206,12 @@ class TestInputCapture:
         xdp.check_version(dbus_con, "InputCapture", 1)
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "supported_capabilities": 0b101,  # KEYBOARD, POINTER, TOUCH
+                "inputcapture": {
+                    "supported_capabilities": 0b101,  # KEYBOARD, POINTER, TOUCH
+                },
             },
         ),
     )
@@ -234,11 +236,13 @@ class TestInputCapture:
         assert args[4]["capabilities"] == 0b1
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "capabilities": 0b110,  # TOUCH, POINTER
-                "supported_capabilities": 0b111,  # TOUCH, POINTER, KEYBOARD
+                "inputcapture": {
+                    "capabilities": 0b110,  # TOUCH, POINTER
+                    "supported_capabilities": 0b111,  # TOUCH, POINTER, KEYBOARD
+                },
             },
         ),
     )
@@ -259,14 +263,16 @@ class TestInputCapture:
         assert args[4]["capabilities"] == 0b111
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "default-zone": dbus.Array(
-                    [dbus.Struct(z, signature="uuii") for z in default_zones()],
-                    signature="(uuii)",
-                    variant_level=1,
-                )
+                "inputcapture": {
+                    "default-zone": dbus.Array(
+                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        signature="(uuii)",
+                        variant_level=1,
+                    )
+                },
             },
         ),
     )
@@ -285,14 +291,16 @@ class TestInputCapture:
         assert len(method_calls) == 1
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "default-zone": dbus.Array(
-                    [dbus.Struct(z, signature="uuii") for z in default_zones()],
-                    signature="(uuii)",
-                    variant_level=1,
-                )
+                "inputcapture": {
+                    "default-zone": dbus.Array(
+                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        signature="(uuii)",
+                        variant_level=1,
+                    )
+                },
             },
         ),
     )
@@ -445,10 +453,12 @@ class TestInputCapture:
         assert len(method_calls) == 2
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "disable-delay": 200,
+                "inputcapture": {
+                    "disable-delay": 200,
+                },
             },
         ),
     )
@@ -481,11 +491,13 @@ class TestInputCapture:
         xdp.wait_for(lambda: disabled_signal_received)
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "activated-delay": 200,
-                "deactivated-delay": 300,
+                "inputcapture": {
+                    "activated-delay": 200,
+                    "deactivated-delay": 300,
+                },
             },
         ),
     )
@@ -552,12 +564,14 @@ class TestInputCapture:
         assert not disabled_signal_received
 
     @pytest.mark.parametrize(
-        "params",
+        "template_params",
         (
             {
-                "activated-delay": 200,
-                "deactivated-delay": 1000,
-                "disabled-delay": 1200,
+                "inputcapture": {
+                    "activated-delay": 200,
+                    "deactivated-delay": 1000,
+                    "disabled-delay": 1200,
+                },
             },
         ),
     )

@@ -10,8 +10,8 @@ import time
 
 
 @pytest.fixture
-def portal_name():
-    return "GlobalShortcuts"
+def required_templates():
+    return {"globalshortcuts": {}}
 
 
 class TestGlobalShortcuts:
@@ -45,7 +45,9 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    @pytest.mark.parametrize("params", ({"force-close": 500},))
+    @pytest.mark.parametrize(
+        "template_params", ({"globalshortcuts": {"force-close": 500}},)
+    )
     def test_global_shortcuts_create_session_signal_closed(
         self, portals, dbus_con, app_id
     ):
