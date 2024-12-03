@@ -2,12 +2,12 @@
 #
 # This file is formatted with Python Black
 
-
-from pathlib import Path
+import tests as xdp
 
 import os
-import pytest
 import tempfile
+import pytest
+from pathlib import Path
 
 
 @pytest.fixture
@@ -21,18 +21,18 @@ def portal_has_impl():
 
 
 class TestTrash:
-    def test_version(self, portal_mock):
-        portal_mock.check_version(1)
+    def test_version(self, portals, dbus_con):
+        xdp.check_version(dbus_con, "Trash", 1)
 
-    def test_trash_file_fails(self, portal_mock):
-        trash_intf = portal_mock.get_dbus_interface()
+    def test_trash_file_fails(self, portals, dbus_con):
+        trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
         with open("/proc/cmdline") as fd:
             result = trash_intf.TrashFile(fd.fileno())
 
         assert result == 0
 
-    def test_trash_file(self, portal_mock):
-        trash_intf = portal_mock.get_dbus_interface()
+    def test_trash_file(self, portals, dbus_con):
+        trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
 
         fd, name = tempfile.mkstemp(prefix="trash_portal_mock_", dir=Path.home())
         result = trash_intf.TrashFile(fd)
