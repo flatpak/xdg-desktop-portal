@@ -77,7 +77,7 @@ class Closable:
         # GLib makes assertions in callbacks impossible, so we wrap all
         # callbacks into a try: except and store the error on the request to
         # be raised later when we're back in the main context
-        self.error = None
+        self.error: Optional[Exception] = None
 
         self._mainloop: Optional[GLib.MainLoop] = None
         self._impl_closed = False
