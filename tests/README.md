@@ -44,3 +44,7 @@ of them:
 
 * `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
     build directory
+
+* `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, x-d-p will create an
+    XdpAppInfoHost with the app_id specified by the environment variable
+    for all connections.

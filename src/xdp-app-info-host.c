@@ -164,6 +164,12 @@ xdp_app_info_host_new (int pid,
   desktop_id = g_strconcat (appid, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
+  if (!gappinfo)
+    {
+      g_clear_pointer (&desktop_id, g_free);
+      desktop_id = g_strdup ("");
+    }
+
   app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
                             /* engine, app id, instance */
