@@ -10,11 +10,6 @@ import os
 
 
 @pytest.fixture
-def portal_name():
-    return "Clipboard"
-
-
-@pytest.fixture
 def required_templates():
     return {
         "Clipboard": {},

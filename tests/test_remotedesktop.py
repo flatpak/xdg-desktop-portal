@@ -11,8 +11,8 @@ from typing import List, Dict, Any
 
 
 @pytest.fixture
-def portal_name():
-    return "RemoteDesktop"
+def required_templates():
+    return {"remotedesktop": {}}
 
 
 class TestRemoteDesktop:
@@ -46,7 +46,9 @@ class TestRemoteDesktop:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    @pytest.mark.parametrize("params", ({"force-close": 500},))
+    @pytest.mark.parametrize(
+        "template_params", ({"remotedesktop": {"force-close": 500}},)
+    )
     def test_remote_desktop_create_session_signal_closed(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -120,7 +122,9 @@ class TestRemoteDesktop:
         eis_socket = socket.fromfd(fd.take(), socket.AF_UNIX, socket.SOCK_STREAM)
         assert eis_socket.recv(10) == b"HELLO"
 
-    @pytest.mark.parametrize("params", ({"fail-connect-to-eis": True},))
+    @pytest.mark.parametrize(
+        "template_params", ({"remotedesktop": {"fail-connect-to-eis": True}},)
+    )
     def test_remote_desktop_connect_to_eis_fail(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 

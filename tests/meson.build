@@ -293,23 +293,24 @@ enable_pytest = get_option('pytest') \
   .allowed()
 
 if enable_pytest
-  subdir('templates')
-
-  pytest_args = ['--verbose', '--log-level=DEBUG']
+  pytest_args = [meson.current_source_dir(), '--verbose', '--log-level=DEBUG']
 
   pytest_env = environment()
-  pytest_env.set('G_TEST_SRCDIR', meson.current_source_dir())
-  pytest_env.set('G_TEST_BUILDDIR', meson.current_build_dir())
+  pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
+  pytest_env.set('XDG_PERMISSION_STORE_PATH', xdg_permission_store.full_path())
+  pytest_env.set('XDG_DOCUMENT_PORTAL_PATH', xdg_document_portal.full_path())
+  pytest_env.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
+  pytest_env.set('XDP_VALIDATE_SOUND', xdp_validate_sound.full_path())
 
   # pytest xdist is nice because it significantly speeds up our
   # test process, but it's not required
   if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
-    pytest_args += ['-n', 'auto']
+    # using auto can easily start too many tests which will block each other
+    # a value of around 5 seems to work well
+    pytest_args += ['-n', '5']
   endif
 
   pytest_files = [
-    'conftest.py',
-    '__init__.py',
     'test_clipboard.py',
     'test_email.py',
     'test_globalshortcuts.py',
@@ -320,32 +321,16 @@ if enable_pytest
     'test_usb.py',
   ]
   foreach pytest_file : pytest_files
-    configure_file(
-      input: pytest_file,
-      output: pytest_file,
-      copy: true,
-      install: false
+    testname = pytest_file.replace('.py', '')
+    test(
+      'pytest/@0@'.format(testname),
+      pytest,
+      args: pytest_args + ['-k', testname],
+      env: pytest_env,
+      suite: ['pytest'],
+      timeout: 120,
     )
-
-    if pytest_file.startswith('test_')
-      testname = pytest_file.replace('.py', '')
-      test(
-        'pytest/@0@'.format(testname),
-        pytest,
-        args: pytest_args + ['-k', testname],
-        env: pytest_env,
-        suite: ['pytest'],
-        timeout: 120,
-      )
-    endif
   endforeach
-
-  configure_file(
-    input: '.pytest.ini',
-    output: '@PLAINNAME@',
-    copy: true,
-    install: false
-  )
 endif
 
 if enable_installed_tests
