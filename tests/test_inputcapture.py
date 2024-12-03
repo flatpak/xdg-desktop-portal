@@ -2,13 +2,15 @@
 #
 # This file is formatted with Python Black
 
-from gi.repository import GLib
-
-from itertools import count
+import tests as xdp
 
 import dbus
 import pytest
 import socket
+from gi.repository import GLib
+from itertools import count
+from typing import Any
+
 
 counter = count()
 
@@ -28,12 +30,15 @@ def zones():
 
 
 class TestInputCapture:
-    def create_session(self, portal_mock, capabilities=0xF):
+    def create_session(self, dbus_con, capabilities=0xF):
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
         """
-        request = portal_mock.create_request()
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, inputcapture_intf)
 
         capabilities = dbus.UInt32(capabilities, variant_level=1)
         session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
@@ -46,66 +51,75 @@ class TestInputCapture:
             signature="sv",
         )
 
-        response, results = request.call(
-            "CreateSession", parent_window="", options=options
-        )
-        assert response == 0
-        assert "session_handle" in results
-        assert "capabilities" in results
-        caps = results["capabilities"]
+        response = request.call("CreateSession", parent_window="", options=options)
+
+        assert response
+        assert response.response == 0
+        assert "session_handle" in response.results
+        assert "capabilities" in response.results
+        caps = response.results["capabilities"]
         # Returned capabilities must be a subset of the requested ones
         assert caps & ~capabilities == 0
 
-        self.current_session_handle = results["session_handle"]
+        self.current_session_handle = response.results["session_handle"]
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[3] == ""  # parent window
         assert args[4]["capabilities"] == capabilities
 
-        return response, results
+        return response
 
-    def get_zones(self, portal_mock):
+    def get_zones(self, dbus_con):
         """
         Call GetZones and return the (response, results) tuple.
         """
-        request = portal_mock.create_request()
-        options = {}
-        response, results = request.call(
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, inputcapture_intf)
+        options: Any = {}
+        response = request.call(
             "GetZones", session_handle=self.current_session_handle, options=options
         )
-        assert response == 0
-        assert "zones" in results
-        assert "zone_set" in results
 
-        self.current_zone_set = results["zone_set"]
+        assert response
+        assert response.response == 0
+        assert "zones" in response.results
+        assert "zone_set" in response.results
+
+        self.current_zone_set = response.results["zone_set"]
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("GetZones")
+        method_calls = mock_intf.GetMethodCalls("GetZones")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == request.handle
         assert args[1] == self.current_session_handle
 
-        return response, results
+        return response
 
-    def set_pointer_barriers(self, portal_mock, barriers):
-        request = portal_mock.create_request()
-        options = {}
-        response, results = request.call(
+    def set_pointer_barriers(self, dbus_con, barriers):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, inputcapture_intf)
+        options: Any = {}
+        response = request.call(
             "SetPointerBarriers",
             session_handle=self.current_session_handle,
             options=options,
             barriers=barriers,
             zone_set=self.current_zone_set,
         )
-        assert response == 0
-        assert "failed_barriers" in results
+        assert response
+        assert response.response == 0
+        assert "failed_barriers" in response.results
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("SetPointerBarriers")
+        method_calls = mock_intf.GetMethodCalls("SetPointerBarriers")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == request.handle
@@ -113,10 +127,12 @@ class TestInputCapture:
         assert args[4] == barriers
         assert args[5] == self.current_zone_set
 
-        return response, results
+        return response
 
-    def connect_to_eis(self, portal_mock):
-        inputcapture_intf = portal_mock.get_dbus_interface()
+    def connect_to_eis(self, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
         fd = inputcapture_intf.ConnectToEIS(
             self.current_session_handle, dbus.Dictionary({}, signature="sv")
         )
@@ -126,48 +142,54 @@ class TestInputCapture:
         hello = eis_socket.recv(10)
         assert hello == b"HELLO"
 
-        method_calls = portal_mock.mock_interface.GetMethodCalls("ConnectToEIS")
+        method_calls = mock_intf.GetMethodCalls("ConnectToEIS")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == self.current_session_handle
 
         return eis_socket
 
-    def enable(self, portal_mock):
-        inputcapture_intf = portal_mock.get_dbus_interface()
+    def enable(self, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
         inputcapture_intf.Enable(
             self.current_session_handle, dbus.Dictionary({}, signature="sv")
         )
 
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Enable")
+        method_calls = mock_intf.GetMethodCalls("Enable")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == self.current_session_handle
 
-    def disable(self, portal_mock):
-        inputcapture_intf = portal_mock.get_dbus_interface()
+    def disable(self, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
         inputcapture_intf.Disable(
             self.current_session_handle, dbus.Dictionary({}, signature="sv")
         )
 
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Disable")
+        method_calls = mock_intf.GetMethodCalls("Disable")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == self.current_session_handle
 
-    def release(self, portal_mock, activation_id: int, cursor_position=None):
+    def release(self, dbus_con, activation_id: int, cursor_position=None):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
         options = {"activation_id": dbus.UInt32(activation_id)}
         if cursor_position:
             options["cursor_position"] = dbus.Struct(
                 list(cursor_position), signature="dd", variant_level=1
             )
 
-        inputcapture_intf = portal_mock.get_dbus_interface()
         inputcapture_intf.Release(
             self.current_session_handle, dbus.Dictionary(options, signature="sv")
         )
 
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Release")
+        method_calls = mock_intf.GetMethodCalls("Release")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[0] == self.current_session_handle
@@ -179,8 +201,8 @@ class TestInputCapture:
             pos = args[2]["cursor_position"]
             assert pos == cursor_position
 
-    def test_version(self, portal_mock):
-        portal_mock.check_version(1)
+    def test_version(self, portals, dbus_con):
+        xdp.check_version(dbus_con, "InputCapture", 1)
 
     @pytest.mark.parametrize(
         "params",
@@ -190,20 +212,21 @@ class TestInputCapture:
             },
         ),
     )
-    def test_supported_capabilities(self, portal_mock):
-        properties_intf = portal_mock.get_dbus_interface(
-            "org.freedesktop.DBus.Properties"
-        )
+    def test_supported_capabilities(self, portals, dbus_con):
+        properties_intf = xdp.get_iface(dbus_con, "org.freedesktop.DBus.Properties")
+
         caps = properties_intf.Get(
             "org.freedesktop.portal.InputCapture", "SupportedCapabilities"
         )
         assert caps == 0b101
 
-    def test_create_session(self, portal_mock):
-        self.create_session(portal_mock, capabilities=0b1)  # KEYBOARD
+    def test_create_session(self, portals, dbus_con):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        self.create_session(dbus_con, capabilities=0b1)  # KEYBOARD
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) == 1
         _, args = method_calls.pop(0)
         assert args[3] == ""  # parent window
@@ -218,15 +241,17 @@ class TestInputCapture:
             },
         ),
     )
-    def test_create_session_limited_caps(self, portal_mock):
+    def test_create_session_limited_caps(self, portals, dbus_con):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
         # Request more caps than are supported
-        response, results = self.create_session(portal_mock, capabilities=0b111)
+        response, results = self.create_session(dbus_con, capabilities=0b111)
         caps = results["capabilities"]
         # Returned capabilities must the ones we set up in the params
         assert caps == 0b110
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) == 1
         _, args = method_calls.pop(0)
         assert args[3] == ""  # parent window
@@ -244,16 +269,18 @@ class TestInputCapture:
             },
         ),
     )
-    def test_get_zones(self, portal_mock, zones):
-        response, results = self.create_session(portal_mock)
-        response, results = self.get_zones(portal_mock)
+    def test_get_zones(self, portals, dbus_con, zones):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        response, results = self.create_session(dbus_con)
+        response, results = self.get_zones(dbus_con)
         for z1, z2 in zip(results["zones"], zones):
             assert z1 == z2
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) == 1
-        method_calls = portal_mock.mock_interface.GetMethodCalls("GetZones")
+        method_calls = mock_intf.GetMethodCalls("GetZones")
         assert len(method_calls) == 1
 
     @pytest.mark.parametrize(
@@ -268,9 +295,11 @@ class TestInputCapture:
             },
         ),
     )
-    def test_set_pointer_barriers(self, portal_mock, zones):
-        response, results = self.create_session(portal_mock)
-        response, results = self.get_zones(portal_mock)
+    def test_set_pointer_barriers(self, portals, dbus_con, zones):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        response, results = self.create_session(dbus_con)
+        response, results = self.get_zones(dbus_con)
 
         barriers = [
             {
@@ -347,7 +376,7 @@ class TestInputCapture:
                 ),
             },
         ]
-        response, results = self.set_pointer_barriers(portal_mock, barriers=barriers)
+        response, results = self.set_pointer_barriers(dbus_con, barriers=barriers)
         failed_barriers = results["failed_barriers"]
         assert all([id >= 20 for id in failed_barriers])
 
@@ -355,19 +384,19 @@ class TestInputCapture:
             assert id in failed_barriers
 
         # Check the impl portal was called with the right args
-        method_calls = portal_mock.mock_interface.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) == 1
-        method_calls = portal_mock.mock_interface.GetMethodCalls("GetZones")
+        method_calls = mock_intf.GetMethodCalls("GetZones")
         assert len(method_calls) == 1
-        method_calls = portal_mock.mock_interface.GetMethodCalls("SetPointerBarriers")
+        method_calls = mock_intf.GetMethodCalls("SetPointerBarriers")
         assert len(method_calls) == 1
         _, args = method_calls.pop(0)
         assert args[4] == barriers
         assert args[5] == self.current_zone_set
 
-    def test_connect_to_eis(self, portal_mock):
-        self.create_session(portal_mock)
-        self.get_zones(portal_mock)
+    def test_connect_to_eis(self, portals, dbus_con):
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
 
         # The default zone is 1920x1080
         barriers = [
@@ -378,13 +407,15 @@ class TestInputCapture:
                 ),
             },
         ]
-        self.set_pointer_barriers(portal_mock, barriers)
+        self.set_pointer_barriers(dbus_con, barriers)
 
-        self.connect_to_eis(portal_mock)
+        self.connect_to_eis(dbus_con)
 
-    def test_enable_disable(self, portal_mock):
-        self.create_session(portal_mock)
-        self.get_zones(portal_mock)
+    def test_enable_disable(self, portals, dbus_con):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
 
         # The default zone is 1920x1080
         barriers = [
@@ -395,28 +426,21 @@ class TestInputCapture:
                 ),
             },
         ]
-        self.set_pointer_barriers(portal_mock, barriers)
-        self.connect_to_eis(
-            portal_mock,
-        )
+        self.set_pointer_barriers(dbus_con, barriers)
+        self.connect_to_eis(dbus_con)
 
         # Disable before enable should be a noop
-        self.disable(
-            portal_mock,
-        )
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Disable")
+        self.disable(dbus_con)
+
+        method_calls = mock_intf.GetMethodCalls("Disable")
         assert len(method_calls) == 1
 
-        self.enable(
-            portal_mock,
-        )
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Enable")
+        self.enable(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("Enable")
         assert len(method_calls) == 1
 
-        self.disable(
-            portal_mock,
-        )
-        method_calls = portal_mock.mock_interface.GetMethodCalls("Disable")
+        self.disable(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("Disable")
         assert len(method_calls) == 2
 
     @pytest.mark.parametrize(
@@ -427,9 +451,11 @@ class TestInputCapture:
             },
         ),
     )
-    def test_disable_signal(self, portal_mock):
-        self.create_session(portal_mock)
-        self.get_zones(portal_mock)
+    def test_disable_signal(self, portals, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
             {
@@ -439,8 +465,8 @@ class TestInputCapture:
                 ),
             },
         ]
-        self.set_pointer_barriers(portal_mock, barriers)
-        self.connect_to_eis(portal_mock)
+        self.set_pointer_barriers(dbus_con, barriers)
+        self.connect_to_eis(dbus_con)
 
         disabled_signal_received = False
 
@@ -449,16 +475,9 @@ class TestInputCapture:
             disabled_signal_received = True
             assert session_handle == session_handle
 
-        inputcapture_intf = portal_mock.get_dbus_interface()
         inputcapture_intf.connect_to_signal("Disabled", cb_disabled)
-
-        self.enable(portal_mock)
-
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(500, mainloop.quit)
-        mainloop.run()
-
-        assert disabled_signal_received
+        self.enable(dbus_con)
+        xdp.wait_for(lambda: disabled_signal_received)
 
     @pytest.mark.parametrize(
         "params",
@@ -469,9 +488,11 @@ class TestInputCapture:
             },
         ),
     )
-    def test_activated_signal(self, portal_mock):
-        self.create_session(portal_mock)
-        self.get_zones(portal_mock)
+    def test_activated_signal(self, portals, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
             {
@@ -481,8 +502,8 @@ class TestInputCapture:
                 ),
             },
         ]
-        self.set_pointer_barriers(portal_mock, barriers)
-        self.connect_to_eis(portal_mock)
+        self.set_pointer_barriers(dbus_con, barriers)
+        self.connect_to_eis(dbus_con)
 
         disabled_signal_received = False
         activated_signal_received = False
@@ -516,28 +537,17 @@ class TestInputCapture:
                 20.0,
             )  # template uses x+10, y+20 of first barrier
 
-        inputcapture_intf = portal_mock.get_dbus_interface()
         inputcapture_intf.connect_to_signal("Activated", cb_activated)
         inputcapture_intf.connect_to_signal("Deactivated", cb_deactivated)
         inputcapture_intf.connect_to_signal("Disabled", cb_disabled)
 
-        self.enable(portal_mock)
+        self.enable(dbus_con)
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(500, mainloop.quit)
-        mainloop.run()
-
-        assert activated_signal_received
-        assert deactivated_signal_received
+        xdp.wait_for(lambda: activated_signal_received and deactivated_signal_received)
         assert not disabled_signal_received
 
         # Disabling should not trigger the signal
-        self.disable(portal_mock)
-
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(500, mainloop.quit)
-        mainloop.run()
-
+        self.disable(dbus_con)
         assert not disabled_signal_received
 
     @pytest.mark.parametrize(
@@ -550,9 +560,11 @@ class TestInputCapture:
             },
         ),
     )
-    def test_release(self, portal_mock):
-        self.create_session(portal_mock)
-        self.get_zones(portal_mock)
+    def test_release(self, portals, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
             {
@@ -562,8 +574,8 @@ class TestInputCapture:
                 ),
             },
         ]
-        self.set_pointer_barriers(portal_mock, barriers)
-        self.connect_to_eis(portal_mock)
+        self.set_pointer_barriers(dbus_con, barriers)
+        self.connect_to_eis(dbus_con)
 
         disabled_signal_received = False
         activated_signal_received = False
@@ -583,24 +595,19 @@ class TestInputCapture:
             nonlocal deactivated_signal_received
             deactivated_signal_received = True
 
-        inputcapture_intf = portal_mock.get_dbus_interface()
         inputcapture_intf.connect_to_signal("Disabled", cb_activated)
         inputcapture_intf.connect_to_signal("Activated", cb_activated)
         inputcapture_intf.connect_to_signal("Deactivated", cb_deactivated)
 
-        self.enable(portal_mock)
+        self.enable(dbus_con)
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
-        assert activated_signal_received
+        xdp.wait_for(lambda: activated_signal_received)
         assert activation_id is not None
         assert not deactivated_signal_received
         assert not disabled_signal_received
 
         self.release(
-            portal_mock, cursor_position=(10.0, 50.0), activation_id=activation_id
+            dbus_con, cursor_position=(10.0, 50.0), activation_id=activation_id
         )
 
         # XDP should filter any signals the implementation may
