@@ -5,6 +5,7 @@
 from typing import Any, Iterator
 
 import pytest
+import dbus
 import dbusmock
 import os
 import sys
@@ -173,3 +174,19 @@ def portal_mock(
     yield pmock
 
     pmock.tear_down()
+
+
+@pytest.fixture
+def portals(portal_mock) -> None:
+    # will be used to bring up xdg-desktop-portal and dependencies
+    pass
+
+
+@pytest.fixture
+def dbus_con(portal_mock) -> dbus.Bus:
+    return portal_mock.dbus_con
+
+
+@pytest.fixture
+def dbus_con_sys(portal_mock) -> dbus.Bus:
+    return portal_mock.dbus_con_sys
