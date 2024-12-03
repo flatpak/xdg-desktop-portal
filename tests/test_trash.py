@@ -6,18 +6,7 @@ import tests as xdp
 
 import os
 import tempfile
-import pytest
 from pathlib import Path
-
-
-@pytest.fixture
-def portal_name():
-    return "Trash"
-
-
-@pytest.fixture
-def portal_has_impl():
-    return False
 
 
 class TestTrash:
