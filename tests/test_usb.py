@@ -2,15 +2,14 @@
 #
 # This file is formatted with Python Black
 
-from tests import Session
-from gi.repository import GLib
+import tests as xdp
 
 import pytest
 import os
 import gi
 
 gi.require_version("UMockdev", "1.0")
-from gi.repository import UMockdev  # noqa E402
+from gi.repository import GLib, UMockdev  # noqa E402
 
 
 @pytest.fixture
@@ -54,48 +53,42 @@ A: idVendor={vendor}
 
         return f"/sys/devices/usb{n}"
 
-    def test_version(self, portal_mock):
-        portal_mock.check_version(1)
+    def test_version(self, portals, dbus_con):
+        xdp.check_version(dbus_con, "Usb", 1)
 
-    def test_create_close_session(self, portal_mock, app_id):
-        usb_intf = portal_mock.get_dbus_interface()
+    def test_create_close_session(self, portals, dbus_con, app_id):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
-        session = Session(
-            portal_mock.dbus_con,
+        session = xdp.Session(
+            dbus_con,
             usb_intf.CreateSession({"session_handle_token": "session_token0"}),
         )
-
         session.close()
 
-    def test_empty_initial_devices(self, portal_mock, app_id):
-        device_events_signal_received = False
+    def test_empty_initial_devices(self, portals, dbus_con, app_id):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
-        usb_intf = portal_mock.get_dbus_interface()
-
-        Session(
-            portal_mock.dbus_con,
+        xdp.Session(
+            dbus_con,
             usb_intf.CreateSession({"session_handle_token": "session_token0"}),
         )
+
+        device_events_signal_received = False
 
         def cb_device_events(session_handle, events):
             nonlocal device_events_signal_received
             device_events_signal_received = True
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
-
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
+        xdp.wait(300)
         assert not device_events_signal_received
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    def test_initial_devices(self, portal_mock, app_id, usb_queries):
-        device_events_signal_received = False
-        devices_received = 0
+    def test_initial_devices(self, portals, dbus_con, app_id, usb_queries, umockdev):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         self.generate_device(
-            portal_mock.umockdev,
+            umockdev,
             "04a9",
             "Canon_Inc.",
             "31c0",
@@ -103,16 +96,17 @@ A: idVendor={vendor}
             "C767F1C714174C309255F70E4A7B2EE2",
         )
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
+        # TODO: to make this more robust, we should find a way to wait for
+        # the portal to pick up the device
+        xdp.wait(300)
 
-        usb_intf = portal_mock.get_dbus_interface()
-
-        session = Session(
-            portal_mock.dbus_con,
+        session = xdp.Session(
+            dbus_con,
             usb_intf.CreateSession({"session_handle_token": "session_token0"}),
         )
+
+        device_events_signal_received = False
+        devices_received = 0
 
         def cb_device_events(session_handle, events):
             nonlocal device_events_signal_received
@@ -127,29 +121,26 @@ A: idVendor={vendor}
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
         if usb_queries is None:
+            xdp.wait(300)
             assert not device_events_signal_received
             assert devices_received == 0
         else:
-            assert device_events_signal_received
+            xdp.wait_for(lambda: device_events_signal_received)
             assert devices_received == 1
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    def test_device_add(self, portal_mock, app_id, usb_queries):
+    def test_device_add(self, portals, dbus_con, app_id, usb_queries, umockdev):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
+
+        session = xdp.Session(
+            dbus_con,
+            usb_intf.CreateSession({"session_handle_token": "session_token0"}),
+        )
+
         device_events_signal_received = False
         devices_received = 0
         device = None
-
-        usb_intf = portal_mock.get_dbus_interface()
-
-        session = Session(
-            portal_mock.dbus_con,
-            usb_intf.CreateSession({"session_handle_token": "session_token0"}),
-        )
 
         def cb_device_events(session_handle, events):
             nonlocal device_events_signal_received
@@ -165,15 +156,11 @@ A: idVendor={vendor}
             device_events_signal_received = True
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
-
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
+        xdp.wait(300)
         assert not device_events_signal_received
 
         self.generate_device(
-            portal_mock.umockdev,
+            umockdev,
             "04a9",
             "Canon_Inc.",
             "31c0",
@@ -181,15 +168,12 @@ A: idVendor={vendor}
             "C767F1C714174C309255F70E4A7B2EE2",
         )
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
         if usb_queries is None:
+            xdp.wait(300)
             assert not device_events_signal_received
             assert devices_received == 0
         else:
-            assert device_events_signal_received
+            xdp.wait_for(lambda: device_events_signal_received)
             assert devices_received == 1
 
             assert device
@@ -215,13 +199,11 @@ A: idVendor={vendor}
         ),
         reason="Test fail in containers",
     )
-    def test_device_remove(self, portal_mock, app_id, usb_queries):
-        device_events_signal_count = 0
-        devices_received = 0
-        devices_removed = 0
+    def test_device_remove(self, portals, dbus_con, app_id, usb_queries, umockdev):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         dev_path = self.generate_device(
-            portal_mock.umockdev,
+            umockdev,
             "04a9",
             "Canon_Inc.",
             "31c0",
@@ -229,12 +211,14 @@ A: idVendor={vendor}
             "C767F1C714174C309255F70E4A7B2EE2",
         )
 
-        usb_intf = portal_mock.get_dbus_interface()
-
-        session = Session(
-            portal_mock.dbus_con,
+        session = xdp.Session(
+            dbus_con,
             usb_intf.CreateSession({"session_handle_token": "session_token0"}),
         )
+
+        device_events_signal_count = 0
+        devices_received = 0
+        devices_removed = 0
 
         def cb_device_events(session_handle, events):
             nonlocal device_events_signal_count
@@ -255,39 +239,35 @@ A: idVendor={vendor}
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
 
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
-
         if usb_queries is None:
+            xdp.wait(300)
             assert device_events_signal_count == 0
             assert devices_received == 0
             assert devices_removed == 0
         else:
-            assert device_events_signal_count == 1
+            xdp.wait_for(lambda: device_events_signal_count == 1)
             assert devices_received == 1
             assert devices_removed == 0
 
-        portal_mock.umockdev.remove_device(dev_path)
-
-        mainloop = GLib.MainLoop()
-        GLib.timeout_add(300, mainloop.quit)
-        mainloop.run()
+        umockdev.remove_device(dev_path)
 
         if usb_queries is None:
+            xdp.wait(300)
             assert device_events_signal_count == 0
             assert devices_received == 0
             assert devices_removed == 0
         else:
-            assert device_events_signal_count == 2
+            xdp.wait_for(lambda: device_events_signal_count == 2)
             assert devices_received == 1
             assert devices_removed == 1
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9;vnd:04aa"])
     @pytest.mark.parametrize("params", [{"filters": {"vendor": "04a9"}}])
-    def test_acquire(self, portal_mock, app_id):
+    def test_acquire(self, portals, dbus_con, app_id, umockdev):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
+
         self.generate_device(
-            portal_mock.umockdev,
+            umockdev,
             "04a9",
             "Canon_Inc.",
             "31c0",
@@ -296,7 +276,7 @@ A: idVendor={vendor}
         )
 
         self.generate_device(
-            portal_mock.umockdev,
+            umockdev,
             "04aa",
             "Someone Else.",
             "31c0",
@@ -306,7 +286,6 @@ A: idVendor={vendor}
 
         possible_vendors = ["04a9", "04aa"]
 
-        usb_intf = portal_mock.get_dbus_interface()
         devices = usb_intf.EnumerateDevices({})
         assert len(devices) == 2
         (id1, dev_info1) = devices[0]
@@ -322,7 +301,7 @@ A: idVendor={vendor}
         assert vendor_id in possible_vendors
         possible_vendors.remove(vendor_id)
 
-        request = portal_mock.create_request()
+        request = xdp.Request(dbus_con, usb_intf)
         response = request.call(
             "AcquireDevices",
             parent_window="",
@@ -332,6 +311,7 @@ A: idVendor={vendor}
             ],
             options={},
         )
+        assert response
         assert response.response == 0
 
         (results, finished) = usb_intf.FinishAcquireDevices(request.handle, {})
@@ -361,10 +341,12 @@ A: idVendor={vendor}
             (0, {"filters": {"vendor": "0002", "model": "0000"}}),
         ],
     )
-    def test_queries(self, expected, portal_mock, app_id, usb_queries):
+    def test_queries(self, portals, dbus_con, expected, app_id, usb_queries, umockdev):
+        usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
+
         for i in range(2):
             self.generate_device(
-                portal_mock.umockdev,
+                umockdev,
                 "0001",
                 "example_org",
                 f"000{i}",
@@ -372,18 +354,18 @@ A: idVendor={vendor}
                 "0001",
             )
 
-        usb_intf = portal_mock.get_dbus_interface()
         devices = usb_intf.EnumerateDevices({})
         assert len(devices) == 2
         acquire_devices = [(id, {"writable": True}) for (id, _) in devices]
 
-        request = portal_mock.create_request()
+        request = xdp.Request(dbus_con, usb_intf)
         response = request.call(
             "AcquireDevices",
             parent_window="",
             devices=acquire_devices,
             options={},
         )
+        assert response
         assert response.response == 0
 
         (results, finished) = usb_intf.FinishAcquireDevices(request.handle, {})
