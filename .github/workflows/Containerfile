@@ -42,6 +42,9 @@ RUN apt install -y --no-install-recommends \
 # Install meson
 RUN apt install -y --no-install-recommends meson
 
+# Install pip
+RUN apt install -y --no-install-recommends python3-pip
+
 # Install pytest
 RUN apt install -y --no-install-recommends \
     python3-pytest \
@@ -52,9 +55,7 @@ RUN apt install -y --no-install-recommends \
     libumockdev-dev \
     umockdev \
     gir1.2-umockdev-1.0
-
-# Install pip
-RUN apt install -y --no-install-recommends python3-pip
+RUN pip install --prefix=/usr pytest-tap
 
 # Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
