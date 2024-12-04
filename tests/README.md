@@ -11,7 +11,7 @@ but should not normally be set on production systems:
 
 * `LIBEXECDIR`: If set, look for the x-d-p executable in this directory
 
-* `TEST_IN_CI`: If set (to any value), some tests that are not always
+* `XDP_TEST_IN_CI`: If set (to any value), some tests that are not always
     reliable are skipped.
     Set this for automated QA testing, leave it unset during development.
 
