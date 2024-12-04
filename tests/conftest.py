@@ -1,24 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
-#
-# Required environment variables by the test harness:
-#   XDG_DESKTOP_PORTAL_PATH: the path to the xdg-desktop-portal binary
-#   XDG_PERMISSION_STORE_PATH: the path to the xdg-permission-store binary
-#   XDG_DOCUMENT_PORTAL_PATH: the path to the xdg-document-portal binary
-#
-# Required environment variables by x-d-p:
-#   XDP_VALIDATE_ICON: the path to the xdg-desktop-portal-validate-icon binary
-#   XDP_VALIDATE_SOUND: the path to the xdg-desktop-portal-validate-sound binary
-#
-# Environment variables for debugging:
-#   XDP_DBUS_MONITOR: if set, starts dbus_monitor on the custom bus
-#
-# Make sure the required portals are listed in
-#   xdg_desktop_portal_dir_default_files
-# and you have a dbusmock template for the impl of your portal in
-#   tests/templates.
-# See the dbusmock documentation for details on those templates.
 
 from typing import Any, Dict, Iterator, Optional
 from types import ModuleType
