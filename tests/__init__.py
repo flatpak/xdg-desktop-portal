@@ -5,9 +5,9 @@
 # This file is formatted with Python Black
 
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import GLib
+from gi.repository import GLib, Gio
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple, Callable
+from typing import Any, Dict, Optional, NamedTuple, Callable, List
 
 import os
 import dbus
@@ -429,3 +429,123 @@ class Session(Closable):
     @classmethod
     def from_response(cls, bus: dbus.Bus, response: Response) -> "Session":
         return cls(bus, response.results["session_handle"])
+
+
+class GDBusIfaceSignal:
+    """
+    Helper class which represents a connected signal on a GDBusIface and can be
+    used to disconnect from the signal.
+    """
+
+    def __init__(self, signal_id: int, proxy: Gio.DBusProxy):
+        self.signal_id = signal_id
+        self.proxy = proxy
+
+    def disconnect(self):
+        """
+        Disconnects the signal
+        """
+        self.proxy.disconnect(self.signal_id)
+
+
+class GDBusIface:
+    """
+    Helper class for calling dbus interfaces with complex arguments.
+    Usually you want to use python-dbus on the dbus_con fixture with
+    get_portal_iface , get_mock_iface or get_iface. This is convenient but
+    might not be sufficient for complex arguments or for asynchronously calling
+    a method.
+    """
+
+    def __init__(self, bus: str, obj: str, iface: str):
+        """
+        Creates a GDBusIface for a specific bus, object and interface on the
+        session bus.
+        """
+        address = Gio.dbus_address_get_for_bus_sync(Gio.BusType.SESSION, None)
+        session_bus = Gio.DBusConnection.new_for_address_sync(
+            address,
+            Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT
+            | Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
+            None,
+            None,
+        )
+        assert session_bus
+        self._proxy = Gio.DBusProxy.new_sync(
+            session_bus,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            bus,
+            obj,
+            iface,
+            None,
+        )
+
+    def _call(
+        self, method_name: str, args_variant: GLib.Variant, fds: List[int] = []
+    ) -> GLib.Variant:
+        """
+        Calls a method synchronously with the arguments passed in args_variant,
+        passing the file descriptors specified in fds.
+        Returns the result of the dbus call.
+        """
+        fdlist = Gio.UnixFDList.new()
+        for fd in fds:
+            fdlist.append(fd)
+
+        return self._proxy.call_with_unix_fd_list_sync(
+            method_name,
+            args_variant,
+            0,
+            -1,
+            fdlist,
+            None,
+        )
+
+    def _call_async(
+        self,
+        method_name: str,
+        args_variant: GLib.Variant,
+        fds: List[int] = [],
+        cb: Optional[Callable[[GLib.Variant], None]] = None,
+    ) -> None:
+        """
+        Calls a method asynchronously with the arguments passed in args_variant,
+        passing the file descriptors specified in fds.
+        Invokes the callback cb when the call finished.
+        """
+        fdlist = Gio.UnixFDList.new()
+        for fd in fds:
+            fdlist.append(fd)
+
+        def internal_cb(s, res, _):
+            res = s.call_finish(res)
+            if cb:
+                cb(res)
+
+        self._proxy.call_with_unix_fd_list(
+            method_name,
+            args_variant,
+            0,
+            -1,
+            fdlist,
+            None,
+            internal_cb,
+            None,
+        )
+
+    def connect_to_signal(
+        self, name: str, cb: Callable[[GLib.Variant], None]
+    ) -> GDBusIfaceSignal:
+        """
+        Connects to the dbus signal name to the callback cb. Returns an object
+        representing the connection which can be used to disconnect it again.
+        """
+
+        def internal_cb(proxy, sender_name, signal_name, parameters):
+            if signal_name != name:
+                return
+            cb(parameters)
+
+        signal_id = self._proxy.connect("g-signal", internal_cb)
+        return GDBusIfaceSignal(signal_id, self._proxy)
