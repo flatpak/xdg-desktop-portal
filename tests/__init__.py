@@ -39,6 +39,10 @@ def is_in_container() -> bool:
     )
 
 
+def run_long_tests() -> bool:
+    return os.environ.get("XDP_TEST_RUN_LONG") is not None
+
+
 def wait(ms: int):
     """
     Waits for the specified amount of milliseconds.

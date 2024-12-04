@@ -1,69 +1,43 @@
-#!/usr/bin/env python3
-
-# Copyright © 2020 Red Hat, Inc
-# Copyright © 2023 GNOME Foundation Inc.
-#
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-#
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-#
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library. If not, see <http://www.gnu.org/licenses/>.
-#
-# Authors:
-#       Alexander Larsson <alexl@redhat.com>
-#       Hubert Figuière <hub@figuiere.net>
+# This file is formatted with Python Black
 
-import argparse
+import tests as xdp
+
+import pytest
 import errno
 import os
 import random
 import stat
 import sys
-
+import multiprocessing as mp
+import traceback
+import subprocess
 from gi.repository import Gio, GLib
+
+
+@pytest.fixture
+def app_id():
+    return None
 
 
 def filename_to_ay(filename):
     return list(filename.encode("utf-8")) + [0]
 
 
-running_count = {}
-
 app_prefix = "org.test."
 dir_prefix = "dir"
 ensure_no_remaining = True
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--verbose", "-v", action="count")
-parser.add_argument("--iterations", type=int, default=3)
-parser.add_argument("--prefix")
-args = parser.parse_args(sys.argv[1:])
-
-if args.prefix:
-    app_prefix = app_prefix + args.prefix + "."
-    dir_prefix = dir_prefix + "-" + args.prefix + "-"
-    ensure_no_remaining = False
+running_count = {}
 
 
 def log(str):
-    if args.prefix:
-        print("%s: %s" % (args.prefix, str), file=sys.stderr)
-    else:
-        print(str, file=sys.stderr)
+    print(str, file=sys.stderr)
 
 
 def logv(str):
-    if args.verbose:
-        log(str)
+    log(str)
 
 
 def get_a_count(counter):
@@ -103,7 +77,6 @@ def appendFdContent(fd, content):
     os.write(fd, bytes(content, "utf-8"))
 
 
-TEST_DATA_DIR = os.environ["TEST_DATA_DIR"]
 DOCUMENT_ADD_FLAGS_REUSE_EXISTING = 1 << 0
 DOCUMENT_ADD_FLAGS_PERSISTENT = 1 << 1
 DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP = 1 << 2
@@ -1010,7 +983,7 @@ def create_app_by_lookup(portal):
 
 def ensure_real_dir(create_hidden_file=True):
     count = get_a_count("doc")
-    dir = TEST_DATA_DIR + "/" + dir_prefix + str(count)
+    dir = os.environ["TMPDIR"] + "/" + dir_prefix + str(count)
     os.makedirs(dir)
     if create_hidden_file:
         setFileContent(dir + "/cant-see-this-file", "s3krit")
@@ -1208,7 +1181,17 @@ def file_transfer_portal_test():
     log("File transfer tests ok")
 
 
-try:
+def run_test(iterations, prefix=None, do_ensure_no_remaining=True):
+    global app_prefix
+    global dir_prefix
+    global ensure_no_remaining
+
+    if prefix:
+        app_prefix = app_prefix + prefix + "."
+        dir_prefix = dir_prefix + "-" + prefix + "-"
+
+    ensure_no_remaining = do_ensure_no_remaining
+
     log("Connecting to portal")
     doc_portal = DocPortal()
 
@@ -1241,7 +1224,7 @@ try:
         add_an_app(doc_portal, 6)
     verify_fs_layout(doc_portal)
 
-    for i in range(args.iterations):
+    for i in range(iterations):
         log("Checking permissions, pass %d" % (i + 1))
         check_perms(doc_portal)
         verify_fs_layout(doc_portal)
@@ -1249,7 +1232,74 @@ try:
     log("fuse tests ok")
     file_transfer_portal_test()
 
-    sys.exit(0)
-except Exception as e:
-    log("fuse tests failed: %s" % e)
-    sys.exit(1)
+
+class Process(mp.Process):
+    def __init__(self, *args, **kwargs):
+        mp.Process.__init__(self, *args, **kwargs)
+        self._pconn, self._cconn = mp.Pipe()
+        self._exception = None
+
+    def run(self):
+        try:
+            mp.Process.run(self)
+            self._cconn.send(None)
+        except Exception as e:
+            tb = traceback.format_exc()
+            self._cconn.send((e, tb))
+
+    @property
+    def exception(self):
+        if self._pconn.poll():
+            self._exception = self._pconn.recv()
+        return self._exception
+
+
+class TestDocumentFuse:
+    def parallel(self, test_function, parallel_tests, parallel_iterations):
+        procs = []
+        for i in range(parallel_tests):
+            p = Process(
+                target=test_function, args=(parallel_iterations, f"c{i}", False)
+            )
+            p.start()
+            procs.append(p)
+
+        for p in procs:
+            p.join()
+
+            if p.exception:
+                error, traceback = p.exception
+                raise error
+
+    def test_single_thread(self, portals, xdg_document_portal, dbus_con):
+        run_test(3)
+
+    def test_multi_thread(self, portals, xdg_document_portal, dbus_con):
+        if xdp.run_long_tests():
+            return self.parallel(run_test, 20, 10)
+        if xdp.is_in_ci():
+            return self.parallel(run_test, 5, 3)
+        self.parallel(run_test, 10, 5)
+
+
+def run_bash(cmd):
+    proc = subprocess.Popen(
+        cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
+    )
+    _ = proc.communicate()
+    return proc.returncode == 0
+
+
+if not run_bash("fusermount3 --version"):
+    pytest.skip("no fusermount3", allow_module_level=True)
+
+if not run_bash("capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin'"):
+    pytest.skip(
+        "No cap_sys_admin in bounding set, can't use FUSE", allow_module_level=True
+    )
+
+if not run_bash("[ -w /dev/fuse ]"):
+    pytest.skip("no write access to /dev/fuse", allow_module_level=True)
+
+if not run_bash("[ -e /etc/mtab ]"):
+    pytest.skip("no /etc/mtab", allow_module_level=True)

@@ -15,6 +15,9 @@ but should not normally be set on production systems:
     reliable are skipped.
     Set this for automated QA testing, leave it unset during development.
 
+* `XDP_TEST_RUN_LONG`: If set (to any value), some tests will run more
+    iterations or otherwise test more thoroughly.
+
 * `XDP_VALIDATE_ICON_INSECURE`: If set (to any value), x-d-p doesn't
     sandbox the icon validator using **bwrap**(1), even if sandboxed
     validation was enabled at compile time.
