@@ -317,6 +317,7 @@ if enable_pytest
     'test_inputcapture.py',
     'test_location.py',
     'test_remotedesktop.py',
+    'test_settings.py',
     'test_trash.py',
     'test_usb.py',
   ]
