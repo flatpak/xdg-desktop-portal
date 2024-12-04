@@ -101,13 +101,18 @@ if have_libportal
     'email.c',
     'filechooser.c',
     'inhibit.c',
-    'notification.c',
     'openuri.c',
     'print.c',
     'screenshot.c',
     'trash.c',
     'wallpaper.c',
     'glib-backports.c',
+  )
+endif
+
+if have_wav_parse
+  portals_test_sources += files(
+    'notification.c',
   )
 endif
 
@@ -277,11 +282,15 @@ python = pymod.find_installation(
   required: get_option('pytest'),
 )
 
-enable_pytest = \
-  pytest.found() and \
-  python.found() and \
-  python.language_version().version_compare('>=3.9') and \
-  umockdev_dep.found()
+enable_pytest = get_option('pytest') \
+  .require(pytest.found()) \
+  .require(python.found()) \
+  .require(python.language_version().version_compare('>=3.9'),
+           error_message: 'Python version >=3.9 is required') \
+  .require(umockdev_dep.found()) \
+  .require(have_wav_parse,
+           error_message: 'gst-inspect and the wavparse plugins are required') \
+  .allowed()
 
 if enable_pytest
   subdir('templates')
