@@ -313,6 +313,7 @@ if enable_pytest
   pytest_files = [
     'test_account.py',
     'test_background.py',
+    'test_camera.py',
     'test_clipboard.py',
     'test_email.py',
     'test_globalshortcuts.py',
