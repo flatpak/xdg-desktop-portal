@@ -311,6 +311,7 @@ if enable_pytest
   endif
 
   pytest_files = [
+    'test_account.py',
     'test_clipboard.py',
     'test_email.py',
     'test_globalshortcuts.py',
