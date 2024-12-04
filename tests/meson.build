@@ -326,6 +326,7 @@ if enable_pytest
     'test_remotedesktop.py',
     'test_screenshot.py',
     'test_trash.py',
+    'test_wallpaper.py',
   ]
   foreach pytest_file : pytest_files
     testname = pytest_file.replace('.py', '')
