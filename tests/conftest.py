@@ -10,6 +10,9 @@
 # Required environment variables by x-d-p:
 #   XDP_VALIDATE_ICON: the path to the xdg-desktop-portal-validate-icon binary
 #   XDP_VALIDATE_SOUND: the path to the xdg-desktop-portal-validate-sound binary
+#       OR
+#   XDP_VALIDATE_AUTO: if set, automatically discovers the icon and sound
+#    validators (only useful for installed tests)
 #
 # Environment variables for debugging:
 #   XDP_DBUS_MONITOR: if set, starts dbus_monitor on the custom bus
@@ -59,9 +62,16 @@ def ensure_environment_set() -> None:
         "XDG_DESKTOP_PORTAL_PATH",
         "XDG_PERMISSION_STORE_PATH",
         "XDG_DOCUMENT_PORTAL_PATH",
-        "XDP_VALIDATE_ICON",
-        "XDP_VALIDATE_SOUND",
     ]
+
+    if not os.getenv("XDP_VALIDATE_AUTO"):
+        env_vars += [
+            "XDP_VALIDATE_ICON",
+            "XDP_VALIDATE_SOUND",
+        ]
+    else:
+        os.environ.pop("XDP_VALIDATE_ICON", None)
+        os.environ.pop("XDP_VALIDATE_SOUND", None)
 
     for env_var in env_vars:
         if not os.getenv(env_var):
