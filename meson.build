@@ -132,7 +132,17 @@ libportal_dep = dependency(
 )
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
-umockdev_dep = dependency('umockdev-1.0', required: false)
+umockdev_dep = dependency('umockdev-1.0', required: get_option('pytest'))
+
+gst_inspect = find_program('gst-inspect-1.0', required: false)
+if gst_inspect.found()
+  have_wav_parse = run_command(
+    gst_inspect, 'wavparse', '--exists',
+    check: false,
+  ).returncode() == 0
+else
+  have_wav_parse = false
+endif
 
 bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation').allowed() or get_option('sandboxed-sound-validation').allowed())
 
