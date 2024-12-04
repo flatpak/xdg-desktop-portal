@@ -323,6 +323,7 @@ if enable_pytest
     'test_location.py',
     'test_notification.py',
     'test_openuri.py',
+    'test_permission_store.py',
     'test_print.py',
     'test_remotedesktop.py',
     'test_settings.py',
