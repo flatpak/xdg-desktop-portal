@@ -322,6 +322,7 @@ if enable_pytest
     'test_inputcapture.py',
     'test_location.py',
     'test_openuri.py',
+    'test_print.py',
     'test_remotedesktop.py',
     'test_settings.py',
     'test_trash.py',
