@@ -325,6 +325,7 @@ if enable_pytest
     'test_print.py',
     'test_remotedesktop.py',
     'test_screenshot.py',
+    'test_settings.py',
     'test_trash.py',
     'test_wallpaper.py',
   ]
