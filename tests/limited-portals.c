@@ -164,7 +164,7 @@ global_setup (void)
   g_test_dbus_add_service_dir (dbus, services);
   g_test_dbus_up (dbus);
 
-  if (g_getenv ("TEST_IN_CI"))
+  if (g_getenv ("XDP_TEST_IN_CI"))
     timeout_mult = 10;
 
   /* g_test_dbus_up unsets this, so re-set */
