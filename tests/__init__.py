@@ -9,6 +9,7 @@ from gi.repository import GLib, Gio
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
 
+import os
 import dbus
 import dbus.proxies
 import dbusmock
@@ -25,6 +26,14 @@ _counter = count()
 ASV = Dict[str, Any]
 
 logger = logging.getLogger("tests")
+
+
+def is_in_ci() -> bool:
+    return os.environ.get("XDP_TEST_IN_CI") is not None
+
+
+def run_long_tests() -> bool:
+    return os.environ.get("XDP_TEST_RUN_LONG") is not None
 
 
 def wait(ms: int):
