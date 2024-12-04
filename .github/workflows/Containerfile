@@ -27,6 +27,7 @@ RUN apt install -y --no-install-recommends \
     libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-good \
     libgstreamer-plugins-good1.0-dev \
+    gstreamer1.0-tools \
     libgeoclue-2-dev \
     libglib2.0-dev \
     libgudev-1.0-dev \
