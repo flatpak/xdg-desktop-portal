@@ -212,15 +212,6 @@ foreach p : portal_limited
     )
 endforeach
 
-if enable_installed_tests
-  install_data(
-    'session.conf.in',
-    'test-document-fuse.sh',
-    'test-document-fuse.py',
-    install_dir: installed_tests_dir
-  )
-endif
-
 test_permission_store = executable(
   'test-permission-store',
   'test-permission-store.c',
@@ -315,6 +306,7 @@ if enable_pytest
     'test_background.py',
     'test_camera.py',
     'test_clipboard.py',
+    'test_document_fuse.py',
     'test_email.py',
     'test_filechooser.py',
     'test_globalshortcuts.py',
@@ -356,7 +348,6 @@ if enable_installed_tests
   testfiles = [
     'testdb',
     'test-doc-portal',
-    'test-document-fuse.sh',
     'test-permission-store',
     'test-xdp-utils',
   ]
