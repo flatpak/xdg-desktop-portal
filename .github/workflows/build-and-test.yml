@@ -25,7 +25,7 @@ jobs:
       env:
         CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
         CC: ${{ matrix.compiler }}
-        TEST_IN_CI: 1
+        XDP_TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
       options: ${{ inputs.image_options }}
 

@@ -1,3 +1,0 @@
-[portal]
-DBusName=org.freedesktop.impl.portal.Test
-Interfaces=@PORTALS@

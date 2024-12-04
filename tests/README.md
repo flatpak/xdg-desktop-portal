@@ -9,11 +9,12 @@ but should not normally be set on production systems:
 * `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
     (default: discovered at build-time)
 
-* `LIBEXECDIR`: If set, look for the x-d-p executable in this directory
-
-* `TEST_IN_CI`: If set (to any value), some tests that are not always
+* `XDP_TEST_IN_CI`: If set (to any value), some tests that are not always
     reliable are skipped.
     Set this for automated QA testing, leave it unset during development.
+
+* `XDP_TEST_RUN_LONG`: If set (to any value), some tests will run more
+    iterations or otherwise test more thoroughly.
 
 * `XDP_VALIDATE_ICON_INSECURE`: If set (to any value), x-d-p doesn't
     sandbox the icon validator using **bwrap**(1), even if sandboxed
@@ -24,23 +25,33 @@ but should not normally be set on production systems:
     untrusted icons!
 
 * `XDP_VALIDATE_SOUND_INSECURE`: Same as `XDP_VALIDATE_ICON_INSECURE`,
-    but for sounds
+    but for sounds.
 
-### Used automatically
+Some environment variables that can be set to help with debugging:
 
-These environment variables are set automatically and shouldn't need to be
-changed, but developers improving the test suite might need to be aware
-of them:
+* `XDP_DBUS_MONITOR`: If set, starts dbus-monitor on the test dbus server.
 
-* `XDG_DESKTOP_PORTAL_DIR`: If set, it will be used instead of the
-    compile-time path (normally `/usr/share/xdg-desktop-portal/portals`)
+The test harness requires some environment variables to be set. It will refuse
+to start otherwise. The build system should set them for you usually.
 
-* `XDP_UNINSTALLED`: Set to 1 when running build-time tests on a version
-    of x-d-p that has not yet been installed. Leave unset when running
-    "as-installed" tests on the system copy of x-d-p.
+* `XDG_DESKTOP_PORTAL_PATH`: The path to the xdg-desktop-portal binary.
 
-* `XDP_VALIDATE_ICON`: Path to `x-d-p-validate-icon` executable in the
-    build directory
+* `XDG_PERMISSION_STORE_PATH`: The path to the xdg-permission-store binary.
 
-* `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
-    build directory
+* `XDG_DOCUMENT_PORTAL_PATH`: The path to the xdg-document-portal binary.
+
+* `XDP_VALIDATE_ICON`: The path to the xdg-desktop-portal-validate-icon binary.
+
+* `XDP_VALIDATE_SOUND`: The path to the xdg-desktop-portal-validate-sound binary.
+
+## Adding new tests
+
+Make sure the required portals are listed in
+`xdg_desktop_portal_dir_default_files` in `conftest.py`.
+
+Add a `test_${name}.py` file to this directory and add the file to
+`meson.build`.
+
+If the portal that is being tested requires a backend implementation, add
+it to the `templates` directory and add the file to `meson.build`. See the
+dbusmock documentation for details on those templates.
