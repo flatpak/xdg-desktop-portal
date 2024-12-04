@@ -183,7 +183,7 @@ test_serialize (void)
   g_autofree char *dump2 = NULL;
   g_autofree char *dump3 = NULL;
   GError *error = NULL;
-  char tmpfile[] = "/tmp/testdbXXXXXX";
+  char tmpfile[] = "/tmp/test-permission-db-XXXXXX";
   int fd;
 
   db = create_test_db (FALSE);
