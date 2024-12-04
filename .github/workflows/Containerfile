@@ -27,6 +27,7 @@ RUN apt install -y --no-install-recommends \
     libgstreamer-plugins-base1.0-dev \
     gstreamer1.0-plugins-good \
     libgstreamer-plugins-good1.0-dev \
+    gstreamer1.0-tools \
     libgeoclue-2-dev \
     libglib2.0-dev \
     libjson-glib-dev \
@@ -41,15 +42,20 @@ RUN apt install -y --no-install-recommends \
 # Install meson
 RUN apt install -y --no-install-recommends meson
 
+# Install pip
+RUN apt install -y --no-install-recommends python3-pip
+
 # Install pytest
 RUN apt install -y --no-install-recommends \
     python3-pytest \
     python3-pytest-xdist \
     python3-dbusmock \
-    python3-dbus
-
-# Install pip
-RUN apt install -y --no-install-recommends python3-pip
+    python3-dbus \
+    libumockdev0 \
+    libumockdev-dev \
+    umockdev \
+    gir1.2-umockdev-1.0
+RUN pip install --prefix=/usr pytest-tap
 
 # Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
