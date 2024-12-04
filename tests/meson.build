@@ -324,6 +324,7 @@ if enable_pytest
     'test_openuri.py',
     'test_print.py',
     'test_remotedesktop.py',
+    'test_screenshot.py',
     'test_trash.py',
     'test_usb.py',
   ]
