@@ -359,7 +359,7 @@ test_inhibit_monitor (void)
   g_autofree char *path = NULL;
   gulong id;
 
-  if (g_getenv ("TEST_IN_CI"))
+  if (g_getenv ("XDP_TEST_IN_CI"))
     {
       g_test_skip ("Skip tests that are unreliable in CI");
       return;
