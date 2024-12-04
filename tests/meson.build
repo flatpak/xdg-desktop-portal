@@ -321,6 +321,7 @@ if enable_pytest
     'test_inhibit.py',
     'test_inputcapture.py',
     'test_location.py',
+    'test_notification.py',
     'test_openuri.py',
     'test_print.py',
     'test_remotedesktop.py',
