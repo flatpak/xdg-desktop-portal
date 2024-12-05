@@ -78,6 +78,8 @@ void xdp_request_export (XdpRequest      *request,
 
 void xdp_request_unexport (XdpRequest *request);
 
+const char *xdp_request_get_object_path (XdpRequest *request);
+
 void close_requests_for_sender (const char *sender);
 
 void xdp_request_set_impl_request (XdpRequest         *request,
