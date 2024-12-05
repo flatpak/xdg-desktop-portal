@@ -1,5 +1,6 @@
 /*
  * Copyright © 2024 Red Hat, Inc
+ * Copyright © 2024 GNOME Foundation Inc.
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -15,6 +16,9 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Hubert Figuière <hub@figuiere.net>
  */
 
 #include "config.h"
@@ -43,6 +47,7 @@
 #include "xdp-app-info-snap-private.h"
 #include "xdp-app-info-host-private.h"
 #include "xdp-app-info-test-private.h"
+#include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
@@ -545,6 +550,20 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return XDP_APP_INFO_GET_CLASS (app_info)->validate_dynamic_launcher (app_info,
                                                                        key_file,
                                                                        error);
+}
+
+const GPtrArray *
+xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (!priv->id ||
+      !XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries)
+    {
+      return NULL;
+    }
+
+  return XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries (app_info);
 }
 
 static gboolean
