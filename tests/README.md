@@ -45,5 +45,9 @@ of them:
 * `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
     build directory
 
+* `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, the portal will use a host
+    XdpAppInfo with the app id set to the variable. This is used to get a
+    predictable app id for tests.
+
 * `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
     portal testing.
