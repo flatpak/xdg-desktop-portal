@@ -9,6 +9,7 @@ from gi.repository import GLib
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable
 
+import os
 import dbus
 import dbus.proxies
 import dbusmock
@@ -25,6 +26,17 @@ _counter = count()
 ASV = Dict[str, Any]
 
 logger = logging.getLogger("tests")
+
+
+def is_in_ci() -> bool:
+    return os.environ.get("XDP_TEST_IN_CI") is not None
+
+
+def is_in_container() -> bool:
+    return is_in_ci() or (
+        "container" in os.environ
+        and (os.environ["container"] == "docker" or os.environ["container"] == "podman")
+    )
 
 
 def wait(ms: int):
