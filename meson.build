@@ -120,7 +120,7 @@ geoclue_dep = dependency(
 )
 libportal_dep = dependency(
   'libportal',
-  version: '>= 0.8.1',
+  version: '>= 0.9.0',
   required: get_option('libportal'),
   fallback: ['libportal', 'libportal_dep'],
   default_options: [
