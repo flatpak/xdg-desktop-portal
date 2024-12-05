@@ -33,6 +33,8 @@ struct _XdpAppInfoClass
   char * (*remap_path) (XdpAppInfo *app_info,
                         const char *path);
 
+  const GPtrArray * (*get_usb_queries) (XdpAppInfo *app_info);
+
   gboolean (*validate_autostart) (XdpAppInfo          *app_info,
                                   GKeyFile            *keyfile,
                                   const char * const  *autostart_exec,
