@@ -162,7 +162,7 @@ xdp_connection_track_name_owners (GDBusConnection     *connection,
 gboolean
 xdp_filter_options (GVariant *options,
                     GVariantBuilder *filtered,
-                    XdpOptionKey *supported_options,
+                    const XdpOptionKey *supported_options,
                     int n_supported_options,
                     GError **error)
 {

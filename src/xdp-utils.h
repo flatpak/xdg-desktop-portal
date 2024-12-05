@@ -81,7 +81,7 @@ typedef struct {
 
 gboolean xdp_filter_options (GVariant *options_in,
                              GVariantBuilder *options_out,
-                             XdpOptionKey *supported_options,
+                             const XdpOptionKey *supported_options,
                              int n_supported_options,
                              GError **error);
 
