@@ -255,6 +255,12 @@ xdp_request_from_invocation (GDBusMethodInvocation *invocation)
   return g_object_get_data (G_OBJECT (invocation), "request");
 }
 
+const char *
+xdp_request_get_object_path (XdpRequest *request)
+{
+  return request->id;
+}
+
 void
 xdp_request_export (XdpRequest      *request,
                     GDBusConnection *connection)
