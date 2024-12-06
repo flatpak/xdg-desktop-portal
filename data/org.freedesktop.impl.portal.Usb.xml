@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
- Copyright (C) 2023 GNOME Foundation Inc.
+ Copyright (C) 2023-2024 GNOME Foundation Inc.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -23,8 +23,11 @@
       org.freedesktop.impl.portal.Usb:
       @short_description: USB portal backend interface
 
-      This portal lets applications register global shortcuts so they can
-      act regardless of the system state upon an input event.
+      This interface lets sandboxed applications monitor and request
+      access to connected USB devices.
+
+      The implementation side allows requesting permission from the user
+      to access USB devices with a GUI.
 
       This documentation describes version 1 of this interface.
   -->
