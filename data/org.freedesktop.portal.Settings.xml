@@ -62,6 +62,25 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
+    * ``org.freedesktop.date-time`` ``time-format`` (``u``)
+
+      Indicates the system's preferred time format, 12h or 24h.
+      Supported values are:
+
+      - ``0``: No preference (use any format)
+      - ``1``: 12h format
+      - ``2``: 24h format
+
+      Unknown values should be treated as 1 (12h format)
+
+    * ``org.freedesktop.date-time`` ``date-format`` (``u``)
+
+      - ``0``: YYYY-MM-DD
+      - ``1``: DD-MM-YYYY
+      - ``2``: MM-DD-YYYY
+
+      Unknown values should be treated as 0 (YYYY-MM-DD)
+
     This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Settings">
