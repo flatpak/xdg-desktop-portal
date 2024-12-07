@@ -68,6 +68,7 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QList&lt;std::tuple&lt;QString,QVariantMap,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv}a{sv})" name="devices" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
