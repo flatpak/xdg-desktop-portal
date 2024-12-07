@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
  Copyright (C) 2020 Endless OS Foundation LLC
-               2023 GNOME Foundation Inc.
+               2023-2024 GNOME Foundation Inc.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -243,6 +243,7 @@
       -->
     <signal name="DeviceEvents">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;std::tuple&lt;QString,QString,QVariantMap&gt;&gt;"/>
       <arg type="a(ssa{sv})" name="events" direction="out"/>
     </signal>
 
