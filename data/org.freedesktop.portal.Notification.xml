@@ -367,6 +367,7 @@
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
     <!--
@@ -396,7 +397,9 @@
           Button purposes that the notification server understands and supports.
           This is the list of options that can be used as `purpose` for `buttons`.
     -->
-    <property name="SupportedOptions" type="a{sv}" access="read"/>
+    <property name="SupportedOptions" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
 
     <!--
         ActionInvoked:
