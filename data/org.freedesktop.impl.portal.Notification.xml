@@ -54,6 +54,7 @@
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="notification" direction="in"/>
     </method>
     <!--
@@ -77,7 +78,9 @@
         The format is the same as for ``SupportedOptions`` property of
         :ref:`org.freedesktop.portal.Notification`.
     -->
-    <property name="SupportedOptions" type="a{sv}" access="read"/>
+    <property name="SupportedOptions" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
 
     <!--
         ActionInvoked:

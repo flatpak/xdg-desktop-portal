@@ -43,6 +43,7 @@
       - ``2``: Active (in the foreground)
     -->
     <method name="GetAppState">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
       <arg type="a{sv}" name="apps" direction="out"/>
     </method>
 
@@ -72,6 +73,7 @@
       <arg type="s" name="app_id" direction="in"/>
       <arg type="s" name="name" direction="in"/>
       <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
 

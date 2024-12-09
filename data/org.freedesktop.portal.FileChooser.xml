@@ -153,6 +153,7 @@
     <method name="OpenFile">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -242,6 +243,7 @@
     <method name="SaveFile">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -320,6 +322,7 @@
     <method name="SaveFiles">
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="s" name="title" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>

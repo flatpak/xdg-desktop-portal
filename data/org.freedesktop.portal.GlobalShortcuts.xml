@@ -78,6 +78,7 @@
             as ``s``. For backwards compatibility it will remain this type.
     -->
     <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -144,6 +145,7 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
     </method>
@@ -176,6 +178,7 @@
     -->
     <method name="ListShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
     </method>
@@ -193,6 +196,7 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
@@ -209,6 +213,7 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
