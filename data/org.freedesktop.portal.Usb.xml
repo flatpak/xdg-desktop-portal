@@ -101,6 +101,7 @@
     <method name="EnumerateDevices">
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="devices" direction="out"/>
     </method>
 
@@ -137,6 +138,7 @@
      -->
     <method name="AcquireDevices">
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="devices" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
@@ -191,6 +193,7 @@
       <arg type="o" name="handle" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="results" direction="out"/>
       <arg type="b" name="finished" direction="out"/>
     </method>
