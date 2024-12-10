@@ -48,8 +48,10 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
 
@@ -71,9 +73,12 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="shortcuts" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
       <arg type="u" name="response" direction="out"/>
       <arg type="a{sv}" name="results" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
     </method>
 
     <!--
@@ -97,6 +102,7 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
 
@@ -113,6 +119,7 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 
@@ -129,6 +136,7 @@
       <arg type="o" name="session_handle" direction="out"/>
       <arg type="s" name="shortcut_id" direction="out"/>
       <arg type="t" name="timestamp" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="out"/>
     </signal>
 

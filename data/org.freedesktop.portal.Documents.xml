@@ -142,6 +142,7 @@
       <arg type="s" name="app_id" direction="in"/>
       <arg type="as" name="permissions" direction="in"/>
       <arg type="as" name="doc_ids" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="extra_out" direction="out"/>
     </method>
 
@@ -179,6 +180,7 @@
       <arg type="s" name="app_id" direction="in"/>
       <arg type="as" name="permissions" direction="in"/>
       <arg type="s" name="doc_id" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="extra_out" direction="out"/>
     </method>
 

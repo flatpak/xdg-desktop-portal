@@ -109,6 +109,7 @@
         This method was added in version 3 to avoid multiple round-trips.
     -->
     <method name="GetStatus">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
       <arg type="a{sv}" name="status" direction="out"/>
     </method>
 
