@@ -69,6 +69,9 @@ jobs:
           gnome-desktop-testing-runner --report-directory installed-test-logs/ \
             -t $((TESTS_TIMEOUT * 60)) xdg-desktop-portal
 
+      - name: Check Qt annotations
+        run: find -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
+
       - name: Create dist tarball
         run: |
           ls -la

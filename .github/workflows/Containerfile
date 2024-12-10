@@ -62,3 +62,6 @@ RUN pip install --user --break-system-packages furo">=2024.04.27" \
 
 # Install pre-commit
 RUN pip install --user --break-system-packages pre-commit
+
+# Install qdbusxml2cpp
+RUN apt install -y --no-install-recommends qt6-base-dev-tools
