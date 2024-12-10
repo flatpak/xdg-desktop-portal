@@ -11,7 +11,7 @@ but should not normally be set on production systems:
 
 * `LIBEXECDIR`: If set, look for the x-d-p executable in this directory
 
-* `TEST_IN_CI`: If set (to any value), some tests that are not always
+* `XDP_TEST_IN_CI`: If set (to any value), some tests that are not always
     reliable are skipped.
     Set this for automated QA testing, leave it unset during development.
 
@@ -44,6 +44,10 @@ of them:
 
 * `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
     build directory
+
+* `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, the portal will use a host
+    XdpAppInfo with the app id set to the variable. This is used to get a
+    predictable app id for tests.
 
 * `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
     portal testing.
