@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!--
  Copyright (C) 2020 Endless OS Foundation LLC
-               2023 GNOME Foundation Inc.
+               2023-2024 GNOME Foundation Inc.
 
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
@@ -99,6 +99,7 @@
      -->
     <method name="EnumerateDevices">
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="devices" direction="out"/>
     </method>
 
@@ -137,6 +138,7 @@
       <arg type="s" name="parent_window" direction="in"/>
       <arg type="a(sa{sv})" name="devices" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
 
@@ -187,6 +189,7 @@
     <method name="FinishAcquireDevices">
       <arg type="o" name="handle" direction="in"/>
       <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QList&lt;QPair&lt;QString,QVariantMap&gt;&gt;"/>
       <arg type="a(sa{sv})" name="results" direction="out"/>
       <arg type="b" name="finished" direction="out"/>
     </method>
@@ -235,6 +238,7 @@
       -->
     <signal name="DeviceEvents">
       <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;std::tuple&lt;QString,QString,QVariantMap&gt;&gt;"/>
       <arg type="a(ssa{sv})" name="events" direction="out"/>
     </signal>
 
