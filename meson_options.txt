@@ -38,6 +38,10 @@ option('datarootdir',
         type: 'string',
         value: '',
         description: 'Define the datarootdir for the pkgconf file')
+option('tests',
+        type: 'boolean',
+        value: true,
+        description: 'Build unit tests')
 option('installed-tests',
         type: 'boolean',
         value: false,
