@@ -85,6 +85,7 @@ if build_documentation
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',
+    'icons.rst',
     'impl-dbus-interfaces.rst',
     'index.rst',
     'pull-requests.rst',

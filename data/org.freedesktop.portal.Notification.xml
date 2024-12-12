@@ -96,7 +96,8 @@
 
         * ``icon`` (``v``)
 
-          A serialized icon to add to the notification. The format for
+          A serialized icon to add to the notification. The icon must pass
+          `icon validation <icons.html>`_ in order to be used. The format for
           serialized icon is a tuple (sv) with the following supported keys:
 
           * ``themed`` (``as``)
@@ -112,18 +113,13 @@
             Since version 2, this is deprecated and should not be used.
             Please use the `themed` or `file-descriptor` option to set an icon.
 
-            A bytes icon containing a bytestring with the icon data in
-            png, jpeg or svg form. The icon must be square, and must have a max
-            side length <= 512 pixels.
-
             This is the same format as a serialized `GBytesIcon
             <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the moment,
             but this interoperability may change in the future.
 
           * ``file-descriptor`` (``h``)
 
-            A file descriptor to an image file in png, jpeg or svg form. The icon
-            must be square, and must have a max side length <= 512 pixels.
+            A file descriptor to an image file in png, jpeg or svg form.
             The file-descriptor used needs to be sealable, currently this is only
             possible for file descriptors created with ``memfd_create()`` with
             the ``MFD_ALLOW_SEALING`` flag set.
