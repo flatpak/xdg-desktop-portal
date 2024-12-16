@@ -159,11 +159,16 @@ _xdp_app_info_host_parse_app_id_from_unit_name (const char *unit)
 }
 #endif /* HAVE_LIBSYSTEMD */
 
-static char *
-get_appid_from_pid (pid_t pid)
+static gboolean
+get_app_from_pid (pid_t      pid,
+                  char     **app_id_out,
+                  GAppInfo **app_info_out)
 {
 #ifdef HAVE_LIBSYSTEMD
   g_autofree char *unit = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autofree char *app_id = NULL;
+  g_autoptr(GDesktopAppInfo) desktop_app_info = NULL;
   int res;
 
   res = sd_pid_get_user_unit (pid, &unit);
@@ -173,13 +178,22 @@ get_appid_from_pid (pid_t pid)
    * desktop environment (e.g. it's a script run from terminal).
    */
   if (res == -ENODATA || res < 0 || !unit || !g_str_has_prefix (unit, "app-"))
-    return g_strdup ("");
+    return FALSE;
 
-  return _xdp_app_info_host_parse_app_id_from_unit_name (unit);
+  app_id = _xdp_app_info_host_parse_app_id_from_unit_name (unit);
+
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  desktop_app_info = g_desktop_app_info_new (desktop_id);
+
+  if (!desktop_app_info)
+    return FALSE;
+
+  *app_id_out = g_steal_pointer (&app_id);
+  *app_info_out = G_APP_INFO (g_steal_pointer (&desktop_app_info));
+  return TRUE;
 
 #else
-  /* FIXME: we should return NULL and handle id==NULL at callers */
-  return g_strdup ("");
+  return FALSE;
 #endif /* HAVE_LIBSYSTEMD */
 }
 
@@ -189,13 +203,10 @@ xdp_app_info_host_new (int pid,
 {
   g_autoptr (XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *appid = NULL;
-  g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
 
-  appid = get_appid_from_pid (pid);
-
-  desktop_id = g_strconcat (appid, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+  if (!get_app_from_pid (pid, &appid, &gappinfo))
+    appid = g_strdup ("");
 
   app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
