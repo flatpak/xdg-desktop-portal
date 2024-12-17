@@ -629,6 +629,56 @@ find_portal_implementation_iface (const PortalInterface *iface)
   return NULL;
 }
 
+static void
+_add_all_portal_implementations_iface (const PortalInterface *iface,
+                                       const char            *interface,
+                                       GPtrArray             *impls)
+{
+  g_autofree char *portals = NULL;
+
+  portals = g_strjoinv (";", iface->portals);
+  g_debug ("Found '%s' in configuration for %s", portals, iface->dbus_name);
+
+  for (size_t i = 0; iface->portals && iface->portals[i]; i++)
+    {
+      const char *portal = iface->portals[i];
+
+      for (const GList *l = implementations; l != NULL; l = l->next)
+        {
+          XdpPortalImplementation *impl = l->data;
+
+          if (!g_str_equal (impl->source, portal) && !g_str_equal (portal, "*"))
+            continue;
+
+          if (g_ptr_array_find (impls, impl, NULL))
+            {
+              g_info ("Duplicate backend %s.portal. Skipping...", impl->source);
+              continue;
+            }
+
+          if (!portal_impl_supports_iface (impl, interface))
+            {
+              g_info ("Requested backend %s.portal does not support %s. Skipping...",
+                      impl->source, interface);
+              continue;
+            }
+
+          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
+          g_ptr_array_add (impls, impl);
+        }
+    }
+}
+
+static void
+add_all_portal_implementations_iface (const PortalInterface *iface,
+                                      GPtrArray             *impls)
+{
+  if (iface == NULL)
+    return;
+
+  _add_all_portal_implementations_iface (iface, iface->dbus_name, impls);
+}
+
 static XdpPortalImplementation *
 find_default_implementation_iface (const char *interface)
 {
@@ -638,6 +688,7 @@ find_default_implementation_iface (const char *interface)
     return NULL;
 
   iface = config->default_portal;
+
   for (size_t i = 0; iface->portals && iface->portals[i]; i++)
     {
       XdpPortalImplementation *impl;
@@ -654,6 +705,16 @@ find_default_implementation_iface (const char *interface)
         return impl;
     }
   return NULL;
+}
+
+static void
+add_all_default_portal_implementations_iface (const char *interface,
+                                              GPtrArray  *impls)
+{
+  if (config == NULL || config->default_portal == NULL)
+    return;
+
+  _add_all_portal_implementations_iface (config->default_portal, interface, impls);
 }
 
 XdpPortalImplementation *
@@ -731,30 +792,22 @@ GPtrArray *
 find_all_portal_implementations (const char *interface)
 {
   const char **desktops;
-  GPtrArray *impls;
+  PortalInterface *iface;
+  g_autoptr(GPtrArray) impls = NULL;
 
   impls = g_ptr_array_new ();
 
   if (portal_interface_prefers_none (interface))
-    return impls;
+    return g_steal_pointer (&impls);
 
-  if (config)
-    {
-      PortalInterface *iface = find_matching_iface_config (interface);
-      XdpPortalImplementation *impl = find_portal_implementation_iface (iface);
-
-      if (!impl)
-        impl = find_default_implementation_iface(interface);
-
-      if (impl != NULL)
-        {
-          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
-          g_ptr_array_add (impls, impl);
-        }
-    }
-
+  iface = find_matching_iface_config (interface);
+  add_all_portal_implementations_iface (iface, impls);
   if (impls->len > 0)
-    return impls;
+    return g_steal_pointer (&impls);
+
+  add_all_default_portal_implementations_iface (interface, impls);
+  if (impls->len > 0)
+    return g_steal_pointer (&impls);
 
   desktops = get_current_lowercase_desktops ();
 
@@ -780,7 +833,7 @@ find_all_portal_implementations (const char *interface)
     }
 
   if (impls->len > 0)
-    return impls;
+    return g_steal_pointer (&impls);
 
   /* As a last resort, if nothing was selected for this desktop by
    * ${desktop}-portals.conf or portals.conf, and no portal volunteered
@@ -804,5 +857,5 @@ find_all_portal_implementations (const char *interface)
       g_ptr_array_add (impls, impl);
     }
 
-  return impls;
+  return g_steal_pointer (&impls);
 }
