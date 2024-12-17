@@ -188,6 +188,18 @@ get_token (GDBusMethodInvocation *invocation)
       if (method_info->option_arg >= 0)
         options = g_variant_get_child_value (parameters, method_info->option_arg);
     }
+  else if (strcmp (interface, "org.freedesktop.portal.WebExtensions") == 0)
+    {
+      if (strcmp (method, "Start") == 0)
+        {
+          options = g_variant_get_child_value (parameters, 3);
+        }
+      else
+        {
+          g_warning ("Support for %s::%s missing in %s",
+                     interface, method, G_STRLOC);
+        }
+    }
   else
     {
       g_warning ("Support for %s::%s missing in %s",
