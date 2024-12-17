@@ -622,6 +622,40 @@ find_portal_implementation_iface (const PortalInterface *iface)
   return NULL;
 }
 
+static GPtrArray *
+find_all_portal_implementations_iface (const PortalInterface *iface)
+{
+  GPtrArray *impls;
+  g_autofree char *portals = NULL;
+
+  impls = g_ptr_array_new ();
+
+  if (iface == NULL)
+    return impls;
+
+  portals = g_strjoinv (";", iface->portals);
+  g_debug ("Found '%s' in configuration for %s", portals, iface->dbus_name);
+
+
+  for (const GList *l = implementations; l != NULL; l = l->next)
+    {
+      XdpPortalImplementation *impl = l->data;
+
+      for (size_t i = 0; iface->portals && iface->portals[i]; i++)
+        {
+          if (g_str_equal (impl->source, iface->portals[i]) || g_str_equal (iface->portals[i], "*"))
+            {
+              if (portal_impl_supports_iface (impl, iface->dbus_name))
+                g_ptr_array_add(impls, impl);
+              else
+                g_info ("Requested backend %s.portal does not support %s. Skipping...", impl->source, iface->dbus_name);
+            }
+        }
+    }
+
+    return impls;
+}
+
 static XdpPortalImplementation *
 find_default_implementation_iface (const char *interface)
 {
@@ -734,20 +768,24 @@ find_all_portal_implementations (const char *interface)
   if (config)
     {
       PortalInterface *iface = find_matching_iface_config (interface);
-      XdpPortalImplementation *impl = find_portal_implementation_iface (iface);
-
-      if (!impl)
-        impl = find_default_implementation_iface(interface);
-
-      if (impl != NULL)
+      g_ptr_array_extend_and_steal (impls,  find_all_portal_implementations_iface (iface));
+      if (impls->len == 0)
         {
-          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
-          g_ptr_array_add (impls, impl);
+          XdpPortalImplementation *impl = find_default_implementation_iface(interface);
+          if (impl != NULL)
+            g_ptr_array_add (impls, impl);
         }
-    }
+      }
 
   if (impls->len > 0)
-    return impls;
+    {
+      for (int i = 0; i < impls->len; ++i)
+        {
+          XdpPortalImplementation *impl = g_ptr_array_index (impls, i);
+          g_debug ("Using %s.portal for %s (config)", impl->source, interface);
+        }
+      return impls;
+    }
 
   desktops = get_current_lowercase_desktops ();
 
