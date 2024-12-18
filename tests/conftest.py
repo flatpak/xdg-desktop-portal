@@ -213,7 +213,7 @@ def create_test_dbus() -> Iterator[dbusmock.DBusTestCase]:
 
 
 @pytest.fixture(autouse=True)
-def create_dbus_monitor() -> Iterator[Optional[subprocess.Popen]]:
+def create_dbus_monitor(create_test_dbus) -> Iterator[Optional[subprocess.Popen]]:
     if not os.getenv("XDP_DBUS_MONITOR"):
         yield None
         return
