@@ -76,7 +76,7 @@ class ImplRequest:
                 if self._close_callback:
                     self._close_callback()
                 self.mock.EmitSignal(
-                    "org.freedesktop.impl.portal.Test",
+                    "org.freedesktop.impl.portal.Mock",
                     "RequestClosed",
                     "s",
                     (self.handle,),
@@ -165,7 +165,7 @@ class ImplSession:
                 if self._close_callback:
                     self._close_callback()
                 self.mock.EmitSignal(
-                    "org.freedesktop.impl.portal.Test",
+                    "org.freedesktop.impl.portal.Mock",
                     "SessionClosed",
                     "s",
                     (self.handle,),
