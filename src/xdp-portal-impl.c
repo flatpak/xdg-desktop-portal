@@ -717,6 +717,34 @@ add_all_default_portal_implementations_iface (const char *interface,
   _add_all_portal_implementations_iface (config->default_portal, interface, impls);
 }
 
+static XdpPortalImplementation *
+find_gtk_fallback_portal_implementation (const char *interface)
+{
+  /* As a last resort, if nothing was selected for this desktop by
+   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
+   * itself as suitable for this desktop via the legacy UseIn mechanism,
+   * try to fall back to x-d-p-gtk, which has historically been the portal
+   * UI backend used by desktop environments with no backend of their own.
+   * If it isn't installed, that is not an error: we just don't use it. */
+  for (GList *l = implementations; l != NULL; l = l->next)
+    {
+      XdpPortalImplementation *impl = l->data;
+
+      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
+        continue;
+
+      if (!portal_impl_supports_iface (impl, interface))
+        continue;
+
+      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
+                 impl->source, interface);
+
+      return impl;
+    }
+
+  return NULL;
+}
+
 XdpPortalImplementation *
 find_portal_implementation (const char *interface)
 {
@@ -763,29 +791,7 @@ find_portal_implementation (const char *interface)
         }
     }
 
-  /* As a last resort, if nothing was selected for this desktop by
-   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
-   * itself as suitable for this desktop via the legacy UseIn mechanism,
-   * try to fall back to x-d-p-gtk, which has historically been the portal
-   * UI backend used by desktop environments with no backend of their own.
-   * If it isn't installed, that is not an error: we just don't use it. */
-  for (GList *l = implementations; l != NULL; l = l->next)
-    {
-      XdpPortalImplementation *impl = l->data;
-
-      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
-        continue;
-
-      if (!portal_impl_supports_iface (impl, interface))
-        continue;
-
-      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
-                 impl->source, interface);
-      warn_please_use_portals_conf ();
-      return impl;
-    }
-
-  return NULL;
+  return find_gtk_fallback_portal_implementation (interface);
 }
 
 GPtrArray *
@@ -793,6 +799,7 @@ find_all_portal_implementations (const char *interface)
 {
   const char **desktops;
   PortalInterface *iface;
+  XdpPortalImplementation *gtk_fallback;
   g_autoptr(GPtrArray) impls = NULL;
 
   impls = g_ptr_array_new ();
@@ -835,27 +842,9 @@ find_all_portal_implementations (const char *interface)
   if (impls->len > 0)
     return g_steal_pointer (&impls);
 
-  /* As a last resort, if nothing was selected for this desktop by
-   * ${desktop}-portals.conf or portals.conf, and no portal volunteered
-   * itself as suitable for this desktop via the legacy UseIn mechanism,
-   * try to fall back to x-d-p-gtk, which has historically been the portal
-   * UI backend used by desktop environments with no backend of their own.
-   * If it isn't installed, that is not an error: we just don't use it. */
-  for (GList *l = implementations; l != NULL; l = l->next)
-    {
-      XdpPortalImplementation *impl = l->data;
-
-      if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
-        continue;
-
-      if (!portal_impl_supports_iface (impl, interface))
-        continue;
-
-      g_warning ("Choosing %s.portal for %s as a last-resort fallback",
-                 impl->source, interface);
-      warn_please_use_portals_conf ();
-      g_ptr_array_add (impls, impl);
-    }
+  gtk_fallback = find_gtk_fallback_portal_implementation (interface);
+  if (gtk_fallback)
+    g_ptr_array_add (impls, gtk_fallback);
 
   return g_steal_pointer (&impls);
 }
