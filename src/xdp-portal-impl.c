@@ -365,9 +365,16 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
             }
 
           if (strcmp (ifaces[i], "default") == 0)
-            default_portal = g_steal_pointer (&interface);
+            {
+              if (default_portal == NULL)
+                default_portal = g_steal_pointer (&interface);
+              else
+                g_warning ("Duplicate default key will get ignored");
+            }
           else
-            g_ptr_array_add (interfaces, g_steal_pointer (&interface));
+            {
+              g_ptr_array_add (interfaces, g_steal_pointer (&interface));
+            }
         }
 
       portal_config->n_ifaces = interfaces->len;
