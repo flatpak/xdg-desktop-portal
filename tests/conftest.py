@@ -292,6 +292,7 @@ def _terminate_servers(
 def _start_template(
     busses: dict[dbusmock.BusType, dict[str, dbusmock.SpawnedMock]],
     template: str,
+    bus_name: Optional[str],
     params: Dict[str, Any] = {},
 ) -> None:
     """
@@ -308,6 +309,9 @@ def _start_template(
         bustype = (
             dbusmock.BusType.SYSTEM if module.SYSTEM_BUS else dbusmock.BusType.SESSION
         )
+
+        if bus_name:
+            module.BUS_NAME = bus_name
 
         server = _get_server_for_module(busses, module, bustype)
         main_obj = _get_main_obj_for_module(server, module, bustype)
@@ -336,8 +340,34 @@ def template_params() -> dict[str, dict[str, Any]]:
 def required_templates() -> dict[str, dict[str, Any]]:
     """
     Default fixture for enumerating the mocking templates the test case requires
-    to be started. This is a map from a name of a template in the templates
-    directory to the parameters which should be passed to the template.
+    to be started. This is a map from a template spec to the parameters which
+    should be passed to the template. The template spec is the name of a
+    template in the templates directory and an optional dbus bus name to start
+    the template at, separated by a colon.
+
+    This starts the `settings` and `email` templates on the bus names specified
+    with BUS_NAME in the templates and passes parameters to settings.
+
+        {
+            "settings": {
+                "some_param": true,
+            },
+            "email": {},
+        }
+
+    This starts two instances of the settings template with their own parameters
+    once on the bus name specified in BUS_NAME in the template, and once on the
+    bus name `org.freedesktop.impl.portal.OtherImpl`.
+
+        {
+            "settings": {
+                "some_param": true,
+            },
+            "settings:org.freedesktop.impl.portal.OtherImpl": {
+                "some_param": false,
+            },
+        }
+
     """
     return {}
 
@@ -358,7 +388,8 @@ def templates(
     }
     for template, params in required_templates.items():
         params = template_params.get(template, params)
-        _start_template(busses, template, params)
+        template, bus_name = (template.split(":") + [None])[:2]
+        _start_template(busses, template, bus_name, params)
     yield
     _terminate_servers(busses)
 
