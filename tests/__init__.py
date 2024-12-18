@@ -220,7 +220,7 @@ class Closable:
         signal_match = self._bus.add_signal_receiver(
             cb_impl_closed_by_portal,
             f"{self._closable}Closed",
-            dbus_interface="org.freedesktop.impl.portal.Test",
+            dbus_interface="org.freedesktop.impl.portal.Mock",
         )
 
         logger.debug(f"Closing {self._closable} {self.objpath}")
