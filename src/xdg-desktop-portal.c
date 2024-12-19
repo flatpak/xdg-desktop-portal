@@ -84,6 +84,8 @@ static GOptionEntry entries[] = {
   { NULL }
 };
 
+XdpDbusImplLockdown *lockdown;
+
 static void
 message_handler (const gchar *log_domain,
                  GLogLevelFlags log_level,
@@ -208,7 +210,6 @@ on_bus_acquired (GDBusConnection *connection,
   XdpPortalImplementation *implementation;
   XdpPortalImplementation *lockdown_impl;
   XdpPortalImplementation *access_impl;
-  XdpDbusImplLockdown *lockdown = NULL;
   GQuark portal_errors G_GNUC_UNUSED;
   GPtrArray *impls;
   g_autoptr(GError) error = NULL;

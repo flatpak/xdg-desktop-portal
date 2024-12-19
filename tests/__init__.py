@@ -76,13 +76,14 @@ def get_permission_store_iface(bus: dbus.Bus):
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
-def get_mock_iface(bus: dbus.Bus):
+def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None):
     """
     Returns the mock interface of the xdg-desktop-portal.
     """
-    obj = bus.get_object(
-        "org.freedesktop.impl.portal.Test", "/org/freedesktop/portal/desktop"
-    )
+    if not bus_name:
+        bus_name = "org.freedesktop.impl.portal.Test"
+
+    obj = bus.get_object(bus_name, "/org/freedesktop/portal/desktop")
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
 
@@ -220,7 +221,7 @@ class Closable:
         signal_match = self._bus.add_signal_receiver(
             cb_impl_closed_by_portal,
             f"{self._closable}Closed",
-            dbus_interface="org.freedesktop.impl.portal.Test",
+            dbus_interface="org.freedesktop.impl.portal.Mock",
         )
 
         logger.debug(f"Closing {self._closable} {self.objpath}")
