@@ -69,6 +69,7 @@
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
+#include "web-extensions.h"
 
 static int global_exit_status = 0;
 static GMainLoop *loop = NULL;
@@ -286,6 +287,9 @@ on_bus_acquired (GDBusConnection *connection,
     {
       XdpPortalImplementation *tmp;
 
+      export_portal_implementation (connection,
+                                    web_extensions_create (connection,
+                                                           access_impl->dbus_name));
 #ifdef HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
