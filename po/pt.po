@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-10-16 03:33+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-21 14:14-0300\n"
 "PO-Revision-Date: 2024-10-16 14:24+0100\n"
 "Last-Translator: Hugo Carvalho <hugokarvalho@hotmail.com>\n"
 "Language-Team: Portuguese < https://l10n.gnome.org/teams/pt/>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.5\n"
 
-#: src/background.c:822
+#: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Permitir que %s seja executado em segundo plano?"
 
-#: src/background.c:826
+#: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s solicita ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:828
+#: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s solicita ser executado em segundo plano."
 
-#: src/background.c:829
+#: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,29 +42,29 @@ msgstr ""
 "A permissão 'executar em segundo plano' pode ser alterada a qualquer altura "
 "a partir das definições da aplicação."
 
-#: src/background.c:834
+#: src/background.c:838
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
 msgid "Allow"
 msgstr "Permitir"
 
-#: src/camera.c:106
+#: src/camera.c:109
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Permitir que %s utilize a câmara?"
 
-#: src/camera.c:107
+#: src/camera.c:110
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s pretende aceder a dispositivos de câmara."
 
-#: src/camera.c:111
+#: src/camera.c:114
 msgid "Allow app to Use the Camera?"
 msgstr "Permitir que a aplicação utilize a câmara?"
 
-#: src/camera.c:112
+#: src/camera.c:115
 msgid "An app wants to access camera devices."
 msgstr "Uma aplicação pretende aceder a dispositivos de câmara."
 
@@ -99,52 +99,52 @@ msgstr "A entrada desktop fornecida para Install() não é válida"
 msgid "Token given is invalid: %s"
 msgstr "O token fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:834
-#: src/dynamic-launcher.c:883
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
+#: src/dynamic-launcher.c:878
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O ficheiro desktop excede o tamanho máximo (%d): %s"
 
-#: src/dynamic-launcher.c:566
+#: src/dynamic-launcher.c:561
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "O URL fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:589
+#: src/dynamic-launcher.c:584
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipo de lançador inválido: %x"
 
-#: src/dynamic-launcher.c:596
+#: src/dynamic-launcher.c:591
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipo de lançador não suportado: %x"
 
-#: src/dynamic-launcher.c:658 src/dynamic-launcher.c:728
+#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
 msgid "Dynamic launcher icon failed validation"
 msgstr "Falha na validação do ícone do lançador dinâmico"
 
-#: src/dynamic-launcher.c:744
+#: src/dynamic-launcher.c:739
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() não permitido para o id da aplicação %s"
 
-#: src/dynamic-launcher.c:923
+#: src/dynamic-launcher.c:918
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "O ícone do ficheiro desktop '%s' está num caminho irreconhecível"
 
-#: src/dynamic-launcher.c:946
+#: src/dynamic-launcher.c:941
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Falha na serialização do ícone do ficheiro desktop '%s'"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:980
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Não existe nenhum lançador dinâmico com o id '%s'"
 
-#: src/dynamic-launcher.c:1004
+#: src/dynamic-launcher.c:999
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id '%s'"
@@ -181,54 +181,63 @@ msgstr ""
 "O acesso à localização pode ser alterado a qualquer altura a partir das "
 "definições de privacidade."
 
-#: src/screenshot.c:238 src/wallpaper.c:183
+#: src/screenshot.c:241 src/wallpaper.c:185
 msgid "Deny"
 msgstr "Negar"
 
-#: src/screenshot.c:258
+#: src/screenshot.c:261
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permitir que %s tire capturas de ecrã?"
 
-#: src/screenshot.c:259
+#: src/screenshot.c:262
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s quer ser capaz de capturar o ecrã a qualquer altura."
 
-#: src/screenshot.c:267
+#: src/screenshot.c:270
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Permitir que as aplicações tirem capturas de ecrã?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:271
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Uma aplicação quer ser capaz de tirar capturas de ecrã a qualquer altura."
 
-#: src/screenshot.c:271 src/wallpaper.c:218
+#: src/screenshot.c:274 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Esta permissão pode ser alterada a qualquer altura a partir das definições "
 "de privacidade."
 
-#: src/settings.c:131 src/settings.c:167
+#: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "A definição solicitada não foi encontrada"
 
-#: src/wallpaper.c:205
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr ""
+
+#: src/usb.c:1342
+#, fuzzy
+msgid "Not allowed"
+msgstr "Não permitir"
+
+#: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitir que %s defina planos de fundo?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s está a solicitar a capacidade de poder alterar a imagem de fundo."
 
-#: src/wallpaper.c:215
+#: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Permitir que aplicações definam planos de fundo?"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr ""
 "Uma aplicação está a solicitar a capacidade de poder alterar a imagem de "
