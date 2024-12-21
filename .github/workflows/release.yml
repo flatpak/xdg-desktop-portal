@@ -28,6 +28,8 @@ jobs:
     container:
       image: ${{ needs.build-container.outputs.image }}
       options: ${{ needs.build-container.outputs.image_options }}
+      env:
+        XDP_TEST_IN_CI: 1
 
     steps:
       - name: Configure git user
