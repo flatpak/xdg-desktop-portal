@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2024-10-10 03:33+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-12-21 14:14-0300\n"
 "PO-Revision-Date: 2024-11-20 16:59+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
@@ -16,27 +16,27 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
-"%100==4 ? 3 : 0) ;\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || "
+"n%100==4 ? 3 : 0) ;\n"
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/background.c:822
+#: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Ali dovolite, da %s deluje v ozadju?"
 
-#: src/background.c:826
+#: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s zahteve samodejni zagon in izvajanje v ozadju."
 
-#: src/background.c:828
+#: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s zahteve izvajanje v ozadju."
 
-#: src/background.c:829
+#: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -44,29 +44,29 @@ msgstr ""
 "Dovoljenje »zaženi v ozadju« lahko kadar koli spremenite v nastavitvah "
 "programa."
 
-#: src/background.c:834
+#: src/background.c:838
 msgid "Don't allow"
 msgstr "Ne dovoli"
 
-#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
 msgid "Allow"
 msgstr "Dovoli"
 
-#: src/camera.c:106
+#: src/camera.c:109
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Dovolite %s uporabo kamere?"
 
-#: src/camera.c:107
+#: src/camera.c:110
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s želi dostopati do naprav s kamero."
 
-#: src/camera.c:111
+#: src/camera.c:114
 msgid "Allow app to Use the Camera?"
 msgstr "Ali programu dovolite uporabo kamere?"
 
-#: src/camera.c:112
+#: src/camera.c:115
 msgid "An app wants to access camera devices."
 msgstr "Program želi dostopati do naprav s kamero."
 
@@ -101,52 +101,52 @@ msgstr "Vnos na namizju, podan funkciji Install(), ni veljaven"
 msgid "Token given is invalid: %s"
 msgstr "Podani žeton je neveljaven: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
+#: src/dynamic-launcher.c:878
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Namizna datoteka presega največjo velikost (%d): %s"
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:561
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Navedeni URL je neveljaven: %s"
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:584
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Neveljavna vrsta zaganjalnika: %x"
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:591
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Nepodprta vrsta zaganjalnika: %x"
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
 msgid "Dynamic launcher icon failed validation"
 msgstr "Preverjanje veljavnosti ikone dinamičnega zaganjalnika ni uspelo"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:739
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() ni dovoljeno za ID programa %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:918
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Ikona namizne datoteke »%s« je na neprepoznani poti"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:941
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Ikone namizne datoteke »%s« ni bilo mogoče serializirati"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:980
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Noben dinamični zaganjalnik ne obstaja z ID-jem »%s«"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:999
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Za zaganjalnik z ID-jem »%s« ni uspelo ustvariti GDesktopAppInfo"
@@ -183,50 +183,59 @@ msgstr ""
 "Dostop do trenutnega mesta je mogoče spremeniti kadarkoli med nastavitvami "
 "zasebnosti."
 
-#: src/screenshot.c:238 src/wallpaper.c:183
+#: src/screenshot.c:241 src/wallpaper.c:185
 msgid "Deny"
 msgstr "Zavrni"
 
-#: src/screenshot.c:258
+#: src/screenshot.c:261
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Dovolite %s snemanja posnetkov zaslona?"
 
-#: src/screenshot.c:259
+#: src/screenshot.c:262
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s želi imeti možnost, da kadar koli posname posnetke zaslona."
 
-#: src/screenshot.c:267
+#: src/screenshot.c:270
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Dovolite programom, da naredijo posnetke zaslona?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:271
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Program želi kadar koli narediti posnetke zaslona."
 
-#: src/screenshot.c:271 src/wallpaper.c:218
+#: src/screenshot.c:274 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "To dovoljenje lahko kadar koli spremenite v nastavitvah zasebnosti."
 
-#: src/settings.c:131 src/settings.c:167
+#: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "Zahtevane nastavitve ni bilo mogoče najti"
 
-#: src/wallpaper.c:205
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr ""
+
+#: src/usb.c:1342
+#, fuzzy
+msgid "Not allowed"
+msgstr "Ne dovoli"
+
+#: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Dovolite %s nastavitev ozadij?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s zahteva, da lahko spremeni sliko ozadja."
 
-#: src/wallpaper.c:215
+#: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Dovolite programom, da nastavijo ozadja?"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr "Program zahteva, da lahko spremeni sliko ozadja."
