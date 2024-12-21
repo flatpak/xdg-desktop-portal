@@ -1,3 +1,41 @@
+Changes in 1.19.1
+=================
+Released: 2024-12-21
+
+Dependencies:
+
+- XDG Desktop Portal now requires GLib 2.72 or higher.
+
+New Features:
+
+- Introduce the Notification v2 portal. This updated version of the Notification
+  portal supports a plethora of new fields for notifications, such as sounds,
+  categories, purpose, and more.
+- Introduce the USB portal. This portal allows apps with relevant permissions
+  to enumerate and acquire access to specific USB devices.
+- Introduce a new `SchemeSupported` method to the OpenURI portal. This new
+  method allows apps to know ahead of time if the host system is able to deal
+  with a particular scheme.
+
+Enhancements:
+
+- Continued the move towards Python-based tests. This should simplify the
+  test setup in the project quite significantly, and also will allow removing
+  the cyclic dependency between libportal and XDG Desktop Portal.
+- Introduce umockdev-based tests.
+- Improve the icon validator so it can deal with memfd-based icons.
+- Clarify behavior of the Settings portal for non-standardized keys.
+- In the Global Shortcuts portal, clarify that the result the `BindShortcuts`
+  of may be a subset of all requested shortcuts.
+- Add a documentation page about icon validation requirements.
+
+Bug Fixes:
+
+- Fix memory leaks in the Background, Email, and Global Shortcuts portals.
+- Fix a general file descriptor & memory leak.
+- Fix a regression in the Settings portal.
+- New and updated translations.
+
 Changes in 1.19.0
 =================
 Released: 2024-10-09
