@@ -351,7 +351,9 @@ if enable_installed_tests
   ]
   foreach tf : testfiles
       data = configuration_data()
+      data.set('datadir', datadir)
       data.set('installed_testdir', installed_tests_dir)
+      data.set('installed_tests_data_dir', installed_tests_data_dir)
       data.set('libdir', libdir)
       data.set('exec', tf)
       configure_file(
@@ -365,7 +367,9 @@ if enable_installed_tests
 
   foreach p : portal_tests
       data = configuration_data()
+      data.set('datadir', datadir)
       data.set('installed_testdir', installed_tests_dir)
+      data.set('installed_tests_data_dir', installed_tests_data_dir)
       data.set('libdir', libdir)
       data.set('exec', 'test-portals -p /portal/@0@'.format(p))
       configure_file(
@@ -379,7 +383,9 @@ if enable_installed_tests
 
   foreach p : portal_limited
       data = configuration_data()
+      data.set('datadir', datadir)
       data.set('installed_testdir', installed_tests_dir)
+      data.set('installed_tests_data_dir', installed_tests_data_dir)
       data.set('libdir', libdir)
       data.set('exec', 'limited-portals -p /limited/@0@'.format(p))
       configure_file(
