@@ -284,8 +284,7 @@ python = pymod.find_installation(
 
 enable_pytest = get_option('pytest') \
   .require(pytest.found()) \
-  .require(python.found()) \
-  .require(python.language_version().version_compare('>=3.9'),
+  .require(python.found() and python.language_version().version_compare('>=3.9'),
            error_message: 'Python version >=3.9 is required') \
   .require(umockdev_dep.found()) \
   .require(have_wav_parse,
