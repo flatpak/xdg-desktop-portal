@@ -101,18 +101,13 @@ if have_libportal
     'email.c',
     'filechooser.c',
     'inhibit.c',
+    'notification.c',
     'openuri.c',
     'print.c',
     'screenshot.c',
     'trash.c',
     'wallpaper.c',
     'glib-backports.c',
-  )
-endif
-
-if have_wav_parse
-  portals_test_sources += files(
-    'notification.c',
   )
 endif
 
