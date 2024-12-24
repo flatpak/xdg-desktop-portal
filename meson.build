@@ -144,6 +144,9 @@ if gst_inspect.found()
 else
   have_wav_parse = false
 endif
+if have_wav_parse
+  config_h.set('HAVE_WAV_PARSE', 1)
+endif
 
 bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation').allowed() or get_option('sandboxed-sound-validation').allowed())
 
