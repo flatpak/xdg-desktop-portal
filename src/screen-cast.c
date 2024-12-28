@@ -329,12 +329,7 @@ handle_create_session (XdpDbusScreenCast *object,
   if (!g_variant_lookup (arg_options, "provider", "b", &provider))
     provider = FALSE;
 
-#if PW_CHECK_VERSION(0, 3, 77)
   if (provider && (access_impl == NULL || impl_version < 6))
-#else
-  /* PW_PERM_L is not available making external type nodes unable to link */
-  if (provider)
-#endif
     {
       g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
                                              "Creating provider session is not available");
@@ -1455,14 +1450,9 @@ sync_supported_source_types (ScreenCast *screen_cast)
 
   available_source_types = xdp_dbus_impl_screen_cast_get_available_source_types (impl);
 
-#if PW_CHECK_VERSION(0, 3, 77)
   /* External type is never available if no Access portal implementation is
    * found */
   if ((available_source_types & 8) != 0 && access_impl == NULL)
-#else
-  /* PW_PERM_L is not available making external type nodes unable to link */
-  if (available_source_types & 8)
-#endif
     available_source_types ^= 8;
 
   xdp_dbus_screen_cast_set_available_source_types (XDP_DBUS_SCREEN_CAST (screen_cast),
