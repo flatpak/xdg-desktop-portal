@@ -1,0 +1,7 @@
+wireplumber.components = [
+  {
+    name = @name@/output-nodes.lua, type = script/lua
+    provides = script.@name@.output-nodes
+    requires = [ script.client.access-portal ]
+  }
+]

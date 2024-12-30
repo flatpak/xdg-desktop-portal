@@ -223,6 +223,7 @@ pkgconfig.generate(
 subdir('data')
 subdir('src')
 subdir('document-portal')
+subdir('wireplumber')
 subdir('tests')
 subdir('po')
 subdir('doc')
