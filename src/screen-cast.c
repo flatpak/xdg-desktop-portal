@@ -65,6 +65,7 @@ static XdpDbusImplAccess *access_impl = NULL;
 static int impl_version;
 static ScreenCast *screen_cast;
 
+static unsigned int available_source_types = 0;
 static unsigned int available_cursor_modes = 0;
 
 GType screen_cast_get_type (void);
@@ -329,7 +330,8 @@ handle_create_session (XdpDbusScreenCast *object,
   if (!g_variant_lookup (arg_options, "provider", "b", &provider))
     provider = FALSE;
 
-  if (provider && (access_impl == NULL || impl_version < 6))
+  if (provider &&
+      ((available_source_types & 8) == 0 || access_impl == NULL || impl_version < 6))
     {
       g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_FAILED,
                                              "Creating provider session is not available");
@@ -1446,8 +1448,6 @@ screen_cast_iface_init (XdpDbusScreenCastIface *iface)
 static void
 sync_supported_source_types (ScreenCast *screen_cast)
 {
-  unsigned int available_source_types;
-
   available_source_types = xdp_dbus_impl_screen_cast_get_available_source_types (impl);
 
   /* External type is never available if no Access portal implementation is
