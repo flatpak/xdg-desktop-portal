@@ -18,6 +18,7 @@ subdir('dbs')
 subdir('portals')
 subdir('services')
 subdir('share')
+subdir('native-messaging-hosts')
 
 test_db = executable(
   'testdb',
@@ -106,6 +107,7 @@ if have_libportal
     'screenshot.c',
     'trash.c',
     'wallpaper.c',
+    'web-extensions.c',
     'glib-backports.c',
   )
 endif
@@ -174,6 +176,7 @@ portal_tests = [
   'settings',
   'trash',
   'wallpaper',
+  'webextensions',
 ]
 
 test_env = env_tests
