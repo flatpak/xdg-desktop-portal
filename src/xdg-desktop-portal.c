@@ -253,7 +253,8 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, realtime_create (connection));
 
   impls = find_all_portal_implementations ("org.freedesktop.impl.portal.Settings");
-  export_portal_implementation (connection, settings_create (connection, impls));
+  if (impls->len > 0)
+    export_portal_implementation (connection, settings_create (connection, impls));
   g_ptr_array_free (impls, TRUE);
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
