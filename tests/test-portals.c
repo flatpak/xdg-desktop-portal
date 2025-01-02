@@ -589,7 +589,9 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/bad-priority", test_notification_bad_priority);
   g_test_add_func ("/portal/notification/bad-button", test_notification_bad_button);
   g_test_add_func ("/portal/notification/icon", test_notification_icon);
+#ifdef HAVE_WAV_PARSE
   g_test_add_func ("/portal/notification/sound", test_notification_sound);
+#endif
   g_test_add_func ("/portal/notification/display-hint", test_notification_display_hint);
   g_test_add_func ("/portal/notification/category", test_notification_category);
   g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
