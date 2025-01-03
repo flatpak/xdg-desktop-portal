@@ -509,6 +509,8 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_autostart;
   app_info_class->validate_dynamic_launcher =
     xdp_app_info_flatpak_validate_dynamic_launcher;
+  app_info_class->is_valid_sub_app_id =
+    xdp_app_info_flatpak_is_valid_sub_app_id;
 }
 
 static void
