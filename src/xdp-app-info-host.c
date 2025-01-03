@@ -93,6 +93,8 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
     xdp_app_info_host_validate_autostart;
   app_info_class->validate_dynamic_launcher =
     xdp_app_info_host_validate_dynamic_launcher;
+  app_info_class->is_valid_sub_app_id =
+    xdp_app_info_host_is_valid_sub_app_id;
 }
 
 static void
