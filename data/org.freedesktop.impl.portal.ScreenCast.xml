@@ -255,6 +255,9 @@
         :ref:`org.freedesktop.app.portal.ScreenCast <org.freedesktop.app.portal.ScreenCast>`
         implementation on the point to point D-Bus.
 
+        TODO: Document to reject misversioned app portal impl
+        TODO: Document portal impl behavior
+
         This method was added in version 6 of this interface.
     -->
     <method name="ConnectProvisioning">

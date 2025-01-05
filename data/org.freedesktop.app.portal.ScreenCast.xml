@@ -123,6 +123,8 @@
         @detail: Vardict for future-proofing
 
         Add to sources that the session should stream once started.
+
+        TODO: Close session when invalid source is asked ?
     -->
     <method name="StreamSource">
       <arg type="s" name="id" direction="in"/>
@@ -137,6 +139,10 @@
         Start:
 
         Start the screen cast session.
+
+        TODO: Document that the session must get closed if a failure happen while starting
+
+        TODO: Document behavior about closing if no source is set to be streamed
     -->
     <method name="Start">
     </method>
@@ -145,6 +151,8 @@
   <!--
       org.freedesktop.app.portal.ScreenCast.Stream:
       @short_description: Screen cast stream application interface
+
+      TODO: Recommend using parent session handle as handle prefix to easily avoid duplicate handle across sessions
   -->
   <interface name="org.freedesktop.app.portal.ScreenCast.Stream">
 
