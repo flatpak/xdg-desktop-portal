@@ -3,6 +3,7 @@ src/background.c
 src/camera.c
 src/dynamic-launcher.c
 src/location.c
+src/screen-cast.c
 src/screenshot.c
 src/settings.c
 src/usb.c
