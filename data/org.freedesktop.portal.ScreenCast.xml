@@ -57,7 +57,8 @@
           Create a session to use in org.freedesktop.portal.ScreenCast.ConnectProvisioning()
           to propose sources in the portal rather than requesting them. Default is no.
 
-          Backends can refuse to create a provider session by returning an error.
+          Backends can refuse to support provider session by not setting EXTERNAL as an
+          available source type.
 
           This option was added in version 6 of this interface.
 
@@ -282,13 +283,15 @@
         ConnectProvisioning:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @fd: File descriptor of Unix Domain Socket with a D-Bus connection
+        @fd: File descriptor of a point to point D-Bus connection
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        Add the caller app as a sources provider by using the caller :ref:`org.freedesktop.app.portal.ScreenCast` implementation on the socket D-Bus.
+        Add the caller app as a sources provider by using the
+        :ref:`org.freedesktop.app.portal.ScreenCast <org.freedesktop.app.portal.ScreenCast>`
+        implementation on the point to point D-Bus.
         An application can only attempt to add itself as a provider once per session.
-        The session must be create with @provider set to true.
+        The session must be created with @provider set to true.
 
         Supported keys in the @options vardict include:
 
@@ -297,12 +300,15 @@
           A string that will be used as the last element of the @handle. Must be a valid
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
+
+        This method was added in version 6 of this interface.
     -->
     <method name="ConnectProvisioning">
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="parent_window" direction="in"/>
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="h" name="fd" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>

@@ -21,6 +21,14 @@
       org.freedesktop.app.portal.ScreenCast:
       @short_description: Screen cast application interface
 
+      The screen cast app portal allows to share `DMA-BUF PipeWire stream <https://docs.pipewire.org/page_dma_buf.html>`_ as
+      :ref:`org.freedesktop.portal.ScreenCast` external sources if the portal
+      implementation supports it.
+
+      This interface is to be implemented under the object path
+      ``/org/freedesktop/app/portal`` in a point to point D-Bus connection for
+      :ref:`org.freedesktop.portal.ScreenCast.ConnectProvisioning`.
+
       This documentation describes version 1 of this interface.
   -->
   <interface name="org.freedesktop.app.portal.ScreenCast">
@@ -28,7 +36,8 @@
     <!--
         Ready:
 
-        Emitted when the interface is ready to be used **after** :ref:`org.freedesktop.portal.ScreenCast.ConnectProvisioning` response is received.
+        Emitted when :ref:`org.freedesktop.portal.ScreenCast.ConnectProvisioning`
+        request succeeded and the interface is ready to be used.
     -->
     <signal name="Ready">
     </signal>
@@ -41,15 +50,15 @@
 
         A source is exposed as:
 
-        * s: ID of the source, must be persistent between application instances to enable restoring ScreenCast session
-        * a{sv}: source properties
+        * ``s``: ID of the source, must be persistent between application instances to enable restoring ScreenCast session
+        * ``a{sv}``: source properties
 
           Known properties:
 
-          - ``title`` (s): title of the source
+          - ``title`` (``s``): title of the source
     -->
     <method name="GetSources">
-      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
       <arg type="a{sa{sv}}" name="sources" direction="out"/>
     </method>
 
@@ -61,10 +70,13 @@
 
     <!--
         CreateSession:
-        @session_handle:
+        @options: Vardict for future-proofing
+        @session_handle: Object path for the :ref:`org.freedesktop.app.portal.ScreenCast.Session` object
+
+        Create a screen cast app session.
     -->
     <method name="CreateSession">
-      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="session_handle" direction="out" />
     </method>
@@ -74,13 +86,14 @@
 
   <!--
       org.freedesktop.app.portal.ScreenCast.Session:
+      @short_description: Screen cast session application interface
   -->
   <interface name="org.freedesktop.app.portal.ScreenCast.Session">
 
     <!--
         Close:
 
-        Close the screen cast session
+        Close the session
     -->
     <method name="Close">
     </method>
@@ -91,11 +104,34 @@
 
         Emitted when a session is closed.
 
-        The content of @details is specified by the interface creating the session.
+        Supported keys in the @details vardict include:
+
+        * ``reason`` (``s``)
+
+          String indication the reason of session being closed.
     -->
     <signal name="Closed">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
       <arg type="a{sv}" name="details"/>
     </signal>
+
+    <!--
+        StreamSource:
+        @id: Id of the source to stream
+        @options: Vardict for future-proofing
+        @stream_handle: Object path to the new stream object
+        @detail: Vardict for future-proofing
+
+        Add to sources that the session should stream once started.
+    -->
+    <method name="StreamSource">
+      <arg type="s" name="id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="stream_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="details" direction="out"/>
+    </method>
 
     <!--
         Start:
@@ -104,32 +140,29 @@
     -->
     <method name="Start">
     </method>
-
-    <!--
-        StreamSource:
-        @id: Id of the source to stream
-        @stream_path: Path to the new stream object
-
-        Add to sources that the session should stream once started.
-    -->
-    <method name="StreamSource">
-      <arg type="s" name="id" direction="in"/>
-      <arg type="o" name="stream_path" direction="out"/>
-    </method>
   </interface>
 
   <!--
       org.freedesktop.app.portal.ScreenCast.Stream:
-      @short_description: Screen cast stream
+      @short_description: Screen cast stream application interface
   -->
   <interface name="org.freedesktop.app.portal.ScreenCast.Stream">
 
     <!--
         PipeWireStreamAdded:
+        @details: Vardict of detail about the added stream
+
+        Emitted after :ref:`org.freedesktop.app.portal.ScreenCast.Session.Start`
+        when a stream is added as a PipeWire node.
+
+        Content of @details:
+
+        * ``node_id``: ID of the node (required)
     -->
     <signal name="PipeWireStreamAdded">
       <annotation name="org.gtk.GDBus.C.Name" value="pipewire-stream-added"/>
-      <arg type="u" name="node_id" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <arg type="a{sv}" name="details"/>
     </signal>
   </interface>
 </node>

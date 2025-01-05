@@ -246,12 +246,16 @@
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @app_id: App id of the application
-        @fd: File descriptor of Unix Domain Socket with a D-Bus connection
+        @fd: File descriptor of a point to point D-Bus connection
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
 
-        Add the caller app as a sources provider by using the caller :ref:`org.freedesktop.app.portal.ScreenCast` implementation on the socket D-Bus.
+        Add the caller app as a sources provider by using the
+        :ref:`org.freedesktop.app.portal.ScreenCast <org.freedesktop.app.portal.ScreenCast>`
+        implementation on the point to point D-Bus.
+
+        This method was added in version 6 of this interface.
     -->
     <method name="ConnectProvisioning">
       <arg type="o" name="handle" direction="in"/>
