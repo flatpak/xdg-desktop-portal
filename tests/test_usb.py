@@ -7,6 +7,8 @@ import tests as xdp
 import pytest
 import os
 import gi
+import subprocess
+import re
 
 gi.require_version("UMockdev", "1.0")
 from gi.repository import GLib, UMockdev  # noqa E402
@@ -20,6 +22,17 @@ def required_templates():
 @pytest.fixture
 def umockdev():
     return UMockdev.Testbed.new()
+
+
+def umockdev_has_working_remove():
+    # umockdev only generates remove events since version 0.18.4
+    # https://github.com/martinpitt/umockdev/releases/tag/0.18.4
+    required = (0, 18, 4)
+
+    result = subprocess.run(["umockdev-run", "--version"], stdout=subprocess.PIPE)
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)", result.stdout.decode("UTF-8").strip())
+    version = tuple(map(int, match.groups()))
+    return version >= required
 
 
 class TestUsb:
@@ -188,7 +201,9 @@ A: idVendor={vendor}
             )
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    @pytest.mark.skipif(xdp.is_in_container(), reason="Test fail in containers")
+    @pytest.mark.skipif(
+        not umockdev_has_working_remove(), reason="UMockdev version 0.18.4 required"
+    )
     def test_device_remove(self, portals, dbus_con, app_id, usb_queries, umockdev):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
