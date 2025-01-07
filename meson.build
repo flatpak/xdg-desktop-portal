@@ -121,7 +121,7 @@ geoclue_dep = dependency(
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
-umockdev_dep = dependency('umockdev-1.0', required: get_option('pytest'))
+umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()
@@ -135,6 +135,13 @@ endif
 if have_wav_parse
   config_h.set('HAVE_WAV_PARSE', 1)
 endif
+
+pytest = find_program('pytest-3', 'pytest', required: get_option('tests'))
+python = pymod.find_installation(
+  'python3',
+  modules: ['dbus', 'dbusmock', 'gi'],
+  required: get_option('tests'),
+)
 
 bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation').allowed() or get_option('sandboxed-sound-validation').allowed())
 
@@ -181,8 +188,6 @@ endif
 
 rst2man = find_program('rst2man', 'rst2man.py', required: get_option('man-pages'))
 
-enable_installed_tests = get_option('installed-tests')
-
 ###### systemd units, dbus service files, pkgconfig
 
 base_config = configuration_data()
@@ -206,12 +211,28 @@ pkgconfig.generate(
   },
 )
 
+###### subdirs
+
 subdir('data')
 subdir('src')
 subdir('document-portal')
-subdir('tests')
 subdir('po')
 subdir('doc')
+
+enable_tests = get_option('tests') \
+  .require(pytest.found()) \
+  .require(python.found() and python.language_version().version_compare('>=3.9'),
+           error_message: 'Python version >=3.9 is required') \
+  .require(umockdev_dep.found()) \
+  .require(have_wav_parse,
+           error_message: 'gst-inspect and the wavparse plugins are required') \
+  .allowed()
+
+enable_installed_tests = get_option('installed-tests')
+
+if enable_tests
+  subdir('tests')
+endif
 
 ###### generate config.h
 configure_file(output: 'config.h', configuration: config_h)
@@ -221,8 +242,8 @@ summary({
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
     'Enable gudev support': have_gudev,
+    'Enable test suite': enable_tests,
     'Enable installed tests:': enable_installed_tests,
-    'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
     'Build flatpak interfaces': flatpak_intf_dir != '',
     'Sandboxed image validation': bwrap.found(),

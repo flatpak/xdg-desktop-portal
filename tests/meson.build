@@ -62,147 +62,129 @@ test(
   protocol: test_protocol,
 )
 
-pytest = find_program('pytest-3', 'pytest', required: get_option('pytest'))
-python = pymod.find_installation(
-  'python3',
-  modules: ['dbus', 'dbusmock', 'gi'],
-  required: get_option('pytest'),
-)
+pytest_args = ['--verbose', '--log-level=DEBUG']
 
-enable_pytest = get_option('pytest') \
-  .require(pytest.found()) \
-  .require(python.found() and python.language_version().version_compare('>=3.9'),
-           error_message: 'Python version >=3.9 is required') \
-  .require(umockdev_dep.found()) \
-  .require(have_wav_parse,
-           error_message: 'gst-inspect and the wavparse plugins are required') \
-  .allowed()
+pytest_env = environment()
+pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
+pytest_env.set('XDG_PERMISSION_STORE_PATH', xdg_permission_store.full_path())
+pytest_env.set('XDG_DOCUMENT_PORTAL_PATH', xdg_document_portal.full_path())
+pytest_env.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
+pytest_env.set('XDP_VALIDATE_SOUND', xdp_validate_sound.full_path())
 
-if enable_pytest
-  pytest_args = ['--verbose', '--log-level=DEBUG']
+# pytest xdist is nice because it significantly speeds up our
+# test process, but it's not required
+if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
+  # using auto can easily start too many tests which will block each other
+  # a value of around 5 seems to work well
+  pytest_args += ['-n', '5']
+endif
 
-  pytest_env = environment()
-  pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
-  pytest_env.set('XDG_PERMISSION_STORE_PATH', xdg_permission_store.full_path())
-  pytest_env.set('XDG_DOCUMENT_PORTAL_PATH', xdg_document_portal.full_path())
-  pytest_env.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
-  pytest_env.set('XDP_VALIDATE_SOUND', xdp_validate_sound.full_path())
+pytest_files = [
+  'test_account.py',
+  'test_background.py',
+  'test_camera.py',
+  'test_clipboard.py',
+  'test_documents.py',
+  'test_document_fuse.py',
+  'test_dynamiclauncher.py',
+  'test_email.py',
+  'test_filechooser.py',
+  'test_globalshortcuts.py',
+  'test_inhibit.py',
+  'test_inputcapture.py',
+  'test_location.py',
+  'test_notification.py',
+  'test_openuri.py',
+  'test_permission_store.py',
+  'test_print.py',
+  'test_registry.py',
+  'test_remotedesktop.py',
+  'test_settings.py',
+  'test_screenshot.py',
+  'test_trash.py',
+  'test_usb.py',
+  'test_wallpaper.py',
+]
 
-  # pytest xdist is nice because it significantly speeds up our
-  # test process, but it's not required
-  if pymod.find_installation('python3', modules: ['xdist'], required: false).found()
-    # using auto can easily start too many tests which will block each other
-    # a value of around 5 seems to work well
-    pytest_args += ['-n', '5']
-  endif
+template_files = [
+  'templates/access.py',
+  'templates/account.py',
+  'templates/appchooser.py',
+  'templates/background.py',
+  'templates/clipboard.py',
+  'templates/dynamiclauncher.py',
+  'templates/email.py',
+  'templates/filechooser.py',
+  'templates/geoclue2.py',
+  'templates/globalshortcuts.py',
+  'templates/inhibit.py',
+  'templates/__init__.py',
+  'templates/inputcapture.py',
+  'templates/lockdown.py',
+  'templates/notification.py',
+  'templates/print.py',
+  'templates/remotedesktop.py',
+  'templates/screenshot.py',
+  'templates/settings.py',
+  'templates/usb.py',
+  'templates/wallpaper.py',
+]
 
-  pytest_files = [
-    'test_account.py',
-    'test_background.py',
-    'test_camera.py',
-    'test_clipboard.py',
-    'test_documents.py',
-    'test_document_fuse.py',
-    'test_dynamiclauncher.py',
-    'test_email.py',
-    'test_filechooser.py',
-    'test_globalshortcuts.py',
-    'test_inhibit.py',
-    'test_inputcapture.py',
-    'test_location.py',
-    'test_notification.py',
-    'test_openuri.py',
-    'test_permission_store.py',
-    'test_print.py',
-    'test_registry.py',
-    'test_remotedesktop.py',
-    'test_settings.py',
-    'test_screenshot.py',
-    'test_trash.py',
-    'test_usb.py',
-    'test_wallpaper.py',
-  ]
+foreach pytest_file : pytest_files
+  testname = pytest_file.replace('.py', '')
+  test(
+    'pytest/@0@'.format(testname),
+    pytest,
+    args: [meson.current_source_dir()] + pytest_args + ['-k', testname],
+    env: pytest_env,
+    suite: ['pytest'],
+    timeout: 120,
+  )
+endforeach
 
-  template_files = [
-    'templates/access.py',
-    'templates/account.py',
-    'templates/appchooser.py',
-    'templates/background.py',
-    'templates/clipboard.py',
-    'templates/dynamiclauncher.py',
-    'templates/email.py',
-    'templates/filechooser.py',
-    'templates/geoclue2.py',
-    'templates/globalshortcuts.py',
-    'templates/inhibit.py',
-    'templates/__init__.py',
-    'templates/inputcapture.py',
-    'templates/lockdown.py',
-    'templates/notification.py',
-    'templates/print.py',
-    'templates/remotedesktop.py',
-    'templates/screenshot.py',
-    'templates/settings.py',
-    'templates/usb.py',
-    'templates/wallpaper.py',
-  ]
+if enable_installed_tests
+  install_data(
+    pytest_files,
+    '__init__.py',
+    'conftest.py',
+    'asan.suppression',
+    install_dir: installed_tests_dir / 'tests',
+  )
+  install_data(
+    template_files,
+    install_dir: installed_tests_dir / 'tests' / 'templates',
+  )
+
+  installed_env = {
+    'XDG_DESKTOP_PORTAL_PATH': libexecdir / 'xdg-desktop-portal',
+    'XDG_PERMISSION_STORE_PATH': libexecdir / 'xdg-permission-store',
+    'XDG_DOCUMENT_PORTAL_PATH': libexecdir / 'xdg-document-portal',
+    'XDP_VALIDATE_AUTO': '1',
+  }
+  env = ''
+  foreach key, value : installed_env
+    env += f'@key@=@value@ '
+  endforeach
 
   foreach pytest_file : pytest_files
     testname = pytest_file.replace('.py', '')
-    test(
-      'pytest/@0@'.format(testname),
-      pytest,
-      args: [meson.current_source_dir() / pytest_file] + pytest_args,
-      env: pytest_env,
-      suite: ['pytest'],
-      timeout: 120,
+
+    exec = [pytest.full_path(), installed_tests_dir / 'tests' / pytest_file]
+    exec += pytest_args
+    exec += ['-p', 'no:cacheprovider']
+    exec = ' '.join(exec)
+
+    data = configuration_data()
+    data.set('exec', exec)
+    data.set('env', env)
+    data.set('libdir', libdir)
+
+    configure_file(
+      input: 'template.test.in',
+      output: '@0@.test'.format(testname),
+      configuration: data,
+      install: true,
+      install_dir: installed_tests_data_dir,
     )
   endforeach
-
-  if enable_installed_tests
-    install_data(
-      pytest_files,
-      '__init__.py',
-      'conftest.py',
-      'asan.suppression',
-      install_dir: installed_tests_dir / 'tests',
-    )
-    install_data(
-      template_files,
-      install_dir: installed_tests_dir / 'tests' / 'templates',
-    )
-
-    installed_env = {
-      'XDG_DESKTOP_PORTAL_PATH': libexecdir / 'xdg-desktop-portal',
-      'XDG_PERMISSION_STORE_PATH': libexecdir / 'xdg-permission-store',
-      'XDG_DOCUMENT_PORTAL_PATH': libexecdir / 'xdg-document-portal',
-      'XDP_VALIDATE_AUTO': '1',
-    }
-    env = ''
-    foreach key, value : installed_env
-      env += f'@key@=@value@ '
-    endforeach
-
-    foreach pytest_file : pytest_files
-      testname = pytest_file.replace('.py', '')
-
-      exec = [pytest.full_path(), installed_tests_dir / 'tests' / pytest_file]
-      exec += pytest_args
-      exec += ['-p', 'no:cacheprovider']
-      exec = ' '.join(exec)
-
-      data = configuration_data()
-      data.set('exec', exec)
-      data.set('env', env)
-      data.set('libdir', libdir)
-
-      configure_file(
-        input: 'template.test.in',
-        output: '@0@.test'.format(testname),
-        configuration: data,
-        install: true,
-        install_dir: installed_tests_data_dir,
-      )
-    endforeach
-  endif
 endif

@@ -51,7 +51,7 @@ jobs:
         run: |
           meson setup _build \
             -Dinstalled-tests=true \
-            -Dpytest=enabled \
+            -Dtests=enabled \
             -Db_sanitize=${{ matrix.sanitizer }} \
             -Db_lundef=false
           meson compile -C _build
