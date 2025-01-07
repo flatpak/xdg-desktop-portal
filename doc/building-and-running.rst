@@ -54,8 +54,7 @@ replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
 Testing
 -------
 
-To execute the test suite present in XDG Desktop Portal, make sure you built it
-with ``-Dlibportal=enabled``, and run:
+To execute the test suite present in XDG Desktop Portal, run:
 
 .. code-block:: shell
 

@@ -14,10 +14,6 @@ option('systemd-user-unit-dir',
        type: 'string',
        value: '',
        description: 'directory for systemd user service files (default: PREFIX/lib/systemd/user)')
-option('libportal',
-       type: 'feature',
-       value: 'auto',
-       description: 'Enable libportal support. Needed for tests')
 option('geoclue',
        type: 'feature',
        value: 'auto',
