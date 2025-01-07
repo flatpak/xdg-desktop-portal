@@ -3,20 +3,37 @@ xdg-desktop-portal test suite
 
 ## Environment
 
-Some relevant environment variables that can be set during testing,
-but should not normally be set on production systems:
+Some environment variables need to be set for the integration tests to function
+properly and the harness will refuse to launch if they are not set. If the
+harness is executed by meson, they will be set automatically.
 
-* `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
-    (default: discovered at build-time)
+* `XDG_DESKTOP_PORTAL_PATH`: The path to the xdg-desktop-portal binary
 
-* `LIBEXECDIR`: If set, look for the x-d-p executable in this directory
+* `XDG_PERMISSION_STORE_PATH`: The path to the xdg-permission-store binary
 
-* `XDP_TEST_IN_CI`: If set (to any value), some tests that are not always
-    reliable are skipped.
+* `XDG_DOCUMENT_PORTAL_PATH`: The path to the xdg-document-portal binary
+
+* `XDP_VALIDATE_ICON`: The path to the xdg-desktop-portal-validate-icon binary
+
+* `XDP_VALIDATE_SOUND`: The path to the xdg-desktop-portal-validate-sound binary
+
+* `XDP_VALIDATE_AUTO`: If set, automatically discovers the icon and sound
+    validators (only useful for installed tests) instead of using
+    `XDP_VALIDATE_ICON` and `XDP_VALIDATE_SOUND`.
+
+Some optional environment variables that can be set to influence how the test
+harness behaves.
+
+* `XDP_TEST_IN_CI`: If set (to any value), some unreliable tests might get
+    skipped and some tests might run less iterations or otherwise test less
+    thoroughly.
     Set this for automated QA testing, leave it unset during development.
 
 * `XDP_TEST_RUN_LONG`: If set (to any value), some tests will run more
-    iterations or otherwise test more thoroughly.
+    iterations or otherwise test more thoroughly
+
+* `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
+    (default: discovered at build-time)
 
 * `XDP_VALIDATE_ICON_INSECURE`: If set (to any value), x-d-p doesn't
     sandbox the icon validator using **bwrap**(1), even if sandboxed
@@ -29,28 +46,29 @@ but should not normally be set on production systems:
 * `XDP_VALIDATE_SOUND_INSECURE`: Same as `XDP_VALIDATE_ICON_INSECURE`,
     but for sounds
 
-### Used automatically
+Some optional environment variables that can be set to help with debugging.
 
-These environment variables are set automatically and shouldn't need to be
-changed, but developers improving the test suite might need to be aware
-of them:
+* `XDP_DBUS_MONITOR`: If set, starts dbus-monitor on the test dbus server
+* `XDP_DBUS_TIMEOUT`: Maximum timeout for dbus calls in ms (default: 5s)
 
-* `XDG_DESKTOP_PORTAL_DIR`: If set, it will be used instead of the
-    compile-time path (normally `/usr/share/xdg-desktop-portal/portals`)
-
-* `XDP_UNINSTALLED`: Set to 1 when running build-time tests on a version
-    of x-d-p that has not yet been installed. Leave unset when running
-    "as-installed" tests on the system copy of x-d-p.
-
-* `XDP_VALIDATE_ICON`: Path to `x-d-p-validate-icon` executable in the
-    build directory
-
-* `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
-    build directory
+Internal environment variables the tests use via pytest fixtures to set up the
+environment they need.
 
 * `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, the portal will use a host
     XdpAppInfo with the app id set to the variable. This is used to get a
     predictable app id for tests.
 
 * `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
-    portal testing.
+    portal testing
+
+## Adding new tests
+
+Make sure the required portals are listed in
+`xdg_desktop_portal_dir_default_files` in `conftest.py`.
+
+Add a `test_${name}.py` file to this directory and add the file to
+`meson.build`.
+
+If the portal that is being tested requires a backend implementation, add
+it to the `templates` directory and add the file to `meson.build`. See the
+dbusmock documentation for details on those templates.
