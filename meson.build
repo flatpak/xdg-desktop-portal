@@ -118,18 +118,6 @@ geoclue_dep = dependency(
   version: '>= 2.5.2',
   required: get_option('geoclue'),
 )
-libportal_dep = dependency(
-  'libportal',
-  version: '>= 0.9.0',
-  required: get_option('libportal'),
-  fallback: ['libportal', 'libportal_dep'],
-  default_options: [
-    'introspection=false',
-    'vapi=false',
-    'docs=false',
-    'tests=false',
-  ],
-)
 pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
@@ -158,11 +146,6 @@ if not bwrap.found()
     By proceeding with sandboxed image and sound validation disabled, you acknowledge that you
     are lowering your system's security, and are subject to known or unknown exploits.
     ''')
-endif
-
-have_libportal = libportal_dep.found()
-if have_libportal
-  config_h.set('HAVE_LIBPORTAL', 1)
 endif
 
 have_geoclue = geoclue_dep.found()
@@ -237,7 +220,6 @@ summary({
     'Enable documentation': build_documentation,
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
-    'Enable libportal support': have_libportal,
     'Enable gudev support': have_gudev,
     'Enable installed tests:': enable_installed_tests,
     'Enable python test suite': enable_pytest,
