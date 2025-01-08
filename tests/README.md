@@ -49,7 +49,17 @@ harness behaves.
 Some optional environment variables that can be set to help with debugging.
 
 * `XDP_DBUS_MONITOR`: If set, starts dbus-monitor on the test dbus server
+
 * `XDP_DBUS_TIMEOUT`: Maximum timeout for dbus calls in ms (default: 5s)
+
+* `XDG_DESKTOP_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-desktop-portal wait for
+    a debugger to attach by raising SIGSTOP
+
+* `XDG_DOCUMENT_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-document-portal wait
+    for a debugger to attach by raising SIGSTOP
+
+* `XDG_PERMISSION_STORE_WAIT_FOR_DEBUGGER`: Makes xdg-permission-store wait
+    for a debugger to attach by raising SIGSTOP
 
 Internal environment variables the tests use via pytest fixtures to set up the
 environment they need.
