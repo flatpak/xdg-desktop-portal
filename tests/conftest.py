@@ -476,6 +476,11 @@ def xdg_desktop_portal(
     xdg_desktop_portal = subprocess.Popen([xdg_desktop_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+        returncode = xdg_desktop_portal.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-desktop-portal exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield xdg_desktop_portal
@@ -501,6 +506,11 @@ def xdg_permission_store(
     permission_store = subprocess.Popen([xdg_permission_store_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
+        returncode = permission_store.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-permission-store exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield permission_store
@@ -530,6 +540,11 @@ def xdg_document_portal(
     document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Documents"):
+        returncode = document_portal.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-document-portal exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield document_portal
