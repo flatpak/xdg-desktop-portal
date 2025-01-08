@@ -283,14 +283,12 @@ global_setup (void)
                                           NULL);
 
   portal_dir = g_test_build_filename (G_TEST_BUILT, "portals", "test", NULL);
-  web_extensions_dir = g_test_build_filename (G_TEST_BUILT, "native-messaging-hosts", NULL);
 
   g_clear_object (&launcher);
   launcher = g_subprocess_launcher_new (G_SUBPROCESS_FLAGS_NONE);
   g_subprocess_launcher_setenv (launcher, "G_DEBUG", "fatal-criticals", TRUE);
   g_subprocess_launcher_setenv (launcher, "DBUS_SESSION_BUS_ADDRESS", g_test_dbus_get_bus_address (dbus), TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_DIR", portal_dir, TRUE);
-  g_subprocess_launcher_setenv (launcher, "XDG_DESKTOP_PORTAL_WEB_EXTENSIONS_PATH", web_extensions_dir, TRUE);
   g_subprocess_launcher_setenv (launcher, "XDG_DATA_HOME", outdir, TRUE);
   g_subprocess_launcher_setenv (launcher, "PATH", g_getenv ("PATH"), TRUE);
   g_subprocess_launcher_take_stdout_fd (launcher, xdup (STDERR_FILENO));
@@ -598,8 +596,6 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/category", test_notification_category);
   g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
 
-  g_test_add_func ("/portal/webextensions/basic", test_web_extensions_basic);
-  g_test_add_func ("/portal/webextensions/bad-name", test_web_extensions_bad_name);
 #endif
 
   global_setup ();
