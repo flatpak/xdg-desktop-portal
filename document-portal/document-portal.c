@@ -1719,6 +1719,21 @@ main (int    argc,
   g_autoptr(GOptionContext) context = NULL;
   GDBusMethodInvocation *invocation;
 
+  if (g_getenv ("XDG_DOCUMENT_PORTAL_WAIT_FOR_DEBUGGER") != NULL)
+    {
+      g_printerr ("document portal (PID %d) is waiting for a debugger. "
+                  "Use `gdb -p %d` to connect. \n",
+                  getpid (), getpid ());
+
+      if (raise (SIGSTOP) == -1)
+        {
+          g_printerr ("Failed waiting for debugger\n");
+          exit (1);
+        }
+
+      raise (SIGCONT);
+    }
+
   g_log_writer_default_set_use_stderr (TRUE);
 
   setlocale (LC_ALL, "");
