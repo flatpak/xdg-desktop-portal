@@ -542,7 +542,7 @@ def xdg_document_portal(
     # FUSE and LD_PRELOAD don't like each other. Not sure what exactly is going
     # wrong but it usually just results in a weird hang that needs SIGKILL
     env = xdp_env.copy()
-    del env["LD_PRELOAD"]
+    env.pop("LD_PRELOAD", None)
 
     document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
 
