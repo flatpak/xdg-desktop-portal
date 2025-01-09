@@ -331,6 +331,9 @@ load_installed_portals (gboolean opt_verbose)
   if (dir_set_from_env)
     return;
 
+  g_autofree char * user_portal_dir = g_build_filename (g_get_user_data_dir (), "xdg-desktop-portal", "portals", NULL);
+  load_installed_portals_dir(opt_verbose, user_portal_dir);
+
   const char * const *dirs = g_get_system_data_dirs ();
 
   for (iter = dirs; iter != NULL && *iter != NULL; iter++)
