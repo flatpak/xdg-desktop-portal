@@ -270,8 +270,7 @@ sort_impl_by_use_in_and_name (gconstpointer a,
 }
 
 void
-load_installed_portals_dir (gboolean    opt_verbose,
-                        const char *portal_dir)
+load_installed_portals_dir (gboolean opt_verbose, const char *portal_dir)
 {
   g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFile) dir = NULL;
@@ -327,13 +326,13 @@ load_installed_portals (gboolean opt_verbose)
   if (portal_dir == NULL)
     portal_dir = DATADIR "/xdg-desktop-portal/portals";
 
-  load_installed_portals_dir(opt_verbose, portal_dir);
+  load_installed_portals_dir (opt_verbose, portal_dir);
 
-  if(dir_set_from_env)
+  if (dir_set_from_env)
     return;
-  
+
   const char * const *dirs = g_get_system_data_dirs ();
-  
+
   for (iter = dirs; iter != NULL && *iter != NULL; iter++)
     {
       g_autofree char *dir = g_build_filename (*iter, "xdg-desktop-portal", "portals", NULL);
