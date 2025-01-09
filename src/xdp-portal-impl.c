@@ -26,6 +26,7 @@
 #include "xdp-portal-impl.h"
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <glib.h>
@@ -269,16 +270,11 @@ sort_impl_by_use_in_and_name (gconstpointer a,
 }
 
 void
-load_installed_portals (gboolean opt_verbose)
+load_installed_portals_dir (gboolean    opt_verbose,
+                        const char *portal_dir)
 {
   g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFile) dir = NULL;
-  const char *portal_dir;
-
-  /* We need to override this in the tests */
-  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
-  if (portal_dir == NULL)
-    portal_dir = DATADIR "/xdg-desktop-portal/portals";
 
   g_debug ("load portals from %s", portal_dir);
 
@@ -317,6 +313,32 @@ load_installed_portals (gboolean opt_verbose)
     }
 
   implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
+}
+
+void
+load_installed_portals (gboolean opt_verbose)
+{
+  const char * const *iter;
+  const char *portal_dir;
+
+  /* We need to override this in the tests */
+  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
+  bool dir_set_from_env = (portal_dir == NULL);
+  if (portal_dir == NULL)
+    portal_dir = DATADIR "/xdg-desktop-portal/portals";
+
+  load_installed_portals_dir(opt_verbose, portal_dir);
+
+  if(dir_set_from_env)
+    return;
+  
+  const char * const *dirs = g_get_system_data_dirs ();
+  
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = g_build_filename (*iter, "xdg-desktop-portal", "portals", NULL);
+      load_installed_portals_dir(opt_verbose, dir);
+    }
 }
 
 static PortalConfig *
