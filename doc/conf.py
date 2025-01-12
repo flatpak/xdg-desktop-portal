@@ -37,3 +37,5 @@ html_logo = "img/logo.svg"
 
 ogp_site_url = "https://flatpak.github.io/xdg-desktop-portal/docs/"
 ogp_image = "_static/card.png"
+
+html_permalinks_icon = "🔗"
