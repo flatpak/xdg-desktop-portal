@@ -341,8 +341,6 @@ footer {
   font-weight: 800;
 }
 
-.headerlink { visibility: hidden !important; }
-
 .sidebar-search-container,
 .sidebar-search {
 	border-radius: 99999px;
@@ -407,7 +405,7 @@ footer {
 
 .sidebar-tree li.toctree-l3 a {
   margin: 1px 0;
-  padding: var(--sidebar-item-spacing-vertical) var(--sidebar-item-spacing-horizontal) 
+  padding: var(--sidebar-item-spacing-vertical) var(--sidebar-item-spacing-horizontal)
            var(--sidebar-item-spacing-vertical) calc(2*var(--sidebar-item-spacing-horizontal)) ; /* extra indentation */
 }
 
