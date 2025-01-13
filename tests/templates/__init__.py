@@ -145,9 +145,11 @@ class ImplSession:
         mock: dbusmock.DBusMockObject,
         busname: str,
         handle: str,
+        app_id: str,
     ):
         self.mock = mock  # the main mock object
         self.handle = handle
+        self.app_id = app_id
         self.closed = False
         self._close_callback: Optional[Callable] = None
 

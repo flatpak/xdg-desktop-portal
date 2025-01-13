@@ -49,7 +49,7 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
     try:
         logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
 
-        session = ImplSession(self, BUS_NAME, session_handle).export()
+        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
         self.sessions[session_handle] = session
 
         response = Response(self.response, {"session_handle": session.handle})
