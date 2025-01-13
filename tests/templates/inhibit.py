@@ -116,7 +116,7 @@ def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_e
     try:
         logger.debug(f"CreateMonitor({handle}, {session_handle}, {app_id}, {window})")
 
-        session = ImplSession(self, BUS_NAME, session_handle).export()
+        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
         self.sessions[session_handle] = session
 
         def closed_callback():

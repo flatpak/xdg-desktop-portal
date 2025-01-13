@@ -147,18 +147,23 @@ def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interf
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
 
-def portal_interface_name(portal_name) -> str:
+def portal_interface_name(portal_name, domain: Optional[str] = None) -> str:
     """
     Returns the fully qualified interface for a portal name.
     """
-    return f"org.freedesktop.portal.{portal_name}"
+    if domain:
+        return f"org.freedesktop.{domain}.portal.{portal_name}"
+    else:
+        return f"org.freedesktop.portal.{portal_name}"
 
 
-def get_portal_iface(bus: dbus.Bus, name: str) -> dbus.Interface:
+def get_portal_iface(
+    bus: dbus.Bus, name: str, domain: Optional[str] = None
+) -> dbus.Interface:
     """
     Returns the dbus interface for a portal name.
     """
-    name = portal_interface_name(name)
+    name = portal_interface_name(name, domain)
     return get_iface(bus, name)
 
 
