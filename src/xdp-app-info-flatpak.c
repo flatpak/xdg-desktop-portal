@@ -639,27 +639,13 @@ get_bwrap_pidfd (const char  *instance,
   return g_steal_fd (&fd);
 }
 
-XdpAppInfo *
-xdp_app_info_flatpak_new (int      pid,
-                          int      pidfd,
-                          GError **error)
+static int
+open_flatpak_info (int      pid,
+                   GError **error)
 {
-  g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
   g_autofree char *root_path = NULL;
   g_autofd int root_fd = -1;
   g_autofd int info_fd = -1;
-  struct stat stat_buf;
-  g_autoptr(GError) local_error = NULL;
-  g_autoptr(GMappedFile) mapped = NULL;
-  g_autoptr(GKeyFile) metadata = NULL;
-  const char *group;
-  g_autofree char *id = NULL;
-  g_autofree char *instance = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-  g_auto(GStrv) shared = NULL;
-  gboolean has_network;
-  g_autofd int bwrap_pidfd = -1;
 
   root_path = g_strdup_printf ("/proc/%u/root", pid);
   root_fd = openat (AT_FDCWD, root_path, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
@@ -679,7 +665,7 @@ xdp_app_info_flatpak_new (int      pid,
             {
               g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
                            "Not a flatpak (fuse rootfs)");
-              return NULL;
+              return -1;
             }
         }
 
@@ -688,10 +674,8 @@ xdp_app_info_flatpak_new (int      pid,
          of treating this as privileged. */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open %s", root_path);
-      return NULL;
+      return -1;
     }
-
-  metadata = g_key_file_new ();
 
   info_fd = openat (root_fd, ".flatpak-info", O_RDONLY | O_CLOEXEC | O_NOCTTY);
   if (info_fd == -1)
@@ -701,14 +685,61 @@ xdp_app_info_flatpak_new (int      pid,
           /* No file => on the host, return success */
           g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
                        "Not a flatpak (no .flatpak-info)");
-          return NULL;
+          return -1;
         }
 
       /* Some weird error => failure */
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Unable to open application info file");
-      return NULL;
+      return -1;
     }
+
+  return g_steal_fd (&info_fd);
+}
+
+gboolean
+xdp_is_flatpak (int        pid,
+                gboolean  *is_flatpak,
+                GError   **error)
+{
+  g_autoptr(GError) local_error = NULL;
+  g_autofd int info_fd = -1;
+
+  info_fd = open_flatpak_info (pid, &local_error);
+  if (info_fd == -1 && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+    {
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return FALSE;
+    }
+
+  *is_flatpak = info_fd != -1;
+  return TRUE;
+}
+
+XdpAppInfo *
+xdp_app_info_flatpak_new (int      pid,
+                          int      pidfd,
+                          GError **error)
+{
+  g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
+  g_autofd int info_fd = -1;
+  struct stat stat_buf;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GMappedFile) mapped = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+  const char *group;
+  g_autofree char *id = NULL;
+  g_autofree char *instance = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_auto(GStrv) shared = NULL;
+  gboolean has_network;
+  g_autofd int bwrap_pidfd = -1;
+
+  info_fd = open_flatpak_info (pid, error);
+  if (info_fd == -1)
+    return NULL;
 
   if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
     {
@@ -725,6 +756,8 @@ xdp_app_info_flatpak_new (int      pid,
                    "Can't map .flatpak-info file: %s", local_error->message);
       return NULL;
     }
+
+  metadata = g_key_file_new ();
 
   if (!g_key_file_load_from_data (metadata,
                                   g_mapped_file_get_contents (mapped),
