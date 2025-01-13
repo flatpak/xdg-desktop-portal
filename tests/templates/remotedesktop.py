@@ -3,6 +3,7 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest, ImplSession
+from dbusmock import MOCK_IFACE
 import dbus
 import dbus.service
 import socket
@@ -183,3 +184,11 @@ def ConnectToEIS(self, session_handle, app_id, options):
     except Exception as e:
         logger.critical(e)
         raise e
+
+
+@dbus.service.method(MOCK_IFACE, in_signature="s", out_signature="s")
+def GetSessionAppId(self, session_handle):
+    logger.debug(f"GetSessionAppId({session_handle})")
+
+    assert session_handle in self.sessions
+    return self.sessions[session_handle].app_id

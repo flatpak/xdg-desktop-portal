@@ -312,6 +312,7 @@ if enable_pytest
     'test_openuri.py',
     'test_permission_store.py',
     'test_print.py',
+    'test_registry.py',
     'test_remotedesktop.py',
     'test_settings.py',
     'test_screenshot.py',
