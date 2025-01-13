@@ -140,7 +140,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
