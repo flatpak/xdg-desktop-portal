@@ -7,3 +7,4 @@ src/screenshot.c
 src/settings.c
 src/usb.c
 src/wallpaper.c
+src/web-extensions.c
