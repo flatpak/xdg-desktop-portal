@@ -742,7 +742,7 @@ on_peer_died (const char *name)
 }
 
 static XdpAppInfo *
-xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
+xdp_connection_create_app_info_sync (GDBusConnection  *connection,
                                      const char       *sender,
                                      GCancellable     *cancellable,
                                      GError          **error)
@@ -753,10 +753,6 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
   const char *test_override_app_id;
   const char *test_override_usb_queries;
   g_autoptr(GError) local_error = NULL;
-
-  app_info = cache_lookup_app_info_by_sender (sender);
-  if (app_info)
-    return g_steal_pointer (&app_info);
 
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
@@ -804,12 +800,20 @@ xdp_connection_lookup_app_info_sync (GDBusConnection  *connection,
 }
 
 XdpAppInfo *
-xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
+xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                      GCancellable           *cancellable,
                                      GError                **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autoptr(XdpAppInfo) app_info = NULL;
 
-  return xdp_connection_lookup_app_info_sync (connection, sender, cancellable, error);
+  app_info = cache_lookup_app_info_by_sender (sender);
+  if (app_info)
+    return g_steal_pointer (&app_info);
+
+  return xdp_connection_create_app_info_sync (connection,
+                                              sender,
+                                              cancellable,
+                                              error);
 }
