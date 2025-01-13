@@ -712,6 +712,19 @@ cache_lookup_app_info_by_sender (const char *sender)
   return app_info;
 }
 
+static gboolean
+cache_has_app_info_by_sender (const char *sender)
+{
+  gboolean has_app_info = FALSE;
+
+  G_LOCK (app_infos);
+  if (app_info_by_unique_name)
+    has_app_info = !!g_hash_table_lookup (app_info_by_unique_name, sender);
+  G_UNLOCK (app_infos);
+
+  return has_app_info;
+}
+
 static void
 ensure_app_info_by_unique_name (void)
 {
@@ -753,6 +766,21 @@ maybe_create_test_app_info (void)
 
   test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
   return xdp_app_info_test_new (test_override_app_id,
+                                test_override_usb_queries);
+}
+
+static XdpAppInfo *
+maybe_create_registered_test_app_info (const char *registered_app_id)
+{
+  const char *test_override_app_id;
+  const char *test_override_usb_queries;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (!test_override_app_id)
+    return NULL;
+
+  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
+  return xdp_app_info_test_new (registered_app_id,
                                 test_override_usb_queries);
 }
 
@@ -806,6 +834,58 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   return g_steal_pointer (&app_info);
 }
 
+static XdpAppInfo *
+xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
+                                          const char       *sender,
+                                          const char       *app_id,
+                                          GCancellable     *cancellable,
+                                          GError          **error)
+{
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autofd int pidfd = -1;
+  uint32_t pid;
+
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+    return NULL;
+
+  app_info = maybe_create_registered_test_app_info (app_id);
+
+  if (!app_info)
+    {
+      gboolean is_sandboxed = FALSE;
+
+      if (!xdp_is_flatpak (pid, &is_sandboxed, error))
+        return NULL;
+
+      if (is_sandboxed)
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "Can't manually register a flatpak application");
+          return NULL;
+        }
+
+      if (!xdp_is_snap (pid, &is_sandboxed, error))
+        return NULL;
+
+      if (is_sandboxed)
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "Can't manually register a snap application");
+          return NULL;
+        }
+
+      app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      if (!app_info)
+        return NULL;
+    }
+
+  cache_insert_app_info (sender, app_info);
+
+  xdp_connection_track_name_owners (connection, on_peer_died);
+
+  return g_steal_pointer (&app_info);
+}
+
 XdpAppInfo *
 xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                      GCancellable           *cancellable,
@@ -823,4 +903,27 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                               sender,
                                               cancellable,
                                               error);
+}
+
+XdpAppInfo *
+xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
+                                            const char             *app_id,
+                                            GCancellable           *cancellable,
+                                            GError                **error)
+{
+  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
+
+  if (cache_has_app_info_by_sender (sender))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Connection already associated with an application ID");
+      return NULL;
+    }
+
+  return xdp_connection_create_host_app_info_sync (connection,
+                                                   sender,
+                                                   app_id,
+                                                   cancellable,
+                                                   error);
 }
