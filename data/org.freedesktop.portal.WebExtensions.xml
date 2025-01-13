@@ -76,6 +76,7 @@
         </variablelist>
     -->
     <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="session_handle" direction="out"/>
     </method>
@@ -127,6 +128,7 @@
       <arg type="o" name="session_handle" direction="in"/>
       <arg type="s" name="name" direction="in"/>
       <arg type="s" name="extension_or_origin" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
@@ -145,6 +147,7 @@
     <method name="GetPipes">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
       <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="h" name="stdin" direction="out"/>
       <arg type="h" name="stdout" direction="out"/>
