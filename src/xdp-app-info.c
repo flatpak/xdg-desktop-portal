@@ -742,6 +742,21 @@ on_peer_died (const char *name)
 }
 
 static XdpAppInfo *
+maybe_create_test_app_info (void)
+{
+  const char *test_override_app_id;
+  const char *test_override_usb_queries;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (!test_override_app_id)
+    return NULL;
+
+  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
+  return xdp_app_info_test_new (test_override_app_id,
+                                test_override_usb_queries);
+}
+
+static XdpAppInfo *
 xdp_connection_create_app_info_sync (GDBusConnection  *connection,
                                      const char       *sender,
                                      GCancellable     *cancellable,
@@ -750,20 +765,12 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autofd int pidfd = -1;
   uint32_t pid;
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
   g_autoptr(GError) local_error = NULL;
 
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  if (test_override_app_id)
-    {
-      app_info = xdp_app_info_test_new (test_override_app_id,
-                                        test_override_usb_queries);
-    }
+  app_info = maybe_create_test_app_info ();
 
   if (app_info == NULL)
     app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
