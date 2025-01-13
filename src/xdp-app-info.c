@@ -805,7 +805,7 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                      GError                **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(XdpAppInfo) app_info = NULL;
 
   app_info = cache_lookup_app_info_by_sender (sender);
