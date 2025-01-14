@@ -794,14 +794,21 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   g_autofd int pidfd = -1;
   uint32_t pid;
   g_autoptr(GError) local_error = NULL;
+  const char *app_info_kind = NULL;
 
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
   app_info = maybe_create_test_app_info ();
+  if (app_info)
+    app_info_kind = "test";
 
   if (app_info == NULL)
-    app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+    {
+      app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+      if (app_info)
+        app_info_kind = "flatpak";
+    }
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -812,7 +819,11 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+    {
+      app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+      if (app_info)
+        app_info_kind = "snap";
+    }
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -823,9 +834,14 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_host_new (pid, pidfd);
+    {
+      app_info = xdp_app_info_host_new (pid, pidfd);
+      app_info_kind = "derived host";
+    }
 
   g_return_val_if_fail (app_info != NULL, NULL);
+
+  g_debug ("Adding %s app '%s'", app_info_kind, xdp_app_info_get_id (app_info));
 
   cache_insert_app_info (sender, app_info);
 
@@ -878,6 +894,8 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
       if (!app_info)
         return NULL;
     }
+
+  g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));
 
   cache_insert_app_info (sender, app_info);
 
