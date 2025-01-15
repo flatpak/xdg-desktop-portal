@@ -98,3 +98,33 @@ class TestRegistry:
 
         new_app_id = mock_intf.GetSessionAppId(new_session.handle)
         assert new_app_id == expected_app_id
+
+    def test_multiple_connections(self, portals, dbus_con, app_id):
+        registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        expected_app_id = "org.example.CorrectAppId"
+        unexpected_app_id = app_id
+
+        registry_intf.Register(expected_app_id, {})
+        session = self.create_dummy_session(dbus_con)
+        app_id = mock_intf.GetSessionAppId(session.handle)
+        assert app_id == expected_app_id
+
+        dbus_con2 = dbus.bus.BusConnection(dbus.bus.BusConnection.TYPE_SESSION)
+        dbus_con2.set_exit_on_disconnect(False)
+        mock_intf2 = xdp.get_mock_iface(dbus_con2)
+        session2 = self.create_dummy_session(dbus_con2)
+        app_id2 = mock_intf2.GetSessionAppId(session2.handle)
+        assert app_id2 == unexpected_app_id
+        dbus_con2.close()
+
+        dbus_con3 = dbus.bus.BusConnection(dbus.bus.BusConnection.TYPE_SESSION)
+        dbus_con3.set_exit_on_disconnect(False)
+        mock_intf3 = xdp.get_mock_iface(dbus_con3)
+        registry_intf3 = xdp.get_portal_iface(dbus_con3, "Registry", domain="host")
+        registry_intf3.Register(expected_app_id, {})
+        session3 = self.create_dummy_session(dbus_con3)
+        app_id3 = mock_intf3.GetSessionAppId(session3.handle)
+        assert app_id3 == expected_app_id
+        dbus_con3.close()
