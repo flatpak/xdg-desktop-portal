@@ -76,11 +76,7 @@ handle_access_camera_in_thread_func (GTask *task,
   const char *app_id;
   gboolean allowed;
 
-  if (xdp_app_info_is_host (request->app_info))
-    app_id = "";
-  else
-    app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
-
+  app_id = (const char *)g_object_get_data (G_OBJECT (request), "app-id");
   allowed = device_query_permission_sync (app_id, "camera", request);
 
   REQUEST_AUTOLOCK (request);
@@ -100,6 +96,16 @@ handle_access_camera_in_thread_func (GTask *task,
                                       g_variant_builder_end (&results));
       request_unexport (request);
     }
+}
+
+static const char *
+app_id_from_app_info (XdpAppInfo *app_info)
+{
+  /* Automatically grant camera access to unsandboxed apps. */
+  if (xdp_app_info_is_host (app_info))
+    return "";
+
+  return xdp_app_info_get_id (app_info);
 }
 
 static gboolean
@@ -123,9 +129,7 @@ handle_access_camera (XdpDbusCamera *object,
 
   REQUEST_AUTOLOCK (request);
 
-  app_id = xdp_app_info_get_id (request->app_info);
-
-
+  app_id = app_id_from_app_info (request->app_info);
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (app_id), g_free);
 
   request_export (request, g_dbus_method_invocation_get_connection (invocation));
@@ -200,7 +204,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
     }
 
   app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
-  app_id = xdp_app_info_get_id (app_info);
+  app_id = app_id_from_app_info (app_info);
   permission = device_get_permission_sync (app_id, "camera");
   if (permission != PERMISSION_YES)
     {
