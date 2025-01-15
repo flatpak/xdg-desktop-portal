@@ -260,3 +260,70 @@ xdp_get_real_path_for_doc_id (const char *doc_id)
 
   return real_path;
 }
+
+/* Get the document id from the path, if there's any.
+ * Returns TRUE when path seems to point to the documents
+ * storage. Also returns the guessed doc id and suffix path
+ * without the dir name immediately following the doc id.
+ */
+static gboolean
+xdp_looks_like_document_portal_path (const char  *path,
+                                     char       **docid_out,
+                                     char       **suffix_path_out)
+{
+  g_autofree char *docid = NULL;
+  g_autofree char *suffix_path = NULL;
+  char *p, *q;
+
+  if (!g_str_has_prefix (path, g_get_user_runtime_dir ()))
+    return FALSE;
+
+  p = strstr (path, "/doc/");
+  if (!p)
+    return FALSE;
+
+  p += strlen ("/doc/");
+  q = strchr (p, '/');
+
+  if (q)
+    {
+      docid = g_strndup (p, q - p);
+
+      /* The mapping from doc path to the host path already provides the dir name,
+       * so we can omit it from the subpath.
+       */
+      q = strchr (++q, '/');
+      if (q)
+        suffix_path = g_strdup (q);
+    }
+  else
+    {
+      docid = g_strdup (p);
+    }
+
+  if (docid[0] == '\0')
+    return FALSE;
+
+  if (docid_out)
+    *docid_out = g_steal_pointer (&docid);
+  if (suffix_path_out)
+    *suffix_path_out = g_steal_pointer (&suffix_path);
+  return TRUE;
+}
+
+char *
+xdp_resolve_document_portal_path (const char *path)
+{
+  g_autofree char *docid = NULL;
+  g_autofree char *suffix_path = NULL;
+  g_autofree char *host_path = NULL;
+
+  if (!xdp_looks_like_document_portal_path (path, &docid, &suffix_path))
+    return g_strdup (path);
+
+  host_path = xdp_get_real_path_for_doc_id (docid);
+  if (!host_path)
+    return g_strdup (path);
+
+  return g_strconcat (host_path, suffix_path, NULL);
+}
