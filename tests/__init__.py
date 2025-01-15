@@ -147,7 +147,7 @@ def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interf
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
 
-def portal_interface_name(portal_name, domain: Optional[str] = None) -> str:
+def portal_interface_name(portal_name: str, domain: Optional[str] = None) -> str:
     """
     Returns the fully qualified interface for a portal name.
     """
