@@ -3,6 +3,7 @@
 # This file is formatted with Python Black
 
 import tests.xdp_utils as xdp
+import tests.xdp_doc_utils as xdp_doc
 
 import dbus
 import pytest
@@ -32,16 +33,31 @@ Categories=Network;WebBrowser;
 Keywords=web;browser;internet;
 """
 
+furrfix_desktop2 = b"""[Desktop Entry]
+Version=1.0
+Name=Furrfix2
+GenericName=Not a Web Browser 2
+Comment=Don't Browse the Web
+Exec=true %u
+Icon=furrfix2
+Terminal=false
+Type=Application
+MimeType=text/plain;text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/xdg-desktop-portal-test;
+StartupNotify=true
+Categories=Network;WebBrowser;
+Keywords=web;browser;internet;
+"""
+
 mimeinfo_cache = b"""[MIME Cache]
-application/vnd.mozilla.xul+xml=furrfix.desktop;
-application/xhtml+xml=furrfix.desktop;
-text/plain=furrfix.desktop;
-text/html=furrfix.desktop;
-text/mml=furrfix.desktop;
-text/xml=furrfix.desktop;
-x-scheme-handler/http=furrfix.desktop;
-x-scheme-handler/https=furrfix.desktop;
-x-scheme-handler/xdg-desktop-portal-test=furrfix.desktop;
+application/vnd.mozilla.xul+xml=furrfix.desktop;furrfix2.desktop;
+application/xhtml+xml=furrfix.desktop;furrfix2.desktop;
+text/plain=furrfix.desktop;furrfix2.desktop;
+text/html=furrfix.desktop;furrfix2.desktop;
+text/mml=furrfix.desktop;furrfix2.desktop;
+text/xml=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/http=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/https=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/xdg-desktop-portal-test=furrfix.desktop;furrfix2.desktop;
 """
 
 
@@ -50,6 +66,7 @@ def xdg_data_home_files():
     return {
         "applications/defaults.list": defaults_list,
         "applications/furrfix.desktop": furrfix_desktop,
+        "applications/furrfix2.desktop": furrfix_desktop,
         "applications/mimeinfo.cache": mimeinfo_cache,
     }
 
@@ -350,3 +367,70 @@ class TestOpenURI:
             excinfo.value.get_dbus_name()
             == "org.freedesktop.portal.Error.InvalidArgument"
         )
+
+    # tests mapping from
+    # /run/user/1000/doc/_id_/openuri-test -> /home/user/openuri-test
+    @pytest.mark.parametrize(
+        "path", ("file.html", "dir/file.html", "dir/subdir/file.html")
+    )
+    def test_openfile_opens_host_path(
+        self, xdg_document_portal, portals, dbus_con, app_id, path
+    ):
+        openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = xdp_doc.get_mountpoint(documents_intf)
+
+        # create directory in host which will be added to document portal
+        export_path = Path.home() / "openuri-test"
+        export_path.mkdir(parents=True)
+        doc_ids = xdp_doc.export_files(
+            documents_intf,
+            [export_path],
+            ["read", "write"],
+            flags=xdp_doc.EXPORT_FILES_FLAG_EXPORT_DIR,
+        )
+        assert doc_ids
+        doc_id = doc_ids[0][0]
+        assert doc_id
+
+        # create file in the directory which was added to document directory
+        file_host_path = export_path / path
+        file_doc_path = mountpoint / doc_id / "openuri-test" / path
+
+        file_host_path.parent.mkdir(parents=True, exist_ok=True)
+        file_host_path.write_bytes(b"openuri_mock_file_content")
+
+        # Call OpenFile by using fd
+        with open(file_doc_path) as f:
+            fd = f.fileno()
+            assert fd
+            activation_token = "token"
+            request = xdp.Request(dbus_con, openuri_intf)
+            options = {
+                "writable": False,
+                "activation_token": activation_token,
+            }
+
+            response = request.call(
+                "OpenFile",
+                parent_window="",
+                fd=fd,
+                options=options,
+            )
+            assert response
+            assert response.response == 0
+
+        # Check the impl portal was called with the right args
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("ChooseApplication")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[1] == app_id
+        assert args[2] == ""  # parent window
+        assert "furrfix" in args[3]
+
+        assert args[4]["activation_token"] == activation_token
+
+        path = args[4]["uri"]
+        assert path == "file://" + file_host_path.absolute().as_posix()
+        assert file_doc_path != file_host_path.absolute().as_posix()

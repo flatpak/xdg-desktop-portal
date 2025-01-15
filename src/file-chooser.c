@@ -155,53 +155,6 @@ out:
   g_task_return_boolean (task, TRUE);
 }
 
-/* Calling Lookup on a nonexisting path does not work, so we
- * pull the doc id out of the path manually.
- */
-static gboolean
-looks_like_document_portal_path (const char *path,
-                                 char **guessed_docid)
-{
-  const char *prefix = "/run/user/";
-  char *docid;
-  char *p, *q;
-
-  if (!g_str_has_prefix (path, prefix))
-    return FALSE;
-
-  p = strstr (path, "/doc/");
-  if (!p)
-    return FALSE;
-
-  p += strlen ("/doc/");
-  q = strchr (p, '/');
-  if (q)
-    docid = g_strndup (p, q - p);
-  else
-    docid = g_strdup (p);
-
-  if (docid[0] == '\0')
-    {
-      g_free (docid);
-      return FALSE;
-    }
-
-  *guessed_docid = docid;
-  return TRUE;
-}
-
-static char *
-get_host_folder_for_doc_id (const char *doc_id)
-{
-  g_autofree char *real_path = xdp_get_real_path_for_doc_id (doc_id);
-  g_autofree char *host_folder = NULL;
-
-  if (real_path != NULL)
-    host_folder = g_path_get_dirname (real_path);
-
-  return g_steal_pointer (&host_folder);
-}
-
 static void
 open_file_done (GObject *source,
                 GAsyncResult *result,
@@ -547,26 +500,17 @@ handle_open_file (XdpDbusFileChooser *object,
     }
 
   {
-    g_autoptr(GVariant) value =
+    g_autoptr(GVariant) current_folder =
       g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
 
-    if (value)
+    if (current_folder)
       {
-        const char *path_from_app = g_variant_get_bytestring (value);
-        g_autofree char *host_path = g_strdup (path_from_app);
-        g_autofree char *doc_id_from_app = NULL;
-        if (looks_like_document_portal_path (host_path, &doc_id_from_app))
-          {
-            char *real_path = get_host_folder_for_doc_id (doc_id_from_app);
-            if (real_path)
-              {
-                g_free (host_path);
-                host_path = real_path;
-              }
-            g_debug ("OpenFile: translating current_folder value '%s' to host path '%s'", path_from_app, host_path);
-          }
+        const char *path_from_app = g_variant_get_bytestring (current_folder);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
+        g_autofree char *real_path = g_path_get_dirname (host_path);
+
         g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (host_path));
+                              g_variant_new_bytestring (real_path));
       }
   }
 
@@ -685,55 +629,31 @@ handle_save_file (XdpDbusFileChooser *object,
     }
 
   {
-    g_autoptr(GVariant) value = g_variant_lookup_value (arg_options,
-                                                        "current_file",
-                                                        G_VARIANT_TYPE_BYTESTRING);
+    g_autoptr(GVariant) current_file =
+      g_variant_lookup_value (arg_options, "current_file", G_VARIANT_TYPE_BYTESTRING);
 
-    if (value)
+    if (current_file)
       {
-        const char *path = g_variant_get_bytestring (value);
-        g_autofree char *host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
-        g_autofree char *doc_id = NULL;
+        const char *path_from_app = g_variant_get_bytestring (current_file);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
 
-        if (strcmp (path, host_path) == 0 &&
-            looks_like_document_portal_path (path, &doc_id))
-          {
-            char *real_path = xdp_get_real_path_for_doc_id (doc_id);
-
-            if (real_path)
-              {
-                g_free (host_path);
-                host_path = real_path;
-              }
-          }
-
-        g_debug ("SaveFile: translating current_file value '%s' to host path '%s'", path, host_path);
-
-        g_variant_builder_add (&options, "{sv}", "current_file", g_variant_new_bytestring (host_path));
+        g_variant_builder_add (&options, "{sv}", "current_file",
+                              g_variant_new_bytestring (host_path));
       }
   }
   {
-      g_autoptr(GVariant) value =
-        g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
+    g_autoptr(GVariant) current_folder =
+      g_variant_lookup_value (arg_options, "current_folder", G_VARIANT_TYPE_BYTESTRING);
 
-      if (value)
-        {
-          const char *path_from_app = g_variant_get_bytestring (value);
-          g_autofree char *host_path = g_strdup (path_from_app);
-          g_autofree char *doc_id_from_app = NULL;
-          if (looks_like_document_portal_path (host_path, &doc_id_from_app))
-            {
-              char *real_path = get_host_folder_for_doc_id (doc_id_from_app);
-              if (real_path)
-                {
-                  g_free (host_path);
-                  host_path = real_path;
-                }
-              g_debug ("SaveFile: translating current_folder value '%s' to host path '%s'", path_from_app, host_path);
-            }
-          g_variant_builder_add (&options, "{sv}", "current_folder",
-                                g_variant_new_bytestring (host_path));
-        }
+    if (current_folder)
+      {
+        const char *path_from_app = g_variant_get_bytestring (current_folder);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
+        g_autofree char *real_path = g_path_get_dirname (host_path);
+
+        g_variant_builder_add (&options, "{sv}", "current_folder",
+                              g_variant_new_bytestring (real_path));
+      }
   }
 
   impl_request =
