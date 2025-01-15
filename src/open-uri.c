@@ -682,19 +682,14 @@ handle_open_in_thread_func (GTask *task,
       g_autofree char *path = NULL;
       gboolean fd_is_writable;
       g_autoptr(GError) local_error = NULL;
-      g_autofree char *host_path = NULL;
 
       path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, &fd_is_writable, &local_error);
 
       if (path != NULL)
         {
-          host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
-          if (host_path)
-            {
-              g_debug ("OpenFile: translating path value '%s' to host path '%s'", path, host_path);
-              g_clear_pointer (&path, g_free);
-              path = g_steal_pointer (&host_path);
-            }
+          char *resolved_path = xdp_resolve_document_portal_path (path);
+          g_clear_pointer (&path, g_free);
+          path = g_steal_pointer (&resolved_path);
         }
 
       if (path == NULL ||
@@ -724,14 +719,17 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          g_autofree char *real_path = xdp_get_real_path_for_doc_path (path, request->app_info);
           /* Try opening the directory via the file manager interface, then
              fall back to a plain URI open */
           g_autoptr(GError) local_error = NULL;
           g_autoptr(GVariant) result = NULL;
           g_autoptr(GVariantBuilder) uris_builder = NULL;
-          g_autofree char* item_uri = g_filename_to_uri (real_path, NULL, NULL);
+          g_autofree char *item_uri = NULL;
           g_autoptr(GDBusConnection) bus = NULL;
+          g_autofree char *real_path = NULL;
+
+          real_path = xdp_resolve_document_portal_path (path);
+          item_uri = g_filename_to_uri (real_path, NULL, NULL);
 
           bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &local_error);
 
