@@ -128,3 +128,18 @@ class TestRegistry:
         app_id3 = mock_intf3.GetSessionAppId(session3.handle)
         assert app_id3 == expected_app_id
         dbus_con3.close()
+
+    def test_no_reregister(self, portals, dbus_con):
+        registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        expected_app_id = "org.example.CorrectAppId"
+
+        registry_intf.Register(expected_app_id, {})
+        session = self.create_dummy_session(dbus_con)
+        app_id = mock_intf.GetSessionAppId(session.handle)
+        assert app_id == expected_app_id
+
+        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
+            registry_intf.Register(expected_app_id, {})
+        exc_info.match(".*Connection already associated with an application ID.*")
