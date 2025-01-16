@@ -148,11 +148,12 @@ lookup_transfer (const char *key)
 
   G_LOCK (transfers);
   transfer = (FileTransfer *)g_hash_table_lookup (transfers, key);
-  if (transfer)
-    g_object_ref (transfer);
   G_UNLOCK (transfers);
 
-  return transfer;
+  if (!transfer)
+    return NULL;
+
+  return g_object_ref (transfer);
 }
 
 static FileTransfer *
@@ -583,10 +584,9 @@ stop_file_transfers_in_thread_func (GTask        *task,
 void
 stop_file_transfers_for_sender (const char *sender)
 {
-  GTask *task;
+  g_autoptr(GTask) task = NULL;
 
   task = g_task_new (NULL, NULL, NULL, NULL);
   g_task_set_task_data (task, g_strdup (sender), g_free);
   g_task_run_in_thread (task, stop_file_transfers_in_thread_func);
-  g_object_unref (task);
 }
