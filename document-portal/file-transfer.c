@@ -553,7 +553,7 @@ file_transfer_create (void)
   return G_DBUS_INTERFACE_SKELETON (file_transfer);
 }
 
-void
+static void
 stop_file_transfers_in_thread_func (GTask        *task,
                                     gpointer      source_object,
                                     gpointer      task_data,
