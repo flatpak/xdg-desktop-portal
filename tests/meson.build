@@ -65,14 +65,12 @@ test(
   protocol: test_protocol,
 )
 
+run_test = find_program('run-test.sh')
+
 pytest_args = ['--verbose', '--log-level=DEBUG']
 
 pytest_env = environment()
-pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
-pytest_env.set('XDG_PERMISSION_STORE_PATH', xdg_permission_store.full_path())
-pytest_env.set('XDG_DOCUMENT_PORTAL_PATH', xdg_document_portal.full_path())
-pytest_env.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
-pytest_env.set('XDP_VALIDATE_SOUND', xdp_validate_sound.full_path())
+pytest_env.set('BUILDDIR', meson.project_build_root())
 
 # pytest xdist is nice because it significantly speeds up our
 # test process, but it's not required
@@ -137,7 +135,7 @@ foreach pytest_file : pytest_files
   testname = pytest_file.replace('.py', '').replace('test_', '')
   test(
     'integration/@0@'.format(testname),
-    pytest,
+    run_test,
     args: [meson.current_source_dir() / pytest_file] + pytest_args,
     env: pytest_env,
     suite: ['integration'],
