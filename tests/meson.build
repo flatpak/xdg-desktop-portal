@@ -278,7 +278,8 @@ enable_pytest = get_option('pytest') \
   .allowed()
 
 if enable_pytest
-  pytest_args = [meson.current_source_dir(), '--verbose', '--log-level=DEBUG']
+  pytest_wrapper = find_program('pytest-wrapper.sh')
+  pytest_args = [pytest.full_path(), meson.current_source_dir(), '--verbose', '--log-level=DEBUG']
 
   pytest_env = environment()
   pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
@@ -322,7 +323,7 @@ if enable_pytest
     testname = pytest_file.replace('.py', '')
     test(
       'pytest/@0@'.format(testname),
-      pytest,
+      pytest_wrapper,
       args: pytest_args + ['-k', testname],
       env: pytest_env,
       suite: ['pytest'],
