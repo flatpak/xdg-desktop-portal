@@ -25,6 +25,7 @@
 #include "config.h"
 
 #include <locale.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -175,7 +176,7 @@ file_transfer_start (XdpAppInfo *app_info,
   G_LOCK (transfers);
   do
     {
-      guint64 key;
+      uint64_t key;
       g_free (transfer->key);
       key = g_random_int ();
       key = (key << 32) | g_random_int ();
