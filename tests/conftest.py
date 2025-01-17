@@ -47,6 +47,13 @@ def pytest_configure() -> None:
     ensure_umockdev_loaded()
 
 
+def pytest_sessionfinish(session, exitstatus):
+    # Meson and ginsttest-runner expect tests to exit with status 77 if all
+    # tests were skipped
+    if exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        session.exitstatus = 77
+
+
 def ensure_environment_set() -> None:
     env_vars = [
         "XDG_DESKTOP_PORTAL_PATH",
