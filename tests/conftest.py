@@ -375,9 +375,10 @@ def templates(
         dbusmock.BusType.SYSTEM: {},
         dbusmock.BusType.SESSION: {},
     }
-    for template, params in required_templates.items():
+    for template_data, params in required_templates.items():
+        template, bus_name = (template_data.split(":") + [None])[:2]
+        assert template
         params = template_params.get(template, params)
-        template, bus_name = (template.split(":") + [None])[:2]
         _start_template(busses, template, bus_name, params)
     yield
     _terminate_servers(busses)
