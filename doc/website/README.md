@@ -15,10 +15,10 @@ cd xdg-desktop-portal/doc/website
 bundle install
 ```
 
-
 - Test the site locally:
+
 ```
 bundle exec jekyll s
 ```
 
-- `git commit` your changes and create a merge request. After review, the merged changes get automaticaly deployed to the site.
+- `git commit` your changes and create a merge request. After review, the merged changes get automatically deployed to the site.
