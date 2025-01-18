@@ -120,26 +120,36 @@ p strong {
 h1 {
    font-weight: 500;
    font-size: 2rem;
+   margin-top: '0';
+   margin-bottom: 1.5rem;
    font-family: "Inter var", sans-serif;
 }
 h2 {
    font-weight: 800;
    font-size: 1.7rem;
+   margin-top: 2.5rem;
+   margin-bottom: 1.2rem;
    font-family: "Inter var", sans-serif;
 }
 h3 {
    font-weight: 800;
    font-size: 1.3rem;
+   margin-top: 2.2rem;
+   margin-bottom: 1rem;
    font-family: "Inter var", sans-serif;
 }
 h4 {
    font-weight: 700;
    font-size: 1.1rem;
+   margin-top: 1rem;
+   margin-bottom: 1rem;
    font-family: "Inter var", sans-serif;
 }
 h5 {
    font-weight: 700;
    font-size: 1rem;
+   margin-top: 1rem;
+   margin-bottom: 1rem;
    font-family: "Inter var", sans-serif;
 }
   h2,h3,h4,h5 { opacity: 0.7; }
