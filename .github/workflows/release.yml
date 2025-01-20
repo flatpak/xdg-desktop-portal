@@ -69,7 +69,7 @@ jobs:
           # Extract the changelog
           {
             echo "releaseChangelog<<EOF"
-            perl -0777nE 'print $& if /(?<=\n\n).*?(?=\n\n)/sg' NEWS
+            perl -0777nE 'print $& if /(?<=\n\n).*?(?=\nChanges in)/sg' NEWS
             echo "\nEOF"
           } | tee -a $GITHUB_ENV
           echo $releaseChangelog
