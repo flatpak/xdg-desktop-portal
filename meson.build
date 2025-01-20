@@ -1,7 +1,7 @@
 project(
   'xdg-desktop-portal',
   'c',
-  version: '1.19.2',
+  version: '1.19.3',
   meson_version: '>= 0.60',
   license: 'LGPL-2.0-or-later',
   default_options: [
