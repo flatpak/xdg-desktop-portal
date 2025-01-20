@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Release version (MAJOR.MINOR.PATCH, default: extracted from NEWS)"
+        description: "Release version (MAJOR.MINOR.PATCH, default: extracted from NEWS.md)"
       preRelease:
         description: "Is this a pre-release? (true/false, default: true if release version minor number is odd)"
       dryRun:
@@ -61,7 +61,7 @@ jobs:
         run: |
           # Extract the release version
           if [ -z $releaseVersion ]; then
-            releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS`
+            releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS.md`
           fi
           echo "releaseVersion=$releaseVersion" | tee -a $GITHUB_ENV
           echo $releaseVersion
@@ -69,7 +69,7 @@ jobs:
           # Extract the changelog
           {
             echo "releaseChangelog<<EOF"
-            perl -0777nE 'print $& if /(?<=\n\n).*?(?=\nChanges in)/sg' NEWS
+            perl -0777nE 'print $& if /(?<=\n\n).*?(?=\nChanges in)/sg' NEWS.md
             echo "\nEOF"
           } | tee -a $GITHUB_ENV
           echo $releaseChangelog
