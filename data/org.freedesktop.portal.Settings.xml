@@ -62,7 +62,28 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
-    This documentation describes version 2 of this interface.
+    * ``org.freedesktop.appearance`` ``animation-scale`` (``d``)
+
+      Indicates whether the system prefers an interface that removes, 
+      speeds up, slows down, or replaces non-essential animations.
+      Supported values are:
+
+      - ``0.0``: All non-essential animations disabled
+      - ``1.0``: All non-essential animations enabled
+
+      Unknown values should be treated as 1.0 (all non-essential animations enabled).
+
+    * ``org.freedesktop.appearance`` ``status-shapes`` (``b``)
+
+      Indicates whether the system prefers an interface that uses shapes
+      to indicate status in addition to or instead of color. 
+
+    * ``org.freedesktop.appearance`` ``always-show-scrollbars`` (``b``)
+
+      Indicates whether the system prefers an interface where scrollbars
+      are always visible. 
+
+    This documentation describes version 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.Settings">
 
