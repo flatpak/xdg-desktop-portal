@@ -1,8 +1,20 @@
 Changes in 1.19.2
 =================
-Released: not yet
+Released: 2025-01-20
 
-...
+Bug Fixes:
+
+- Fix permission check for host system apps in the Camera portal.
+- Do not expose the Settings portal if there are no backends available.
+- Disable sounds-related notification tests if the project is built without
+  wavparse.
+
+Enhancements:
+
+- Start porting the test suite to Python tests. Once finished, this should
+  break the cyclic dependency between xdg-desktop-portal and libportal.
+- Install Python-based tests. This is mostly useful for distributions to run
+  tests as part of their packaging process.
 
 Changes in 1.19.1
 =================
