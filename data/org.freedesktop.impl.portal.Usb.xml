@@ -36,7 +36,7 @@
     <!--
         AcquireDevices:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @parent_window: Identifier for the application window, see :ref:`Common Conventions <window-identifiers>`.
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @app_id: App id of the application
         @devices: Array of identifier, device information, and access options for each device
         @options: Vardict with optional further information
