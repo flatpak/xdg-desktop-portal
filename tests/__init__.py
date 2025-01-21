@@ -96,7 +96,7 @@ def wait_for(fn: Callable[[], bool]):
         mainloop.run()
 
 
-def get_permission_store_iface(bus: dbus.Bus):
+def get_permission_store_iface(bus: dbus.Bus) -> dbus.Interface:
     """
     Returns the dbus interface of the xdg-permission-store.
     """
@@ -107,7 +107,7 @@ def get_permission_store_iface(bus: dbus.Bus):
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
-def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None):
+def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
     """
