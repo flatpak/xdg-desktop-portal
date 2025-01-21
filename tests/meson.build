@@ -300,6 +300,7 @@ if enable_pytest
     'test_background.py',
     'test_camera.py',
     'test_clipboard.py',
+    'test_documents.py',
     'test_document_fuse.py',
     'test_email.py',
     'test_filechooser.py',

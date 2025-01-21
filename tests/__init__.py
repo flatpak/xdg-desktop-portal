@@ -107,6 +107,17 @@ def get_permission_store_iface(bus: dbus.Bus) -> dbus.Interface:
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
+def get_document_portal_iface(bus: dbus.Bus) -> dbus.Interface:
+    """
+    Returns the dbus interface of the xdg-document-portal.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.portal.Documents",
+        "/org/freedesktop/portal/documents",
+    )
+    return dbus.Interface(obj, "org.freedesktop.portal.Documents")
+
+
 def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
