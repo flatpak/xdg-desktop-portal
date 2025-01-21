@@ -51,10 +51,9 @@ jobs:
         run: |
           meson setup _build \
             -Dinstalled-tests=true \
-            -Dpytest=enabled \
+            -Dtests=enabled \
             -Db_sanitize=${{ matrix.sanitizer }} \
-            -Db_lundef=false \
-            -Dforce_fallback_for=libportal
+            -Db_lundef=false
           meson compile -C _build
 
       - name: Run xdg-desktop-portal tests

@@ -7,13 +7,14 @@
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, Gio
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple, Callable, List
+from typing import Any, Dict, Optional, NamedTuple, Callable, List, Tuple
 
 import os
 import dbus
 import dbus.proxies
 import dbusmock
 import logging
+import subprocess
 
 
 DBusGMainLoop(set_as_default=True)
@@ -43,6 +44,32 @@ def run_long_tests() -> bool:
     return os.environ.get("XDP_TEST_RUN_LONG") is not None
 
 
+def check_program_success(cmd) -> bool:
+    proc = subprocess.Popen(
+        cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
+    )
+    _ = proc.communicate()
+    return proc.returncode == 0
+
+
+def can_run_fuse() -> Tuple[bool, str]:
+    if not check_program_success("fusermount3 --version"):
+        return (False, "no fusermount3")
+
+    if not check_program_success(
+        "capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin'"
+    ):
+        return (False, "No cap_sys_admin in bounding set, can't use FUSE")
+
+    if not check_program_success("[ -w /dev/fuse ]"):
+        return (False, "no write access to /dev/fuse")
+
+    if not check_program_success("[ -e /etc/mtab ]"):
+        return (False, "no /etc/mtab")
+
+    return (True, "success")
+
+
 def wait(ms: int):
     """
     Waits for the specified amount of milliseconds.
@@ -69,7 +96,7 @@ def wait_for(fn: Callable[[], bool]):
         mainloop.run()
 
 
-def get_permission_store_iface(bus: dbus.Bus):
+def get_permission_store_iface(bus: dbus.Bus) -> dbus.Interface:
     """
     Returns the dbus interface of the xdg-permission-store.
     """
@@ -80,7 +107,18 @@ def get_permission_store_iface(bus: dbus.Bus):
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
-def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None):
+def get_document_portal_iface(bus: dbus.Bus) -> dbus.Interface:
+    """
+    Returns the dbus interface of the xdg-document-portal.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.portal.Documents",
+        "/org/freedesktop/portal/documents",
+    )
+    return dbus.Interface(obj, "org.freedesktop.portal.Documents")
+
+
+def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
     """
