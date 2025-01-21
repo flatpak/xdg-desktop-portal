@@ -243,6 +243,7 @@ write_keyfile_to_disk (const char  *desktop_file_id,
 {
   g_autofree char *desktop_dir = NULL;
   g_autofree char *desktop_path = NULL;
+  g_autofree char *link_dir = NULL;
   g_autofree char *link_path = NULL;
   g_autofree char *relative_path = NULL;
   g_autoptr(GFile) link_file = NULL;
@@ -262,10 +263,11 @@ write_keyfile_to_disk (const char  *desktop_file_id,
   /* Make a sym link in ~/.local/share/applications so the launcher shows up in
    * the desktop environment's menu.
    */
-  link_path = g_build_filename (g_get_user_data_dir (),
-                                "applications",
-                                desktop_file_id,
-                                NULL);
+  link_dir = g_build_filename (g_get_user_data_dir (),
+                               "applications",
+                               NULL);
+  g_mkdir_with_parents (link_dir, 0700);
+  link_path = g_build_filename (link_dir, desktop_file_id, NULL);
 
   relative_path = g_build_filename ("..",
                                     XDG_PORTAL_APPLICATIONS_DIR,
