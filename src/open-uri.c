@@ -585,6 +585,23 @@ app_exists (const char *app_id)
   return (info != NULL);
 }
 
+static char*
+build_host_path_from_doc_id(const char* doc_id, const char* doc_path)
+{
+  gchar *result;
+  g_autofree char *host_path = xdp_get_real_path_for_doc_id (doc_id);
+  g_autofree char *doc_path_regex = g_strconcat("/run/user/[0-9]+/doc/", doc_id, "/[^/]+(.*)", NULL);
+  gchar **path_postfix = g_regex_split_simple(doc_path_regex, doc_path, 0, 0);
+
+  if (path_postfix[0] && path_postfix[1]) {
+    result = g_strconcat(host_path, path_postfix[1], NULL);
+  } else {
+    result = g_strdup(host_path);
+  }
+  g_strfreev (path_postfix);
+  return result;
+}
+
 static void
 handle_open_in_thread_func (GTask *task,
                             gpointer source_object,
@@ -688,7 +705,11 @@ handle_open_in_thread_func (GTask *task,
 
       if (path != NULL)
         {
-          host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
+          g_autofree char *guessed_docid = NULL;
+          if (xdp_looks_like_document_portal_path(path, &guessed_docid))
+            {
+              host_path = build_host_path_from_doc_id(guessed_docid, path);
+            }
           if (host_path)
             {
               g_debug ("OpenFile: translating path value '%s' to host path '%s'", path, host_path);
@@ -724,7 +745,13 @@ handle_open_in_thread_func (GTask *task,
 
       if (open_dir)
         {
-          g_autofree char *real_path = xdp_get_real_path_for_doc_path (path, request->app_info);
+          g_autofree char *guessed_docid = NULL;
+          g_autofree char *real_path = NULL;
+          if (xdp_looks_like_document_portal_path(path, &guessed_docid)) {
+            real_path = build_host_path_from_doc_id(guessed_docid, path);
+          } else {
+            real_path = g_strdup(path);
+          }
           /* Try opening the directory via the file manager interface, then
              fall back to a plain URI open */
           g_autoptr(GError) local_error = NULL;
