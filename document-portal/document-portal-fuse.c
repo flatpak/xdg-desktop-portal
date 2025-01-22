@@ -3050,6 +3050,33 @@ xdp_fuse_statfs (fuse_req_t req,
     xdp_reply_err (op, req, errno);
 }
 
+static gboolean
+xdp_fuse_get_real_path (XdpPhysicalInode  *physical,
+                        char             **real_path_out)
+{
+  g_autofree char *fd_path = fd_to_path (physical->fd);
+  char path_buffer[PATH_MAX + 1];
+  DevIno file_devino = physical->backing_devino;
+  ssize_t symlink_size;
+  struct stat buf;
+
+  /* Try to extract a real path to the file
+   * (and verify it goes to the same place as the fd) */
+  symlink_size = readlink (fd_path, path_buffer, PATH_MAX);
+  if (symlink_size < 1)
+    return FALSE;
+
+  path_buffer[symlink_size] = 0;
+
+  if (lstat (path_buffer, &buf) != 0 ||
+      buf.st_dev != file_devino.dev ||
+      buf.st_ino != file_devino.ino)
+    return FALSE;
+
+  *real_path_out = g_strdup (path_buffer);
+  return TRUE;
+}
+
 static ssize_t
 xdp_fuse_set_host_path_xattr (XdpInode   *inode,
                               const char *value,
@@ -3064,26 +3091,35 @@ xdp_fuse_get_host_path_xattr (XdpInode *inode,
                               char     *buf,
                               size_t    size)
 {
-  g_autoptr(PermissionDbEntry) entry =
-    xdp_lookup_doc (inode->domain->doc_id);
   const char *path = NULL;
   size_t path_size;
+  g_autofree char *real_path = NULL;
 
-  if (!entry)
-    {
-      errno = ENODATA;
-      return -1;
-    }
-
-  path = document_entry_get_path (entry);
-
+  path = inode->domain->doc_path;
   if (!path)
     {
       errno = ENODATA;
       return -1;
     }
 
-  path_size = strlen (path) + 1;
+  if (inode->physical)
+    {
+      if (!xdp_fuse_get_real_path (inode->physical, &real_path))
+        {
+          errno = ENODATA;
+          return -1;
+        }
+
+      if (!g_str_has_prefix (real_path, path))
+        {
+          errno = ENODATA;
+          return -1;
+        }
+
+      path = real_path;
+    }
+
+  path_size = strlen (path);
 
   if (size == 0)
     return path_size;
@@ -3800,29 +3836,8 @@ xdp_fuse_lookup_id_for_inode (ino_t      ino,
         return g_strdup (domain->doc_id);
 
       /* But maybe its a subfile of the document */
-      if (real_path_out)
-        {
-          g_autofree char *fd_path = fd_to_path (physical->fd);
-          char path_buffer[PATH_MAX + 1];
-          DevIno file_devino = physical->backing_devino;
-          ssize_t symlink_size;
-          struct stat buf;
-
-          /* Try to extract a real path to the file (and verify it goes to the same place as the fd) */
-          symlink_size = readlink (fd_path, path_buffer, PATH_MAX);
-          if (symlink_size >= 1)
-            {
-              path_buffer[symlink_size] = 0;
-
-              if (lstat (path_buffer, &buf) == 0 &&
-                  buf.st_dev == file_devino.dev &&
-                  buf.st_ino == file_devino.ino)
-                {
-                  *real_path_out = g_strdup (path_buffer);
-                  return g_strdup (domain->doc_id);
-                }
-            }
-        }
+      if (real_path_out && xdp_fuse_get_real_path (physical, real_path_out))
+        return g_strdup (domain->doc_id);
     }
 
   return NULL;

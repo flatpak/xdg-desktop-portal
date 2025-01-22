@@ -8,7 +8,10 @@ import pytest
 import dbus
 from pathlib import Path
 import os
-from gi.repository import GLib
+from gi.repository import GLib, Gio
+
+
+EXPORT_FILES_FLAG_EXPORT_DIR = 8
 
 
 def path_from_null_term_bytes(bytes):
@@ -36,6 +39,16 @@ def write_bytes_trunc(file_path, bytes):
         os.write(fd, bytes)
     finally:
         os.close(fd)
+
+
+def get_host_path_attr(path):
+    xattr = "xattr::document-portal.host-path"
+    file = Gio.file_new_for_path(path.absolute().as_posix())
+    info = file.query_info(xattr, Gio.FileQueryInfoFlags.NONE)
+    host_path = info.get_attribute_as_string(xattr)
+    if not host_path:
+        return None
+    return Path(os.fsdecode(host_path))
 
 
 def export_file(documents_intf, file_path, unique=False):
@@ -374,6 +387,32 @@ class TestDocuments:
         assert doc_id in host_paths
         doc_host_path = path_from_null_term_bytes(host_paths[doc_id])
         assert doc_host_path == file_path
+
+    def test_host_paths_xattr(self, xdg_document_portal, dbus_con):
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = get_mountpoint(documents_intf)
+
+        base_path = Path(os.environ["TMPDIR"]) / "a"
+        file_path = base_path / "b" / "c"
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        file_path.write_bytes(b"test")
+
+        doc_ids, extra = export_files(
+            documents_intf, [base_path], ["read"], flags=EXPORT_FILES_FLAG_EXPORT_DIR
+        )
+        doc_id = doc_ids[0]
+
+        host_path = get_host_path_attr(mountpoint / doc_id)
+        assert not host_path
+
+        host_path = get_host_path_attr(mountpoint / doc_id / "a")
+        assert host_path == base_path
+
+        host_path = get_host_path_attr(mountpoint / doc_id / "a" / "b")
+        assert host_path == base_path / "b"
+
+        host_path = get_host_path_attr(mountpoint / doc_id / "a" / "b" / "c")
+        assert host_path == base_path / "b" / "c"
 
 
 can_run_fuse, failure = xdp.can_run_fuse()
