@@ -172,6 +172,7 @@ def xdg_desktop_portal_dir_default_files() -> Dict[str, bytes]:
         "org.freedesktop.impl.portal.AppChooser",
         "org.freedesktop.impl.portal.Background",
         "org.freedesktop.impl.portal.Clipboard",
+        "org.freedesktop.impl.portal.DynamicLauncher",
         "org.freedesktop.impl.portal.Email",
         "org.freedesktop.impl.portal.FileChooser",
         "org.freedesktop.impl.portal.GlobalShortcuts",
