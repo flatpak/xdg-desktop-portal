@@ -144,6 +144,9 @@ static pthread_t fuse_pthread = 0;
 static uid_t my_uid;
 static gid_t my_gid;
 
+static GList *open_files = NULL;
+G_LOCK_DEFINE (open_files);
+
 /* from libfuse */
 #define FUSE_UNKNOWN_INO 0xffffffff
 
@@ -242,6 +245,7 @@ struct _XdpInode {
 
 typedef struct {
   int fd;
+  GList *link;
 } XdpFile;
 
 
@@ -1901,12 +1905,22 @@ xdp_file_new (int fd)
 {
   XdpFile *file = g_new0 (XdpFile, 1);
   file->fd = fd;
+
+  XDP_AUTOLOCK (open_files);
+  open_files = g_list_prepend (open_files, file);
+  file->link = open_files;
+
   return file;
 }
 
 static void
 xdp_file_free (XdpFile *file)
 {
+  GList *link = g_steal_pointer (&file->link);
+
+  XDP_AUTOLOCK (open_files);
+  open_files = g_list_delete_link (open_files, link);
+
   close (file->fd);
   g_free (file);
 }
@@ -3544,6 +3558,7 @@ xdp_fuse_init (GError **error)
   my_gid = getgid ();
 
   all_inodes = g_hash_table_new_full (g_int64_hash, g_int64_equal, NULL, NULL);
+  g_assert (open_files == NULL);
 
   root_domain = xdp_domain_new_root ();
   root_inode = xdp_inode_new (root_domain, NULL);
@@ -3607,6 +3622,10 @@ xdp_fuse_init (GError **error)
     }
 
   g_assert (session != NULL);
+
+  XDP_AUTOLOCK (open_files);
+  while (open_files)
+    xdp_file_free (open_files->data);
 
   return TRUE;
 }
