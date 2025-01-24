@@ -312,6 +312,20 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 static gboolean
+is_valid_token(const char *token)
+{
+  int i;
+
+  for (i = 0; token[i]; i++)
+    {
+      if (!g_ascii_isalnum(token[i]) && token[i] != '_')
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
 xdp_session_initable_init (GInitable     *initable,
                            GCancellable  *cancellable,
                            GError       **error)
@@ -332,6 +346,15 @@ xdp_session_initable_init (GInitable     *initable,
   if (!session->token)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Missing token");
+      return FALSE;
+    }
+
+  if (!is_valid_token(session->token))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid token '%s'", session->token);
       return FALSE;
     }
 
