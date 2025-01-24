@@ -53,9 +53,10 @@ def AccessDialog(
             logger.debug(f"AccessDialog Close() response {response}")
             cb_success(response.response, response.results)
 
-        def reply_callback():
+        def reply_callback(request):
             response = Response(self.response, {})
             logger.debug(f"AccessDialog with response {response}")
+            request.unexport()
             cb_success(response.response, response.results)
 
         request = ImplRequest(self, BUS_NAME, handle)
@@ -65,7 +66,7 @@ def AccessDialog(
             request.export()
 
             logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
+            GLib.timeout_add(self.delay, reply_callback, request)
     except Exception as e:
         logger.critical(e)
         cb_error(e)
