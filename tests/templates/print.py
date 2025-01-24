@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest
+from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
 from gi.repository import GLib
@@ -15,7 +15,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Print"
 VERSION = 3
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):

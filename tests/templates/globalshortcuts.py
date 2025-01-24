@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest, ImplSession
+from tests.templates import Response, init_logger, ImplRequest, ImplSession
 import dbus
 import dbus.service
 import time
@@ -18,7 +18,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.GlobalShortcuts"
 VERSION = 1
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):
