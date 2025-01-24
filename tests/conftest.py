@@ -33,7 +33,6 @@ import os
 import sys
 import tempfile
 import subprocess
-import fcntl
 import time
 import signal
 from pathlib import Path
@@ -258,11 +257,9 @@ def _get_server_for_module(
             "/dbusmock",
             dbusmock.OBJECT_MANAGER_IFACE,
             bustype,
-            stdout=subprocess.PIPE,
+            stdout=None,
+            stderr=None,
         )
-
-        flags = fcntl.fcntl(server.process.stdout, fcntl.F_GETFL)
-        fcntl.fcntl(server.process.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
         busses[bustype][module.BUS_NAME] = server
         return server
@@ -288,11 +285,6 @@ def _get_main_obj_for_module(
 
 
 def _terminate_mock_p(process: subprocess.Popen) -> None:
-    if process.stdout:
-        out = (process.stdout.read() or b"").decode("utf-8")
-        if out:
-            print(out)
-        process.stdout.close()
     process.terminate()
     process.wait()
 
