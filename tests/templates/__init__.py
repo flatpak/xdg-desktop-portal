@@ -107,6 +107,9 @@ class ImplRequest:
         self._close_callback = close_callback
         return self
 
+    def unexport(self):
+        self.mock.RemoveObject(self.handle)
+
     def __str__(self):
         return f"ImplRequest {self.handle}"
 
