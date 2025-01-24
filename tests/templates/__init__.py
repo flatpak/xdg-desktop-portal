@@ -8,12 +8,12 @@ import dbusmock
 import logging
 
 
-def init_template_logger(name: str):
+def init_logger(name: str):
     """
     Common logging setup for the impl.portal templates. Use as:
 
-        >>> from tests.templates import init_template_logger
-        >>> logger = init_template_logger(__name__)
+        >>> from tests.templates import init_logger
+        >>> logger = init_logger(__name__)
         >>> logger.debug("foo")
 
     """
@@ -25,7 +25,7 @@ def init_template_logger(name: str):
     return logger
 
 
-logger = init_template_logger("request")
+logger = init_logger("request")
 
 
 class Response(NamedTuple):
