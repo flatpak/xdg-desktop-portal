@@ -26,7 +26,25 @@ _counter = count()
 
 ASV = Dict[str, Any]
 
-logger = logging.getLogger("tests")
+
+def init_logger(name: str):
+    """
+    Common logging setup for tests. Use as:
+
+        >>> import tests as xdp
+        >>> logger = xdp.init_logger(__name__)
+        >>> logger.debug("foo")
+
+    """
+    logging.basicConfig(
+        format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
+    )
+    logger = logging.getLogger(f"xdp.{name}")
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = init_logger("utils")
 
 
 def is_in_ci() -> bool:
