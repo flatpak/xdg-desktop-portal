@@ -226,7 +226,13 @@ pkgconfig.generate(
 subdir('data')
 subdir('src')
 subdir('document-portal')
-subdir('tests')
+
+enable_pytest = false
+enable_tests = get_option('tests').enabled()
+if enable_tests
+    subdir('tests')
+endif
+
 subdir('po')
 subdir('doc')
 
@@ -240,6 +246,7 @@ summary({
     'Enable libportal support': have_libportal,
     'Enable gudev support': have_gudev,
     'Enable installed tests:': enable_installed_tests,
+    'Enable test suite': enable_tests,
     'Enable python test suite': enable_pytest,
     'Build man pages': rst2man.found(),
     'Build flatpak interfaces': flatpak_intf_dir != '',
