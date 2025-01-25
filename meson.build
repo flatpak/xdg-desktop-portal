@@ -130,7 +130,7 @@ libportal_dep = dependency(
     'tests=false',
   ],
 )
-pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
+pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.3.77')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('pytest'))
@@ -226,6 +226,7 @@ pkgconfig.generate(
 subdir('data')
 subdir('src')
 subdir('document-portal')
+subdir('wireplumber')
 subdir('tests')
 subdir('po')
 subdir('doc')

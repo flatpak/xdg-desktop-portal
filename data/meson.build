@@ -66,10 +66,14 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.Wallpaper.xml',
 )
 
+portal_app_sources = files(
+  'org.freedesktop.app.portal.ScreenCast.xml',
+)
+
 background_monitor_sources = files(
   'org.freedesktop.background.Monitor.xml',
 )
 
-install_data([portal_sources, portal_impl_sources],
+install_data([portal_sources, portal_impl_sources, portal_app_sources],
     install_dir: datadir / 'dbus-1' / 'interfaces',
 )

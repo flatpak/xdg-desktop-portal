@@ -319,6 +319,23 @@ on_bus_acquired (GDBusConnection *connection,
                                       wallpaper_create (connection,
                                                         access_impl->dbus_name,
                                                         tmp->dbus_name));
+
+      tmp = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
+      if (tmp != NULL)
+        export_portal_implementation (connection,
+                                      screen_cast_create (connection,
+                                                          access_impl->dbus_name,
+                                                          tmp->dbus_name));
+    }
+  else
+    {
+      implementation =
+        find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
+      if (implementation != NULL)
+        export_portal_implementation (connection,
+                                      screen_cast_create (connection,
+                                                          NULL,
+                                                          implementation->dbus_name));
     }
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Account");
@@ -345,11 +362,6 @@ on_bus_acquired (GDBusConnection *connection,
   if (implementation != NULL)
     export_portal_implementation (connection,
                                   dynamic_launcher_create (connection, implementation->dbus_name));
-
-  implementation = find_portal_implementation ("org.freedesktop.impl.portal.ScreenCast");
-  if (implementation != NULL)
-    export_portal_implementation (connection,
-                                  screen_cast_create (connection, implementation->dbus_name));
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.RemoteDesktop");
   if (implementation != NULL)
