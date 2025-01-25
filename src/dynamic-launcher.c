@@ -310,12 +310,12 @@ get_desktop_entry (const char  *desktop_file_id,
    * there's a security risk.
    */
   groups = g_key_file_get_groups (key_file, NULL);
-  if (g_strv_length (groups) > 1 ||
+  if (g_strv_length (groups) != 1 ||
       !g_strv_contains ((const char * const *)groups, G_KEY_FILE_DESKTOP_GROUP))
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   _("Desktop entry given to Install() must have only one group"));
+                   _("Desktop entry given to Install() must have exactly one group"));
       return NULL;
     }
 
