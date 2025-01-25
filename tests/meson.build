@@ -348,7 +348,7 @@ if enable_pytest
     test(
       'pytest/@0@'.format(testname),
       pytest,
-      args: [meson.current_source_dir()] + pytest_args + ['-k', testname],
+      args: [meson.current_source_dir() / pytest_file] + pytest_args,
       env: pytest_env,
       suite: ['pytest'],
       timeout: 120,
@@ -382,10 +382,9 @@ if enable_pytest
     foreach pytest_file : pytest_files
       testname = pytest_file.replace('.py', '')
 
-      exec = [pytest.full_path(), installed_tests_dir / 'tests']
+      exec = [pytest.full_path(), installed_tests_dir / 'tests' / pytest_file]
       exec += pytest_args
       exec += ['-p', 'no:cacheprovider']
-      exec += ['-k', testname]
       exec = ' '.join(exec)
 
       data = configuration_data()
