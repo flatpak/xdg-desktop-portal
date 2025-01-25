@@ -503,7 +503,7 @@ prepare_install_done (GObject      *source,
       const char *chosen_name = NULL;
       const char *icon_format = NULL;
       const char *icon_size = NULL;
-      GVariant *chosen_icon = NULL;
+      g_autoptr(GVariant) chosen_icon = NULL;
 
       icon_format = g_object_get_data (G_OBJECT (request), "icon-format");
       g_assert (icon_format != NULL && icon_format[0] != '\0');
