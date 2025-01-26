@@ -106,14 +106,14 @@ class TestCamera:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         request = xdp.Request(dbus_con, camera_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "AccessCamera",
                 options={},
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("AccessDialog")

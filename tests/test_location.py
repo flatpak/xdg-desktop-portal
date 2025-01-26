@@ -92,13 +92,14 @@ class TestLocation:
 
     def test_bad_accuracy(self, portals, dbus_con):
         location_intf = xdp.get_portal_iface(dbus_con, "Location")
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             location_intf.CreateSession(
                 {
                     "session_handle_token": "session_token0",
                     "accuracy": dbus.UInt32(22),
                 }
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )

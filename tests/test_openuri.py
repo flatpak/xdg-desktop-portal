@@ -284,16 +284,16 @@ class TestOpenURI:
             "writable": writable,
             "activation_token": activation_token,
         }
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "OpenURI",
                 parent_window="",
                 uri=uri,
                 options=options,
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
     def test_openuri_dir(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
@@ -344,8 +344,9 @@ class TestOpenURI:
         supported = openuri_intf.SchemeSupported("bogusnonexistanthandler", {})
         assert not supported
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             openuri_intf.SchemeSupported("", {})
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
