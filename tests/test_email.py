@@ -66,16 +66,16 @@ class TestEmail:
         options = {
             "addresses": addresses,
         }
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "ComposeEmail",
                 parent_window="",
                 options=options,
             )
-
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
         # Check the impl portal was never called
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
@@ -127,16 +127,16 @@ class TestEmail:
         options = {
             "subject": subject,
         }
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "ComposeEmail",
                 parent_window="",
                 options=options,
             )
-
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
         # Check the impl portal was never called
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
@@ -156,16 +156,16 @@ class TestEmail:
         options = {
             "subject": subject,
         }
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "ComposeEmail",
                 parent_window="",
                 options=options,
             )
-
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
         # Check the impl portal was never called
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")

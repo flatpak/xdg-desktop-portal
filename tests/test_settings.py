@@ -296,17 +296,13 @@ class TestSettings:
         assert value.variant_level == 1
         assert value == color_scheme
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             settings_intf.ReadOne("org.does.not.exist", "color-scheme")
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
+        assert excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             settings_intf.ReadOne("org.freedesktop.appearance", "xcolor-scheme")
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
+        assert excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
 
         # deprecated but should still check that it works
         # the crucial detail here is that the variant_level is 2
