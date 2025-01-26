@@ -437,10 +437,10 @@ static gboolean
 install_token_timeout (gpointer data)
 {
   g_autoptr(GVariant) launcher_data = NULL;
+  const char *token = data;
 
-  g_debug ("Revoking install token %s", (char *)data);
-  launcher_data = get_launcher_data_and_revoke_token ((char *)data);
-  g_free (data);
+  g_debug ("Revoking install token %s", token);
+  launcher_data = get_launcher_data_and_revoke_token (token);
 
   return G_SOURCE_REMOVE;
 }
