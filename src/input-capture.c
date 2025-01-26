@@ -1116,6 +1116,36 @@ on_deactivated_cb (XdpDbusImplInputCapture *impl,
 }
 
 static void
+on_zones_changed_cb (XdpDbusImplInputCapture *impl,
+                     const char              *session_id,
+                     GVariant                *options,
+                     gpointer                 data) 
+{
+  g_autoptr(XdpSession) session = xdp_session_lookup (session_id);
+  InputCaptureSession *input_capture_session;
+
+  if (!IS_INPUT_CAPTURE_SESSION (session))
+    {
+      g_critical ("Invalid session type for signal");
+      return;
+    }
+
+  input_capture_session = (InputCaptureSession*)session;
+
+  switch (input_capture_session->state)
+    {
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
+    case INPUT_CAPTURE_SESSION_STATE_ENABLED:
+    case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
+    case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+      pass_signal (impl, "ZonesChanged", session_id, options, data);
+      break;
+    case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+      break;
+    }
+}
+
+static void
 input_capture_init (InputCapture *input_capture)
 {
   unsigned int supported_capabilities;
@@ -1130,6 +1160,7 @@ input_capture_init (InputCapture *input_capture)
   g_signal_connect (impl, "disabled", G_CALLBACK (on_disabled_cb), input_capture);
   g_signal_connect (impl, "activated", G_CALLBACK (on_activated_cb), input_capture);
   g_signal_connect (impl, "deactivated", G_CALLBACK (on_deactivated_cb), input_capture);
+  g_signal_connect (impl, "zones-changed", G_CALLBACK (on_zones_changed_cb), input_capture);
 }
 
 static void
