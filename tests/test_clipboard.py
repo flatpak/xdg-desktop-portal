@@ -55,7 +55,7 @@ class TestClipboard:
     @pytest.mark.parametrize(
         "template_params", ({"RemoteDesktop": {"force-clipboard-enabled": False}},)
     )
-    def test_clipboard_checks_clipboard_enabled(self, portals, dbus_con):
+    def test_checks_clipboard_enabled(self, portals, dbus_con):
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, clipboard_enabled = self.start_session(dbus_con)
 
@@ -64,13 +64,13 @@ class TestClipboard:
         with pytest.raises(dbus.exceptions.DBusException):
             clipboard_intf.SetSelection(session.handle, {})
 
-    def test_clipboard_set_selection(self, portals, dbus_con):
+    def test_set_selection(self, portals, dbus_con):
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con)
 
         clipboard_intf.SetSelection(session.handle, {})
 
-    def test_clipboard_selection_write(self, portals, dbus_con):
+    def test_selection_write(self, portals, dbus_con):
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con)
 
@@ -87,7 +87,7 @@ class TestClipboard:
 
         clipboard_intf.SelectionWriteDone(session.handle, 1234, True)
 
-    def test_clipboard_selection_read(self, portals, dbus_con):
+    def test_selection_read(self, portals, dbus_con):
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con)
 

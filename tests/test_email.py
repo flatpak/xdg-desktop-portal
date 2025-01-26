@@ -20,7 +20,7 @@ class TestEmail:
 
         xdp.check_version(dbus_con, "Email", 4)
 
-    def test_email_basic(self, portals, dbus_con):
+    def test_basic(self, portals, dbus_con):
         """test that the backend receives the expected data"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -54,7 +54,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
         assert args[3]["body"] == body
 
-    def test_email_address(self, portals, dbus_con):
+    def test_address(self, portals, dbus_con):
         """test that an invalid address triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -81,7 +81,7 @@ class TestEmail:
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_email_punycode_address(self, portals, dbus_con):
+    def test_punycode_address(self, portals, dbus_con):
         """test email address containing punycode"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -115,7 +115,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
         assert args[3]["body"] == body
 
-    def test_email_subject_multiline(self, portals, dbus_con):
+    def test_subject_multiline(self, portals, dbus_con):
         """test that an multiline subject triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -142,7 +142,7 @@ class TestEmail:
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_email_subject_too_long(self, portals, dbus_con):
+    def test_subject_too_long(self, portals, dbus_con):
         """test that a subject line over 200 chars triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -172,7 +172,7 @@ class TestEmail:
         assert len(method_calls) == 0
 
     @pytest.mark.parametrize("template_params", ({"email": {"delay": 2000}},))
-    def test_email_delay(self, portals, dbus_con):
+    def test_delay(self, portals, dbus_con):
         """
         Test that everything works as expected when the backend takes some
         time to send its response, as * is to be expected from a real backend
@@ -215,7 +215,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
 
     @pytest.mark.parametrize("template_params", ({"email": {"response": 1}},))
-    def test_email_cancel(self, portals, dbus_con):
+    def test_cancel(self, portals, dbus_con):
         """
         Test that user cancellation works as expected.
         We simulate that the user cancels a hypothetical dialog,
@@ -253,7 +253,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
 
     @pytest.mark.parametrize("template_params", ({"email": {"expect-close": True}},))
-    def test_email_close(self, portals, dbus_con):
+    def test_close(self, portals, dbus_con):
         """
         Test that app-side cancellation works as expected.
         We cancel the cancellable while while the hypothetical

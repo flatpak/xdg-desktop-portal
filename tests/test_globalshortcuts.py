@@ -18,7 +18,7 @@ class TestGlobalShortcuts:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "GlobalShortcuts", 1)
 
-    def test_global_shortcuts_create_close_session(self, portals, dbus_con, app_id):
+    def test_create_close_session(self, portals, dbus_con, app_id):
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -48,9 +48,7 @@ class TestGlobalShortcuts:
     @pytest.mark.parametrize(
         "template_params", ({"globalshortcuts": {"force-close": 500}},)
     )
-    def test_global_shortcuts_create_session_signal_closed(
-        self, portals, dbus_con, app_id
-    ):
+    def test_create_session_signal_closed(self, portals, dbus_con, app_id):
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -77,7 +75,7 @@ class TestGlobalShortcuts:
         # Now expect the backend to close it
         xdp.wait_for(lambda: session.closed)
 
-    def test_global_shortcuts_bind_list_shortcuts(self, portals, dbus_con):
+    def test_bind_list_shortcuts(self, portals, dbus_con):
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
 
         request = xdp.Request(dbus_con, globalshortcuts_intf)
@@ -139,7 +137,7 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    def test_global_shortcuts_trigger(self, portals, dbus_con):
+    def test_trigger(self, portals, dbus_con):
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
