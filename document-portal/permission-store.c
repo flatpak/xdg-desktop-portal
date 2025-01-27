@@ -92,6 +92,21 @@ main (int    argc,
   GOptionContext *context;
   g_autoptr(GError) error = NULL;
 
+  if (g_getenv ("XDG_PERMISSION_STORE_WAIT_FOR_DEBUGGER") != NULL)
+    {
+      g_printerr ("\npermission store (PID %d) is waiting for a debugger. "
+                  "Use `gdb -p %d` to connect. \n",
+                  getpid (), getpid ());
+
+      if (raise (SIGSTOP) == -1)
+        {
+          g_printerr ("Failed waiting for debugger\n");
+          exit (1);
+        }
+
+      raise (SIGCONT);
+    }
+
   g_log_writer_default_set_use_stderr (TRUE);
 
   setlocale (LC_ALL, "");

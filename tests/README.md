@@ -29,6 +29,15 @@ but should not normally be set on production systems:
 * `XDP_VALIDATE_SOUND_INSECURE`: Same as `XDP_VALIDATE_ICON_INSECURE`,
     but for sounds
 
+* `XDG_DESKTOP_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-desktop-portal wait for
+    a debugger to attach by raising SIGSTOP
+
+* `XDG_DOCUMENT_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-document-portal wait
+    for a debugger to attach by raising SIGSTOP
+
+* `XDG_PERMISSION_STORE_WAIT_FOR_DEBUGGER`: Makes xdg-permission-store wait
+    for a debugger to attach by raising SIGSTOP
+
 ### Used automatically
 
 These environment variables are set automatically and shouldn't need to be
