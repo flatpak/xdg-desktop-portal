@@ -2,14 +2,16 @@
 #
 # This file is formatted with Python Black
 
+from tests.templates import Response, init_logger
+
 from collections import namedtuple
 from itertools import count
 from gi.repository import GLib
-
+from dataclasses import dataclass
 import dbus
 import dbus.service
-import logging
 import socket
+
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -17,39 +19,54 @@ SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.InputCapture"
 VERSION = 1
 
-logger = logging.getLogger(f"templates.{__name__}")
-logger.setLevel(logging.DEBUG)
+
+logger = init_logger(__name__)
+
 
 serials = count()
 
-Response = namedtuple("Response", ["response", "results"])
+
 Barrier = namedtuple("Barrier", ["id", "position"])
+
+
+@dataclass
+class InputcaptureParameters:
+    delay: int
+    supported_capabilities: int
+    capabilities: int
+    default_zone: list
+    disable_delay: int
+    activated_delay: int
+    deactivated_delay: int
+    zones_changed_delay: int
 
 
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
-    # Delay before Request.response
-    mock.delay: int = parameters.get("delay", 0)
 
-    mock.supported_capabilities = parameters.get("supported_capabilities", 0xF)
-    # The actual ones we reply with in the CreateSession request
-    mock.capabilities = parameters.get("capabilities", None)
+    assert not hasattr(mock, "inputcapture_params")
+    mock.inputcapture_params = InputcaptureParameters(
+        delay=parameters.get("delay", 0),
+        supported_capabilities=parameters.get("supported_capabilities", 0xF),
+        capabilities=parameters.get("capabilities", None),
+        default_zone=parameters.get("default-zone", [(1920, 1080, 0, 0)]),
+        disable_delay=parameters.get("disable-delay", 0),
+        activated_delay=parameters.get("activated-delay", 0),
+        deactivated_delay=parameters.get("deactivated-delay", 0),
+        zones_changed_delay=parameters.get("zones-changed-delay", 0),
+    )
 
-    mock.default_zone = parameters.get("default-zone", [(1920, 1080, 0, 0)])
-    mock.current_zones = mock.default_zone
+    mock.current_zones = mock.inputcapture_params.default_zone
     mock.current_zone_set = next(serials)
-
-    mock.disable_delay = parameters.get("disable-delay", 0)
-    mock.activated_delay = parameters.get("activated-delay", 0)
-    mock.deactivated_delay = parameters.get("deactivated-delay", 0)
-    mock.zones_changed_delay = parameters.get("zones-changed-delay", 0)
 
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
             {
                 "version": dbus.UInt32(parameters.get("version", VERSION)),
-                "SupportedCapabilities": dbus.UInt32(mock.supported_capabilities),
+                "SupportedCapabilities": dbus.UInt32(
+                    mock.inputcapture_params.supported_capabilities
+                ),
             }
         ),
     )
@@ -65,16 +82,17 @@ def load(mock, parameters={}):
 def CreateSession(self, handle, session_handle, app_id, parent_window, options):
     try:
         logger.debug(f"CreateSession({parent_window}, {options})")
+        params = self.inputcapture_params
 
         assert "capabilities" in options
 
         # Filter to the subset of supported capabilities
-        if self.capabilities is None:
+        if params.capabilities is None:
             capabilities = options["capabilities"]
         else:
-            capabilities = self.capabilities
+            capabilities = params.capabilities
 
-        capabilities &= self.supported_capabilities
+        capabilities &= params.supported_capabilities
         response = Response(0, {})
 
         response.results["capabilities"] = dbus.UInt32(capabilities)
@@ -96,11 +114,12 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
 def GetZones(self, handle, session_handle, app_id, options):
     try:
         logger.debug(f"GetZones({session_handle}, {options})")
+        params = self.inputcapture_params
 
         assert session_handle in self.active_session_handles
 
         response = Response(0, {})
-        response.results["zones"] = self.default_zone
+        response.results["zones"] = params.default_zone
         response.results["zone_set"] = dbus.UInt32(
             self.current_zone_set, variant_level=1
         )
@@ -192,6 +211,7 @@ def SetPointerBarriers(
 def Enable(self, session_handle, app_id, options):
     try:
         logger.debug(f"Enable({session_handle}, {options})")
+        params = self.inputcapture_params
 
         assert session_handle in self.active_session_handles
 
@@ -200,15 +220,15 @@ def Enable(self, session_handle, app_id, options):
         barrier = self.current_barriers[0]
         pos = (barrier.position[0] + 10, barrier.position[1] + 20)
 
-        if self.disable_delay > 0:
+        if params.disable_delay > 0:
 
             def disable():
                 logger.debug("emitting Disabled")
                 self.EmitSignal(MAIN_IFACE, "Disabled", "oa{sv}", [session_handle, {}])
 
-            GLib.timeout_add(self.disable_delay, disable)
+            GLib.timeout_add(params.disable_delay, disable)
 
-        if self.activated_delay > 0:
+        if params.activated_delay > 0:
 
             def activated():
                 logger.debug("emitting Activated")
@@ -223,9 +243,9 @@ def Enable(self, session_handle, app_id, options):
                     MAIN_IFACE, "Activated", "oa{sv}", [session_handle, options]
                 )
 
-            GLib.timeout_add(self.activated_delay, activated)
+            GLib.timeout_add(params.activated_delay, activated)
 
-        if self.deactivated_delay > 0:
+        if params.deactivated_delay > 0:
 
             def deactivated():
                 logger.debug("emitting Deactivated")
@@ -239,9 +259,9 @@ def Enable(self, session_handle, app_id, options):
                     MAIN_IFACE, "Deactivated", "oa{sv}", [session_handle, options]
                 )
 
-            GLib.timeout_add(self.deactivated_delay, deactivated)
+            GLib.timeout_add(params.deactivated_delay, deactivated)
 
-        if self.zones_changed_delay > 0:
+        if params.zones_changed_delay > 0:
 
             def zones_changed():
                 logger.debug("emitting ZonesChanged")
@@ -252,7 +272,7 @@ def Enable(self, session_handle, app_id, options):
                     MAIN_IFACE, "ZonesChanged", "oa{sv}", [session_handle, options]
                 )
 
-            GLib.timeout_add(self.zones_changed_delay, zones_changed)
+            GLib.timeout_add(params.zones_changed_delay, zones_changed)
 
     except Exception as e:
         logger.critical(e)

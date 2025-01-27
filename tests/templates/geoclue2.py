@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
 from tests.templates import init_logger
+
 import dbus.service
 import dbus
 
