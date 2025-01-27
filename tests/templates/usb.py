@@ -3,11 +3,11 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest
+
 import dbus
 import dbus.service
 from dbusmock import MOCK_IFACE
-
-from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -20,12 +20,25 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+@dataclass
+class UsbParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    filters: dict
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.filters = parameters.get("filters", {})
+    assert not hasattr(mock, "usb_params")
+    mock.usb_params = UsbParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        filters=parameters.get("filters", {}),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -52,11 +65,21 @@ def AcquireDevices(
     cb_success,
     cb_error,
 ):
-    try:
-        logger.debug(
-            f"AcquireDevices({handle}, {parent_window}, {app_id}, {devices}, {options})"
-        )
+    logger.debug(
+        f"AcquireDevices({handle}, {parent_window}, {app_id}, {devices}, {options})"
+    )
+    params = self.usb_params
 
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
+
+    def reply():
         # no options supported
         assert not options
         devices_out = []
@@ -65,13 +88,13 @@ def AcquireDevices(
             (id, info, access_options) = device
             props = info["properties"]
 
-            allows_writable = self.filters.get("writable", True)
+            allows_writable = params.filters.get("writable", True)
             needs_writable = access_options.get("writable", False)
             if needs_writable and not allows_writable:
                 logger.debug(f"Skipping device {id} because it requires writable")
                 continue
 
-            needs_vendor = self.filters.get("vendor", None)
+            needs_vendor = params.filters.get("vendor", None)
             needs_vendor = int(needs_vendor, 16) if needs_vendor else None
 
             vendor = props.get("ID_VENDOR_ID", None)
@@ -83,7 +106,7 @@ def AcquireDevices(
                 )
                 continue
 
-            needs_model = self.filters.get("model", None)
+            needs_model = params.filters.get("model", None)
             needs_model = int(needs_model, 16) if needs_model else None
 
             model = props.get("ID_MODEL_ID", None)
@@ -99,23 +122,15 @@ def AcquireDevices(
                 dbus.Struct([id, access_options], signature="sa{sv}", variant_level=1)
             )
 
-        response = Response(
-            self.response,
+        return Response(
+            params.response,
             {"devices": dbus.Array(devices_out, signature="(sa{sv})", variant_level=1)},
         )
-        request = ImplRequest(self, BUS_NAME, handle)
-        request.export()
 
-        def reply():
-            logger.debug(f"AcquireDevices with response {response}")
-            cb_success(response.response, response.results)
-
-        logger.debug(f"scheduling delay of {self.delay}")
-        GLib.timeout_add(self.delay, reply)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(reply, delay=params.delay)
 
 
 @dbus.service.method(
@@ -125,5 +140,6 @@ def AcquireDevices(
 )
 def SetSelectionFilters(self, filters):
     logger.debug(f"SetSelectionFilters({filters})")
+    params = self.usb_params
 
-    self.filters = filters
+    params.filters = filters

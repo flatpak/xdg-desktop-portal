@@ -5,7 +5,7 @@
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
-from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -17,12 +17,22 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Access"
 logger = init_logger(__name__)
 
 
+@dataclass
+class AccessParameters:
+    delay: int
+    response: int
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "access_params")
+    mock.access_params = AccessParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+    )
 
 
 @dbus.service.method(
@@ -43,30 +53,21 @@ def AccessDialog(
     cb_success,
     cb_error,
 ):
-    try:
-        logger.debug(
-            f"AccessDialog({handle}, {app_id}, {parent_window}, {title}, {subtitle}, {body}, {options})"
-        )
+    logger.debug(
+        f"AccessDialog({handle}, {app_id}, {parent_window}, {title}, {subtitle}, {body}, {options})"
+    )
+    params = self.access_params
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"AccessDialog Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback(request):
-            response = Response(self.response, {})
-            logger.debug(f"AccessDialog with response {response}")
-            request.unexport()
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback, request)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(params.response, {}), delay=params.delay)

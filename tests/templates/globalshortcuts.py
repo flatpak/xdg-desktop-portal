@@ -3,12 +3,13 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest, ImplSession
+
 import dbus
 import dbus.service
 import time
 from dbusmock import MOCK_IFACE
-
 from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -21,13 +22,25 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+@dataclass
+class GlobalshortcutsParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    force_close: int
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
-    mock.force_close: int = parameters.get("force-close", 0)
+    assert not hasattr(mock, "globalshortcuts_params")
+    mock.globalshortcuts_params = GlobalshortcutsParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        force_close=parameters.get("force-close", 0),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -46,44 +59,30 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
-    try:
-        logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    params = self.globalshortcuts_params
 
-        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
-        self.sessions[session_handle] = session
+    session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
+    self.sessions[session_handle] = session
 
-        response = Response(self.response, {"session_handle": session.handle})
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
-
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"CreateSession Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"CreateSession with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-
-            if self.force_close > 0:
-
-                def force_close():
-                    session.close()
-
-                GLib.timeout_add(self.force_close, force_close)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(
+            Response(params.response, {"session_handle": session.handle}),
+            delay=params.delay,
+        )
+        if params.force_close > 0:
+            GLib.timeout_add(params.force_close, session.close)
 
 
 @dbus.service.method(
@@ -102,27 +101,30 @@ def BindShortcuts(
     cb_success,
     cb_error,
 ):
-    try:
-        logger.debug(
-            f"BindShortcuts({handle}, {session_handle}, {shortcuts}, {options})"
-        )
+    logger.debug(f"BindShortcuts({handle}, {session_handle}, {shortcuts}, {options})")
+    params = self.globalshortcuts_params
 
-        assert session_handle in self.sessions
-        response = Response(self.response, {})
-        request = ImplRequest(self, BUS_NAME, handle)
-        request.export()
+    assert session_handle in self.sessions
+
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
+
+    if params.expect_close:
+        request.wait_for_close()
+    else:
 
         def reply():
-            logger.debug(f"BindShortcuts with response {response}")
+            logger.debug(f"BindShortcuts with shortcuts {shortcuts}")
             self.sessions[session_handle].shortcuts = shortcuts
-            cb_success(response.response, response.results)
+            return Response(params.response, {})
 
-        logger.debug(f"scheduling delay of {self.delay}")
-        GLib.timeout_add(self.delay, reply)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+        request.respond(reply, delay=params.delay)
 
 
 @dbus.service.method(

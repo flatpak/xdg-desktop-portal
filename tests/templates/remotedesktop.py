@@ -3,12 +3,13 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest, ImplSession
+
 from dbusmock import MOCK_IFACE
 import dbus
 import dbus.service
 import socket
-
 from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -21,17 +22,29 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
+@dataclass
+class RemotedesktopParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    force_close: int
+    force_clipoboard_enabled: bool
+    fail_connect_to_eis: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
-    mock.force_close: int = parameters.get("force-close", 0)
-    mock.force_clipoboard_enabled: bool = parameters.get(
-        "force-clipboard-enabled", False
+    assert not hasattr(mock, "remotedesktop_params")
+    mock.remotedesktop_params = RemotedesktopParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        force_close=parameters.get("force-close", 0),
+        force_clipoboard_enabled=parameters.get("force-clipboard-enabled", False),
+        fail_connect_to_eis=parameters.get("fail-connect-to-eis", False),
     )
-    mock.fail_connect_to_eis: bool = parameters.get("fail-connect-to-eis", False)
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -50,44 +63,30 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
-    try:
-        logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    params = self.remotedesktop_params
 
-        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
-        self.sessions[session_handle] = session
+    session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
+    self.sessions[session_handle] = session
 
-        response = Response(self.response, {"session_handle": session.handle})
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
-
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"CreateSession Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"CreateSession with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-
-            if self.force_close > 0:
-
-                def force_close():
-                    session.close()
-
-                GLib.timeout_add(self.force_close, force_close)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(
+            Response(params.response, {"session_handle": session.handle}),
+            delay=params.delay,
+        )
+        if params.force_close > 0:
+            GLib.timeout_add(params.force_close, session.close)
 
 
 @dbus.service.method(
@@ -97,24 +96,24 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
     async_callbacks=("cb_success", "cb_error"),
 )
 def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_error):
-    try:
-        logger.debug(f"SelectDevices({handle}, {session_handle}, {app_id}, {options})")
+    logger.debug(f"SelectDevices({handle}, {session_handle}, {app_id}, {options})")
+    params = self.remotedesktop_params
 
-        assert session_handle in self.sessions
-        response = Response(self.response, {})
-        request = ImplRequest(self, BUS_NAME, handle)
-        request.export()
+    assert session_handle in self.sessions
 
-        def reply():
-            logger.debug(f"SelectDevices with response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        logger.debug(f"scheduling delay of {self.delay}")
-        GLib.timeout_add(self.delay, reply)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(params.response, {}), delay=params.delay)
 
 
 @dbus.service.method(
@@ -126,40 +125,30 @@ def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_
 def Start(
     self, handle, session_handle, app_id, parent_window, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"Start({handle}, {session_handle}, {parent_window}, {app_id}, {options})"
-        )
+    logger.debug(
+        f"Start({handle}, {session_handle}, {parent_window}, {app_id}, {options})"
+    )
+    params = self.remotedesktop_params
 
-        assert session_handle in self.sessions
-        response = Response(self.response, {})
+    assert session_handle in self.sessions
 
-        if self.force_clipoboard_enabled:
-            response.results["clipboard_enabled"] = True
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
+    response = Response(params.response, {})
+    if params.force_clipoboard_enabled:
+        response.results["clipboard_enabled"] = True
 
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"Start Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"Start with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(response, delay=params.delay)
 
 
 @dbus.service.method(
@@ -170,10 +159,11 @@ def Start(
 def ConnectToEIS(self, session_handle, app_id, options):
     try:
         logger.debug(f"ConnectToEIS({session_handle}, {app_id}, {options})")
+        params = self.remotedesktop_params
 
         assert session_handle in self.sessions
 
-        if self.fail_connect_to_eis:
+        if params.fail_connect_to_eis:
             raise dbus.exceptions.DBusException("Purposely failing ConnectToEIS")
 
         sockets = socket.socketpair()

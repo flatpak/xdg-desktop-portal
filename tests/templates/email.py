@@ -3,9 +3,9 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest
-import dbus.service
 
-from gi.repository import GLib
+import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -18,12 +18,23 @@ VERSION = 3
 logger = init_logger(__name__)
 
 
+@dataclass
+class EmailParameters:
+    delay: int
+    response: int
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "email_params")
+    mock.email_params = EmailParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -41,30 +52,19 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def ComposeEmail(self, handle, app_id, parent_window, options, cb_success, cb_error):
-    try:
-        logger.debug(f"ComposeEmail({handle}, {app_id}, {parent_window}, {options})")
+    logger.debug(f"ComposeEmail({handle}, {app_id}, {parent_window}, {options})")
+    params = self.email_params
 
-        response = Response(self.response, {})
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
-
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"ComposeEmail Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"ComposeEmail with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(params.response, {}), delay=params.delay)

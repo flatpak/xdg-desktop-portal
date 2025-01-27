@@ -3,9 +3,9 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest
-import dbus.service
 
-from gi.repository import GLib
+import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -18,12 +18,25 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+@dataclass
+class DynamiclauncherParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    launcher_name: str
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "dynamiclauncher_params")
+    mock.dynamiclauncher_params = DynamiclauncherParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        launcher_name=parameters.get("launcher-name", None),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -32,7 +45,6 @@ def load(mock, parameters={}):
             }
         ),
     )
-    mock.launcher_name: str = parameters.get("launcher-name", None)
 
 
 @dbus.service.method(
@@ -44,38 +56,29 @@ def load(mock, parameters={}):
 def PrepareInstall(
     self, handle, app_id, parent_window, name, icon_v, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
-        )
+    logger.debug(
+        f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
+    )
+    params = self.dynamiclauncher_params
 
-        response = Response(
-            self.response,
-            {
-                "name": self.launcher_name if self.launcher_name else name,
-                "icon": dbus.Struct(list(icon_v), signature="sv", variant_level=2),
-            },
-        )
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
+    response = Response(
+        params.response,
+        {
+            "name": params.launcher_name if params.launcher_name else name,
+            "icon": dbus.Struct(list(icon_v), signature="sv", variant_level=2),
+        },
+    )
 
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"PrepareInstall Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"PrepareInstall with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(response, delay=params.delay)

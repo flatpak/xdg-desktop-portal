@@ -5,7 +5,7 @@
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
-from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -18,13 +18,25 @@ VERSION = 4
 logger = init_logger(__name__)
 
 
+@dataclass
+class FilechooserParameters:
+    delay: int
+    response: int
+    results: dict
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.results = parameters.get("results", {})
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "filechooser_params")
+    mock.filechooser_params = FilechooserParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        results=parameters.get("results", {}),
+        expect_close=parameters.get("expect-close", False),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -42,32 +54,22 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def OpenFile(self, handle, app_id, parent_window, title, options, cb_success, cb_error):
-    try:
-        logger.debug(
-            f"OpenFile({handle}, {app_id}, {parent_window}, {title}, {options})"
-        )
+    logger.debug(f"OpenFile({handle}, {app_id}, {parent_window}, {title}, {options})")
+    params = self.filechooser_params
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"OpenFile Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, self.results)
-            logger.debug(f"OpenFile with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(params.response, params.results), delay=params.delay)
 
 
 @dbus.service.method(
@@ -77,29 +79,19 @@ def OpenFile(self, handle, app_id, parent_window, title, options, cb_success, cb
     async_callbacks=("cb_success", "cb_error"),
 )
 def SaveFile(self, handle, app_id, parent_window, title, options, cb_success, cb_error):
-    try:
-        logger.debug(
-            f"SaveFile({handle}, {app_id}, {parent_window}, {title}, {options})"
-        )
+    logger.debug(f"SaveFile({handle}, {app_id}, {parent_window}, {title}, {options})")
+    params = self.filechooser_params
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"SaveFile Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, self.results)
-            logger.debug(f"SaveFile with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if params.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(params.response, params.results), delay=params.delay)
