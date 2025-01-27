@@ -5,6 +5,7 @@
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -17,13 +18,25 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
+@dataclass
+class ScreenshotParameters:
+    delay: int
+    response: int
+    results: dict
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.results = parameters.get("results", {})
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "screenshot_params")
+    mock.screenshot_params = ScreenshotParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        results=parameters.get("results", {}),
+        expect_close=parameters.get("expect-close", False),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -42,6 +55,7 @@ def load(mock, parameters={}):
 )
 def Screenshot(self, handle, app_id, parent_window, options, cb_success, cb_error):
     logger.debug(f"Screenshot({handle}, {app_id}, {parent_window}, {options})")
+    params = self.screenshot_params
 
     request = ImplRequest(
         self,
@@ -52,10 +66,10 @@ def Screenshot(self, handle, app_id, parent_window, options, cb_success, cb_erro
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, self.results), delay=self.delay)
+        request.respond(Response(params.response, params.results), delay=params.delay)
 
 
 @dbus.service.method(
@@ -66,6 +80,7 @@ def Screenshot(self, handle, app_id, parent_window, options, cb_success, cb_erro
 )
 def PickColor(self, handle, app_id, parent_window, options, cb_success, cb_error):
     logger.debug(f"PickColor({handle}, {app_id}, {parent_window}, {options})")
+    params = self.screenshot_params
 
     request = ImplRequest(
         self,
@@ -76,7 +91,7 @@ def PickColor(self, handle, app_id, parent_window, options, cb_success, cb_error
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, self.results), delay=self.delay)
+        request.respond(Response(params.response, params.results), delay=params.delay)

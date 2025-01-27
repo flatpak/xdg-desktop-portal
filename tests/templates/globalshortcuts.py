@@ -3,12 +3,13 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest, ImplSession
+
 import dbus
 import dbus.service
 import time
 from dbusmock import MOCK_IFACE
-
 from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -21,13 +22,25 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+@dataclass
+class GlobalshortcutsParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    force_close: int
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
-    mock.force_close: int = parameters.get("force-close", 0)
+    assert not hasattr(mock, "globalshortcuts_params")
+    mock.globalshortcuts_params = GlobalshortcutsParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        force_close=parameters.get("force-close", 0),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -47,6 +60,7 @@ def load(mock, parameters={}):
 )
 def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
     logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    params = self.globalshortcuts_params
 
     session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
     self.sessions[session_handle] = session
@@ -60,15 +74,15 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
         request.respond(
-            Response(self.response, {"session_handle": session.handle}),
-            delay=self.delay,
+            Response(params.response, {"session_handle": session.handle}),
+            delay=params.delay,
         )
-        if self.force_close > 0:
-            GLib.timeout_add(self.force_close, session.close)
+        if params.force_close > 0:
+            GLib.timeout_add(params.force_close, session.close)
 
 
 @dbus.service.method(
@@ -88,6 +102,7 @@ def BindShortcuts(
     cb_error,
 ):
     logger.debug(f"BindShortcuts({handle}, {session_handle}, {shortcuts}, {options})")
+    params = self.globalshortcuts_params
 
     assert session_handle in self.sessions
 
@@ -100,16 +115,16 @@ def BindShortcuts(
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
 
         def reply():
             logger.debug(f"BindShortcuts with shortcuts {shortcuts}")
             self.sessions[session_handle].shortcuts = shortcuts
-            return Response(self.response, {})
+            return Response(params.response, {})
 
-        request.respond(reply, delay=self.delay)
+        request.respond(reply, delay=params.delay)
 
 
 @dbus.service.method(

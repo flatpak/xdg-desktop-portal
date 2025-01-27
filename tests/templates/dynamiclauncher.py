@@ -3,7 +3,9 @@
 # This file is formatted with Python Black
 
 from tests.templates import Response, init_logger, ImplRequest
+
 import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -16,12 +18,25 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+@dataclass
+class DynamiclauncherParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    launcher_name: str
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "dynamiclauncher_params")
+    mock.dynamiclauncher_params = DynamiclauncherParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        launcher_name=parameters.get("launcher-name", None),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -30,7 +45,6 @@ def load(mock, parameters={}):
             }
         ),
     )
-    mock.launcher_name: str = parameters.get("launcher-name", None)
 
 
 @dbus.service.method(
@@ -45,6 +59,7 @@ def PrepareInstall(
     logger.debug(
         f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
     )
+    params = self.dynamiclauncher_params
 
     request = ImplRequest(
         self,
@@ -56,14 +71,14 @@ def PrepareInstall(
     )
 
     response = Response(
-        self.response,
+        params.response,
         {
-            "name": self.launcher_name if self.launcher_name else name,
+            "name": params.launcher_name if params.launcher_name else name,
             "icon": dbus.Struct(list(icon_v), signature="sv", variant_level=2),
         },
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(response, delay=self.delay)
+        request.respond(response, delay=params.delay)
