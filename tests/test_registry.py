@@ -38,10 +38,7 @@ class TestRegistry:
         request = xdp.Request(dbus_con, remotedesktop_intf)
 
         session_counter_attr_name = "session_counter"
-        if hasattr(self, session_counter_attr_name):
-            session_counter = getattr(self, session_counter_attr_name)
-        else:
-            session_counter = 0
+        session_counter = getattr(self, session_counter_attr_name, 0)
         setattr(self, session_counter_attr_name, session_counter + 1)
 
         options = {
