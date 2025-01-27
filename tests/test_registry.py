@@ -44,7 +44,6 @@ class TestRegistry:
             session_counter = 0
         setattr(self, session_counter_attr_name, session_counter + 1)
 
-        print(f"session_handle_token: {session_counter}")
         options = {
             "session_handle_token": f"session_token{session_counter}",
         }
