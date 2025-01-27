@@ -112,7 +112,7 @@ class TestNotification:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Notification", 2)
 
-    def test_notification_basic(self, portals, dbus_con, app_id):
+    def test_basic(self, portals, dbus_con, app_id):
         self.check_notification(
             dbus_con,
             app_id,
@@ -121,7 +121,7 @@ class TestNotification:
             NOTIFICATION_BASIC,
         )
 
-    def test_notification_remove(self, portals, dbus_con, app_id):
+    def test_remove(self, portals, dbus_con, app_id):
         notification_intf = NotificationPortal()
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -141,7 +141,7 @@ class TestNotification:
         assert args[0] == app_id
         assert args[1] == id
 
-    def test_notification_buttons(self, portals, dbus_con, app_id):
+    def test_buttons(self, portals, dbus_con, app_id):
         self.check_notification(
             dbus_con,
             app_id,
@@ -150,7 +150,7 @@ class TestNotification:
             NOTIFICATION_BUTTONS,
         )
 
-    def test_notification_markup(self, portals, dbus_con, app_id):
+    def test_markup(self, portals, dbus_con, app_id):
         bodies = [
             (
                 "test <b>notification</b> body <i>italic</i>",
@@ -205,7 +205,7 @@ class TestNotification:
 
             i += 1
 
-    def test_notification_bad_arg(self, portals, dbus_con, app_id):
+    def test_bad_arg(self, portals, dbus_con, app_id):
         notification = NOTIFICATION_BASIC.copy()
         notification["bodx"] = GLib.Variant("s", "Xtest")
 
@@ -217,7 +217,7 @@ class TestNotification:
             NOTIFICATION_BASIC,
         )
 
-    def test_notification_bad_priority(self, portals, dbus_con, app_id):
+    def test_bad_priority(self, portals, dbus_con, app_id):
         notification = NOTIFICATION_BASIC.copy()
         notification["priority"] = GLib.Variant("s", "invalid")
 
@@ -233,7 +233,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid not a priority" in e.message
 
-    def test_notification_bad_button(self, portals, dbus_con, app_id):
+    def test_bad_button(self, portals, dbus_con, app_id):
         notification = NOTIFICATION_BUTTONS.copy()
         notification["buttons"] = GLib.Variant(
             "aa{sv}",
@@ -257,7 +257,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid button" in e.message
 
-    def test_notification_display_hint(self, portals, dbus_con, app_id):
+    def test_display_hint(self, portals, dbus_con, app_id):
         notification = NOTIFICATION_BASIC.copy()
         notification["display-hint"] = GLib.Variant(
             "as",
@@ -295,7 +295,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "not a display-hint" in e.message
 
-    def test_notification_category(self, portals, dbus_con, app_id):
+    def test_category(self, portals, dbus_con, app_id):
         notification = NOTIFICATION_BASIC.copy()
         notification["category"] = GLib.Variant("s", "im.received")
 

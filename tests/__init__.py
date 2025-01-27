@@ -20,7 +20,7 @@ import subprocess
 DBusGMainLoop(set_as_default=True)
 
 # Anything that takes longer than 5s needs to fail
-MAX_TIMEOUT = 5000
+DBUS_TIMEOUT = int(os.environ.get("XDP_DBUS_TIMEOUT", "5000"))
 
 _counter = count()
 
@@ -296,7 +296,7 @@ class Closable:
         """
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
-        assert 0 < timeout_ms < MAX_TIMEOUT
+        assert 0 < timeout_ms < DBUS_TIMEOUT
         GLib.timeout_add(timeout_ms, self.close)
 
 
@@ -388,7 +388,7 @@ class Request(Closable):
 
         # Anything that takes longer than 5s needs to fail
         self._mainloop = GLib.MainLoop()
-        GLib.timeout_add(MAX_TIMEOUT, self._mainloop.quit)
+        GLib.timeout_add(DBUS_TIMEOUT, self._mainloop.quit)
 
         method = getattr(self.interface, methodname)
         assert method

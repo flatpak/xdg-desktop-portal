@@ -16,6 +16,7 @@
 #
 # Environment variables for debugging:
 #   XDP_DBUS_MONITOR: if set, starts dbus_monitor on the custom bus
+#   XDP_DBUS_TIMEOUT: Maximum timeout for dbus calls in ms (default: 5s)
 #
 # Make sure the required portals are listed in
 #   xdg_desktop_portal_dir_default_files

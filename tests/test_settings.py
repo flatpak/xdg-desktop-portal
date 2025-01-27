@@ -230,7 +230,7 @@ class TestSettings:
         "xdg_desktop_portal_dir_default_files",
         portal_config_good(),
     )
-    def test_settings_read_all(self, portals, dbus_con):
+    def test_read_all(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         value = settings_intf.ReadAll([])
@@ -265,7 +265,7 @@ class TestSettings:
         "xdg_desktop_portal_dir_default_files",
         portal_config_bad(),
     )
-    def test_settings_read_all_bad_config(self, portals, dbus_con):
+    def test_read_all_bad_config(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         value = settings_intf.ReadAll([])
@@ -275,7 +275,7 @@ class TestSettings:
         "xdg_desktop_portal_dir_default_files",
         portal_config_twice(),
     )
-    def test_settings_config_twice(self, portals, dbus_con):
+    def test_config_twice(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
         mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
 
@@ -286,7 +286,7 @@ class TestSettings:
         method_calls = mock_intf.GetMethodCalls("ReadAll")
         assert len(method_calls) == 1
 
-    def test_settings_read(self, portals, dbus_con):
+    def test_read(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
 
         color_scheme = SETTINGS_DATA["org.freedesktop.appearance"]["color-scheme"]
@@ -296,17 +296,13 @@ class TestSettings:
         assert value.variant_level == 1
         assert value == color_scheme
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             settings_intf.ReadOne("org.does.not.exist", "color-scheme")
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
+        assert excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             settings_intf.ReadOne("org.freedesktop.appearance", "xcolor-scheme")
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
+        assert excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotFound"
 
         # deprecated but should still check that it works
         # the crucial detail here is that the variant_level is 2
@@ -315,7 +311,7 @@ class TestSettings:
         assert value.variant_level == 2
         assert value == color_scheme
 
-    def test_settings_changed(self, portals, dbus_con):
+    def test_changed(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
         mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
         changed_count = 0

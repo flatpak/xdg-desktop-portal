@@ -140,7 +140,7 @@ class TestPrint:
         title = "Test Title"
 
         request = xdp.Request(dbus_con, print_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "PreparePrint",
                 parent_window="",
@@ -149,9 +149,9 @@ class TestPrint:
                 page_setup={},
                 options={},
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
         # Check the impl portal was not called
         method_calls = mock_intf.GetMethodCalls("PreparePrint")
@@ -272,7 +272,7 @@ class TestPrint:
         title = "Test Title"
 
         request = xdp.Request(dbus_con, print_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "Print",
                 parent_window="",
@@ -280,9 +280,9 @@ class TestPrint:
                 fd=fd,
                 options={},
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
         # Check the impl portal was not called
         method_calls = mock_intf.GetMethodCalls("Print")

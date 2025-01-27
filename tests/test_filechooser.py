@@ -181,16 +181,17 @@ class TestFilechooser:
             ],
         }
         request = xdp.Request(dbus_con, filechooser_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "OpenFile",
                 parent_window="",
                 title="Test",
                 options=options,
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
     def test_open_file_current_filter1(self, portals, dbus_con):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
@@ -278,16 +279,17 @@ class TestFilechooser:
             ),
         }
         request = xdp.Request(dbus_con, filechooser_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "OpenFile",
                 parent_window="",
                 title="Test",
                 options=options,
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
     def test_open_file_current_filter4(self, portals, dbus_con):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
@@ -316,16 +318,17 @@ class TestFilechooser:
             ),
         }
         request = xdp.Request(dbus_con, filechooser_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "OpenFile",
                 parent_window="",
                 title="Test",
                 options=options,
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
 
     def test_open_file_choices1(self, portals, dbus_con):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
@@ -408,7 +411,7 @@ class TestFilechooser:
 
         for choice in invalid_choices:
             request = xdp.Request(dbus_con, filechooser_intf)
-            try:
+            with pytest.raises(dbus.exceptions.DBusException) as excinfo:
                 options = {
                     "choices": [choice],
                 }
@@ -418,11 +421,10 @@ class TestFilechooser:
                     title="Test",
                     options=options,
                 )
-                assert False, "This statement should not be reached"
-            except dbus.exceptions.DBusException as e:
-                assert (
-                    e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
-                )
+            assert (
+                excinfo.value.get_dbus_name()
+                == "org.freedesktop.portal.Error.InvalidArgument"
+            )
 
     def test_save_file_basic(self, portals, dbus_con, app_id):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
@@ -573,16 +575,16 @@ class TestFilechooser:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         request = xdp.Request(dbus_con, filechooser_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "SaveFile",
                 parent_window="",
                 title="Title",
                 options={},
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
         # Check the impl portal was not called
         method_calls = mock_intf.GetMethodCalls("FileChooser")

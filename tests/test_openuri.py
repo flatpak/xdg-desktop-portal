@@ -91,7 +91,7 @@ class TestOpenURI:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "OpenURI", 5)
 
-    def test_openuri_http1(self, portals, dbus_con, app_id):
+    def test_http1(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -128,7 +128,7 @@ class TestOpenURI:
         assert args[4]["content_type"] == scheme_handler
         assert args[4]["activation_token"] == activation_token
 
-    def test_openuri_http2(self, portals, dbus_con):
+    def test_http2(self, portals, dbus_con):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -159,7 +159,7 @@ class TestOpenURI:
         method_calls = mock_intf.GetMethodCalls("ChooseApplication")
         assert len(method_calls) == 0
 
-    def test_openuri_file(self, portals, dbus_con, app_id):
+    def test_file(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -205,7 +205,7 @@ class TestOpenURI:
             assert openuri_file_contents == "openuri_mock_file"
 
     @pytest.mark.parametrize("template_params", ({"appchooser": {"response": 1}},))
-    def test_openuri_cancel(self, portals, dbus_con):
+    def test_cancel(self, portals, dbus_con):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         scheme_handler = "x-scheme-handler/http"
@@ -228,7 +228,7 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"appchooser": {"expect-close": True}},)
     )
-    def test_openuri_close(self, portals, dbus_con, app_id):
+    def test_close(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -269,7 +269,7 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-application-handlers": True}},)
     )
-    def test_openuri_lockdown(self, portals, dbus_con, app_id):
+    def test_lockdown(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         scheme_handler = "x-scheme-handler/http"
@@ -284,18 +284,18 @@ class TestOpenURI:
             "writable": writable,
             "activation_token": activation_token,
         }
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "OpenURI",
                 parent_window="",
                 uri=uri,
                 options=options,
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
-    def test_openuri_dir(self, portals, dbus_con, app_id):
+    def test_dir(self, portals, dbus_con, app_id):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -335,7 +335,7 @@ class TestOpenURI:
 
         assert Path(path[7:]) == Path(file_path).parent
 
-    def test_openuri_scheme_supported(self, portals, dbus_con):
+    def test_scheme_supported(self, portals, dbus_con):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         supported = openuri_intf.SchemeSupported("https", {})
@@ -344,8 +344,9 @@ class TestOpenURI:
         supported = openuri_intf.SchemeSupported("bogusnonexistanthandler", {})
         assert not supported
 
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             openuri_intf.SchemeSupported("", {})
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert (
+            excinfo.value.get_dbus_name()
+            == "org.freedesktop.portal.Error.InvalidArgument"
+        )
