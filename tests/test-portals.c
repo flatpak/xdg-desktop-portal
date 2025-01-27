@@ -22,6 +22,7 @@
 #include "screenshot.h"
 #include "trash.h"
 #include "wallpaper.h"
+#include "web-extensions.h"
 #endif
 
 #include "utils.h"
@@ -133,6 +134,7 @@ global_setup (void)
   g_autofree gchar *backends_executable = NULL;
   g_autofree gchar *services = NULL;
   g_autofree gchar *portal_dir = NULL;
+  g_autofree gchar *web_extensions_dir = NULL;
   g_autofree gchar *argv0 = NULL;
   g_autoptr(GSubprocessLauncher) launcher = NULL;
   g_autoptr(GSubprocess) subprocess = NULL;
@@ -593,6 +595,7 @@ main (int argc, char **argv)
   g_test_add_func ("/portal/notification/display-hint", test_notification_display_hint);
   g_test_add_func ("/portal/notification/category", test_notification_category);
   g_test_add_func ("/portal/notification/supported-properties", test_notification_supported_properties);
+
 #endif
 
   global_setup ();
