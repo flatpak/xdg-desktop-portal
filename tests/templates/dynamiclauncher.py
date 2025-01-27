@@ -5,8 +5,6 @@
 from tests.templates import Response, init_logger, ImplRequest
 import dbus.service
 
-from gi.repository import GLib
-
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -44,38 +42,28 @@ def load(mock, parameters={}):
 def PrepareInstall(
     self, handle, app_id, parent_window, name, icon_v, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
-        )
+    logger.debug(
+        f"PrepareInstall({handle}, {app_id}, {parent_window}, {name}, {icon_v}, {options})"
+    )
 
-        response = Response(
-            self.response,
-            {
-                "name": self.launcher_name if self.launcher_name else name,
-                "icon": dbus.Struct(list(icon_v), signature="sv", variant_level=2),
-            },
-        )
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
+    response = Response(
+        self.response,
+        {
+            "name": self.launcher_name if self.launcher_name else name,
+            "icon": dbus.Struct(list(icon_v), signature="sv", variant_level=2),
+        },
+    )
 
-        if self.expect_close:
-
-            def closed_callback():
-                response = Response(2, {})
-                logger.debug(f"PrepareInstall Close() response {response}")
-                cb_success(response.response, response.results)
-
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            def reply():
-                logger.debug(f"PrepareInstall with response {response}")
-                cb_success(response.response, response.results)
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(response, delay=self.delay)

@@ -5,7 +5,6 @@
 from tests.templates import Response, init_logger, ImplRequest
 import dbus.service
 import dbus
-from gi.repository import GLib
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -31,27 +30,18 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def GetUserInformation(self, handle, app_id, window, options, cb_success, cb_error):
-    try:
-        logger.debug(f"GetUserInformation({handle}, {app_id}, {window}, {options})")
+    logger.debug(f"GetUserInformation({handle}, {app_id}, {window}, {options})")
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"GetUserInformation Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, self.results)
-            logger.debug(f"GetUserInformation with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, self.results), delay=self.delay)
