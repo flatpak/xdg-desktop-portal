@@ -61,8 +61,8 @@ RUN apt install -y --no-install-recommends python3-pip
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
     sphinx-copybutton sphinxext-opengraph matplotlib
 
-# Install pre-commit
-RUN pip install --user --break-system-packages pre-commit
+# Install venv for githook checks
+RUN apt install -y --no-install-recommends python3-venv
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
