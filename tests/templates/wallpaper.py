@@ -6,7 +6,6 @@ from tests.templates import Response, init_logger, ImplRequest
 
 import dbus
 import dbus.service
-from gi.repository import GLib
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -34,29 +33,24 @@ def load(mock, parameters={}):
 def SetWallpaperURI(
     self, handle, app_id, parent_window, uri, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"SetWallpaperURI({handle}, {app_id}, {parent_window}, {uri}, {options})"
-        )
+    logger.debug(
+        f"SetWallpaperURI({handle}, {app_id}, {parent_window}, {uri}, {options})"
+    )
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"SetWallpaperURI Close() response {response}")
-            cb_success(response.response)
+    # This is irregular: the backend doesn't return the results vardict
+    def internal_cb_success(response, results):
+        cb_success(response)
 
-        def reply_callback():
-            response = Response(self.response, {})
-            logger.debug(f"SetWallpaperURI with response {response}")
-            cb_success(response.response)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        internal_cb_success,
+        cb_error,
+    )
 
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, {}), delay=self.delay)

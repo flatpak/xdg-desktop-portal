@@ -5,7 +5,6 @@
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
-from gi.repository import GLib
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -43,32 +42,23 @@ def load(mock, parameters={}):
 def ChooseApplication(
     self, handle, app_id, parent_window, choices, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"ChooseApplication({handle}, {app_id}, {parent_window}, {options})"
-        )
+    logger.debug(
+        f"ChooseApplication({handle}, {app_id}, {parent_window}, {choices}, {options})"
+    )
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"ChooseApplication Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, {})
-            logger.debug(f"ChooseApplication with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, {}), delay=self.delay)
 
 
 @dbus.service.method(
