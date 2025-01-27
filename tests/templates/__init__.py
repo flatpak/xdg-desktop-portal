@@ -25,7 +25,7 @@ def init_logger(name: str):
     return logger
 
 
-logger = init_logger("request")
+logger = init_logger("utils")
 
 
 class Response(NamedTuple):
