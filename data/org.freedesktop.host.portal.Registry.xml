@@ -23,8 +23,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.host.portal.Registry:
-      @short_description: Interface to associate D-Bus peers with application
-      ids.
+      @short_description: Interface to associate D-Bus peers with application ids
 
       This simple interface lets unsandboxed applications register their
       D-Bus connections and associate it with an application ID that will be
