@@ -4,8 +4,20 @@ API Reference
 Portal interfaces are available to sandboxed applications with the default
 filtered session bus access of Flatpak.
 
-Unless otherwise specified, they appear under the bus name ``org.freedesktop.portal.Desktop``
-and the object path ``/org/freedesktop/portal/desktop`` on the session bus.
+Desktop portals appear under the bus name ``org.freedesktop.portal.Desktop``
+and the object path ``/org/freedesktop/portal/desktop`` on the session bus,
+unless specified otherwise.
+
+Apps running on the host system have access to a special interface for
+registering themselves with XDG Desktop Portal. Registering a host app with
+XDG Desktop Portal overwrites the automatic detection based on the
+`XDG cgroup pathname standardization for applications
+<https://systemd.io/DESKTOP_ENVIRONMENTS/#xdg-standardization-for-applications>`_.
+This might improve the user experience when the host app was launched in a way
+that doesn't follow the standard. See
+:doc:`org.freedesktop.host.portal.Registry <doc-org.freedesktop.host.portal.Registry>`
+
+All apps have access to the portals below:
 
 .. toctree::
    :maxdepth: 1

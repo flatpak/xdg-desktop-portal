@@ -20,6 +20,8 @@ def adjust_title(lines):
         adjusted_title = title.replace("org.freedesktop.portal.", "")
     elif title.startswith("org.freedesktop.impl.portal"):
         adjusted_title = title.replace("org.freedesktop.impl.portal.", "")
+    elif title.startswith("org.freedesktop.host.portal"):
+        adjusted_title = title.replace("org.freedesktop.host.portal.", "")
     elif title.startswith("org.freedesktop.background.Monitor"):
         adjusted_title = title.replace(
             "org.freedesktop.background.Monitor", "Background Apps Monitor"
