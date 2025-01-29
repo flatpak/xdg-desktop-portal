@@ -8,7 +8,7 @@ import dbusmock
 import logging
 
 
-def init_logger(name: str):
+def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for the impl.portal templates. Use as:
 
