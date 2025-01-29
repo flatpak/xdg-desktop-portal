@@ -27,7 +27,7 @@ _counter = count()
 ASV = Dict[str, Any]
 
 
-def init_logger(name: str):
+def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for tests. Use as:
 
