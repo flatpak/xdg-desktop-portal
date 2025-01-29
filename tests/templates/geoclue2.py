@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# mypy: disable-error-code="misc"
 
 from tests.templates import init_logger
 

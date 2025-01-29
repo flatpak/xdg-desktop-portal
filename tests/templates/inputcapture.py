@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
+# mypy: disable-error-code="misc"
 
 from tests.templates import Response, init_logger
 
