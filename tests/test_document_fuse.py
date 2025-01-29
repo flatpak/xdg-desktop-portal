@@ -1289,6 +1289,7 @@ class TestDocumentFuse:
 # For now, let's skip the test and turn it on again when we have fixed it.
 pytest.skip("Test has a race condition which can make it fail", allow_module_level=True)
 
-can_run_fuse, failure = xdp.can_run_fuse()
-if not can_run_fuse:
-    pytest.skip(f"No fuse support: {failure}", allow_module_level=True)
+try:
+    xdp.ensure_fuse_supported()
+except xdp.FuseNotSupportedException as e:
+    pytest.skip(f"No fuse support: {e}", allow_module_level=True)

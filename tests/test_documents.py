@@ -415,6 +415,7 @@ class TestDocuments:
         assert host_path == base_path / "b" / "c"
 
 
-can_run_fuse, failure = xdp.can_run_fuse()
-if not can_run_fuse:
-    pytest.skip(f"No fuse support: {failure}", allow_module_level=True)
+try:
+    xdp.ensure_fuse_supported()
+except xdp.FuseNotSupportedException as e:
+    pytest.skip(f"No fuse support: {e}", allow_module_level=True)

@@ -7,7 +7,7 @@
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, Gio
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple, Callable, List, Tuple
+from typing import Any, Dict, Optional, NamedTuple, Callable, List
 
 import os
 import dbus
@@ -70,22 +70,26 @@ def check_program_success(cmd) -> bool:
     return proc.returncode == 0
 
 
-def can_run_fuse() -> Tuple[bool, str]:
+class FuseNotSupportedException(Exception):
+    pass
+
+
+def ensure_fuse_supported() -> None:
     if not check_program_success("fusermount3 --version"):
-        return (False, "no fusermount3")
+        raise FuseNotSupportedException("no fusermount3")
 
     if not check_program_success(
         "capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin'"
     ):
-        return (False, "No cap_sys_admin in bounding set, can't use FUSE")
+        raise FuseNotSupportedException(
+            "No cap_sys_admin in bounding set, can't use FUSE"
+        )
 
     if not check_program_success("[ -w /dev/fuse ]"):
-        return (False, "no write access to /dev/fuse")
+        raise FuseNotSupportedException("no write access to /dev/fuse")
 
     if not check_program_success("[ -e /etc/mtab ]"):
-        return (False, "no /etc/mtab")
-
-    return (True, "success")
+        raise FuseNotSupportedException("no /etc/mtab")
 
 
 def wait(ms: int):
