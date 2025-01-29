@@ -261,8 +261,8 @@ class TestDocuments:
 
         assert doc_ids
         for doc_id, (file_name, file_content) in zip(doc_ids, files.items()):
-            (mountpoint / doc_id / file_name).read_bytes() == file_content
-            (Path(os.environ["TMPDIR"]) / file_name).read_bytes() == file_content
+            assert (mountpoint / doc_id / file_name).read_bytes() == file_content
+            assert (Path(os.environ["TMPDIR"]) / file_name).read_bytes() == file_content
             app1_path = mountpoint / "by-app" / "com.test.App1" / doc_id / file_name
             app2_path = mountpoint / "by-app" / "com.test.App2" / doc_id / file_name
             assert not app1_path.exists()
