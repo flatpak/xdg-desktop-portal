@@ -1,0 +1,4 @@
+[Test]
+Type=session
+Exec=env LSAN_OPTIONS=exitcode=0 LD_LIBRARY_PATH=@libdir@:$LD_LIBRARY_PATH @env@ @exec@ --tap
+Output=TAP

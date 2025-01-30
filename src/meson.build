@@ -7,6 +7,13 @@ portal_built_sources = gnome.gdbus_codegen(
   namespace: 'XdpDbus',
   docbook: 'portal',
 )
+host_built_sources = gnome.gdbus_codegen(
+  'xdp-host-dbus',
+  sources: portal_host_sources,
+  interface_prefix: 'org.freedesktop.host.portal',
+  namespace: 'XdpDbusHost',
+  docbook: 'portal',
+)
 impl_built_sources = gnome.gdbus_codegen(
   'xdp-impl-dbus',
   sources: portal_impl_sources,
@@ -89,6 +96,7 @@ xdg_desktop_portal_sources = files(
   'print.c',
   'proxy-resolver.c',
   'realtime.c',
+  'registry.c',
   'remote-desktop.c',
   'screen-cast.c',
   'screenshot.c',
@@ -112,6 +120,7 @@ xdg_desktop_portal_sources += [
   xdp_utils_sources,
   xdp_method_info_sources,
   portal_built_sources,
+  host_built_sources,
   impl_built_sources,
   background_monitor_built_sources,
   geoclue_built_sources,

@@ -1,7 +1,7 @@
 project(
   'xdg-desktop-portal',
   'c',
-  version: '1.19.1',
+  version: '1.19.3',
   meson_version: '>= 0.60',
   license: 'LGPL-2.0-or-later',
   default_options: [
@@ -120,7 +120,7 @@ geoclue_dep = dependency(
 )
 libportal_dep = dependency(
   'libportal',
-  version: '>= 0.8.1',
+  version: '>= 0.9.0',
   required: get_option('libportal'),
   fallback: ['libportal', 'libportal_dep'],
   default_options: [
@@ -143,6 +143,9 @@ if gst_inspect.found()
   ).returncode() == 0
 else
   have_wav_parse = false
+endif
+if have_wav_parse
+  config_h.set('HAVE_WAV_PARSE', 1)
 endif
 
 bwrap = find_program('bwrap', required: get_option('sandboxed-image-validation').allowed() or get_option('sandboxed-sound-validation').allowed())

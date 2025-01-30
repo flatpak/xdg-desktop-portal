@@ -2,7 +2,8 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest, ImplSession
+from tests.templates import Response, init_logger, ImplRequest, ImplSession
+from dbusmock import MOCK_IFACE
 import dbus
 import dbus.service
 import socket
@@ -17,7 +18,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.RemoteDesktop"
 VERSION = 2
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):
@@ -52,7 +53,7 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
     try:
         logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
 
-        session = ImplSession(self, BUS_NAME, session_handle).export()
+        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
         self.sessions[session_handle] = session
 
         response = Response(self.response, {"session_handle": session.handle})
@@ -183,3 +184,11 @@ def ConnectToEIS(self, session_handle, app_id, options):
     except Exception as e:
         logger.critical(e)
         raise e
+
+
+@dbus.service.method(MOCK_IFACE, in_signature="s", out_signature="s")
+def GetSessionAppId(self, session_handle):
+    logger.debug(f"GetSessionAppId({session_handle})")
+
+    assert session_handle in self.sessions
+    return self.sessions[session_handle].app_id

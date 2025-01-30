@@ -58,41 +58,97 @@ G_DEFINE_TYPE_WITH_CODE (Settings, settings, XDP_DBUS_TYPE_SETTINGS_SKELETON,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Settings, g_object_unref)
 
+static void
+merge_impl_settings (GHashTable *merged,
+                     GVariant   *settings)
+{
+  GVariantIter iter;
+  const char *namespace;
+  GVariant *nsvalue;
+
+  g_variant_iter_init (&iter, settings);
+  while (g_variant_iter_next (&iter, "{&s@a{sv}}", &namespace, &nsvalue))
+    {
+      g_autoptr (GVariant) owned_nsvalue = NULL;
+      g_autofree char *owned_namespace = NULL;
+      g_autoptr (GVariantDict) dict = NULL;
+      GVariantIter iter2;
+      const char *key;
+      GVariant *value;
+
+      owned_nsvalue = nsvalue;
+
+      if (!g_hash_table_steal_extended (merged, namespace,
+                                        (gpointer *)&owned_namespace,
+                                        (gpointer *)&dict))
+        {
+          dict = g_variant_dict_new (NULL);
+          owned_namespace = g_strdup (namespace);
+        }
+
+      g_variant_iter_init (&iter2, nsvalue);
+      while (g_variant_iter_loop (&iter2, "{sv}", &key, &value))
+        g_variant_dict_insert_value (dict, key, value);
+
+      g_hash_table_insert (merged,
+                           g_steal_pointer (&owned_namespace),
+                           g_steal_pointer (&dict));
+    }
+}
+
+static GVariant *
+merged_to_variant (GHashTable *merged)
+{
+  g_auto(GVariantBuilder) builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("(a{sa{sv}})"));
+  const char *namespace;
+  GVariantDict *dict;
+  GHashTableIter iter;
+
+  g_variant_builder_open (&builder, G_VARIANT_TYPE ("a{sa{sv}}"));
+
+  g_hash_table_iter_init (&iter, merged);
+  while (g_hash_table_iter_next (&iter,
+                                 (gpointer *)&namespace,
+                                 (gpointer *)&dict))
+    {
+      g_variant_builder_add (&builder, "{s@a{sv}}",
+                             namespace,
+                             g_variant_dict_end (dict));
+    }
+
+  g_variant_builder_close (&builder);
+
+  return g_variant_ref_sink (g_variant_builder_end (&builder));
+}
+
 static gboolean
 settings_handle_read_all (XdpDbusSettings       *object,
                           GDBusMethodInvocation *invocation,
                           const char    * const *arg_namespaces)
 {
-  g_autoptr(GVariantBuilder) builder = g_variant_builder_new (G_VARIANT_TYPE ("(a{sa{sv}})"));
+  g_autoptr(GHashTable) merged = NULL;
+  g_autoptr(GVariant) settings = NULL;
   int j;
 
-  g_variant_builder_open (builder, G_VARIANT_TYPE ("a{sa{sv}}"));
+  merged = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                  g_free,
+                                  (GDestroyNotify) g_variant_dict_unref);
 
-  for (j = 0; j < n_impls; j++)
+  for (j = n_impls - 1; j >= 0; j--)
     {
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) impl_value = NULL;
 
       if (!xdp_dbus_impl_settings_call_read_all_sync (impls[j], arg_namespaces,
                                                       &impl_value, NULL, &error))
-        {
-          g_warning ("Failed to ReadAll() from Settings implementation: %s", error->message);
-        }
+        g_warning ("Failed to ReadAll() from Settings implementation: %s", error->message);
       else
-        {
-          size_t i;
-
-          for (i = 0; i < g_variant_n_children (impl_value); ++i)
-            {
-              g_autoptr(GVariant) child = g_variant_get_child_value (impl_value, i);
-              g_variant_builder_add_value (builder, child);
-            }
-        }
+        merge_impl_settings (merged, impl_value);
     }
 
-  g_variant_builder_close (builder);
-
-  g_dbus_method_invocation_return_value (invocation, g_variant_builder_end (builder));
+  settings = merged_to_variant (merged);
+  g_dbus_method_invocation_return_value (invocation, settings);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -107,7 +163,7 @@ settings_handle_read (XdpDbusSettings       *object,
 
   g_debug ("Read %s %s", arg_namespace, arg_key);
 
- for (i = 0; i < n_impls; i++)
+  for (i = 0; i < n_impls; i++)
     {
       g_autoptr(GError) error = NULL;
       g_autoptr(GVariant) impl_value = NULL;

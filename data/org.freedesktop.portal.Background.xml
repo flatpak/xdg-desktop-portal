@@ -75,7 +75,7 @@
 
         * ``autostart`` (``b``)
 
-          true if the application is will be autostarted.
+          true if the application will be autostarted.
     -->
     <method name="RequestBackground">
       <arg type="s" name="parent_window" direction="in"/>

@@ -8,12 +8,12 @@ import dbusmock
 import logging
 
 
-def init_template_logger(name: str):
+def init_logger(name: str):
     """
     Common logging setup for the impl.portal templates. Use as:
 
-        >>> from tests.templates import init_template_logger
-        >>> logger = init_template_logger(__name__)
+        >>> from tests.templates import init_logger
+        >>> logger = init_logger(__name__)
         >>> logger.debug("foo")
 
     """
@@ -25,7 +25,7 @@ def init_template_logger(name: str):
     return logger
 
 
-logger = init_template_logger("request")
+logger = init_logger("request")
 
 
 class Response(NamedTuple):
@@ -76,7 +76,7 @@ class ImplRequest:
                 if self._close_callback:
                     self._close_callback()
                 self.mock.EmitSignal(
-                    "org.freedesktop.impl.portal.Test",
+                    "org.freedesktop.impl.portal.Mock",
                     "RequestClosed",
                     "s",
                     (self.handle,),
@@ -106,6 +106,9 @@ class ImplRequest:
         )
         self._close_callback = close_callback
         return self
+
+    def unexport(self):
+        self.mock.RemoveObject(self.handle)
 
     def __str__(self):
         return f"ImplRequest {self.handle}"
@@ -142,9 +145,11 @@ class ImplSession:
         mock: dbusmock.DBusMockObject,
         busname: str,
         handle: str,
+        app_id: str,
     ):
         self.mock = mock  # the main mock object
         self.handle = handle
+        self.app_id = app_id
         self.closed = False
         self._close_callback: Optional[Callable] = None
 
@@ -165,7 +170,7 @@ class ImplSession:
                 if self._close_callback:
                     self._close_callback()
                 self.mock.EmitSignal(
-                    "org.freedesktop.impl.portal.Test",
+                    "org.freedesktop.impl.portal.Mock",
                     "SessionClosed",
                     "s",
                     (self.handle,),

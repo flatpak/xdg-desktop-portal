@@ -58,6 +58,13 @@ xdp_app_info_test_get_usb_queries (XdpAppInfo *app_info)
   return app_info_test->usb_queries;
 }
 
+gboolean
+xdp_app_info_test_is_valid_sub_app_id (XdpAppInfo *app_info,
+                                       const char *sub_app_id)
+{
+  return TRUE;
+}
+
 static void
 xdp_app_info_test_dispose (GObject *object)
 {
@@ -82,6 +89,8 @@ xdp_app_info_test_class_init (XdpAppInfoTestClass *klass)
     xdp_app_info_test_validate_dynamic_launcher;
   app_info_class->get_usb_queries =
     xdp_app_info_test_get_usb_queries;
+  app_info_class->is_valid_sub_app_id =
+    xdp_app_info_test_is_valid_sub_app_id;
 }
 
 static void

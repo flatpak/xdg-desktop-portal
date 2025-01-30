@@ -19,7 +19,7 @@ class TestRemoteDesktop:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "RemoteDesktop", 2)
 
-    def test_remote_desktop_create_close_session(self, portals, dbus_con):
+    def test_create_close_session(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -46,10 +46,24 @@ class TestRemoteDesktop:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
+    @pytest.mark.parametrize("token", ("Invalid-Token&", "", "/foo"))
+    def test_remote_desktop_create_session_invalid(self, portals, dbus_con, token):
+        remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
+
+        request = xdp.Request(dbus_con, remotedesktop_intf)
+        options = {"session_handle_token": token}
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            request.call("CreateSession", options=options)
+
+        e = excinfo.value
+        assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert "Invalid token" in e.get_dbus_message()
+
     @pytest.mark.parametrize(
         "template_params", ({"remotedesktop": {"force-close": 500}},)
     )
-    def test_remote_desktop_create_session_signal_closed(self, portals, dbus_con):
+    def test_create_session_signal_closed(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -76,7 +90,7 @@ class TestRemoteDesktop:
         # Now expect the backend to close it
         xdp.wait_for(lambda: session.closed)
 
-    def test_remote_desktop_connect_to_eis(self, portals, dbus_con):
+    def test_connect_to_eis(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)
@@ -125,7 +139,7 @@ class TestRemoteDesktop:
     @pytest.mark.parametrize(
         "template_params", ({"remotedesktop": {"fail-connect-to-eis": True}},)
     )
-    def test_remote_desktop_connect_to_eis_fail(self, portals, dbus_con):
+    def test_connect_to_eis_fail(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)
@@ -170,7 +184,7 @@ class TestRemoteDesktop:
             )
         assert "Purposely failing ConnectToEIS" in excinfo.value.get_dbus_message()
 
-    def test_remote_desktop_connect_to_eis_fail_notifies(self, portals, dbus_con):
+    def test_connect_to_eis_fail_notifies(self, portals, dbus_con):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
         request = xdp.Request(dbus_con, remotedesktop_intf)

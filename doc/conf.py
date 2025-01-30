@@ -7,7 +7,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = "XDG Desktop Portal"
-copyright = "2023, XDG Desktop Portal authors"
+copyright = "2023-2025, XDG Desktop Portal authors"
 author = "XDG Desktop Portal authors"
 
 # -- General configuration ---------------------------------------------------
@@ -37,3 +37,5 @@ html_logo = "img/logo.svg"
 
 ogp_site_url = "https://flatpak.github.io/xdg-desktop-portal/docs/"
 ogp_image = "_static/card.png"
+
+html_permalinks_icon = "🔗"

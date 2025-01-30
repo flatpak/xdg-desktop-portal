@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
+"POT-Creation-Date: 2024-12-21 14:14-0300\n"
 "PO-Revision-Date: 2020-02-10 16:11+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
@@ -18,24 +18,24 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:822
+#: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
 
-#: src/background.c:826
+#: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "L'applicazione %s richiede di essere avviata automaticamente e di essere "
 "eseguita sullo sfondo."
 
-#: src/background.c:828
+#: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
 
-#: src/background.c:829
+#: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -43,29 +43,29 @@ msgstr ""
 "Il permesso «esegui sullo sfondo» può essere modificato in qualsiasi momento "
 "attraverso le impostazioni dell'applicazione."
 
-#: src/background.c:834
+#: src/background.c:838
 msgid "Don't allow"
 msgstr "Non consentire"
 
-#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
 msgid "Allow"
 msgstr "Consenti"
 
-#: src/camera.c:106
+#: src/camera.c:109
 #, fuzzy, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
 
-#: src/camera.c:107
+#: src/camera.c:110
 #, fuzzy, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s vuole utilizzare la videocamera."
 
-#: src/camera.c:111
+#: src/camera.c:114
 msgid "Allow app to Use the Camera?"
 msgstr ""
 
-#: src/camera.c:112
+#: src/camera.c:115
 #, fuzzy
 msgid "An app wants to access camera devices."
 msgstr "Un'applicazione vuole utilizzare la videocamera."
@@ -100,52 +100,52 @@ msgstr ""
 msgid "Token given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
+#: src/dynamic-launcher.c:878
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:561
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:584
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:591
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
 msgid "Dynamic launcher icon failed validation"
 msgstr ""
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:739
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:918
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr ""
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:941
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:980
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr ""
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:999
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
@@ -182,55 +182,64 @@ msgstr ""
 "L'accesso alla posizione può essere modificato in qualsiasi momento "
 "attraverso le impostazioni della privacy."
 
-#: src/screenshot.c:238 src/wallpaper.c:183
+#: src/screenshot.c:241 src/wallpaper.c:185
 msgid "Deny"
 msgstr "Nega"
 
-#: src/screenshot.c:258
+#: src/screenshot.c:261
 #, fuzzy, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Consentire a %s di impostare lo sfondo?"
 
-#: src/screenshot.c:259
+#: src/screenshot.c:262
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 
-#: src/screenshot.c:267
+#: src/screenshot.c:270
 #, fuzzy
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Consentire alle applicazioni di impostare lo sfondo?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:271
 #, fuzzy
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Un'applicazione vuole utilizzare il microfono."
 
-#: src/screenshot.c:271 src/wallpaper.c:218
+#: src/screenshot.c:274 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Questa impostazione può essere modificata in qualsiasi momento attraverso le "
 "impostazioni della privacy."
 
-#: src/settings.c:131 src/settings.c:167
+#: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "La risorsa richiesta non è stata trovata"
 
-#: src/wallpaper.c:205
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr ""
+
+#: src/usb.c:1342
+#, fuzzy
+msgid "Not allowed"
+msgstr "Non consentire"
+
+#: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Consentire a %s di impostare lo sfondo?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "L'applicazione %s richiede di poter cambiare l'immagine di sfondo."
 
-#: src/wallpaper.c:215
+#: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Consentire alle applicazioni di impostare lo sfondo?"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr "Un'applicazione richiede di poter cambiare l'immagine di sfondo."
 

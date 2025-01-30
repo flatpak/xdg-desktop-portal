@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
+"POT-Creation-Date: 2024-12-21 14:14-0300\n"
 "PO-Revision-Date: 2024-09-26 13:18+0300\n"
 "Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
 "Language-Team: Hebrew <yoseforb@gmail.com>\n"
@@ -18,50 +18,50 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 46.1\n"
 
-#: src/background.c:822
+#: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "לאפשר הרצה של %s ברקע?"
 
-#: src/background.c:826
+#: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "‏%s מבקש להיפתח באופן אוטומטי ולרוץ ברקע."
 
-#: src/background.c:828
+#: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "‏%s מבקש לרוץ ברקע."
 
-#: src/background.c:829
+#: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "ניתן לשנות בכל עת את ההרשאה „לפעול ברקע” בהגדרות היישום."
 
-#: src/background.c:834
+#: src/background.c:838
 msgid "Don't allow"
 msgstr "לא לאפשר"
 
-#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
 msgid "Allow"
 msgstr "לאפשר"
 
-#: src/camera.c:106
+#: src/camera.c:109
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "לאפשר ליישום %s להשתמש במצלמה?"
 
-#: src/camera.c:107
+#: src/camera.c:110
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "‏%s מבקש להשתמש בהתקני מצלמה."
 
-#: src/camera.c:111
+#: src/camera.c:114
 msgid "Allow app to Use the Camera?"
 msgstr "לאפשר ליישום להשתמש במצלמה?"
 
-#: src/camera.c:112
+#: src/camera.c:115
 msgid "An app wants to access camera devices."
 msgstr "יישום מבקש להשתמש בהתקני מצלמה."
 
@@ -95,52 +95,52 @@ msgstr ""
 msgid "Token given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
+#: src/dynamic-launcher.c:878
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:561
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:584
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:591
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
 msgid "Dynamic launcher icon failed validation"
 msgstr ""
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:739
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:918
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr ""
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:941
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:980
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr ""
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:999
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
@@ -175,51 +175,60 @@ msgstr "יישום מבקש להשתמש במיקום שלך."
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקום שלך מהגדרות הפרטיות."
 
-#: src/screenshot.c:238 src/wallpaper.c:183
+#: src/screenshot.c:241 src/wallpaper.c:185
 msgid "Deny"
 msgstr "דחייה"
 
-#: src/screenshot.c:258
+#: src/screenshot.c:261
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "לאפשר ליישום %s לצלם את המסך?"
 
-#: src/screenshot.c:259
+#: src/screenshot.c:262
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "‏%s רוצה הרשאה לצלם את המסך בכל רגע נתון."
 
-#: src/screenshot.c:267
+#: src/screenshot.c:270
 msgid "Allow Applications to Take Screenshots?"
 msgstr "לאפשר ליישומים לצלם את המסך?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:271
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "יישום מבקש הרשאה לצלם את המסך בכל רגע נתון."
 
-#: src/screenshot.c:271 src/wallpaper.c:218
+#: src/screenshot.c:274 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "ניתן לשנות בכל עת הרשאה זו בהגדרות הפרטיות."
 
-#: src/settings.c:131 src/settings.c:167
+#: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "ההגדרה המבוקשת לא נמצאה"
 
-#: src/wallpaper.c:205
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr ""
+
+#: src/usb.c:1342
+#, fuzzy
+msgid "Not allowed"
+msgstr "לא לאפשר"
+
+#: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "לאפשר ליישום %s לקבוע את הרקעים?"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "‏%s מבקש הרשאה לשינוי תמונת הרקע."
 
-#: src/wallpaper.c:215
+#: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "לאפשר ליישומים לקבוע את הרקעים?"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr "יישום מבקש הרשאה לשינוי תמונת הרקע."
 

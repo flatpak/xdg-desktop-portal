@@ -441,6 +441,11 @@ test_sound (const char *serialized_sound,
 static void
 test_file_sound (void)
 {
+#ifndef HAVE_WAV_PARSE
+  g_test_skip("wavparse isn't available");
+  return;
+#endif
+
   g_autoptr(GError) error = NULL;
   g_autofree char *uri = NULL;
   g_autofree char *serialized_sound_s = NULL;

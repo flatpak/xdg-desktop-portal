@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-from tests.templates import init_template_logger
+from tests.templates import init_logger
 import dbus.service
 import dbus
 
@@ -15,7 +15,7 @@ MOCK_IFACE = "org.freedesktop.GeoClue2.Mock"
 SYSTEM_BUS = True
 VERSION = 1
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):

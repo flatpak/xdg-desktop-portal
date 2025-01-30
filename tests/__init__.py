@@ -5,27 +5,46 @@
 # This file is formatted with Python Black
 
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import GLib
+from gi.repository import GLib, Gio
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple, Callable
+from typing import Any, Dict, Optional, NamedTuple, Callable, List
 
 import os
 import dbus
 import dbus.proxies
 import dbusmock
 import logging
+import subprocess
 
 
 DBusGMainLoop(set_as_default=True)
 
 # Anything that takes longer than 5s needs to fail
-MAX_TIMEOUT = 5000
+DBUS_TIMEOUT = int(os.environ.get("XDP_DBUS_TIMEOUT", "5000"))
 
 _counter = count()
 
 ASV = Dict[str, Any]
 
-logger = logging.getLogger("tests")
+
+def init_logger(name: str):
+    """
+    Common logging setup for tests. Use as:
+
+        >>> import tests as xdp
+        >>> logger = xdp.init_logger(__name__)
+        >>> logger.debug("foo")
+
+    """
+    logging.basicConfig(
+        format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
+    )
+    logger = logging.getLogger(f"xdp.{name}")
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = init_logger("utils")
 
 
 def is_in_ci() -> bool:
@@ -37,6 +56,40 @@ def is_in_container() -> bool:
         "container" in os.environ
         and (os.environ["container"] == "docker" or os.environ["container"] == "podman")
     )
+
+
+def run_long_tests() -> bool:
+    return os.environ.get("XDP_TEST_RUN_LONG") is not None
+
+
+def check_program_success(cmd) -> bool:
+    proc = subprocess.Popen(
+        cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
+    )
+    _ = proc.communicate()
+    return proc.returncode == 0
+
+
+class FuseNotSupportedException(Exception):
+    pass
+
+
+def ensure_fuse_supported() -> None:
+    if not check_program_success("fusermount3 --version"):
+        raise FuseNotSupportedException("no fusermount3")
+
+    if not check_program_success(
+        "capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin'"
+    ):
+        raise FuseNotSupportedException(
+            "No cap_sys_admin in bounding set, can't use FUSE"
+        )
+
+    if not check_program_success("[ -w /dev/fuse ]"):
+        raise FuseNotSupportedException("no write access to /dev/fuse")
+
+    if not check_program_success("[ -e /etc/mtab ]"):
+        raise FuseNotSupportedException("no /etc/mtab")
 
 
 def wait(ms: int):
@@ -65,7 +118,7 @@ def wait_for(fn: Callable[[], bool]):
         mainloop.run()
 
 
-def get_permission_store_iface(bus: dbus.Bus):
+def get_permission_store_iface(bus: dbus.Bus) -> dbus.Interface:
     """
     Returns the dbus interface of the xdg-permission-store.
     """
@@ -76,28 +129,45 @@ def get_permission_store_iface(bus: dbus.Bus):
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
-def get_mock_iface(bus: dbus.Bus):
+def get_document_portal_iface(bus: dbus.Bus) -> dbus.Interface:
+    """
+    Returns the dbus interface of the xdg-document-portal.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.portal.Documents",
+        "/org/freedesktop/portal/documents",
+    )
+    return dbus.Interface(obj, "org.freedesktop.portal.Documents")
+
+
+def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
     """
-    obj = bus.get_object(
-        "org.freedesktop.impl.portal.Test", "/org/freedesktop/portal/desktop"
-    )
+    if not bus_name:
+        bus_name = "org.freedesktop.impl.portal.Test"
+
+    obj = bus.get_object(bus_name, "/org/freedesktop/portal/desktop")
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
 
-def portal_interface_name(portal_name) -> str:
+def portal_interface_name(portal_name: str, domain: Optional[str] = None) -> str:
     """
     Returns the fully qualified interface for a portal name.
     """
-    return f"org.freedesktop.portal.{portal_name}"
+    if domain:
+        return f"org.freedesktop.{domain}.portal.{portal_name}"
+    else:
+        return f"org.freedesktop.portal.{portal_name}"
 
 
-def get_portal_iface(bus: dbus.Bus, name: str) -> dbus.Interface:
+def get_portal_iface(
+    bus: dbus.Bus, name: str, domain: Optional[str] = None
+) -> dbus.Interface:
     """
     Returns the dbus interface for a portal name.
     """
-    name = portal_interface_name(name)
+    name = portal_interface_name(name, domain)
     return get_iface(bus, name)
 
 
@@ -220,7 +290,7 @@ class Closable:
         signal_match = self._bus.add_signal_receiver(
             cb_impl_closed_by_portal,
             f"{self._closable}Closed",
-            dbus_interface="org.freedesktop.impl.portal.Test",
+            dbus_interface="org.freedesktop.impl.portal.Mock",
         )
 
         logger.debug(f"Closing {self._closable} {self.objpath}")
@@ -230,7 +300,7 @@ class Closable:
         """
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
-        assert 0 < timeout_ms < MAX_TIMEOUT
+        assert 0 < timeout_ms < DBUS_TIMEOUT
         GLib.timeout_add(timeout_ms, self.close)
 
 
@@ -322,7 +392,7 @@ class Request(Closable):
 
         # Anything that takes longer than 5s needs to fail
         self._mainloop = GLib.MainLoop()
-        GLib.timeout_add(MAX_TIMEOUT, self._mainloop.quit)
+        GLib.timeout_add(DBUS_TIMEOUT, self._mainloop.quit)
 
         method = getattr(self.interface, methodname)
         assert method
@@ -428,3 +498,123 @@ class Session(Closable):
     @classmethod
     def from_response(cls, bus: dbus.Bus, response: Response) -> "Session":
         return cls(bus, response.results["session_handle"])
+
+
+class GDBusIfaceSignal:
+    """
+    Helper class which represents a connected signal on a GDBusIface and can be
+    used to disconnect from the signal.
+    """
+
+    def __init__(self, signal_id: int, proxy: Gio.DBusProxy):
+        self.signal_id = signal_id
+        self.proxy = proxy
+
+    def disconnect(self):
+        """
+        Disconnects the signal
+        """
+        self.proxy.disconnect(self.signal_id)
+
+
+class GDBusIface:
+    """
+    Helper class for calling dbus interfaces with complex arguments.
+    Usually you want to use python-dbus on the dbus_con fixture with
+    get_portal_iface , get_mock_iface or get_iface. This is convenient but
+    might not be sufficient for complex arguments or for asynchronously calling
+    a method.
+    """
+
+    def __init__(self, bus: str, obj: str, iface: str):
+        """
+        Creates a GDBusIface for a specific bus, object and interface on the
+        session bus.
+        """
+        address = Gio.dbus_address_get_for_bus_sync(Gio.BusType.SESSION, None)
+        session_bus = Gio.DBusConnection.new_for_address_sync(
+            address,
+            Gio.DBusConnectionFlags.AUTHENTICATION_CLIENT
+            | Gio.DBusConnectionFlags.MESSAGE_BUS_CONNECTION,
+            None,
+            None,
+        )
+        assert session_bus
+        self._proxy = Gio.DBusProxy.new_sync(
+            session_bus,
+            Gio.DBusProxyFlags.NONE,
+            None,
+            bus,
+            obj,
+            iface,
+            None,
+        )
+
+    def _call(
+        self, method_name: str, args_variant: GLib.Variant, fds: List[int] = []
+    ) -> GLib.Variant:
+        """
+        Calls a method synchronously with the arguments passed in args_variant,
+        passing the file descriptors specified in fds.
+        Returns the result of the dbus call.
+        """
+        fdlist = Gio.UnixFDList.new()
+        for fd in fds:
+            fdlist.append(fd)
+
+        return self._proxy.call_with_unix_fd_list_sync(
+            method_name,
+            args_variant,
+            0,
+            -1,
+            fdlist,
+            None,
+        )
+
+    def _call_async(
+        self,
+        method_name: str,
+        args_variant: GLib.Variant,
+        fds: List[int] = [],
+        cb: Optional[Callable[[GLib.Variant], None]] = None,
+    ) -> None:
+        """
+        Calls a method asynchronously with the arguments passed in args_variant,
+        passing the file descriptors specified in fds.
+        Invokes the callback cb when the call finished.
+        """
+        fdlist = Gio.UnixFDList.new()
+        for fd in fds:
+            fdlist.append(fd)
+
+        def internal_cb(s, res, _):
+            res = s.call_finish(res)
+            if cb:
+                cb(res)
+
+        self._proxy.call_with_unix_fd_list(
+            method_name,
+            args_variant,
+            0,
+            -1,
+            fdlist,
+            None,
+            internal_cb,
+            None,
+        )
+
+    def connect_to_signal(
+        self, name: str, cb: Callable[[GLib.Variant], None]
+    ) -> GDBusIfaceSignal:
+        """
+        Connects to the dbus signal name to the callback cb. Returns an object
+        representing the connection which can be used to disconnect it again.
+        """
+
+        def internal_cb(proxy, sender_name, signal_name, parameters):
+            if signal_name != name:
+                return
+            cb(parameters)
+
+        signal_id = self._proxy.connect("g-signal", internal_cb)
+        return GDBusIfaceSignal(signal_id, self._proxy)

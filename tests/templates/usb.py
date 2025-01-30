@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest
+from tests.templates import Response, init_logger, ImplRequest
 import dbus
 import dbus.service
 from dbusmock import MOCK_IFACE
@@ -17,7 +17,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Usb"
 VERSION = 1
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):

@@ -40,6 +40,9 @@ if build_documentation
   foreach i: portal_sources
     all_interfaces_xml += i
   endforeach
+  foreach i: portal_host_sources
+    all_interfaces_xml += i
+  endforeach
   foreach i: portal_impl_sources
     all_interfaces_xml += i
   endforeach

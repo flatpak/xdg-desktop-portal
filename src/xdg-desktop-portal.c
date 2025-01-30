@@ -60,6 +60,7 @@
 #include "print.h"
 #include "proxy-resolver.h"
 #include "realtime.h"
+#include "registry.h"
 #include "remote-desktop.h"
 #include "xdp-request.h"
 #include "screen-cast.h"
@@ -83,6 +84,8 @@ static GOptionEntry entries[] = {
   { "version", 0, 0, G_OPTION_ARG_NONE, &show_version, "Show program version.", NULL},
   { NULL }
 };
+
+XdpDbusImplLockdown *lockdown;
 
 static void
 message_handler (const gchar *log_domain,
@@ -138,7 +141,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_invocation_lookup_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -186,6 +189,33 @@ export_portal_implementation (GDBusConnection *connection,
 }
 
 static void
+export_host_portal_implementation (GDBusConnection        *connection,
+                                   GDBusInterfaceSkeleton *skeleton)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (skeleton == NULL)
+    {
+      g_warning ("No skeleton to export");
+      return;
+    }
+
+  g_dbus_interface_skeleton_set_flags (skeleton,
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+
+  if (!g_dbus_interface_skeleton_export (skeleton,
+                                         connection,
+                                         DESKTOP_PORTAL_OBJECT_PATH,
+                                         &error))
+    {
+      g_warning ("Error: %s", error->message);
+      return;
+    }
+
+  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+}
+
+static void
 peer_died_cb (const char *name)
 {
   close_requests_for_sender (name);
@@ -208,7 +238,6 @@ on_bus_acquired (GDBusConnection *connection,
   XdpPortalImplementation *implementation;
   XdpPortalImplementation *lockdown_impl;
   XdpPortalImplementation *access_impl;
-  XdpDbusImplLockdown *lockdown = NULL;
   GQuark portal_errors G_GNUC_UNUSED;
   GPtrArray *impls;
   g_autoptr(GError) error = NULL;
@@ -252,7 +281,8 @@ on_bus_acquired (GDBusConnection *connection,
   export_portal_implementation (connection, realtime_create (connection));
 
   impls = find_all_portal_implementations ("org.freedesktop.impl.portal.Settings");
-  export_portal_implementation (connection, settings_create (connection, impls));
+  if (impls->len > 0)
+    export_portal_implementation (connection, settings_create (connection, impls));
   g_ptr_array_free (impls, TRUE);
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.FileChooser");
@@ -370,6 +400,8 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   xdp_usb_create (connection, implementation->dbus_name));
 #endif
+
+  export_host_portal_implementation (connection, registry_create (connection));
 }
 
 static void

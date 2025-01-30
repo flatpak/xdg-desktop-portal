@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-09 21:02+0000\n"
+"POT-Creation-Date: 2024-12-21 14:14-0300\n"
 "PO-Revision-Date: 2024-10-08 08:42+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
@@ -21,50 +21,50 @@ msgstr ""
 "X-Generator: Gtranslator 47.0\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: src/background.c:822
+#: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "允许 %s 在后台运行吗？"
 
-#: src/background.c:826
+#: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s 请求自动启动并在后台运行。"
 
-#: src/background.c:828
+#: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s 请求在后台运行。"
 
-#: src/background.c:829
+#: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr "您可随时在应用设置中修改“后台运行”的权限。"
 
-#: src/background.c:834
+#: src/background.c:838
 msgid "Don't allow"
 msgstr "禁止"
 
-#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
 msgid "Allow"
 msgstr "允许"
 
-#: src/camera.c:106
+#: src/camera.c:109
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "允许 %s 使用摄像头吗？"
 
-#: src/camera.c:107
+#: src/camera.c:110
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s 想访问摄像设备。"
 
-#: src/camera.c:111
+#: src/camera.c:114
 msgid "Allow app to Use the Camera?"
 msgstr "允许应用使用摄像头吗？"
 
-#: src/camera.c:112
+#: src/camera.c:115
 msgid "An app wants to access camera devices."
 msgstr "有应用想访问摄像设备。"
 
@@ -98,52 +98,52 @@ msgstr "传递给 Install() 的桌面入口文件无效"
 msgid "Token given is invalid: %s"
 msgstr "提供的令牌无效：%s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
+#: src/dynamic-launcher.c:878
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "桌面文件超出最大尺寸（%d）：%s"
 
-#: src/dynamic-launcher.c:564
+#: src/dynamic-launcher.c:561
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "提供的 URL 无效：%s"
 
-#: src/dynamic-launcher.c:587
+#: src/dynamic-launcher.c:584
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "无效的启动器类型：%x"
 
-#: src/dynamic-launcher.c:594
+#: src/dynamic-launcher.c:591
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "不支持的启动器类型：%x"
 
-#: src/dynamic-launcher.c:656 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
 msgid "Dynamic launcher icon failed validation"
 msgstr "动态启动器图标验证失败"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:739
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "应用标识 %s 不允许使用 RequestInstallToken()"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:918
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "桌面文件“%s”图标位于未识别的路径"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:941
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "桌面文件“%s”图标序列化失败"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:980
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "带有标识“%s”的动态启动器不存在"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:999
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "为带有标识“%s”的启动器创建 GDesktopAppInfo 失败"
@@ -178,51 +178,60 @@ msgstr "有应用程序想使用您的位置信息。"
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改位置信息的访问权限。"
 
-#: src/screenshot.c:238 src/wallpaper.c:183
+#: src/screenshot.c:241 src/wallpaper.c:185
 msgid "Deny"
 msgstr "拒绝"
 
-#: src/screenshot.c:258
+#: src/screenshot.c:261
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "允许 %s 获取截屏吗？"
 
-#: src/screenshot.c:259
+#: src/screenshot.c:262
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s 想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:270
 msgid "Allow Applications to Take Screenshots?"
 msgstr "允许应用程序获取截屏吗？"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:271
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "有应用程序想要在任何时候都能获取截屏。"
 
-#: src/screenshot.c:271 src/wallpaper.c:218
+#: src/screenshot.c:274 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "您可随时在隐私设置中修改该权限。"
 
-#: src/settings.c:131 src/settings.c:167
+#: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "未找到请求的设置"
 
-#: src/wallpaper.c:205
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr ""
+
+#: src/usb.c:1342
+#, fuzzy
+msgid "Not allowed"
+msgstr "禁止"
+
+#: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "允许 %s 设置背景吗？"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s 正在请求允许修改背景图像。"
 
-#: src/wallpaper.c:215
+#: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "允许应用程序设置背景吗？"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr "一个应用程序正在请求允许修改背景图像。"
 
