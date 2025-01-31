@@ -18,6 +18,7 @@ subdir('dbs')
 subdir('portals')
 subdir('services')
 subdir('share')
+subdir('native-messaging-hosts')
 
 test_db = executable(
   'testdb',
@@ -286,6 +287,7 @@ if enable_pytest
   pytest_env.set('XDG_DOCUMENT_PORTAL_PATH', xdg_document_portal.full_path())
   pytest_env.set('XDP_VALIDATE_ICON', xdp_validate_icon.full_path())
   pytest_env.set('XDP_VALIDATE_SOUND', xdp_validate_sound.full_path())
+  pytest_env.set('XDG_DESKTOP_PORTAL_WEB_EXTENSIONS_PATH', meson.current_build_dir()+'/native-messaging-hosts')
 
   # pytest xdist is nice because it significantly speeds up our
   # test process, but it's not required
@@ -320,6 +322,7 @@ if enable_pytest
     'test_trash.py',
     'test_usb.py',
     'test_wallpaper.py',
+    'test_webextensions.py',
   ]
 
   template_files = [
