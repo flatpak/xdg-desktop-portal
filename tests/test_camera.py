@@ -38,7 +38,7 @@ class TestCamera:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Camera", 1)
 
-    def test_camera_access(self, portals, dbus_con, app_id):
+    def test_access(self, portals, dbus_con, app_id):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -58,7 +58,7 @@ class TestCamera:
         assert args[1] == app_id
 
     @pytest.mark.parametrize("template_params", ({"access": {"response": 1}},))
-    def test_camera_access_cancel(self, portals, dbus_con, app_id):
+    def test_access_cancel(self, portals, dbus_con, app_id):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -78,7 +78,7 @@ class TestCamera:
         assert args[1] == app_id
 
     @pytest.mark.parametrize("template_params", ({"access": {"expect-close": True}},))
-    def test_camera_access_close(self, portals, dbus_con, app_id):
+    def test_access_close(self, portals, dbus_con, app_id):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -101,25 +101,25 @@ class TestCamera:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-camera": True}},)
     )
-    def test_camera_access_lockdown(self, portals, dbus_con, app_id):
+    def test_access_lockdown(self, portals, dbus_con, app_id):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         request = xdp.Request(dbus_con, camera_intf)
-        try:
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             request.call(
                 "AccessCamera",
                 options={},
             )
-            assert False, "This statement should not be reached"
-        except dbus.exceptions.DBusException as e:
-            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        assert (
+            excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+        )
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("AccessDialog")
         assert len(method_calls) == 0
 
-    def test_camera_access_denied(self, portals, dbus_con, app_id):
+    def test_access_denied(self, portals, dbus_con, app_id):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

@@ -2,12 +2,10 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest
+from tests.templates import Response, init_logger, ImplRequest
 import dbus
 import dbus.service
 from dbusmock import MOCK_IFACE
-
-from gi.repository import GLib
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -17,7 +15,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Usb"
 VERSION = 1
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):
@@ -25,6 +23,7 @@ def load(mock, parameters={}):
 
     mock.delay: int = parameters.get("delay", 200)
     mock.response: int = parameters.get("response", 0)
+    mock.expect_close: bool = parameters.get("expect-close", False)
     mock.filters = parameters.get("filters", {})
     mock.AddProperties(
         MAIN_IFACE,
@@ -52,11 +51,20 @@ def AcquireDevices(
     cb_success,
     cb_error,
 ):
-    try:
-        logger.debug(
-            f"AcquireDevices({handle}, {parent_window}, {app_id}, {devices}, {options})"
-        )
+    logger.debug(
+        f"AcquireDevices({handle}, {parent_window}, {app_id}, {devices}, {options})"
+    )
 
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
+
+    def reply():
         # no options supported
         assert not options
         devices_out = []
@@ -99,23 +107,15 @@ def AcquireDevices(
                 dbus.Struct([id, access_options], signature="sa{sv}", variant_level=1)
             )
 
-        response = Response(
+        return Response(
             self.response,
             {"devices": dbus.Array(devices_out, signature="(sa{sv})", variant_level=1)},
         )
-        request = ImplRequest(self, BUS_NAME, handle)
-        request.export()
 
-        def reply():
-            logger.debug(f"AcquireDevices with response {response}")
-            cb_success(response.response, response.results)
-
-        logger.debug(f"scheduling delay of {self.delay}")
-        GLib.timeout_add(self.delay, reply)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(reply, delay=self.delay)
 
 
 @dbus.service.method(

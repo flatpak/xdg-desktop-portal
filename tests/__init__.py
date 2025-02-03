@@ -14,18 +14,37 @@ import dbus
 import dbus.proxies
 import dbusmock
 import logging
+import subprocess
 
 
 DBusGMainLoop(set_as_default=True)
 
 # Anything that takes longer than 5s needs to fail
-MAX_TIMEOUT = 5000
+DBUS_TIMEOUT = int(os.environ.get("XDP_DBUS_TIMEOUT", "5000"))
 
 _counter = count()
 
 ASV = Dict[str, Any]
 
-logger = logging.getLogger("tests")
+
+def init_logger(name: str) -> logging.Logger:
+    """
+    Common logging setup for tests. Use as:
+
+        >>> import tests as xdp
+        >>> logger = xdp.init_logger(__name__)
+        >>> logger.debug("foo")
+
+    """
+    logging.basicConfig(
+        format="%(levelname).1s|%(name)s: %(message)s", level=logging.DEBUG
+    )
+    logger = logging.getLogger(f"xdp.{name}")
+    logger.setLevel(logging.DEBUG)
+    return logger
+
+
+logger = init_logger("utils")
 
 
 def is_in_ci() -> bool:
@@ -41,6 +60,36 @@ def is_in_container() -> bool:
 
 def run_long_tests() -> bool:
     return os.environ.get("XDP_TEST_RUN_LONG") is not None
+
+
+def check_program_success(cmd) -> bool:
+    proc = subprocess.Popen(
+        cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
+    )
+    _ = proc.communicate()
+    return proc.returncode == 0
+
+
+class FuseNotSupportedException(Exception):
+    pass
+
+
+def ensure_fuse_supported() -> None:
+    if not check_program_success("fusermount3 --version"):
+        raise FuseNotSupportedException("no fusermount3")
+
+    if not check_program_success(
+        "capsh --print | grep -q 'Bounding set.*[^a-z]cap_sys_admin'"
+    ):
+        raise FuseNotSupportedException(
+            "No cap_sys_admin in bounding set, can't use FUSE"
+        )
+
+    if not check_program_success("[ -w /dev/fuse ]"):
+        raise FuseNotSupportedException("no write access to /dev/fuse")
+
+    if not check_program_success("[ -e /etc/mtab ]"):
+        raise FuseNotSupportedException("no /etc/mtab")
 
 
 def wait(ms: int):
@@ -69,7 +118,7 @@ def wait_for(fn: Callable[[], bool]):
         mainloop.run()
 
 
-def get_permission_store_iface(bus: dbus.Bus):
+def get_permission_store_iface(bus: dbus.Bus) -> dbus.Interface:
     """
     Returns the dbus interface of the xdg-permission-store.
     """
@@ -80,7 +129,18 @@ def get_permission_store_iface(bus: dbus.Bus):
     return dbus.Interface(obj, "org.freedesktop.impl.portal.PermissionStore")
 
 
-def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None):
+def get_document_portal_iface(bus: dbus.Bus) -> dbus.Interface:
+    """
+    Returns the dbus interface of the xdg-document-portal.
+    """
+    obj = bus.get_object(
+        "org.freedesktop.portal.Documents",
+        "/org/freedesktop/portal/documents",
+    )
+    return dbus.Interface(obj, "org.freedesktop.portal.Documents")
+
+
+def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interface:
     """
     Returns the mock interface of the xdg-desktop-portal.
     """
@@ -91,18 +151,23 @@ def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None):
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)
 
 
-def portal_interface_name(portal_name) -> str:
+def portal_interface_name(portal_name: str, domain: Optional[str] = None) -> str:
     """
     Returns the fully qualified interface for a portal name.
     """
-    return f"org.freedesktop.portal.{portal_name}"
+    if domain:
+        return f"org.freedesktop.{domain}.portal.{portal_name}"
+    else:
+        return f"org.freedesktop.portal.{portal_name}"
 
 
-def get_portal_iface(bus: dbus.Bus, name: str) -> dbus.Interface:
+def get_portal_iface(
+    bus: dbus.Bus, name: str, domain: Optional[str] = None
+) -> dbus.Interface:
     """
     Returns the dbus interface for a portal name.
     """
-    name = portal_interface_name(name)
+    name = portal_interface_name(name, domain)
     return get_iface(bus, name)
 
 
@@ -235,7 +300,7 @@ class Closable:
         """
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
-        assert 0 < timeout_ms < MAX_TIMEOUT
+        assert 0 < timeout_ms < DBUS_TIMEOUT
         GLib.timeout_add(timeout_ms, self.close)
 
 
@@ -327,7 +392,7 @@ class Request(Closable):
 
         # Anything that takes longer than 5s needs to fail
         self._mainloop = GLib.MainLoop()
-        GLib.timeout_add(MAX_TIMEOUT, self._mainloop.quit)
+        GLib.timeout_add(DBUS_TIMEOUT, self._mainloop.quit)
 
         method = getattr(self.interface, methodname)
         assert method

@@ -3,17 +3,18 @@
 # This file is formatted with Python Black
 
 from typing import Callable, Dict, Optional, NamedTuple
+from gi.repository import GLib
 import dbus
 import dbusmock
 import logging
 
 
-def init_template_logger(name: str):
+def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for the impl.portal templates. Use as:
 
-        >>> from tests.templates import init_template_logger
-        >>> logger = init_template_logger(__name__)
+        >>> from tests.templates import init_logger
+        >>> logger = init_logger(__name__)
         >>> logger.debug("foo")
 
     """
@@ -25,7 +26,7 @@ def init_template_logger(name: str):
     return logger
 
 
-logger = init_template_logger("request")
+logger = init_logger("utils")
 
 
 class Response(NamedTuple):
@@ -35,62 +36,113 @@ class Response(NamedTuple):
 
 class ImplRequest:
     """
-    Implementation of a org.freedesktop.impl.portal.Request object. Typically
-    this object needs to be merely exported:
+    Implementation of an ``org.freedesktop.impl.portal.Request`` object exposed
+    on the object path ``handle``.
 
-        >>> r = ImplRequest(mock, "org.freedesktop.impl.portal.Test", handle)
-        >>> r.export()
+    The dbus method implementations need to be invoked asynchronously and the
+    async callbacks must be passed in ``cb_success`` and ``cb_error``.
 
-    Where the test or the backend implementation relies on the Closed() method
-    of the ImplRequest, provide a callback to be invoked.
-
-        >>> r.export(close_callback=my_callback)
-
-    Note that the latter only works if the test invokes methods
-    asynchronously.
-
-    .. attribute:: closed
-
-        Set to True if the Close() method on the Request was invoked
-
+    The request either waits until it is closed by x-d-p (``wait_for_close``) or
+    responds to the request (``respond``).
     """
 
-    def __init__(self, mock: "dbusmock.DBusMockObject", busname: str, handle: str):
+    def __init__(
+        self,
+        mock: dbusmock.DBusMockObject,
+        busname: str,
+        handle: str,
+        logger: logging.Logger,
+        cb_success: Callable,
+        cb_error: Callable,
+    ):
         self.mock = mock
-        self.handle = handle
-        self.closed = False
-        self._close_callback: Optional[Callable] = None
-
         bus = mock.connection
         proxy = bus.get_object(busname, handle)
-        mock_interface = dbus.Interface(proxy, dbusmock.MOCK_IFACE)
+        self.mock_interface = dbus.Interface(proxy, dbusmock.MOCK_IFACE)
+        self.handle = handle
+        self.logger = logger
+        self.cb_success = cb_success
+        self.cb_error = cb_error
 
-        # Register for the Close() call on the impl.Request. If it gets
-        # called, use the side-channel RequestClosed signal so we can notify
-        # the test that the impl.Request was actually closed by the
-        # xdg-desktop-portal
+    def respond(
+        self,
+        response: Callable | Response,
+        delay: int = 0,
+        done_cb: Callable | None = None,
+    ) -> None:
+        def reply():
+            nonlocal response
+            logger.debug(f"Request {self.handle}: trying to reply")
+            if callable(response):
+                try:
+                    response = response()
+                except Exception as e:
+                    logger.critical(
+                        f"Request {self.handle}: failed getting response: {e}"
+                    )
+                    self.cb_error(e)
+                    self._unexport()
+                    return
+
+            assert response
+            logger.debug(f"Request {self.handle}: replying {response}")
+
+            self.cb_success(response.response, response.results)
+            self._unexport()
+
+            if done_cb:
+                done_cb()
+
+        self._export()
+
+        if delay > 0:
+            logger.debug(f"Request {self.handle}: scheduling delay of {delay}ms")
+            GLib.timeout_add(delay, reply)
+        else:
+            reply()
+
+    def wait_for_close(
+        self,
+        close_callback: Callable | None = None,
+    ) -> None:
+        def closed():
+            logger.debug(f"Request {self.handle}: closed")
+
+            self.mock.EmitSignal(
+                "org.freedesktop.impl.portal.Mock",
+                "RequestClosed",
+                "s",
+                (self.handle,),
+            )
+
+            if close_callback:
+                try:
+                    close_callback()
+                except Exception as e:
+                    logger.critical(
+                        f"Request {self.handle}: failed running close callback: {e}"
+                    )
+                    self.cb_error(e)
+                    self._unexport()
+                    return
+
+            response = Response(2, {})
+            self.cb_success(response.response, response.results)
+            self._unexport()
+
         def cb_methodcall(name, args):
             if name == "Close":
-                self.closed = True
-                logger.debug(f"Close() on {self}")
-                if self._close_callback:
-                    self._close_callback()
-                self.mock.EmitSignal(
-                    "org.freedesktop.impl.portal.Mock",
-                    "RequestClosed",
-                    "s",
-                    (self.handle,),
-                )
-                self.mock.RemoveObject(self.handle)
+                closed()
 
-        mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
+        self._export()
 
-    def export(self, close_callback: Optional[Callable] = None):
-        """
-        Create the object on the bus. If close_callback is not None, that
-        callback will be invoked in response to the Close() method called on
-        this object.
-        """
+        logger.debug(f"Request {self.handle}: waiting for x-d-p to call close")
+        self.mock_interface.connect_to_signal("MethodCalled", cb_methodcall)
+
+    def _export(self):
+        # In the future we can pass a class extending
+        # dbusmock.mockobject.DBusMockObject as mock_class to avoid going
+        # through the mock MethodCalled signal
         self.mock.AddObject(
             path=self.handle,
             interface="org.freedesktop.impl.portal.Request",
@@ -104,8 +156,9 @@ class ImplRequest:
                 )
             ],
         )
-        self._close_callback = close_callback
-        return self
+
+    def _unexport(self):
+        self.mock.RemoveObject(self.handle)
 
     def __str__(self):
         return f"ImplRequest {self.handle}"
@@ -142,9 +195,11 @@ class ImplSession:
         mock: dbusmock.DBusMockObject,
         busname: str,
         handle: str,
+        app_id: str,
     ):
         self.mock = mock  # the main mock object
         self.handle = handle
+        self.app_id = app_id
         self.closed = False
         self._close_callback: Optional[Callable] = None
 

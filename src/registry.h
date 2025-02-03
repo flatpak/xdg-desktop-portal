@@ -10,32 +10,18 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Authors:
+ *       Jonas Ådahl <jadahl@redhat.com>
  */
 
 #pragma once
 
-#include "xdp-app-info-private.h"
+#include <gio/gio.h>
 
-struct _XdpAppInfoFlatpakClass
-{
-  XdpAppInfoClass parent_class;
-};
-
-#define XDP_TYPE_APP_INFO_FLATPAK (xdp_app_info_flatpak_get_type())
-G_DECLARE_FINAL_TYPE (XdpAppInfoFlatpak,
-                      xdp_app_info_flatpak,
-                      XDP, APP_INFO_FLATPAK,
-                      XdpAppInfo)
-
-gboolean xdp_is_flatpak (int        pid,
-                         gboolean  *is_flatpak,
-                         GError   **error);
-
-XdpAppInfo * xdp_app_info_flatpak_new (int      pid,
-                                       int      pidfd,
-                                       GError **error);
+GDBusInterfaceSkeleton * registry_create (GDBusConnection *connection);

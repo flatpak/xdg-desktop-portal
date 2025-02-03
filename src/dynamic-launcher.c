@@ -243,6 +243,7 @@ write_keyfile_to_disk (const char  *desktop_file_id,
 {
   g_autofree char *desktop_dir = NULL;
   g_autofree char *desktop_path = NULL;
+  g_autofree char *link_dir = NULL;
   g_autofree char *link_path = NULL;
   g_autofree char *relative_path = NULL;
   g_autoptr(GFile) link_file = NULL;
@@ -262,10 +263,11 @@ write_keyfile_to_disk (const char  *desktop_file_id,
   /* Make a sym link in ~/.local/share/applications so the launcher shows up in
    * the desktop environment's menu.
    */
-  link_path = g_build_filename (g_get_user_data_dir (),
-                                "applications",
-                                desktop_file_id,
-                                NULL);
+  link_dir = g_build_filename (g_get_user_data_dir (),
+                               "applications",
+                               NULL);
+  g_mkdir_with_parents (link_dir, 0700);
+  link_path = g_build_filename (link_dir, desktop_file_id, NULL);
 
   relative_path = g_build_filename ("..",
                                     XDG_PORTAL_APPLICATIONS_DIR,
@@ -310,12 +312,12 @@ get_desktop_entry (const char  *desktop_file_id,
    * there's a security risk.
    */
   groups = g_key_file_get_groups (key_file, NULL);
-  if (g_strv_length (groups) > 1 ||
+  if (g_strv_length (groups) != 1 ||
       !g_strv_contains ((const char * const *)groups, G_KEY_FILE_DESKTOP_GROUP))
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   _("Desktop entry given to Install() must have only one group"));
+                   _("Desktop entry given to Install() must have exactly one group"));
       return NULL;
     }
 
@@ -437,10 +439,10 @@ static gboolean
 install_token_timeout (gpointer data)
 {
   g_autoptr(GVariant) launcher_data = NULL;
+  const char *token = data;
 
-  g_debug ("Revoking install token %s", (char *)data);
-  launcher_data = get_launcher_data_and_revoke_token ((char *)data);
-  g_free (data);
+  g_debug ("Revoking install token %s", token);
+  launcher_data = get_launcher_data_and_revoke_token (token);
 
   return G_SOURCE_REMOVE;
 }
@@ -503,7 +505,7 @@ prepare_install_done (GObject      *source,
       const char *chosen_name = NULL;
       const char *icon_format = NULL;
       const char *icon_size = NULL;
-      GVariant *chosen_icon = NULL;
+      g_autoptr(GVariant) chosen_icon = NULL;
 
       icon_format = g_object_get_data (G_OBJECT (request), "icon-format");
       g_assert (icon_format != NULL && icon_format[0] != '\0');

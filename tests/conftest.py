@@ -10,9 +10,13 @@
 # Required environment variables by x-d-p:
 #   XDP_VALIDATE_ICON: the path to the xdg-desktop-portal-validate-icon binary
 #   XDP_VALIDATE_SOUND: the path to the xdg-desktop-portal-validate-sound binary
+#       OR
+#   XDP_VALIDATE_AUTO: if set, automatically discovers the icon and sound
+#    validators (only useful for installed tests)
 #
 # Environment variables for debugging:
 #   XDP_DBUS_MONITOR: if set, starts dbus_monitor on the custom bus
+#   XDP_DBUS_TIMEOUT: Maximum timeout for dbus calls in ms (default: 5s)
 #
 # Make sure the required portals are listed in
 #   xdg_desktop_portal_dir_default_files
@@ -30,7 +34,6 @@ import os
 import sys
 import tempfile
 import subprocess
-import fcntl
 import time
 import signal
 from pathlib import Path
@@ -47,14 +50,28 @@ def pytest_configure() -> None:
     ensure_umockdev_loaded()
 
 
+def pytest_sessionfinish(session, exitstatus):
+    # Meson and ginsttest-runner expect tests to exit with status 77 if all
+    # tests were skipped
+    if exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
+        session.exitstatus = 77
+
+
 def ensure_environment_set() -> None:
     env_vars = [
         "XDG_DESKTOP_PORTAL_PATH",
         "XDG_PERMISSION_STORE_PATH",
         "XDG_DOCUMENT_PORTAL_PATH",
-        "XDP_VALIDATE_ICON",
-        "XDP_VALIDATE_SOUND",
     ]
+
+    if not os.getenv("XDP_VALIDATE_AUTO"):
+        env_vars += [
+            "XDP_VALIDATE_ICON",
+            "XDP_VALIDATE_SOUND",
+        ]
+    else:
+        os.environ.pop("XDP_VALIDATE_ICON", None)
+        os.environ.pop("XDP_VALIDATE_SOUND", None)
 
     for env_var in env_vars:
         if not os.getenv(env_var):
@@ -156,6 +173,7 @@ def xdg_desktop_portal_dir_default_files() -> Dict[str, bytes]:
         "org.freedesktop.impl.portal.AppChooser",
         "org.freedesktop.impl.portal.Background",
         "org.freedesktop.impl.portal.Clipboard",
+        "org.freedesktop.impl.portal.DynamicLauncher",
         "org.freedesktop.impl.portal.Email",
         "org.freedesktop.impl.portal.FileChooser",
         "org.freedesktop.impl.portal.GlobalShortcuts",
@@ -241,11 +259,9 @@ def _get_server_for_module(
             "/dbusmock",
             dbusmock.OBJECT_MANAGER_IFACE,
             bustype,
-            stdout=subprocess.PIPE,
+            stdout=None,
+            stderr=None,
         )
-
-        flags = fcntl.fcntl(server.process.stdout, fcntl.F_GETFL)
-        fcntl.fcntl(server.process.stdout, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
         busses[bustype][module.BUS_NAME] = server
         return server
@@ -271,11 +287,6 @@ def _get_main_obj_for_module(
 
 
 def _terminate_mock_p(process: subprocess.Popen) -> None:
-    if process.stdout:
-        out = (process.stdout.read() or b"").decode("utf-8")
-        if out:
-            print(out)
-        process.stdout.close()
     process.terminate()
     process.wait()
 
@@ -476,6 +487,11 @@ def xdg_desktop_portal(
     xdg_desktop_portal = subprocess.Popen([xdg_desktop_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
+        returncode = xdg_desktop_portal.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-desktop-portal exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield xdg_desktop_portal
@@ -501,6 +517,11 @@ def xdg_permission_store(
     permission_store = subprocess.Popen([xdg_permission_store_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
+        returncode = permission_store.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-permission-store exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield permission_store
@@ -525,11 +546,16 @@ def xdg_document_portal(
     # FUSE and LD_PRELOAD don't like each other. Not sure what exactly is going
     # wrong but it usually just results in a weird hang that needs SIGKILL
     env = xdp_env.copy()
-    del env["LD_PRELOAD"]
+    env.pop("LD_PRELOAD", None)
 
     document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Documents"):
+        returncode = document_portal.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-document-portal exited with {returncode}"
+            )
         time.sleep(0.1)
 
     yield document_portal

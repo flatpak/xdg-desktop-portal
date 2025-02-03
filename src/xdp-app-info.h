@@ -81,6 +81,11 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
 
 const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
 
-XdpAppInfo * xdp_invocation_lookup_app_info_sync (GDBusMethodInvocation  *invocation,
+XdpAppInfo * xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                                   GCancellable           *cancellable,
                                                   GError                **error);
+
+XdpAppInfo * xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
+                                                         const char             *app_id,
+                                                         GCancellable           *cancellable,
+                                                         GError                **error);

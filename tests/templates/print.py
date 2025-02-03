@@ -2,10 +2,9 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest
+from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
-from gi.repository import GLib
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -15,7 +14,7 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Print"
 VERSION = 3
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):
@@ -54,32 +53,23 @@ def PreparePrint(
     cb_success,
     cb_error,
 ):
-    try:
-        logger.debug(
-            f"PreparePrint({handle}, {app_id}, {parent_window}, {title}, {settings}, {page_setup}, {options})"
-        )
+    logger.debug(
+        f"PreparePrint({handle}, {app_id}, {parent_window}, {title}, {settings}, {page_setup}, {options})"
+    )
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"PreparePrint Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, self.prepare_results)
-            logger.debug(f"PreparePrint with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, self.prepare_results), delay=self.delay)
 
 
 @dbus.service.method(
@@ -91,29 +81,20 @@ def PreparePrint(
 def Print(
     self, handle, app_id, parent_window, title, fd, options, cb_success, cb_error
 ):
-    try:
-        logger.debug(
-            f"Print({handle}, {app_id}, {parent_window}, {title}, {fd}, {options})"
-        )
+    logger.debug(
+        f"Print({handle}, {app_id}, {parent_window}, {title}, {fd}, {options})"
+    )
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"Print Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, self.results)
-            logger.debug(f"Print with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, self.results), delay=self.delay)

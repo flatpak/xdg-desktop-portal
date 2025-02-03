@@ -204,6 +204,7 @@ handle_screenshot_in_thread_func (GTask *task,
   GVariant *options;
   gboolean permission_store_checked = FALSE;
   gboolean interactive;
+  gboolean modal;
   const char *parent_window;
   const char *app_id;
 
@@ -220,6 +221,9 @@ handle_screenshot_in_thread_func (GTask *task,
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
+
+  if (!g_variant_lookup (options, "modal", "b", &modal))
+    modal = TRUE;
 
   if (!interactive && permission != XDP_PERMISSION_YES)
     {
@@ -243,6 +247,8 @@ handle_screenshot_in_thread_func (GTask *task,
                              "grant_label", g_variant_new_string (_("Allow")));
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
+      g_variant_builder_add (&access_opt_builder, "{sv}",
+                             "modal", g_variant_new_boolean (modal));
 
       if (g_strcmp0 (app_id, "") != 0)
         {

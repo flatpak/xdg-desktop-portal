@@ -1,4 +1,3 @@
 [Test]
 Type=session
-Exec=env LSAN_OPTIONS=exitcode=0 LD_LIBRARY_PATH=@libdir@:$LD_LIBRARY_PATH XDG_DATA_DIRS=@installed_tests_data_dir@/share:@datadir@:/usr/local/share:/usr/share @installed_testdir@/@exec@ --tap
-Output=TAP
+Exec=env LSAN_OPTIONS=exitcode=0 LD_LIBRARY_PATH=@libdir@:$LD_LIBRARY_PATH @env@ @exec@

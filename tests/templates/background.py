@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import init_template_logger
+from tests.templates import init_logger
 import dbus.service
 import dbus
 from gi.repository import GLib
@@ -13,7 +13,7 @@ SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.Background"
 VERSION = 1
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):

@@ -42,6 +42,7 @@ def load(mock, parameters={}):
     mock.disable_delay = parameters.get("disable-delay", 0)
     mock.activated_delay = parameters.get("activated-delay", 0)
     mock.deactivated_delay = parameters.get("deactivated-delay", 0)
+    mock.zones_changed_delay = parameters.get("zones-changed-delay", 0)
 
     mock.AddProperties(
         MAIN_IFACE,
@@ -239,6 +240,19 @@ def Enable(self, session_handle, app_id, options):
                 )
 
             GLib.timeout_add(self.deactivated_delay, deactivated)
+
+        if self.zones_changed_delay > 0:
+
+            def zones_changed():
+                logger.debug("emitting ZonesChanged")
+                options = {
+                    "zone_set": dbus.UInt32(activation_id, variant_level=1),
+                }
+                self.EmitSignal(
+                    MAIN_IFACE, "ZonesChanged", "oa{sv}", [session_handle, options]
+                )
+
+            GLib.timeout_add(self.zones_changed_delay, zones_changed)
 
     except Exception as e:
         logger.critical(e)

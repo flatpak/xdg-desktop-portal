@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-from tests.templates import Response, init_template_logger, ImplRequest, ImplSession
+from tests.templates import Response, init_logger, ImplRequest, ImplSession
 
 import dbus.service
 from gi.repository import GLib
@@ -23,7 +23,7 @@ class SessionState(Enum):
     ENDING = 3
 
 
-logger = init_template_logger(__name__)
+logger = init_logger(__name__)
 
 
 def load(mock, parameters={}):
@@ -51,30 +51,21 @@ def load(mock, parameters={}):
     async_callbacks=("cb_success", "cb_error"),
 )
 def Inhibit(self, handle, app_id, window, flags, options, cb_success, cb_error):
-    try:
-        logger.debug(f"Inhibit({handle}, {app_id}, {window}, {flags}, {options})")
+    logger.debug(f"Inhibit({handle}, {app_id}, {window}, {flags}, {options})")
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"Inhibit Close() response {response}")
-            cb_success(response.response, response.results)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        cb_success,
+        cb_error,
+    )
 
-        def reply_callback():
-            response = Response(self.response, {})
-            logger.debug(f"Inhibit with response {response}")
-            cb_success(response.response, response.results)
-
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+        request.respond(Response(self.response, {}), delay=self.delay)
 
 
 @dbus.service.method(
@@ -113,35 +104,34 @@ def ArmTimer(self, session_handle):
     async_callbacks=("cb_success", "cb_error"),
 )
 def CreateMonitor(self, handle, session_handle, app_id, window, cb_success, cb_error):
-    try:
-        logger.debug(f"CreateMonitor({handle}, {session_handle}, {app_id}, {window})")
+    logger.debug(f"CreateMonitor({handle}, {session_handle}, {app_id}, {window})")
 
-        session = ImplSession(self, BUS_NAME, session_handle).export()
-        self.sessions[session_handle] = session
+    session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
+    self.sessions[session_handle] = session
 
-        def closed_callback():
-            response = Response(2, {})
-            logger.debug(f"CreateMonitor Close() response {response}")
-            cb_success(response.response)
+    # This is irregular: the backend doesn't return the results vardict
+    def internal_cb_success(response, results):
+        cb_success(response)
 
-        def reply_callback():
-            response = Response(self.response, {})
-            logger.debug(f"CreateMonitor with response {response}")
-            cb_success(response.response)
+    request = ImplRequest(
+        self,
+        BUS_NAME,
+        handle,
+        logger,
+        internal_cb_success,
+        cb_error,
+    )
+
+    if self.expect_close:
+        request.wait_for_close()
+    else:
+
+        def arm_timer():
             self.ArmTimer(session_handle)
 
-        request = ImplRequest(self, BUS_NAME, handle)
-        if self.expect_close:
-            request.export(closed_callback)
-        else:
-            request.export()
-
-            logger.debug(f"scheduling delay of {self.delay}")
-            GLib.timeout_add(self.delay, reply_callback)
-
-    except Exception as e:
-        logger.critical(e)
-        cb_error(e)
+        request.respond(
+            Response(self.response, {}), delay=self.delay, done_cb=arm_timer
+        )
 
 
 @dbus.service.method(

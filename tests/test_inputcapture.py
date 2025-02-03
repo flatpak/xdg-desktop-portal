@@ -567,6 +567,44 @@ class TestInputCapture:
         (
             {
                 "inputcapture": {
+                    "zones-changed-delay": 200,
+                },
+            },
+        ),
+    )
+    def test_zones_changed_signal(self, portals, dbus_con):
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+
+        self.create_session(dbus_con)
+        self.get_zones(dbus_con)
+        # The default zone is 1920x1080
+        barriers = [
+            {
+                "barrier_id": dbus.UInt32(10, variant_level=1),
+                "position": dbus.Struct(
+                    [0, 0, 1920, 0], signature="iiii", variant_level=1
+                ),
+            },
+        ]
+        self.set_pointer_barriers(dbus_con, barriers)
+        self.connect_to_eis(dbus_con)
+
+        zones_changed_signal_received = False
+
+        def cb_zones_changed(session_handle, options):
+            nonlocal zones_changed_signal_received
+            zones_changed_signal_received = True
+            assert session_handle == session_handle
+
+        inputcapture_intf.connect_to_signal("ZonesChanged", cb_zones_changed)
+        self.enable(dbus_con)
+        xdp.wait_for(lambda: zones_changed_signal_received)
+
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            {
+                "inputcapture": {
                     "activated-delay": 200,
                     "deactivated-delay": 1000,
                     "disabled-delay": 1200,

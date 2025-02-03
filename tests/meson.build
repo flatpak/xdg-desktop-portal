@@ -278,7 +278,7 @@ enable_pytest = get_option('pytest') \
   .allowed()
 
 if enable_pytest
-  pytest_args = [meson.current_source_dir(), '--verbose', '--log-level=DEBUG']
+  pytest_args = ['--verbose', '--log-level=DEBUG']
 
   pytest_env = environment()
   pytest_env.set('XDG_DESKTOP_PORTAL_PATH', xdg_desktop_portal.full_path())
@@ -300,7 +300,9 @@ if enable_pytest
     'test_background.py',
     'test_camera.py',
     'test_clipboard.py',
+    'test_documents.py',
     'test_document_fuse.py',
+    'test_dynamiclauncher.py',
     'test_email.py',
     'test_filechooser.py',
     'test_globalshortcuts.py',
@@ -311,6 +313,7 @@ if enable_pytest
     'test_openuri.py',
     'test_permission_store.py',
     'test_print.py',
+    'test_registry.py',
     'test_remotedesktop.py',
     'test_settings.py',
     'test_screenshot.py',
@@ -318,17 +321,89 @@ if enable_pytest
     'test_usb.py',
     'test_wallpaper.py',
   ]
+
+  template_files = [
+    'templates/access.py',
+    'templates/account.py',
+    'templates/appchooser.py',
+    'templates/background.py',
+    'templates/clipboard.py',
+    'templates/dynamiclauncher.py',
+    'templates/email.py',
+    'templates/filechooser.py',
+    'templates/geoclue2.py',
+    'templates/globalshortcuts.py',
+    'templates/inhibit.py',
+    'templates/__init__.py',
+    'templates/inputcapture.py',
+    'templates/lockdown.py',
+    'templates/notification.py',
+    'templates/print.py',
+    'templates/remotedesktop.py',
+    'templates/screenshot.py',
+    'templates/settings.py',
+    'templates/usb.py',
+    'templates/wallpaper.py',
+  ]
+
   foreach pytest_file : pytest_files
     testname = pytest_file.replace('.py', '')
     test(
       'pytest/@0@'.format(testname),
       pytest,
-      args: pytest_args + ['-k', testname],
+      args: [meson.current_source_dir() / pytest_file] + pytest_args,
       env: pytest_env,
       suite: ['pytest'],
       timeout: 120,
     )
   endforeach
+
+  if enable_installed_tests
+    install_data(
+      pytest_files,
+      '__init__.py',
+      'conftest.py',
+      'asan.suppression',
+      install_dir: installed_tests_dir / 'tests',
+    )
+    install_data(
+      template_files,
+      install_dir: installed_tests_dir / 'tests' / 'templates',
+    )
+
+    installed_env = {
+      'XDG_DESKTOP_PORTAL_PATH': libexecdir / 'xdg-desktop-portal',
+      'XDG_PERMISSION_STORE_PATH': libexecdir / 'xdg-permission-store',
+      'XDG_DOCUMENT_PORTAL_PATH': libexecdir / 'xdg-document-portal',
+      'XDP_VALIDATE_AUTO': '1',
+    }
+    env = ''
+    foreach key, value : installed_env
+      env += f'@key@=@value@ '
+    endforeach
+
+    foreach pytest_file : pytest_files
+      testname = pytest_file.replace('.py', '')
+
+      exec = [pytest.full_path(), installed_tests_dir / 'tests' / pytest_file]
+      exec += pytest_args
+      exec += ['-p', 'no:cacheprovider']
+      exec = ' '.join(exec)
+
+      data = configuration_data()
+      data.set('exec', exec)
+      data.set('env', env)
+      data.set('libdir', libdir)
+
+      configure_file(
+        input: 'template.test.in',
+        output: '@0@.test'.format(testname),
+        configuration: data,
+        install: true,
+        install_dir: installed_tests_data_dir,
+      )
+    endforeach
+  endif
 endif
 
 if enable_installed_tests
@@ -339,6 +414,9 @@ if enable_installed_tests
     install_dir: installed_tests_dir / 'services',
   )
 
+  installed_tests_env = 'XDG_DATA_DIRS=@0@/share:@1@:/usr/local/share:/usr/share'
+  installed_tests_env = installed_tests_env.format(installed_tests_data_dir, datadir)
+
   testfiles = [
     'testdb',
     'test-doc-portal',
@@ -347,13 +425,11 @@ if enable_installed_tests
   ]
   foreach tf : testfiles
       data = configuration_data()
-      data.set('datadir', datadir)
-      data.set('installed_testdir', installed_tests_dir)
-      data.set('installed_tests_data_dir', installed_tests_data_dir)
+      data.set('exec', installed_tests_dir / tf)
+      data.set('env', installed_tests_env)
       data.set('libdir', libdir)
-      data.set('exec', tf)
       configure_file(
-        input: 'template.test.in',
+        input: 'template-tap.test.in',
         output: '@0@.test'.format(tf),
         configuration: data,
         install: true,
@@ -363,13 +439,11 @@ if enable_installed_tests
 
   foreach p : portal_tests
       data = configuration_data()
-      data.set('datadir', datadir)
-      data.set('installed_testdir', installed_tests_dir)
-      data.set('installed_tests_data_dir', installed_tests_data_dir)
+      data.set('exec', '@0@ -p /portal/@1@'.format(installed_tests_dir / 'test-portals', p))
+      data.set('env', installed_tests_env)
       data.set('libdir', libdir)
-      data.set('exec', 'test-portals -p /portal/@0@'.format(p))
       configure_file(
-        input: 'template.test.in',
+        input: 'template-tap.test.in',
         output: 'test-portals-@0@.test'.format(p),
         configuration: data,
         install: true,
@@ -379,13 +453,11 @@ if enable_installed_tests
 
   foreach p : portal_limited
       data = configuration_data()
-      data.set('datadir', datadir)
-      data.set('installed_testdir', installed_tests_dir)
-      data.set('installed_tests_data_dir', installed_tests_data_dir)
+      data.set('exec', '@0@ -p /limited/@1@'.format(installed_tests_dir / 'limited-portals', p))
+      data.set('env', installed_tests_env)
       data.set('libdir', libdir)
-      data.set('exec', 'limited-portals -p /limited/@0@'.format(p))
       configure_file(
-        input: 'template.test.in',
+        input: 'template-tap.test.in',
         output: 'test-limited-@0@.test'.format(p),
         configuration: data,
         install: true,
