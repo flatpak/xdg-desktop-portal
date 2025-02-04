@@ -137,7 +137,7 @@ xdp_app_info_test_new (const char *app_id,
   xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
                            "", app_id, NULL,
                            -1, NULL,
-                           TRUE, TRUE, TRUE);
+                           TRUE, TRUE);
 
   app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
 

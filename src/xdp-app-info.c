@@ -67,7 +67,6 @@ typedef struct _XdpAppInfoPrivate
   GAppInfo *gappinfo;
   gboolean supports_opath;
   gboolean has_network;
-  gboolean requires_pid_mapping;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
@@ -118,8 +117,7 @@ xdp_app_info_initialize (XdpAppInfo *app_info,
                          int         pidfd,
                          GAppInfo   *gappinfo,
                          gboolean    supports_opath,
-                         gboolean    has_network,
-                         gboolean    requires_pid_mapping)
+                         gboolean    has_network)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
@@ -130,7 +128,6 @@ xdp_app_info_initialize (XdpAppInfo *app_info,
   g_set_object (&priv->gappinfo, gappinfo);
   priv->supports_opath = supports_opath;
   priv->has_network = has_network;
-  priv->requires_pid_mapping = requires_pid_mapping;
 }
 
 gboolean
