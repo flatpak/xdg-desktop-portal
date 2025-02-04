@@ -58,7 +58,7 @@ xdp_app_info_test_get_usb_queries (XdpAppInfo *app_info)
   return app_info_test->usb_queries;
 }
 
-gboolean
+static gboolean
 xdp_app_info_test_is_valid_sub_app_id (XdpAppInfo *app_info,
                                        const char *sub_app_id)
 {
