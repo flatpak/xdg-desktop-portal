@@ -917,13 +917,20 @@ ensure_app_info_by_unique_name (void)
 }
 
 static void
+cache_insert_app_info_unlocked (const char *sender,
+                                XdpAppInfo *app_info)
+{
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       g_object_ref (app_info));
+}
+
+static void
 cache_insert_app_info (const char *sender,
                        XdpAppInfo *app_info)
 {
   G_LOCK (app_infos);
-  ensure_app_info_by_unique_name ();
-  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
-                       g_object_ref (app_info));
+  cache_insert_app_info_unlocked (sender, app_info);
   G_UNLOCK (app_infos);
 }
 
@@ -1105,6 +1112,61 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                               error);
 }
 
+static XdpAppInfo *
+transition_host_app_info_to_registered  (GDBusMethodInvocation  *invocation,
+                                         const char             *app_id,
+                                         GCancellable           *cancellable,
+                                         GError                **error)
+{
+  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autoptr(GMutexLocker) app_infos_mutex_locker = NULL;
+  g_autoptr(XdpAppInfo) registered_app_info = NULL;
+  XdpAppInfo *app_info;
+
+  g_assert (app_info_by_unique_name != NULL);
+
+  app_infos_mutex_locker = g_mutex_locker_new (&G_LOCK_NAME (app_infos));
+
+  app_info = g_hash_table_lookup (app_info_by_unique_name, sender);
+  g_assert (XDP_IS_APP_INFO (app_info));
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "App is not a host system app");
+      return NULL;
+    }
+
+  if (xdp_app_info_is_registered (app_info))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Connection already associated and registered with an application ID");
+      return NULL;
+    }
+
+  registered_app_info = maybe_create_registered_test_app_info (app_id);
+
+  if (!registered_app_info)
+    {
+      g_autofd int pidfd = -1;
+      uint32_t pid;
+
+      if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+        return NULL;
+
+      registered_app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      if (!registered_app_info)
+        return NULL;
+    }
+
+  g_debug ("Replacing host app info with a registered one for '%s'", xdp_app_info_get_id (registered_app_info));
+
+  cache_insert_app_info_unlocked (sender, registered_app_info);
+
+  return g_steal_pointer (&registered_app_info);
+}
+
 XdpAppInfo *
 xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
                                             const char             *app_id,
@@ -1116,9 +1178,17 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
 
   if (cache_has_app_info_by_sender (sender))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Connection already associated with an application ID");
-      return NULL;
+      g_autoptr(XdpAppInfo) app_info = NULL;
+
+      app_info = transition_host_app_info_to_registered (invocation,
+                                                         app_id,
+                                                         cancellable,
+                                                         error);
+
+      if (!app_info)
+        return NULL;
+
+      return g_steal_pointer (&app_info);
     }
 
   return xdp_connection_create_host_app_info_sync (connection,
