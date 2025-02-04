@@ -197,8 +197,8 @@ xdp_app_info_host_new_full (const char *app_id,
                            /* engine, app id, instance */
                            NULL, app_id, NULL,
                            pidfd, gappinfo,
-                           /* supports_opath */ TRUE,
-                           /* has_network */ TRUE);
+                           XDP_APP_INFO_FLAG_HAS_NETWORK |
+                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
   return app_info_host;
 }

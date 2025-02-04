@@ -65,8 +65,7 @@ typedef struct _XdpAppInfoPrivate
   char *instance;
   int pidfd;
   GAppInfo *gappinfo;
-  gboolean supports_opath;
-  gboolean has_network;
+  XdpAppInfoFlags flags;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
@@ -110,14 +109,13 @@ xdp_app_info_init (XdpAppInfo *app_info)
 }
 
 void
-xdp_app_info_initialize (XdpAppInfo *app_info,
-                         const char *engine,
-                         const char *app_id,
-                         const char *instance,
-                         int         pidfd,
-                         GAppInfo   *gappinfo,
-                         gboolean    supports_opath,
-                         gboolean    has_network)
+xdp_app_info_initialize (XdpAppInfo      *app_info,
+                         const char      *engine,
+                         const char      *app_id,
+                         const char      *instance,
+                         int              pidfd,
+                         GAppInfo        *gappinfo,
+                         XdpAppInfoFlags  flags)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
@@ -126,8 +124,7 @@ xdp_app_info_initialize (XdpAppInfo *app_info,
   priv->instance = g_strdup (instance);
   priv->pidfd = dup (pidfd);
   g_set_object (&priv->gappinfo, gappinfo);
-  priv->supports_opath = supports_opath;
-  priv->has_network = has_network;
+  priv->flags = flags;
 }
 
 gboolean
@@ -192,7 +189,7 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
 
   priv = xdp_app_info_get_instance_private (app_info);
 
-  return priv->has_network;
+  return (priv->flags & XDP_APP_INFO_FLAG_HAS_NETWORK) != 0;
 }
 
 gboolean
@@ -437,7 +434,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
           return NULL;
         }
 
-      if (!priv->supports_opath)
+      if ((priv->flags & XDP_APP_INFO_FLAG_SUPPORTS_OPATH) == 0)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                        "App \"%s\" of type %s does not support O_PATH fd passing",
