@@ -226,7 +226,7 @@ xdp_app_info_snap_new (int      pid,
   xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
                            "io.snapcraft", snap_id, NULL,
                            pidfd, gappinfo,
-                           FALSE, has_network, TRUE);
+                           FALSE, has_network);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }
