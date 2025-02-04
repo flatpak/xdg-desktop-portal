@@ -198,8 +198,7 @@ xdp_app_info_host_new_full (const char *app_id,
                            NULL, app_id, NULL,
                            pidfd, gappinfo,
                            /* supports_opath */ TRUE,
-                           /* has_network */ TRUE,
-                           /* requires_pid_mapping */ FALSE);
+                           /* has_network */ TRUE);
 
   return app_info_host;
 }
