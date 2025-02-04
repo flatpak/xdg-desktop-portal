@@ -185,33 +185,12 @@ get_appid_from_pid (pid_t pid)
 #endif /* HAVE_LIBSYSTEMD */
 }
 
-static XdpAppInfoHost *
-xdp_app_info_host_new_full (const char  *app_id,
-                            int          pidfd,
-                            GAppInfo    *gappinfo,
-                            GError     **error)
-{
-  XdpAppInfoHost *app_info_host;
-
-  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
-                                  NULL,
-                                  error,
-                                  "engine", NULL,
-                                  "id", app_id,
-                                  "pidfd", pidfd,
-                                  "g-app-info", gappinfo,
-                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
-                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
-                                  NULL);
-
-  return app_info_host;
-}
-
 XdpAppInfo *
 xdp_app_info_host_new_registered (int          pidfd,
                                   const char  *app_id,
                                   GError     **error)
 {
+  g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
 
@@ -224,16 +203,25 @@ xdp_app_info_host_new_registered (int          pidfd,
       return NULL;
     }
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
-                                                   pidfd,
-                                                   gappinfo,
-                                                   error));
+  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
+                                  NULL,
+                                  error,
+                                  "engine", NULL,
+                                  "id", app_id,
+                                  "pidfd", pidfd,
+                                  "g-app-info", gappinfo,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
+                                  NULL);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_host));
 }
 
 XdpAppInfo *
 xdp_app_info_host_new (int pid,
                        int pidfd)
 {
+  g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
@@ -242,8 +230,16 @@ xdp_app_info_host_new (int pid,
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
-                                                   pidfd,
-                                                   gappinfo,
-                                                   NULL));
+  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
+                                  NULL,
+                                  NULL,
+                                  "engine", NULL,
+                                  "id", app_id,
+                                  "pidfd", pidfd,
+                                  "g-app-info", gappinfo,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
+                                  NULL);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_host));
 }
