@@ -311,6 +311,7 @@ xdp_app_info_snap_new (int      pid,
                                         NULL);
 
   flags = XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
+  flags |= XDP_APP_INFO_FLAG_REGISTERED;
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 

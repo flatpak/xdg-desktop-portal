@@ -307,6 +307,18 @@ xdp_app_info_is_host (XdpAppInfo *app_info)
   return priv->engine == NULL;
 }
 
+gboolean
+xdp_app_info_is_registered (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, TRUE);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return (priv->flags & XDP_APP_INFO_FLAG_REGISTERED) != 0;
+}
+
 const char *
 xdp_app_info_get_id (XdpAppInfo *app_info)
 {

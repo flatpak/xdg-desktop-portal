@@ -813,6 +813,7 @@ xdp_app_info_flatpak_new (int      pid,
 
   flags |= XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
   flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+  flags |= XDP_APP_INFO_FLAG_REGISTERED;
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 

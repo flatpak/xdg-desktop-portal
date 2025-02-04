@@ -28,6 +28,7 @@ typedef enum
   XDP_APP_INFO_FLAG_HAS_NETWORK = (1 << 0),
   XDP_APP_INFO_FLAG_SUPPORTS_OPATH = (1 << 1),
   XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO = (1 << 2),
+  XDP_APP_INFO_FLAG_REGISTERED = (1 << 3),
 } XdpAppInfoFlags;
 
 struct _XdpAppInfoClass
