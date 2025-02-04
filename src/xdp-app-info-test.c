@@ -146,3 +146,24 @@ xdp_app_info_test_new (const char *app_id,
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_test));
 }
+
+XdpAppInfo *
+xdp_app_info_test_new_registered (const char *app_id,
+                                  const char *usb_queries_str)
+{
+  g_autoptr (XdpAppInfoTest) app_info_test = NULL;
+
+  app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
+                                  NULL,
+                                  NULL,
+                                  "engine", NULL,
+                                  "id", app_id,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
+                                           XDP_APP_INFO_FLAG_REGISTERED,
+                                  NULL);
+
+  app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_test));
+}

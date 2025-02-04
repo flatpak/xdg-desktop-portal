@@ -962,8 +962,8 @@ maybe_create_registered_test_app_info (const char *registered_app_id)
     return NULL;
 
   test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (registered_app_id,
-                                test_override_usb_queries);
+  return xdp_app_info_test_new_registered (registered_app_id,
+                                           test_override_usb_queries);
 }
 
 static XdpAppInfo *
