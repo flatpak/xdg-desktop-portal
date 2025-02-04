@@ -732,8 +732,6 @@ xdp_app_info_flatpak_new (int      pid,
   const char *group;
   g_autofree char *id = NULL;
   g_autofree char *instance = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
   g_autofd int bwrap_pidfd = -1;
@@ -788,9 +786,6 @@ xdp_app_info_flatpak_new (int      pid,
   if (instance == NULL)
     return NULL;
 
-  desktop_id = g_strconcat (id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
   shared = g_key_file_get_string_list (metadata,
                                        FLATPAK_METADATA_GROUP_CONTEXT,
                                        FLATPAK_METADATA_KEY_SHARED,
@@ -826,7 +821,6 @@ xdp_app_info_flatpak_new (int      pid,
                                      error,
                                      "engine", FLATPAK_ENGINE_ID,
                                      "flags", flags,
-                                     "g-app-info", gappinfo,
                                      "id", id,
                                      "instance", instance,
                                      "pidfd", bwrap_pidfd,

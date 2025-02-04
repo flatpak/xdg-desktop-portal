@@ -98,8 +98,11 @@ xdp_app_info_initable_init (GInitable     *initable,
                             GCancellable  *cancellable,
                             GError       **error)
 {
-  XdpAppInfoPrivate *priv =
-    xdp_app_info_get_instance_private (XDP_APP_INFO (initable));
+  XdpAppInfo *app_info = XDP_APP_INFO (initable);
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->gappinfo =
+    XDP_APP_INFO_GET_CLASS (app_info)->create_gappinfo (app_info);
 
   if ((priv->flags & XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO) && !priv->gappinfo)
     {
@@ -115,6 +118,19 @@ static void
 g_initable_init_iface (GInitableIface *iface)
 {
   iface->init = xdp_app_info_initable_init;
+}
+
+static GAppInfo *
+xdp_app_info_real_create_gappinfo (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autofree char *desktop_id = NULL;
+
+  desktop_id = g_strconcat (priv->id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  return g_steal_pointer (&gappinfo);
 }
 
 static void
@@ -196,11 +212,6 @@ xdp_app_info_set_property (GObject      *object,
       priv->flags = g_value_get_flags (value);
       break;
 
-    case PROP_G_APP_INFO:
-      g_assert (priv->gappinfo == NULL);
-      priv->gappinfo = g_value_dup_object (value);
-      break;
-
     case PROP_ID:
       g_assert (priv->id == NULL);
       priv->id = g_value_dup_string (value);
@@ -230,6 +241,8 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
   object_class->get_property = xdp_app_info_get_property;
   object_class->set_property = xdp_app_info_set_property;
 
+  klass->create_gappinfo = xdp_app_info_real_create_gappinfo;
+
   properties[PROP_ENGINE] =
     g_param_spec_string ("engine", NULL, NULL,
                          NULL,
@@ -248,9 +261,7 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
   properties[PROP_G_APP_INFO] =
     g_param_spec_object ("g-app-info", NULL, NULL,
                          G_TYPE_APP_INFO,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS);
+                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   properties[PROP_ID] =
     g_param_spec_string ("id", NULL, NULL,

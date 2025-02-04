@@ -191,17 +191,6 @@ xdp_app_info_host_new_registered (int          pidfd,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-  if (!gappinfo)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
-                   "App info not found for '%s'", app_id);
-      return NULL;
-    }
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
@@ -209,7 +198,6 @@ xdp_app_info_host_new_registered (int          pidfd,
                                   "engine", NULL,
                                   "id", app_id,
                                   "pidfd", pidfd,
-                                  "g-app-info", gappinfo,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
                                            XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
@@ -224,12 +212,8 @@ xdp_app_info_host_new (int pid,
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
 
   app_id = get_appid_from_pid (pid);
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
@@ -237,7 +221,6 @@ xdp_app_info_host_new (int pid,
                                   "engine", NULL,
                                   "id", app_id,
                                   "pidfd", pidfd,
-                                  "g-app-info", gappinfo,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                   NULL);
