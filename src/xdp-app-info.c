@@ -298,7 +298,13 @@ xdp_app_info_init (XdpAppInfo *app_info)
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
-  return XDP_IS_APP_INFO_HOST (app_info) ||  XDP_IS_APP_INFO_TEST (app_info);
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, FALSE);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->engine == NULL;
 }
 
 const char *
