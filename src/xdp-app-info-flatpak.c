@@ -819,7 +819,7 @@ xdp_app_info_flatpak_new (int      pid,
   xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
                            FLATPAK_ENGINE_ID, id, instance,
                            bwrap_pidfd, gappinfo,
-                           TRUE, has_network, TRUE);
+                           TRUE, has_network);
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));

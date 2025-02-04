@@ -53,5 +53,4 @@ void xdp_app_info_initialize (XdpAppInfo *app_info,
                               int         pidfd,
                               GAppInfo   *gappinfo,
                               gboolean    supports_opath,
-                              gboolean    has_network,
-                              gboolean    requires_pid_mapping);
+                              gboolean    has_network);
