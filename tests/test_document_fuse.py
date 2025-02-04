@@ -79,67 +79,35 @@ DOCUMENT_ADD_FLAGS_DIRECTORY = 1 << 3
 
 
 def assertRaises(exc_type, func, *args, **kwargs):
-    raised_exc = None
-    try:
+    with pytest.raises(exc_type):
         func(*args, **kwargs)
-    except Exception:
-        raised_exc = sys.exc_info()[0]
-
-    if not raised_exc:
-        raise AssertionError("{0} was not raised".format(exc_type.__name__))
-    if raised_exc != exc_type:
-        raise AssertionError(
-            "Wrong assertion type {0} was raised instead of {1}".format(
-                raised_exc.__name__, exc_type.__name__
-            )
-        )
 
 
 def assertRaisesErrno(error_nr, func, *args, **kwargs):
-    raised_exc = None
-    raised_exc_value = None
-    try:
+    with pytest.raises(OSError) as excinfo:
         func(*args, **kwargs)
-    except Exception:
-        raised_exc = sys.exc_info()[0]
-        raised_exc_value = sys.exc_info()[1]
 
-    if not raised_exc:
-        raise AssertionError("No assertion was raised")
-    if isinstance(raised_exc, OSError):
-        raise AssertionError("OSError was not raised")
-    if raised_exc_value.errno != error_nr:
+    if excinfo.value.errno != error_nr:
         raise AssertionError(
             "Wrong errno {0} was raised instead of {1}".format(
-                raised_exc_value.errno, error_nr
+                excinfo.value.errno, error_nr
             )
         )
 
 
 def assertRaisesGError(message, code, func, *args, **kwargs):
-    raised_exc = None
-    raised_exc_value = None
-    try:
+    with pytest.raises(GLib.GError) as excinfo:
         func(*args, **kwargs)
-    except Exception:
-        raised_exc = sys.exc_info()[0]
-        raised_exc_value = sys.exc_info()[1]
 
-    if not raised_exc:
-        raise AssertionError("No assertion was raised")
-    if raised_exc != GLib.GError:
-        raise AssertionError("GError was not raised")
-    if not raised_exc_value.message.startswith(message):
+    if not excinfo.value.message.startswith(message):
         raise AssertionError(
             "Wrong message {0} doesn't start with {1}".format(
-                raised_exc_value.message, message
+                excinfo.value.message, message
             )
         )
-    if raised_exc_value.code != code:
+    if excinfo.value.code != code:
         raise AssertionError(
-            "Wrong code {0} was raised instead of {1}".format(
-                raised_exc_value.code, code
-            )
+            "Wrong code {0} was raised instead of {1}".format(excinfo.value.code, code)
         )
 
 
