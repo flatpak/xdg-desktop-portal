@@ -21,8 +21,9 @@ test_permission_db = executable(
   install_dir: installed_tests_dir,
 )
 test(
-  'test-permission-db',
+  'unit/permission-db',
   test_permission_db,
+  suite: ['unit'],
   env: env_tests,
   is_parallel: false,
   protocol: test_protocol,
@@ -38,8 +39,9 @@ test_xdp_utils = executable(
   install_dir: installed_tests_dir,
 )
 test(
-  'test-xdp-utils',
+  'unit/xdp-utils',
   test_xdp_utils,
+  suite: ['unit'],
   env: env_tests,
   is_parallel: false,
   protocol: test_protocol,
@@ -55,8 +57,9 @@ test_method_info = executable(
   install_dir: installed_tests_dir,
 )
 test(
-  'test-xdp-method-info',
+  'unit/xdp-method-info',
   test_method_info,
+  suite: ['unit'],
   env: env_tests,
   is_parallel: true,
   protocol: test_protocol,
@@ -131,13 +134,13 @@ template_files = [
 ]
 
 foreach pytest_file : pytest_files
-  testname = pytest_file.replace('.py', '')
+  testname = pytest_file.replace('.py', '').replace('test_', '')
   test(
-    'pytest/@0@'.format(testname),
+    'integration/@0@'.format(testname),
     pytest,
     args: [meson.current_source_dir()] + pytest_args + ['-k', testname],
     env: pytest_env,
-    suite: ['pytest'],
+    suite: ['integration'],
     timeout: 120,
   )
 endforeach
@@ -167,7 +170,7 @@ if enable_installed_tests
   endforeach
 
   foreach pytest_file : pytest_files
-    testname = pytest_file.replace('.py', '')
+    testname = pytest_file.replace('.py', '').replace('test_', '')
 
     exec = [pytest.full_path(), installed_tests_dir / 'tests' / pytest_file]
     exec += pytest_args
@@ -181,7 +184,7 @@ if enable_installed_tests
 
     configure_file(
       input: 'template.test.in',
-      output: '@0@.test'.format(testname),
+      output: 'integration-@0@.test'.format(testname),
       configuration: data,
       install: true,
       install_dir: installed_tests_data_dir,
