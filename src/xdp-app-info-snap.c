@@ -35,13 +35,103 @@
 struct _XdpAppInfoSnap
 {
   XdpAppInfo parent;
+
+  char *desktop_file;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
 
+enum
+{
+  PROP_0,
+  PROP_DESKTOP_FILE,
+  N_PROPS,
+};
+
+static GParamSpec *properties [N_PROPS];
+
+static GAppInfo *
+xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
+{
+  XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (app_info);
+  g_autoptr(GAppInfo) gappinfo = NULL;
+
+  gappinfo =
+    G_APP_INFO (g_desktop_app_info_new (app_info_snap->desktop_file));
+  g_assert (G_IS_APP_INFO (gappinfo));
+
+  return g_steal_pointer (&gappinfo);
+}
+
+static void
+xdp_app_info_snap_finalize (GObject *object)
+{
+  XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
+
+  g_clear_pointer (&app_info_snap->desktop_file, g_free);
+
+  G_OBJECT_CLASS (xdp_app_info_snap_parent_class)->finalize (object);
+}
+
+static void
+xdp_app_info_snap_get_property (GObject    *object,
+                                guint       prop_id,
+                                GValue     *value,
+                                GParamSpec *pspec)
+{
+  XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
+
+  switch (prop_id)
+    {
+    case PROP_DESKTOP_FILE:
+      g_value_set_string (value, app_info_snap->desktop_file);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_snap_set_property (GObject      *object,
+                                guint         prop_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
+
+  switch (prop_id)
+    {
+    case PROP_DESKTOP_FILE:
+      g_assert (app_info_snap->desktop_file == NULL);
+      app_info_snap->desktop_file = g_value_dup_string (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+  XdpAppInfoClass *app_info_class = XDP_APP_INFO_CLASS (klass);
+
+  object_class->finalize = xdp_app_info_snap_finalize;
+  object_class->get_property = xdp_app_info_snap_get_property;
+  object_class->set_property = xdp_app_info_snap_set_property;
+
+  app_info_class->create_gappinfo = xdp_app_info_snap_create_gappinfo;
+
+  properties[PROP_DESKTOP_FILE] =
+    g_param_spec_string ("desktop-file", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 static void
@@ -175,7 +265,6 @@ xdp_app_info_snap_new (int      pid,
   g_autofree char *snap_name = NULL;
   g_autofree char *snap_id = NULL;
   g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
 
@@ -216,8 +305,6 @@ xdp_app_info_snap_new (int      pid,
   if (desktop_id == NULL)
     return NULL;
 
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
   has_network = g_key_file_get_boolean (metadata,
                                         SNAP_METADATA_GROUP_INFO,
                                         SNAP_METADATA_KEY_NETWORK,
@@ -234,7 +321,7 @@ xdp_app_info_snap_new (int      pid,
                                   "id", snap_id,
                                   "pidfd", pidfd,
                                   "flags", flags,
-                                  "g-app-info", gappinfo,
+                                  "desktop-file", desktop_id,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));

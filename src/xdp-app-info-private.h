@@ -51,5 +51,7 @@ struct _XdpAppInfoClass
   gboolean (*validate_dynamic_launcher) (XdpAppInfo  *app_info,
                                          GKeyFile    *key_file,
                                          GError     **error);
+
+  GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
 
