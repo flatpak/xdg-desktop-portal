@@ -12,6 +12,7 @@ import stat
 import sys
 import multiprocessing as mp
 import traceback
+from collections import defaultdict
 from gi.repository import Gio, GLib
 
 
@@ -28,7 +29,7 @@ app_prefix = "org.test."
 dir_prefix = "dir"
 ensure_no_remaining = True
 
-running_count = {}
+running_count: defaultdict[str, int] = defaultdict(int)
 
 
 def log(str):
@@ -39,15 +40,10 @@ def logv(str):
     log(str)
 
 
-def get_a_count(counter):
+def get_a_count(counter: str):
     global running_count
-    if counter in running_count:
-        count = running_count[counter]
-        count = count + 1
-        running_count[counter] = count
-        return count
-    running_count[counter] = 1
-    return 1
+    running_count[counter] += 1
+    return running_count[counter]
 
 
 def setFileContent(path, content):
