@@ -723,6 +723,7 @@ xdp_app_info_flatpak_new (int      pid,
                           GError **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
+  XdpAppInfoFlags flags = 0;
   g_autofd int info_fd = -1;
   struct stat stat_buf;
   g_autoptr(GError) local_error = NULL;
@@ -815,11 +816,14 @@ xdp_app_info_flatpak_new (int      pid,
 
   /* TODO: we can use pidfd to make sure we didn't race for sure */
 
+  flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
   app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
                            FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo,
-                           TRUE, has_network);
+                           bwrap_pidfd, gappinfo, flags);
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));

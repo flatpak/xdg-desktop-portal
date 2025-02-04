@@ -176,6 +176,7 @@ xdp_app_info_snap_new (int      pid,
   g_autofree char *snap_id = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
+  XdpAppInfoFlags flags = 0;
   gboolean has_network;
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
@@ -222,11 +223,13 @@ xdp_app_info_snap_new (int      pid,
                                         SNAP_METADATA_KEY_NETWORK,
                                         NULL);
 
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
   app_info_snap = g_object_new (XDP_TYPE_APP_INFO_SNAP, NULL);
   xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
                            "io.snapcraft", snap_id, NULL,
-                           pidfd, gappinfo,
-                           FALSE, has_network);
+                           pidfd, gappinfo, flags);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }
