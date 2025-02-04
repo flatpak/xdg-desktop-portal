@@ -211,7 +211,8 @@ xdp_app_info_host_new_registered (int          pidfd,
                                   "pidfd", pidfd,
                                   "g-app-info", gappinfo,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
-                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
+                                           XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));

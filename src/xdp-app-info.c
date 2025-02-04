@@ -98,6 +98,16 @@ xdp_app_info_initable_init (GInitable     *initable,
                             GCancellable  *cancellable,
                             GError       **error)
 {
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (initable));
+
+  if ((priv->flags & XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO) && !priv->gappinfo)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                   "App info not found for '%s'", priv->id);
+      return FALSE;
+    }
+
   return TRUE;
 }
 
