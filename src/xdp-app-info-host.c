@@ -44,14 +44,14 @@ xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
   return app_info_host->usb_queries;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
                                        const char *sub_app_id)
 {
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
                                       GKeyFile            *keyfile,
                                       const char * const  *autostart_exec,
@@ -61,7 +61,7 @@ xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                              GKeyFile    *key_file,
                                              GError     **error)

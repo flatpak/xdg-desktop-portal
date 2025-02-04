@@ -169,7 +169,7 @@ flatpak_is_valid_name (const char *string)
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
                                           const char *sub_app_id)
 {
