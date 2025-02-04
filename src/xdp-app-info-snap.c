@@ -223,6 +223,7 @@ xdp_app_info_snap_new (int      pid,
                                         SNAP_METADATA_KEY_NETWORK,
                                         NULL);
 
+  flags = XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
