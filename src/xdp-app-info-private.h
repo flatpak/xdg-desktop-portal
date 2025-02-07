@@ -52,10 +52,16 @@ struct _XdpAppInfoClass
                                          GError     **error);
 };
 
-void xdp_app_info_initialize (XdpAppInfo      *app_info,
-                              const char      *engine,
-                              const char      *app_id,
-                              const char      *instance,
-                              int              pidfd,
-                              GAppInfo        *gappinfo,
-                              XdpAppInfoFlags  flags);
+void xdp_app_info_set_identity (XdpAppInfo *app_info,
+                                const char *engine,
+                                const char *app_id,
+                                const char *instance);
+
+void xdp_app_info_set_pidfd (XdpAppInfo *app_info,
+                             int         pidfd);
+
+void xdp_app_info_set_gappinfo (XdpAppInfo *app_info,
+                                GAppInfo   *gappinfo);
+
+void xdp_app_info_set_flags (XdpAppInfo      *app_info,
+                             XdpAppInfoFlags  flags);

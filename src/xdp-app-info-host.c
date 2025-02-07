@@ -193,12 +193,12 @@ xdp_app_info_host_new_full (const char *app_id,
   XdpAppInfoHost *app_info_host;
 
   app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
-                           /* engine, app id, instance */
-                           NULL, app_id, NULL,
-                           pidfd, gappinfo,
-                           XDP_APP_INFO_FLAG_HAS_NETWORK |
-                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
+  xdp_app_info_set_pidfd (XDP_APP_INFO (app_info_host), pidfd);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_host), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_host),
+                          XDP_APP_INFO_FLAG_HAS_NETWORK |
+                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
   return app_info_host;
 }

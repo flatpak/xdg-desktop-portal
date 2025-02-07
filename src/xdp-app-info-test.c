@@ -134,11 +134,13 @@ xdp_app_info_test_new (const char *app_id,
   g_autoptr (XdpAppInfoTest) app_info_test = NULL;
 
   app_info_test = g_object_new (XDP_TYPE_APP_INFO_TEST, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
-                           "", app_id, NULL,
-                           -1, NULL,
-                           XDP_APP_INFO_FLAG_HAS_NETWORK |
-                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_test),
+                             "",
+                             app_id,
+                             NULL);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_test),
+                          XDP_APP_INFO_FLAG_HAS_NETWORK |
+                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
   app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
 
