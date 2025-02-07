@@ -91,12 +91,14 @@ app_info_test_initable_init (GInitable     *initable,
                              GError       **error)
 {
   XdpAppInfoTest *app_info_test = XDP_APP_INFO_TEST (initable);
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
+  const char *app_id;
+  const char *usb_queries;
   const char *registered;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
 
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
+  app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (!app_id)
     {
       g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
                    "Env XDG_DESKTOP_PORTAL_TEST_APP_ID is not set");
@@ -105,20 +107,23 @@ app_info_test_initable_init (GInitable     *initable,
 
   registered = xdp_app_info_get_registered (XDP_APP_INFO (app_info_test));
   if (registered)
-    test_override_app_id = registered;
+    app_id = registered;
 
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
   xdp_app_info_set_identity (XDP_APP_INFO (app_info_test),
                              "",
-                             test_override_app_id,
+                             app_id,
                              NULL);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_test), gappinfo);
   xdp_app_info_set_flags (XDP_APP_INFO (app_info_test),
                           XDP_APP_INFO_FLAG_HAS_NETWORK |
                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
-  app_info_test->usb_queries =
-    parse_usb_queries_string (test_override_usb_queries);
+  usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
+
+  app_info_test->usb_queries = parse_usb_queries_string (usb_queries);
 
   return initable_parent_iface->init (initable, cancellable, error);
 }
