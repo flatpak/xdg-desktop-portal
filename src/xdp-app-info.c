@@ -58,12 +58,23 @@ static GHashTable *app_info_by_unique_name;
 
 G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
 
+enum
+{
+  PROP_0,
+  PROP_PID,
+  PROP_PIDFD,
+  N_PROPS
+};
+
+static GParamSpec *properties [N_PROPS];
+
 typedef struct _XdpAppInfoPrivate
 {
   char *engine;
   char *id;
   char *instance;
   int pidfd;
+  uint32_t pid;
   GAppInfo *gappinfo;
   XdpAppInfoFlags flags;
 
@@ -73,6 +84,57 @@ typedef struct _XdpAppInfoPrivate
 } XdpAppInfoPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+
+static void
+xdp_app_info_get_property (GObject    *object,
+                           guint       prop_id,
+                           GValue     *value,
+                           GParamSpec *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_PID:
+      g_value_set_int (value, priv->pid);
+      break;
+
+    case PROP_PIDFD:
+      g_value_set_int (value, priv->pidfd);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_set_property (GObject      *object,
+                           guint         prop_id,
+                           const GValue *value,
+                           GParamSpec   *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_PID:
+      g_assert (priv->pid == -1);
+      priv->pid = g_value_get_int (value);
+      break;
+
+    case PROP_PIDFD:
+      g_assert (priv->pidfd == -1);
+      /* FIXME dup can fail */
+      priv->pidfd = dup (g_value_get_int (value));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
 
 static void
 xdp_app_info_dispose (GObject *object)
@@ -98,6 +160,24 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_app_info_dispose;
+  object_class->get_property = xdp_app_info_get_property;
+  object_class->set_property = xdp_app_info_set_property;
+
+  properties[PROP_PID] =
+    g_param_spec_int ("pid", NULL, NULL,
+                      -1, G_MAXINT, -1,
+                      G_PARAM_READWRITE |
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_PIDFD] =
+    g_param_spec_int ("pidfd", NULL, NULL,
+                      -1, G_MAXINT, -1,
+                      G_PARAM_READWRITE |
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 static void
@@ -105,6 +185,7 @@ xdp_app_info_init (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
+  priv->pid = -1;
   priv->pidfd = -1;
 }
 
