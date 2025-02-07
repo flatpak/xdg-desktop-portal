@@ -697,26 +697,6 @@ open_flatpak_info (int      pid,
   return g_steal_fd (&info_fd);
 }
 
-gboolean
-xdp_is_flatpak (int        pid,
-                gboolean  *is_flatpak,
-                GError   **error)
-{
-  g_autoptr(GError) local_error = NULL;
-  g_autofd int info_fd = -1;
-
-  info_fd = open_flatpak_info (pid, &local_error);
-  if (info_fd == -1 && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return FALSE;
-    }
-
-  *is_flatpak = info_fd != -1;
-  return TRUE;
-}
-
 /*
  * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
  *  This function may take ownership of the fd. If it does, it will
