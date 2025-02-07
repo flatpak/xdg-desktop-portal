@@ -227,21 +227,6 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
 }
 
 static XdpAppInfo *
-maybe_create_test_app_info (void)
-{
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
-    return NULL;
-
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (test_override_app_id,
-                                test_override_usb_queries);
-}
-
-static XdpAppInfo *
 xdp_app_info_new (uint32_t   pid,
                   int        pidfd,
                   GError   **error)
@@ -249,7 +234,7 @@ xdp_app_info_new (uint32_t   pid,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
 
-  app_info = maybe_create_test_app_info ();
+  app_info = xdp_app_info_test_new (pid, pidfd, NULL);
 
   if (app_info == NULL)
     app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
@@ -1032,21 +1017,6 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                               error);
 }
 
-static XdpAppInfo *
-maybe_create_registered_test_app_info (const char *registered_app_id)
-{
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
-    return NULL;
-
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (registered_app_id,
-                                test_override_usb_queries);
-}
-
 XdpAppInfo *
 xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
                                             const char             *app_id,
@@ -1067,12 +1037,13 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
       return NULL;
     }
 
-  app_info = maybe_create_registered_test_app_info (app_id);
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+    return NULL;
+
+  app_info = xdp_app_info_test_new (pid, pidfd, app_id);
 
   if (!app_info)
     {
-      if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
-        return NULL;
 
       detected_app_info = xdp_app_info_new (pid, pidfd, error);
       if (!detected_app_info)

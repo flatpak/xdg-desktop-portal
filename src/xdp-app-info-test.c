@@ -152,25 +152,41 @@ parse_usb_queries_string (const char *usb_queries_str)
 }
 
 XdpAppInfo *
-xdp_app_info_test_new (const char *app_id,
-                       const char *usb_queries_str)
+xdp_app_info_test_new (int         pid,
+                       int         pidfd,
+                       const char *registered)
 {
-  g_autoptr (XdpAppInfoTest) app_info_test = NULL;
+  g_autoptr(XdpAppInfoTest) app_info_test = NULL;
+  const char *test_override_app_id;
+  const char *test_override_usb_queries;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (!test_override_app_id)
+    return NULL;
+
+  if (registered)
+    test_override_app_id = registered;
+
+  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
 
   app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
                                   NULL,
                                   NULL,
+                                  "pid", pid,
+                                  "pidfd", pidfd,
+                                  "registered", registered,
                                   NULL);
 
   xdp_app_info_set_identity (XDP_APP_INFO (app_info_test),
                              "",
-                             app_id,
+                             test_override_app_id,
                              NULL);
   xdp_app_info_set_flags (XDP_APP_INFO (app_info_test),
                           XDP_APP_INFO_FLAG_HAS_NETWORK |
                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
-  app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
+  app_info_test->usb_queries =
+    parse_usb_queries_string (test_override_usb_queries);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_test));
 }
