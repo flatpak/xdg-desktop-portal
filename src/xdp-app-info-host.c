@@ -44,6 +44,8 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoHost,
                                G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                       initable_iface_init))
 
+static char * get_appid_from_pid (pid_t pid);
+
 static const GPtrArray *
 xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
 {
@@ -93,7 +95,34 @@ app_info_host_initable_init (GInitable     *initable,
                              GError       **error)
 {
   XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (initable);
+  const char *registered;
+  g_autofree char *owned_app_id = NULL;
+  const char *app_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
   g_autoptr(XdpUsbQuery) query = NULL;
+
+  registered = xdp_app_info_get_registered (XDP_APP_INFO (app_info_host));
+  if (registered)
+    {
+      app_id = registered;
+    }
+  else
+    {
+      int pid = xdp_app_info_get_pid (XDP_APP_INFO (app_info_host));
+
+      owned_app_id = get_appid_from_pid (pid);
+      app_id = owned_app_id;
+    }
+
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_host), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_host),
+                          XDP_APP_INFO_FLAG_HAS_NETWORK |
+                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
   app_info_host->usb_queries =
     g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
@@ -216,38 +245,11 @@ xdp_app_info_host_new (int         pid,
                        int         pidfd,
                        const char *registered)
 {
-  g_autoptr(XdpAppInfoHost) app_info_host = NULL;
-  g_autofree char *owned_app_id = NULL;
-  const char *app_id = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  if (registered)
-    {
-      app_id = registered;
-    }
-  else
-    {
-      owned_app_id = get_appid_from_pid (pid);
-      app_id = owned_app_id;
-    }
-
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
-  app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
-                                  NULL,
-                                  NULL,
-                                  "pid", pid,
-                                  "pidfd", pidfd,
-                                  "registered", registered,
-                                  NULL);
-
-  xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
-  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_host), gappinfo);
-  xdp_app_info_set_flags (XDP_APP_INFO (app_info_host),
-                          XDP_APP_INFO_FLAG_HAS_NETWORK |
-                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
-
-  return XDP_APP_INFO (g_steal_pointer (&app_info_host));
+  return g_initable_new (XDP_TYPE_APP_INFO_HOST,
+                         NULL,
+                         NULL,
+                         "pid", pid,
+                         "pidfd", pidfd,
+                         "registered", registered,
+                         NULL);
 }
