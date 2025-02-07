@@ -135,32 +135,6 @@ end:
   return is_snap;
 }
 
-gboolean
-xdp_is_snap (int        pid,
-             gboolean  *is_snap,
-             GError   **error)
-{
-  g_autoptr(GError) local_error = NULL;
-
-  if (!pid_is_snap (pid, &local_error))
-    {
-      if (local_error && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                           XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-        {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return FALSE;
-        }
-
-      *is_snap = FALSE;
-      return TRUE;
-    }
-  else
-    {
-      *is_snap = TRUE;
-      return TRUE;
-    }
-}
-
 XdpAppInfo *
 xdp_app_info_snap_new (int      pid,
                        int      pidfd,
