@@ -52,6 +52,8 @@ struct _XdpAppInfoClass
                                          GError     **error);
 };
 
+const char * xdp_app_info_get_registered (XdpAppInfo *app_info);
+
 int xdp_app_info_get_pid (XdpAppInfo *app_info);
 
 int xdp_app_info_get_pidfd (XdpAppInfo *app_info);

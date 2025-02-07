@@ -63,6 +63,7 @@ enum
   PROP_0,
   PROP_PID,
   PROP_PIDFD,
+  PROP_REGISTERED,
   N_PROPS
 };
 
@@ -77,6 +78,7 @@ typedef struct _XdpAppInfoPrivate
   uint32_t pid;
   GAppInfo *gappinfo;
   XdpAppInfoFlags flags;
+  char *registered;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
@@ -108,6 +110,10 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_int (value, priv->pidfd);
       break;
 
+    case PROP_REGISTERED:
+      g_value_set_string (value, priv->registered);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -135,6 +141,11 @@ xdp_app_info_set_property (GObject      *object,
       priv->pidfd = dup (g_value_get_int (value));
       break;
 
+    case PROP_REGISTERED:
+      g_assert (priv->registered == NULL);
+      priv->registered = g_value_dup_string (value);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -151,6 +162,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
   g_clear_object (&priv->gappinfo);
+  g_clear_pointer (&priv->registered, g_free);
 
   if (!g_clear_fd (&priv->pidfd, &error))
     g_warning ("Error closing pidfd: %s", error->message);
@@ -203,6 +215,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                       G_PARAM_READWRITE |
                       G_PARAM_CONSTRUCT_ONLY |
                       G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_REGISTERED] =
+    g_param_spec_string ("registered", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
 }
@@ -260,6 +279,14 @@ xdp_app_info_new (uint32_t   pid,
   g_assert (XDP_IS_APP_INFO (app_info));
 
   return g_steal_pointer (&app_info);
+}
+
+const char *
+xdp_app_info_get_registered (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->registered;
 }
 
 int
