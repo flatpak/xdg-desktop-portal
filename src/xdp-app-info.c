@@ -262,23 +262,65 @@ xdp_app_info_new (uint32_t   pid,
   return g_steal_pointer (&app_info);
 }
 
-void
-xdp_app_info_initialize (XdpAppInfo      *app_info,
-                         const char      *engine,
-                         const char      *app_id,
-                         const char      *instance,
-                         int              pidfd,
-                         GAppInfo        *gappinfo,
-                         XdpAppInfoFlags  flags)
+int
+xdp_app_info_get_pid (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  priv->engine = g_strdup (engine);
-  priv->id = g_strdup (app_id);
-  priv->instance = g_strdup (instance);
+  return priv->pid;
+}
+
+int
+xdp_app_info_get_pidfd (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->pidfd;
+}
+
+void
+xdp_app_info_set_identity (XdpAppInfo *app_info,
+                           const char *engine,
+                           const char *app_id,
+                           const char *instance)
+ {
+   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  g_clear_pointer (&priv->engine, g_free);
+   priv->engine = g_strdup (engine);
+  g_clear_pointer (&priv->id, g_free);
+   priv->id = g_strdup (app_id);
+  g_clear_pointer (&priv->instance, g_free);
+   priv->instance = g_strdup (instance);
+}
+
+void
+xdp_app_info_set_pidfd (XdpAppInfo *app_info,
+                        int         pidfd)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  g_clear_fd (&priv->pidfd, NULL);
+  // FIXME can fail:
   priv->pidfd = dup (pidfd);
-  g_set_object (&priv->gappinfo, gappinfo);
-  priv->flags = flags;
+}
+
+void
+xdp_app_info_set_gappinfo (XdpAppInfo *app_info,
+                           GAppInfo   *gappinfo)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+   g_set_object (&priv->gappinfo, gappinfo);
+}
+
+void
+xdp_app_info_set_flags (XdpAppInfo      *app_info,
+                        XdpAppInfoFlags  flags)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+   priv->flags = flags;
 }
 
 static const char *

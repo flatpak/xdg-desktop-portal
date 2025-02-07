@@ -827,11 +827,17 @@ xdp_app_info_flatpak_new (int      pid,
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
+                                     "pid", pid,
+                                     "pidfd", pidfd,
                                      NULL);
 
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
-                           FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo, flags);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_flatpak),
+                             FLATPAK_ENGINE_ID,
+                             id,
+                             instance);
+  xdp_app_info_set_pidfd (XDP_APP_INFO (app_info_flatpak), bwrap_pidfd);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_flatpak), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_flatpak), flags);
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));

@@ -27,6 +27,8 @@
 
 #include "xdp-app-info-snap-private.h"
 
+#define SNAP_ENGINE_ID "io.snapcraft"
+
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
 #define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
@@ -227,11 +229,16 @@ xdp_app_info_snap_new (int      pid,
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
                                   error,
+                                  "pid", pid,
+                                  "pidfd", pidfd,
                                   NULL);
 
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
-                           "io.snapcraft", snap_id, NULL,
-                           pidfd, gappinfo, flags);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_snap),
+                             SNAP_ENGINE_ID,
+                             snap_id,
+                             NULL);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_snap), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_snap), flags);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }
