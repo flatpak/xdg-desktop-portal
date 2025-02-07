@@ -31,7 +31,3 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoTest,
                       xdp_app_info_test,
                       XDP, APP_INFO_TEST,
                       XdpAppInfo)
-
-XdpAppInfo * xdp_app_info_test_new (int         pid,
-                                    int         pidfd,
-                                    const char *registered);

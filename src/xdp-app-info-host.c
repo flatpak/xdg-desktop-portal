@@ -239,17 +239,3 @@ get_appid_from_pid (pid_t pid)
   return g_strdup ("");
 #endif /* HAVE_LIBSYSTEMD */
 }
-
-XdpAppInfo *
-xdp_app_info_host_new (int         pid,
-                       int         pidfd,
-                       const char *registered)
-{
-  return g_initable_new (XDP_TYPE_APP_INFO_HOST,
-                         NULL,
-                         NULL,
-                         "pid", pid,
-                         "pidfd", pidfd,
-                         "registered", registered,
-                         NULL);
-}

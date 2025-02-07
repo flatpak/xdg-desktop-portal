@@ -32,10 +32,6 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoSnap,
                       XDP, APP_INFO_SNAP,
                       XdpAppInfo)
 
-XdpAppInfo * xdp_app_info_snap_new (int      pid,
-                                    int      pidfd,
-                                    GError **error);
-
 XDP_EXPORT_TEST
 int _xdp_app_info_snap_parse_cgroup_file (FILE     *f,
                                           gboolean *is_snap);

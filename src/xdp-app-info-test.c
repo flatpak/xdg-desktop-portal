@@ -187,17 +187,3 @@ parse_usb_queries_string (const char *usb_queries_str)
 
   return g_steal_pointer (&usb_queries);
 }
-
-XdpAppInfo *
-xdp_app_info_test_new (int         pid,
-                       int         pidfd,
-                       const char *registered)
-{
-  return g_initable_new (XDP_TYPE_APP_INFO_TEST,
-                         NULL,
-                         NULL,
-                         "pid", pid,
-                         "pidfd", pidfd,
-                         "registered", registered,
-                         NULL);
-}

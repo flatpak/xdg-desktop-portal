@@ -233,37 +233,71 @@ xdp_app_info_new (uint32_t   pid,
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
+  GType app_info_types[] = {
+    XDP_TYPE_APP_INFO_TEST,
+    XDP_TYPE_APP_INFO_FLATPAK,
+    XDP_TYPE_APP_INFO_SNAP,
+    XDP_TYPE_APP_INFO_HOST,
+  };
 
-  app_info = xdp_app_info_test_new (pid, pidfd, NULL);
-
-  if (app_info == NULL)
-    app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
-
-  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+  for (int i = 0; i < G_N_ELEMENTS (app_info_types); i++)
     {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
+      app_info = g_initable_new (app_info_types[i], NULL, &local_error,
+                                 "pid", pid,
+                                 "pidfd", pidfd,
+                                 NULL);
+
+      if (app_info)
+        return g_steal_pointer (&app_info);
+
+      if (!g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
+
+      g_clear_error (&local_error);
     }
-  g_clear_error (&local_error);
 
-  if (app_info == NULL)
-    app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+  g_assert_not_reached ();
+}
 
-  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+static XdpAppInfo *
+xdp_app_info_new_registered (uint32_t     pid,
+                             int          pidfd,
+                             const char  *registered,
+                             GError     **error)
+{
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) local_error = NULL;
+  GType app_info_types[] = {
+    XDP_TYPE_APP_INFO_TEST,
+    XDP_TYPE_APP_INFO_HOST,
+  };
+
+  for (int i = 0; i < G_N_ELEMENTS (app_info_types); i++)
     {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
+      app_info = g_initable_new (app_info_types[i], NULL, &local_error,
+                                 "pid", pid,
+                                 "pidfd", pidfd,
+                                 "registered", registered,
+                                 NULL);
+
+      if (app_info)
+        return g_steal_pointer (&app_info);
+
+      if (!g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+        {
+          g_propagate_error (error, g_steal_pointer (&local_error));
+          return NULL;
+        }
+
+      g_clear_error (&local_error);
     }
-  g_clear_error (&local_error);
 
-  if (app_info == NULL)
-    app_info = xdp_app_info_host_new (pid, pidfd, NULL);
-
-  g_assert (XDP_IS_APP_INFO (app_info));
-
-  return g_steal_pointer (&app_info);
+  g_assert_not_reached ();
 }
 
 const char *
@@ -1040,30 +1074,27 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  app_info = xdp_app_info_test_new (pid, pidfd, app_id);
+  detected_app_info = xdp_app_info_new (pid, pidfd, error);
+  if (!detected_app_info)
+    return NULL;
 
-  if (!app_info)
+  if (!xdp_app_info_is_host (detected_app_info))
     {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't manually register a %s application",
+                   xdp_app_info_get_engine_display_name (detected_app_info));
+      return NULL;
+    }
 
-      detected_app_info = xdp_app_info_new (pid, pidfd, error);
-      if (!detected_app_info)
-        return NULL;
+  app_info = xdp_app_info_new_registered (pid, pidfd, app_id, error);
+  if (!app_info)
+    return NULL;
 
-      if (!xdp_app_info_is_host (detected_app_info))
-        {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a %s application",
-                       xdp_app_info_get_engine_display_name (detected_app_info));
-          return NULL;
-        }
-
-      app_info = xdp_app_info_host_new (pid, pidfd, app_id);
-      if (!xdp_app_info_get_gappinfo (app_info))
-        {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
-                       "App info not found for '%s'", app_id);
-          return NULL;
-        }
+  if (!xdp_app_info_get_gappinfo (app_info))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                   "App info not found for '%s'", app_id);
+      return NULL;
     }
 
   g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));

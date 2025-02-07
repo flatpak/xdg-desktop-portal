@@ -232,16 +232,3 @@ end:
     }
   return is_snap;
 }
-
-XdpAppInfo *
-xdp_app_info_snap_new (int      pid,
-                       int      pidfd,
-                       GError **error)
-{
-  return g_initable_new (XDP_TYPE_APP_INFO_SNAP,
-                         NULL,
-                         error,
-                         "pid", pid,
-                         "pidfd", pidfd,
-                         NULL);
-}

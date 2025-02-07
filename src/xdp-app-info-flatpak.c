@@ -658,19 +658,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_is_valid_sub_app_id;
 }
 
-XdpAppInfo *
-xdp_app_info_flatpak_new (int      pid,
-                          int      pidfd,
-                          GError **error)
-{
-  return g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
-                         NULL,
-                         error,
-                         "pid", pid,
-                         "pidfd", pidfd,
-                         NULL);
-}
-
 static int
 open_pid_fd (int      proc_fd,
              pid_t    pid,
