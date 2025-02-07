@@ -211,20 +211,36 @@ get_appid_from_pid (pid_t pid)
 #endif /* HAVE_LIBSYSTEMD */
 }
 
-static XdpAppInfoHost *
-xdp_app_info_host_new_full (const char  *app_id,
-                            int          pid,
-                            int          pidfd,
-                            GAppInfo    *gappinfo,
-                            GError     **error)
+XdpAppInfo *
+xdp_app_info_host_new (int         pid,
+                       int         pidfd,
+                       const char *registered)
 {
-  XdpAppInfoHost *app_info_host;
+  g_autoptr(XdpAppInfoHost) app_info_host = NULL;
+  g_autofree char *owned_app_id = NULL;
+  const char *app_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+
+  if (registered)
+    {
+      app_id = registered;
+    }
+  else
+    {
+      owned_app_id = get_appid_from_pid (pid);
+      app_id = owned_app_id;
+    }
+
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
-                                  error,
+                                  NULL,
                                   "pid", pid,
                                   "pidfd", pidfd,
+                                  "registered", registered,
                                   NULL);
 
   xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
@@ -233,49 +249,5 @@ xdp_app_info_host_new_full (const char  *app_id,
                           XDP_APP_INFO_FLAG_HAS_NETWORK |
                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
-  return app_info_host;
-}
-
-XdpAppInfo *
-xdp_app_info_host_new_registered (int          pid,
-                                  int          pidfd,
-                                  const char  *app_id,
-                                  GError     **error)
-{
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-  if (!gappinfo)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
-                   "App info not found for '%s'", app_id);
-      return NULL;
-    }
-
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
-                                                   pid,
-                                                   pidfd,
-                                                   gappinfo,
-                                                   error));
-}
-
-XdpAppInfo *
-xdp_app_info_host_new (int pid,
-                       int pidfd)
-{
-  g_autofree char *app_id = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  app_id = get_appid_from_pid (pid);
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
-                                                   pid,
-                                                   pidfd,
-                                                   gappinfo,
-                                                   NULL));
+  return XDP_APP_INFO (g_steal_pointer (&app_info_host));
 }

@@ -259,7 +259,7 @@ xdp_app_info_new (uint32_t   pid,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_host_new (pid, pidfd);
+    app_info = xdp_app_info_host_new (pid, pidfd, NULL);
 
   g_assert (XDP_IS_APP_INFO (app_info));
 
@@ -1057,9 +1057,13 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
           return NULL;
         }
 
-      app_info = xdp_app_info_host_new_registered (pid, pidfd, app_id, error);
-      if (!app_info)
-        return NULL;
+      app_info = xdp_app_info_host_new (pid, pidfd, app_id);
+      if (!xdp_app_info_get_gappinfo (app_info))
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                       "App info not found for '%s'", app_id);
+          return NULL;
+        }
     }
 
   g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));

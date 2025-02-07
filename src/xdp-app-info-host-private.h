@@ -32,14 +32,9 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoHost,
                       XDP, APP_INFO_HOST,
                       XdpAppInfo)
 
-XdpAppInfo * xdp_app_info_host_new (int pid,
-                                    int pidfd);
-
-XdpAppInfo *
-xdp_app_info_host_new_registered (int          pid,
-                                  int          pidfd,
-                                  const char  *app_id,
-                                  GError     **error);
+XdpAppInfo * xdp_app_info_host_new (int         pid,
+                                    int         pidfd,
+                                    const char *registered);
 
 #ifdef HAVE_LIBSYSTEMD
 XDP_EXPORT_TEST
