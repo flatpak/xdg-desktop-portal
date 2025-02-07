@@ -108,6 +108,61 @@ xdp_app_info_init (XdpAppInfo *app_info)
   priv->pidfd = -1;
 }
 
+static XdpAppInfo *
+maybe_create_test_app_info (void)
+{
+  const char *test_override_app_id;
+  const char *test_override_usb_queries;
+
+  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  if (!test_override_app_id)
+    return NULL;
+
+  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
+  return xdp_app_info_test_new (test_override_app_id,
+                                test_override_usb_queries);
+}
+
+static XdpAppInfo *
+xdp_app_info_new (uint32_t   pid,
+                  int        pidfd,
+                  GError   **error)
+{
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) local_error = NULL;
+
+  app_info = maybe_create_test_app_info ();
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+
+  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+    {
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return NULL;
+    }
+  g_clear_error (&local_error);
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+
+  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+    {
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return NULL;
+    }
+  g_clear_error (&local_error);
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_host_new (pid, pidfd);
+
+  g_assert (XDP_IS_APP_INFO (app_info));
+
+  return g_steal_pointer (&app_info);
+}
+
 void
 xdp_app_info_initialize (XdpAppInfo      *app_info,
                          const char      *engine,
@@ -125,6 +180,17 @@ xdp_app_info_initialize (XdpAppInfo      *app_info,
   priv->pidfd = dup (pidfd);
   g_set_object (&priv->gappinfo, gappinfo);
   priv->flags = flags;
+}
+
+static const char *
+xdp_app_info_get_engine_display_name (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (priv->engine)
+    return priv->engine;
+
+  return g_type_name (G_OBJECT_TYPE (app_info));
 }
 
 gboolean
@@ -751,21 +817,6 @@ on_peer_died (const char *name)
 }
 
 static XdpAppInfo *
-maybe_create_test_app_info (void)
-{
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
-    return NULL;
-
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (test_override_app_id,
-                                test_override_usb_queries);
-}
-
-static XdpAppInfo *
 maybe_create_registered_test_app_info (const char *registered_app_id)
 {
   const char *test_override_app_id;
@@ -780,6 +831,7 @@ maybe_create_registered_test_app_info (const char *registered_app_id)
                                 test_override_usb_queries);
 }
 
+
 static XdpAppInfo *
 xdp_connection_create_app_info_sync (GDBusConnection  *connection,
                                      const char       *sender,
@@ -790,54 +842,17 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   g_autofd int pidfd = -1;
   uint32_t pid;
   g_autoptr(GError) local_error = NULL;
-  const char *app_info_kind = NULL;
 
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  app_info = maybe_create_test_app_info ();
-  if (app_info)
-    app_info_kind = "test";
+  app_info = xdp_app_info_new (pid, pidfd, error);
+  if (!app_info)
+    return NULL;
 
-  if (app_info == NULL)
-    {
-      app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
-      if (app_info)
-        app_info_kind = "flatpak";
-    }
-
-  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
-    }
-  g_clear_error (&local_error);
-
-  if (app_info == NULL)
-    {
-      app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
-      if (app_info)
-        app_info_kind = "snap";
-    }
-
-  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return NULL;
-    }
-  g_clear_error (&local_error);
-
-  if (app_info == NULL)
-    {
-      app_info = xdp_app_info_host_new (pid, pidfd);
-      app_info_kind = "derived host";
-    }
-
-  g_assert (XDP_IS_APP_INFO (app_info));
-
-  g_debug ("Adding %s app '%s'", app_info_kind, xdp_app_info_get_id (app_info));
+  g_debug ("Adding %s app '%s'",
+           xdp_app_info_get_engine_display_name (app_info),
+           xdp_app_info_get_id (app_info));
 
   cache_insert_app_info (sender, app_info);
 
