@@ -1017,7 +1017,7 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
           return NULL;
         }
 
-      app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      app_info = xdp_app_info_host_new_registered (pid, pidfd, app_id, error);
       if (!app_info)
         return NULL;
     }

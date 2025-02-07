@@ -213,6 +213,7 @@ get_appid_from_pid (pid_t pid)
 
 static XdpAppInfoHost *
 xdp_app_info_host_new_full (const char  *app_id,
+                            int          pid,
                             int          pidfd,
                             GAppInfo    *gappinfo,
                             GError     **error)
@@ -235,7 +236,8 @@ xdp_app_info_host_new_full (const char  *app_id,
 }
 
 XdpAppInfo *
-xdp_app_info_host_new_registered (int          pidfd,
+xdp_app_info_host_new_registered (int          pid,
+                                  int          pidfd,
                                   const char  *app_id,
                                   GError     **error)
 {
@@ -252,6 +254,7 @@ xdp_app_info_host_new_registered (int          pidfd,
     }
 
   return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pid,
                                                    pidfd,
                                                    gappinfo,
                                                    error));
@@ -270,6 +273,7 @@ xdp_app_info_host_new (int pid,
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
   return XDP_APP_INFO (xdp_app_info_host_new_full (app_id,
+                                                   pid,
                                                    pidfd,
                                                    gappinfo,
                                                    NULL));
