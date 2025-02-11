@@ -60,16 +60,23 @@ G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
 
 typedef struct _XdpAppInfoPrivate
 {
+  /* identity */
   char *engine;
   char *id;
   char *instance;
-  int pidfd;
+
+  /* app info */
   GAppInfo *gappinfo;
-  XdpAppInfoFlags flags;
+
+  /* calling process */
+  int pidfd;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
   ino_t pidns_id;
+
+  /* misc */
+  XdpAppInfoFlags flags;
 } XdpAppInfoPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
