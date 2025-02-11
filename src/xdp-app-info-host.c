@@ -27,10 +27,20 @@
 #include "xdp-app-info-host-private.h"
 #include "xdp-usb-query.h"
 
+enum
+{
+  PROP_0,
+  PROP_REGISTERED,
+  N_PROPS
+};
+
+static GParamSpec *properties [N_PROPS];
+
 struct _XdpAppInfoHost
 {
   XdpAppInfo parent;
 
+  char *registered;
   GPtrArray *usb_queries;
 };
 
@@ -79,12 +89,54 @@ xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+
+
+static void
+xdp_app_info_host_get_property (GObject    *object,
+                                guint       prop_id,
+                                GValue     *value,
+                                GParamSpec *pspec)
+{
+  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
+
+  switch (prop_id)
+    {
+    case PROP_REGISTERED:
+      g_value_set_string (value, app_info->registered);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_host_set_property (GObject      *object,
+                                guint         prop_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
+
+  switch (prop_id)
+    {
+    case PROP_REGISTERED:
+      g_assert (app_info->registered == NULL);
+      app_info->registered = g_value_dup_string (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 xdp_app_info_host_dispose (GObject *object)
 {
   XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
 
   g_clear_pointer (&app_info->usb_queries, g_ptr_array_unref);
+  g_clear_pointer (&app_info->registered, g_free);
 
   G_OBJECT_CLASS (xdp_app_info_host_parent_class)->dispose (object);
 }
@@ -95,17 +147,23 @@ app_info_host_initable_init (GInitable     *initable,
                              GError       **error)
 {
   XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (initable);
-  const char *registered;
+  gboolean is_testing;
   g_autofree char *owned_app_id = NULL;
   const char *app_id = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
   g_autoptr(XdpUsbQuery) query = NULL;
 
-  registered = xdp_app_info_get_registered (XDP_APP_INFO (app_info_host));
-  if (registered)
+  is_testing = xdp_app_info_is_testing (XDP_APP_INFO (app_info_host));
+
+  if (app_info_host->registered)
     {
-      app_id = registered;
+      app_id = app_info_host->registered;
+    }
+  else if (is_testing)
+    {
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+      g_assert (app_id != NULL);
     }
   else
     {
@@ -154,6 +212,8 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_app_info_host_dispose;
+  object_class->get_property = xdp_app_info_host_get_property;
+  object_class->set_property = xdp_app_info_host_set_property;
 
   app_info_class->get_usb_queries =
     xdp_app_info_host_get_usb_queries;
@@ -163,6 +223,15 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
     xdp_app_info_host_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_host_is_valid_sub_app_id;
+
+  properties[PROP_REGISTERED] =
+    g_param_spec_string ("registered", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 #ifdef HAVE_LIBSYSTEMD

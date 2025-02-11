@@ -46,7 +46,6 @@
 #include "xdp-app-info-flatpak-private.h"
 #include "xdp-app-info-snap-private.h"
 #include "xdp-app-info-host-private.h"
-#include "xdp-app-info-test-private.h"
 #include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
@@ -63,7 +62,7 @@ enum
   PROP_0,
   PROP_PID,
   PROP_PIDFD,
-  PROP_REGISTERED,
+  PROP_TESTING,
   N_PROPS
 };
 
@@ -88,7 +87,6 @@ typedef struct _XdpAppInfoPrivate
   GAppInfo *gappinfo;
 
   XdpAppInfoFlags flags;
-  char *registered;
   gboolean is_testing;
 } XdpAppInfoPrivate;
 
@@ -117,8 +115,8 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_int (value, priv->pidfd);
       break;
 
-    case PROP_REGISTERED:
-      g_value_set_string (value, priv->registered);
+    case PROP_TESTING:
+      g_value_set_boolean (value, priv->is_testing);
       break;
 
     default:
@@ -148,9 +146,8 @@ xdp_app_info_set_property (GObject      *object,
       priv->pidfd = dup (g_value_get_int (value));
       break;
 
-    case PROP_REGISTERED:
-      g_assert (priv->registered == NULL);
-      priv->registered = g_value_dup_string (value);
+    case PROP_TESTING:
+      priv->is_testing = g_value_get_boolean (value);
       break;
 
     default:
@@ -169,7 +166,6 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
   g_clear_object (&priv->gappinfo);
-  g_clear_pointer (&priv->registered, g_free);
 
   if (!g_clear_fd (&priv->pidfd, &error))
     g_warning ("Error closing pidfd: %s", error->message);
@@ -223,14 +219,55 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                       G_PARAM_CONSTRUCT_ONLY |
                       G_PARAM_STATIC_STRINGS);
 
-  properties[PROP_REGISTERED] =
-    g_param_spec_string ("registered", NULL, NULL,
-                         NULL,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS);
+  properties[PROP_TESTING] =
+    g_param_spec_boolean ("testing", NULL, NULL,
+                          FALSE,
+                          G_PARAM_READWRITE |
+                          G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
+}
+
+typedef struct {
+  const char *name;
+  GType type;
+} XdpAppInfoNameTypeMapping;
+
+static XdpAppInfo *
+maybe_create_testing (uint32_t pid,
+                      int      pidfd)
+{
+  const char *type;
+
+  XdpAppInfoNameTypeMapping map[] = {
+    { "flatpak", XDP_TYPE_APP_INFO_FLATPAK },
+    { "snap", XDP_TYPE_APP_INFO_SNAP },
+    { "host", XDP_TYPE_APP_INFO_HOST },
+  };
+
+  type = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_TYPE");
+  if (!type)
+    return NULL;
+
+  for (int i = 0; i < G_N_ELEMENTS (map); i++)
+    {
+      g_autoptr(XdpAppInfo) app_info = NULL;
+
+      if (g_strcmp0 (type, map[i].name) != 0)
+        continue;
+
+      app_info = g_initable_new (map[i].type, NULL, NULL,
+                                 "pid", pid,
+                                 "pidfd", pidfd,
+                                 "testing", TRUE,
+                                 NULL);
+
+      g_assert (app_info != NULL);
+      return g_steal_pointer (&app_info);
+    }
+
+  g_assert_not_reached ();
+  return NULL;
 }
 
 static XdpAppInfo *
@@ -241,11 +278,14 @@ xdp_app_info_new (uint32_t   pid,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
   GType app_info_types[] = {
-    XDP_TYPE_APP_INFO_TEST,
     XDP_TYPE_APP_INFO_FLATPAK,
     XDP_TYPE_APP_INFO_SNAP,
     XDP_TYPE_APP_INFO_HOST,
   };
+
+  app_info = maybe_create_testing (pid, pidfd);
+  if (app_info)
+    return g_steal_pointer (&app_info);
 
   for (int i = 0; i < G_N_ELEMENTS (app_info_types); i++)
     {
@@ -277,42 +317,30 @@ xdp_app_info_new_registered (uint32_t     pid,
                              GError     **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autoptr(GError) local_error = NULL;
-  GType app_info_types[] = {
-    XDP_TYPE_APP_INFO_TEST,
-    XDP_TYPE_APP_INFO_HOST,
-  };
+  const char *type;
+  gboolean testing = FALSE;
 
-  for (int i = 0; i < G_N_ELEMENTS (app_info_types); i++)
+  type = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_TYPE");
+  if (type != NULL)
     {
-      app_info = g_initable_new (app_info_types[i], NULL, &local_error,
-                                 "pid", pid,
-                                 "pidfd", pidfd,
-                                 "registered", registered,
-                                 NULL);
-
-      if (app_info)
-        return g_steal_pointer (&app_info);
-
-      if (!g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-        {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return NULL;
-        }
-
-      g_clear_error (&local_error);
+      g_assert (g_strcmp0 (type, "host") == 0);
+      testing = TRUE;
     }
 
-  g_assert_not_reached ();
+  return g_initable_new (XDP_TYPE_APP_INFO_HOST, NULL, error,
+                         "pid", pid,
+                         "pidfd", pidfd,
+                         "registered", registered,
+                         "testing", testing,
+                         NULL);
 }
 
-const char *
-xdp_app_info_get_registered (XdpAppInfo *app_info)
+gboolean
+xdp_app_info_is_testing (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  return priv->registered;
+  return priv->is_testing;
 }
 
 int
@@ -390,7 +418,7 @@ xdp_app_info_get_engine_display_name (XdpAppInfo *app_info)
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
-  return XDP_IS_APP_INFO_HOST (app_info) ||  XDP_IS_APP_INFO_TEST (app_info);
+  return XDP_IS_APP_INFO_HOST (app_info);
 }
 
 const char *

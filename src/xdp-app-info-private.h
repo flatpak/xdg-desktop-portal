@@ -52,7 +52,7 @@ struct _XdpAppInfoClass
                                          GError     **error);
 };
 
-const char * xdp_app_info_get_registered (XdpAppInfo *app_info);
+gboolean xdp_app_info_is_testing (XdpAppInfo *app_info);
 
 int xdp_app_info_get_pid (XdpAppInfo *app_info);
 

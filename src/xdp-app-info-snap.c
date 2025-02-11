@@ -68,9 +68,51 @@ xdp_app_info_snap_initable_init (GInitable     *initable,
   g_autoptr(GAppInfo) gappinfo = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
+  gboolean is_testing;
   int pid;
 
+  is_testing = xdp_app_info_is_testing (XDP_APP_INFO (app_info_snap));
   pid = xdp_app_info_get_pid (XDP_APP_INFO (app_info_snap));
+
+  if (is_testing)
+    {
+      const char *app_id;
+      const char *metadata_path;
+      gboolean result;
+
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+      g_assert (app_id != NULL);
+      metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA");
+      g_assert (metadata_path != NULL);
+
+      xdp_app_info_set_identity (XDP_APP_INFO (app_info_snap),
+                                 SNAP_ENGINE_ID,
+                                 app_id,
+                                 NULL);
+
+      desktop_id = g_strconcat (app_id, ".desktop", NULL);
+      gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+      g_assert (gappinfo != NULL);
+
+      xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_snap), gappinfo);
+
+      metadata = g_key_file_new ();
+      result = g_key_file_load_from_file (metadata, metadata_path,
+                                          G_KEY_FILE_NONE, NULL);
+      g_assert (result == TRUE);
+
+      has_network = g_key_file_get_boolean (metadata,
+                                            SNAP_METADATA_GROUP_INFO,
+                                            SNAP_METADATA_KEY_NETWORK,
+                                            NULL);
+
+      if (has_network)
+        flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+      xdp_app_info_set_flags (XDP_APP_INFO (app_info_snap), flags);
+
+      return initable_parent_iface->init (initable, cancellable, error);
+    }
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
   if (!pid_is_snap (pid, error))

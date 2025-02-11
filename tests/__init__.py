@@ -7,7 +7,9 @@
 from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, Gio
 from itertools import count
-from typing import Any, Dict, Optional, NamedTuple, Callable, List
+from typing import Any, Dict, Optional, NamedTuple, Callable, List, Self
+from enum import StrEnum
+from pathlib import Path
 
 import os
 import dbus
@@ -218,6 +220,173 @@ def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
     except dbus.exceptions.DBusException as e:
         logger.critical(e)
         assert e is None, str(e)
+
+
+class AppInfoKind(StrEnum):
+    HOST = "host"
+    FLATPAK = "flatpak"
+    SNAP = "snap"
+
+
+class AppInfo:
+    """
+    Interacts with conftest.py via ensure_files and extend_env to make the
+    portal frontend discover the requested XdpAppInfo for incoming connections.
+
+    Testing code can use this class to construct a specific XdpAppInfo via the
+    xdp_app_info fixture but for simpler cases, overwriting the app_info_kind,
+    app_id, instance_id and usb_queries fixtures can be sufficient.
+    """
+
+    def __init__(
+        self,
+        kind: AppInfoKind,
+        app_id: str,
+        instance_id: str | None = None,
+        desktop_file: bytes | None = None,
+        metadata: bytes | None = None,
+    ):
+        self.kind = kind
+        self.app_id = app_id
+        self.instance_id = instance_id
+        self.desktop_file = desktop_file
+        self.metadata = metadata
+        self.desktop_file_path = None
+        self.metadata_path = None
+
+        if desktop_file:
+            self.desktop_file_path = (
+                Path(os.environ["XDG_DATA_HOME"]) / "applications" / f"{app_id}.desktop"
+            )
+
+        if metadata:
+            self.metadata_path = (
+                Path(os.environ["XDG_DATA_HOME"])
+                / "xdp-app-id-data"
+                / f"{app_id}.metadata"
+            )
+
+    @classmethod
+    def new_host(cls, app_id: str) -> Self:
+        """
+        Create a new AppInfo of type host with the specific app-id
+        """
+        return cls(kind=AppInfoKind.HOST, app_id=app_id)
+
+    @classmethod
+    def new_flatpak(
+        cls,
+        app_id: str,
+        instance_id: str,
+        usb_queries: str | None = None,
+        desktop_file: bytes | None = None,
+        metadata: bytes | None = None,
+    ) -> Self:
+        """
+        Create a new AppInfo of type flatpak with the specific app-id and
+        instance-id. Optionally the usb queries can be set and the desktop file
+        and flatpak app metadata can be overwritten.
+        """
+        if not desktop_file:
+            desktop_file = b"""
+[Desktop Entry]
+Version=1.0
+Name=Example App
+Exec=true %u
+Type=Application
+"""
+
+        if not metadata:
+            metadata_str = f"""
+[Application]
+name={app_id}
+runtime=org.freedesktop.Platform/x86_64/23.08
+sdk=org.freedesktop.Sdk/x86_64/23.08
+command={app_id}
+
+[Context]
+shared=network;ipc;
+sockets=x11;wayland;pulseaudio;fallback-x11;
+devices=dri;
+"""
+            metadata = metadata_str.encode("utf8")
+
+        if usb_queries:
+            metadata_usb_str = f"""
+[USB Devices]
+enumerable-devices={usb_queries}
+"""
+            metadata += metadata_usb_str.encode("utf8")
+
+        return cls(
+            kind=AppInfoKind.FLATPAK,
+            app_id=app_id,
+            instance_id=instance_id,
+            desktop_file=desktop_file,
+            metadata=metadata,
+        )
+
+    @classmethod
+    def new_snap(
+        cls,
+        app_id: str,
+        desktop_file: bytes | None = None,
+        metadata: bytes | None = None,
+    ) -> Self:
+        """
+        Create a new AppInfo of type snap with the specific app-id. Optionally
+        the desktop file and snap app metadata can be overwritten.
+        """
+        if not desktop_file:
+            desktop_file = b"""
+[Desktop Entry]
+Version=1.0
+Name=Example App
+Exec=true %u
+Type=Application
+"""
+
+        if not metadata:
+            metadata_str = f"""
+[Snap Info]
+InstanceName={app_id}
+AppName=ExampleApp
+DesktopFile={app_id}.desktop
+"""
+            metadata = metadata_str.encode("utf8")
+
+        return cls(
+            kind=AppInfoKind.SNAP,
+            app_id=app_id,
+            desktop_file=desktop_file,
+            metadata=metadata,
+        )
+
+    def ensure_files(self) -> None:
+        if self.desktop_file_path:
+            assert self.desktop_file
+            self.desktop_file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.desktop_file_path.absolute().as_posix(), "wb") as f:
+                f.write(self.desktop_file)
+
+        if self.metadata_path:
+            assert self.metadata
+            self.metadata_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.metadata_path.absolute().as_posix(), "wb") as f:
+                f.write(self.metadata)
+
+    def extend_env(self, env) -> None:
+        env["XDG_DESKTOP_PORTAL_TEST_APP_INFO_TYPE"] = str(self.kind)
+        env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = self.app_id
+
+        if self.instance_id:
+            env["XDG_DESKTOP_PORTAL_TEST_INSTANCE_ID"] = self.instance_id
+
+        if self.kind == AppInfoKind.FLATPAK:
+            env["XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA"] = self.metadata_path
+
+        if self.kind == AppInfoKind.SNAP:
+            env["XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA"] = self.metadata_path
 
 
 class Response(NamedTuple):
