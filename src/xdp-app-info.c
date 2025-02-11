@@ -71,18 +71,25 @@ static GParamSpec *properties [N_PROPS];
 
 typedef struct _XdpAppInfoPrivate
 {
+  /* identity */
   char *engine;
   char *id;
   char *instance;
+
+  /* calling process */
   int pidfd;
   uint32_t pid;
-  GAppInfo *gappinfo;
-  XdpAppInfoFlags flags;
-  char *registered;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
   ino_t pidns_id;
+
+  /* app info */
+  GAppInfo *gappinfo;
+
+  XdpAppInfoFlags flags;
+  char *registered;
+  gboolean is_testing;
 } XdpAppInfoPrivate;
 
 static void g_initable_init_iface (GInitableIface *iface);
