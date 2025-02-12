@@ -1,3 +1,25 @@
+Changes in 1.19.3
+=================
+Released: 2025-02-12
+
+Bug Fixes:
+
+- Fix documentation links in the USB portal page.
+- Make the Document portal track open files, and release them when shutting
+  down. This should fix some harmless leak reports.
+- Fix a memory leak, a crash, and improve robustness against non-existing
+  folders in the Dynamic Launcher portal.
+- Fix build with PipeWire 1.3.82
+
+Enhancements:
+
+- Make the host path xattr more useful by removing the trailing end character,
+  and also reporting the xattr of files inside folders added to the document
+  store.
+- Remove libportal-based integrated tests. This should remove the cyclic
+  dependency between libportal, and xdg-desktop-portal. All tests are now based
+  on the Python testing framework.
+
 Changes in 1.19.2
 =================
 Released: 2025-01-20
