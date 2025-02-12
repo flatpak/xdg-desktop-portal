@@ -222,8 +222,20 @@ xdp_app_info_host_new (int  pid,
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
+  const char *test_app_info_kind = NULL;
 
-  app_id = get_appid_from_pid (pid);
+  test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
+  if (test_app_info_kind)
+    {
+      g_assert (g_strcmp0 (test_app_info_kind, "host") == 0);
+
+      app_id = g_strdup (g_getenv ("XDG_DESKTOP_PORTAL_TEST_HOST_APPID"));
+      g_assert (app_id != NULL);
+    }
+  else
+    {
+      app_id = get_appid_from_pid (pid);
+    }
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
