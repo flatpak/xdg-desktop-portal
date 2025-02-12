@@ -88,12 +88,21 @@ Some optional environment variables that can be set to help with debugging.
 Internal environment variables the tests use via pytest fixtures to set up the
 environment they need.
 
-* `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, the portal will use a host
-    XdpAppInfo with the app id set to the variable. This is used to get a
-    predictable app id for tests.
+* `XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND`: If set, the portal will use a
+    XdpAppInfo with the specified kind (`host`, `flatpak`, `snap`). More
+    environment variables might be required, depending on the kind.
 
-* `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
-    portal testing
+* `XDG_DESKTOP_PORTAL_TEST_HOST_APPID`: The app id the XdpAppInfo shall be
+    using. Only has an effect if `XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND` is set
+    to `host`.
+
+* `XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA`: A path to a file containing
+    flatpak app metadata the XdpAppInfo shall use. Only has an effect if
+    `XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND` is set to `flatpak`.
+
+* `XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA`: A path to a file containing metadata
+    in the format of `snap routine portal-info` the XdpAppInfo shall use. Only
+    has an effect if `XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND` is set to `snap`.
 
 ### Adding new tests
 
