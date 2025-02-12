@@ -17,11 +17,10 @@ def required_templates():
 
 
 @pytest.fixture
-def app_id():
+def app_info_kind():
     # x-d-p currently defaults to the empty app id for the camera portal for
-    # host XdpAppInfos (which the XdpAppInfoTest is). So use the empty app_id
-    # for now.
-    return ""
+    # host XdpAppInfos. We can just use the flatpak XdpAppInfo for now.
+    return xdp.AppInfoKind.FLATPAK
 
 
 class TestCamera:

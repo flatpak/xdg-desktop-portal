@@ -46,7 +46,6 @@
 #include "xdp-app-info-flatpak-private.h"
 #include "xdp-app-info-snap-private.h"
 #include "xdp-app-info-host-private.h"
-#include "xdp-app-info-test-private.h"
 #include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
@@ -116,21 +115,6 @@ xdp_app_info_init (XdpAppInfo *app_info)
 }
 
 static XdpAppInfo *
-maybe_create_test_app_info (void)
-{
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
-    return NULL;
-
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (test_override_app_id,
-                                test_override_usb_queries);
-}
-
-static XdpAppInfo *
 xdp_app_info_new (uint32_t   pid,
                   int        pidfd,
                   GError   **error)
@@ -138,10 +122,7 @@ xdp_app_info_new (uint32_t   pid,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) local_error = NULL;
 
-  app_info = maybe_create_test_app_info ();
-
-  if (app_info == NULL)
-    app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+  app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -229,7 +210,7 @@ xdp_app_info_get_engine_display_name (XdpAppInfo *app_info)
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
-  return XDP_IS_APP_INFO_HOST (app_info) ||  XDP_IS_APP_INFO_TEST (app_info);
+  return XDP_IS_APP_INFO_HOST (app_info);
 }
 
 const char *
@@ -897,21 +878,6 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                               error);
 }
 
-static XdpAppInfo *
-maybe_create_registered_test_app_info (const char *registered_app_id)
-{
-  const char *test_override_app_id;
-  const char *test_override_usb_queries;
-
-  test_override_app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
-  if (!test_override_app_id)
-    return NULL;
-
-  test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (registered_app_id,
-                                test_override_usb_queries);
-}
-
 XdpAppInfo *
 xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
                                             const char             *app_id,
@@ -932,29 +898,24 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
       return NULL;
     }
 
-  app_info = maybe_create_registered_test_app_info (app_id);
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+    return NULL;
 
-  if (!app_info)
+  detected_app_info = xdp_app_info_new (pid, pidfd, error);
+  if (!detected_app_info)
+    return NULL;
+
+  if (!xdp_app_info_is_host (detected_app_info))
     {
-      if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
-        return NULL;
-
-      detected_app_info = xdp_app_info_new (pid, pidfd, error);
-      if (!detected_app_info)
-        return NULL;
-
-      if (!xdp_app_info_is_host (detected_app_info))
-        {
-          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a %s application",
-                       xdp_app_info_get_engine_display_name (detected_app_info));
-          return NULL;
-        }
-
-      app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
-      if (!app_info)
-        return NULL;
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't manually register a %s application",
+                   xdp_app_info_get_engine_display_name (detected_app_info));
+      return NULL;
     }
+
+  app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+  if (!app_info)
+    return NULL;
 
   g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));
 

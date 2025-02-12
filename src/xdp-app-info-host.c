@@ -238,7 +238,7 @@ xdp_app_info_host_new (int pid,
     {
       g_assert (g_strcmp0 (test_app_info_kind, "host") == 0);
 
-      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_ID");
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
     }
   else
     {
