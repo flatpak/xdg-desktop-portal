@@ -138,7 +138,7 @@ foreach pytest_file : pytest_files
   test(
     'integration/@0@'.format(testname),
     pytest,
-    args: [meson.current_source_dir()] + pytest_args + ['-k', testname],
+    args: [meson.current_source_dir() / pytest_file] + pytest_args,
     env: pytest_env,
     suite: ['integration'],
     timeout: 120,
