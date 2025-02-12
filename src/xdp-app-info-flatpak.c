@@ -697,6 +697,71 @@ open_flatpak_info (int      pid,
   return g_steal_fd (&info_fd);
 }
 
+static XdpAppInfo *
+xdp_app_info_flatpak_new_testing (int      pid,
+                                  int      pidfd,
+                                  GError **error)
+{
+  g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
+  const char *app_id;
+  const char *instance_id;
+  const char *metadata_path;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+  gboolean result;
+  g_auto(GStrv) shared = NULL;
+  gboolean has_network;
+  XdpAppInfoFlags flags = 0;
+
+  app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+  g_assert (app_id != NULL);
+  instance_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_INSTANCE_ID");
+  g_assert (instance_id != NULL);
+  metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA");
+  g_assert (metadata_path != NULL);
+
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+  g_assert (gappinfo != NULL);
+
+  metadata = g_key_file_new ();
+  result = g_key_file_load_from_file (metadata, metadata_path,
+                                      G_KEY_FILE_NONE, NULL);
+  g_assert (result == TRUE);
+
+  shared = g_key_file_get_string_list (metadata,
+                                       FLATPAK_METADATA_GROUP_CONTEXT,
+                                       FLATPAK_METADATA_KEY_SHARED,
+                                       NULL, NULL);
+
+  if (shared)
+    {
+      has_network = g_strv_contains ((const char * const *)shared,
+                                     FLATPAK_METADATA_CONTEXT_SHARED_NETWORK);
+    }
+  else
+    {
+      has_network = FALSE;
+    }
+
+  flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
+  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_flatpak),
+                             FLATPAK_ENGINE_ID,
+                             app_id,
+                             instance_id);
+  xdp_app_info_set_pidfd (XDP_APP_INFO (app_info_flatpak), pidfd);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_flatpak), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_flatpak), flags);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
+}
+
 XdpAppInfo *
 xdp_app_info_flatpak_new (int      pid,
                           int      pidfd,
@@ -717,6 +782,20 @@ xdp_app_info_flatpak_new (int      pid,
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
   g_autofd int bwrap_pidfd = -1;
+  const char *test_app_info_kind;
+
+  test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
+  if (test_app_info_kind)
+    {
+      if (g_strcmp0 (test_app_info_kind, "flatpak") != 0)
+        {
+          g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                       "Testing requested different AppInfo kind");
+          return NULL;
+        }
+
+      return xdp_app_info_flatpak_new_testing (pid, pidfd, error);
+    }
 
   info_fd = open_flatpak_info (pid, error);
   if (info_fd == -1)

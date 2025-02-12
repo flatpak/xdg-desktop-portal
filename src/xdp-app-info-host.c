@@ -227,11 +227,25 @@ XdpAppInfo *
 xdp_app_info_host_new (int pid,
                        int pidfd)
 {
-  g_autofree char *app_id = NULL;
+  const char *test_app_info_kind = NULL;
+  g_autofree char *owned_app_id = NULL;
+  const char *app_id = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
 
-  app_id = get_appid_from_pid (pid);
+  test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
+  if (test_app_info_kind)
+    {
+      g_assert (g_strcmp0 (test_app_info_kind, "host") == 0);
+
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_ID");
+    }
+  else
+    {
+      owned_app_id = get_appid_from_pid (pid);
+      app_id = owned_app_id;
+    }
+
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
