@@ -4,7 +4,7 @@
 
 import tests.xdp_utils as xdp
 
-from typing import Any, Dict, Iterator, Optional
+from typing import Any, Dict, Iterator, Optional, assert_never
 from types import ModuleType
 
 import pytest
@@ -396,6 +396,15 @@ def xdp_overwrite_env() -> dict[str, str]:
 
 
 @pytest.fixture
+def app_info_kind() -> xdp.AppInfoKind:
+    """
+    Default fixture which can be used to override the XdpAppInfo kind that the
+    portal frontend will discover for incoming connections.
+    """
+    return xdp.AppInfoKind.HOST
+
+
+@pytest.fixture
 def app_id() -> str:
     """
     Default fixture which can be used to override the app id that the portal
@@ -405,21 +414,70 @@ def app_id() -> str:
 
 
 @pytest.fixture
+def usb_queries() -> str | None:
+    """
+    Default fixture providing the usb queries the connecting process can
+    enumerate
+    """
+    return None
+
+
+@pytest.fixture
+def xdp_app_info(app_info_kind, app_id, usb_queries) -> xdp.AppInfo:
+    """
+    Default fixture which can be used to override the XdpAppInfo the portal
+    frontend will discover.
+    This fixture should use the app_id, and usb_queries fixtures
+    to construct the xdp.AppInfo.
+    """
+
+    if app_info_kind == xdp.AppInfoKind.FLATPAK:
+        assert app_id is not None
+
+        return xdp.AppInfo.new_flatpak(
+            app_id=app_id,
+            usb_queries=usb_queries,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.SNAP:
+        assert app_id is not None
+        assert usb_queries is None
+
+        assert app_id.startwith("snap.")
+        snap_name = app_id[5:]
+
+        return xdp.AppInfo.new_snap(
+            snap_name=snap_name,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.HOST:
+        assert app_id is not None
+        assert usb_queries is None
+
+        return xdp.AppInfo.new_host(
+            app_id=app_id,
+        )
+
+    assert_never(app_info_kind)
+
+
+@pytest.fixture(autouse=True)
+def ensure_xdp_app_info_files(create_test_dirs, xdp_app_info) -> None:
+    xdp_app_info.ensure_files()
+
+
+@pytest.fixture
 def xdp_env(
     xdp_overwrite_env: dict[str, str],
-    app_id: str,
-    usb_queries: Optional[str],
+    xdp_app_info: xdp.AppInfo,
     umockdev: Optional[UMockdev.Testbed],
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
 
-    if app_id:
-        env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = app_id
-
-    if usb_queries:
-        env["XDG_DESKTOP_PORTAL_TEST_USB_QUERIES"] = usb_queries
+    if xdp_app_info:
+        xdp_app_info.extend_env(env)
 
     if umockdev:
         env["UMOCKDEV_DIR"] = umockdev.get_root_dir()
@@ -562,15 +620,6 @@ def portals(templates: Any, xdg_desktop_portal: Any, xdg_permission_store: Any) 
     """
     Fixture which starts the required templates, xdg-desktop-portal,
     xdg-document-portal and xdg-permission-store. Most tests require this.
-    """
-    return None
-
-
-@pytest.fixture
-def usb_queries() -> Optional[str]:
-    """
-    Default fixture providing the usb queries the connecting process can
-    enumerate
     """
     return None
 
