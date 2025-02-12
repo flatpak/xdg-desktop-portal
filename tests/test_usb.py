@@ -20,6 +20,11 @@ def required_templates():
 
 
 @pytest.fixture
+def app_info_kind():
+    return xdp.AppInfoKind.FLATPAK
+
+
+@pytest.fixture
 def umockdev():
     return UMockdev.Testbed.new()
 

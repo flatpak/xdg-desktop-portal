@@ -8,6 +8,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, Gio
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
+from pathlib import Path
+from enum import Enum
+from dataclasses import dataclass, field
 
 import os
 import dbus
@@ -218,6 +221,193 @@ def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
     except dbus.exceptions.DBusException as e:
         logger.critical(e)
         assert e is None, str(e)
+
+
+class AppInfoKind(Enum):
+    HOST = 1
+    FLATPAK = 2
+    SNAP = 3
+
+
+@dataclass
+class AppInfo:
+    """
+    Interacts with conftest.py via ensure_files and extend_env to make the
+    portal frontend discover the requested XdpAppInfo for incoming connections.
+
+    Testing code can use this class to construct a specific XdpAppInfo for the
+    xdp_app_info fixture.
+    """
+
+    kind: AppInfoKind
+    app_id: str
+    desktop_file: str
+    env: dict[str, str] = field(default_factory=dict)
+    files: dict[Path, bytes] = field(default_factory=dict)
+
+    def ensure_files(self) -> None:
+        for path, content in self.files.items():
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(content)
+
+    def extend_env(self, env: dict[str, str]) -> None:
+        for key, val in self.env.items():
+            env[key] = val
+
+    @classmethod
+    def new_host(
+        cls,
+        app_id: str,
+        desktop_entry: bytes | None = None,
+    ):
+        kind = AppInfoKind.HOST
+        desktop_file = f"{app_id}.desktop"
+        env = {
+            "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "host",
+            "XDG_DESKTOP_PORTAL_TEST_HOST_APPID": app_id,
+        }
+        files = {}
+
+        if desktop_entry:
+            desktop_entry_path = (
+                Path(os.environ["XDG_DATA_HOME"]) / "applications" / f"{app_id}.desktop"
+            )
+            files[desktop_entry_path] = desktop_entry
+
+        return cls(
+            kind=kind,
+            app_id=app_id,
+            desktop_file=desktop_file,
+            env=env,
+            files=files,
+        )
+
+    @classmethod
+    def new_flatpak(
+        cls,
+        app_id: str,
+        instance_id: str | None = None,
+        usb_queries: str | None = None,
+        desktop_entry: bytes | None = None,
+        metadata: bytes | None = None,
+    ):
+        kind = AppInfoKind.FLATPAK
+        desktop_file = f"{app_id}.desktop"
+        env = {
+            "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "flatpak",
+        }
+        files = {}
+
+        if not instance_id:
+            instance_id = "1234567890"
+
+        if not desktop_entry:
+            desktop_entry = b"""
+[Desktop Entry]
+Version=1.0
+Name=Example App
+Exec=true %u
+Type=Application
+"""
+
+        desktop_entry_path = (
+            Path(os.environ["XDG_DATA_HOME"]) / "applications" / f"{app_id}.desktop"
+        )
+
+        files[desktop_entry_path] = desktop_entry
+
+        if not metadata:
+            metadata_str = f"""
+[Application]
+name={app_id}
+runtime=org.freedesktop.Platform/x86_64/23.08
+sdk=org.freedesktop.Sdk/x86_64/23.08
+command={app_id}
+
+[Instance]
+instance-id={instance_id}
+
+[Context]
+shared=network;ipc;
+sockets=x11;wayland;pulseaudio;fallback-x11;
+devices=dri;
+"""
+            metadata = metadata_str.encode("utf8")
+
+        if usb_queries:
+            metadata_usb_str = f"""
+[USB Devices]
+enumerable-devices={usb_queries}
+"""
+            metadata += metadata_usb_str.encode("utf8")
+
+        metadata_path = Path(os.environ["TMPDIR"]) / "flatpak-metadata"
+
+        files[metadata_path] = metadata
+        env["XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA"] = (
+            metadata_path.absolute().as_posix()
+        )
+
+        return cls(
+            kind=kind,
+            app_id=app_id,
+            desktop_file=desktop_file,
+            env=env,
+            files=files,
+        )
+
+    @classmethod
+    def new_snap(
+        cls,
+        snap_name: str,
+        desktop_entry: bytes | None = None,
+        metadata: bytes | None = None,
+    ):
+        kind = AppInfoKind.SNAP
+        app_id = f"snap.{snap_name}"
+        desktop_file = f"desktop-file-{snap_name}.desktop"
+        env = {
+            "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "snap",
+        }
+        files = {}
+
+        if not desktop_entry:
+            desktop_entry = b"""
+[Desktop Entry]
+Version=1.0
+Name=Example App
+Exec=true %u
+Type=Application
+"""
+
+        desktop_entry_path = (
+            Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file
+        )
+
+        files[desktop_entry_path] = desktop_entry
+
+        if not metadata:
+            metadata_str = f"""
+[Snap Info]
+InstanceName={snap_name}
+DesktopFile={desktop_file}
+"""
+            metadata = metadata_str.encode("UTF-8")
+
+        metadata_path = Path(os.environ["TMPDIR"]) / "snap-metadata"
+
+        files[metadata_path] = metadata
+        env["XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA"] = (
+            metadata_path.absolute().as_posix()
+        )
+
+        return cls(
+            kind=kind,
+            app_id=app_id,
+            desktop_file=desktop_file,
+            env=env,
+            files=files,
+        )
 
 
 class Response(NamedTuple):
