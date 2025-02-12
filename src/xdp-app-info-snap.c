@@ -27,6 +27,8 @@
 
 #include "xdp-app-info-snap-private.h"
 
+#define SNAP_ENGINE_ID "io.snapcraft"
+
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
 #define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
@@ -224,6 +226,63 @@ end:
   return is_snap;
 }
 
+static XdpAppInfo *
+xdp_app_info_snap_new_testing (GError **error)
+{
+  g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
+  const char *metadata_path;
+  gboolean result;
+  g_autoptr(GKeyFile) metadata = NULL;
+  g_autofree char *snap_name = NULL;
+  g_autofree char *snap_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  XdpAppInfoFlags flags = 0;
+  gboolean has_network;
+
+  metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA");
+  g_assert (metadata_path != NULL);
+
+  metadata = g_key_file_new ();
+  result = g_key_file_load_from_file (metadata, metadata_path,
+                                      G_KEY_FILE_NONE, NULL);
+  g_assert (result == TRUE);
+
+  snap_name = g_key_file_get_string (metadata,
+                                     SNAP_METADATA_GROUP_INFO,
+                                     SNAP_METADATA_KEY_INSTANCE_NAME,
+                                     error);
+  g_assert (snap_name != NULL);
+
+  snap_id = g_strconcat ("snap.", snap_name, NULL);
+  g_assert (snap_id != NULL);
+
+  desktop_id = g_key_file_get_string (metadata,
+                                      SNAP_METADATA_GROUP_INFO,
+                                      SNAP_METADATA_KEY_DESKTOP_FILE,
+                                      error);
+  g_assert (desktop_id != NULL);
+
+  has_network = g_key_file_get_boolean (metadata,
+                                        SNAP_METADATA_GROUP_INFO,
+                                        SNAP_METADATA_KEY_NETWORK,
+                                        NULL);
+
+  flags = XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
+                                  NULL,
+                                  error,
+                                  "engine", SNAP_ENGINE_ID,
+                                  "id", snap_id,
+                                  "flags", flags,
+                                  "desktop-file", desktop_id,
+                                  NULL);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
+}
+
 /*
  * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
  *  This function may take ownership of the fd. If it does, it will
@@ -245,6 +304,21 @@ xdp_app_info_snap_new (int      pid,
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
+  const char *test_app_info_kind;
+
+  test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
+  if (test_app_info_kind)
+    {
+      if (g_strcmp0 (test_app_info_kind, "snap") != 0)
+        {
+          g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                       "Testing requested different AppInfo kind: %s",
+                       test_app_info_kind);
+          return NULL;
+        }
+
+      return xdp_app_info_snap_new_testing (error);
+    }
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
   if (!pid_is_snap (pid, error))
@@ -294,7 +368,7 @@ xdp_app_info_snap_new (int      pid,
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
                                   error,
-                                  "engine", "io.snapcraft",
+                                  "engine", SNAP_ENGINE_ID,
                                   "id", snap_id,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", flags,
