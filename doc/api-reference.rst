@@ -17,6 +17,14 @@ This might improve the user experience when the host app was launched in a way
 that doesn't follow the standard. See
 :doc:`org.freedesktop.host.portal.Registry <doc-org.freedesktop.host.portal.Registry>`
 
+Disclaimer: The host app registry is expected to eventually be deprecated and
+may be removed. Applications should gracefully handle interface or method no
+longer being available to be forward compatible. App launchers, or apps
+themselves, should place the app in a cgroup named according to specific naming
+conventions. When the host app registry becomes deprecated, the details of the
+replacement will be documented in :doc:`org.freedesktop.host.portal.Registry
+<doc-org.freedesktop.host.portal.Registry>`.
+
 All apps have access to the portals below:
 
 .. toctree::
