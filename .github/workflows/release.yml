@@ -1,15 +1,9 @@
 name: Release new version
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: "Release version (MAJOR.MINOR.PATCH, default: extracted from NEWS.md)"
-      preRelease:
-        description: "Is this a pre-release? (true/false, default: true if release version minor number is odd)"
-      dryRun:
-        description: "Dry Run (true/false, default: true)"
-        default: true
+  push:
+    tags:
+      - '[0-9]+.[0-9]+.[0-9]+'
 
 jobs:
   build-container:
@@ -32,22 +26,12 @@ jobs:
         XDP_TEST_IN_CI: 1
 
     steps:
-      - name: Configure git user
+      - name: Configure environment
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Checkout the repository
         uses: actions/checkout@v4
-
-      - name: Update translation files
-        run: |
-          meson setup . _build
-          meson compile -C _build/ xdg-desktop-portal-update-po
-          git add po/*po
-          git commit -m "Update po files"
-          git clean -fxd
 
       - name: Build xdg-desktop-portal
         run: |
@@ -55,14 +39,9 @@ jobs:
           meson dist -C _build
 
       - name: Extract release information
-        env:
-          releaseVersion: ${{ github.event.inputs.version }}
-          preRelease: ${{ github.event.inputs.preRelease }}
         run: |
           # Extract the release version
-          if [ -z $releaseVersion ]; then
-            releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS.md`
-          fi
+          releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS.md`
           echo "releaseVersion=$releaseVersion" | tee -a $GITHUB_ENV
           echo $releaseVersion
 
@@ -75,9 +54,7 @@ jobs:
           echo $releaseChangelog
 
           # Check if version is a pre-release
-          if [ -z $preRelease ]; then
-            preRelease=$((`echo $releaseVersion | cut -d '.' -f2` % 2))
-          fi
+          preRelease=$((`echo $releaseVersion | cut -d '.' -f2` % 2))
           {
             echo -n "preRelease="
             if [ $preRelease = 1 ] || [ $preRelease = "true" ]; then
@@ -88,20 +65,7 @@ jobs:
           } | tee -a $GITHUB_ENV
           echo $preRelease
 
-      - name: Tag release
-        env:
-          DRY_RUN: ${{ github.event.inputs.dryRun }}
-        run: |
-          git commit --allow-empty -m $releaseVersion
-          git tag -a $releaseVersion -m $releaseVersion
-
-      - name: Push translations, release commit, and tag
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
-        run: |
-          git push --atomic --follow-tags
-
       - name: Create release
-        if: ${{ !fromJSON(github.event.inputs.dryRun) }}
         uses: ncipollo/release-action@v1.15.0
         with:
           tag: ${{ env.releaseVersion }}
