@@ -96,7 +96,7 @@ xdg_desktop_portal_sources = files(
   'print.c',
   'proxy-resolver.c',
   'realtime.c',
-  #'registry.c',
+  'registry.c',
   'remote-desktop.c',
   'screen-cast.c',
   'screenshot.c',

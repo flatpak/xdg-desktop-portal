@@ -60,9 +60,7 @@
 #include "print.h"
 #include "proxy-resolver.h"
 #include "realtime.h"
-#if 0
 #include "registry.h"
-#endif
 #include "remote-desktop.h"
 #include "xdp-request.h"
 #include "screen-cast.h"
@@ -190,7 +188,6 @@ export_portal_implementation (GDBusConnection *connection,
   g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
 }
 
-#if 0
 static void
 export_host_portal_implementation (GDBusConnection        *connection,
                                    GDBusInterfaceSkeleton *skeleton)
@@ -217,7 +214,6 @@ export_host_portal_implementation (GDBusConnection        *connection,
 
   g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
 }
-#endif
 
 static void
 peer_died_cb (const char *name)
@@ -405,9 +401,7 @@ on_bus_acquired (GDBusConnection *connection,
                                   xdp_usb_create (connection, implementation->dbus_name));
 #endif
 
-#if 0
   export_host_portal_implementation (connection, registry_create (connection));
-#endif
 }
 
 static void
