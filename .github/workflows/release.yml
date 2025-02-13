@@ -41,7 +41,7 @@ jobs:
       - name: Extract release information
         run: |
           # Extract the release version
-          releaseVersion=`perl -0777nE 'print $& if /(?<=Changes in ).*/' NEWS.md`
+          releaseVersion=`meson introspect --projectinfo _build/ | jq -r .version`
           echo "releaseVersion=$releaseVersion" | tee -a $GITHUB_ENV
           echo $releaseVersion
 

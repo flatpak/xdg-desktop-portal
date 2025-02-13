@@ -17,6 +17,7 @@ RUN apt install -y --no-install-recommends \
     git \
     gnome-desktop-testing \
     gtk-doc-tools \
+    jq \
     libcap2-bin \
     libflatpak-dev \
     libfontconfig1-dev \
