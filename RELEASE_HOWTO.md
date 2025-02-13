@@ -1,9 +1,59 @@
 # Steps for doing a xdg-desktop-portal release
 
+### Prepare the release
+
 - Make sure the version in `meson.build` is correct
+- Create a branch
+```sh
+$ git checkout -b release-${version}
+```
+- Update translations
+```sh
+$ ninja -C ${builddir} xdg-desktop-portal-update-po
+$ git commit -m "Update translations"
+```
 - Add your changelog to the `NEWS.md` file
-- Run the "Release new version" GitHub Action
-  - The options are taken from the last `NEWS.md` entry by default, you may override them if needed
-- Bump version in `meson.build`
-- Update `SECURITY.md` if this is a new stable release
-- Update `.github/ISSUE_TEMPLATE/bug-report.yml` if this is a new stable release
+```sh
+$ git add NEWS.md
+$ git commit -m ${version}
+```
+- Push your branch
+```sh
+$ git push -u ${fork} release-${version}
+```
+- Open a pull request
+
+### Create a Signed Tag
+
+**NOTE**: Only project maintainers can create a tag.
+
+Make sure that:
+ - You're on the `main` branch, or a stable branch;
+ - The tip of the branch is a release commit (e.g. `1.19.4`)
+ - The version in `meson.build` is correct
+
+Then create the tag:
+
+```sh
+$ git evtag sign ${version}
+$ git push -u origin ${version}
+```
+
+### Post-Release
+
+- Update version number in `meson.build` to the next release version
+- Start a new section in `NEWS.md`
+```md
+Changes in ${nextVersion}
+=================
+Released: Not yet
+...
+```
+
+### Post-Branching
+
+After creating a stable branch:
+ 
+- Update version number in `meson.build` to the next unstable release version
+- Update `SECURITY.md`
+- Update `.github/ISSUE_TEMPLATE/bug-report.yml`
