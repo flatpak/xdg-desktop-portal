@@ -161,6 +161,10 @@ class TestNotification:
                 'test <a href="https://example.com"><b>Some link</b></a>',
             ),
             (
+                '<a href="https://xkcd.com/327/#&quot;&gt;&lt;html&gt;"></a>',
+                '<a href="https://xkcd.com/327/#&quot;&gt;&lt;html&gt;"></a>',
+            ),
+            (
                 "test \n newline \n\n some more space \n  with trailing space ",
                 "test newline some more space with trailing space",
             ),
