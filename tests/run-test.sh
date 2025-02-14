@@ -19,8 +19,8 @@ set -euo pipefail
 
 function fail()
 {
-  sed -n '/^#$/,/^$/p' ${BASH_SOURCE[0]}
-  echo $1
+  sed -n '/^#$/,/^$/p' "${BASH_SOURCE[0]}"
+  echo "$1"
   exit 1
 }
 
@@ -33,10 +33,10 @@ BUILDDIR=${BUILDDIR:-$(find "${SCRIPT_DIR}/.." -maxdepth 2 -name 'build.ninja' -
 echo "Running tests on build dir: $(readlink -f "${BUILDDIR}")"
 echo ""
 
-export XDP_VALIDATE_SOUND=$BUILDDIR/src/xdg-desktop-portal-validate-sound
-export XDP_VALIDATE_ICON=$BUILDDIR/src/xdg-desktop-portal-validate-icon
-export XDG_DESKTOP_PORTAL_PATH=$BUILDDIR/src/xdg-desktop-portal
-export XDG_DOCUMENT_PORTAL_PATH=$BUILDDIR/document-portal/xdg-document-portal
-export XDG_PERMISSION_STORE_PATH=$BUILDDIR/document-portal/xdg-permission-store
+export XDP_VALIDATE_SOUND="$BUILDDIR/src/xdg-desktop-portal-validate-sound"
+export XDP_VALIDATE_ICON="$BUILDDIR/src/xdg-desktop-portal-validate-icon"
+export XDG_DESKTOP_PORTAL_PATH="$BUILDDIR/src/xdg-desktop-portal"
+export XDG_DOCUMENT_PORTAL_PATH="$BUILDDIR/document-portal/xdg-document-portal"
+export XDG_PERMISSION_STORE_PATH="$BUILDDIR/document-portal/xdg-permission-store"
 
-exec pytest-3 $@
+exec pytest-3 "$@"
