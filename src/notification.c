@@ -282,7 +282,9 @@ markup_parser_start_element (GMarkupParseContext  *context,
         {
           if (strcmp (attribute_names[i], "href") == 0)
             {
-              g_string_append_printf (composed, "<a href=\"%s\">", attribute_values[i]);
+              g_autofree char *escaped = g_markup_escape_text (attribute_values[i], -1);
+
+              g_string_append_printf (composed, "<a href=\"%s\">", escaped);
               break;
             }
         }
