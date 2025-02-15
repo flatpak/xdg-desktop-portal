@@ -48,7 +48,7 @@
         * ``session_handle_token`` (``s``)
 
           A string that will be used as the last element of the session handle. Must be a valid
-          object path element. See the #org.freedesktop.portal.Session documentation for
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
     -->
     <method name="CreateSession">
@@ -133,8 +133,8 @@
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation
           for more information about the @handle.
 
-        The #org.freedesktop.portal.Request::Response signal is emitted without
-        any extra information.
+        The :ref:`org.freedesktop.portal.Request::Response` signal is emitted
+        without any extra information.
      -->
     <method name="AcquireDevices">
       <arg type="s" name="parent_window" direction="in"/>
