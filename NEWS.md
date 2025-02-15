@@ -18,7 +18,7 @@ New Features:
 
 Enhancements:
 
-- Use a new internal script to simply running tests.
+- Use a new internal script to simplify running tests.
 
 Bug Fixes:
 
