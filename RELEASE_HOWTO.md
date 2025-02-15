@@ -10,6 +10,7 @@ $ git checkout -b release-${version}
 - Update translations
 ```sh
 $ ninja -C ${builddir} xdg-desktop-portal-update-po
+$ git add po/
 $ git commit -m "Update translations"
 ```
 - Add your changelog to the `NEWS.md` file
