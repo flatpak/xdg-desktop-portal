@@ -1,8 +1,23 @@
 Changes in 1.19.4
 =================
-Released: Not yet
+Released: 2025-02-15
 
-...
+New Features:
+
+- Introduce the host app registry. This interface allows host system apps
+  (i.e. apps not running under a sandboxing mechanism like Flatpak) register
+  themselves with XDG Desktop Portal. This allows XDG Desktop Portal to use
+  a proper app id, and desktop file, improving the interaction with portal
+  backends.
+
+Enhancements:
+
+- Use a new internal script to simply running tests.
+
+Bug Fixes:
+
+- Properly escape notification body in the Notification portal.
+- Fix various documentation links in the USB portal documentation page.
 
 Changes in 1.19.3
 =================
