@@ -26,6 +26,8 @@ function fail()
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+PYTEST=$(command -v "pytest-3" || command -v "pytest") || fail "pytest is missing"
+
 BUILDDIR=${BUILDDIR:-$(find "${SCRIPT_DIR}/.." -maxdepth 2 -name 'build.ninja' -printf "%h\n" -quit)}
 
 [ ! -f "${BUILDDIR}/build.ninja" ] && fail "Path '${BUILDDIR}' does not appear to be a build dir"
@@ -39,4 +41,4 @@ export XDG_DESKTOP_PORTAL_PATH="$BUILDDIR/src/xdg-desktop-portal"
 export XDG_DOCUMENT_PORTAL_PATH="$BUILDDIR/document-portal/xdg-document-portal"
 export XDG_PERMISSION_STORE_PATH="$BUILDDIR/document-portal/xdg-permission-store"
 
-exec pytest-3 "$@"
+exec "$PYTEST" "$@"
