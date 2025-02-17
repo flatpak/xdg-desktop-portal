@@ -28,7 +28,7 @@ SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 PYTEST=$(command -v "pytest-3" || command -v "pytest") || fail "pytest is missing"
 
-BUILDDIR=${BUILDDIR:-$(find "${SCRIPT_DIR}/.." -maxdepth 2 -name 'build.ninja' -printf "%h\n" -quit)}
+BUILDDIR=${BUILDDIR:-$(find "${SCRIPT_DIR}/.." -maxdepth 2 -name "build.ninja" -printf "%h\n" -quit)}
 
 [ ! -f "${BUILDDIR}/build.ninja" ] && fail "Path '${BUILDDIR}' does not appear to be a build dir"
 
