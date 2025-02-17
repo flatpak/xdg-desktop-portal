@@ -47,6 +47,7 @@
 #include "xdp-app-info-snap-private.h"
 #include "xdp-app-info-host-private.h"
 #include "xdp-app-info-test-private.h"
+#include "xdp-enum-types.h"
 #include "xdp-utils.h"
 
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
@@ -65,16 +66,72 @@ typedef struct _XdpAppInfoPrivate
   char *instance;
   int pidfd;
   GAppInfo *gappinfo;
-  gboolean supports_opath;
-  gboolean has_network;
-  gboolean requires_pid_mapping;
+  XdpAppInfoFlags flags;
 
   /* pid namespace mapping */
   GMutex pidns_lock;
   ino_t pidns_id;
 } XdpAppInfoPrivate;
 
-G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT)
+static void g_initable_init_iface (GInitableIface *iface);
+
+G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
+                                  G_ADD_PRIVATE (XdpAppInfo)
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
+
+enum
+{
+  PROP_0,
+  PROP_ENGINE,
+  PROP_FLAGS,
+  PROP_G_APP_INFO,
+  PROP_ID,
+  PROP_INSTANCE,
+  PROP_PIDFD,
+  N_PROPS
+};
+
+static GParamSpec *properties [N_PROPS];
+
+static gboolean
+xdp_app_info_initable_init (GInitable     *initable,
+                            GCancellable  *cancellable,
+                            GError       **error)
+{
+  XdpAppInfo *app_info = XDP_APP_INFO (initable);
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  priv->gappinfo =
+    XDP_APP_INFO_GET_CLASS (app_info)->create_gappinfo (app_info);
+
+  if ((priv->flags & XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO) && !priv->gappinfo)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
+                   "App info not found for '%s'", priv->id);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+g_initable_init_iface (GInitableIface *iface)
+{
+  iface->init = xdp_app_info_initable_init;
+}
+
+static GAppInfo *
+xdp_app_info_real_create_gappinfo (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autofree char *desktop_id = NULL;
+
+  desktop_id = g_strconcat (priv->id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  return g_steal_pointer (&gappinfo);
+}
 
 static void
 xdp_app_info_dispose (GObject *object)
@@ -95,11 +152,139 @@ xdp_app_info_dispose (GObject *object)
 }
 
 static void
+xdp_app_info_get_property (GObject    *object,
+                           guint       prop_id,
+                           GValue     *value,
+                           GParamSpec *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_ENGINE:
+      g_value_set_string (value, priv->engine);
+      break;
+
+    case PROP_FLAGS:
+      g_value_set_flags (value, priv->flags);
+      break;
+
+    case PROP_G_APP_INFO:
+      g_value_set_object (value, priv->gappinfo);
+      break;
+
+    case PROP_ID:
+      g_value_set_string (value, priv->id);
+      break;
+
+    case PROP_INSTANCE:
+      g_value_set_string (value, priv->instance);
+      break;
+
+    case PROP_PIDFD:
+      g_value_set_int (value, priv->pidfd);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_set_property (GObject      *object,
+                           guint         prop_id,
+                           const GValue *value,
+                           GParamSpec   *pspec)
+{
+  XdpAppInfoPrivate *priv =
+    xdp_app_info_get_instance_private (XDP_APP_INFO (object));
+
+  switch (prop_id)
+    {
+    case PROP_ENGINE:
+      g_assert (priv->engine == NULL);
+      priv->engine = g_value_dup_string (value);
+      break;
+
+    case PROP_FLAGS:
+      g_assert (priv->flags == 0);
+      priv->flags = g_value_get_flags (value);
+      break;
+
+    case PROP_ID:
+      g_assert (priv->id == NULL);
+      priv->id = g_value_dup_string (value);
+      break;
+
+    case PROP_INSTANCE:
+      g_assert (priv->instance == NULL);
+      priv->instance = g_value_dup_string (value);
+      break;
+
+    case PROP_PIDFD:
+      g_assert (priv->pidfd == -1);
+      priv->pidfd = dup (g_value_get_int (value));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
 xdp_app_info_class_init (XdpAppInfoClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_app_info_dispose;
+  object_class->get_property = xdp_app_info_get_property;
+  object_class->set_property = xdp_app_info_set_property;
+
+  klass->create_gappinfo = xdp_app_info_real_create_gappinfo;
+
+  properties[PROP_ENGINE] =
+    g_param_spec_string ("engine", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_FLAGS] =
+    g_param_spec_flags ("flags", NULL, NULL,
+                        XDP_TYPE_APP_INFO_FLAGS,
+                        0,
+                        G_PARAM_READWRITE |
+                        G_PARAM_CONSTRUCT_ONLY |
+                        G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_G_APP_INFO] =
+    g_param_spec_object ("g-app-info", NULL, NULL,
+                         G_TYPE_APP_INFO,
+                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_ID] =
+    g_param_spec_string ("id", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_INSTANCE] =
+    g_param_spec_string ("instance", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_PIDFD] =
+    g_param_spec_int ("pidfd", NULL, NULL,
+                      -1, G_MAXINT, -1,
+                      G_PARAM_READWRITE |
+                      G_PARAM_CONSTRUCT_ONLY |
+                      G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 static void
@@ -110,33 +295,28 @@ xdp_app_info_init (XdpAppInfo *app_info)
   priv->pidfd = -1;
 }
 
-void
-xdp_app_info_initialize (XdpAppInfo *app_info,
-                         const char *engine,
-                         const char *app_id,
-                         const char *instance,
-                         int         pidfd,
-                         GAppInfo   *gappinfo,
-                         gboolean    supports_opath,
-                         gboolean    has_network,
-                         gboolean    requires_pid_mapping)
-{
-  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-
-  priv->engine = g_strdup (engine);
-  priv->id = g_strdup (app_id);
-  priv->instance = g_strdup (instance);
-  priv->pidfd = dup (pidfd);
-  g_set_object (&priv->gappinfo, gappinfo);
-  priv->supports_opath = supports_opath;
-  priv->has_network = has_network;
-  priv->requires_pid_mapping = requires_pid_mapping;
-}
-
 gboolean
 xdp_app_info_is_host (XdpAppInfo *app_info)
 {
-  return XDP_IS_APP_INFO_HOST (app_info) ||  XDP_IS_APP_INFO_TEST (app_info);
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, FALSE);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->engine == NULL;
+}
+
+gboolean
+xdp_app_info_is_registered (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, TRUE);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return (priv->flags & XDP_APP_INFO_FLAG_REGISTERED) != 0;
 }
 
 const char *
@@ -195,7 +375,7 @@ xdp_app_info_has_network (XdpAppInfo *app_info)
 
   priv = xdp_app_info_get_instance_private (app_info);
 
-  return priv->has_network;
+  return (priv->flags & XDP_APP_INFO_FLAG_HAS_NETWORK) != 0;
 }
 
 gboolean
@@ -234,7 +414,6 @@ static char *
 remap_path (XdpAppInfo *app_info,
             const char *path)
 {
-
   if (!XDP_APP_INFO_GET_CLASS (app_info)->remap_path)
     return g_strdup (path);
 
@@ -262,8 +441,9 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
   path_buffer[symlink_size] = 0;
 
   /* All normal paths start with /, but some weird things
-     don't, such as socket:[27345] or anon_inode:[eventfd].
-     We don't support any of these */
+   * don't, such as socket:[27345] or anon_inode:[eventfd].
+   * We don't support any of these.
+   */
   if (path_buffer[0] != '/')
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_FILENAME,
@@ -272,11 +452,12 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
     }
 
   /* File descriptors to actually deleted files have " (deleted)"
-     appended to them. This also happens to some fake fd types
-     like shmem which are "/<name> (deleted)". All such
-     files are considered invalid. Unfortunately this also
-     matches files with filenames that actually end in " (deleted)",
-     but there is not much to do about this. */
+   * appended to them. This also happens to some fake fd types
+   * like shmem which are "/<name> (deleted)". All such
+   * files are considered invalid. Unfortunately this also
+   * matches files with filenames that actually end in " (deleted)",
+   * but there is not much to do about this.
+   */
   if (g_str_has_suffix (path_buffer, " (deleted)"))
     {
       const char *mountpoint = xdp_get_documents_mountpoint ();
@@ -284,11 +465,12 @@ verify_proc_self_fd (XdpAppInfo  *app_info,
       if (mountpoint != NULL && g_str_has_prefix (path_buffer, mountpoint))
         {
           /* Unfortunately our workaround for dcache purging triggers
-             o_path file descriptors on the fuse filesystem being
-             marked as deleted, so we have to allow these here and
-             rewrite them. This is safe, becase we will stat the file
-             and compare to make sure we end up on the right file. */
-          path_buffer[symlink_size - strlen(" (deleted)")] = 0;
+           * o_path file descriptors on the fuse filesystem being
+           * marked as deleted, so we have to allow these here and
+           * rewrite them. This is safe, becase we will stat the file
+           * and compare to make sure we end up on the right file.
+           */
+          path_buffer[symlink_size - strlen (" (deleted)")] = 0;
         }
       else
         {
@@ -438,7 +620,7 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
           return NULL;
         }
 
-      if (!priv->supports_opath)
+      if ((priv->flags & XDP_APP_INFO_FLAG_SUPPORTS_OPATH) == 0)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                        "App \"%s\" of type %s does not support O_PATH fd passing",
@@ -735,13 +917,20 @@ ensure_app_info_by_unique_name (void)
 }
 
 static void
+cache_insert_app_info_unlocked (const char *sender,
+                                XdpAppInfo *app_info)
+{
+  ensure_app_info_by_unique_name ();
+  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
+                       g_object_ref (app_info));
+}
+
+static void
 cache_insert_app_info (const char *sender,
                        XdpAppInfo *app_info)
 {
   G_LOCK (app_infos);
-  ensure_app_info_by_unique_name ();
-  g_hash_table_insert (app_info_by_unique_name, g_strdup (sender),
-                       g_object_ref (app_info));
+  cache_insert_app_info_unlocked (sender, app_info);
   G_UNLOCK (app_infos);
 }
 
@@ -780,8 +969,8 @@ maybe_create_registered_test_app_info (const char *registered_app_id)
     return NULL;
 
   test_override_usb_queries = g_getenv ("XDG_DESKTOP_PORTAL_TEST_USB_QUERIES");
-  return xdp_app_info_test_new (registered_app_id,
-                                test_override_usb_queries);
+  return xdp_app_info_test_new_registered (registered_app_id,
+                                           test_override_usb_queries);
 }
 
 static XdpAppInfo *
@@ -839,7 +1028,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
       app_info_kind = "derived host";
     }
 
-  g_return_val_if_fail (app_info != NULL, NULL);
+  g_assert (XDP_IS_APP_INFO (app_info));
 
   g_debug ("Adding %s app '%s'", app_info_kind, xdp_app_info_get_id (app_info));
 
@@ -876,7 +1065,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
       if (is_sandboxed)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a flatpak application");
+                       "Can't manually register a Flatpak application");
           return NULL;
         }
 
@@ -886,7 +1075,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
       if (is_sandboxed)
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                       "Can't manually register a snap application");
+                       "Can't manually register a Snap application");
           return NULL;
         }
 
@@ -923,6 +1112,61 @@ xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
                                               error);
 }
 
+static XdpAppInfo *
+transition_host_app_info_to_registered  (GDBusMethodInvocation  *invocation,
+                                         const char             *app_id,
+                                         GCancellable           *cancellable,
+                                         GError                **error)
+{
+  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autoptr(GMutexLocker) app_infos_mutex_locker = NULL;
+  g_autoptr(XdpAppInfo) registered_app_info = NULL;
+  XdpAppInfo *app_info;
+
+  g_assert (app_info_by_unique_name != NULL);
+
+  app_infos_mutex_locker = g_mutex_locker_new (&G_LOCK_NAME (app_infos));
+
+  app_info = g_hash_table_lookup (app_info_by_unique_name, sender);
+  g_assert (XDP_IS_APP_INFO (app_info));
+
+  if (!xdp_app_info_is_host (app_info))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "App is not a host system app");
+      return NULL;
+    }
+
+  if (xdp_app_info_is_registered (app_info))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Connection already associated and registered with an application ID");
+      return NULL;
+    }
+
+  registered_app_info = maybe_create_registered_test_app_info (app_id);
+
+  if (!registered_app_info)
+    {
+      g_autofd int pidfd = -1;
+      uint32_t pid;
+
+      if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+        return NULL;
+
+      registered_app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      if (!registered_app_info)
+        return NULL;
+    }
+
+  g_debug ("Replacing host app info with a registered one for '%s'", xdp_app_info_get_id (registered_app_info));
+
+  cache_insert_app_info_unlocked (sender, registered_app_info);
+
+  return g_steal_pointer (&registered_app_info);
+}
+
 XdpAppInfo *
 xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
                                             const char             *app_id,
@@ -934,9 +1178,17 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
 
   if (cache_has_app_info_by_sender (sender))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Connection already associated with an application ID");
-      return NULL;
+      g_autoptr(XdpAppInfo) app_info = NULL;
+
+      app_info = transition_host_app_info_to_registered (invocation,
+                                                         app_id,
+                                                         cancellable,
+                                                         error);
+
+      if (!app_info)
+        return NULL;
+
+      return g_steal_pointer (&app_info);
     }
 
   return xdp_connection_create_host_app_info_sync (connection,

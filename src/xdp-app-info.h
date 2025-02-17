@@ -46,6 +46,7 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           GObject)
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
+gboolean xdp_app_info_is_registered (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 

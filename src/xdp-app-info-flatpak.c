@@ -169,7 +169,7 @@ flatpak_is_valid_name (const char *string)
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
                                           const char *sub_app_id)
 {
@@ -208,11 +208,11 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                                         NULL);
 
   /* For apps we translate /app and /usr to the installed locations.
-     Also, we need to rewrite to drop the /newroot prefix added by
-     bubblewrap for other files to work.  See
-     https://github.com/projectatomic/bubblewrap/pull/172
-     for a bit more information on the /newroot issue.
-  */
+   * Also, we need to rewrite to drop the /newroot prefix added by
+   * bubblewrap for other files to work.  See
+   * https://github.com/projectatomic/bubblewrap/pull/172
+   * for a bit more information on the /newroot issue.
+   */
 
   if (g_str_has_prefix (path, "/newroot/"))
     path = path + strlen ("/newroot");
@@ -723,6 +723,7 @@ xdp_app_info_flatpak_new (int      pid,
                           GError **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
+  XdpAppInfoFlags flags = 0;
   g_autofd int info_fd = -1;
   struct stat stat_buf;
   g_autoptr(GError) local_error = NULL;
@@ -731,8 +732,6 @@ xdp_app_info_flatpak_new (int      pid,
   const char *group;
   g_autofree char *id = NULL;
   g_autofree char *instance = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
   g_autofd int bwrap_pidfd = -1;
@@ -787,9 +786,6 @@ xdp_app_info_flatpak_new (int      pid,
   if (instance == NULL)
     return NULL;
 
-  desktop_id = g_strconcat (id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
   shared = g_key_file_get_string_list (metadata,
                                        FLATPAK_METADATA_GROUP_CONTEXT,
                                        FLATPAK_METADATA_KEY_SHARED,
@@ -807,18 +803,30 @@ xdp_app_info_flatpak_new (int      pid,
   /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
    * of the connected process but we can get the pidfd of the bwrap instance
    * instead. This is okay because it has the same namespaces as the calling
-   * process. */
+   * process.
+   */
   bwrap_pidfd = get_bwrap_pidfd (instance, error);
   if (bwrap_pidfd == -1)
     return NULL;
 
   /* TODO: we can use pidfd to make sure we didn't race for sure */
 
-  app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
-                           FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo,
-                           TRUE, has_network, TRUE);
+  flags |= XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
+  flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+  flags |= XDP_APP_INFO_FLAG_REGISTERED;
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
+                                     NULL,
+                                     error,
+                                     "engine", FLATPAK_ENGINE_ID,
+                                     "flags", flags,
+                                     "id", id,
+                                     "instance", instance,
+                                     "pidfd", bwrap_pidfd,
+                                     NULL);
+
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));

@@ -79,17 +79,14 @@ class TestRegistry:
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        expected_app_id = app_id
-        unexpected_app_id = "org.example.CorrectAppId"
-
         session = self.create_dummy_session(dbus_con)
 
+        expected_app_id = app_id
         app_id = mock_intf.GetSessionAppId(session.handle)
         assert app_id == expected_app_id
 
-        with pytest.raises(dbus.exceptions.DBusException) as exc_info:
-            registry_intf.Register(unexpected_app_id, {})
-        exc_info.match(".*Connection already associated with an application ID.*")
+        expected_app_id = "org.example.CorrectAppId"
+        registry_intf.Register(expected_app_id, {})
 
         new_session = self.create_dummy_session(dbus_con)
 
@@ -139,4 +136,6 @@ class TestRegistry:
 
         with pytest.raises(dbus.exceptions.DBusException) as exc_info:
             registry_intf.Register(expected_app_id, {})
-        exc_info.match(".*Connection already associated with an application ID.*")
+        exc_info.match(
+            ".*Connection already associated and registered with an application ID.*"
+        )

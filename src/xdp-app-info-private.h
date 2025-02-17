@@ -23,6 +23,14 @@
 
 #include "xdp-app-info.h"
 
+typedef enum
+{
+  XDP_APP_INFO_FLAG_HAS_NETWORK = (1 << 0),
+  XDP_APP_INFO_FLAG_SUPPORTS_OPATH = (1 << 1),
+  XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO = (1 << 2),
+  XDP_APP_INFO_FLAG_REGISTERED = (1 << 3),
+} XdpAppInfoFlags;
+
 struct _XdpAppInfoClass
 {
   GObjectClass parent_class;
@@ -44,14 +52,7 @@ struct _XdpAppInfoClass
   gboolean (*validate_dynamic_launcher) (XdpAppInfo  *app_info,
                                          GKeyFile    *key_file,
                                          GError     **error);
+
+  GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
 
-void xdp_app_info_initialize (XdpAppInfo *app_info,
-                              const char *engine,
-                              const char *app_id,
-                              const char *instance,
-                              int         pidfd,
-                              GAppInfo   *gappinfo,
-                              gboolean    supports_opath,
-                              gboolean    has_network,
-                              gboolean    requires_pid_mapping);
