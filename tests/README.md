@@ -1,11 +1,32 @@
 xdg-desktop-portal test suite
 =============================
 
-## Environment
+## Unit tests
+
+This directory contains a number of unit tests. The tests are written in C and
+are using the glib testing framework (https://docs.gtk.org/glib/testing.html).
+
+The files follow the pattern `test-$NAME.c` and are compiled by meson. The tests
+can be run with `meson test --suite unit`.
+
+## Integration tests
+
+The integration tests usually test a specific portal in a fully integrated
+environment. The tests are written in python using the pytest framework.
+
+The files follow the pattern `test_$NAME.py`. The tests can be run with
+`meson test --suite integration` or with `run-test.sh` in the source directory.
+
+The environment is being set up by fixtures in `conftest.py` which can be
+overwritten or parameterized by the tests themselves. There are a bunch of
+convenient functions and classes in `__init__.py`. The portal backends are
+implemented using dbusmock templates in the `templates` directory.
+
+### Environment
 
 Some environment variables need to be set for the integration tests to function
 properly and the harness will refuse to launch if they are not set. If the
-harness is executed by meson, they will be set automatically.
+harness is executed by meson or run-test.sh, they will be set automatically.
 
 * `XDG_DESKTOP_PORTAL_PATH`: The path to the xdg-desktop-portal binary
 
@@ -71,7 +92,7 @@ environment they need.
 * `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
     portal testing
 
-## Adding new tests
+### Adding new tests
 
 Make sure the required portals are listed in
 `xdg_desktop_portal_dir_default_files` in `conftest.py`.
