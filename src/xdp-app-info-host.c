@@ -44,14 +44,14 @@ xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
   return app_info_host->usb_queries;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
                                        const char *sub_app_id)
 {
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
                                       GKeyFile            *keyfile,
                                       const char * const  *autostart_exec,
@@ -61,7 +61,7 @@ xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                              GKeyFile    *key_file,
                                              GError     **error)
@@ -193,13 +193,12 @@ xdp_app_info_host_new_full (const char *app_id,
   XdpAppInfoHost *app_info_host;
 
   app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
-                           /* engine, app id, instance */
-                           NULL, app_id, NULL,
-                           pidfd, gappinfo,
-                           /* supports_opath */ TRUE,
-                           /* has_network */ TRUE,
-                           /* requires_pid_mapping */ FALSE);
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
+  xdp_app_info_set_pidfd (XDP_APP_INFO (app_info_host), pidfd);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_host), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_host),
+                          XDP_APP_INFO_FLAG_HAS_NETWORK |
+                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
 
   return app_info_host;
 }
@@ -228,11 +227,25 @@ XdpAppInfo *
 xdp_app_info_host_new (int pid,
                        int pidfd)
 {
-  g_autofree char *app_id = NULL;
+  const char *test_app_info_kind = NULL;
+  g_autofree char *owned_app_id = NULL;
+  const char *app_id = NULL;
   g_autofree char *desktop_id = NULL;
   g_autoptr(GAppInfo) gappinfo = NULL;
 
-  app_id = get_appid_from_pid (pid);
+  test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
+  if (test_app_info_kind)
+    {
+      g_assert (g_strcmp0 (test_app_info_kind, "host") == 0);
+
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+    }
+  else
+    {
+      owned_app_id = get_appid_from_pid (pid);
+      app_id = owned_app_id;
+    }
+
   desktop_id = g_strconcat (app_id, ".desktop", NULL);
   gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
 
