@@ -56,7 +56,21 @@ struct _XdpAppInfoFlatpak
   GPtrArray *queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoFlatpak,
+                               xdp_app_info_flatpak,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
+
+static int get_bwrap_pidfd (const char  *instance,
+                            GError     **error);
+
+static int open_flatpak_info (int      pid,
+                              GError **error);
 
 static gboolean
 is_valid_initial_name_character (gint c, gboolean allow_dash)
@@ -169,7 +183,7 @@ flatpak_is_valid_name (const char *string)
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_flatpak_is_valid_sub_app_id (XdpAppInfo *app_info,
                                           const char *sub_app_id)
 {
@@ -208,11 +222,11 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                                         NULL);
 
   /* For apps we translate /app and /usr to the installed locations.
-     Also, we need to rewrite to drop the /newroot prefix added by
-     bubblewrap for other files to work.  See
-     https://github.com/projectatomic/bubblewrap/pull/172
-     for a bit more information on the /newroot issue.
-  */
+   * Also, we need to rewrite to drop the /newroot prefix added by
+   * bubblewrap for other files to work.  See
+   * https://github.com/projectatomic/bubblewrap/pull/172
+   * for a bit more information on the /newroot issue.
+   */
 
   if (g_str_has_prefix (path, "/newroot/"))
     path = path + strlen ("/newroot");
@@ -493,6 +507,195 @@ xdp_app_info_flatpak_dispose (GObject *object)
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
 
+static gboolean
+xdp_app_info_flatpak_initable_init (GInitable     *initable,
+                                    GCancellable  *cancellable,
+                                    GError       **error)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (initable);
+  XdpAppInfoFlags flags = 0;
+  g_autofd int info_fd = -1;
+  struct stat stat_buf;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GMappedFile) mapped = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+  const char *group;
+  g_autofree char *id = NULL;
+  g_autofree char *instance = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_auto(GStrv) shared = NULL;
+  gboolean has_network;
+  g_autofd int bwrap_pidfd = -1;
+  gboolean is_testing;
+  int pid;
+
+  is_testing = xdp_app_info_is_testing (XDP_APP_INFO (app_info_flatpak));
+  pid = xdp_app_info_get_pid (XDP_APP_INFO (app_info_flatpak));
+
+  if (is_testing)
+    {
+      const char *app_id;
+      const char *instance_id;
+      const char *metadata_path;
+      gboolean result;
+
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+      g_assert (app_id != NULL);
+      instance_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_INSTANCE_ID");
+      g_assert (instance_id != NULL);
+      metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA");
+      g_assert (metadata_path != NULL);
+
+      xdp_app_info_set_identity (XDP_APP_INFO (app_info_flatpak),
+                                 FLATPAK_ENGINE_ID,
+                                 app_id,
+                                 instance_id);
+
+      desktop_id = g_strconcat (app_id, ".desktop", NULL);
+      gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+      g_assert (gappinfo != NULL);
+
+      xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_flatpak), gappinfo);
+
+      metadata = g_key_file_new ();
+      result = g_key_file_load_from_file (metadata, metadata_path,
+                                          G_KEY_FILE_NONE, NULL);
+      g_assert (result == TRUE);
+
+      shared = g_key_file_get_string_list (metadata,
+                                           FLATPAK_METADATA_GROUP_CONTEXT,
+                                           FLATPAK_METADATA_KEY_SHARED,
+                                           NULL, NULL);
+
+      if (shared)
+        {
+          has_network = g_strv_contains ((const char * const *)shared,
+                                         FLATPAK_METADATA_CONTEXT_SHARED_NETWORK);
+        }
+      else
+        {
+          has_network = FALSE;
+        }
+
+      flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+      if (has_network)
+        flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+      xdp_app_info_set_flags (XDP_APP_INFO (app_info_flatpak), flags);
+
+      app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
+
+      return initable_parent_iface->init (initable, cancellable, error);
+    }
+
+  info_fd = open_flatpak_info (pid, error);
+  if (info_fd == -1)
+    return FALSE;
+
+  if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
+    {
+      /* Some weird fd => failure */
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Unable to open application info file");
+      return FALSE;
+    }
+
+  mapped = g_mapped_file_new_from_fd  (info_fd, FALSE, &local_error);
+  if (mapped == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't map .flatpak-info file: %s", local_error->message);
+      return FALSE;
+    }
+
+  metadata = g_key_file_new ();
+
+  if (!g_key_file_load_from_data (metadata,
+                                  g_mapped_file_get_contents (mapped),
+                                  g_mapped_file_get_length (mapped),
+                                  G_KEY_FILE_NONE, &local_error))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't load .flatpak-info file: %s", local_error->message);
+      return FALSE;
+    }
+
+  group = FLATPAK_METADATA_GROUP_APPLICATION;
+  if (g_key_file_has_group (metadata, FLATPAK_METADATA_GROUP_RUNTIME))
+    group = FLATPAK_METADATA_GROUP_RUNTIME;
+
+  id = g_key_file_get_string (metadata,
+                              group,
+                              FLATPAK_METADATA_KEY_NAME,
+                              error);
+  if (id == NULL || !xdp_is_valid_app_id (id))
+    return FALSE;
+
+  instance = g_key_file_get_string (metadata,
+                                    FLATPAK_METADATA_GROUP_INSTANCE,
+                                    FLATPAK_METADATA_KEY_INSTANCE_ID,
+                                    error);
+  if (instance == NULL)
+    return FALSE;
+
+  desktop_id = g_strconcat (id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  shared = g_key_file_get_string_list (metadata,
+                                       FLATPAK_METADATA_GROUP_CONTEXT,
+                                       FLATPAK_METADATA_KEY_SHARED,
+                                       NULL, NULL);
+  if (shared)
+    {
+      has_network = g_strv_contains ((const char * const *)shared,
+                                     FLATPAK_METADATA_CONTEXT_SHARED_NETWORK);
+    }
+  else
+    {
+      has_network = FALSE;
+    }
+
+  /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
+   * of the connected process but we can get the pidfd of the bwrap instance
+   * instead. This is okay because it has the same namespaces as the calling
+   * process.
+   */
+  bwrap_pidfd = get_bwrap_pidfd (instance, error);
+  if (bwrap_pidfd == -1)
+    return FALSE;
+
+  /* TODO: we can use pidfd to make sure we didn't race for sure */
+
+  flags |= XDP_APP_INFO_FLAG_SUPPORTS_OPATH;
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_flatpak),
+                             FLATPAK_ENGINE_ID,
+                             id,
+                             instance);
+  xdp_app_info_set_pidfd (XDP_APP_INFO (app_info_flatpak), bwrap_pidfd);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_flatpak), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_flatpak), flags);
+  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
+
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_flatpak_init (XdpAppInfoFlatpak *app_info_flatpak)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = xdp_app_info_flatpak_initable_init;
+}
+
 static void
 xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
 {
@@ -511,11 +714,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
-}
-
-static void
-xdp_app_info_flatpak_init (XdpAppInfoFlatpak *app_info_flatpak)
-{
 }
 
 static int
@@ -695,131 +893,4 @@ open_flatpak_info (int      pid,
     }
 
   return g_steal_fd (&info_fd);
-}
-
-gboolean
-xdp_is_flatpak (int        pid,
-                gboolean  *is_flatpak,
-                GError   **error)
-{
-  g_autoptr(GError) local_error = NULL;
-  g_autofd int info_fd = -1;
-
-  info_fd = open_flatpak_info (pid, &local_error);
-  if (info_fd == -1 && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                         XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-    {
-      g_propagate_error (error, g_steal_pointer (&local_error));
-      return FALSE;
-    }
-
-  *is_flatpak = info_fd != -1;
-  return TRUE;
-}
-
-XdpAppInfo *
-xdp_app_info_flatpak_new (int      pid,
-                          int      pidfd,
-                          GError **error)
-{
-  g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
-  g_autofd int info_fd = -1;
-  struct stat stat_buf;
-  g_autoptr(GError) local_error = NULL;
-  g_autoptr(GMappedFile) mapped = NULL;
-  g_autoptr(GKeyFile) metadata = NULL;
-  const char *group;
-  g_autofree char *id = NULL;
-  g_autofree char *instance = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-  g_auto(GStrv) shared = NULL;
-  gboolean has_network;
-  g_autofd int bwrap_pidfd = -1;
-
-  info_fd = open_flatpak_info (pid, error);
-  if (info_fd == -1)
-    return NULL;
-
-  if (fstat (info_fd, &stat_buf) != 0 || !S_ISREG (stat_buf.st_mode))
-    {
-      /* Some weird fd => failure */
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Unable to open application info file");
-      return NULL;
-    }
-
-  mapped = g_mapped_file_new_from_fd  (info_fd, FALSE, &local_error);
-  if (mapped == NULL)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Can't map .flatpak-info file: %s", local_error->message);
-      return NULL;
-    }
-
-  metadata = g_key_file_new ();
-
-  if (!g_key_file_load_from_data (metadata,
-                                  g_mapped_file_get_contents (mapped),
-                                  g_mapped_file_get_length (mapped),
-                                  G_KEY_FILE_NONE, &local_error))
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Can't load .flatpak-info file: %s", local_error->message);
-      return NULL;
-    }
-
-  group = FLATPAK_METADATA_GROUP_APPLICATION;
-  if (g_key_file_has_group (metadata, FLATPAK_METADATA_GROUP_RUNTIME))
-    group = FLATPAK_METADATA_GROUP_RUNTIME;
-
-  id = g_key_file_get_string (metadata,
-                              group,
-                              FLATPAK_METADATA_KEY_NAME,
-                              error);
-  if (id == NULL || !xdp_is_valid_app_id (id))
-    return NULL;
-
-  instance = g_key_file_get_string (metadata,
-                                    FLATPAK_METADATA_GROUP_INSTANCE,
-                                    FLATPAK_METADATA_KEY_INSTANCE_ID,
-                                    error);
-  if (instance == NULL)
-    return NULL;
-
-  desktop_id = g_strconcat (id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
-  shared = g_key_file_get_string_list (metadata,
-                                       FLATPAK_METADATA_GROUP_CONTEXT,
-                                       FLATPAK_METADATA_KEY_SHARED,
-                                       NULL, NULL);
-  if (shared)
-    {
-      has_network = g_strv_contains ((const char * const *)shared,
-                                     FLATPAK_METADATA_CONTEXT_SHARED_NETWORK);
-    }
-  else
-    {
-      has_network = FALSE;
-    }
-
-  /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
-   * of the connected process but we can get the pidfd of the bwrap instance
-   * instead. This is okay because it has the same namespaces as the calling
-   * process. */
-  bwrap_pidfd = get_bwrap_pidfd (instance, error);
-  if (bwrap_pidfd == -1)
-    return NULL;
-
-  /* TODO: we can use pidfd to make sure we didn't race for sure */
-
-  app_info_flatpak = g_object_new (XDP_TYPE_APP_INFO_FLATPAK, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_flatpak),
-                           FLATPAK_ENGINE_ID, id, instance,
-                           bwrap_pidfd, gappinfo,
-                           TRUE, has_network, TRUE);
-  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
-
-  return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }

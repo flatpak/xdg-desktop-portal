@@ -65,7 +65,6 @@ xdp_utils_sources = files(
   'xdp-app-info-host.c',
   'xdp-app-info-flatpak.c',
   'xdp-app-info-snap.c',
-  'xdp-app-info-test.c',
   'xdp-usb-query.c',
 )
 
