@@ -1,8 +1,11 @@
-Changes in 1.19.90
+Changes in 1.20.0
 =================
-Released: Not yet
+Released: 2025-02-19
 
-...
+Enhancements:
+
+- Document how the test suite works.
+- Improve the test runner script.
 
 Changes in 1.19.4
 =================
