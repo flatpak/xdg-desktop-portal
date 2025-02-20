@@ -284,6 +284,43 @@ is_valid_name_character (gint c, gboolean allow_dash)
     (c == '_') || (allow_dash && c == '-');
 }
 
+
+/* Get the document id from the path, if there's any.
+ * Returns TRUE when path seems to point to the documents
+ * storage.
+ */
+gboolean
+xdp_looks_like_document_portal_path (const char *path,
+                                     char **guessed_docid)
+{
+  const char *prefix = "/run/user/";
+  char *docid;
+  char *p, *q;
+
+  if (!g_str_has_prefix (path, prefix))
+    return FALSE;
+
+  p = strstr (path, "/doc/");
+  if (!p)
+    return FALSE;
+
+  p += strlen ("/doc/");
+  q = strchr (p, '/');
+  if (q)
+    docid = g_strndup (p, q - p);
+  else
+    docid = g_strdup (p);
+
+  if (docid[0] == '\0')
+    {
+      g_free (docid);
+      return FALSE;
+    }
+
+  *guessed_docid = docid;
+  return TRUE;
+}
+
 /* This is the same as flatpak apps, except we also allow
    names to start with digits, and two-element names so that ids of the form
    snap.$snapname is allowed for all snap names. */
