@@ -1030,7 +1030,7 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
       child = g_variant_get_child_value (app_array, m);
       g_variant_get_child (child, 0, "&s", &child_app_id);
 
-      cmp = strcmp (app_id, child_app_id);
+      cmp = g_strcmp0 (app_id, child_app_id);
       if (cmp == 0)
         {
           res = g_variant_get_child_value (child, 1);
