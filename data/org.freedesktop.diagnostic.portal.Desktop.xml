@@ -1,0 +1,101 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2025 tytan652
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: tytan652 <tytan652@tytanium.xyz>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+    org.freedesktop.diagnostic.portal.Desktop:
+    @short_description: Portal diagnostic interface
+
+    This interface provides APIs related to desktop portals states.
+
+    This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.diagnostic.portal.Desktop">
+
+    <!--
+      LockdownImpl:
+
+      Detail about the in use Lockdown portal implementation.
+
+      Implementation vardict contains the following properties:
+
+      * ``name`` (``s``)
+
+        Name of the implementation. If this properties is not present, no
+        implementation were found.
+
+      * ``version`` (``u``)
+
+        Version of the implementation if the interface is versioned.
+        Assume 1 if not present
+    -->
+    <property name="LockdownImpl" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
+
+    <!--
+      AccessImpl:
+
+      Detail about the in use Access portal implementation.
+
+      Implementation vardict containing the same
+      as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`.
+    -->
+    <property name="AccessImpl" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
+
+    <!--
+      Portals:
+
+      The list of portal with details about their state:
+
+      * ``name``` (``s``)
+
+        Short name of the portal, usually the last element of their interface
+        name.
+
+        Each portal can contain the following properties:
+
+          * ``implementation`` (``a{sv}``)
+
+            Implementation vardict containing the same properties
+            as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`,
+            available if the portal is designed to rely on only one
+            implementation.
+
+          * ``implementations`` (``av``)
+
+            Array of implementation vardicts containing the same
+            as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`,
+            available if the portal is designed to rely on multiple
+            implementations.
+
+            The order must be the same as when the portal rely on them.
+    -->
+    <property name="Portals" type="a{sa{sv}}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="Qlist&lt;QMap&lt;QString,QVariantMap&gt;&gt;"/>
+    </property>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

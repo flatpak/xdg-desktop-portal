@@ -28,6 +28,7 @@
 #include <gio/gdesktopappinfo.h>
 
 #include "xdp-call.h"
+#include "xdp-diagnostic-desktop.h"
 #include "background.h"
 #include "xdp-background-monitor.h"
 #include "flatpak-instance.h"
@@ -1263,6 +1264,11 @@ background_create (GDBusConnection *connection,
       g_warning ("Failed to create background proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Background",
+                                                 dbus_name_background,
+                                                 0);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
   background = g_object_new (background_get_type (), NULL);

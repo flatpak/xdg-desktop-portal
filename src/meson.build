@@ -28,6 +28,13 @@ background_monitor_built_sources = gnome.gdbus_codegen(
   namespace: 'XdpDbusBackground',
   docbook: 'portal',
 )
+diagnostic_portal_built_sources = gnome.gdbus_codegen(
+  'xdp-diagnostic-dbus',
+  sources: diagnostic_portal_sources,
+  interface_prefix: 'org.freedesktop.diagnostic.portal',
+  namespace: 'XdpDbusDiagnostic',
+  docbook: 'portal',
+)
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
     'geoclue-dbus',
@@ -115,6 +122,7 @@ xdg_desktop_portal_sources = files(
   'xdp-background-monitor.c',
   'xdp-call.c',
   'xdp-context.c',
+  'xdp-diagnostic-desktop.c',
   'xdp-documents.c',
   'xdp-permissions.c',
   'xdp-portal-config.c',
@@ -130,6 +138,7 @@ xdg_desktop_portal_sources += [
   host_built_sources,
   impl_built_sources,
   background_monitor_built_sources,
+  diagnostic_portal_built_sources,
   geoclue_built_sources,
   built_resources,
 ]

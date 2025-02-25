@@ -20,6 +20,7 @@
 
 #include "config.h"
 
+#include "xdp-diagnostic-desktop.h"
 #include "remote-desktop.h"
 #include "screen-cast.h"
 #include "xdp-request.h"
@@ -1626,6 +1627,11 @@ remote_desktop_create (GDBusConnection *connection,
       g_warning ("Failed to create remote desktop proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "RemoteDesktop",
+                                                 dbus_name,
+                                                 xdp_dbus_impl_remote_desktop_get_version (impl));
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

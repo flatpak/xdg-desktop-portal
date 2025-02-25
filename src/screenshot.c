@@ -34,6 +34,7 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "screenshot.h"
 #include "xdp-permissions.h"
 #include "xdp-request.h"
@@ -526,6 +527,11 @@ screenshot_create (GDBusConnection *connection,
   /* Set the version if supported; otherwise fallback to hardcoded version 2 */
   version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
   impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 2;
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Screenshot",
+                                                 dbus_name_screenshot,
+                                                 impl_version);
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
 
