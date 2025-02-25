@@ -192,6 +192,14 @@ static void
 export_host_portal_implementation (GDBusConnection        *connection,
                                    GDBusInterfaceSkeleton *skeleton)
 {
+  /* Host portal dbus method invocations run in the main thread without yielding
+   * to the main loop. This means that any later method call of any portal will
+   * see the effects of the host portal method call.
+   *
+   * This is important because the Registry modifies the XdpAppInfo and later
+   * method calls must see the modified value.
+   */
+
   g_autoptr(GError) error = NULL;
 
   if (skeleton == NULL)
@@ -201,7 +209,7 @@ export_host_portal_implementation (GDBusConnection        *connection,
     }
 
   g_dbus_interface_skeleton_set_flags (skeleton,
-                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_NONE);
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          connection,
