@@ -52,6 +52,9 @@
 
         Registering must be done before any portal method call; registering
         after such a call will result in an error.
+
+        Applications should ideally listen for name appeared D-Bus signalling to
+        re-register the peer if the portal service is restarted.
     -->
     <method name="Register">
       <arg type="s" name="app_id" direction="in"/>
