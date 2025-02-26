@@ -58,7 +58,7 @@ xdp_app_info_test_get_usb_queries (XdpAppInfo *app_info)
   return app_info_test->usb_queries;
 }
 
-gboolean
+static gboolean
 xdp_app_info_test_is_valid_sub_app_id (XdpAppInfo *app_info,
                                        const char *sub_app_id)
 {
@@ -133,11 +133,35 @@ xdp_app_info_test_new (const char *app_id,
 {
   g_autoptr (XdpAppInfoTest) app_info_test = NULL;
 
-  app_info_test = g_object_new (XDP_TYPE_APP_INFO_TEST, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_test),
-                           "", app_id, NULL,
-                           -1, NULL,
-                           TRUE, TRUE, TRUE);
+  app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
+                                  NULL,
+                                  NULL,
+                                  "engine", NULL,
+                                  "id", app_id,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
+                                  NULL);
+
+  app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
+
+  return XDP_APP_INFO (g_steal_pointer (&app_info_test));
+}
+
+XdpAppInfo *
+xdp_app_info_test_new_registered (const char *app_id,
+                                  const char *usb_queries_str)
+{
+  g_autoptr (XdpAppInfoTest) app_info_test = NULL;
+
+  app_info_test = g_initable_new (XDP_TYPE_APP_INFO_TEST,
+                                  NULL,
+                                  NULL,
+                                  "engine", NULL,
+                                  "id", app_id,
+                                  "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
+                                           XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
+                                           XDP_APP_INFO_FLAG_REGISTERED,
+                                  NULL);
 
   app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
 
