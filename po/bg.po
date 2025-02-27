@@ -1,0 +1,234 @@
+# Bulgarian translation of xdg-desktop-portal po-file.
+# Copyright (C) 2024 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# twlvnn kraftwerk <kraft_werk@tutanota.com>, 2024, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2024-10-29 15:33+0000\n"
+"PO-Revision-Date: 2025-02-22 16:52+0100\n"
+"Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
+"Language-Team: Bulgarian <dict-notifications@fsa-bg.org>\n"
+"Language: bg\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1)\n"
+"X-Generator: Gtranslator 47.1\n"
+
+#: src/background.c:822
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "Позволявате ли на „%s“ да работи във фонов режим?"
+
+#: src/background.c:826
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "Заявка от „%s“ да се стартира автоматично и да работи във фонов режим."
+
+#: src/background.c:828
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "„%s“ иска да се изпълнява във фонов режим."
+
+#: src/background.c:829
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the "
+"application settings."
+msgstr ""
+"Правото за „работа във фонов режим“ може да бъде променено по всяко време от "
+"настройките на програмата."
+
+#: src/background.c:834
+msgid "Don't allow"
+msgstr "Забраняване"
+
+#: src/background.c:835 src/screenshot.c:240 src/wallpaper.c:185
+msgid "Allow"
+msgstr "Позволяване"
+
+#: src/camera.c:106
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "Позволяване на „%s“ да използва камерата?"
+
+#: src/camera.c:107
+#, c-format
+msgid "%s wants to access camera devices."
+msgstr "Заявка от „%s“ да ползва камерите."
+
+#: src/camera.c:111
+msgid "Allow app to Use the Camera?"
+msgstr "Позволявате ли на програмата да ползва камерата?"
+
+#: src/camera.c:112
+msgid "An app wants to access camera devices."
+msgstr "Програма иска достъп до камерите."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "Идентификаторът на файла за работен плот нe завършва на „.desktop“: %s"
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "Идентификаторът на файла за работния плот е неправилен"
+
+#: src/dynamic-launcher.c:305
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+"Записът за работния плот, зададен за „Install()“, е неправилен ключов файл"
+
+#: src/dynamic-launcher.c:318
+#, c-format
+msgid "Desktop entry given to Install() must have only one group"
+msgstr ""
+"Записът за работния плот, зададен за „Install()“, трябва да има само една "
+"група"
+
+#: src/dynamic-launcher.c:331
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Записът за работния плот, зададен за „Install()“, е неправилен"
+
+#: src/dynamic-launcher.c:363
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Даденият токен е неправилен: %s"
+
+#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:834
+#: src/dynamic-launcher.c:883
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Файлът за работния плот надвишава максималния размер (%d): %s"
+
+#: src/dynamic-launcher.c:566
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr "Даденият адрес е неправилен: %s"
+
+#: src/dynamic-launcher.c:589
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Неправилен вид стартер: %x"
+
+#: src/dynamic-launcher.c:596
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Неподдържан вид стартер: %x"
+
+#: src/dynamic-launcher.c:658 src/dynamic-launcher.c:728
+msgid "Dynamic launcher icon failed validation"
+msgstr "Динамичната иконка на стартера не може да се одобри"
+
+#: src/dynamic-launcher.c:744
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+"Програмата с идентификатор %s няма достъп до функцията "
+"„RequestInstallToken()“"
+
+#: src/dynamic-launcher.c:923
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "Иконката на файла „%s“ за работния плот е на неразпознат път"
+
+#: src/dynamic-launcher.c:946
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "Иконката на файла „%s“ за работния плот не може да бъде сериализирана"
+
+#: src/dynamic-launcher.c:985
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "Не съществува динамичен стартер с идентификатор „%s“"
+
+#: src/dynamic-launcher.c:1004
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+"Неуспешно създаване на GDesktopAppInfo за стартера с идентификатор „%s“"
+
+#: src/location.c:544
+msgid "Deny Access"
+msgstr "Отказване на достъп"
+
+#: src/location.c:546
+msgid "Grant Access"
+msgstr "Позволяване на достъп"
+
+#: src/location.c:566
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "Позволявате ли на „%s“ достъп до местоположение ви?"
+
+#: src/location.c:571
+#, c-format
+msgid "%s wants to use your location."
+msgstr "Заявка от „%s“ за местоположението ви."
+
+#: src/location.c:580
+msgid "Grant Access to Your Location?"
+msgstr "Позволявате ли достъп до местоположение ви?"
+
+#: src/location.c:581
+msgid "An application wants to use your location."
+msgstr "Програма иска достъп до местоположението ви."
+
+#: src/location.c:584
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr ""
+"Може да промените правата за достъп до местоположението през настройките за "
+"лични данни."
+
+#: src/screenshot.c:238 src/wallpaper.c:183
+msgid "Deny"
+msgstr "Забраняване"
+
+#: src/screenshot.c:258
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Позволявате ли на „%s“ да прави снимки на екрана?"
+
+#: src/screenshot.c:259
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "„%s“ иска да може да прави снимки на екрана по всяко време."
+
+#: src/screenshot.c:267
+msgid "Allow Applications to Take Screenshots?"
+msgstr "Позволявате ли на програми да правят снимки на екрана?"
+
+#: src/screenshot.c:268
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "Програма иска да може да прави снимки на екрана по всяко време."
+
+#: src/screenshot.c:271 src/wallpaper.c:218
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "Може да промените правата за достъп през настройките за лични данни."
+
+#: src/settings.c:131 src/settings.c:167
+msgid "Requested setting not found"
+msgstr "Поисканата настройка липсва"
+
+#: src/wallpaper.c:205
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "Позволявате ли на „%s“ да задава фонове?"
+
+#: src/wallpaper.c:206
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "„%s“ иска да може да променя изображението на фона."
+
+#: src/wallpaper.c:215
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "Позволявате ли на програми да задават фонове?"
+
+#: src/wallpaper.c:216
+msgid "An application is requesting to be able to change the background image."
+msgstr "Програма иска да може да променя изображението на фона."
