@@ -27,14 +27,34 @@
 #include "xdp-app-info-host-private.h"
 #include "xdp-usb-query.h"
 
+enum
+{
+  PROP_0,
+  PROP_REGISTERED,
+  N_PROPS
+};
+
+static GParamSpec *properties [N_PROPS];
+
 struct _XdpAppInfoHost
 {
   XdpAppInfo parent;
 
+  char *registered;
   GPtrArray *usb_queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoHost,
+                               xdp_app_info_host,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
+
+static char * get_appid_from_pid (pid_t pid);
 
 static const GPtrArray *
 xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
@@ -44,14 +64,14 @@ xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
   return app_info_host->usb_queries;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
                                        const char *sub_app_id)
 {
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
                                       GKeyFile            *keyfile,
                                       const char * const  *autostart_exec,
@@ -61,12 +81,53 @@ xdp_app_info_host_validate_autostart (XdpAppInfo          *app_info,
   return TRUE;
 }
 
-gboolean
+static gboolean
 xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                              GKeyFile    *key_file,
                                              GError     **error)
 {
   return TRUE;
+}
+
+
+
+static void
+xdp_app_info_host_get_property (GObject    *object,
+                                guint       prop_id,
+                                GValue     *value,
+                                GParamSpec *pspec)
+{
+  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
+
+  switch (prop_id)
+    {
+    case PROP_REGISTERED:
+      g_value_set_string (value, app_info->registered);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_host_set_property (GObject      *object,
+                                guint         prop_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
+
+  switch (prop_id)
+    {
+    case PROP_REGISTERED:
+      g_assert (app_info->registered == NULL);
+      app_info->registered = g_value_dup_string (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
 }
 
 static void
@@ -75,8 +136,73 @@ xdp_app_info_host_dispose (GObject *object)
   XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
 
   g_clear_pointer (&app_info->usb_queries, g_ptr_array_unref);
+  g_clear_pointer (&app_info->registered, g_free);
 
   G_OBJECT_CLASS (xdp_app_info_host_parent_class)->dispose (object);
+}
+
+static gboolean
+app_info_host_initable_init (GInitable     *initable,
+                             GCancellable  *cancellable,
+                             GError       **error)
+{
+  XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (initable);
+  gboolean is_testing;
+  g_autofree char *owned_app_id = NULL;
+  const char *app_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autoptr(XdpUsbQuery) query = NULL;
+
+  is_testing = xdp_app_info_is_testing (XDP_APP_INFO (app_info_host));
+
+  if (app_info_host->registered)
+    {
+      app_id = app_info_host->registered;
+    }
+  else if (is_testing)
+    {
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+      g_assert (app_id != NULL);
+    }
+  else
+    {
+      int pid = xdp_app_info_get_pid (XDP_APP_INFO (app_info_host));
+
+      owned_app_id = get_appid_from_pid (pid);
+      app_id = owned_app_id;
+    }
+
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_host), NULL, app_id, NULL);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_host), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_host),
+                          XDP_APP_INFO_FLAG_HAS_NETWORK |
+                          XDP_APP_INFO_FLAG_SUPPORTS_OPATH);
+
+  app_info_host->usb_queries =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
+  if (query)
+    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
+
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = app_info_host_initable_init;
 }
 
 static void
@@ -86,6 +212,8 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_app_info_host_dispose;
+  object_class->get_property = xdp_app_info_host_get_property;
+  object_class->set_property = xdp_app_info_host_set_property;
 
   app_info_class->get_usb_queries =
     xdp_app_info_host_get_usb_queries;
@@ -95,19 +223,15 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
     xdp_app_info_host_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_host_is_valid_sub_app_id;
-}
 
-static void
-xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
-{
-  g_autoptr(XdpUsbQuery) query = NULL;
+  properties[PROP_REGISTERED] =
+    g_param_spec_string ("registered", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
 
-  app_info_host->usb_queries =
-    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
-
-  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
-  if (query)
-    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
+  g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
 #ifdef HAVE_LIBSYSTEMD
@@ -183,58 +307,4 @@ get_appid_from_pid (pid_t pid)
   /* FIXME: we should return NULL and handle id==NULL at callers */
   return g_strdup ("");
 #endif /* HAVE_LIBSYSTEMD */
-}
-
-static XdpAppInfoHost *
-xdp_app_info_host_new_full (const char *app_id,
-                            int         pidfd,
-                            GAppInfo   *gappinfo)
-{
-  XdpAppInfoHost *app_info_host;
-
-  app_info_host = g_object_new (XDP_TYPE_APP_INFO_HOST, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_host),
-                           /* engine, app id, instance */
-                           NULL, app_id, NULL,
-                           pidfd, gappinfo,
-                           /* supports_opath */ TRUE,
-                           /* has_network */ TRUE,
-                           /* requires_pid_mapping */ FALSE);
-
-  return app_info_host;
-}
-
-XdpAppInfo *
-xdp_app_info_host_new_registered (int          pidfd,
-                                  const char  *app_id,
-                                  GError     **error)
-{
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-  if (!gappinfo)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND,
-                   "App info not found for '%s'", app_id);
-      return NULL;
-    }
-
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
-}
-
-XdpAppInfo *
-xdp_app_info_host_new (int pid,
-                       int pidfd)
-{
-  g_autofree char *app_id = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-
-  app_id = get_appid_from_pid (pid);
-  desktop_id = g_strconcat (app_id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
-  return XDP_APP_INFO (xdp_app_info_host_new_full (app_id, pidfd, gappinfo));
 }

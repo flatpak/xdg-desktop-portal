@@ -23,6 +23,12 @@
 
 #include "xdp-app-info.h"
 
+typedef enum
+{
+  XDP_APP_INFO_FLAG_HAS_NETWORK = (1 << 0),
+  XDP_APP_INFO_FLAG_SUPPORTS_OPATH = (1 << 1),
+} XdpAppInfoFlags;
+
 struct _XdpAppInfoClass
 {
   GObjectClass parent_class;
@@ -46,12 +52,22 @@ struct _XdpAppInfoClass
                                          GError     **error);
 };
 
-void xdp_app_info_initialize (XdpAppInfo *app_info,
-                              const char *engine,
-                              const char *app_id,
-                              const char *instance,
-                              int         pidfd,
-                              GAppInfo   *gappinfo,
-                              gboolean    supports_opath,
-                              gboolean    has_network,
-                              gboolean    requires_pid_mapping);
+gboolean xdp_app_info_is_testing (XdpAppInfo *app_info);
+
+int xdp_app_info_get_pid (XdpAppInfo *app_info);
+
+int xdp_app_info_get_pidfd (XdpAppInfo *app_info);
+
+void xdp_app_info_set_identity (XdpAppInfo *app_info,
+                                const char *engine,
+                                const char *app_id,
+                                const char *instance);
+
+void xdp_app_info_set_pidfd (XdpAppInfo *app_info,
+                             int         pidfd);
+
+void xdp_app_info_set_gappinfo (XdpAppInfo *app_info,
+                                GAppInfo   *gappinfo);
+
+void xdp_app_info_set_flags (XdpAppInfo      *app_info,
+                             XdpAppInfoFlags  flags);

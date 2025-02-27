@@ -31,11 +31,3 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoFlatpak,
                       xdp_app_info_flatpak,
                       XDP, APP_INFO_FLATPAK,
                       XdpAppInfo)
-
-gboolean xdp_is_flatpak (int        pid,
-                         gboolean  *is_flatpak,
-                         GError   **error);
-
-XdpAppInfo * xdp_app_info_flatpak_new (int      pid,
-                                       int      pidfd,
-                                       GError **error);

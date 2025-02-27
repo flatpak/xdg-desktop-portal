@@ -27,6 +27,8 @@
 
 #include "xdp-app-info-snap-private.h"
 
+#define SNAP_ENGINE_ID "io.snapcraft"
+
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
 #define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
@@ -37,15 +39,153 @@ struct _XdpAppInfoSnap
   XdpAppInfo parent;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
 
-static void
-xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
+static void initable_iface_init (GInitableIface *initable_iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoSnap,
+                               xdp_app_info_snap,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
+                                                      initable_iface_init))
+
+static gboolean pid_is_snap (pid_t    pid,
+                             GError **error);
+
+static gboolean
+xdp_app_info_snap_initable_init (GInitable     *initable,
+                                 GCancellable  *cancellable,
+                                 GError       **error)
 {
+  XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (initable);
+  g_autoptr(GError) local_error = NULL;
+  g_autofree char *pid_str = NULL;
+  g_autofree char *output = NULL;
+  g_autoptr(GKeyFile) metadata = NULL;
+  g_autofree char *snap_name = NULL;
+  g_autofree char *snap_id = NULL;
+  g_autofree char *desktop_id = NULL;
+  g_autoptr(GAppInfo) gappinfo = NULL;
+  XdpAppInfoFlags flags = 0;
+  gboolean has_network;
+  gboolean is_testing;
+  int pid;
+
+  is_testing = xdp_app_info_is_testing (XDP_APP_INFO (app_info_snap));
+  pid = xdp_app_info_get_pid (XDP_APP_INFO (app_info_snap));
+
+  if (is_testing)
+    {
+      const char *app_id;
+      const char *metadata_path;
+      gboolean result;
+
+      app_id = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_ID");
+      g_assert (app_id != NULL);
+      metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA");
+      g_assert (metadata_path != NULL);
+
+      xdp_app_info_set_identity (XDP_APP_INFO (app_info_snap),
+                                 SNAP_ENGINE_ID,
+                                 app_id,
+                                 NULL);
+
+      desktop_id = g_strconcat (app_id, ".desktop", NULL);
+      gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+      g_assert (gappinfo != NULL);
+
+      xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_snap), gappinfo);
+
+      metadata = g_key_file_new ();
+      result = g_key_file_load_from_file (metadata, metadata_path,
+                                          G_KEY_FILE_NONE, NULL);
+      g_assert (result == TRUE);
+
+      has_network = g_key_file_get_boolean (metadata,
+                                            SNAP_METADATA_GROUP_INFO,
+                                            SNAP_METADATA_KEY_NETWORK,
+                                            NULL);
+
+      if (has_network)
+        flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+      xdp_app_info_set_flags (XDP_APP_INFO (app_info_snap), flags);
+
+      return initable_parent_iface->init (initable, cancellable, error);
+    }
+
+  /* Check the process's cgroup membership to fail quickly for non-snaps */
+  if (!pid_is_snap (pid, error))
+    {
+      g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                   "Not a snap (cgroup doesn't contain a snap id)");
+      return FALSE;
+    }
+
+  pid_str = g_strdup_printf ("%u", (guint) pid);
+  output = xdp_spawn (error, "snap", "routine", "portal-info", pid_str, NULL);
+  if (output == NULL)
+    return FALSE;
+
+  metadata = g_key_file_new ();
+  if (!g_key_file_load_from_data (metadata, output, -1, G_KEY_FILE_NONE, &local_error))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "Can't read snap info for pid %u: %s", pid, local_error->message);
+      return FALSE;
+    }
+
+  snap_name = g_key_file_get_string (metadata,
+                                     SNAP_METADATA_GROUP_INFO,
+                                     SNAP_METADATA_KEY_INSTANCE_NAME,
+                                     error);
+  if (snap_name == NULL)
+    return FALSE;
+
+  snap_id = g_strconcat ("snap.", snap_name, NULL);
+
+  desktop_id = g_key_file_get_string (metadata,
+                                      SNAP_METADATA_GROUP_INFO,
+                                      SNAP_METADATA_KEY_DESKTOP_FILE,
+                                      error);
+  if (desktop_id == NULL)
+    return FALSE;
+
+  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+
+  has_network = g_key_file_get_boolean (metadata,
+                                        SNAP_METADATA_GROUP_INFO,
+                                        SNAP_METADATA_KEY_NETWORK,
+                                        NULL);
+
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  xdp_app_info_set_identity (XDP_APP_INFO (app_info_snap),
+                             SNAP_ENGINE_ID,
+                             snap_id,
+                             NULL);
+  xdp_app_info_set_gappinfo (XDP_APP_INFO (app_info_snap), gappinfo);
+  xdp_app_info_set_flags (XDP_APP_INFO (app_info_snap), flags);
+
+  return initable_parent_iface->init (initable, cancellable, error);
 }
 
 static void
 xdp_app_info_snap_init (XdpAppInfoSnap *app_info_snap)
+{
+}
+
+static void
+initable_iface_init (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = xdp_app_info_snap_initable_init;
+}
+
+static void
+xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
 {
 }
 
@@ -133,100 +273,4 @@ end:
                    g_strerror (err));
     }
   return is_snap;
-}
-
-gboolean
-xdp_is_snap (int        pid,
-             gboolean  *is_snap,
-             GError   **error)
-{
-  g_autoptr(GError) local_error = NULL;
-
-  if (!pid_is_snap (pid, &local_error))
-    {
-      if (local_error && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
-                                           XDP_APP_INFO_ERROR_WRONG_APP_KIND))
-        {
-          g_propagate_error (error, g_steal_pointer (&local_error));
-          return FALSE;
-        }
-
-      *is_snap = FALSE;
-      return TRUE;
-    }
-  else
-    {
-      *is_snap = TRUE;
-      return TRUE;
-    }
-}
-
-XdpAppInfo *
-xdp_app_info_snap_new (int      pid,
-                       int      pidfd,
-                       GError **error)
-{
-  g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
-
-  g_autoptr(GError) local_error = NULL;
-  g_autofree char *pid_str = NULL;
-  g_autofree char *output = NULL;
-  g_autoptr(GKeyFile) metadata = NULL;
-  g_autofree char *snap_name = NULL;
-  g_autofree char *snap_id = NULL;
-  g_autofree char *desktop_id = NULL;
-  g_autoptr(GAppInfo) gappinfo = NULL;
-  gboolean has_network;
-
-  /* Check the process's cgroup membership to fail quickly for non-snaps */
-  if (!pid_is_snap (pid, error))
-    {
-      g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
-                   "Not a snap (cgroup doesn't contain a snap id)");
-      return NULL;
-    }
-
-  pid_str = g_strdup_printf ("%u", (guint) pid);
-  output = xdp_spawn (error, "snap", "routine", "portal-info", pid_str, NULL);
-  if (output == NULL)
-    return NULL;
-
-  metadata = g_key_file_new ();
-  if (!g_key_file_load_from_data (metadata, output, -1, G_KEY_FILE_NONE, &local_error))
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Can't read snap info for pid %u: %s", pid, local_error->message);
-      return FALSE;
-    }
-
-  snap_name = g_key_file_get_string (metadata,
-                                     SNAP_METADATA_GROUP_INFO,
-                                     SNAP_METADATA_KEY_INSTANCE_NAME,
-                                     error);
-  if (snap_name == NULL)
-    return NULL;
-
-  snap_id = g_strconcat ("snap.", snap_name, NULL);
-
-  desktop_id = g_key_file_get_string (metadata,
-                                      SNAP_METADATA_GROUP_INFO,
-                                      SNAP_METADATA_KEY_DESKTOP_FILE,
-                                      error);
-  if (desktop_id == NULL)
-    return NULL;
-
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
-
-  has_network = g_key_file_get_boolean (metadata,
-                                        SNAP_METADATA_GROUP_INFO,
-                                        SNAP_METADATA_KEY_NETWORK,
-                                        NULL);
-
-  app_info_snap = g_object_new (XDP_TYPE_APP_INFO_SNAP, NULL);
-  xdp_app_info_initialize (XDP_APP_INFO (app_info_snap),
-                           "io.snapcraft", snap_id, NULL,
-                           pidfd, gappinfo,
-                           FALSE, has_network, TRUE);
-
-  return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
 }

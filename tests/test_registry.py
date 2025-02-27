@@ -6,6 +6,21 @@ import dbus
 import pytest
 
 
+CORRECT_APP_ID_DESKTOP = b"""[Desktop Entry]
+Version=1.0
+Name=CorrectAppId
+Exec=true %u
+Type=Application
+"""
+
+
+@pytest.fixture
+def xdg_data_home_files():
+    return {
+        "applications/org.example.CorrectAppId.desktop": CORRECT_APP_ID_DESKTOP,
+    }
+
+
 @pytest.fixture
 def app_id():
     return "org.example.WrongAppId"
