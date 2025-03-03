@@ -8,6 +8,14 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib, Gio
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
+from .doc_utils import (
+    path_from_null_term_bytes,
+    get_mountpoint,
+    export_file,
+    export_file_named,
+    export_files,
+    EXPORT_FILES_FLAG_EXPORT_DIR,
+)
 
 import os
 import dbus
@@ -16,6 +24,14 @@ import dbusmock
 import logging
 import subprocess
 
+__all__ = [
+    "path_from_null_term_bytes",
+    "get_mountpoint",
+    "export_file",
+    "export_file_named",
+    "export_files",
+    "EXPORT_FILES_FLAG_EXPORT_DIR",
+]
 
 DBusGMainLoop(set_as_default=True)
 
