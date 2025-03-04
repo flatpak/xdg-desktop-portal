@@ -73,6 +73,12 @@ class PermissionStore(xdp.GDBusIface):
             GLib.Variant("(sss)", (table, id, app)),
         )
 
+    def GetTables(self):
+        return self._call(
+            "GetTables",
+            GLib.Variant("()", ()),
+        )
+
 
 class TestPermissionStore:
     def test_version(self, portals, dbus_con):
@@ -89,7 +95,7 @@ class TestPermissionStore:
             "org.freedesktop.impl.portal.PermissionStore",
             "version",
         )
-        assert int(portal_version) == 2
+        assert int(portal_version) == 3
 
     def test_delete_race(self, portals, dbus_con):
         permission_store_intf = PermissionStore()
@@ -296,3 +302,9 @@ class TestPermissionStore:
         result, _ = permission_store_intf.GetPermission(table, id, "no-such-app")
         permissions = result.unpack()[0]
         assert permissions == []
+
+    def test_get_tables(self, portals, dbus_con):
+        permission_store_intf = PermissionStore()
+
+        result, _ = permission_store_intf.GetTables()
+        assert result.unpack() == ([],)
