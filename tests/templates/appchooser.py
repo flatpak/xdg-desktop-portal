@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
+# mypy: disable-error-code="misc"
 
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -17,12 +19,23 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
+@dataclass
+class AppchooserParameters:
+    delay: int
+    response: int
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "appchooser_params")
+    mock.appchooser_params = AppchooserParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -45,6 +58,7 @@ def ChooseApplication(
     logger.debug(
         f"ChooseApplication({handle}, {app_id}, {parent_window}, {choices}, {options})"
     )
+    params = self.appchooser_params
 
     request = ImplRequest(
         self,
@@ -55,10 +69,10 @@ def ChooseApplication(
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, {}), delay=self.delay)
+        request.respond(Response(params.response, {}), delay=params.delay)
 
 
 @dbus.service.method(

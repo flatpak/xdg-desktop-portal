@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
+# mypy: disable-error-code="misc"
 
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -17,14 +19,27 @@ VERSION = 3
 logger = init_logger(__name__)
 
 
+@dataclass
+class PrintParameters:
+    delay: int
+    response: int
+    results: dict
+    expect_close: bool
+    prepare_results: dict
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.prepare_results: bool = parameters.get("prepare-results", {})
-    mock.results: bool = parameters.get("results", {})
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "print_params")
+    mock.print_params = PrintParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        results=parameters.get("results", {}),
+        expect_close=parameters.get("expect-close", False),
+        prepare_results=parameters.get("prepare-results", {}),
+    )
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -56,6 +71,7 @@ def PreparePrint(
     logger.debug(
         f"PreparePrint({handle}, {app_id}, {parent_window}, {title}, {settings}, {page_setup}, {options})"
     )
+    params = self.print_params
 
     request = ImplRequest(
         self,
@@ -66,10 +82,12 @@ def PreparePrint(
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, self.prepare_results), delay=self.delay)
+        request.respond(
+            Response(params.response, params.prepare_results), delay=params.delay
+        )
 
 
 @dbus.service.method(
@@ -84,6 +102,7 @@ def Print(
     logger.debug(
         f"Print({handle}, {app_id}, {parent_window}, {title}, {fd}, {options})"
     )
+    params = self.print_params
 
     request = ImplRequest(
         self,
@@ -94,7 +113,7 @@ def Print(
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, self.results), delay=self.delay)
+        request.respond(Response(params.response, params.results), delay=params.delay)

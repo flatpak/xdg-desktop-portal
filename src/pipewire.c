@@ -331,7 +331,7 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
   remote->registry = (struct pw_proxy*) pw_core_get_registry (remote->core,
                                                               PW_VERSION_REGISTRY,
                                                               0);
-  pw_registry_add_listener (remote->registry,
+  pw_registry_add_listener ((struct pw_registry*)remote->registry,
                             &remote->registry_listener,
                             &registry_events,
                             remote);

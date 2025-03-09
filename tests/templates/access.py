@@ -1,10 +1,12 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
+# mypy: disable-error-code="misc"
 
 from tests.templates import Response, init_logger, ImplRequest
 
 import dbus.service
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -16,12 +18,22 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Access"
 logger = init_logger(__name__)
 
 
+@dataclass
+class AccessParameters:
+    delay: int
+    response: int
+    expect_close: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
+    assert not hasattr(mock, "access_params")
+    mock.access_params = AccessParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+    )
 
 
 @dbus.service.method(
@@ -45,6 +57,7 @@ def AccessDialog(
     logger.debug(
         f"AccessDialog({handle}, {app_id}, {parent_window}, {title}, {subtitle}, {body}, {options})"
     )
+    params = self.access_params
 
     request = ImplRequest(
         self,
@@ -55,7 +68,7 @@ def AccessDialog(
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, {}), delay=self.delay)
+        request.respond(Response(params.response, {}), delay=params.delay)

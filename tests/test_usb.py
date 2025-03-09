@@ -30,7 +30,11 @@ def umockdev_has_working_remove():
     required = (0, 18, 4)
 
     result = subprocess.run(["umockdev-run", "--version"], stdout=subprocess.PIPE)
+    if result.returncode != 0:
+        return False
     match = re.match(r"^(\d+)\.(\d+)\.(\d+)", result.stdout.decode("UTF-8").strip())
+    if not match:
+        return False
     version = tuple(map(int, match.groups()))
     return version >= required
 

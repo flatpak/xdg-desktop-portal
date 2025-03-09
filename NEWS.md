@@ -1,3 +1,61 @@
+Changes in 1.20.1
+=================
+Released: Not yet
+
+...
+
+Changes in 1.20.0
+=================
+Released: 2025-02-19
+
+Enhancements:
+
+- Document how the test suite works.
+- Improve the test runner script.
+
+Changes in 1.19.4
+=================
+Released: 2025-02-15
+
+New Features:
+
+- Introduce the host app registry. This interface allows host system apps
+  (i.e. apps not running under a sandboxing mechanism like Flatpak) register
+  themselves with XDG Desktop Portal. This allows XDG Desktop Portal to use
+  a proper app id, and desktop file, improving the interaction with portal
+  backends.
+
+Enhancements:
+
+- Use a new internal script to simplify running tests.
+
+Bug Fixes:
+
+- Properly escape notification body in the Notification portal.
+- Fix various documentation links in the USB portal documentation page.
+
+Changes in 1.19.3
+=================
+Released: 2025-02-12
+
+Bug Fixes:
+
+- Fix documentation links in the USB portal page.
+- Make the Document portal track open files, and release them when shutting
+  down. This should fix some harmless leak reports.
+- Fix a memory leak, a crash, and improve robustness against non-existing
+  folders in the Dynamic Launcher portal.
+- Fix build with PipeWire 1.3.82
+
+Enhancements:
+
+- Make the host path xattr more useful by removing the trailing end character,
+  and also reporting the xattr of files inside folders added to the document
+  store.
+- Remove libportal-based integrated tests. This should remove the cyclic
+  dependency between libportal, and xdg-desktop-portal. All tests are now based
+  on the Python testing framework.
+
 Changes in 1.19.2
 =================
 Released: 2025-01-20

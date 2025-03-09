@@ -253,7 +253,15 @@ markup_parser_text (GMarkupParseContext  *context,
 {
   GString *composed = user_data;
 
-  g_string_append_len (composed, text, text_len);
+  while (text_len > 0)
+    {
+      gsize len = MIN (text_len, G_MAXSSIZE);
+      g_autofree char *escaped = g_markup_escape_text (text, len);
+
+      g_string_append (composed, escaped);
+      text_len -= len;
+      text += len;
+    }
 }
 
 static void
@@ -282,7 +290,9 @@ markup_parser_start_element (GMarkupParseContext  *context,
         {
           if (strcmp (attribute_names[i], "href") == 0)
             {
-              g_string_append_printf (composed, "<a href=\"%s\">", attribute_values[i]);
+              g_autofree char *escaped = g_markup_escape_text (attribute_values[i], -1);
+
+              g_string_append_printf (composed, "<a href=\"%s\">", escaped);
               break;
             }
         }

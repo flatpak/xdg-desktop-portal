@@ -192,6 +192,14 @@ static void
 export_host_portal_implementation (GDBusConnection        *connection,
                                    GDBusInterfaceSkeleton *skeleton)
 {
+  /* Host portal dbus method invocations run in the main thread without yielding
+   * to the main loop. This means that any later method call of any portal will
+   * see the effects of the host portal method call.
+   *
+   * This is important because the Registry modifies the XdpAppInfo and later
+   * method calls must see the modified value.
+   */
+
   g_autoptr(GError) error = NULL;
 
   if (skeleton == NULL)
@@ -201,7 +209,7 @@ export_host_portal_implementation (GDBusConnection        *connection,
     }
 
   g_dbus_interface_skeleton_set_flags (skeleton,
-                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+                                       G_DBUS_INTERFACE_SKELETON_FLAGS_NONE);
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          connection,
@@ -436,6 +444,21 @@ main (int argc, char *argv[])
   g_autoptr(GDBusConnection) session_bus = NULL;
   g_autoptr(GSource) signal_handler_source = NULL;
   g_autoptr(GOptionContext) context = NULL;
+
+  if (g_getenv ("XDG_DESKTOP_PORTAL_WAIT_FOR_DEBUGGER") != NULL)
+    {
+      g_printerr ("\ndesktop portal (PID %d) is waiting for a debugger. "
+                  "Use `gdb -p %d` to connect. \n",
+                  getpid (), getpid ());
+
+      if (raise (SIGSTOP) == -1)
+        {
+          g_printerr ("Failed waiting for debugger\n");
+          exit (1);
+        }
+
+      raise (SIGCONT);
+    }
 
   setlocale (LC_ALL, "");
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);

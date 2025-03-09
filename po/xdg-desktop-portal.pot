@@ -1,69 +1,68 @@
-# Hebrew translation for xdg-desktop-portal.
-# Copyright (C) 2022 xdg-desktop-portal's COPYRIGHT HOLDER
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Yosef Or Boczko <yoseforb@gmail.com>, 2022-2024.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: xdg-desktop-portal main\n"
+"Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-19 12:32-0300\n"
-"PO-Revision-Date: 2024-09-26 13:18+0300\n"
-"Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
-"Language-Team: Hebrew <yoseforb@gmail.com>\n"
-"Language: he\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1)\n"
-"X-Generator: Gtranslator 46.1\n"
 
 #: src/background.c:827
 #, c-format
 msgid "Allow %s to run in the background?"
-msgstr "לאפשר הרצה של %s ברקע?"
+msgstr ""
 
 #: src/background.c:831
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
-msgstr "‏%s מבקש להיפתח באופן אוטומטי ולרוץ ברקע."
+msgstr ""
 
 #: src/background.c:833
 #, c-format
 msgid "%s requests to run in the background."
-msgstr "‏%s מבקש לרוץ ברקע."
+msgstr ""
 
 #: src/background.c:834
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
-msgstr "ניתן לשנות בכל עת את ההרשאה „לפעול ברקע” בהגדרות היישום."
+msgstr ""
 
 #: src/background.c:838
 msgid "Don't allow"
-msgstr "לא לאפשר"
+msgstr ""
 
 #: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
 msgid "Allow"
-msgstr "לאפשר"
+msgstr ""
 
 #: src/camera.c:105
 #, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "לאפשר ליישום %s להשתמש במצלמה?"
+msgstr ""
 
 #: src/camera.c:106
 #, c-format
 msgid "%s wants to access camera devices."
-msgstr "‏%s מבקש להשתמש בהתקני מצלמה."
+msgstr ""
 
 #: src/camera.c:110
 msgid "Allow app to Use the Camera?"
-msgstr "לאפשר ליישום להשתמש במצלמה?"
+msgstr ""
 
 #: src/camera.c:111
 msgid "An app wants to access camera devices."
-msgstr "יישום מבקש להשתמש בהתקני מצלמה."
+msgstr ""
 
 #: src/dynamic-launcher.c:122
 #, c-format
@@ -147,125 +146,86 @@ msgstr ""
 
 #: src/location.c:544
 msgid "Deny Access"
-msgstr "מניעת גישה"
+msgstr ""
 
 #: src/location.c:546
 msgid "Grant Access"
-msgstr "הענקת גישה"
+msgstr ""
 
 #: src/location.c:566
 #, c-format
 msgid "Give %s Access to Your Location?"
-msgstr "לתת ליישום %s גישה למיקום שלך?"
+msgstr ""
 
 #: src/location.c:571
 #, c-format
 msgid "%s wants to use your location."
-msgstr "‏%s מבקש להשתמש במיקום שלך."
+msgstr ""
 
 #: src/location.c:580
 msgid "Grant Access to Your Location?"
-msgstr "לאפשר גישה למיקום שלך?"
+msgstr ""
 
 #: src/location.c:581
 msgid "An application wants to use your location."
-msgstr "יישום מבקש להשתמש במיקום שלך."
+msgstr ""
 
 #: src/location.c:584
 msgid "Location access can be changed at any time from the privacy settings."
-msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקום שלך מהגדרות הפרטיות."
+msgstr ""
 
 #: src/screenshot.c:245 src/wallpaper.c:185
 msgid "Deny"
-msgstr "דחייה"
+msgstr ""
 
 #: src/screenshot.c:267
 #, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "לאפשר ליישום %s לצלם את המסך?"
+msgstr ""
 
 #: src/screenshot.c:268
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
-msgstr "‏%s רוצה הרשאה לצלם את המסך בכל רגע נתון."
+msgstr ""
 
 #: src/screenshot.c:276
 msgid "Allow Applications to Take Screenshots?"
-msgstr "לאפשר ליישומים לצלם את המסך?"
+msgstr ""
 
 #: src/screenshot.c:277
 msgid "An application wants to be able to take screenshots at any time."
-msgstr "יישום מבקש הרשאה לצלם את המסך בכל רגע נתון."
+msgstr ""
 
 #: src/screenshot.c:280 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
-msgstr "ניתן לשנות בכל עת הרשאה זו בהגדרות הפרטיות."
+msgstr ""
 
 #: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
-msgstr "ההגדרה המבוקשת לא נמצאה"
+msgstr ""
 
 #: src/usb.c:1328
 msgid "Device not available"
 msgstr ""
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "לא לאפשר"
+msgstr ""
 
 #: src/wallpaper.c:207
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "לאפשר ליישום %s לקבוע את הרקעים?"
+msgstr ""
 
 #: src/wallpaper.c:208
 #, c-format
 msgid "%s is requesting to be able to change the background image."
-msgstr "‏%s מבקש הרשאה לשינוי תמונת הרקע."
+msgstr ""
 
 #: src/wallpaper.c:217
 msgid "Allow Applications to Set Backgrounds?"
-msgstr "לאפשר ליישומים לקבוע את הרקעים?"
+msgstr ""
 
 #: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
-msgstr "יישום מבקש הרשאה לשינוי תמונת הרקע."
-
-#~ msgid "Turn On Microphone?"
-#~ msgstr "להפעיל את המיקרופון?"
-
-#~ msgid ""
-#~ "Access to your microphone can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקרופון שלך בהגדרות הפרטיות."
-
-#~ msgid "An application wants to use your microphone."
-#~ msgstr "יישום מבקש להשתמש במיקרופון שלך."
-
-#, c-format
-#~ msgid "%s wants to use your microphone."
-#~ msgstr "‏%s מבקש להשתמש במיקרופון שלך."
-
-#~ msgid "Turn On Speakers?"
-#~ msgstr "להפעיל את הרמקולים?"
-
-#~ msgid ""
-#~ "Access to your speakers can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr "ניתן לשנות בכל עת את הרשאות הגישה לרמקולים שלך בהגדרות הפרטיות."
-
-#~ msgid "An application wants to play sound."
-#~ msgstr "יישום מבקש להפעיל שמע."
-
-#, c-format
-#~ msgid "%s wants to play sound."
-#~ msgstr "‏%s מבקש להפעיל שמע."
-
-#~ msgid "Turn On Camera?"
-#~ msgstr "להפעיל את המצלמה?"
-
-#~ msgid ""
-#~ "Access to your camera can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr "ניתן לשנות בכל עת את הרשאות הגישה למצלמה שלך בהגדרות הפרטיות."
+msgstr ""

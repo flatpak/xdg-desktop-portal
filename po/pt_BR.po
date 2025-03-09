@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-21 14:14-0300\n"
+"POT-Creation-Date: 2025-02-19 12:32-0300\n"
 "PO-Revision-Date: 2024-04-05 16:40-0300\n"
 "Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
 "Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao>\n"
@@ -45,25 +45,25 @@ msgstr ""
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:839 src/screenshot.c:243 src/wallpaper.c:187
+#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
 msgid "Allow"
 msgstr "Permitir"
 
-#: src/camera.c:109
+#: src/camera.c:105
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Permitir que %s use a câmera?"
 
-#: src/camera.c:110
+#: src/camera.c:106
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s deseja acessar dispositivos de câmera."
 
-#: src/camera.c:114
+#: src/camera.c:110
 msgid "Allow app to Use the Camera?"
 msgstr "Permitir que o aplicativo use a câmera?"
 
-#: src/camera.c:115
+#: src/camera.c:111
 msgid "An app wants to access camera devices."
 msgstr "Um aplicativo deseja acessar dispositivos de câmera."
 
@@ -77,73 +77,73 @@ msgstr "Faltando sufixo .desktop no id do arquivo desktop: %s"
 msgid "Desktop file id is not valid"
 msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:305
+#: src/dynamic-launcher.c:307
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "A entrada desktop fornecida para Install() não é um arquivo de chave válido"
 
-#: src/dynamic-launcher.c:318
-#, c-format
-msgid "Desktop entry given to Install() must have only one group"
+#: src/dynamic-launcher.c:320
+#, fuzzy, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "A entrada desktop fornecida para Install() deve ter apenas um grupo"
 
-#: src/dynamic-launcher.c:331
+#: src/dynamic-launcher.c:333
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:363
+#: src/dynamic-launcher.c:365
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "O token fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:407 src/dynamic-launcher.c:829
-#: src/dynamic-launcher.c:878
+#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
+#: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O arquivo desktop excede o tamanho máximo (%d): %s"
 
-#: src/dynamic-launcher.c:561
+#: src/dynamic-launcher.c:563
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "URL fornecida é inválida: %s"
 
-#: src/dynamic-launcher.c:584
+#: src/dynamic-launcher.c:586
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipo de lançador inválido: %x"
 
-#: src/dynamic-launcher.c:591
+#: src/dynamic-launcher.c:593
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipo de lançador não suportado: %x"
 
-#: src/dynamic-launcher.c:653 src/dynamic-launcher.c:723
+#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
 msgstr "O ícone do lançador dinâmico falhou na validação"
 
-#: src/dynamic-launcher.c:739
+#: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() não permitido para o id de aplicativo %s"
 
-#: src/dynamic-launcher.c:918
+#: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "O ícone do arquivo desktop “%s” está em um caminho irreconhecível"
 
-#: src/dynamic-launcher.c:941
+#: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "O ícone do arquivo desktop “%s” falhou na serialização"
 
-#: src/dynamic-launcher.c:980
+#: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Nenhum lançador dinâmico existe com o id “%s”"
 
-#: src/dynamic-launcher.c:999
+#: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id “%s”"
@@ -180,30 +180,30 @@ msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
 "configurações de privacidades."
 
-#: src/screenshot.c:241 src/wallpaper.c:185
+#: src/screenshot.c:245 src/wallpaper.c:185
 msgid "Deny"
 msgstr "Negar"
 
-#: src/screenshot.c:261
+#: src/screenshot.c:267
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permitir que %s faça capturas de tela?"
 
-#: src/screenshot.c:262
+#: src/screenshot.c:268
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s deseja ser capaz de capturar a tela a qualquer momento."
 
-#: src/screenshot.c:270
+#: src/screenshot.c:276
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Permitir que aplicativos façam capturas de tela?"
 
-#: src/screenshot.c:271
+#: src/screenshot.c:277
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Um aplicativo deseja ser capaz de fazer capturas de tela a qualquer momento."
 
-#: src/screenshot.c:274 src/wallpaper.c:220
+#: src/screenshot.c:280 src/wallpaper.c:220
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Essa permissão pode ser alterada a qualquer momento a partir das "

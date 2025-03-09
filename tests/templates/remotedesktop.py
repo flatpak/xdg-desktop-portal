@@ -1,14 +1,16 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 # This file is formatted with Python Black
+# mypy: disable-error-code="misc"
 
 from tests.templates import Response, init_logger, ImplRequest, ImplSession
+
 from dbusmock import MOCK_IFACE
 import dbus
 import dbus.service
 import socket
-
 from gi.repository import GLib
+from dataclasses import dataclass
 
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
@@ -21,17 +23,29 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
+@dataclass
+class RemotedesktopParameters:
+    delay: int
+    response: int
+    expect_close: bool
+    force_close: int
+    force_clipoboard_enabled: bool
+    fail_connect_to_eis: bool
+
+
 def load(mock, parameters={}):
     logger.debug(f"Loading parameters: {parameters}")
 
-    mock.delay: int = parameters.get("delay", 200)
-    mock.response: int = parameters.get("response", 0)
-    mock.expect_close: bool = parameters.get("expect-close", False)
-    mock.force_close: int = parameters.get("force-close", 0)
-    mock.force_clipoboard_enabled: bool = parameters.get(
-        "force-clipboard-enabled", False
+    assert not hasattr(mock, "remotedesktop_params")
+    mock.remotedesktop_params = RemotedesktopParameters(
+        delay=parameters.get("delay", 200),
+        response=parameters.get("response", 0),
+        expect_close=parameters.get("expect-close", False),
+        force_close=parameters.get("force-close", 0),
+        force_clipoboard_enabled=parameters.get("force-clipboard-enabled", False),
+        fail_connect_to_eis=parameters.get("fail-connect-to-eis", False),
     )
-    mock.fail_connect_to_eis: bool = parameters.get("fail-connect-to-eis", False)
+
     mock.AddProperties(
         MAIN_IFACE,
         dbus.Dictionary(
@@ -51,6 +65,7 @@ def load(mock, parameters={}):
 )
 def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_error):
     logger.debug(f"CreateSession({handle}, {session_handle}, {app_id}, {options})")
+    params = self.remotedesktop_params
 
     session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
     self.sessions[session_handle] = session
@@ -64,15 +79,15 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
         request.respond(
-            Response(self.response, {"session_handle": session.handle}),
-            delay=self.delay,
+            Response(params.response, {"session_handle": session.handle}),
+            delay=params.delay,
         )
-        if self.force_close > 0:
-            GLib.timeout_add(self.force_close, session.close)
+        if params.force_close > 0:
+            GLib.timeout_add(params.force_close, session.close)
 
 
 @dbus.service.method(
@@ -83,6 +98,7 @@ def CreateSession(self, handle, session_handle, app_id, options, cb_success, cb_
 )
 def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_error):
     logger.debug(f"SelectDevices({handle}, {session_handle}, {app_id}, {options})")
+    params = self.remotedesktop_params
 
     assert session_handle in self.sessions
 
@@ -95,10 +111,10 @@ def SelectDevices(self, handle, session_handle, app_id, options, cb_success, cb_
         cb_error,
     )
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(Response(self.response, {}), delay=self.delay)
+        request.respond(Response(params.response, {}), delay=params.delay)
 
 
 @dbus.service.method(
@@ -113,6 +129,7 @@ def Start(
     logger.debug(
         f"Start({handle}, {session_handle}, {parent_window}, {app_id}, {options})"
     )
+    params = self.remotedesktop_params
 
     assert session_handle in self.sessions
 
@@ -125,14 +142,14 @@ def Start(
         cb_error,
     )
 
-    response = Response(self.response, {})
-    if self.force_clipoboard_enabled:
+    response = Response(params.response, {})
+    if params.force_clipoboard_enabled:
         response.results["clipboard_enabled"] = True
 
-    if self.expect_close:
+    if params.expect_close:
         request.wait_for_close()
     else:
-        request.respond(response, delay=self.delay)
+        request.respond(response, delay=params.delay)
 
 
 @dbus.service.method(
@@ -143,10 +160,11 @@ def Start(
 def ConnectToEIS(self, session_handle, app_id, options):
     try:
         logger.debug(f"ConnectToEIS({session_handle}, {app_id}, {options})")
+        params = self.remotedesktop_params
 
         assert session_handle in self.sessions
 
-        if self.fail_connect_to_eis:
+        if params.fail_connect_to_eis:
             raise dbus.exceptions.DBusException("Purposely failing ConnectToEIS")
 
         sockets = socket.socketpair()

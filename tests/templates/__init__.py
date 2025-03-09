@@ -72,10 +72,11 @@ class ImplRequest:
     ) -> None:
         def reply():
             nonlocal response
+            res = None
             logger.debug(f"Request {self.handle}: trying to reply")
             if callable(response):
                 try:
-                    response = response()
+                    res = response()
                 except Exception as e:
                     logger.critical(
                         f"Request {self.handle}: failed getting response: {e}"
@@ -83,11 +84,13 @@ class ImplRequest:
                     self.cb_error(e)
                     self._unexport()
                     return
+            else:
+                res = response
 
-            assert response
-            logger.debug(f"Request {self.handle}: replying {response}")
+            assert res
+            logger.debug(f"Request {self.handle}: replying {res}")
 
-            self.cb_success(response.response, response.results)
+            self.cb_success(res.response, res.results)
             self._unexport()
 
             if done_cb:

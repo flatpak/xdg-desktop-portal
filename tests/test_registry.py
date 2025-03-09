@@ -48,6 +48,7 @@ class TestRegistry:
             "CreateSession",
             options=options,
         )
+        assert response
         assert response.response == 0
 
         return xdp.Session.from_response(dbus_con, response)

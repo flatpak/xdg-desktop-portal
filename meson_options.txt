@@ -14,10 +14,6 @@ option('systemd-user-unit-dir',
        type: 'string',
        value: '',
        description: 'directory for systemd user service files (default: PREFIX/lib/systemd/user)')
-option('libportal',
-       type: 'feature',
-       value: 'auto',
-       description: 'Enable libportal support. Needed for tests')
 option('geoclue',
        type: 'feature',
        value: 'auto',
@@ -38,14 +34,14 @@ option('datarootdir',
         type: 'string',
         value: '',
         description: 'Define the datarootdir for the pkgconf file')
+option('tests',
+        type: 'feature',
+        value: 'enabled',
+        description: 'Enable the test suite')
 option('installed-tests',
         type: 'boolean',
         value: false,
         description: 'Enable installation of some test cases')
-option('pytest',
-        type: 'feature',
-        value: 'enabled',
-        description: 'Enable the pytest-based test suite')
 option('man-pages',
        type: 'feature',
        value: 'auto',

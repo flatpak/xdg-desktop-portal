@@ -60,4 +60,4 @@ for file in inputs:
     fix_title_template_string(lines)
 
     with open(fullpath, "w") as f:
-        lines = f.writelines(lines)
+        f.writelines(lines)

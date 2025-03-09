@@ -1,22 +1,60 @@
 xdg-desktop-portal test suite
 =============================
 
-## Environment
+## Unit tests
 
-Some relevant environment variables that can be set during testing,
-but should not normally be set on production systems:
+This directory contains a number of unit tests. The tests are written in C and
+are using the glib testing framework (https://docs.gtk.org/glib/testing.html).
 
-* `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
-    (default: discovered at build-time)
+The files follow the pattern `test-$NAME.c` and are compiled by meson. The tests
+can be run with `meson test --suite unit`.
 
-* `LIBEXECDIR`: If set, look for the x-d-p executable in this directory
+## Integration tests
 
-* `XDP_TEST_IN_CI`: If set (to any value), some tests that are not always
-    reliable are skipped.
+The integration tests usually test a specific portal in a fully integrated
+environment. The tests are written in python using the pytest framework.
+
+The files follow the pattern `test_$NAME.py`. The tests can be run with
+`meson test --suite integration` or with `run-test.sh` in the source directory.
+
+The environment is being set up by fixtures in `conftest.py` which can be
+overwritten or parameterized by the tests themselves. There are a bunch of
+convenient functions and classes in `__init__.py`. The portal backends are
+implemented using dbusmock templates in the `templates` directory.
+
+### Environment
+
+Some environment variables need to be set for the integration tests to function
+properly and the harness will refuse to launch if they are not set. If the
+harness is executed by meson or run-test.sh, they will be set automatically.
+
+* `XDG_DESKTOP_PORTAL_PATH`: The path to the xdg-desktop-portal binary
+
+* `XDG_PERMISSION_STORE_PATH`: The path to the xdg-permission-store binary
+
+* `XDG_DOCUMENT_PORTAL_PATH`: The path to the xdg-document-portal binary
+
+* `XDP_VALIDATE_ICON`: The path to the xdg-desktop-portal-validate-icon binary
+
+* `XDP_VALIDATE_SOUND`: The path to the xdg-desktop-portal-validate-sound binary
+
+* `XDP_VALIDATE_AUTO`: If set, automatically discovers the icon and sound
+    validators (only useful for installed tests) instead of using
+    `XDP_VALIDATE_ICON` and `XDP_VALIDATE_SOUND`.
+
+Some optional environment variables that can be set to influence how the test
+harness behaves.
+
+* `XDP_TEST_IN_CI`: If set (to any value), some unreliable tests might get
+    skipped and some tests might run less iterations or otherwise test less
+    thoroughly.
     Set this for automated QA testing, leave it unset during development.
 
 * `XDP_TEST_RUN_LONG`: If set (to any value), some tests will run more
-    iterations or otherwise test more thoroughly.
+    iterations or otherwise test more thoroughly
+
+* `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
+    (default: discovered at build-time)
 
 * `XDP_VALIDATE_ICON_INSECURE`: If set (to any value), x-d-p doesn't
     sandbox the icon validator using **bwrap**(1), even if sandboxed
@@ -29,28 +67,39 @@ but should not normally be set on production systems:
 * `XDP_VALIDATE_SOUND_INSECURE`: Same as `XDP_VALIDATE_ICON_INSECURE`,
     but for sounds
 
-### Used automatically
+Some optional environment variables that can be set to help with debugging.
 
-These environment variables are set automatically and shouldn't need to be
-changed, but developers improving the test suite might need to be aware
-of them:
+* `XDP_DBUS_MONITOR`: If set, starts dbus-monitor on the test dbus server
 
-* `XDG_DESKTOP_PORTAL_DIR`: If set, it will be used instead of the
-    compile-time path (normally `/usr/share/xdg-desktop-portal/portals`)
+* `XDP_DBUS_TIMEOUT`: Maximum timeout for dbus calls in ms (default: 5s)
 
-* `XDP_UNINSTALLED`: Set to 1 when running build-time tests on a version
-    of x-d-p that has not yet been installed. Leave unset when running
-    "as-installed" tests on the system copy of x-d-p.
+* `XDG_DESKTOP_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-desktop-portal wait for
+    a debugger to attach by raising SIGSTOP
 
-* `XDP_VALIDATE_ICON`: Path to `x-d-p-validate-icon` executable in the
-    build directory
+* `XDG_DOCUMENT_PORTAL_WAIT_FOR_DEBUGGER`: Makes xdg-document-portal wait
+    for a debugger to attach by raising SIGSTOP
 
-* `XDP_VALIDATE_SOUND`: Path to `x-d-p-validate-sound` executable in the
-    build directory
+* `XDG_PERMISSION_STORE_WAIT_FOR_DEBUGGER`: Makes xdg-permission-store wait
+    for a debugger to attach by raising SIGSTOP
+
+Internal environment variables the tests use via pytest fixtures to set up the
+environment they need.
 
 * `XDG_DESKTOP_PORTAL_TEST_APP_ID`: If set, the portal will use a host
     XdpAppInfo with the app id set to the variable. This is used to get a
     predictable app id for tests.
 
 * `XDG_DESKTOP_PORTAL_TEST_USB_QUERIES`: The USB queries for the USB device
-    portal testing.
+    portal testing
+
+### Adding new tests
+
+Make sure the required portals are listed in
+`xdg_desktop_portal_dir_default_files` in `conftest.py`.
+
+Add a `test_${name}.py` file to this directory and add the file to
+`meson.build`.
+
+If the portal that is being tested requires a backend implementation, add
+it to the `templates` directory and add the file to `meson.build`. See the
+dbusmock documentation for details on those templates.
