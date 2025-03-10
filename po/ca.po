@@ -2,14 +2,14 @@
 # Copyright (C) 2021 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Maite Guix <maite.guix@gmail.com>, 2021.
-# Jordi Mas i Hernàndez <jmas@softcatala.org>, 2023
+# Jordi Mas i Hernàndez <jmas@softcatala.org>, 2023-2025
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-02-19 12:32-0300\n"
-"PO-Revision-Date: 2021-11-10 19:00+0100\n"
+"PO-Revision-Date: 2025-10-03 19:00+0100\n"
 "Last-Translator: Jordi Mas i Hernàndez <jmas@softcatala.org>\n"
 "Language-Team: Catalan <gnome@llistes.softcatala.org>\n"
 "Language: ca\n"
@@ -51,103 +51,106 @@ msgid "Allow"
 msgstr "Permet"
 
 #: src/camera.c:105
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "Voleu que %s s'executi en segon pla?"
+msgstr "Voleu permetre que %s utilitzi la càmera?"
 
 #: src/camera.c:106
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to access camera devices."
-msgstr "%s vol utilitzar la càmera."
+msgstr "%s vol accedir als dispositius de la càmera."
 
 #: src/camera.c:110
 msgid "Allow app to Use the Camera?"
-msgstr ""
+msgstr "Voleu permetre que l'aplicació utilitzi la càmera?"
 
 #: src/camera.c:111
-#, fuzzy
 msgid "An app wants to access camera devices."
-msgstr "Una aplicació vol utilitzar la càmera."
+msgstr "Una aplicació vol accedir a la càmera."
 
 #: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
+msgstr "Manca l'ID del fitxer d'escriptori .desktop sufix: %s"
 
 #: src/dynamic-launcher.c:133
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr ""
+msgstr "L'ID del fitxer d'escriptori no és vàlid"
 
 #: src/dynamic-launcher.c:307
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
+"L'entrada d'escriptori donada a Install() no és un fitxer de clau vàlid"
 
 #: src/dynamic-launcher.c:320
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
+"L'entrada d'escriptori donada a Install() ha de tenir exactament un grup"
 
 #: src/dynamic-launcher.c:333
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr ""
+msgstr "L'entrada d'escriptori donada a Install() no és vàlida"
 
 #: src/dynamic-launcher.c:365
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr ""
+msgstr "El testimoni indicat no és vàlid: %s"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
+msgstr "El fitxer d'escriptori supera la mida màxima (%d): %s"
 
 #: src/dynamic-launcher.c:563
 #, c-format
 msgid "URL given is invalid: %s"
-msgstr ""
+msgstr "L'URL indicat no és vàlid: %s"
 
 #: src/dynamic-launcher.c:586
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr ""
+msgstr "Tipus de llançador no vàlid: %x"
 
 #: src/dynamic-launcher.c:593
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr ""
+msgstr "Tipus de llançador no admès: %x"
 
 #: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
-msgstr ""
+msgstr "Ha fallat la validació llançador d'icones dinàmic"
 
 #: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
+msgstr "RequestInstallToken() no està permès per a l'ID d'aplicació %s"
 
 #: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
+msgstr "La icona del fitxer d'escriptori «%s» al camí no reconegut"
 
 #: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
+msgstr "La icona del fitxer d'escriptori «%s» no s'ha pogut serialitzar"
 
 #: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
+msgstr "No hi ha cap llançador dinàmic amb l'ID «%s»"
 
 #: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
+"No s'ha pogut crear el GDesktopAppInfo per al llançador amb l'identificador "
+"«%s»"
 
 #: src/location.c:544
 msgid "Deny Access"
@@ -215,12 +218,11 @@ msgstr "No s'ha trobat la configuració sol·licitada"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "El dispositiu no està disponible"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "No ho permetis"
+msgstr "No permès"
 
 #: src/wallpaper.c:207
 #, c-format
@@ -237,49 +239,7 @@ msgid "Allow Applications to Set Backgrounds?"
 msgstr "Voleu permetre que les aplicacions estableixin el fons?"
 
 #: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+msgid ""
+"An application is requesting to be able to change the background image."
 msgstr "Una aplicació sol·licita poder canviar la imatge de fons."
 
-#~ msgid "Turn On Microphone?"
-#~ msgstr "Voleu activar el micròfon?"
-
-#~ msgid ""
-#~ "Access to your microphone can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "L'accés al micròfon es pot canviar en qualsevol moment des de la "
-#~ "configuració de privacitat."
-
-#~ msgid "An application wants to use your microphone."
-#~ msgstr "Una aplicació vol utilitzar el micròfon."
-
-#, c-format
-#~ msgid "%s wants to use your microphone."
-#~ msgstr "%s vol utilitzar el micròfon."
-
-#~ msgid "Turn On Speakers?"
-#~ msgstr "Voleu activar els altaveus?"
-
-#~ msgid ""
-#~ "Access to your speakers can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "L'accés als altaveus es pot canviar en qualsevol moment des de la "
-#~ "configuració de privacitat."
-
-#~ msgid "An application wants to play sound."
-#~ msgstr "Una aplicació vol reproduir so."
-
-#, c-format
-#~ msgid "%s wants to play sound."
-#~ msgstr "%s vol reproduir so."
-
-#~ msgid "Turn On Camera?"
-#~ msgstr "Voleu activar la càmera?"
-
-#~ msgid ""
-#~ "Access to your camera can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "L'accés a la càmera es pot canviar en qualsevol moment des de la "
-#~ "configuració de privacitat."
