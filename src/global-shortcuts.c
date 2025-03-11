@@ -566,18 +566,72 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static XdpOptionKey global_shortcuts_configure_shortcuts_options[] = {
+  { "activation_token", G_VARIANT_TYPE_STRING, NULL },
+};
+
+static gboolean
+handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
+                            GDBusMethodInvocation *invocation,
+                            const gchar *arg_session_handle,
+                            const gchar *arg_parent_window,
+                            GVariant *arg_options)
+{
+  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpSession *session;
+  g_autoptr(GError) error = NULL;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           global_shortcuts_configure_shortcuts_options,
+                           G_N_ELEMENTS (global_shortcuts_configure_shortcuts_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  session = xdp_session_from_call (arg_session_handle, call);
+  if (!session)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_dbus_impl_global_shortcuts_call_configure_shortcuts_sync (impl,
+                                                                    arg_session_handle,
+                                                                    arg_parent_window,
+                                                                    g_variant_builder_end (&options_builder),
+                                                                    NULL,
+                                                                    &error))
+    {
+      g_warning ("Failed to ConfigureShortcuts: %s", error->message);
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_dbus_global_shortcuts_complete_configure_shortcuts(object, invocation);
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
 static void
 global_shortcuts_iface_init (XdpDbusGlobalShortcutsIface *iface)
 {
   iface->handle_create_session = handle_create_session;
   iface->handle_bind_shortcuts = handle_bind_shortcuts;
   iface->handle_list_shortcuts = handle_list_shortcuts;
+  iface->handle_configure_shortcuts = handle_configure_shortcuts;
 }
 
 static void
 global_shortcuts_init (GlobalShortcuts *global_shortcuts)
 {
-  xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts), 1);
+  xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts), 2);
 }
 
 static void
