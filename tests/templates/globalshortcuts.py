@@ -143,6 +143,15 @@ def ListShortcuts(
 
 
 @dbus.service.method(
+    MAIN_IFACE,
+    in_signature="osa{sv}",
+    out_signature="",
+)
+def ConfigureShortcuts(self, session_handle, parent_window, options):
+    assert session_handle in self.sessions
+
+
+@dbus.service.method(
     MOCK_IFACE,
     in_signature="os",
     out_signature="",
