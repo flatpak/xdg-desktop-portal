@@ -41,7 +41,7 @@
       #org.freedesktop.portal.GlobalShortcuts::Deactivated signals are emitted,
       respecitvely, whenever a shortcut is activated and deactivated.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.GlobalShortcuts">
     <!--
@@ -181,6 +181,29 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="request_handle" direction="out"/>
+    </method>
+
+    <!--
+        ConfigureShortcuts:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+
+        Request showing a configuration UI so the user is able to conigure all shortcuts of this session.
+
+        Supported keys in the @options vardict include:
+
+        * ``activation_token`` (``s``)
+
+          A token that can be used to activate the configuration window.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="ConfigureShortcuts">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in" />
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
     </method>
 
     <!--
