@@ -25,6 +25,11 @@ conventions. When the host app registry becomes deprecated, the details of the
 replacement will be documented in :doc:`org.freedesktop.host.portal.Registry
 <doc-org.freedesktop.host.portal.Registry>`.
 
+.. toctree::
+   :hidden:
+
+   doc-org.freedesktop.host.portal.Registry.rst
+
 All apps have access to the portals below:
 
 .. toctree::
