@@ -12,6 +12,7 @@ documented in the pages below:
    requests
    sessions
    window-identifiers
+   icons
 
 .. cssclass:: tiled-toc
 
@@ -47,3 +48,11 @@ documented in the pages below:
       :class: only-dark
 
    :doc:`Window Identifiers </window-identifiers>`
+*  .. image:: _static/img/tiles/Icons-l.png
+      :target: icons.html
+      :class: only-light
+   .. image:: _static/img/tiles/Icons-d.png
+      :target: icons.html
+      :class: only-dark
+
+   :doc:`Icons </icons>`
