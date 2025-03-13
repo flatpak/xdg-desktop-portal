@@ -44,6 +44,8 @@ typedef struct _PortalConfig {
   PortalInterface *default_portal;
 } PortalConfig;
 
+#define XDP_SUBDIR "xdg-desktop-portal"
+
 static void
 portal_interface_free (PortalInterface *iface)
 {
@@ -268,17 +270,12 @@ sort_impl_by_use_in_and_name (gconstpointer a,
   return strcmp (pa->source, pb->source);
 }
 
-void
-load_installed_portals (gboolean opt_verbose)
+static void
+load_installed_portals_dir (const char *portal_dir,
+                            gboolean    opt_verbose)
 {
   g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFile) dir = NULL;
-  const char *portal_dir;
-
-  /* We need to override this in the tests */
-  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
-  if (portal_dir == NULL)
-    portal_dir = DATADIR "/xdg-desktop-portal/portals";
 
   g_debug ("load portals from %s", portal_dir);
 
@@ -317,6 +314,43 @@ load_installed_portals (gboolean opt_verbose)
     }
 
   implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
+}
+
+void
+load_installed_portals (gboolean opt_verbose)
+{
+  const char *portal_dir;
+  g_autofree char *user_portal_dir = NULL;
+  const char * const *dirs;
+  const char * const *iter;
+
+  /* We need to override this in the tests */
+  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
+  if (portal_dir != NULL)
+    {
+      load_installed_portals_dir (portal_dir, opt_verbose);
+      /* All other config directories are ignored when this is set */
+      return;
+    }
+
+  /* $XDG_DATA_HOME/xdg-desktop-portal/portals */
+  user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, "portals", NULL);
+  load_installed_portals_dir (user_portal_dir, opt_verbose);
+
+  /* $XDG_DATA_DIRS/xdg-desktop-portal/portals */
+  dirs = g_get_system_data_dirs ();
+
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = NULL;
+
+      dir = g_build_filename (*iter, XDP_SUBDIR, "portals", NULL);
+      load_installed_portals_dir (dir, opt_verbose);
+    }
+
+  /* ${datadir}/xdg-desktop-portal/portals */
+  portal_dir = DATADIR "/" XDP_SUBDIR "/portals";
+  load_installed_portals_dir (portal_dir, opt_verbose);
 }
 
 static PortalConfig *
@@ -428,8 +462,6 @@ load_config_directory (const char *dir,
 
   return FALSE;
 }
-
-#define XDP_SUBDIR "xdg-desktop-portal"
 
 void
 load_portal_configuration (gboolean opt_verbose)
