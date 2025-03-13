@@ -29,8 +29,10 @@ jobs:
         run: |
           export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
           export PATH="/root/.local/bin:$PATH"
-          meson setup builddir -Ddocumentation=enabled
-          ninja -C builddir doc/html
+          meson setup _build \
+            -Ddocumentation=enabled \
+            -Dwerror=true
+          ninja -C _build doc/html
 
       - name: Build website
         uses: actions/jekyll-build-pages@v1
@@ -39,7 +41,7 @@ jobs:
           destination: ./_site
 
       - name: Prepare docs
-        working-directory: builddir/doc
+        working-directory: _build/doc
         run: |
           mv ./html ../../_site/docs
 
