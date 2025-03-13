@@ -131,10 +131,16 @@ if build_documentation
   
   run_command(copytree, 'img', '_static' / 'img')
 
+  sphinx_command = [ sphinx_build ]
+
+  if get_option('werror')
+    sphinx_command += [ '-W', '--keep-going' ]
+  endif
+
   custom_target('docs',
     input: docs_inputs,
     output: 'html',
-    command: [ sphinx_build, meson.current_build_dir(), '@OUTPUT@' ],
+    command: sphinx_command + [ meson.current_build_dir(), '@OUTPUT@' ],
     build_by_default: true,
     depends: fixed_rst_files,
     depend_files: all_interfaces_xml,
