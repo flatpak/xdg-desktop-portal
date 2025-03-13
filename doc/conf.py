@@ -30,8 +30,6 @@ html_theme = "furo"
 # add custom files that are stored in _static
 html_css_files = ["xdg.css"]
 html_static_path = ["_static"]
-html_favicon = "img/favicon.svg"
-html_logo = "img/logo.svg"
 
 # -- Options for OpenGraph ---------------------------------------------------
 
