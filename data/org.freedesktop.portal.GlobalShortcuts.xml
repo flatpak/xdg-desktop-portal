@@ -22,8 +22,8 @@
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.portal.GlobalShortcut:
-      @short_description: GlobalShortcut portal backend interface
+      org.freedesktop.portal.GlobalShortcuts:
+      @short_description: Portal for managing global shortcuts
 
       This portal lets applications create global shortcuts sessions, and
       register shortcuts to them. These shortcuts are activated regardless of

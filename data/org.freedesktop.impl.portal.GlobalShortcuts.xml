@@ -22,8 +22,8 @@
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.impl.portal.GlobalShortcut:
-      @short_description: GlobalShortcut portal backend interface
+      org.freedesktop.impl.portal.GlobalShortcuts:
+      @short_description: GlobalShortcuts portal backend interface
 
       This portal lets applications register global shortcuts so they can
       act regardless of the system state upon an input event.
