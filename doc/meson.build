@@ -111,15 +111,6 @@ if build_documentation
     docs_inputs += manpages
   endif
 
-  custom_target('docs',
-    input: docs_inputs,
-    output: 'html',
-    command: [ sphinx_build, meson.current_build_dir(), '@OUTPUT@' ],
-    build_by_default: true,
-    depends: fixed_rst_files,
-    depend_files: all_interfaces_xml,
-  )
-
   # Copy static files to the appropriate output subdir
   copy = find_program('copy-subdir.py')
   copytree = find_program('copy-subtree.py')
@@ -135,8 +126,17 @@ if build_documentation
   ]
 
   foreach f: static_files
-    run_command(copy, '_static' / f, 'html' / '_static' / f)
+    run_command(copy, '_static' / f, '_static' / f)
   endforeach
   
-  run_command(copytree, 'img', 'html' / '_static' / 'img')
+  run_command(copytree, 'img', '_static' / 'img')
+
+  custom_target('docs',
+    input: docs_inputs,
+    output: 'html',
+    command: [ sphinx_build, meson.current_build_dir(), '@OUTPUT@' ],
+    build_by_default: true,
+    depends: fixed_rst_files,
+    depend_files: all_interfaces_xml,
+  )
 endif
