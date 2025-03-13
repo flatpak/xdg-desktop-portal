@@ -34,7 +34,6 @@ All apps have access to the portals below:
    doc-org.freedesktop.portal.Background.rst
    doc-org.freedesktop.portal.Camera.rst
    doc-org.freedesktop.portal.Clipboard.rst
-   doc-org.freedesktop.portal.Device.rst
    doc-org.freedesktop.portal.Documents.rst
    doc-org.freedesktop.portal.DynamicLauncher.rst
    doc-org.freedesktop.portal.Email.rst
