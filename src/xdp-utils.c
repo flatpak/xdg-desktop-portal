@@ -284,6 +284,62 @@ is_valid_name_character (gint c, gboolean allow_dash)
     (c == '_') || (allow_dash && c == '-');
 }
 
+
+/* Get the document id from the path, if there's any.
+ * Returns TRUE when path seems to point to the documents
+ * storage. Also returns the guessed doc id and suffix path
+ * without the dir name immediately following the doc id.
+ */
+gboolean
+xdp_looks_like_document_portal_path (const char *path,
+                                     char **guessed_docid,
+                                     char **path_suffix)
+{
+  const char *runtime_dir = getenv("XDG_RUNTIME_DIR");
+  const char *user_prefix = "/run/user/";
+  char *docid;
+  char *suffixpath = NULL;
+  char *p, *q;
+  if (runtime_dir)
+    {
+      if (!g_str_has_prefix (path, runtime_dir))
+        return FALSE;
+    }
+  else
+    {
+      if (!g_str_has_prefix (path, user_prefix))
+        return FALSE;
+    }
+
+  p = strstr (path, "/doc/");
+  if (!p)
+    return FALSE;
+
+  p += strlen ("/doc/");
+  q = strchr (p, '/');
+  if (q) {
+    docid = g_strndup (p, q - p);
+    /* The mapping from doc path to the host path already provides the dir name,
+     * so we can omit it from the subpath.
+     */
+    q = strchr (++q, '/');
+    if (q) {
+      suffixpath = g_strdup(q);
+    }
+  } else
+    docid = g_strdup (p);
+
+  if (docid[0] == '\0')
+    {
+      g_free (docid);
+      return FALSE;
+    }
+
+  *guessed_docid = docid;
+  *path_suffix = suffixpath;
+  return TRUE;
+}
+
 /* This is the same as flatpak apps, except we also allow
    names to start with digits, and two-element names so that ids of the form
    snap.$snapname is allowed for all snap names. */
