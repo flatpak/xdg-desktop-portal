@@ -32,7 +32,7 @@
   <interface name="org.freedesktop.diagnostic.portal.Desktop">
 
     <!--
-      LockdownImpl:
+      lockdown-impl:
 
       Detail about the in use Lockdown portal implementation.
 
@@ -48,24 +48,24 @@
         Version of the implementation if the interface is versioned.
         Assume 1 if not present
     -->
-    <property name="LockdownImpl" type="a{sv}" access="read">
+    <property name="lockdown-impl" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>
 
     <!--
-      AccessImpl:
+      access-impl:
 
       Detail about the in use Access portal implementation.
 
       Implementation vardict containing the same
-      as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`.
+      as :ref:`org.freedesktop.diagnostic.portal.Desktop:lockdown-impl`.
     -->
-    <property name="AccessImpl" type="a{sv}" access="read">
+    <property name="access-impl" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
     </property>
 
     <!--
-      Portals:
+      portals:
 
       The list of portal with details about their state:
 
@@ -79,20 +79,20 @@
           * ``implementation`` (``a{sv}``)
 
             Implementation vardict containing the same properties
-            as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`,
+            as :ref:`org.freedesktop.diagnostic.portal.Desktop:lockdown-impl`,
             available if the portal is designed to rely on only one
             implementation.
 
           * ``implementations`` (``av``)
 
             Array of implementation vardicts containing the same
-            as :ref:`org.freedesktop.diagnostic.portal.Desktop:LockdownImpl`,
+            as :ref:`org.freedesktop.diagnostic.portal.Desktop:lockdown-impl`,
             available if the portal is designed to rely on multiple
             implementations.
 
             The order must be the same as when the portal rely on them.
     -->
-    <property name="Portals" type="a{sa{sv}}" access="read">
+    <property name="portals" type="a{sa{sv}}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="Qlist&lt;QMap&lt;QString,QVariantMap&gt;&gt;"/>
     </property>
 
