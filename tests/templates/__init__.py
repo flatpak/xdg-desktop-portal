@@ -173,7 +173,7 @@ class ImplSession:
     instantiate this directly, instead use ``ImplSession.export()``. Typically
     like this:
 
-        >>> s = ImplSession.export(mock, "org.freedesktop.impl.portal.Test", "/path/foo")
+        >>> s = ImplSession.export(mock, "org.freedesktop.impl.portal.desktop.Test", "/path/foo")
 
     Where the test or the backend implementation relies on the Closed() method
     of the ImplSession, provide a callback to be invoked.

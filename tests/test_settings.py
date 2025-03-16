@@ -78,13 +78,13 @@ SETTINGS_DATA = {
 @pytest.fixture
 def required_templates():
     return {
-        "settings:org.freedesktop.impl.portal.Test1": {
+        "settings:org.freedesktop.impl.portal.desktop.Test1": {
             "settings": SETTINGS_DATA_TEST1,
         },
-        "settings:org.freedesktop.impl.portal.Test2": {
+        "settings:org.freedesktop.impl.portal.desktop.Test2": {
             "settings": SETTINGS_DATA_TEST2,
         },
-        "settings:org.freedesktop.impl.portal.TestBad": {
+        "settings:org.freedesktop.impl.portal.desktop.TestBad": {
             "settings": SETTINGS_DATA_BAD,
         },
     }
@@ -93,22 +93,22 @@ def required_templates():
 PORTAL_CONFIG_FILES = {
     "test1.portal": b"""
 [portal]
-DBusName=org.freedesktop.impl.portal.Test1
+DBusName=org.freedesktop.impl.portal.desktop.Test1
 Interfaces=org.freedesktop.impl.portal.Settings;
 """,
     "test2.portal": b"""
 [portal]
-DBusName=org.freedesktop.impl.portal.Test2
+DBusName=org.freedesktop.impl.portal.desktop.Test2
 Interfaces=org.freedesktop.impl.portal.Settings;
 """,
     "test_bad.portal": b"""
 [portal]
-DBusName=org.freedesktop.impl.portal.TestBad
+DBusName=org.freedesktop.impl.portal.desktop.TestBad
 Interfaces=org.freedesktop.impl.portal.Settings;
 """,
     "test_noimpl.portal": b"""
 [portal]
-DBusName=org.freedesktop.impl.portal.TestBad
+DBusName=org.freedesktop.impl.portal.desktop.TestBad
 Interfaces=org.freedesktop.impl.portal.NonExistant;
 """,
 }
@@ -277,7 +277,9 @@ class TestSettings:
     )
     def test_config_twice(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
-        mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
+        mock_intf = xdp.get_mock_iface(
+            dbus_con, "org.freedesktop.impl.portal.desktop.Test1"
+        )
 
         value = settings_intf.ReadAll([])
         assert value == SETTINGS_DATA
@@ -313,7 +315,9 @@ class TestSettings:
 
     def test_changed(self, portals, dbus_con):
         settings_intf = xdp.get_portal_iface(dbus_con, "Settings")
-        mock_intf = xdp.get_mock_iface(dbus_con, "org.freedesktop.impl.portal.Test1")
+        mock_intf = xdp.get_mock_iface(
+            dbus_con, "org.freedesktop.impl.portal.desktop.Test1"
+        )
         changed_count = 0
 
         ns = "org.freedesktop.appearance"

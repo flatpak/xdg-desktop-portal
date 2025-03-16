@@ -174,7 +174,7 @@ default=test;
 
     files["test.portal"] = """
 [portal]
-DBusName=org.freedesktop.impl.portal.Test
+DBusName=org.freedesktop.impl.portal.desktop.Test
 Interfaces={}
 """.format(";".join(portals)).encode("utf-8")
 

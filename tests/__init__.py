@@ -145,7 +145,7 @@ def get_mock_iface(bus: dbus.Bus, bus_name: Optional[str] = None) -> dbus.Interf
     Returns the mock interface of the xdg-desktop-portal.
     """
     if not bus_name:
-        bus_name = "org.freedesktop.impl.portal.Test"
+        bus_name = "org.freedesktop.impl.portal.desktop.Test"
 
     obj = bus.get_object(bus_name, "/org/freedesktop/portal/desktop")
     return dbus.Interface(obj, dbusmock.MOCK_IFACE)

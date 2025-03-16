@@ -8,7 +8,7 @@ from tests.templates import init_logger
 import dbus.service
 
 
-BUS_NAME = "org.freedesktop.impl.portal.Test"
+BUS_NAME = "org.freedesktop.impl.portal.desktop.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.Lockdown"
