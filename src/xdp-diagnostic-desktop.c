@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xdp-diagnostic-desktop.h"
 
 #define XDP_IFACE_BASE_NAME "org.freedesktop.portal."
@@ -203,6 +205,9 @@ xdp_diagnostic_desktop_class_init (XdpDiagnosticDesktopClass *klass)
 static void
 xdp_diagnostic_desktop_init (XdpDiagnosticDesktop *self)
 {
+  g_autoptr (GVariant) info;
+  g_auto(GVariantBuilder) builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
   self->xdp_iface_name_prefix_len = strlen (XDP_IFACE_BASE_NAME);
   self->xdp_impl_dbus_name_prefix_len = strlen (XDP_IMPL_DBUS_BASE_NAME);
   self->portals = g_hash_table_new_full (g_str_hash,
@@ -211,6 +216,15 @@ xdp_diagnostic_desktop_init (XdpDiagnosticDesktop *self)
                                          (GDestroyNotify)portal_detail_free);
 
   xdp_dbus_diagnostic_desktop_set_version (XDP_DBUS_DIAGNOSTIC_DESKTOP (self), 1);
+
+  g_variant_builder_add (&builder, "{sv}", "name", g_variant_new_string (GETTEXT_PACKAGE));
+  g_variant_builder_add (&builder, "{sv}", "version", g_variant_new_string (VERSION_STRING));
+  g_variant_builder_add (&builder, "{sv}", "stable", g_variant_new_boolean ((VERSION_MINOR & 1) == 0));
+
+  info = g_variant_ref_sink (g_variant_builder_end(&builder));
+
+  xdp_dbus_diagnostic_desktop_set_service_info (XDP_DBUS_DIAGNOSTIC_DESKTOP (self),
+                                                info);
 }
 
 XdpDiagnosticDesktop *

@@ -32,6 +32,30 @@
   <interface name="org.freedesktop.diagnostic.portal.Desktop">
 
     <!--
+      service-info:
+
+      Detail about the frontend service implementation (e.g. xdg-desktop-portal).
+
+      The property vardict contains the following properties:
+
+      * ``name`` (``s``)
+
+        Name of the service.
+
+      * ``version`` (``s``)
+
+        Version of the service.
+
+      * ``stable`` (``b``)
+
+        Indicate if the version of the service is unstable.
+        Assume unstable if ``name``, ``version`` or ``stable`` is not present
+    -->
+    <property name="service-info" type="a{sv}" access="read">
+      <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
+    </property>
+
+    <!--
       lockdown-impl:
 
       Detail about the in use Lockdown portal implementation.

@@ -87,6 +87,8 @@ config_h.set_quoted('LOCALEDIR', localedir)
 config_h.set_quoted('SYSCONFDIR', sysconfdir)
 config_h.set_quoted('GETTEXT_PACKAGE', 'xdg-desktop-portal')
 config_h.set_quoted('PACKAGE_STRING', 'xdg-desktop-portal @0@'.format(meson.project_version()))
+config_h.set_quoted('VERSION_STRING', meson.project_version())
+config_h.set('VERSION_MINOR', meson.project_version().split('.')[1])
 
 foreach ident : [
         ['renameat2',         '''#include <stdio.h>'''],
