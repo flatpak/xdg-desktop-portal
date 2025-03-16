@@ -100,3 +100,19 @@ manage background running applications.
       :class: only-dark
 
    :doc:`Background Apps Monitor </doc-org.freedesktop.background.Monitor>`
+
+Desktop Portal Diagnostic
+-------------------------
+
+This API can be used by host system services to have more insight of the state
+of portals.
+
+
+.. toctree::
+   :hidden:
+
+   doc-org.freedesktop.diagnostic.portal.Desktop.rst
+
+.. cssclass:: tiled-toc
+
+*  :doc:`Desktop Portal Diagnostic </doc-org.freedesktop.diagnostic.portal.Desktop>`

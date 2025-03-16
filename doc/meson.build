@@ -49,6 +49,9 @@ if build_documentation
   foreach i: background_monitor_sources
     all_interfaces_xml += i
   endforeach
+  foreach i: diagnostic_portal_sources
+    all_interfaces_xml += i
+  endforeach
 
   # Replace the extension for gdbus-codegen
   all_interfaces_rst = []
