@@ -2,9 +2,6 @@
 
 #include "xdp-diagnostic-desktop.h"
 
-#define XDP_IFACE_BASE_NAME "org.freedesktop.portal."
-#define XDP_IMPL_DBUS_BASE_NAME "org.freedesktop.impl.portal.desktop."
-
 #define DIAGNOSTIC_DESKTOP_BUS_NAME "org.freedesktop.diagnostic.portal.Desktop"
 #define DIAGNOSTIC_DESKTOP_OBJECT_PATH "/org/freedesktop/diagnostic/portal/desktop"
 
@@ -23,9 +20,6 @@ struct PortalDetail {
 struct _XdpDiagnosticDesktop
 {
   XdpDbusDiagnosticDesktopSkeleton parent_instance;
-
-  size_t xdp_iface_name_prefix_len;
-  size_t xdp_impl_dbus_name_prefix_len;
 
   GDBusConnection *connection;
 
@@ -208,8 +202,6 @@ xdp_diagnostic_desktop_init (XdpDiagnosticDesktop *self)
   g_autoptr (GVariant) info;
   g_auto(GVariantBuilder) builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-  self->xdp_iface_name_prefix_len = strlen (XDP_IFACE_BASE_NAME);
-  self->xdp_impl_dbus_name_prefix_len = strlen (XDP_IMPL_DBUS_BASE_NAME);
   self->portals = g_hash_table_new_full (g_str_hash,
                                          g_str_equal,
                                          g_free,
@@ -245,10 +237,10 @@ xdp_diagnostic_desktop_set_lockdown_impl (XdpDiagnosticDesktop *self,
 {
   g_assert (XDP_IS_DIAGNOSTIC_DESKTOP (self));
   g_assert (self->lockdown_impl == NULL);
-  g_assert (g_str_has_prefix (dbus_name, XDP_IMPL_DBUS_BASE_NAME));
+  g_assert (dbus_name != NULL);
 
   self->lockdown_impl = g_new0 (struct PortalImplDetail, 1);
-  self->lockdown_impl->name = g_strdup (dbus_name + self->xdp_impl_dbus_name_prefix_len);
+  self->lockdown_impl->name = g_strdup (dbus_name);
 }
 
 void
@@ -257,10 +249,10 @@ xdp_diagnostic_desktop_set_access_impl (XdpDiagnosticDesktop *self,
 {
   g_assert (XDP_IS_DIAGNOSTIC_DESKTOP (self));
   g_assert (self->access_impl == NULL);
-  g_assert (g_str_has_prefix (dbus_name, XDP_IMPL_DBUS_BASE_NAME));
+  g_assert (dbus_name != NULL);
 
   self->access_impl = g_new0 (struct PortalImplDetail, 1);
-  self->access_impl->name = g_strdup (dbus_name + self->xdp_impl_dbus_name_prefix_len);
+  self->access_impl->name = g_strdup (dbus_name);
 }
 
 void
@@ -273,10 +265,7 @@ xdp_diagnostic_desktop_set_portal_unique_impl (XdpDiagnosticDesktop *self,
   struct PortalImplDetail *impl_detail;
 
   g_assert (XDP_IS_DIAGNOSTIC_DESKTOP (self));
-  if (g_strcmp0 (portal_name, "Secret") == 0)
-    g_assert (impl_dbus_name != NULL);
-  else
-    g_assert (g_str_has_prefix (impl_dbus_name, XDP_IMPL_DBUS_BASE_NAME));
+  g_assert (impl_dbus_name != NULL);
 
   detail = xdp_diagnostic_desktop_lookup_portal_detail (self,
                                                         portal_name);
@@ -285,12 +274,7 @@ xdp_diagnostic_desktop_set_portal_unique_impl (XdpDiagnosticDesktop *self,
   g_assert (detail->impls == NULL);
 
   impl_detail = g_new0 (struct PortalImplDetail, 1);
-
-  if (g_str_has_prefix (impl_dbus_name, XDP_IMPL_DBUS_BASE_NAME))
-    impl_detail->name = g_strdup (impl_dbus_name + self->xdp_impl_dbus_name_prefix_len);
-  else
-    impl_detail->name = g_strdup (impl_dbus_name);
-
+  impl_detail->name = g_strdup (impl_dbus_name);
   impl_detail->version = version;
 
   detail->impl = impl_detail;
@@ -306,7 +290,7 @@ xdp_diagnostic_desktop_add_portal_impl (XdpDiagnosticDesktop *self,
   struct PortalImplDetail *impl_detail;
 
   g_assert (XDP_IS_DIAGNOSTIC_DESKTOP (self));
-  g_assert (g_str_has_prefix (impl_dbus_name, XDP_IMPL_DBUS_BASE_NAME));
+  g_assert (impl_dbus_name != NULL);
 
   detail = xdp_diagnostic_desktop_lookup_portal_detail (self,
                                                         portal_name);
@@ -317,7 +301,7 @@ xdp_diagnostic_desktop_add_portal_impl (XdpDiagnosticDesktop *self,
       detail->impls = g_ptr_array_new_with_free_func ((GDestroyNotify)portal_impl_detail_free);
 
   impl_detail = g_new0 (struct PortalImplDetail, 1);
-  impl_detail->name = g_strdup (impl_dbus_name + self->xdp_impl_dbus_name_prefix_len);
+  impl_detail->name = g_strdup (impl_dbus_name);
   impl_detail->version = version;
 
   g_ptr_array_add (detail->impls, impl_detail);
