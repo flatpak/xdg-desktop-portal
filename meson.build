@@ -123,19 +123,6 @@ libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 
-gst_inspect = find_program('gst-inspect-1.0', required: false)
-if gst_inspect.found()
-  have_wav_parse = run_command(
-    gst_inspect, 'wavparse', '--exists',
-    check: false,
-  ).returncode() == 0
-else
-  have_wav_parse = false
-endif
-if have_wav_parse
-  config_h.set('HAVE_WAV_PARSE', 1)
-endif
-
 pytest = find_program('pytest-3', 'pytest', required: get_option('tests'))
 python = pymod.find_installation(
   'python3',
@@ -224,8 +211,6 @@ enable_tests = get_option('tests') \
   .require(python.found() and python.language_version().version_compare('>=3.9'),
            error_message: 'Python version >=3.9 is required') \
   .require(umockdev_dep.found()) \
-  .require(have_wav_parse,
-           error_message: 'gst-inspect and the wavparse plugins are required') \
   .allowed()
 
 enable_installed_tests = get_option('installed-tests')
