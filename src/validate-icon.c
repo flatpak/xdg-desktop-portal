@@ -276,6 +276,9 @@ rerun_in_sandbox (int input_fd)
             "--unshare-ipc",
             "--unshare-net",
             "--unshare-pid",
+            "--tmpfs", "/tmp",
+            "--proc", "/proc",
+            "--dev", "/dev",
             "--ro-bind", "/usr", "/usr",
             "--ro-bind-try", "/etc/ld.so.cache", "/etc/ld.so.cache",
             "--ro-bind", validate_icon, validate_icon,
@@ -306,9 +309,6 @@ rerun_in_sandbox (int input_fd)
     }
 
   add_args (args,
-            "--tmpfs", "/tmp",
-            "--proc", "/proc",
-            "--dev", "/dev",
             "--chdir", "/",
             "--setenv", "GIO_USE_VFS", "local",
             "--unsetenv", "TMPDIR",
