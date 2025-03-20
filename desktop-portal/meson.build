@@ -48,6 +48,20 @@ if have_geoclue
 else
   geoclue_built_sources = []
 endif
+if have_speech
+  speech_built_sources = gnome.gdbus_codegen(
+    'speech-provider-dbus',
+    sources: speechprovider_dep.get_variable('iface_xml'),
+    interface_prefix: 'org.freedesktop.Speech.',
+    namespace: 'Speech',
+    annotations : [
+      ['org.freedesktop.Speech.Provider', 'org.gtk.GDBus.C.Name', 'ProviderProxy']
+    ],
+    extra_args: gdbus_codegen_extra_args + ['--glib-min-required=2.64'],
+  )
+else
+  speech_built_sources = []
+endif
 
 xdp_method_info_built_sources = configure_file(
   command: [find_program('generate-method-info.py'), portal_sources],
@@ -109,6 +123,7 @@ xdg_desktop_portal_sources += [
   impl_built_sources,
   background_monitor_built_sources,
   geoclue_built_sources,
+  speech_built_sources,
 ]
 
 if have_geoclue
@@ -120,6 +135,12 @@ endif
 if have_gudev
   xdg_desktop_portal_sources += files(
     'usb.c',
+  )
+endif
+
+if have_speech
+  xdg_desktop_portal_sources += files(
+    'speech.c',
   )
 endif
 

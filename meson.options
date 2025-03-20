@@ -65,3 +65,7 @@ option('wireplumber-conf-fragments-dir',
        type: 'string',
        value: '',
        description: 'directory for WirePlumber configuration fragments (default: PREFIX/share/wireplumber/wireplumber.d)')
+option('speech',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Enable speech portal.')

@@ -166,6 +166,12 @@ template_files = [
   'templates/xdp_utils.py',
 ]
 
+
+if have_speech
+  tests += { 'speech':  {} }
+  template_files += ['templates/speechprovider.py']
+endif
+
 foreach testname, params : tests
   test(
     'integration/@0@'.format(testname),
