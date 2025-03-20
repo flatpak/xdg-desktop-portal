@@ -82,8 +82,8 @@ xdp_session_dex_handle_close (XdpDbusSession        *object,
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
 
-  dex_await (xdp_dbus_impl_session_call_close_future (session->impl_session),
-             &error);
+  if (session->impl_session)
+    dex_await (xdp_dbus_impl_session_call_close_future (session->impl_session), &error);
 
   xdp_session_dex_emit_closed (session);
 
@@ -114,7 +114,8 @@ xdp_session_dex_dispose (GObject *object)
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
       session->exported = FALSE;
 
-      xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
+      if (session->impl_session)
+        xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
     }
 
   g_clear_pointer (&session->claim, xdp_object_path_claim_unref);
@@ -161,7 +162,8 @@ on_app_info_removed (XdpAppInfoRegistry *registry,
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (session));
   session->exported = FALSE;
 
-  xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
+  if (session->impl_session)
+    xdp_dbus_impl_session_call_close (session->impl_session, NULL, NULL, NULL);
   xdp_session_dex_emit_closed (session);
 }
 
@@ -222,26 +224,23 @@ session_impl_proxy_create_data_free (SessionImplProxyCreateData *data)
 }
 
 static DexFuture *
-on_impl_session_proxy_created (DexFuture *future,
-                               gpointer   user_data)
+session_dex_new_inner (XdpContext             *context,
+                       XdpAppInfo             *app_info,
+                       XdpDbusImplSession     *impl_session,
+                       GDBusInterfaceSkeleton *skeleton,
+                       XdpObjectPathClaim     *claim)
 {
-  SessionImplProxyCreateData *data = user_data;
-  XdpAppInfoRegistry *registry =
-    xdp_context_get_app_info_registry (data->context);
+  XdpAppInfoRegistry *registry = xdp_context_get_app_info_registry (context);
   g_autoptr(XdpSessionDex) session = NULL;
-  g_autoptr(XdpDbusImplSession) impl_session = NULL;
   g_autoptr(GError) error = NULL;
   const char *path;
 
-  impl_session = dex_await_object (dex_ref (future), NULL);
-  g_assert (impl_session);
-
   session = g_object_new (XDP_TYPE_SESSION_DEX, NULL);
-  session->context = data->context;
-  session->app_info = g_steal_pointer (&data->app_info);
-  session->impl_session = g_steal_pointer (&impl_session);
-  session->skeleton = g_steal_pointer (&data->skeleton);
-  session->claim = g_steal_pointer (&data->claim);
+  session->context = context;
+  session->app_info = app_info;
+  session->impl_session = impl_session;
+  session->skeleton = skeleton;
+  session->claim = claim;
 
   g_signal_connect_object (registry, "removed",
                            G_CALLBACK (on_app_info_removed),
@@ -256,10 +255,13 @@ on_impl_session_proxy_created (DexFuture *future,
                              "Caller disconnected"));
     }
 
-  g_signal_connect_object (session->impl_session, "closed",
-                           G_CALLBACK (on_impl_closed),
-                           session,
-                           G_CONNECT_DEFAULT);
+  if (session->impl_session)
+    {
+      g_signal_connect_object (session->impl_session, "closed",
+                               G_CALLBACK (on_impl_closed),
+                               session,
+                               G_CONNECT_DEFAULT);
+    }
 
   dex_dbus_interface_skeleton_set_flags (DEX_DBUS_INTERFACE_SKELETON (session),
                                          DEX_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_FIBER);
@@ -277,6 +279,23 @@ on_impl_session_proxy_created (DexFuture *future,
   session->exported = TRUE;
 
   return dex_future_new_for_object (session);
+}
+
+static DexFuture *
+on_impl_session_proxy_created (DexFuture *future,
+                               gpointer   user_data)
+{
+  SessionImplProxyCreateData *data = user_data;
+  g_autoptr(XdpDbusImplSession) impl_session = NULL;
+
+  impl_session = dex_await_object (dex_ref (future), NULL);
+  g_assert (impl_session);
+
+  return session_dex_new_inner (data->context,
+                                g_steal_pointer (&data->app_info),
+                                g_steal_pointer (&impl_session),
+                                g_steal_pointer (&data->skeleton),
+                                g_steal_pointer (&data->claim));
 }
 
 DexFuture *
@@ -323,22 +342,26 @@ xdp_session_dex_new (XdpContext             *context,
       claim = xdp_context_claim_object_path (context, id);
     }
 
-  future = xdp_dbus_impl_session_proxy_new_future (
-    g_dbus_proxy_get_connection (proxy_impl),
-    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    g_dbus_proxy_get_name (proxy_impl),
-    id);
+  if (proxy_impl)
+    {
+      future = xdp_dbus_impl_session_proxy_new_future (g_dbus_proxy_get_connection (proxy_impl),
+                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                                       g_dbus_proxy_get_name (proxy_impl), id);
 
-  data = g_new0 (SessionImplProxyCreateData, 1);
-  data->context = context;
-  data->app_info = g_object_ref (app_info);
-  data->skeleton = g_object_ref (skeleton);
-  data->claim = g_steal_pointer (&claim);
+      data = g_new0 (SessionImplProxyCreateData, 1);
+      data->context = context;
+      data->app_info = g_object_ref (app_info);
+      data->skeleton = g_object_ref (skeleton);
+      data->claim = g_steal_pointer (&claim);
 
-  future = dex_future_then (future,
-                            on_impl_session_proxy_created,
-                            g_steal_pointer (&data),
-                            (GDestroyNotify) session_impl_proxy_create_data_free);
+      future = dex_future_then (future, on_impl_session_proxy_created, g_steal_pointer (&data),
+                                (GDestroyNotify) session_impl_proxy_create_data_free);
+    }
+  else
+    {
+      future = session_dex_new_inner (context, g_object_ref (app_info), NULL,
+                                      g_object_ref (skeleton), g_steal_pointer (&claim));
+    }
 
   return g_steal_pointer (&future);
 }
@@ -359,6 +382,12 @@ const char *
 xdp_session_dex_get_object_path (XdpSessionDex *session)
 {
   return xdp_object_path_claim_get_path (session->claim);
+}
+
+GDBusConnection *
+xdp_session_dex_get_connection (XdpSessionDex *session)
+{
+  return g_dbus_interface_skeleton_get_connection (session->skeleton);
 }
 
 typedef struct _XdpSessionDexStore
@@ -390,8 +419,10 @@ xdp_session_dex_store_take_session (XdpSessionDexStore *store,
   g_autoptr(GObject) owned_wrapper = G_OBJECT (session_wrapper);
   XdpSessionDex *session;
 
-  session = XDP_SESSION_DEX (G_STRUCT_MEMBER_P (owned_wrapper,
-                                                store->session_offset));
+  session =
+      XDP_SESSION_DEX (G_STRUCT_MEMBER (XdpSessionDex *,
+                                        owned_wrapper,
+                                        store->session_offset));
 
   if (!session || xdp_session_dex_is_closed (session))
     return;
@@ -418,8 +449,10 @@ xdp_session_dex_store_lookup_session (XdpSessionDexStore *store,
   if (!session_wrapper)
     return NULL;
 
-  session = XDP_SESSION_DEX (G_STRUCT_MEMBER_P (session_wrapper,
-                                                store->session_offset));
+  session =
+      XDP_SESSION_DEX (G_STRUCT_MEMBER (XdpSessionDex *,
+                                        session_wrapper,
+                                        store->session_offset));
 
   if (app_info && xdp_session_dex_get_app_info (session) != app_info)
     return NULL;
