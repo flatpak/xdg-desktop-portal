@@ -130,6 +130,12 @@ template_files = [
   'templates/xdp_utils.py',
 ]
 
+
+if have_speech
+  pytest_files += ['test_speech.py']
+  template_files += ['templates/speechprovider.py']
+endif
+
 foreach pytest_file : pytest_files
   testname = pytest_file.replace('.py', '').replace('test_', '')
   test(
