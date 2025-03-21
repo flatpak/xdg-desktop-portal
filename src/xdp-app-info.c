@@ -781,9 +781,7 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
   uint32_t pid;
   int fd_index;
   g_autoptr(GUnixFDList) fd_list = NULL;
-  int fds_len = 0;
-  const int *fds;
-  int pidfd;
+  g_autofd int pidfd = -1;
 
   reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
                                                          DBUS_NAME_DBUS,
@@ -846,21 +844,17 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
       return FALSE;
     }
 
-  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-  if (fds_len <= fd_index)
+  if (fd_index >= g_unix_fd_list_get_length (fd_list))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Pidfd index is out of bounds");
       return FALSE;
     }
 
-  pidfd = dup (fds[fd_index]);
+  pidfd = g_unix_fd_list_get (fd_list, fd_index, error);
   if (pidfd < 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't dup pidfd");
-      return FALSE;
-    }
+    return FALSE;
 
-  *out_pidfd = pidfd;
+  *out_pidfd = g_steal_fd (&pidfd);
   *out_pid = pid;
   return TRUE;
 }
