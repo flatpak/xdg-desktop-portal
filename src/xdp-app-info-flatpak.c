@@ -719,7 +719,7 @@ xdp_is_flatpak (int        pid,
 
 XdpAppInfo *
 xdp_app_info_flatpak_new (int      pid,
-                          int      pidfd,
+                          int     *pidfd,
                           GError **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;

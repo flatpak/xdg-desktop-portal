@@ -253,7 +253,7 @@ xdp_is_snap (int        pid,
 
 XdpAppInfo *
 xdp_app_info_snap_new (int      pid,
-                       int      pidfd,
+                       int     *pidfd,
                        GError **error)
 {
   g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
@@ -319,7 +319,7 @@ xdp_app_info_snap_new (int      pid,
                                   error,
                                   "engine", "io.snapcraft",
                                   "id", snap_id,
-                                  "pidfd", pidfd,
+                                  "pidfd", g_steal_fd (pidfd),
                                   "flags", flags,
                                   "desktop-file", desktop_id,
                                   NULL);

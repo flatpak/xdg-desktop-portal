@@ -186,7 +186,7 @@ get_appid_from_pid (pid_t pid)
 }
 
 XdpAppInfo *
-xdp_app_info_host_new_registered (int          pidfd,
+xdp_app_info_host_new_registered (int         *pidfd,
                                   const char  *app_id,
                                   GError     **error)
 {
@@ -197,7 +197,7 @@ xdp_app_info_host_new_registered (int          pidfd,
                                   error,
                                   "engine", NULL,
                                   "id", app_id,
-                                  "pidfd", pidfd,
+                                  "pidfd", g_steal_fd (pidfd),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
                                            XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
@@ -207,8 +207,8 @@ xdp_app_info_host_new_registered (int          pidfd,
 }
 
 XdpAppInfo *
-xdp_app_info_host_new (int pid,
-                       int pidfd)
+xdp_app_info_host_new (int  pid,
+                       int *pidfd)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
@@ -220,7 +220,7 @@ xdp_app_info_host_new (int pid,
                                   NULL,
                                   "engine", NULL,
                                   "id", app_id,
-                                  "pidfd", pidfd,
+                                  "pidfd", g_steal_fd (pidfd),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                   NULL);
