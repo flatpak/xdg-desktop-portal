@@ -224,7 +224,7 @@ xdp_app_info_set_property (GObject      *object,
 
     case PROP_PIDFD:
       g_assert (priv->pidfd == -1);
-      priv->pidfd = dup (g_value_get_int (value));
+      priv->pidfd = g_value_get_int (value);
       break;
 
     default:
@@ -969,7 +969,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+      app_info = xdp_app_info_flatpak_new (pid, &pidfd, &local_error);
       if (app_info)
         app_info_kind = "flatpak";
     }
@@ -984,7 +984,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+      app_info = xdp_app_info_snap_new (pid, &pidfd, &local_error);
       if (app_info)
         app_info_kind = "snap";
     }
@@ -999,7 +999,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_host_new (pid, pidfd);
+      app_info = xdp_app_info_host_new (pid, &pidfd);
       app_info_kind = "derived host";
     }
 
@@ -1054,7 +1054,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
           return NULL;
         }
 
-      app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      app_info = xdp_app_info_host_new_registered (&pidfd, app_id, error);
       if (!app_info)
         return NULL;
     }

@@ -37,7 +37,7 @@ gboolean xdp_is_snap (int        pid,
                       GError   **error);
 
 XdpAppInfo * xdp_app_info_snap_new (int      pid,
-                                    int      pidfd,
+                                    int     *pidfd,
                                     GError **error);
 
 XDP_EXPORT_TEST

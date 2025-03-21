@@ -37,5 +37,5 @@ gboolean xdp_is_flatpak (int        pid,
                          GError   **error);
 
 XdpAppInfo * xdp_app_info_flatpak_new (int      pid,
-                                       int      pidfd,
+                                       int     *pidfd,
                                        GError **error);
