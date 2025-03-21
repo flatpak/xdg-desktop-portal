@@ -32,11 +32,11 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoHost,
                       XDP, APP_INFO_HOST,
                       XdpAppInfo)
 
-XdpAppInfo * xdp_app_info_host_new (int pid,
-                                    int pidfd);
+XdpAppInfo * xdp_app_info_host_new (int  pid,
+                                    int *pidfd);
 
 XdpAppInfo *
-xdp_app_info_host_new_registered (int          pidfd,
+xdp_app_info_host_new_registered (int         *pidfd,
                                   const char  *app_id,
                                   GError     **error);
 

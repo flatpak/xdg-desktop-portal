@@ -224,7 +224,7 @@ xdp_app_info_set_property (GObject      *object,
 
     case PROP_PIDFD:
       g_assert (priv->pidfd == -1);
-      priv->pidfd = dup (g_value_get_int (value));
+      priv->pidfd = g_value_get_int (value);
       break;
 
     default:
@@ -781,9 +781,7 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
   uint32_t pid;
   int fd_index;
   g_autoptr(GUnixFDList) fd_list = NULL;
-  int fds_len = 0;
-  const int *fds;
-  int pidfd;
+  g_autofd int pidfd = -1;
 
   reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
                                                          DBUS_NAME_DBUS,
@@ -846,21 +844,17 @@ xdp_connection_get_pidfd (GDBusConnection  *connection,
       return FALSE;
     }
 
-  fds = g_unix_fd_list_peek_fds (fd_list, &fds_len);
-  if (fds_len <= fd_index)
+  if (fd_index >= g_unix_fd_list_get_length (fd_list))
     {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Pidfd index is out of bounds");
       return FALSE;
     }
 
-  pidfd = dup (fds[fd_index]);
+  pidfd = g_unix_fd_list_get (fd_list, fd_index, error);
   if (pidfd < 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't dup pidfd");
-      return FALSE;
-    }
+    return FALSE;
 
-  *out_pidfd = pidfd;
+  *out_pidfd = g_steal_fd (&pidfd);
   *out_pid = pid;
   return TRUE;
 }
@@ -975,7 +969,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_flatpak_new (pid, pidfd, &local_error);
+      app_info = xdp_app_info_flatpak_new (pid, &pidfd, &local_error);
       if (app_info)
         app_info_kind = "flatpak";
     }
@@ -990,7 +984,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_snap_new (pid, pidfd, &local_error);
+      app_info = xdp_app_info_snap_new (pid, &pidfd, &local_error);
       if (app_info)
         app_info_kind = "snap";
     }
@@ -1005,7 +999,7 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
 
   if (app_info == NULL)
     {
-      app_info = xdp_app_info_host_new (pid, pidfd);
+      app_info = xdp_app_info_host_new (pid, &pidfd);
       app_info_kind = "derived host";
     }
 
@@ -1060,7 +1054,7 @@ xdp_connection_create_host_app_info_sync (GDBusConnection  *connection,
           return NULL;
         }
 
-      app_info = xdp_app_info_host_new_registered (pidfd, app_id, error);
+      app_info = xdp_app_info_host_new_registered (&pidfd, app_id, error);
       if (!app_info)
         return NULL;
     }
