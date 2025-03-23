@@ -44,6 +44,8 @@ typedef struct _PortalConfig {
   PortalInterface *default_portal;
 } PortalConfig;
 
+#define XDP_SUBDIR "xdg-desktop-portal"
+
 static void
 portal_interface_free (PortalInterface *iface)
 {
@@ -163,16 +165,18 @@ get_current_lowercase_desktops (void)
 /* }}} */
 
 static PortalConfig *config = NULL;
-static GList *implementations = NULL;
+static GPtrArray *implementations = NULL;
 
 static gboolean
-register_portal (const char  *path,
+register_portal (GHashTable  *portals,
+                 const char  *path,
                  gboolean     opt_verbose,
                  GError     **error)
 {
   g_autoptr(XdpPortalImplementation) impl = g_new0 (XdpPortalImplementation, 1);
   g_autoptr(GKeyFile) keyfile = g_key_file_new ();
   g_autofree char *basename = NULL;
+  g_autofree char *source = NULL;
   int i;
 
   g_debug ("loading %s", path);
@@ -181,10 +185,18 @@ register_portal (const char  *path,
     return FALSE;
 
   basename = g_path_get_basename (path);
-  impl->source = g_strndup (basename, strrchr (basename, '.') - basename);
+  source = g_strndup (basename, strrchr (basename, '.') - basename);
+  impl->source = g_strdup (source);
+  if (g_hash_table_contains (portals, impl->source))
+    {
+      g_debug ("Skipping duplicate source %s", source);
+      return TRUE;
+    }
+
   impl->dbus_name = g_key_file_get_string (keyfile, "portal", "DBusName", error);
   if (impl->dbus_name == NULL)
     return FALSE;
+
   if (!g_dbus_is_name (impl->dbus_name))
     {
       g_set_error (error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_INVALID_VALUE,
@@ -195,6 +207,7 @@ register_portal (const char  *path,
   impl->interfaces = g_key_file_get_string_list (keyfile, "portal", "Interfaces", NULL, error);
   if (impl->interfaces == NULL)
     return FALSE;
+
   for (i = 0; impl->interfaces[i]; i++)
     {
       if (!g_dbus_is_interface_name (impl->interfaces[i]))
@@ -218,9 +231,10 @@ register_portal (const char  *path,
     }
 
   impl->use_in = g_key_file_get_string_list (keyfile, "portal", "UseIn", NULL, error);
-  implementations = g_list_prepend (implementations, impl);
-  impl = NULL;
 
+  g_hash_table_insert (portals,
+                       g_steal_pointer (&source),
+                       g_steal_pointer (&impl));
   return TRUE;
 }
 
@@ -268,17 +282,13 @@ sort_impl_by_use_in_and_name (gconstpointer a,
   return strcmp (pa->source, pb->source);
 }
 
-void
-load_installed_portals (gboolean opt_verbose)
+static void
+load_installed_portals_dir (GHashTable *portals,
+                            const char *portal_dir,
+                            gboolean    opt_verbose)
 {
   g_autoptr(GFileEnumerator) enumerator = NULL;
   g_autoptr(GFile) dir = NULL;
-  const char *portal_dir;
-
-  /* We need to override this in the tests */
-  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
-  if (portal_dir == NULL)
-    portal_dir = DATADIR "/xdg-desktop-portal/portals";
 
   g_debug ("load portals from %s", portal_dir);
 
@@ -309,14 +319,60 @@ load_installed_portals (gboolean opt_verbose)
       child = g_file_enumerator_get_child (enumerator, info);
       path = g_file_get_path (child);
 
-      if (!register_portal (path, opt_verbose, &error))
+      if (!register_portal (portals, path, opt_verbose, &error))
         {
           g_warning ("Error loading %s: %s", path, error->message);
           continue;
         }
     }
+}
 
-  implementations = g_list_sort (implementations, sort_impl_by_use_in_and_name);
+void
+load_installed_portals (gboolean opt_verbose)
+{
+  g_autoptr (GHashTable) portals = NULL;
+  const char *portal_dir;
+  g_autofree char *user_portal_dir = NULL;
+  const char * const *dirs;
+  const char * const *iter;
+
+  portals = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                   g_free,
+                                   (GDestroyNotify) portal_implementation_free);
+
+  /* We need to override this in the tests */
+  portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
+  if (portal_dir != NULL)
+    {
+      load_installed_portals_dir (portals, portal_dir, opt_verbose);
+      /* All other config directories are ignored when this is set */
+      goto out;
+    }
+
+  /* $XDG_DATA_HOME/xdg-desktop-portal/portals */
+  user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, "portals", NULL);
+  load_installed_portals_dir (portals, user_portal_dir, opt_verbose);
+
+  /* $XDG_DATA_DIRS/xdg-desktop-portal/portals */
+  dirs = g_get_system_data_dirs ();
+
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = NULL;
+
+      dir = g_build_filename (*iter, XDP_SUBDIR, "portals", NULL);
+      load_installed_portals_dir (portals, dir, opt_verbose);
+    }
+
+  /* ${datadir}/xdg-desktop-portal/portals */
+  portal_dir = DATADIR "/" XDP_SUBDIR "/portals";
+  load_installed_portals_dir (portals, portal_dir, opt_verbose);
+
+out:
+
+  g_clear_pointer (&implementations, g_ptr_array_unref);
+  implementations = g_hash_table_steal_all_values (portals);
+  g_ptr_array_sort_values (implementations, sort_impl_by_use_in_and_name);
 }
 
 static PortalConfig *
@@ -428,8 +484,6 @@ load_config_directory (const char *dir,
 
   return FALSE;
 }
-
-#define XDP_SUBDIR "xdg-desktop-portal"
 
 void
 load_portal_configuration (gboolean opt_verbose)
@@ -561,9 +615,9 @@ warn_please_use_portals_conf (void)
 static XdpPortalImplementation *
 find_any_portal_implementation (const char *interface)
 {
-  for (const GList *l = implementations; l != NULL; l = l->next)
+  for (size_t i = 0; i < implementations->len; i++)
     {
-      XdpPortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = g_ptr_array_index (implementations, i);
 
       if (!portal_impl_supports_iface (impl, interface))
         continue;
@@ -581,9 +635,9 @@ find_portal_implementation_by_name (const char *portal_name)
   if (portal_name == NULL)
     return NULL;
 
-  for (const GList *l = implementations; l != NULL; l = l->next)
+  for (size_t i = 0; i < implementations->len; i++)
     {
-      XdpPortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = g_ptr_array_index (implementations, i);
 
       if (g_str_equal (impl->source, portal_name))
         return impl;
@@ -643,9 +697,9 @@ _add_all_portal_implementations_iface (const PortalInterface *iface,
     {
       const char *portal = iface->portals[i];
 
-      for (const GList *l = implementations; l != NULL; l = l->next)
+      for (size_t j = 0; j < implementations->len; j++)
         {
-          XdpPortalImplementation *impl = l->data;
+          XdpPortalImplementation *impl = g_ptr_array_index (implementations, j);
 
           if (!g_str_equal (impl->source, portal) && !g_str_equal (portal, "*"))
             continue;
@@ -726,9 +780,9 @@ find_gtk_fallback_portal_implementation (const char *interface)
    * try to fall back to x-d-p-gtk, which has historically been the portal
    * UI backend used by desktop environments with no backend of their own.
    * If it isn't installed, that is not an error: we just don't use it. */
-  for (GList *l = implementations; l != NULL; l = l->next)
+  for (size_t i = 0; i < implementations->len; i++)
     {
-      XdpPortalImplementation *impl = l->data;
+      XdpPortalImplementation *impl = g_ptr_array_index (implementations, i);
 
       if (!g_str_equal (impl->dbus_name, "org.freedesktop.impl.portal.desktop.gtk"))
         continue;
@@ -773,9 +827,9 @@ find_portal_implementation (const char *interface)
   /* Fallback to the old UseIn key */
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
-      for (GList *l = implementations; l != NULL; l = l->next)
+      for (size_t j = 0; j < implementations->len; j++)
         {
-          XdpPortalImplementation *impl = l->data;
+          XdpPortalImplementation *impl = g_ptr_array_index (implementations, j);
 
           if (!portal_impl_supports_iface (impl, interface))
             continue;
@@ -821,9 +875,9 @@ find_all_portal_implementations (const char *interface)
   /* Fallback to the old UseIn key */
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
-      for (GList *l = implementations; l != NULL; l = l->next)
+      for (size_t j = 0; j < implementations->len; j++)
         {
-          XdpPortalImplementation *impl = l->data;
+          XdpPortalImplementation *impl = g_ptr_array_index (implementations, j);
 
           if (!portal_impl_supports_iface (impl, interface))
             continue;
