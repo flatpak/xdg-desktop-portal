@@ -294,7 +294,6 @@ get_desktop_entry (const char  *desktop_file_id,
                    char        *icon_path,
                    GError     **error)
 {
-  g_autoptr(GDesktopAppInfo) desktop_app_info = NULL;
   g_autoptr(GKeyFile) key_file = g_key_file_new ();
   g_auto(GStrv) groups = NULL;
 
@@ -325,15 +324,6 @@ get_desktop_entry (const char  *desktop_file_id,
   g_key_file_set_string (key_file, G_KEY_FILE_DESKTOP_GROUP, "Name", name);
   g_key_file_set_string (key_file, G_KEY_FILE_DESKTOP_GROUP, "Icon", icon_path);
 
-  desktop_app_info = g_desktop_app_info_new_from_keyfile (key_file);
-  if (desktop_app_info == NULL)
-    {
-      g_set_error (error,
-                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   _("Desktop entry given to Install() not valid"));
-      return NULL;
-    }
-
   return g_steal_pointer (&key_file);
 }
 
@@ -355,6 +345,7 @@ handle_install (XdpDbusDynamicLauncher *object,
   const char *name, *icon_extension, *icon_size;
   g_autofree char *icon_dir_path = NULL;
   g_autofree char *icon_path = NULL;
+  g_autoptr(GDesktopAppInfo) desktop_app_info = NULL;
 
   launcher_data = get_launcher_data_and_revoke_token (arg_token);
   if (launcher_data == NULL)
@@ -399,6 +390,15 @@ handle_install (XdpDbusDynamicLauncher *object,
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  desktop_app_info = g_desktop_app_info_new_from_keyfile (desktop_keyfile);
+  if (desktop_app_info == NULL)
+    {
+      g_set_error (&error,
+                   XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   _("Desktop entry given to Install() not valid"));
+      goto error;
     }
 
   g_free (g_key_file_to_data (desktop_keyfile, &desktop_entry_length, NULL));
