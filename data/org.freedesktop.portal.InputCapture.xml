@@ -86,6 +86,11 @@
           Bitmask of requested capabilities, see the SupportedCapabilities property.
           This value is required and must not be zero.
 
+        * ``draft`` (``b``)
+
+          If true the created session is dormant until a subsequent call to Init(). This allows a caller
+          to invoke other functions on the session before prompting the user, e.g. RequestClipboard().
+
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``o``)
