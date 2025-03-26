@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
-# This file is formatted with Python Black
+# This file is formatted with Python Ruff
 
 import tests.xdp_utils as xdp
 
@@ -30,9 +30,40 @@ def zones():
 
 
 class TestInputCapture:
-    def create_session(self, dbus_con, capabilities=0xF):
+    def create_draft_session(self, dbus_con):
         """
-        Call CreateSession for the given capabilities and return the
+        Call CreateDraftSession and return the session_handle.
+        """
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, inputcapture_intf)
+
+        session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
+
+        options = dbus.Dictionary(
+            {
+                "session_handle_token": session_handle_token,
+            },
+            signature="sv",
+        )
+
+        s_handle = request.call("CreateDraftSession", options=options)
+
+        assert s_handle
+        self.current_session_handle = s_handle
+
+        # Check the impl portal was called with the right args
+        method_calls = mock_intf.GetMethodCalls("CreateDraftSession")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[0] == options
+
+        return s_handle
+
+    def init_session(self, dbus_con, capabilities=0xF):
+        """
+        Call InitSession for the given capabilities and return the
         (response, results) tuple.
         """
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
@@ -41,21 +72,19 @@ class TestInputCapture:
         request = xdp.Request(dbus_con, inputcapture_intf)
 
         capabilities = dbus.UInt32(capabilities, variant_level=1)
-        session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
 
         options = dbus.Dictionary(
             {
                 "capabilities": capabilities,
-                "session_handle_token": session_handle_token,
+                "handle_token": self.current_session_handle,
             },
             signature="sv",
         )
 
-        response = request.call("CreateSession", parent_window="", options=options)
+        response = request.call("InitSession", parent_window="", options=options)
 
         assert response
         assert response.response == 0
-        assert "session_handle" in response.results
         assert "capabilities" in response.results
         caps = response.results["capabilities"]
         # Returned capabilities must be a subset of the requested ones
@@ -64,11 +93,10 @@ class TestInputCapture:
         self.current_session_handle = response.results["session_handle"]
 
         # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("InitSession")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == capabilities
+        assert args[3]["capabilities"] == capabilities
 
         return response
 
@@ -202,7 +230,7 @@ class TestInputCapture:
             assert pos == cursor_position
 
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "InputCapture", 1)
+        xdp.check_version(dbus_con, "InputCapture", 2)
 
     @pytest.mark.parametrize(
         "template_params",
@@ -225,14 +253,13 @@ class TestInputCapture:
     def test_create_session(self, portals, dbus_con):
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        self.create_session(dbus_con, capabilities=0b1)  # KEYBOARD
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con, capabilities=0b1)  # KEYBOARD
 
-        # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("InitSession")
         assert len(method_calls) == 1
         _, args = method_calls.pop(0)
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == 0b1
+        assert args[1]["capabilities"] == 0b1
 
     @pytest.mark.parametrize(
         "template_params",
@@ -249,7 +276,8 @@ class TestInputCapture:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         # Request more caps than are supported
-        response, results = self.create_session(dbus_con, capabilities=0b111)
+        self.create_draft_session(dbus_con)
+        response, results = self.init_session(dbus_con, capabilities=0b111)
         caps = results["capabilities"]
         # Returned capabilities must the ones we set up in the params
         assert caps == 0b110
@@ -258,8 +286,7 @@ class TestInputCapture:
         method_calls = mock_intf.GetMethodCalls("CreateSession")
         assert len(method_calls) == 1
         _, args = method_calls.pop(0)
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == 0b111
+        assert args[1]["capabilities"] == 0b111
 
     @pytest.mark.parametrize(
         "template_params",
@@ -278,7 +305,8 @@ class TestInputCapture:
     def test_get_zones(self, portals, dbus_con, zones):
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        response, results = self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        response, results = self.init_session(dbus_con)
         response, results = self.get_zones(dbus_con)
         for z1, z2 in zip(results["zones"], zones):
             assert z1 == z2
@@ -306,7 +334,8 @@ class TestInputCapture:
     def test_set_pointer_barriers(self, portals, dbus_con, zones):
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        response, results = self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        response, results = self.init_session(dbus_con)
         response, results = self.get_zones(dbus_con)
 
         barriers = [
@@ -403,7 +432,8 @@ class TestInputCapture:
         assert args[5] == self.current_zone_set
 
     def test_connect_to_eis(self, portals, dbus_con):
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
 
         # The default zone is 1920x1080
@@ -422,7 +452,8 @@ class TestInputCapture:
     def test_enable_disable(self, portals, dbus_con):
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
 
         # The default zone is 1920x1080
@@ -464,7 +495,8 @@ class TestInputCapture:
     def test_disable_signal(self, portals, dbus_con):
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
@@ -503,7 +535,8 @@ class TestInputCapture:
     def test_activated_signal(self, portals, dbus_con):
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
@@ -575,7 +608,8 @@ class TestInputCapture:
     def test_zones_changed_signal(self, portals, dbus_con):
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [
@@ -615,7 +649,8 @@ class TestInputCapture:
     def test_release(self, portals, dbus_con):
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
-        self.create_session(dbus_con)
+        self.create_draft_session(dbus_con)
+        self.init_session(dbus_con)
         self.get_zones(dbus_con)
         # The default zone is 1920x1080
         barriers = [

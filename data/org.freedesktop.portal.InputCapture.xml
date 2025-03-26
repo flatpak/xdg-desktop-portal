@@ -67,6 +67,9 @@
         at any time be closed by the portal implementation, which will be
         signalled via :ref:`org.freedesktop.portal.Session::Closed`.
 
+        Clients implementing version 2 of this interface should prefer CreateDraftSession followed by
+        InitSession over the version 1 CreateSession method.
+
         Supported keys in the @options vardict include:
 
         * ``handle_token`` (``s``)
@@ -110,6 +113,90 @@
     <method name="CreateSession">
       <arg type="s" name="parent_window" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        CreateDraftSession:
+        @options: Vardict with optional further information
+        @results: Vardict with the results of the call
+
+        Creates a draft capture input session. A successfully created session can at
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
+
+        The following results get returned in the @results vardict:
+
+        * ``session_handle`` (``o``)
+
+          The session handle. An object path for the
+          org.freedesktop.portal.Session object representing the created
+          session.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="CreateDraftSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        InitSession:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:org.freedesktop.portal.Request object representing this call
+
+        This method may only be called once and only on a session previously created with CreateDraftSession.
+        Initializes a capture input session previously created with CreateDraftSession. This may cause
+        the portal backend to query the user whether they want to allow the input of the session to be
+        captured or not, and what capabilities to support.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        * ``capabilities`` (``u``)
+
+          Bitmask of requested capabilities, see the SupportedCapabilities property.
+          This value is required and must not be zero.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``capabilities`` (``u``)
+
+          The capabilities available to this session. This is always a
+          subset of the requested capabilities.
+          See the SupportedCapabilities property for details. Note that
+          while a capability may be available to a session, there is no
+          guarantee a device with that capability is currently available
+          or if one does become available that it will trigger input capture.
+
+          It is best to view this set as a negative confirmation - a
+          capability that was requested but is missing is an indication that
+          this application may not capture events of that capability.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="InitSession">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>

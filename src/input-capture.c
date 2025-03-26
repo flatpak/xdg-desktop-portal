@@ -31,7 +31,8 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define VERSION_1  1 /* Makes grep easier */
+#define VERSION_1 1 /* Makes grep easier */
+#define VERSION_2 2 /* Makes grep easier */
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
@@ -73,6 +74,10 @@ typedef struct _InputCaptureSession
   XdpSession parent;
 
   InputCaptureSessionState state;
+
+  gboolean clipboard_requested;
+  gboolean clipboard_enabled;
+
 } InputCaptureSession;
 
 typedef struct _InputCaptureSessionClass
@@ -84,16 +89,39 @@ GType input_capture_session_get_type (void);
 
 G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ())
 
-G_GNUC_UNUSED static inline InputCaptureSession *
-INPUT_CAPTURE_SESSION (gpointer ptr)
+gboolean
+input_capture_session_can_request_clipboard (InputCaptureSession *session)
 {
-  return G_TYPE_CHECK_INSTANCE_CAST (ptr, input_capture_session_get_type (), InputCaptureSession);
+  if (session->clipboard_requested)
+    return FALSE;
+
+  if (xdp_dbus_impl_input_capture_get_version (impl) < 2)
+    return FALSE;
+
+  switch (session->state)
+    {
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
+      return TRUE;
+    case INPUT_CAPTURE_SESSION_STATE_ENABLED:
+    case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
+    case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+    case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+      return FALSE;
+    }
+
+  g_assert_not_reached ();
 }
 
-G_GNUC_UNUSED static inline gboolean
-IS_INPUT_CAPTURE_SESSION (gpointer ptr)
+gboolean
+input_capture_session_is_clipboard_enabled (InputCaptureSession *session)
 {
-  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
+  return session->clipboard_enabled;
+}
+
+void
+input_capture_session_clipboard_requested (InputCaptureSession *session)
+{
+  session->clipboard_requested = TRUE;
 }
 
 static InputCaptureSession *
@@ -226,12 +254,93 @@ static XdpOptionKey input_capture_create_session_options[] = {
   { "capabilities", G_VARIANT_TYPE_UINT32, validate_capabilities },
 };
 
+
+static gboolean handle_create_draft_session (XdpDbusInputCapture   *object,
+                                         GDBusMethodInvocation *invocation,
+                                         const char            *arg_app_id,
+                                         GVariant              *arg_options)
+{
+
+  return FALSE;
+  //Not Sure what happens here
+}
+
+static gboolean
+handle_init_session (XdpDbusInputCapture     *object,
+                       GDBusMethodInvocation *invocation,
+                       const char            *arg_session_handle,
+                       const char            *arg_parent_window,
+                       GVariant              *arg_options)
+{
+  XdpRequest *request = xdp_request_from_invocation (invocation);
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_autoptr(GError) error = NULL;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(GVariant) options = NULL;
+  XdpSession *session;
+
+  REQUEST_AUTOLOCK (request);
+
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  session = XDP_SESSION (input_capture_session_new (arg_options, request, &error));
+  if (!session)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           input_capture_create_session_options,
+                           G_N_ELEMENTS (input_capture_create_session_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+
+  g_object_set_qdata_full (G_OBJECT (request),
+                           quark_request_session,
+                           g_object_ref (session),
+                           g_object_unref);
+
+  xdp_dbus_impl_input_capture_call_create_session (impl,
+                                                   request->id,
+                                                   session->id,
+                                                   xdp_app_info_get_id (request->app_info),
+                                                   arg_parent_window,
+                                                   options,
+                                                   NULL,
+                                                   create_session_done,
+                                                   g_object_ref (request));
+
+  xdp_dbus_input_capture_complete_create_session (object, invocation, request->id);
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
 static gboolean
 handle_create_session (XdpDbusInputCapture   *object,
                        GDBusMethodInvocation *invocation,
                        const char            *arg_parent_window,
                        GVariant              *arg_options)
 {
+  //TODO Reduce this to calling handle_create_draft_session and handle_init_session
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
@@ -1150,7 +1259,7 @@ input_capture_init (InputCapture *input_capture)
 {
   unsigned int supported_capabilities;
 
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_1);
+  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_2);
 
   supported_capabilities =
     xdp_dbus_impl_input_capture_get_supported_capabilities (impl);

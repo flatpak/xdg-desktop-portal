@@ -23,5 +23,27 @@
 #include <gio/gio.h>
 #include <stdint.h>
 
+typedef struct _InputCaptureSession InputCaptureSession;
+
+GType input_capture_session_get_type (void);
+
+G_GNUC_UNUSED static inline InputCaptureSession *
+INPUT_CAPTURE_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_CAST (ptr, input_capture_session_get_type (), InputCaptureSession);
+}
+
+G_GNUC_UNUSED static inline gboolean
+IS_INPUT_CAPTURE_SESSION (gpointer ptr)
+{
+  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
+}
+
+gboolean input_capture_session_can_request_clipboard (InputCaptureSession *session);
+
+gboolean input_capture_session_is_clipboard_enabled (InputCaptureSession *session);
+
+void input_capture_session_clipboard_requested (InputCaptureSession *session);
+
 GDBusInterfaceSkeleton * input_capture_create (GDBusConnection *connection,
                                                const char      *dbus_name);
