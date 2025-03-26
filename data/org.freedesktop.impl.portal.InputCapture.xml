@@ -28,7 +28,7 @@
       :ref:`org.freedesktop.portal.InputCapture` portal, see that portal's
       documentation for details on methods, signals and arguments.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.InputCapture">
     <!--
@@ -40,6 +40,10 @@
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
+
+        This method was deprecated in version 2 of this interface and will not
+        be called by the frontend if the implementation indicates support for
+        version 2.
 
         Create a capture input session.
 
@@ -72,6 +76,85 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        CreateSession2:
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @results: Vardict with the results of the call
+
+        Create a capture input session. In contrast with CreateSession, the
+        created session is not in the started state.
+
+        There are currently no supported keys in the @options vardict.
+
+        There are currently no supported keys in the @results vardict.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="CreateSession2">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        Start:
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @app_id: App id of the application
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Start the input capture session. This will typically result in the portal
+        presenting a dialog letting the user decide whether they want to allow the
+        input of the session to be captured, and what capabilities to support.
+
+        This method may only be called once on a session previously created with CreateSession2.
+        Sessions created by the deprecated CreateSession are immediately started.
+
+        Supported keys in the @options vardict include:
+
+        * ``capabilities`` (``u``)
+
+          Bitmask of requested capabilities, see the SupportedCapabilities property.
+          This value is required and must not be zero.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``capabilities`` (``u``)
+
+          The capabilities available to this session. This is always a
+          subset of the requested capabilities.
+          See the SupportedCapabilities property for details. Note that
+          while a capability may be available to a session, there is no
+          guarantee a device with that capability is currently available
+          or if one does become available that it will trigger input capture.
+
+          It is best to view this set as a negative confirmation - a
+          capability that was requested but is missing is an indication that
+          this application may not capture events of that capability.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="Start">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In4" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
     <!--
         GetZones:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
