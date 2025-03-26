@@ -53,7 +53,7 @@
       captured. The transport of actual input events is delegated to a
       transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--
@@ -61,6 +61,9 @@
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        This method was deprecated in version 2 of this interface, see
+        CreateSession2 instead.
 
         Create a capture input session. A successfully created session can at
         any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
@@ -110,6 +113,96 @@
     <method name="CreateSession">
       <arg type="s" name="parent_window" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        CreateSession2:
+        @options: Vardict with optional further information
+        @session_handle: Object path for the session.
+
+        Create a capture input session. A successfully created session can at
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+
+        The session must be started with :ref:`org.freedesktop.portal.InputCapture.Start`
+        before using methods in this interface which take a session.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
+
+        Supported keys in the @results vardict may include:
+
+        * ``session_handle`` (``o``)
+
+          The session handle. An object path for the
+          :ref:`org.freedesktop.portal.Session` object representing the created
+          session. Required.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="CreateSession2">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
+    <!--
+        Start:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:org.freedesktop.portal.Request object representing this call
+
+        Start the input capture session. This will typically result in the portal
+        presenting a dialog letting the user decide whether they want to allow the
+        input of the session to be captured, and what capabilities to support.
+
+        This method may only be called once on a session previously created with CreateSession2.
+        Sessions created by the deprecated CreateSession are immediately started.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        * ``capabilities`` (``u``)
+
+          Bitmask of requested capabilities, see the SupportedCapabilities property.
+          This value is required and must not be zero.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``capabilities`` (``u``)
+
+          The capabilities available to this session. This is always a
+          subset of the requested capabilities.
+          See the SupportedCapabilities property for details. Note that
+          while a capability may be available to a session, there is no
+          guarantee a device with that capability is currently available
+          or if one does become available that it will trigger input capture.
+
+          It is best to view this set as a negative confirmation - a
+          capability that was requested but is missing is an indication that
+          this application may not capture events of that capability.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="Start">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
