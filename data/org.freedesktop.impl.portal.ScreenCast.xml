@@ -152,7 +152,7 @@
           SelectSources) was set to 'false', or at least one stream if
           'multiple' was set to 'true' as part of the SelectSources method.
 
-          Each stream constains the following properties:
+          Each stream contains the following properties:
 
           * ``position`` (``(ii)``)
 
