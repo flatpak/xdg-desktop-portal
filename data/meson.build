@@ -74,6 +74,10 @@ background_monitor_sources = files(
   'org.freedesktop.background.Monitor.xml',
 )
 
+diagnostic_portal_sources = files(
+  'org.freedesktop.diagnostic.portal.Desktop.xml',
+)
+
 install_data([portal_sources, portal_host_sources, portal_impl_sources],
     install_dir: datadir / 'dbus-1' / 'interfaces',
 )
