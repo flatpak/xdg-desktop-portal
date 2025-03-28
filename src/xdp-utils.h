@@ -66,6 +66,9 @@ G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
 void xdp_set_documents_mountpoint (const char *path);
 const char * xdp_get_documents_mountpoint (void);
 char * xdp_get_alternate_document_path (const char *path, const char *app_id);
+gboolean xdp_looks_like_document_portal_path (const char *path,
+                                              char **guessed_docid,
+                                              char** path_suffix);
 
 void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
                                           XdpPeerDiedCallback    peer_died_cb);

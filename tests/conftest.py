@@ -461,6 +461,7 @@ def xdg_desktop_portal(
         raise FileNotFoundError(f"{xdg_desktop_portal_path} does not exist")
 
     env = xdp_env.copy()
+    env["G_MESSAGES_DEBUG"] = "all"
     _maybe_add_asan_preload(xdg_desktop_portal_path, env)
 
     xdg_desktop_portal = subprocess.Popen([xdg_desktop_portal_path], env=env)
