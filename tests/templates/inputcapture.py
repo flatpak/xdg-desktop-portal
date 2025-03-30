@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
-from tests.templates import Response, init_logger
+from tests.templates.xdp_utils import Response, init_logger
 
 from collections import namedtuple
 from itertools import count

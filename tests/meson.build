@@ -119,7 +119,6 @@ template_files = [
   'templates/geoclue2.py',
   'templates/globalshortcuts.py',
   'templates/inhibit.py',
-  'templates/__init__.py',
   'templates/inputcapture.py',
   'templates/lockdown.py',
   'templates/notification.py',
@@ -129,6 +128,7 @@ template_files = [
   'templates/settings.py',
   'templates/usb.py',
   'templates/wallpaper.py',
+  'templates/xdp_utils.py',
 ]
 
 foreach pytest_file : pytest_files
