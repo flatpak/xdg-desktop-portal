@@ -149,7 +149,6 @@ if enable_installed_tests
     '__init__.py',
     'conftest.py',
     'xdp_utils.py',
-    'xdp_doc_utils.py',
     'asan.suppression',
     install_dir: installed_tests_dir / 'tests',
   )

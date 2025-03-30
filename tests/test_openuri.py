@@ -2,7 +2,8 @@
 #
 # This file is formatted with Python Black
 
-import tests as xdp
+import tests.xdp_utils as xdp
+import tests.xdp_doc_utils as xdp_doc
 
 import dbus
 import pytest
