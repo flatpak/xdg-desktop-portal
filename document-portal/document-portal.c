@@ -1696,15 +1696,23 @@ message_handler (const gchar   *log_domain,
 {
   /* Make this look like normal console output */
   if (log_level & G_LOG_LEVEL_DEBUG)
-    printf ("XDP: %s\n", message);
+    fprintf (stderr, "XDP: %s\n", message);
   else
-    printf ("%s: %s\n", g_get_prgname (), message);
+    fprintf (stderr, "%s: %s\n", g_get_prgname (), message);
 }
 
 static void
 printerr_handler (const gchar *string)
 {
-  fprintf (stderr, "error: %s\n", string);
+  int is_tty = isatty (1);
+  const char *prefix = "";
+  const char *suffix = "";
+  if (is_tty)
+    {
+      prefix = "\x1b[31m\x1b[1m"; /* red, bold */
+      suffix = "\x1b[22m\x1b[0m"; /* bold off, color reset */
+    }
+  fprintf (stderr, "%serror: %s%s\n", prefix, suffix, string);
 }
 
 int
