@@ -13,7 +13,7 @@ def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for the impl.portal templates. Use as:
 
-        >>> from tests.templates import init_logger
+        >>> from tests.templates.xdp_utils import init_logger
         >>> logger = init_logger(__name__)
         >>> logger.debug("foo")
 

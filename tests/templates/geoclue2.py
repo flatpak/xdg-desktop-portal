@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # mypy: disable-error-code="misc"
 
-from tests.templates import init_logger
+from tests.templates.xdp_utils import init_logger
 
 import dbus.service
 import dbus
