@@ -37,7 +37,8 @@ class TestAccount:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Account", 1)
 
-    def test_basic1(self, portals, dbus_con, app_id):
+    def test_basic1(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

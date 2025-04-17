@@ -69,7 +69,8 @@ class TestRegistry:
 
         return xdp.Session.from_response(dbus_con, response)
 
-    def test_registerless(self, portals, dbus_con, app_id):
+    def test_registerless(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         expected_app_id = app_id
@@ -91,7 +92,8 @@ class TestRegistry:
         app_id = mock_intf.GetSessionAppId(session.handle)
         assert app_id == expected_app_id
 
-    def test_late_register(self, portals, dbus_con, app_id):
+    def test_late_register(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -112,7 +114,8 @@ class TestRegistry:
         new_app_id = mock_intf.GetSessionAppId(new_session.handle)
         assert new_app_id == expected_app_id
 
-    def test_multiple_connections(self, portals, dbus_con, app_id):
+    def test_multiple_connections(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

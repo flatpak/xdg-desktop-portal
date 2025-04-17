@@ -42,7 +42,8 @@ class TestInhibit:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Inhibit", 3)
 
-    def test_basic(self, portals, dbus_con, app_id):
+    def test_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -89,7 +90,8 @@ class TestInhibit:
         assert "Invalid token" in e.get_dbus_message()
 
     @pytest.mark.parametrize("template_params", ({"inhibit": {"response": 1}},))
-    def test_cancel(self, portals, dbus_con, app_id):
+    def test_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -121,7 +123,8 @@ class TestInhibit:
         assert args[4]["reason"] == reason
 
     @pytest.mark.parametrize("template_params", ({"inhibit": {"expect-close": True}},))
-    def test_close(self, portals, dbus_con, app_id):
+    def test_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -152,7 +155,8 @@ class TestInhibit:
         assert args[3] == flags.value
         assert args[4]["reason"] == reason
 
-    def test_permission(self, portals, dbus_con, app_id):
+    def test_permission(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -203,7 +207,8 @@ class TestInhibit:
         _, args = method_calls[-1]
         assert args[3] == allowed_flags.value
 
-    def test_monitor(self, portals, dbus_con, app_id):
+    def test_monitor(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

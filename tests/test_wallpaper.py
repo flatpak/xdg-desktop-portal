@@ -29,7 +29,8 @@ class TestWallpaper:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Wallpaper", 1)
 
-    def test_wallpaper_uri(self, portals, dbus_con, app_id):
+    def test_wallpaper_uri(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -62,7 +63,8 @@ class TestWallpaper:
         assert args[4]["show-preview"] == show_preview
         assert args[4]["set-on"] == set_on
 
-    def test_wallpaper_file(self, portals, dbus_con, app_id):
+    def test_wallpaper_file(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -101,7 +103,7 @@ class TestWallpaper:
             assert wallpaper_file_contents == "wallpaper_mock_file"
 
     @pytest.mark.parametrize("template_params", ({"wallpaper": {"response": 1}},))
-    def test_wallpaper_cancel(self, portals, dbus_con, app_id):
+    def test_wallpaper_cancel(self, portals, dbus_con):
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
 
         uri = "file:///test"
@@ -123,7 +125,8 @@ class TestWallpaper:
         assert response
         assert response.response == 1
 
-    def test_wallpaper_permission(self, portals, dbus_con, app_id):
+    def test_wallpaper_permission(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
