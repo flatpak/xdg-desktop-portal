@@ -30,16 +30,6 @@ def required_templates():
 
 
 class TestAccount:
-    def set_permission(self, dbus_con, app_id, permission):
-        perm_store_intf = xdp.get_permission_store_iface(dbus_con)
-        perm_store_intf.SetPermission(
-            "wallpaper",
-            True,
-            "wallpaper",
-            app_id,
-            [permission],
-        )
-
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Account", 1)
 
