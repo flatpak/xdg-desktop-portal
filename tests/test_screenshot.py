@@ -7,6 +7,8 @@ import tests.xdp_utils as xdp
 import dbus
 import pytest
 from typing import Any
+import os
+from pathlib import Path
 
 
 SCREENSHOT_DATA = dbus.Dictionary(
@@ -20,6 +22,10 @@ SCREENSHOT_DATA = dbus.Dictionary(
 
 @pytest.fixture
 def required_templates():
+    image = Path(os.environ["XDG_DATA_HOME"]) / "screenshot-image.png"
+    image.write_text("image contents")
+    SCREENSHOT_DATA["uri"] = f"file://{image.absolute().as_posix()}"
+
     return {
         "access": {},
         "screenshot": {
@@ -35,7 +41,7 @@ class TestScreenshot:
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])
     def test_screenshot_basic(
-        self, portals, dbus_con, xdp_app_info, modal, interactive
+        self, xdg_document_portal, portals, dbus_con, xdp_app_info, modal, interactive
     ):
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
@@ -54,7 +60,8 @@ class TestScreenshot:
 
         assert response
         assert response.response == 0
-        assert response.results["uri"] == SCREENSHOT_DATA["uri"]
+
+        assert xdp.uri_same_file(SCREENSHOT_DATA["uri"], response.results["uri"])
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("Screenshot")
