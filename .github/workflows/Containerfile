@@ -48,7 +48,6 @@ RUN apt install -y --no-install-recommends meson
 RUN apt install -y --no-install-recommends \
     python3-pytest \
     python3-pytest-xdist \
-    python3-dbusmock \
     python3-dbus \
     libumockdev0 \
     libumockdev-dev \
@@ -57,6 +56,10 @@ RUN apt install -y --no-install-recommends \
 
 # Install pip
 RUN apt install -y --no-install-recommends python3-pip
+
+# Install latest a newer python-dbusmock required for our pytest setup
+# This is installed system-wide
+RUN pip install --prefix=/usr --break-system-packages python-dbusmock">=0.33.0"
 
 # Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
