@@ -38,7 +38,8 @@ class TestBackground:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Background", 2)
 
-    def test_request_background(self, portals, dbus_con, app_id):
+    def test_request_background(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
         desktop_file = self.get_autostart_path(app_id)
 
@@ -61,7 +62,8 @@ class TestBackground:
 
         assert not desktop_file.exists()
 
-    def test_autostart_desktopfile(self, portals, dbus_con, app_id):
+    def test_autostart_desktopfile(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
 
         reason = "Testing portals"
@@ -94,7 +96,8 @@ class TestBackground:
         assert keyfile.get_string("Desktop Entry", "Exec") == "/bin/true test"
         assert keyfile.get_boolean("Desktop Entry", "DBusActivatable")
 
-    def test_autostart_disable(self, portals, dbus_con, app_id):
+    def test_autostart_disable(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
         desktop_file = self.get_autostart_path(app_id)
 
@@ -136,7 +139,7 @@ class TestBackground:
 
         assert not desktop_file.exists()
 
-    def test_long_reason(self, portals, dbus_con, app_id):
+    def test_long_reason(self, portals, dbus_con):
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
 
         reason = (

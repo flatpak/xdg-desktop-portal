@@ -34,7 +34,10 @@ class TestScreenshot:
 
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])
-    def test_screenshot_basic(self, portals, dbus_con, app_id, modal, interactive):
+    def test_screenshot_basic(
+        self, portals, dbus_con, xdp_app_info, modal, interactive
+    ):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -92,7 +95,8 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_screenshot_cancel(self, portals, dbus_con, app_id):
+    def test_screenshot_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -122,7 +126,8 @@ class TestScreenshot:
         assert args[3]["modal"] == modal
         assert args[3]["interactive"] == interactive
 
-    def test_pick_color_basic(self, portals, dbus_con, app_id):
+    def test_pick_color_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -148,7 +153,7 @@ class TestScreenshot:
     @pytest.mark.parametrize(
         "template_params", ({"screenshot": {"expect-close": True}},)
     )
-    def test_pick_color_close(self, portals, dbus_con, app_id):
+    def test_pick_color_close(self, portals, dbus_con):
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -164,7 +169,8 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_pick_color_cancel(self, portals, dbus_con, app_id):
+    def test_pick_color_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
