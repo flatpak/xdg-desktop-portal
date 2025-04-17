@@ -9,6 +9,7 @@ import os
 import gi
 import subprocess
 import re
+from typing import assert_never
 
 gi.require_version("UMockdev", "1.0")
 from gi.repository import GLib, UMockdev  # noqa E402
@@ -20,8 +21,29 @@ def required_templates():
 
 
 @pytest.fixture
-def app_info_kind():
-    return xdp.AppInfoKind.FLATPAK
+def usb_queries() -> str | None:
+    return None
+
+
+# Supported on host and flatpak
+# Host apps get access to all usb devices. The query has no effect.
+@pytest.fixture(params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK])
+def xdp_app_info(request, usb_queries) -> xdp.AppInfo:
+    app_info_kind = request.param
+    app_id = "org.example.Test"
+
+    if app_info_kind == xdp.AppInfoKind.HOST:
+        return xdp.AppInfo.new_host(
+            app_id=app_id,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.FLATPAK:
+        return xdp.AppInfo.new_flatpak(
+            app_id=app_id,
+            usb_queries=usb_queries,
+        )
+
+    assert_never(app_info_kind)
 
 
 @pytest.fixture
@@ -145,7 +167,9 @@ A: idVendor={vendor}
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
 
-        if usb_queries is None:
+        # If the app is not running on the host, make sure an empty usb_query
+        # results in no devices being available
+        if usb_queries is None and xdp_app_info.kind != xdp.AppInfoKind.HOST:
             xdp.wait(300)
             assert not device_events_signal_received
             assert devices_received == 0
@@ -192,7 +216,7 @@ A: idVendor={vendor}
             "C767F1C714174C309255F70E4A7B2EE2",
         )
 
-        if usb_queries is None:
+        if usb_queries is None and xdp_app_info.kind != xdp.AppInfoKind.HOST:
             xdp.wait(300)
             assert not device_events_signal_received
             assert devices_received == 0
@@ -257,7 +281,7 @@ A: idVendor={vendor}
 
         usb_intf.connect_to_signal("DeviceEvents", cb_device_events)
 
-        if usb_queries is None:
+        if usb_queries is None and xdp_app_info.kind != xdp.AppInfoKind.HOST:
             xdp.wait(300)
             assert device_events_signal_count == 0
             assert devices_received == 0
@@ -269,7 +293,7 @@ A: idVendor={vendor}
 
         umockdev.remove_device(dev_path)
 
-        if usb_queries is None:
+        if usb_queries is None and xdp_app_info.kind != xdp.AppInfoKind.HOST:
             xdp.wait(300)
             assert device_events_signal_count == 0
             assert devices_received == 0

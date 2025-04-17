@@ -395,67 +395,33 @@ def xdp_overwrite_env() -> dict[str, str]:
     return {}
 
 
-@pytest.fixture
-def app_info_kind() -> xdp.AppInfoKind:
-    """
-    Default fixture which can be used to override the XdpAppInfo kind that the
-    portal frontend will discover for incoming connections.
-    """
-    return xdp.AppInfoKind.HOST
-
-
-@pytest.fixture
-def app_id() -> str:
-    """
-    Default fixture which can be used to override the app id that the portal
-    frontend will discover for incoming connections.
-    """
-    return "org.example.Test"
-
-
-@pytest.fixture
-def usb_queries() -> str | None:
-    """
-    Default fixture providing the usb queries the connecting process can
-    enumerate
-    """
-    return None
-
-
-@pytest.fixture
-def xdp_app_info(app_info_kind, app_id, usb_queries) -> xdp.AppInfo:
+@pytest.fixture(
+    params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK, xdp.AppInfoKind.SNAP]
+)
+def xdp_app_info(request) -> xdp.AppInfo:
     """
     Default fixture which can be used to override the XdpAppInfo the portal
     frontend will discover.
-    This fixture should use the app_id, and usb_queries fixtures
-    to construct the xdp.AppInfo.
+    The default fixture is parametric and will run each test with all the
+    app info kinds.
     """
 
-    if app_info_kind == xdp.AppInfoKind.FLATPAK:
-        assert app_id is not None
+    app_info_kind = request.param
+    app_id = "org.example.Test"
 
+    if app_info_kind == xdp.AppInfoKind.HOST:
+        return xdp.AppInfo.new_host(
+            app_id=app_id,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.FLATPAK:
         return xdp.AppInfo.new_flatpak(
             app_id=app_id,
-            usb_queries=usb_queries,
         )
 
     if app_info_kind == xdp.AppInfoKind.SNAP:
-        assert app_id is not None
-        assert usb_queries is None
-
-        assert app_id.startwith("snap.")
-        snap_name = app_id[5:]
-
         return xdp.AppInfo.new_snap(
-            snap_name=snap_name,
-        )
-
-    if app_info_kind == xdp.AppInfoKind.HOST:
-        assert app_id is not None
-        assert usb_queries is None
-
-        return xdp.AppInfo.new_host(
-            app_id=app_id,
+            snap_name=app_id,
         )
 
     assert_never(app_info_kind)
