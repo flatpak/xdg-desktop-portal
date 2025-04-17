@@ -97,9 +97,9 @@ xdp_register_document (const char        *uri,
   dirname = g_path_get_dirname (path);
 
   if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
-    fd = open (dirname, O_PATH | O_CLOEXEC);
+    fd = open (dirname, O_CLOEXEC);
   else
-    fd = open (path, O_PATH | O_CLOEXEC);
+    fd = open (path, O_CLOEXEC);
 
   if (fd == -1)
     {
