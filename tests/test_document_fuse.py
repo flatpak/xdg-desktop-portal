@@ -17,8 +17,10 @@ from gi.repository import Gio, GLib
 
 
 @pytest.fixture
-def app_id():
-    return None
+def xdp_app_info() -> xdp.AppInfo:
+    return xdp.AppInfo.new_host(
+        app_id="",
+    )
 
 
 def filename_to_ay(filename):

@@ -11,6 +11,13 @@ from pathlib import Path
 import os
 
 
+@pytest.fixture
+def xdp_app_info() -> xdp.AppInfo:
+    return xdp.AppInfo.new_host(
+        app_id="",
+    )
+
+
 class TestDocuments:
     def test_version(self, xdg_document_portal, dbus_con):
         documents = dbus_con.get_object(

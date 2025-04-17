@@ -8,6 +8,7 @@ import pytest
 import dbus
 import os
 from pathlib import Path
+import stat
 
 
 SVG_IMAGE_DATA = """<?xml version="1.0" encoding="UTF-8"?>
@@ -24,6 +25,14 @@ Type=Application
 
 @pytest.fixture
 def required_templates():
+    # ensure that we have a flatpak executable
+    # The dynamiclauncher checks that the thing in the exec line exists and is
+    # executable, so for flatpak, it needs the flatpak executable
+    flatpak_exec = Path(os.environ["HOME"]) / "exec" / "flatpak"
+    flatpak_exec.parent.mkdir(parents=True)
+    flatpak_exec.touch(mode=0o777 | stat.S_IEXEC)
+    os.environ["PATH"] += os.pathsep + flatpak_exec.parent.absolute().as_posix()
+
     return {"dynamiclauncher": {}}
 
 
@@ -74,12 +83,20 @@ class TestDynamicLauncher:
         assert not args[5]["modal"]
 
         desktop_file_name = app_id + ".ExampleApp.desktop"
-        dynlauncher_intf.Install(
-            token,
-            desktop_file_name,
-            DESKTOP_FILE,
-            {},
-        )
+
+        try:
+            dynlauncher_intf.Install(
+                token,
+                desktop_file_name,
+                DESKTOP_FILE,
+                {},
+            )
+        except dbus.exceptions.DBusException as e:
+            # Unsupported on snap
+            assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+            assert xdp_app_info.kind == xdp.AppInfoKind.SNAP
+            return
+        assert xdp_app_info.kind != xdp.AppInfoKind.SNAP
 
         file = Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file_name
         assert file.exists()
