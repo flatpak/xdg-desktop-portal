@@ -5,17 +5,23 @@
 import tests.xdp_utils as xdp
 
 import pytest
+import os
+from pathlib import Path
 
 
 ACCOUNT_DATA = {
     "id": "test",
     "name": "Test Name",
-    "image": "file:///image.png",
+    "image": "FILLED OUT LATER",
 }
 
 
 @pytest.fixture
 def required_templates():
+    image = Path(os.environ["XDG_DATA_HOME"]) / "account-image.png"
+    image.write_text("image contents")
+    ACCOUNT_DATA["image"] = f"file://{image.absolute().as_posix()}"
+
     return {
         "account": {
             "results": ACCOUNT_DATA,
@@ -37,7 +43,7 @@ class TestAccount:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Account", 1)
 
-    def test_basic1(self, portals, dbus_con, xdp_app_info):
+    def test_basic1(self, xdg_document_portal, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
         account_intf = xdp.get_portal_iface(dbus_con, "Account")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -58,7 +64,8 @@ class TestAccount:
         assert response.response == 0
         assert response.results["id"] == ACCOUNT_DATA["id"]
         assert response.results["name"] == ACCOUNT_DATA["name"]
-        assert response.results["image"] == ACCOUNT_DATA["image"]
+        assert response.results["image"]
+        assert xdp.uri_same_file(ACCOUNT_DATA["image"], response.results["image"])
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("GetUserInformation")
