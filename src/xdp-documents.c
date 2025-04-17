@@ -210,11 +210,11 @@ xdp_register_document (const char        *uri,
   if (!g_strcmp0 (doc_id, ""))
     {
       doc_path = g_build_filename (path, NULL);
-      return g_filename_to_uri (doc_path, NULL, NULL);
+      return g_filename_to_uri (doc_path, NULL, error);
     }
 
   doc_path = g_build_filename (documents_mountpoint, doc_id, basename, NULL);
-  return g_filename_to_uri (doc_path, NULL, NULL);
+  return g_filename_to_uri (doc_path, NULL, error);
 }
 
 char *
