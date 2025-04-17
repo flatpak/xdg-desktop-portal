@@ -8,7 +8,10 @@ import dbus
 
 @pytest.fixture
 def required_templates():
-    return {"geoclue2": {}}
+    return {
+        "geoclue2": {},
+        "access": {},
+    }
 
 
 class TestLocation:
