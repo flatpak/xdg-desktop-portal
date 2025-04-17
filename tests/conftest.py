@@ -2,6 +2,8 @@
 #
 # This file is formatted with Python Black
 
+import tests.xdp_utils as xdp
+
 from typing import Any, Dict, Iterator, Optional
 from types import ModuleType
 
@@ -542,6 +544,17 @@ def xdg_document_portal(
     document_portal.send_signal(signal.SIGHUP)
     returncode = document_portal.wait()
     assert returncode == 0
+
+    fuse_mount = Path(os.environ["XDG_RUNTIME_DIR"]) / "doc"
+
+    def unmounted():
+        try:
+            next(fuse_mount.iterdir())
+        except StopIteration:
+            return True
+        return False
+
+    xdp.wait_for(unmounted)
 
 
 @pytest.fixture
