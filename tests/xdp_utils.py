@@ -11,6 +11,7 @@ from typing import Any, Dict, Optional, NamedTuple, Callable, List
 from pathlib import Path
 from enum import Enum
 from dataclasses import dataclass, field
+from urllib.parse import unquote, urlparse
 
 import os
 import dbus
@@ -71,6 +72,18 @@ def check_program_success(cmd) -> bool:
     )
     _ = proc.communicate()
     return proc.returncode == 0
+
+
+def uri_same_file(uri1, uri2):
+    orig = Path(unquote(urlparse(uri1).path))
+    path = Path(unquote(urlparse(uri2).path))
+    return orig.read_text() == path.read_text()
+
+
+def uris_same_files(uris, uris_other):
+    return all(
+        uri_same_file(uri, uri_other) for uri, uri_other in zip(uris, uris_other)
+    )
 
 
 class FuseNotSupportedException(Exception):
