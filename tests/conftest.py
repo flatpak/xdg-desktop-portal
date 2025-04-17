@@ -587,6 +587,12 @@ def xdg_document_portal(
     env = xdp_env.copy()
     env.pop("LD_PRELOAD", None)
 
+    # The document portal also uses XdpAppInfos to figure out where a request
+    # is coming from. If we don't unset this, it might think the
+    # xdg-desktop-portal is a flatpak or snap app. Would be nice to find a
+    # better solution here.
+    env.pop("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND", None)
+
     document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Documents"):
