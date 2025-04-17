@@ -78,7 +78,7 @@ A: idVendor={vendor}
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Usb", 1)
 
-    def test_create_close_session(self, portals, dbus_con, app_id):
+    def test_create_close_session(self, portals, dbus_con):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         session = xdp.Session(
@@ -87,7 +87,7 @@ A: idVendor={vendor}
         )
         session.close()
 
-    def test_empty_initial_devices(self, portals, dbus_con, app_id):
+    def test_empty_initial_devices(self, portals, dbus_con):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         xdp.Session(
@@ -106,7 +106,9 @@ A: idVendor={vendor}
         assert not device_events_signal_received
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    def test_initial_devices(self, portals, dbus_con, app_id, usb_queries, umockdev):
+    def test_initial_devices(
+        self, portals, dbus_con, xdp_app_info, usb_queries, umockdev
+    ):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         self.generate_device(
@@ -152,7 +154,7 @@ A: idVendor={vendor}
             assert devices_received == 1
 
     @pytest.mark.parametrize("usb_queries", ["vnd:04a9", None])
-    def test_device_add(self, portals, dbus_con, app_id, usb_queries, umockdev):
+    def test_device_add(self, portals, xdp_app_info, dbus_con, usb_queries, umockdev):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         session = xdp.Session(
@@ -213,7 +215,9 @@ A: idVendor={vendor}
     @pytest.mark.skipif(
         not umockdev_has_working_remove(), reason="UMockdev version 0.18.4 required"
     )
-    def test_device_remove(self, portals, dbus_con, app_id, usb_queries, umockdev):
+    def test_device_remove(
+        self, portals, dbus_con, xdp_app_info, usb_queries, umockdev
+    ):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         dev_path = self.generate_device(
@@ -279,7 +283,7 @@ A: idVendor={vendor}
     @pytest.mark.parametrize(
         "template_params", [{"usb": {"filters": {"vendor": "04a9"}}}]
     )
-    def test_acquire(self, portals, dbus_con, app_id, umockdev):
+    def test_acquire(self, portals, dbus_con, umockdev):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         self.generate_device(
@@ -357,7 +361,7 @@ A: idVendor={vendor}
             (0, {"usb": {"filters": {"vendor": "0002", "model": "0000"}}}),
         ],
     )
-    def test_queries(self, portals, dbus_con, expected, app_id, usb_queries, umockdev):
+    def test_queries(self, portals, dbus_con, expected, usb_queries, umockdev):
         usb_intf = xdp.get_portal_iface(dbus_con, "Usb")
 
         for i in range(2):
