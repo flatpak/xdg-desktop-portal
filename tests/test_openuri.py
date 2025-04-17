@@ -8,7 +8,6 @@ import tests.xdp_doc_utils as xdp_doc
 import dbus
 import pytest
 import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -185,8 +184,9 @@ class TestOpenURI:
         scheme_handler = "text/plain"
         self.enable_paranoid_mode(dbus_con, scheme_handler)
 
-        fd, _ = tempfile.mkstemp(prefix="openuri_mock_file_", dir=Path.home())
-        os.write(fd, b"openuri_mock_file")
+        file_path = Path.home() / "openuri_mock_file"
+        file_path.write_text("openuri_mock_file")
+        fd = os.open(file_path.absolute().as_posix(), os.O_RDONLY)
 
         writable = False
         activation_token = "token"
@@ -202,6 +202,8 @@ class TestOpenURI:
             fd=fd,
             options=options,
         )
+
+        os.close(fd)
 
         assert response
         assert response.response == 0
@@ -323,8 +325,9 @@ class TestOpenURI:
         scheme_handler = "inode/directory"
         self.enable_paranoid_mode(dbus_con, scheme_handler)
 
-        fd, file_path = tempfile.mkstemp(prefix="openuri_mock_file_", dir=Path.home())
-        os.write(fd, b"openuri_mock_file")
+        file_path = Path.home() / "openuri_mock_file"
+        file_path.write_text("openuri_mock_file")
+        fd = os.open(file_path.absolute().as_posix(), os.O_RDONLY)
 
         activation_token = "token"
 
@@ -338,6 +341,8 @@ class TestOpenURI:
             fd=fd,
             options=options,
         )
+
+        os.close(fd)
 
         assert response
         assert response.response == 0
