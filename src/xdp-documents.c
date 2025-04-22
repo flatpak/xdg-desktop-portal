@@ -45,6 +45,8 @@ gboolean
 xdp_init_document_proxy (GDBusConnection  *connection,
                          GError          **error)
 {
+  g_autoptr(GError) local_error = NULL;
+
   documents = xdp_dbus_documents_proxy_new_sync (connection, 0,
                                                  "org.freedesktop.portal.Documents",
                                                  "/org/freedesktop/portal/documents",
@@ -52,9 +54,14 @@ xdp_init_document_proxy (GDBusConnection  *connection,
   if (!documents)
     return FALSE;
 
-  xdp_dbus_documents_call_get_mount_point_sync (documents,
-                                                &documents_mountpoint,
-                                                NULL, NULL);
+  if (!xdp_dbus_documents_call_get_mount_point_sync (documents,
+                                                     &documents_mountpoint,
+                                                     NULL, &local_error))
+    {
+      g_warning ("Document portal fuse mount point unknown: %s",
+                 local_error->message);
+    }
+
   xdp_set_documents_mountpoint (documents_mountpoint);
 
   return TRUE;
