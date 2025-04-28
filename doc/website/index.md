@@ -9,7 +9,7 @@ layout: default
 
 # XDG Desktop Portal
 
-A portal frontend service for [Flatpak](http://www.flatpak.org) and other
+A portal frontend service for [Flatpak](https://flatpak.org) and other
 desktop containment frameworks.
 
 xdg-desktop-portal works by exposing a series of D-Bus interfaces known as
