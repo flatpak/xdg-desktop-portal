@@ -1107,7 +1107,7 @@ on_deactivated_cb (XdpDbusImplInputCapture *impl,
         break;
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
         pass_signal (impl, "Deactivated", session_id, options, data);
-        input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_ACTIVE;
+        input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_ENABLED;
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
