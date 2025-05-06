@@ -52,7 +52,7 @@ static InputCapture *input_capture;
 
 static GQuark quark_request_session;
 
-GType input_capture_get_type (void);
+GType input_capture_get_type (void)  G_GNUC_CONST;
 static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
