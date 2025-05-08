@@ -69,6 +69,9 @@ harness behaves.
 
 Some optional environment variables that can be set to help with debugging.
 
+* `G_MESSAGES_DEBUG=all`: Enable debug output, see
+    https://docs.gtk.org/glib/running.html
+
 * `XDP_DBUS_MONITOR`: If set, starts dbus-monitor on the test dbus server
 
 * `XDP_DBUS_TIMEOUT`: Maximum timeout for dbus calls in ms (default: 5s)
