@@ -11,22 +11,6 @@ import os
 from gi.repository import GLib, Gio
 
 
-EXPORT_FILES_FLAG_EXPORT_DIR = 8
-
-
-def path_from_null_term_bytes(bytes):
-    path_bytes, rest = bytes.split(b"\x00")
-    assert rest == b""
-    return Path(os.fsdecode(path_bytes))
-
-
-def get_mountpoint(documents_intf):
-    mountpoint = documents_intf.GetMountPoint(byte_arrays=True)
-    mountpoint = path_from_null_term_bytes(mountpoint)
-    assert mountpoint.exists()
-    return mountpoint
-
-
 def write_bytes_atomic(file_path, bytes):
     GLib.file_set_contents(file_path.absolute().as_posix(), bytes)
 
@@ -51,55 +35,6 @@ def get_host_path_attr(path):
     return Path(os.fsdecode(host_path))
 
 
-def export_file(documents_intf, file_path, unique=False):
-    assert file_path.exists()
-
-    with open(file_path.absolute().as_posix(), "r") as file:
-        doc_id = documents_intf.Add(file.fileno(), not unique, False)
-        assert doc_id
-
-    return doc_id
-
-
-def export_file_named(documents_intf, folder_path, name, unique=False):
-    assert folder_path.exists()
-
-    # bytestring convention is zero terminated
-    name_nt = os.fsencode(name) + b"\x00"
-
-    try:
-        fd = os.open(folder_path.absolute().as_posix(), os.O_PATH | os.O_CLOEXEC)
-        doc_id = documents_intf.AddNamed(fd, name_nt, not unique, False)
-        assert doc_id
-    finally:
-        os.close(fd)
-
-    return doc_id
-
-
-def export_files(documents_intf, file_paths, perms, flags=0, app_id=""):
-    fds = []
-    try:
-        for file_path in file_paths:
-            fds.append(
-                os.open(file_path.absolute().as_posix(), os.O_PATH | os.O_CLOEXEC)
-            )
-
-        result = documents_intf.AddFull(
-            fds,
-            flags,
-            app_id,
-            perms,
-            byte_arrays=True,
-        )
-    finally:
-        for fd in fds:
-            os.close(fd)
-
-    assert result
-    return result
-
-
 class TestDocuments:
     def test_version(self, xdg_document_portal, dbus_con):
         documents = dbus_con.get_object(
@@ -119,18 +54,18 @@ class TestDocuments:
 
     def test_mount_point(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        get_mountpoint(documents_intf)
+        xdp.get_mountpoint(documents_intf)
 
     def test_create_doc(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        mountpoint = get_mountpoint(documents_intf)
+        mountpoint = xdp.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "a-file"
 
         file_path = Path(os.environ["TMPDIR"]) / file_name
         write_bytes_atomic(file_path, content)
-        doc_id = export_file(documents_intf, file_path)
+        doc_id = xdp.export_file(documents_intf, file_path)
 
         doc_path = mountpoint / doc_id
         doc_app1_path = mountpoint / "by-app" / "com.test.App1" / doc_id
@@ -201,44 +136,44 @@ class TestDocuments:
         assert not (doc_path / "tmp3").exists()
 
         # Re-Create a file from a fuse document file, in various ways
-        doc_id2 = export_file(documents_intf, (doc_path / file_name))
+        doc_id2 = xdp.export_file(documents_intf, (doc_path / file_name))
         assert doc_id2 == doc_id
-        doc_id3 = export_file(documents_intf, (doc_app1_path / file_name))
+        doc_id3 = xdp.export_file(documents_intf, (doc_app1_path / file_name))
         assert doc_id3 == doc_id
-        doc_id4 = export_file(documents_intf, file_path)
+        doc_id4 = xdp.export_file(documents_intf, file_path)
         assert doc_id4 == doc_id
 
         # Ensure we can make a unique document
-        doc_id5 = export_file(documents_intf, file_path, unique=True)
+        doc_id5 = xdp.export_file(documents_intf, file_path, unique=True)
         assert doc_id5 != doc_id
 
     def test_recursive_doc(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        mountpoint = get_mountpoint(documents_intf)
+        mountpoint = xdp.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "recursive-file"
 
         file_path = Path(os.environ["TMPDIR"]) / file_name
         write_bytes_atomic(file_path, content)
-        doc_id = export_file(documents_intf, file_path)
+        doc_id = xdp.export_file(documents_intf, file_path)
 
         doc_path = mountpoint / doc_id
         doc_app1_path = mountpoint / "by-app" / "com.test.App1" / doc_id
 
         assert (doc_path / file_name).read_bytes() == content
 
-        doc_id2 = export_file(documents_intf, doc_path / file_name)
+        doc_id2 = xdp.export_file(documents_intf, doc_path / file_name)
         assert doc_id2 == doc_id
 
         documents_intf.GrantPermissions(doc_id, "com.test.App1", ["read"])
 
-        doc_id3 = export_file(documents_intf, doc_app1_path / file_name)
+        doc_id3 = xdp.export_file(documents_intf, doc_app1_path / file_name)
         assert doc_id3 == doc_id
 
     def test_create_docs(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        mountpoint = get_mountpoint(documents_intf)
+        mountpoint = xdp.get_mountpoint(documents_intf)
 
         files = {
             "doc1": b"doc1-content",
@@ -251,12 +186,12 @@ class TestDocuments:
             write_bytes_atomic(file_path, file_content)
             file_paths.append(file_path)
 
-        doc_ids, extra = export_files(
+        doc_ids, extra = xdp.export_files(
             documents_intf, file_paths, ["read"], app_id="org.other.App"
         )
 
         assert extra
-        out_mountpoint = path_from_null_term_bytes(extra["mountpoint"])
+        out_mountpoint = xdp.path_from_null_term_bytes(extra["mountpoint"])
         assert out_mountpoint == mountpoint
 
         assert doc_ids
@@ -279,13 +214,13 @@ class TestDocuments:
 
     def test_add_named(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        mountpoint = get_mountpoint(documents_intf)
+        mountpoint = xdp.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "add-named-1"
 
         folder_path = Path(os.environ["TMPDIR"])
-        doc_id = export_file_named(documents_intf, folder_path, file_name)
+        doc_id = xdp.export_file_named(documents_intf, folder_path, file_name)
         assert doc_id
 
         doc_path = mountpoint / doc_id
@@ -381,24 +316,27 @@ class TestDocuments:
 
         file_path = Path(os.environ["TMPDIR"]) / file_name
         write_bytes_atomic(file_path, content)
-        doc_id = export_file(documents_intf, file_path)
+        doc_id = xdp.export_file(documents_intf, file_path)
 
         host_paths = documents_intf.GetHostPaths([doc_id], byte_arrays=True)
         assert doc_id in host_paths
-        doc_host_path = path_from_null_term_bytes(host_paths[doc_id])
+        doc_host_path = xdp.path_from_null_term_bytes(host_paths[doc_id])
         assert doc_host_path == file_path
 
     def test_host_paths_xattr(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
-        mountpoint = get_mountpoint(documents_intf)
+        mountpoint = xdp.get_mountpoint(documents_intf)
 
         base_path = Path(os.environ["TMPDIR"]) / "a"
         file_path = base_path / "b" / "c"
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_bytes(b"test")
 
-        doc_ids, extra = export_files(
-            documents_intf, [base_path], ["read"], flags=EXPORT_FILES_FLAG_EXPORT_DIR
+        doc_ids, extra = xdp.export_files(
+            documents_intf,
+            [base_path],
+            ["read"],
+            flags=xdp.EXPORT_FILES_FLAG_EXPORT_DIR,
         )
         doc_id = doc_ids[0]
 

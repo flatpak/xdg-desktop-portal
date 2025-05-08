@@ -31,17 +31,32 @@ StartupNotify=true
 Categories=Network;WebBrowser;
 Keywords=web;browser;internet;
 """
+furrfix_desktop2 = b"""[Desktop Entry]
+Version=1.0
+Name=Furrfix2
+GenericName=Not a Web Browser 2
+Comment=Don't Browse the Web
+Exec=true %u
+Icon=furrfix2
+Terminal=false
+Type=Application
+MimeType=text/plain;text/html;text/xml;application/xhtml+xml;application/vnd.mozilla.xul+xml;text/mml;x-scheme-handler/http;x-scheme-handler/https;x-scheme-handler/xdg-desktop-portal-test;
+StartupNotify=true
+Categories=Network;WebBrowser;
+Keywords=web;browser;internet;
+"""
+
 
 mimeinfo_cache = b"""[MIME Cache]
-application/vnd.mozilla.xul+xml=furrfix.desktop;
-application/xhtml+xml=furrfix.desktop;
-text/plain=furrfix.desktop;
-text/html=furrfix.desktop;
-text/mml=furrfix.desktop;
-text/xml=furrfix.desktop;
-x-scheme-handler/http=furrfix.desktop;
-x-scheme-handler/https=furrfix.desktop;
-x-scheme-handler/xdg-desktop-portal-test=furrfix.desktop;
+application/vnd.mozilla.xul+xml=furrfix.desktop;furrfix2.desktop;
+application/xhtml+xml=furrfix.desktop;furrfix2.desktop;
+text/plain=furrfix.desktop;furrfix2.desktop;
+text/html=furrfix.desktop;furrfix2.desktop;
+text/mml=furrfix.desktop;furrfix2.desktop;
+text/xml=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/http=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/https=furrfix.desktop;furrfix2.desktop;
+x-scheme-handler/xdg-desktop-portal-test=furrfix.desktop;furrfix2.desktop;
 """
 
 
@@ -50,6 +65,7 @@ def xdg_data_home_files():
     return {
         "applications/defaults.list": defaults_list,
         "applications/furrfix.desktop": furrfix_desktop,
+        "applications/furrfix2.desktop": furrfix_desktop2,
         "applications/mimeinfo.cache": mimeinfo_cache,
     }
 
@@ -350,3 +366,198 @@ class TestOpenURI:
             excinfo.value.get_dbus_name()
             == "org.freedesktop.portal.Error.InvalidArgument"
         )
+
+    # tests mapping from /run/user/1000/doc/_id_/file.html -> /home/user/file.html
+    def test_openfile_opens_host_path(
+        self, portals, xdg_document_portal, dbus_con, app_id
+    ):
+        openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+
+        stored_fd, file_name = tempfile.mkstemp(
+            prefix="openuri_mock_file_", suffix=".html", dir=Path.home()
+        )
+        os.write(stored_fd, b"openuri_mock_file_content")
+        os.close(stored_fd)
+
+        file_path = Path(file_name)
+        doc_id = xdp.export_file(documents_intf, file_path)
+        mountpoint = xdp.get_mountpoint(documents_intf)
+        doc_path = mountpoint / doc_id / file_name
+        documents_intf.GrantPermissions(doc_id, "org.example.Test", ["read"])
+
+        # Call OpenFile by using fd
+        with open(doc_path) as f:
+            fd = f.fileno()
+            assert fd
+            activation_token = "token"
+            request = xdp.Request(dbus_con, openuri_intf)
+            options = {
+                "writable": False,
+                "activation_token": activation_token,
+            }
+
+            response = request.call(
+                "OpenFile",
+                parent_window="",
+                fd=fd,
+                options=options,
+            )
+            assert response
+            assert response.response == 0
+
+        # Check the impl portal was called with the right args
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("ChooseApplication")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[1] == app_id
+        assert args[2] == ""  # parent window
+        assert "furrfix" in args[3]
+
+        assert args[4]["activation_token"] == activation_token
+
+        path = args[4]["uri"]
+        assert path == "file://" + file_name
+        assert doc_path != file_name
+
+    # tests mapping from /run/user/1000/doc/_id_/dir/file.html -> /home/user/dir/file.html
+    def test_openfile_opens_host_path_in_dir(
+        self, portals, xdg_document_portal, dbus_con, app_id
+    ):
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+
+        # create directory in host which will be added to document portal
+        host_dir_name = tempfile.mkdtemp(prefix="openuri_mock_dir_", dir=Path.home())
+        host_dir_path = Path(host_dir_name)
+        doc_ids = xdp.export_files(
+            documents_intf,
+            [host_dir_path],
+            ["read", "write"],
+            flags=xdp.EXPORT_FILES_FLAG_EXPORT_DIR,
+        )
+        assert doc_ids
+        doc_id = doc_ids[0][0]
+        assert doc_id
+
+        # create file in the directory which was added to document directory
+        mountpoint = xdp.get_mountpoint(documents_intf)
+        stored_filename = "file.html"
+        stored_host_filepath = (host_dir_path / stored_filename).as_posix()
+        with open(
+            mountpoint / doc_id / os.path.basename(host_dir_name) / stored_filename, "w"
+        ) as f:
+            f.write("openuri_mock_file_content")
+
+        # open fd in the document path
+        doc_path = (
+            mountpoint / doc_id / os.path.basename(host_dir_name) / stored_filename
+        )
+        with open(doc_path) as f:
+            fd = f.fileno()
+            assert fd
+
+            activation_token = "token"
+            openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
+            request = xdp.Request(dbus_con, openuri_intf)
+            options = {
+                "writable": False,
+                "activation_token": activation_token,
+            }
+
+            response = request.call(
+                "OpenFile",
+                parent_window="",
+                fd=fd,
+                options=options,
+            )
+            assert response
+            assert response.response == 0
+
+        # Check the impl portal was called with the right args
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("ChooseApplication")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[1] == app_id
+        assert args[2] == ""  # parent window
+        assert "furrfix" in args[3]
+        assert args[4]["activation_token"] == activation_token
+        path = args[4]["uri"]
+        assert path == "file://" + stored_host_filepath
+
+    # Tests mapping from /run/user/1000/doc/_id_/dir/subdir/file.html -> /home/user/dir/subdir/file.html
+    def test_openfile_opens_host_path_in_subdir(
+        self, portals, xdg_document_portal, dbus_con, app_id
+    ):
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+
+        # create directory in host which will be added to document portal
+        host_dir_name = tempfile.mkdtemp(prefix="openuri_mock_dir_", dir=Path.home())
+        host_dir_path = Path(host_dir_name)
+        doc_ids = xdp.export_files(
+            documents_intf,
+            [host_dir_path],
+            ["read", "write"],
+            flags=xdp.EXPORT_FILES_FLAG_EXPORT_DIR,
+        )
+        assert doc_ids
+        doc_id = doc_ids[0][0]
+        assert doc_id
+
+        # create dir and file into that dir in the dir which was added to document directory
+        mountpoint = xdp.get_mountpoint(documents_intf)
+        os.makedirs(host_dir_path / "new_dir")
+        stored_filename = "file.html"
+        with open(
+            mountpoint
+            / doc_id
+            / os.path.basename(host_dir_name)
+            / "new_dir"
+            / stored_filename,
+            "w",
+        ) as f:
+            f.write("openuri_mock_file_content")
+        stored_host_filepath = (host_dir_path / "new_dir" / stored_filename).as_posix()
+
+        doc_path = (
+            mountpoint
+            / doc_id
+            / os.path.basename(host_dir_name)
+            / "new_dir"
+            / stored_filename
+        )
+
+        # open fd in the document path
+        with open(doc_path) as f:
+            fd = f.fileno()
+            assert fd
+
+            activation_token = "token"
+            openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
+            request = xdp.Request(dbus_con, openuri_intf)
+            options = {
+                "writable": False,
+                "activation_token": activation_token,
+            }
+
+            response = request.call(
+                "OpenFile",
+                parent_window="",
+                fd=fd,
+                options=options,
+            )
+            assert response
+            assert response.response == 0
+
+        # Check the impl portal was called with the right args
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("ChooseApplication")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[1] == app_id
+        assert args[2] == ""  # parent window
+        assert "furrfix" in args[3]
+        assert args[4]["activation_token"] == activation_token
+        path = args[4]["uri"]
+        assert path == "file://" + stored_host_filepath

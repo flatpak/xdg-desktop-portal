@@ -155,41 +155,6 @@ out:
   g_task_return_boolean (task, TRUE);
 }
 
-/* Calling Lookup on a nonexisting path does not work, so we
- * pull the doc id out of the path manually.
- */
-static gboolean
-looks_like_document_portal_path (const char *path,
-                                 char **guessed_docid)
-{
-  const char *prefix = "/run/user/";
-  char *docid;
-  char *p, *q;
-
-  if (!g_str_has_prefix (path, prefix))
-    return FALSE;
-
-  p = strstr (path, "/doc/");
-  if (!p)
-    return FALSE;
-
-  p += strlen ("/doc/");
-  q = strchr (p, '/');
-  if (q)
-    docid = g_strndup (p, q - p);
-  else
-    docid = g_strdup (p);
-
-  if (docid[0] == '\0')
-    {
-      g_free (docid);
-      return FALSE;
-    }
-
-  *guessed_docid = docid;
-  return TRUE;
-}
-
 static char *
 get_host_folder_for_doc_id (const char *doc_id)
 {
@@ -554,8 +519,9 @@ handle_open_file (XdpDbusFileChooser *object,
       {
         const char *path_from_app = g_variant_get_bytestring (value);
         g_autofree char *host_path = g_strdup (path_from_app);
+        g_autofree char *path_suffix = NULL;
         g_autofree char *doc_id_from_app = NULL;
-        if (looks_like_document_portal_path (host_path, &doc_id_from_app))
+        if (xdp_looks_like_document_portal_path (host_path, &doc_id_from_app, &path_suffix))
           {
             char *real_path = get_host_folder_for_doc_id (doc_id_from_app);
             if (real_path)
@@ -694,9 +660,10 @@ handle_save_file (XdpDbusFileChooser *object,
         const char *path = g_variant_get_bytestring (value);
         g_autofree char *host_path = xdp_get_real_path_for_doc_path (path, request->app_info);
         g_autofree char *doc_id = NULL;
+        g_autofree char *path_suffix = NULL;
 
         if (strcmp (path, host_path) == 0 &&
-            looks_like_document_portal_path (path, &doc_id))
+            xdp_looks_like_document_portal_path (path, &doc_id, &path_suffix))
           {
             char *real_path = xdp_get_real_path_for_doc_id (doc_id);
 
@@ -721,7 +688,8 @@ handle_save_file (XdpDbusFileChooser *object,
           const char *path_from_app = g_variant_get_bytestring (value);
           g_autofree char *host_path = g_strdup (path_from_app);
           g_autofree char *doc_id_from_app = NULL;
-          if (looks_like_document_portal_path (host_path, &doc_id_from_app))
+          g_autofree char *path_suffix = NULL;
+          if (xdp_looks_like_document_portal_path (host_path, &doc_id_from_app, &path_suffix))
             {
               char *real_path = get_host_folder_for_doc_id (doc_id_from_app);
               if (real_path)
