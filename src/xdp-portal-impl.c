@@ -349,7 +349,27 @@ load_installed_portals (gboolean opt_verbose)
       goto out;
     }
 
+  /* $XDG_CONFIG_HOME/xdg-desktop-portal/portals */
+  user_portal_dir = g_build_filename (g_get_user_config_dir (), XDP_SUBDIR, "portals", NULL);
+  load_installed_portals_dir (portals, user_portal_dir, opt_verbose);
+
+  /* $XDG_CONFIG_DIRS/xdg-desktop-portal/portals */
+  dirs = g_get_system_config_dirs ();
+
+  for (iter = dirs; iter != NULL && *iter != NULL; iter++)
+    {
+      g_autofree char *dir = NULL;
+
+      dir = g_build_filename (*iter, XDP_SUBDIR, "portals", NULL);
+      load_installed_portals_dir (portals, dir, opt_verbose);
+    }
+
+  /* ${sysconfdir}/xdg-desktop-portal/portals */
+  portal_dir = SYSCONFDIR "/" XDP_SUBDIR "/portals";
+  load_installed_portals_dir (portals, portal_dir, opt_verbose);
+
   /* $XDG_DATA_HOME/xdg-desktop-portal/portals */
+  g_clear_pointer (&user_portal_dir, g_free);
   user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, "portals", NULL);
   load_installed_portals_dir (portals, user_portal_dir, opt_verbose);
 
