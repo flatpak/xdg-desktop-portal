@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:32-0300\n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
 "PO-Revision-Date: 2024-10-31 20:42+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
@@ -78,27 +78,27 @@ msgstr "Id berkas desktop kurang akhiran .desktop: %s"
 msgid "Desktop file id is not valid"
 msgstr "Id berkas desktop tidak valid"
 
-#: src/dynamic-launcher.c:307
+#: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Entri desktop yang diberikan ke Install() bukan berkas kunci yang valid"
 
-#: src/dynamic-launcher.c:320
+#: src/dynamic-launcher.c:319
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Entri desktop yang diberikan ke Install() hanya boleh memiliki satu grup"
 
-#: src/dynamic-launcher.c:333
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "Entri desktop yang diberikan ke Install() tidak valid"
-
-#: src/dynamic-launcher.c:365
+#: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Token yang diberikan tidak valid: %s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Entri desktop yang diberikan ke Install() tidak valid"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880

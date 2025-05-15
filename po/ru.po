@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:32-0300\n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
 "PO-Revision-Date: 2025-02-07 14:00+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
@@ -81,28 +81,28 @@ msgstr "В идентификаторе desktop-файла отсутствуе�
 msgid "Desktop file id is not valid"
 msgstr "Идентификатор desktop-файла недействителен"
 
-#: src/dynamic-launcher.c:307
+#: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Desktop-запись, переданная в Install(), не содержит действительного файла "
 "ключа"
 
-#: src/dynamic-launcher.c:320
+#: src/dynamic-launcher.c:319
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Desktop-запись, переданная в Install(), должна иметь только одну группу"
 
-#: src/dynamic-launcher.c:333
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "Desktop-запись, переданная в Install(), недействительна"
-
-#: src/dynamic-launcher.c:365
+#: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Указанный токен недействителен: %s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Desktop-запись, переданная в Install(), недействительна"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880

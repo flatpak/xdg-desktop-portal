@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:32-0300\n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
 "PO-Revision-Date: 2024-05-18 09:47+0530\n"
 "Last-Translator: Scrambled777 <weblate.scrambled777@simplelogin.com>\n"
 "Language-Team: Hindi <indlinux-hindi@lists.sourceforge.net>\n"
@@ -76,25 +76,25 @@ msgstr "डेस्कटॉप फाइल ID में .desktop प्रत
 msgid "Desktop file id is not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:307
+#: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य कुंजी फाइल नहीं है"
 
-#: src/dynamic-launcher.c:320
+#: src/dynamic-launcher.c:319
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि में केवल एक समूह होना चाहिए"
 
-#: src/dynamic-launcher.c:333
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
-
-#: src/dynamic-launcher.c:365
+#: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "दिया गया टोकन अमान्य है: %s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:32-0300\n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
 "PO-Revision-Date: 2025-10-03 19:00+0100\n"
 "Last-Translator: Jordi Mas i Hernàndez <jmas@softcatala.org>\n"
 "Language-Team: Catalan <gnome@llistes.softcatala.org>\n"
@@ -78,27 +78,27 @@ msgstr "Manca l'ID del fitxer d'escriptori .desktop sufix: %s"
 msgid "Desktop file id is not valid"
 msgstr "L'ID del fitxer d'escriptori no és vàlid"
 
-#: src/dynamic-launcher.c:307
+#: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "L'entrada d'escriptori donada a Install() no és un fitxer de clau vàlid"
 
-#: src/dynamic-launcher.c:320
+#: src/dynamic-launcher.c:319
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "L'entrada d'escriptori donada a Install() ha de tenir exactament un grup"
 
-#: src/dynamic-launcher.c:333
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "L'entrada d'escriptori donada a Install() no és vàlida"
-
-#: src/dynamic-launcher.c:365
+#: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "El testimoni indicat no és vàlid: %s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "L'entrada d'escriptori donada a Install() no és vàlida"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880
@@ -239,7 +239,5 @@ msgid "Allow Applications to Set Backgrounds?"
 msgstr "Voleu permetre que les aplicacions estableixin el fons?"
 
 #: src/wallpaper.c:218
-msgid ""
-"An application is requesting to be able to change the background image."
+msgid "An application is requesting to be able to change the background image."
 msgstr "Una aplicació sol·licita poder canviar la imatge de fons."
-

@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-19 12:32-0300\n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
 "PO-Revision-Date: 2024-10-08 08:42+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
@@ -78,25 +78,25 @@ msgstr "桌面文件标识缺少 .desktop 后缀：%s"
 msgid "Desktop file id is not valid"
 msgstr "桌面文件标识无效"
 
-#: src/dynamic-launcher.c:307
+#: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "传递给 Install() 的桌面入口文件不是有效的设定键文件"
 
-#: src/dynamic-launcher.c:320
+#: src/dynamic-launcher.c:319
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "传递给 Install() 的桌面入口文件只能有一个分组"
 
-#: src/dynamic-launcher.c:333
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "传递给 Install() 的桌面入口文件无效"
-
-#: src/dynamic-launcher.c:365
+#: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "提供的令牌无效：%s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "传递给 Install() 的桌面入口文件无效"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880
