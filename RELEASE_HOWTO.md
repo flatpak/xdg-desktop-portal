@@ -43,6 +43,9 @@ $ git evtag sign ${version}
 $ git push -u origin ${version}
 ```
 
+Copy paste the release notes from NEWS.md into the tag message when running
+`git evtag`.
+
 ### Post-Release
 
 - Update version number in `meson.build` to the next release version
