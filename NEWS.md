@@ -1,8 +1,23 @@
 Changes in 1.20.1
 =================
-Released: Not yet
+Released: 2025-05-15
 
-...
+Enhancements:
+
+- Code cleanups and improvements to app info tracking
+- Include PID/TID in realtime portal error messages
+- Search for portal backends in $XDG_DATA_DIRS (#603)
+- Prioritize user portal configs over system ones
+
+Bug Fixes:
+
+- Fix race condition in the host registry portal
+- Avoid spurious warnings when dbus.service stops
+- Documentation fixes (#1663)
+- Fix running tests from /tmp
+- Fix installing dynamic launcher (#1674)
+- Improve error reporting in the document portal
+- Fix incorrect state tracking in input capture portal
 
 Changes in 1.20.0
 =================
