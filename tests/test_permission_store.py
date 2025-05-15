@@ -2,7 +2,7 @@
 #
 # This file is formatted with Python Black
 
-import tests as xdp
+import tests.xdp_utils as xdp
 
 import dbus
 from gi.repository import GLib, Gio
