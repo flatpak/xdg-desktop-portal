@@ -24,6 +24,9 @@ $ git push -u ${fork} release-${version}
 ```
 - Open a pull request
 
+- Merge the pull request and wait for it to reach the `main` branch or the
+  stable branch
+
 ### Create a Signed Tag
 
 **NOTE**: Only project maintainers can create a tag.
