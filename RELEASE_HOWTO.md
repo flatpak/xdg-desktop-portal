@@ -54,13 +54,22 @@ Copy paste the release notes from NEWS.md into the tag message when running
 Changes in ${nextVersion}
 =================
 Released: Not yet
+
 ...
 ```
+
+- Commit the changes as "Post-release version bump" and push to the
+  corresponding branch
 
 ### Post-Branching
 
 After creating a stable branch:
  
-- Update version number in `meson.build` to the next unstable release version
-- Update `SECURITY.md`
-- Update `.github/ISSUE_TEMPLATE/bug-report.yml`
+- Update version number in `meson.build` to the next unstable release version.
+  For example if the created stable branch name is xdg-desktop-portal-1.N, bump
+  the version to 1.N+1.0. Commit as "Post-branching version bump".
+- Update `SECURITY.md`.
+- Update `.github/ISSUE_TEMPLATE/bug-report.yml`. It should list the
+  development version, and the currently maintained stable versions, under "XDG
+  Desktop Portal version".
+- Push changes to the `main` branch.
