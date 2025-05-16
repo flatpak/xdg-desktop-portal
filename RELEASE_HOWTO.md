@@ -74,4 +74,5 @@ After creating a stable branch:
 - Update `.github/ISSUE_TEMPLATE/bug-report.yml`. It should list the
   development version, and the currently maintained stable versions, under "XDG
   Desktop Portal version".
+- Update the pending entry in NEWS.md to refer to the next unstable version.
 - Push changes to the `main` branch.
