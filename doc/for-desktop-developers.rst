@@ -77,7 +77,7 @@ Background Apps Monitor
 -----------------------
 
 In addition to managing the regular interfaces that sandboxed applications
-use to interfact with the host system, XDG Desktop Portal also monitors
+use to interface with the host system, XDG Desktop Portal also monitors
 running applications without an active window - if the portal backend
 provides an implementation of the Background portal.
 

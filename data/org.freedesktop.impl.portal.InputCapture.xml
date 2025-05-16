@@ -378,7 +378,7 @@
         SupportedCapabilities:
 
         A bitmask of supported capabilities. This list is constant, it is not the list of
-        capabilities currently available but rather which capabilies are
+        capabilities currently available but rather which capabilities are
         implemented by the portal.
 
         Applications must ignore unknown capabilities.

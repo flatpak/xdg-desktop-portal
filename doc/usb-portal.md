@@ -26,7 +26,7 @@ and `--nousb` arguments against `flatpak build-finish` and `flatpak
 run`. Neither `--devices=all` nor `--device=usb` do influence the
 portal.
 
-Hidding a device always take precedence over making them enumerable,
+Hiding a device always take precedence over making them enumerable,
 even when a blanket permission (`--usb=all`) is set.
 
 However out of the sandbox we assume all devices are allowed as there
@@ -91,7 +91,7 @@ In the case of libusb 1.0.23 and later, use `libusb_wrap_sys_device()`
 and pass the file descriptor as the `sys_dev` argument.  It should be
 noted that libusb must be compiled with udev support (it is the
 default) in order to be able to work. Without this it looks for the
-non existant `/dev/usb` that is not present.
+nonexistent `/dev/usb` that is not present.
 
 If you use libhidapi, you need to use the function
 `hid_libusb_wrap_sys_device()` provided by libhidapi-usb.
@@ -107,7 +107,7 @@ possible to hard-cut app access right when the app permission changes.
 to influence which other udev properties are fetched. This approach is
 open to suggestions - it may be necessary to expose more information
 more liberally through the portal. The initial attempt has been made
-to provide sensible information usefull for display in a user
+to provide sensible information useful for display in a user
 interface.
 
 [^3]: This is clearly not ideal. The ideal approach is to go through

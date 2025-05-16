@@ -189,7 +189,7 @@ Released: 2023-10-26
 
 - Communicate better when the Background portal kills an app
 - Properly quote Flatpak command in the Background portal
-- Improve documentation of the "cursor_mode" propery of the ScreenCast
+- Improve documentation of the "cursor_mode" property of the ScreenCast
   backend D-Bus interface
 - Fix ScreenCast portal removing transient restore permissions too early.
   This fixes screen sharing dialogs on Chromium asking for the screen multiple
@@ -244,7 +244,7 @@ Released: 2023-08-27
   system components (e.g. MIME types).
 - Various small visual tweaks to the generated documentation
 - Document a new 'accent-color' key in the Settings portal. This key represents
-  an arbitrary color in sRGB colorspace. How implementations of the portal
+  an arbitrary color in sRGB color space. How implementations of the portal
   provide this key is entirely dependent on their internal policies and design.
 - Translation updates
 
@@ -365,7 +365,7 @@ Released: 2021-12-21
 - Place portals in the systemd session.slice
 - settings: Add color-scheme key
 - open-uri: Avoid a sync call to org.freedesktop.FileManager
-- screncast: Allow restoring previous sessions
+- screencast: Allow restoring previous sessions
 - Add a portal for requesting realtime permissions
 - ci: Many improvements
 - Publish the docs from a ci job
@@ -399,7 +399,7 @@ Changes in 1.8.1
 Changes in 1.8.0
 ================
 
-- openuri: Allow skipping the chooser for more URL tyles
+- openuri: Allow skipping the chooser for more URL types
 - openuri: Robustness fixes
 - filechooser: Return the current filter
 - camera: Make the client node visible
@@ -587,7 +587,7 @@ xdg-desktop-portal 0.11
 * Include docs for the session, remote desktop and screencast portals.
 * document-portal: Be more flexible validating apps' IDs.
 * document-portal: Be more strict when checking & granting file access.
-* file-chooser: Fix crash with unitialized data in the save dialog.
+* file-chooser: Fix crash with uninitialized data in the save dialog.
 * open-uri: Don't ever skip showing the dialog if a threshold is set.
 * open-uri: Don't register http: URIs for sandboxed handlers.
 * remote-desktop: Use the correct device type values.

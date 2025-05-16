@@ -39,7 +39,7 @@
 
       The #org.freedesktop.portal.GlobalShortcuts::Activated and
       #org.freedesktop.portal.GlobalShortcuts::Deactivated signals are emitted,
-      respecitvely, whenever a shortcut is activated and deactivated.
+      respectively, whenever a shortcut is activated and deactivated.
 
       This documentation describes version 2 of this interface.
   -->
@@ -189,7 +189,7 @@
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
 
-        Request showing a configuration UI so the user is able to conigure all shortcuts of this session.
+        Request showing a configuration UI so the user is able to configure all shortcuts of this session.
 
         Supported keys in the @options vardict include:
 
