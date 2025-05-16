@@ -204,7 +204,7 @@
         @options: Vardict with optional further information
 
         Releases previously acquired devices. The file descriptors of
-        thoses devices might become unusable as a result of this.
+        those devices might become unusable as a result of this.
 
         Each element of the @devices array contains the device ID of the device.
 
@@ -219,7 +219,7 @@
     <!--
         DeviceEvents:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
-        @events: A list of events which occured.
+        @events: A list of events which occurred.
 
         The DeviceEvents signal is emitted when one or more USB devices have
         been added, changed, or removed. This signal is only emitted for active

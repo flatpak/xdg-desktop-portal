@@ -15,5 +15,3 @@ and others.
 Documentation about the Common Conventions, as well as documentation for
 App Developers, Desktop Developers and Contributors can be found
 [here](https://flatpak.github.io/xdg-desktop-portal/docs/).
-
-
