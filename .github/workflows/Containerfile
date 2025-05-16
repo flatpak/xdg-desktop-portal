@@ -48,7 +48,6 @@ RUN apt install -y --no-install-recommends meson
 RUN apt install -y --no-install-recommends \
     python3-pytest \
     python3-pytest-xdist \
-    python3-dbusmock \
     python3-dbus \
     libumockdev0 \
     libumockdev-dev \
@@ -61,6 +60,9 @@ RUN apt install -y --no-install-recommends python3-pip
 # Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
     sphinx-copybutton sphinxext-opengraph matplotlib
+
+# Install latest a newer python-dbusmock required for our pytest setup
+RUN pip install --user --break-system-packages python-dbusmock
 
 # Install pre-commit
 RUN pip install --user --break-system-packages pre-commit
