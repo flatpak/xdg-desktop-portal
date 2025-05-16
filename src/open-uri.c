@@ -345,89 +345,6 @@ update_permissions_store (const char *app_id,
 }
 
 static void
-send_response_in_thread_func (GTask *task,
-                              gpointer source_object,
-                              gpointer task_data,
-                              GCancellable *cancellable)
-{
-  XdpRequest *request = XDP_REQUEST (task_data);
-  guint response;
-  GVariant *options;
-  const char *choice;
-
-  REQUEST_AUTOLOCK (request);
-
-  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
-  options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
-
-  if (response != 0)
-    goto out;
-
-  if (g_variant_lookup (options, "choice", "&s", &choice))
-    {
-      const char *uri;
-      const char *parent_window;
-      gboolean writable;
-      const char *content_type;
-      const char *activation_token = NULL;
-
-      g_debug ("Received choice %s", choice);
-
-      uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
-      parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
-      writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
-      content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
-
-      g_variant_lookup (options, "activation_token", "&s", &activation_token);
-
-      if (launch_application_with_uri (choice, uri, parent_window, writable, activation_token, NULL))
-        update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
-    }
-
-out:
-  if (request->exported)
-    {
-      g_auto(GVariantBuilder) opt_builder =
-        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                      response,
-                                      g_variant_builder_end (&opt_builder));
-      xdp_request_unexport (request);
-    }
-}
-
-static void
-app_chooser_done (GObject *source,
-                  GAsyncResult *result,
-                  gpointer data)
-{
-  g_autoptr(XdpRequest) request = data;
-  guint response = 2;
-  g_autoptr(GVariant) options = NULL;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(GTask) task = NULL;
-
-  if (!xdp_dbus_impl_app_chooser_call_choose_application_finish (XDP_DBUS_IMPL_APP_CHOOSER (source),
-                                                                 &response,
-                                                                 &options,
-                                                                 result,
-                                                                 &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Backend call failed: %s", error->message);
-    }
-
-  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
-  if (options)
-    g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, send_response_in_thread_func);
-}
-
-static void
 resolve_scheme_and_content_type (const char *uri,
                                  char **scheme,
                                  char **content_type)
@@ -560,6 +477,11 @@ app_info_changed (GAppInfoMonitor *monitor,
   g_auto(GStrv) choices = NULL;
   guint n_choices;
 
+  REQUEST_AUTOLOCK (request);
+
+  if (!request->impl_request)
+    return;
+
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
@@ -616,31 +538,27 @@ handle_open_in_thread_func (GTask *task,
   gboolean open_dir = FALSE;
   gboolean use_default_app = FALSE;
   const char *reason;
+  guint response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
 
-  REQUEST_AUTOLOCK (request);
+  {
+    REQUEST_AUTOLOCK (request);
 
-  parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
-  uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
-  fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
-  writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
-  ask = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "ask"));
-  open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
-  activation_token = (const char *)g_object_get_data (G_OBJECT (request), "activation-token");
+    parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
+    uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
+    fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
+    writable = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "writable"));
+    ask = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "ask"));
+    open_dir = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "open-dir"));
+    activation_token = (const char *)g_object_get_data (G_OBJECT (request), "activation-token");
 
-  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
+    g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
+  }
 
   /* Verify that either uri or fd is set, not both */
   if (uri != NULL && fd != -1)
     {
       g_warning ("Rejecting invalid open-uri request (both URI and fd are set)");
-      if (request->exported)
-        {
-          xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                          g_variant_builder_end (&opts_builder));
-          xdp_request_unexport (request);
-        }
-      return;
+      goto out;
     }
 
   if (uri)
@@ -650,31 +568,14 @@ handle_open_in_thread_func (GTask *task,
       if (!g_uri_is_valid (uri, G_URI_FLAGS_NONE, &local_error))
         {
           g_debug ("Rejecting open request for invalid uri '%s': %s", uri, local_error->message);
-
-          /* Reject the request */
-          if (request->exported)
-            {
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                              g_variant_builder_end (&opts_builder));
-              xdp_request_unexport (request);
-            }
-          return;
+          goto out;
         }
 
       resolve_scheme_and_content_type (uri, &scheme, &content_type);
       if (content_type == NULL)
         {
-          /* Reject the request */
-          if (request->exported)
-            {
-              g_debug ("Rejecting open request as content-type couldn't be fetched for '%s'", uri);
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                              g_variant_builder_end (&opts_builder));
-              xdp_request_unexport (request);
-            }
-          return;
+          g_debug ("Rejecting open request as content-type couldn't be fetched for '%s'", uri);
+          goto out;
         }
     }
   else
@@ -712,14 +613,7 @@ handle_open_in_thread_func (GTask *task,
                        path, writable ? "" : "not ", fd_is_writable ? "" : "not ");
             }
 
-          if (request->exported)
-            {
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                              g_variant_builder_end (&opts_builder));
-              xdp_request_unexport (request);
-            }
-          return;
+          goto out;
         }
 
       if (open_dir)
@@ -764,11 +658,8 @@ handle_open_in_thread_func (GTask *task,
             }
           else
             {
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS,
-                                              g_variant_builder_end (&opts_builder));
-              xdp_request_unexport (request);
-              return;
+              response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+              goto out;
             }
 
           g_free (path);
@@ -780,11 +671,7 @@ handle_open_in_thread_func (GTask *task,
 
       scheme = g_strdup ("file");
       uri = g_filename_to_uri (path, NULL, NULL);
-      g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
     }
-
-  g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
-  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   /* collect all the information */
   find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
@@ -859,21 +746,19 @@ handle_open_in_thread_func (GTask *task,
         {
           /* Launch the app directly */
           g_autoptr(GError) error = NULL;
+          gboolean result;
 
           g_debug ("Skipping app chooser");
 
-          gboolean result = launch_application_with_uri (app, uri, parent_window, writable, activation_token, &error);
-          if (request->exported)
+          result = launch_application_with_uri (app, uri, parent_window, writable, activation_token, &error);
+          if (!result)
             {
-              if (!result)
-                g_debug ("Open request for '%s' failed: %s", uri, error->message);
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              result ? XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS : XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                              g_variant_builder_end (&opts_builder));
-              xdp_request_unexport (request);
+              g_debug ("Open request for '%s' failed: %s", uri, error->message);
+              goto out;
             }
 
-          return;
+          response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+          goto out;
         }
     }
 
@@ -881,8 +766,6 @@ handle_open_in_thread_func (GTask *task,
     g_variant_builder_add (&opts_builder, "{sv}", "last_choice", g_variant_new_string (latest_id));
   else if (default_app != NULL)
     g_variant_builder_add (&opts_builder, "{sv}", "last_choice", g_variant_new_string (default_app));
-
-  g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   g_variant_builder_add (&opts_builder, "{sv}", "content_type", g_variant_new_string (content_type));
   if (basename)
@@ -892,28 +775,76 @@ handle_open_in_thread_func (GTask *task,
   if (activation_token)
     g_variant_builder_add (&opts_builder, "{sv}", "activation_token", g_variant_new_string (activation_token));
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, NULL);
+  {
+    REQUEST_AUTOLOCK (request);
 
-  xdp_request_set_impl_request (request, impl_request);
+    g_object_set_data_full (G_OBJECT (request), "scheme", g_strdup (scheme), g_free);
+    g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
-  g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
+    impl_request =
+      xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                            G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                            g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                            request->id,
+                                            NULL, NULL);
+
+    xdp_request_set_impl_request (request, impl_request);
+  }
 
   g_debug ("Opening app chooser");
 
-  xdp_dbus_impl_app_chooser_call_choose_application (impl,
-                                                     request->id,
-                                                     app_id,
-                                                     parent_window,
-                                                     (const char * const *)choices,
-                                                     g_variant_builder_end (&opts_builder),
-                                                     NULL,
-                                                     app_chooser_done,
-                                                     g_object_ref (request));
+  {
+    g_autoptr(GVariant) results = NULL;
+    g_autoptr (GError) local_error = NULL;
+    const char *choice;
+
+    if (!xdp_dbus_impl_app_chooser_call_choose_application_sync (impl,
+                                                                 request->id,
+                                                                 app_id,
+                                                                 parent_window,
+                                                                 (const char * const *)choices,
+                                                                 g_variant_builder_end (&opts_builder),
+                                                                 &response,
+                                                                 &results,
+                                                                 NULL,
+                                                                 &local_error))
+      {
+        g_dbus_error_strip_remote_error (local_error);
+        g_warning ("Backend call failed: %s", local_error->message);
+        goto out;
+      }
+
+    if (response != XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS)
+      goto out;
+
+    if (g_variant_lookup (results, "choice", "&s", &choice))
+      {
+        g_debug ("Received choice %s", choice);
+
+        g_variant_lookup (results, "activation_token", "&s", &activation_token);
+
+        if (launch_application_with_uri (choice, uri, parent_window, writable, activation_token, NULL))
+          update_permissions_store (xdp_app_info_get_id (request->app_info), content_type, choice);
+      }
+  }
+
+out:
+  {
+    REQUEST_AUTOLOCK (request);
+
+    if (request->exported)
+      {
+        g_auto(GVariantBuilder) results_builder =
+          G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+        xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                        response,
+                                        g_variant_builder_end (&results_builder));
+        xdp_request_unexport (request);
+      }
+  }
+
+  g_task_return_boolean (task, response == XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS);
 }
 
 static gboolean
@@ -983,6 +914,8 @@ handle_open_uri (XdpDbusOpenURI *object,
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
   xdp_dbus_open_uri_complete_open_uri (object, invocation, request->id);
+
+  g_signal_connect_object (monitor, "changed", G_CALLBACK (app_info_changed), request, 0);
 
   task = g_task_new (object, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
