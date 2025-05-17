@@ -131,6 +131,12 @@ template_files = [
   'templates/wallpaper.py',
 ]
 
+
+if have_libspiel
+  pytest_files += ['test_speech_synthesis.py']
+  template_files += ['templates/speechprovider.py']
+endif
+
 foreach pytest_file : pytest_files
   testname = pytest_file.replace('.py', '').replace('test_', '')
   test(
