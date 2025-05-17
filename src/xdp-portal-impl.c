@@ -501,9 +501,8 @@ load_portal_configuration (gboolean opt_verbose)
 
   if (portal_dir != NULL)
     {
-      load_config_directory (portal_dir, desktops, opt_verbose);
-      /* All other config directories are ignored when this is set */
-      return;
+      if (load_config_directory (portal_dir, desktops, opt_verbose))
+        return;
     }
 
   /* $XDG_CONFIG_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf */
