@@ -31,7 +31,8 @@ class TestPrint:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Print", 3)
 
-    def test_prepare_print_basic(self, portals, dbus_con, app_id):
+    def test_prepare_print_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -74,7 +75,8 @@ class TestPrint:
         )
 
     @pytest.mark.parametrize("template_params", ({"print": {"response": 1}},))
-    def test_prepare_print_cancel(self, portals, dbus_con, app_id):
+    def test_prepare_print_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -102,7 +104,8 @@ class TestPrint:
         assert args[3] == title
 
     @pytest.mark.parametrize("template_params", ({"print": {"expect-close": True}},))
-    def test_prepare_print_close(self, portals, dbus_con, app_id):
+    def test_prepare_print_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -133,7 +136,7 @@ class TestPrint:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-printing": True}},)
     )
-    def test_prepare_print_lockdown(self, portals, dbus_con, app_id):
+    def test_prepare_print_lockdown(self, portals, dbus_con):
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -157,7 +160,8 @@ class TestPrint:
         method_calls = mock_intf.GetMethodCalls("PreparePrint")
         assert len(method_calls) == 0
 
-    def test_print_basic(self, portals, dbus_con, app_id):
+    def test_print_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -203,7 +207,8 @@ class TestPrint:
         assert ino == ino_backend
 
     @pytest.mark.parametrize("template_params", ({"print": {"response": 1}},))
-    def test_print_cancel(self, portals, dbus_con, app_id):
+    def test_print_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -231,7 +236,8 @@ class TestPrint:
         assert args[1] == app_id
 
     @pytest.mark.parametrize("template_params", ({"print": {"expect-close": True}},))
-    def test_print_close(self, portals, dbus_con, app_id):
+    def test_print_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -262,7 +268,7 @@ class TestPrint:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-printing": True}},)
     )
-    def test_print_lockdown(self, portals, dbus_con, app_id):
+    def test_print_lockdown(self, portals, dbus_con):
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -288,7 +294,7 @@ class TestPrint:
         method_calls = mock_intf.GetMethodCalls("Print")
         assert len(method_calls) == 0
 
-    def test_print_prepare_and_print(self, portals, dbus_con, app_id):
+    def test_print_prepare_and_print(self, portals, dbus_con):
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

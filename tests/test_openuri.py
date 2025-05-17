@@ -7,7 +7,6 @@ import tests as xdp
 import dbus
 import pytest
 import os
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -91,7 +90,8 @@ class TestOpenURI:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "OpenURI", 5)
 
-    def test_http1(self, portals, dbus_con, app_id):
+    def test_http1(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -159,15 +159,17 @@ class TestOpenURI:
         method_calls = mock_intf.GetMethodCalls("ChooseApplication")
         assert len(method_calls) == 0
 
-    def test_file(self, portals, dbus_con, app_id):
+    def test_file(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         scheme_handler = "text/plain"
         self.enable_paranoid_mode(dbus_con, scheme_handler)
 
-        fd, _ = tempfile.mkstemp(prefix="openuri_mock_file_", dir=Path.home())
-        os.write(fd, b"openuri_mock_file")
+        file_path = Path.home() / "openuri_mock_file"
+        file_path.write_text("openuri_mock_file")
+        fd = os.open(file_path.absolute().as_posix(), os.O_RDONLY)
 
         writable = False
         activation_token = "token"
@@ -183,6 +185,8 @@ class TestOpenURI:
             fd=fd,
             options=options,
         )
+
+        os.close(fd)
 
         assert response
         assert response.response == 0
@@ -228,7 +232,8 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"appchooser": {"expect-close": True}},)
     )
-    def test_close(self, portals, dbus_con, app_id):
+    def test_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -269,7 +274,7 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-application-handlers": True}},)
     )
-    def test_lockdown(self, portals, dbus_con, app_id):
+    def test_lockdown(self, portals, dbus_con):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         scheme_handler = "x-scheme-handler/http"
@@ -295,15 +300,17 @@ class TestOpenURI:
             excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
         )
 
-    def test_dir(self, portals, dbus_con, app_id):
+    def test_dir(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         scheme_handler = "inode/directory"
         self.enable_paranoid_mode(dbus_con, scheme_handler)
 
-        fd, file_path = tempfile.mkstemp(prefix="openuri_mock_file_", dir=Path.home())
-        os.write(fd, b"openuri_mock_file")
+        file_path = Path.home() / "openuri_mock_file"
+        file_path.write_text("openuri_mock_file")
+        fd = os.open(file_path.absolute().as_posix(), os.O_RDONLY)
 
         activation_token = "token"
 
@@ -317,6 +324,8 @@ class TestOpenURI:
             fd=fd,
             options=options,
         )
+
+        os.close(fd)
 
         assert response
         assert response.response == 0

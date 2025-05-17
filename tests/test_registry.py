@@ -6,9 +6,27 @@ import dbus
 import pytest
 
 
+CORRECT_APP_ID_DESKTOP = b"""
+[Desktop Entry]
+Version=1.0
+Name=CorrectAppId
+Exec=true %u
+Type=Application
+"""
+
+
 @pytest.fixture
-def app_id():
-    return "org.example.WrongAppId"
+def xdg_data_home_files():
+    return {
+        "applications/org.example.CorrectAppId.desktop": CORRECT_APP_ID_DESKTOP,
+    }
+
+
+@pytest.fixture
+def xdp_app_info() -> xdp.AppInfo:
+    return xdp.AppInfo.new_host(
+        app_id="org.example.WrongAppId",
+    )
 
 
 @pytest.fixture
@@ -53,7 +71,8 @@ class TestRegistry:
 
         return xdp.Session.from_response(dbus_con, response)
 
-    def test_registerless(self, portals, dbus_con, app_id):
+    def test_registerless(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         expected_app_id = app_id
@@ -75,7 +94,8 @@ class TestRegistry:
         app_id = mock_intf.GetSessionAppId(session.handle)
         assert app_id == expected_app_id
 
-    def test_late_register(self, portals, dbus_con, app_id):
+    def test_late_register(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -96,7 +116,8 @@ class TestRegistry:
         new_app_id = mock_intf.GetSessionAppId(new_session.handle)
         assert new_app_id == expected_app_id
 
-    def test_multiple_connections(self, portals, dbus_con, app_id):
+    def test_multiple_connections(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

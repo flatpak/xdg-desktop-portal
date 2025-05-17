@@ -11,6 +11,13 @@ import os
 from gi.repository import GLib, Gio
 
 
+@pytest.fixture
+def xdp_app_info() -> xdp.AppInfo:
+    return xdp.AppInfo.new_host(
+        app_id="",
+    )
+
+
 EXPORT_FILES_FLAG_EXPORT_DIR = 8
 
 
