@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -38,6 +40,9 @@
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+
+#define PIDFS_IOCTL_MAGIC 0xFF
+#define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
 
 /* Based on g_mkstemp from glib */
 gint
@@ -917,6 +922,20 @@ xdp_pidfd_get_namespace (int      pidfd,
 
   g_return_val_if_fail (pidfd >= 0, FALSE);
   g_return_val_if_fail (ns != NULL, FALSE);
+
+  r = ioctl (pidfd, PIDFD_GET_PID_NAMESPACE);
+  if (r >= 0)
+    {
+      *ns = r;
+      return TRUE;
+    }
+  else if (errno != ENOTTY && errno != EINVAL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "PIDFD_GET_PID_NAMESPACE ioctl failed: %s",
+                   g_strerror (errno));
+      return FALSE;
+    }
 
   r = fstatat (pidfd, "ns/pid", &st, 0);
   if (r == -1)
