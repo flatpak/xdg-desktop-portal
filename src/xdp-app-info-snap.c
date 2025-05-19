@@ -58,7 +58,6 @@ xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
 
   gappinfo =
     G_APP_INFO (g_desktop_app_info_new (app_info_snap->desktop_file));
-  g_assert (G_IS_APP_INFO (gappinfo));
 
   return g_steal_pointer (&gappinfo);
 }
@@ -315,7 +314,6 @@ xdp_app_info_snap_new (int      pid,
                                         SNAP_METADATA_KEY_NETWORK,
                                         NULL);
 
-  flags = XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
