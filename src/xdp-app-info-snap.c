@@ -251,6 +251,11 @@ xdp_is_snap (int        pid,
     }
 }
 
+/*
+ * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
+ *  This function may take ownership of the fd. If it does, it will
+ *  set `*pidfd` to -1.
+ */
 XdpAppInfo *
 xdp_app_info_snap_new (int      pid,
                        int     *pidfd,
