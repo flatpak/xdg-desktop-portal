@@ -327,6 +327,31 @@ load_installed_portals_dir (GHashTable *portals,
     }
 }
 
+#if !GLIB_CHECK_VERSION(2, 76, 0)
+static gboolean
+steal_portal_impl_foreach (gpointer key,
+                           gpointer value,
+                           gpointer user_data)
+{
+  GPtrArray *implementations = user_data;
+
+  g_free (key);
+  g_ptr_array_add (implementations, value);
+  /* declare that we took ownership */
+  return TRUE;
+}
+
+static int
+sort_impl_by_use_in_and_name_indirect (gconstpointer a,
+                                       gconstpointer b)
+{
+  const XdpPortalImplementation * const *left = a;
+  const XdpPortalImplementation * const *right = b;
+
+  return sort_impl_by_use_in_and_name (*left, *right);
+}
+#endif
+
 void
 load_installed_portals (gboolean opt_verbose)
 {
@@ -371,8 +396,16 @@ load_installed_portals (gboolean opt_verbose)
 out:
 
   g_clear_pointer (&implementations, g_ptr_array_unref);
+
+#if GLIB_CHECK_VERSION(2, 76, 0)
   implementations = g_hash_table_steal_all_values (portals);
   g_ptr_array_sort_values (implementations, sort_impl_by_use_in_and_name);
+#else
+  implementations = g_ptr_array_new_full (g_hash_table_size (portals),
+                                          (GDestroyNotify) portal_implementation_free);
+  g_hash_table_foreach_steal (portals, steal_portal_impl_foreach, implementations);
+  g_ptr_array_sort (implementations, sort_impl_by_use_in_and_name_indirect);
+#endif
 }
 
 static PortalConfig *
