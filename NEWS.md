@@ -1,8 +1,10 @@
 Changes in 1.20.2
 =================
-Released: Not yet
+Released: 2025-05-19
 
-...
+Bug Fixes:
+
+- Fix a crash when loading information from Flatpak apps
 
 Changes in 1.20.1
 =================
