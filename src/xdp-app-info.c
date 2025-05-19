@@ -224,6 +224,7 @@ xdp_app_info_set_property (GObject      *object,
 
     case PROP_PIDFD:
       g_assert (priv->pidfd == -1);
+      /* Steals ownership from the GValue */
       priv->pidfd = g_value_get_int (value);
       break;
 
@@ -277,6 +278,8 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
+  /* Note that setting this property at construct-time takes ownership
+   * of the fd from the caller */
   properties[PROP_PIDFD] =
     g_param_spec_int ("pidfd", NULL, NULL,
                       -1, G_MAXINT, -1,

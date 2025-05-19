@@ -717,6 +717,11 @@ xdp_is_flatpak (int        pid,
   return TRUE;
 }
 
+/*
+ * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
+ *  This function may take ownership of the fd. If it does, it will
+ *  set `*pidfd` to -1.
+ */
 XdpAppInfo *
 xdp_app_info_flatpak_new (int      pid,
                           int     *pidfd,
