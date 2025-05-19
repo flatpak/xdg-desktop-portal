@@ -825,6 +825,8 @@ xdp_app_info_flatpak_new (int      pid,
                                      "instance", instance,
                                      "pidfd", g_steal_fd (&bwrap_pidfd),
                                      NULL);
+  if (!app_info_flatpak)
+    return NULL;
 
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
