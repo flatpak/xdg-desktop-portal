@@ -141,6 +141,7 @@ xdp_app_info_test_new (const char *app_id,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
                                   NULL);
+  g_assert (app_info_test);
 
   app_info_test->usb_queries = parse_usb_queries_string (usb_queries_str);
 
