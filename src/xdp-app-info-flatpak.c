@@ -823,7 +823,7 @@ xdp_app_info_flatpak_new (int      pid,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
-                                     "pidfd", bwrap_pidfd,
+                                     "pidfd", g_steal_fd (&bwrap_pidfd),
                                      NULL);
 
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
