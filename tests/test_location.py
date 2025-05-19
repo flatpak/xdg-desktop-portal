@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 
-import tests as xdp
+import tests.xdp_utils as xdp
 
 import pytest
 import dbus

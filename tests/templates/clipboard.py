@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
-from tests.templates import init_logger
+from tests.templates.xdp_utils import init_logger
 
 import dbus.service
 import dbus
