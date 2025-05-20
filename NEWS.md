@@ -1,8 +1,11 @@
 Changes in 1.20.3
 =================
-Released: Not yet
+Released: 2025-05-20
 
-...
+Bug Fixes:
+
+- Add a fallback code path for GLib older than 2.76 (#1728)
+- Don't require a .desktop file for Flatpak and Snap apps (#1729)
 
 Changes in 1.20.2
 =================
