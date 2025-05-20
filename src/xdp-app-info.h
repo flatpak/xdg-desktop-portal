@@ -29,8 +29,6 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "glib-backports.h"
-
 typedef enum _XdpAppInfoError
 {
   XDP_APP_INFO_ERROR_WRONG_APP_KIND,

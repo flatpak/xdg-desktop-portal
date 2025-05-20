@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <gio/gio.h>
-#include "glib-backports.h"
 #include "permission-store-dbus.h"
 #include "xdg-permission-store.h"
 
