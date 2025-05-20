@@ -224,7 +224,7 @@ pipewire_remote_destroy (PipeWireRemote *remote)
   /* This check is a workaround for older PW versions */
   if (remote->registry)
     spa_hook_remove (&remote->registry_listener);
-  g_clear_pointer (&remote->registry, pw_proxy_destroy);
+  g_clear_pointer ((struct pw_proxy **)&remote->registry, pw_proxy_destroy);
   g_clear_pointer (&remote->globals, g_hash_table_destroy);
   if (remote->core)
     spa_hook_remove (&remote->core_listener);
@@ -328,10 +328,10 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
                         &core_events,
                         remote);
 
-  remote->registry = (struct pw_proxy*) pw_core_get_registry (remote->core,
-                                                              PW_VERSION_REGISTRY,
-                                                              0);
-  pw_registry_add_listener ((struct pw_registry*)remote->registry,
+  remote->registry = pw_core_get_registry (remote->core,
+                                           PW_VERSION_REGISTRY,
+                                           0);
+  pw_registry_add_listener (remote->registry,
                             &remote->registry_listener,
                             &registry_events,
                             remote);
