@@ -7,6 +7,8 @@ import tests.xdp_utils as xdp
 import dbus
 import pytest
 from typing import Any
+import os
+from pathlib import Path
 
 
 SCREENSHOT_DATA = dbus.Dictionary(
@@ -20,6 +22,10 @@ SCREENSHOT_DATA = dbus.Dictionary(
 
 @pytest.fixture
 def required_templates():
+    image = Path(os.environ["XDG_DATA_HOME"]) / "screenshot-image.png"
+    image.write_text("image contents")
+    SCREENSHOT_DATA["uri"] = f"file://{image.absolute().as_posix()}"
+
     return {
         "access": {},
         "screenshot": {
@@ -34,7 +40,10 @@ class TestScreenshot:
 
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])
-    def test_screenshot_basic(self, portals, dbus_con, app_id, modal, interactive):
+    def test_screenshot_basic(
+        self, xdg_document_portal, portals, dbus_con, xdp_app_info, modal, interactive
+    ):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -51,7 +60,8 @@ class TestScreenshot:
 
         assert response
         assert response.response == 0
-        assert response.results["uri"] == SCREENSHOT_DATA["uri"]
+
+        assert xdp.uri_same_file(SCREENSHOT_DATA["uri"], response.results["uri"])
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("Screenshot")
@@ -92,7 +102,8 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_screenshot_cancel(self, portals, dbus_con, app_id):
+    def test_screenshot_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -122,7 +133,8 @@ class TestScreenshot:
         assert args[3]["modal"] == modal
         assert args[3]["interactive"] == interactive
 
-    def test_pick_color_basic(self, portals, dbus_con, app_id):
+    def test_pick_color_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -148,7 +160,7 @@ class TestScreenshot:
     @pytest.mark.parametrize(
         "template_params", ({"screenshot": {"expect-close": True}},)
     )
-    def test_pick_color_close(self, portals, dbus_con, app_id):
+    def test_pick_color_close(self, portals, dbus_con):
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -164,7 +176,8 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_pick_color_cancel(self, portals, dbus_con, app_id):
+    def test_pick_color_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

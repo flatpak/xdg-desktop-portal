@@ -97,9 +97,9 @@ xdp_register_document (const char        *uri,
   dirname = g_path_get_dirname (path);
 
   if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
-    fd = open (dirname, O_PATH | O_CLOEXEC);
+    fd = open (dirname, O_CLOEXEC);
   else
-    fd = open (path, O_PATH | O_CLOEXEC);
+    fd = open (path, O_CLOEXEC);
 
   if (fd == -1)
     {
@@ -210,11 +210,11 @@ xdp_register_document (const char        *uri,
   if (!g_strcmp0 (doc_id, ""))
     {
       doc_path = g_build_filename (path, NULL);
-      return g_filename_to_uri (doc_path, NULL, NULL);
+      return g_filename_to_uri (doc_path, NULL, error);
     }
 
   doc_path = g_build_filename (documents_mountpoint, doc_id, basename, NULL);
-  return g_filename_to_uri (doc_path, NULL, NULL);
+  return g_filename_to_uri (doc_path, NULL, error);
 }
 
 char *

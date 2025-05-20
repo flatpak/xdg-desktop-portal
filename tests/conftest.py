@@ -2,7 +2,9 @@
 #
 # This file is formatted with Python Black
 
-from typing import Any, Dict, Iterator, Optional
+import tests.xdp_utils as xdp
+
+from typing import Any, Dict, Iterator, Optional, assert_never
 from types import ModuleType
 
 import pytest
@@ -393,31 +395,55 @@ def xdp_overwrite_env() -> dict[str, str]:
     return {}
 
 
-@pytest.fixture
-def app_id() -> str:
+@pytest.fixture(
+    params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK, xdp.AppInfoKind.SNAP]
+)
+def xdp_app_info(request) -> xdp.AppInfo:
     """
-    Default fixture which can be used to override the app id that the portal
-    frontend will discover for incoming connections.
+    Default fixture which can be used to override the XdpAppInfo the portal
+    frontend will discover.
+    The default fixture is parametric and will run each test with all the
+    app info kinds.
     """
-    return "org.example.Test"
+
+    app_info_kind = request.param
+    app_id = "org.example.Test"
+
+    if app_info_kind == xdp.AppInfoKind.HOST:
+        return xdp.AppInfo.new_host(
+            app_id=app_id,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.FLATPAK:
+        return xdp.AppInfo.new_flatpak(
+            app_id=app_id,
+        )
+
+    if app_info_kind == xdp.AppInfoKind.SNAP:
+        return xdp.AppInfo.new_snap(
+            snap_name=app_id,
+        )
+
+    assert_never(app_info_kind)
+
+
+@pytest.fixture(autouse=True)
+def ensure_xdp_app_info_files(create_test_dirs, xdp_app_info) -> None:
+    xdp_app_info.ensure_files()
 
 
 @pytest.fixture
 def xdp_env(
     xdp_overwrite_env: dict[str, str],
-    app_id: str,
-    usb_queries: Optional[str],
+    xdp_app_info: xdp.AppInfo,
     umockdev: Optional[UMockdev.Testbed],
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
 
-    if app_id:
-        env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = app_id
-
-    if usb_queries:
-        env["XDG_DESKTOP_PORTAL_TEST_USB_QUERIES"] = usb_queries
+    if xdp_app_info:
+        xdp_app_info.extend_env(env)
 
     if umockdev:
         env["UMOCKDEV_DIR"] = umockdev.get_root_dir()
@@ -527,6 +553,12 @@ def xdg_document_portal(
     env = xdp_env.copy()
     env.pop("LD_PRELOAD", None)
 
+    # The document portal also uses XdpAppInfos to figure out where a request
+    # is coming from. If we don't unset this, it might think the
+    # xdg-desktop-portal is a flatpak or snap app. Would be nice to find a
+    # better solution here.
+    env.pop("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND", None)
+
     document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Documents"):
@@ -543,21 +575,23 @@ def xdg_document_portal(
     returncode = document_portal.wait()
     assert returncode == 0
 
+    fuse_mount = Path(os.environ["XDG_RUNTIME_DIR"]) / "doc"
+
+    def unmounted():
+        try:
+            next(fuse_mount.iterdir())
+        except StopIteration:
+            return True
+        return False
+
+    xdp.wait_for(unmounted)
+
 
 @pytest.fixture
 def portals(templates: Any, xdg_desktop_portal: Any, xdg_permission_store: Any) -> None:
     """
     Fixture which starts the required templates, xdg-desktop-portal,
     xdg-document-portal and xdg-permission-store. Most tests require this.
-    """
-    return None
-
-
-@pytest.fixture
-def usb_queries() -> Optional[str]:
-    """
-    Default fixture providing the usb queries the connecting process can
-    enumerate
     """
     return None
 

@@ -103,7 +103,9 @@ send_response_in_thread_func (GTask        *task,
         ruri = xdp_register_document (image, xdp_app_info_get_id (request->app_info), XDP_DOCUMENT_FLAG_NONE, &error);
 
       if (ruri == NULL)
-        g_warning ("Failed to register %s: %s", image, error->message);
+        {
+          g_warning ("Failed to register %s: %s", image, error->message);
+        }
       else
         {
           g_debug ("convert uri '%s' -> '%s'\n", image, ruri);

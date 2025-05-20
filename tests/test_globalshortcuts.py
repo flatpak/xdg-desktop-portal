@@ -18,7 +18,8 @@ class TestGlobalShortcuts:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "GlobalShortcuts", 2)
 
-    def test_create_close_session(self, portals, dbus_con, app_id):
+    def test_create_close_session(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -48,7 +49,8 @@ class TestGlobalShortcuts:
     @pytest.mark.parametrize(
         "template_params", ({"globalshortcuts": {"force-close": 500}},)
     )
-    def test_create_session_signal_closed(self, portals, dbus_con, app_id):
+    def test_create_session_signal_closed(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
