@@ -28,10 +28,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <glib/gstdio.h>
 #include <gio/gio.h>
 #include <errno.h>
 
-#include "glib-backports.h"
 #include "xdp-sealed-fd.h"
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"

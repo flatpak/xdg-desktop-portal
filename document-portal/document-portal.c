@@ -36,7 +36,6 @@
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
-#include "glib-backports.h"
 #include "document-portal-dbus.h"
 #include "document-store.h"
 #include "src/xdp-app-info.h"
