@@ -1,3 +1,9 @@
+Changes in 1.20.4
+=================
+Released: Not yet
+
+...
+
 Changes in 1.20.3
 =================
 Released: 2025-05-20
