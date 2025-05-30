@@ -31,7 +31,8 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define VERSION_1  1 /* Makes grep easier */
+#define VERSION_1 1 /* Makes grep easier */
+#define VERSION_2 2 /* Makes grep easier */
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
@@ -52,7 +53,7 @@ static InputCapture *input_capture;
 
 static GQuark quark_request_session;
 
-GType input_capture_get_type (void);
+GType input_capture_get_type (void)  G_GNUC_CONST;
 static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
@@ -73,6 +74,10 @@ typedef struct _InputCaptureSession
   XdpSession parent;
 
   InputCaptureSessionState state;
+
+  gboolean clipboard_requested;
+  gboolean clipboard_enabled;
+
 } InputCaptureSession;
 
 typedef struct _InputCaptureSessionClass
@@ -94,6 +99,41 @@ G_GNUC_UNUSED static inline gboolean
 IS_INPUT_CAPTURE_SESSION (gpointer ptr)
 {
   return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
+}
+
+gboolean
+input_capture_session_can_request_clipboard (InputCaptureSession *session)
+{
+  if (session->clipboard_requested)
+    return FALSE;
+
+  if (xdp_dbus_impl_input_capture_get_version (impl) < 2)
+    return FALSE;
+
+  switch (session->state)
+    {
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
+      return TRUE;
+    case INPUT_CAPTURE_SESSION_STATE_ENABLED:
+    case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
+    case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+    case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+      return FALSE;
+    }
+
+  g_assert_not_reached ();
+}
+
+gboolean
+input_capture_session_is_clipboard_enabled (InputCaptureSession *session)
+{
+  return session->clipboard_enabled;
+}
+
+void
+input_capture_session_clipboard_requested (InputCaptureSession *session)
+{
+  session->clipboard_requested = TRUE;
 }
 
 static InputCaptureSession *
@@ -1150,7 +1190,7 @@ input_capture_init (InputCapture *input_capture)
 {
   unsigned int supported_capabilities;
 
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_1);
+  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION);
 
   supported_capabilities =
     xdp_dbus_impl_input_capture_get_supported_capabilities (impl);

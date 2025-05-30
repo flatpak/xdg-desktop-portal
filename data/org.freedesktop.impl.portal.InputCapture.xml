@@ -72,6 +72,81 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        CreateDraftSession:
+        @options: Vardict with optional further information
+        @session_handle: Object path for the created :ref:`org.freedesktop.portal.Session` object
+
+        Creates a draft capture input session. A successfully created session can at
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="CreateDraftSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="session_handle" direction="out"/>
+    </method>
+
+    <!--
+        InitSession:
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @options: Vardict with optional further information
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Initializes a capture input session. This may result in the portal backend querying the user whether
+        they want to allow the input of the session to be captured or not, and what capabilities to support.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        * ``capabilities`` (``u``)
+
+          Bitmask of requested capabilities, see the SupportedCapabilities property.
+          This value is required and must not be zero.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``capabilities`` (``u``)
+
+          The capabilities available to this session. This is always a
+          subset of the requested capabilities.
+          See the SupportedCapabilities property for details. Note that
+          while a capability may be available to a session, there is no
+          guarantee a device with that capability is currently available
+          or if one does become available that it will trigger input capture.
+
+          It is best to view this set as a negative confirmation - a
+          capability that was requested but is missing is an indication that
+          this application may not capture events of that capability.
+
+        This method was added in version 2 of this interface.
+    -->
+    <method name="InitSession">
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+
     <!--
         GetZones:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
