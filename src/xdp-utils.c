@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -38,6 +39,9 @@
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+
+#define PIDFS_IOCTL_MAGIC 0xFF
+#define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
 
 /* Based on g_mkstemp from glib */
 gint
@@ -908,6 +912,41 @@ xdp_pidfds_to_pids (const int  *pidfds,
 }
 
 gboolean
+xdp_pidfd_get_pidns (int      pidfd,
+                     ino_t   *ns,
+                     GError **error)
+{
+  g_autofd int pidns_fd = -1;
+  struct stat st;
+
+  g_return_val_if_fail (pidfd >= 0, FALSE);
+  g_return_val_if_fail (ns != NULL, FALSE);
+
+  pidns_fd = ioctl (pidfd, PIDFD_GET_PID_NAMESPACE, 0);
+  if (pidns_fd < 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "PIDFD_GET_PID_NAMESPACE ioctl failed: %s",
+                   g_strerror (errno));
+      return FALSE;
+    }
+
+  if (fstat (pidns_fd, &st) != 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "fstat on pidns fd failed: %s",
+                   g_strerror (errno));
+      return FALSE;
+    }
+
+  /* The inode number (together with the device ID) encode
+   * the identity of the pid namespace, see namespaces(7)
+   */
+  *ns = st.st_ino;
+  return TRUE;
+}
+
+static gboolean
 xdp_pid_dirfd_get_pidns (int      pid_dirfd,
                          ino_t   *ns,
                          GError **error)
