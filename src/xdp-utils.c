@@ -29,6 +29,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -38,6 +40,9 @@
 #define DBUS_NAME_DBUS "org.freedesktop.DBus"
 #define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
 #define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+
+#define PIDFS_IOCTL_MAGIC 0xFF
+#define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
 
 /* Based on g_mkstemp from glib */
 gint
@@ -771,80 +776,6 @@ parse_status_field_nspid (const char *val,
   return parse_pid (val, pid);
 }
 
-static pid_t
-pidfd_to_pid (int         fdinfo,
-              const int   pidfd,
-              GError    **error)
-{
-  g_autofree char *name = NULL;
-  g_autofree char *key = NULL;
-  g_autofree char *val = NULL;
-  gboolean found = FALSE;
-  FILE *f = NULL;
-  size_t keylen = 0;
-  size_t vallen = 0;
-  ssize_t n;
-  int fd;
-  int r = 0;
-  pid_t pid = -1;
-
-  name = g_strdup_printf ("%d", pidfd);
-
-  fd = openat (fdinfo, name, O_RDONLY | O_CLOEXEC | O_NOCTTY);
-
-  if (fd != -1)
-    f = fdopen (fd, "r");
-
-  if (f == NULL)
-    {
-      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
-                   "Unable to open /proc/self/fdinfo/%d: %s",
-                   fd, g_strerror (errno));
-      return FALSE;
-    }
-
-  do {
-    n = getdelim (&key, &keylen, ':', f);
-    if (n == -1)
-      {
-        r = errno;
-        break;
-      }
-
-    n = getdelim (&val, &vallen, '\n', f);
-    if (n == -1)
-      {
-        r = errno;
-        break;
-      }
-
-    g_strstrip (key);
-
-    if (!strncmp (key, "Pid", 3))
-      {
-        r = parse_status_field_pid (val, &pid);
-        found = r > -1;
-      }
-
-  } while (r == 0 && !found);
-
-  fclose (f);
-
-  if (r < 0)
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Could not parse fdinfo::%s: %s",
-                   key, g_strerror (-r));
-    }
-  else if (!found)
-    {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                           "Could not parse fdinfo: Pid field missing");
-    }
-
-  return pid;
-}
-
 static int
 open_fdinfo_dir (GError **error)
 {
@@ -860,65 +791,53 @@ open_fdinfo_dir (GError **error)
   return fd;
 }
 
-pid_t
-xdp_pidfd_to_pid (int      pidfd,
-                  GError **error)
-{
-  int fdinfo = -1;
-  pid_t pid;
-
-  g_return_val_if_fail (pidfd >= 0, -1);
-
-  fdinfo = open_fdinfo_dir (error);
-  if (fdinfo == -1)
-    return -1;
-
-  pid = pidfd_to_pid (fdinfo, pidfd, error);
-  (void) close (fdinfo);
-
-  return pid;
-}
-
 gboolean
-xdp_pidfds_to_pids (const int  *pidfds,
-                    pid_t      *pids,
-                    gint        count,
-                    GError    **error)
+xdp_pidfd_get_pidns (int      pidfd,
+                     ino_t   *ns,
+                     GError **error)
 {
-  int fdinfo = -1;
-  int i;
+  g_autofd int pidns_fd = -1;
+  struct stat st;
 
-  g_return_val_if_fail (pidfds != NULL, FALSE);
-  g_return_val_if_fail (pids != NULL, FALSE);
+  g_return_val_if_fail (pidfd >= 0, FALSE);
+  g_return_val_if_fail (ns != NULL, FALSE);
 
-  fdinfo = open_fdinfo_dir (error);
-  if (fdinfo == -1)
-    return FALSE;
-
-  for (i = 0; i < count; i++)
+  pidns_fd = ioctl (pidfd, PIDFD_GET_PID_NAMESPACE);
+  if (pidns_fd < 0)
     {
-      pids[i] = pidfd_to_pid (fdinfo, pidfds[i], error);
-      if (pids[i] < 0)
-        break;
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "PIDFD_GET_PID_NAMESPACE ioctl failed: %s",
+                   g_strerror (errno));
+      return FALSE;
     }
 
-  (void) close (fdinfo);
+  if (fstat (pidns_fd, &st) != 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "fstat on pidns fd failed: %s",
+                   g_strerror (errno));
+      return FALSE;
+    }
 
-  return i == count;
+  /* The inode number (together with the device ID) encode
+   * the identity of the pid namespace, see namespaces(7)
+   */
+  *ns = st.st_ino;
+  return TRUE;
 }
 
-gboolean
-xdp_pidfd_get_namespace (int      pidfd,
+static gboolean
+xdp_pid_dirfd_get_pidns (int      pid_dirfd,
                          ino_t   *ns,
                          GError **error)
 {
   struct stat st;
   int r;
 
-  g_return_val_if_fail (pidfd >= 0, FALSE);
+  g_return_val_if_fail (pid_dirfd >= 0, FALSE);
   g_return_val_if_fail (ns != NULL, FALSE);
 
-  r = fstatat (pidfd, "ns/pid", &st, 0);
+  r = fstatat (pid_dirfd, "ns/pid", &st, 0);
   if (r == -1)
     {
       g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
@@ -966,33 +885,22 @@ parse_status_field_uid (const char *val,
 }
 
 static int
-parse_status_file (int    pid_fd,
+parse_status_file (FILE  *f,
                    pid_t *pid_out,
+                   pid_t *nspid_out,
                    uid_t *uid_out)
 {
   g_autofree char *key = NULL;
   g_autofree char *val = NULL;
   gboolean have_pid = pid_out == NULL;
+  gboolean have_nspid = nspid_out == NULL;
   gboolean have_uid = uid_out == NULL;
-  FILE *f;
   size_t keylen = 0;
   size_t vallen = 0;
   ssize_t n;
-  int fd;
   int r = 0;
 
-  g_return_val_if_fail (pid_fd > -1, FALSE);
-
-  fd = openat (pid_fd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
-  if (fd == -1)
-    return -errno;
-
-  f = fdopen (fd, "r");
-
-  if (f == NULL)
-    return -errno;
-
-  fd = -1; /* fd is now owned by f */
+  g_return_val_if_fail (f != NULL, FALSE);
 
   do {
     n = getdelim (&key, &keylen, ':', f);
@@ -1012,10 +920,15 @@ parse_status_file (int    pid_fd,
     g_strstrip (key);
     g_strstrip (val);
 
-    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+    if (!strncmp (key, "Pid", strlen ("Pid")))
       {
-        r = parse_status_field_nspid (val, pid_out);
+        r = parse_status_field_pid (val, pid_out);
         have_pid = r > -1;
+      }
+    else if (!strncmp (key, "NSpid", strlen ("NSpid")))
+      {
+        r = parse_status_field_nspid (val, nspid_out);
+        have_nspid = r > -1;
       }
     else if (!strncmp (key, "Uid", strlen ("Uid")))
       {
@@ -1027,16 +940,138 @@ parse_status_file (int    pid_fd,
       g_warning ("Failed to parse 'status::%s': %s",
                  key, g_strerror (-r));
 
-  } while (r == 0 && (!have_uid || !have_pid));
-
-  fclose (f);
+  } while (r == 0 && (!have_pid || !have_nspid || !have_uid));
 
   if (r != 0)
     return r;
-  else if (!have_uid || !have_pid)
+  else if (!have_pid || !have_nspid || !have_uid)
     return -ENXIO; /* ENOENT for the fields */
 
   return 0;
+}
+
+static gboolean
+pid_dirfd_parse_status (int      pid_dirfd,
+                        pid_t   *pid_out,
+                        pid_t   *nspid_out,
+                        uid_t   *uid_out,
+                        GError **error)
+{
+  g_autofd int status_fd = -1;
+  FILE *f;
+  int r;
+
+  g_return_val_if_fail (pid_dirfd > -1, FALSE);
+
+  status_fd = openat (pid_dirfd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (status_fd == -1)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not open proc pid status: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  f = fdopen (g_steal_fd (&status_fd), "r");
+  if (f == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not fdopen proc pid status: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  r = parse_status_file (f, pid_out, nspid_out, uid_out);
+  fclose (f);
+
+  if (r < 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (-r),
+                   "Parsing proc pid status failed: %s", g_strerror (-r));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+pidfd_parse_status (int      pidfd,
+                    pid_t   *pid_out,
+                    pid_t   *nspid_out,
+                    uid_t   *uid_out,
+                    GError **error)
+{
+  g_autofd int fdinfo = -1;
+  g_autofree char *name = NULL;
+  g_autofd int status_fd = -1;
+  FILE *f;
+  int r;
+
+  g_return_val_if_fail (pidfd >= 0, -1);
+
+  fdinfo = open_fdinfo_dir (error);
+  if (fdinfo == -1)
+    return FALSE;
+
+  name = g_strdup_printf ("%d", pidfd);
+
+  status_fd = openat (fdinfo, name, O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (status_fd == -1)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not open pidfd fdinfo: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  f = fdopen (g_steal_fd (&status_fd), "r");
+  if (f == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not fdopen pidfd fdinfo: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  r = parse_status_file (f, pid_out, nspid_out, uid_out);
+  fclose (f);
+
+  if (r < 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (-r),
+                   "Parsing pidfd fdinfo failed: %s", g_strerror (-r));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+pid_t
+xdp_pidfd_to_pid (int      pidfd,
+                  GError **error)
+{
+  pid_t pid;
+
+  g_return_val_if_fail (pidfd >= 0, -1);
+
+  if (!pidfd_parse_status (pidfd, &pid, NULL, NULL, error))
+    return -1;
+
+  return pid;
+}
+
+gboolean
+xdp_pidfds_to_pids (const int  *pidfds,
+                    pid_t      *pids,
+                    gint        count,
+                    GError    **error)
+{
+  g_return_val_if_fail (pidfds != NULL, FALSE);
+  g_return_val_if_fail (pids != NULL, FALSE);
+
+  for (size_t i = 0; i < count; i++)
+    {
+      if (!pidfd_parse_status (pidfds[i], &pids[i], NULL, NULL, error))
+        return FALSE;
+    }
+
+  return TRUE;
 }
 
 static inline gboolean
@@ -1074,7 +1109,7 @@ xdp_map_pids_full (DIR     *proc,
 
   while ((de = readdir (proc)) != NULL)
     {
-      g_autofd int pid_fd = -1;
+      g_autofd int pid_dirfd = -1;
       pid_t outside = 0;
       pid_t inside = 0;
       uid_t uid = 0;
@@ -1085,11 +1120,12 @@ xdp_map_pids_full (DIR     *proc,
       if (de->d_type != DT_DIR)
         continue;
 
-      pid_fd = openat (dirfd (proc), de->d_name, O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
-      if (pid_fd == -1)
+      pid_dirfd = openat (dirfd (proc), de->d_name,
+                          O_RDONLY | O_NONBLOCK | O_DIRECTORY | O_CLOEXEC | O_NOCTTY);
+      if (pid_dirfd == -1)
         continue;
 
-      if (!xdp_pidfd_get_namespace (pid_fd, &ns, NULL))
+      if (!xdp_pid_dirfd_get_pidns (pid_dirfd, &ns, NULL))
         continue;
 
       if (pidns != ns)
@@ -1099,8 +1135,7 @@ xdp_map_pids_full (DIR     *proc,
       if (r < 0)
         continue;
 
-      r = parse_status_file (pid_fd, &inside, &uid);
-      if (r < 0)
+      if (!pid_dirfd_parse_status (pid_dirfd, NULL, &inside, &uid, NULL))
         continue;
 
       if (!find_pid (pids, n_pids, inside, &idx))
