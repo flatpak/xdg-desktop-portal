@@ -384,7 +384,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GVariant) shortcuts = NULL;
   g_auto(GVariantBuilder) shortcuts_builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_ARRAY);
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a(sa{sv})"));
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
