@@ -137,6 +137,51 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
+    def test_bind_no_shortcuts(self, portals, dbus_con):
+        globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
+
+        request = xdp.Request(dbus_con, globalshortcuts_intf)
+        options = {
+            "session_handle_token": "session_token0",
+        }
+        response = request.call(
+            "CreateSession",
+            options=options,
+        )
+
+        assert response
+        assert response.response == 0
+
+        session = xdp.Session.from_response(dbus_con, response)
+
+        request = xdp.Request(dbus_con, globalshortcuts_intf)
+        response = request.call(
+            "BindShortcuts",
+            session_handle=session.handle,
+            shortcuts=[],
+            parent_window="",
+            options={},
+        )
+
+        assert response
+        assert response.response == 0
+
+        request = xdp.Request(dbus_con, globalshortcuts_intf)
+        options = {}
+        response = request.call(
+            "ListShortcuts",
+            session_handle=session.handle,
+            options=options,
+        )
+
+        assert response
+        assert response.response == 0
+
+        assert len(list(response.results["shortcuts"])) == 0
+
+        session.close()
+        xdp.wait_for(lambda: session.closed)
+
     def test_trigger(self, portals, dbus_con):
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
