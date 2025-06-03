@@ -1005,7 +1005,7 @@ parse_status_field_uid (const char *val,
 }
 
 static int
-parse_status_file (int    pid_dirfd,
+parse_status_file (FILE  *f,
                    pid_t *pid_out,
                    uid_t *uid_out)
 {
@@ -1013,25 +1013,12 @@ parse_status_file (int    pid_dirfd,
   g_autofree char *val = NULL;
   gboolean have_pid = pid_out == NULL;
   gboolean have_uid = uid_out == NULL;
-  FILE *f;
   size_t keylen = 0;
   size_t vallen = 0;
   ssize_t n;
-  int fd;
   int r = 0;
 
-  g_return_val_if_fail (pid_dirfd > -1, FALSE);
-
-  fd = openat (pid_dirfd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
-  if (fd == -1)
-    return -errno;
-
-  f = fdopen (fd, "r");
-
-  if (f == NULL)
-    return -errno;
-
-  fd = -1; /* fd is now owned by f */
+  g_return_val_if_fail (f != NULL, FALSE);
 
   do {
     n = getdelim (&key, &keylen, ':', f);
@@ -1068,14 +1055,53 @@ parse_status_file (int    pid_dirfd,
 
   } while (r == 0 && (!have_uid || !have_pid));
 
-  fclose (f);
-
   if (r != 0)
     return r;
   else if (!have_uid || !have_pid)
     return -ENXIO; /* ENOENT for the fields */
 
   return 0;
+}
+
+static gboolean
+pid_dirfd_parse_status (int      pid_dirfd,
+                        pid_t   *pid_out,
+                        uid_t   *uid_out,
+                        GError **error)
+{
+  g_autofd int status_fd = -1;
+  FILE *f;
+  int r;
+
+  g_return_val_if_fail (pid_dirfd > -1, FALSE);
+
+  status_fd = openat (pid_dirfd, "status",  O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (status_fd == -1)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not open proc pid status: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  f = fdopen (g_steal_fd (&status_fd), "r");
+  if (f == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Could not fdopen proc pid status: %s", g_strerror (errno));
+      return FALSE;
+    }
+
+  r = parse_status_file (f, pid_out, uid_out);
+  fclose (f);
+
+  if (r < 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (-r),
+                   "Parsing proc pid status failed: %s", g_strerror (-r));
+      return FALSE;
+    }
+
+  return TRUE;
 }
 
 static inline gboolean
@@ -1139,8 +1165,7 @@ xdp_map_pids_full (DIR     *proc,
       if (r < 0)
         continue;
 
-      r = parse_status_file (pid_dirfd, &inside, &uid);
-      if (r < 0)
+      if (!pid_dirfd_parse_status (pid_dirfd, &inside, &uid, NULL))
         continue;
 
       if (!find_pid (pids, n_pids, inside, &idx))
