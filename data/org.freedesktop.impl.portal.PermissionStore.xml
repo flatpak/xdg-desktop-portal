@@ -179,6 +179,16 @@
     </method>
 
     <!--
+        GetTables:
+        @tables: All available tables 
+
+        Returns all available tables .
+    -->
+    <method name="GetTables">
+      <arg name="tables" type="as" direction="out"/>
+    </method>
+
+    <!--
         Changed:
         @table: the name of the table
         @ids: IDs of the changed resource
