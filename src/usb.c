@@ -41,6 +41,7 @@
 
 #include <gudev/gudev.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "usb.h"
 #include "xdp-request.h"
 #include "xdp-permissions.h"
@@ -1553,6 +1554,11 @@ xdp_usb_create (GDBusConnection *connection,
       g_warning ("Failed to create USB proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Usb",
+                                                 dbus_name,
+                                                 xdp_dbus_impl_usb_get_version (usb_impl));
 
   xdp_connection_track_name_owners (connection, peer_died_cb);
 

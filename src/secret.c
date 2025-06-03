@@ -34,6 +34,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "secret.h"
 #include "xdp-request.h"
 #include "xdp-dbus.h"
@@ -208,6 +209,11 @@ secret_create (GDBusConnection *connection,
       g_warning ("Failed to create secret proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Secret",
+                                                 dbus_name,
+                                                 xdp_dbus_impl_secret_get_version (impl));
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
