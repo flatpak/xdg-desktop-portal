@@ -1007,11 +1007,13 @@ parse_status_field_uid (const char *val,
 static int
 parse_status_file (FILE  *f,
                    pid_t *pid_out,
+                   pid_t *nspid_out,
                    uid_t *uid_out)
 {
   g_autofree char *key = NULL;
   g_autofree char *val = NULL;
   gboolean have_pid = pid_out == NULL;
+  gboolean have_nspid = nspid_out == NULL;
   gboolean have_uid = uid_out == NULL;
   size_t keylen = 0;
   size_t vallen = 0;
@@ -1038,10 +1040,15 @@ parse_status_file (FILE  *f,
     g_strstrip (key);
     g_strstrip (val);
 
-    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+    if (!strncmp (key, "Pid", strlen ("Pid")))
       {
-        r = parse_status_field_nspid (val, pid_out);
+        r = parse_status_field_pid (val, pid_out);
         have_pid = r > -1;
+      }
+    else if (!strncmp (key, "NSpid", strlen ("NSpid")))
+      {
+        r = parse_status_field_nspid (val, nspid_out);
+        have_nspid = r > -1;
       }
     else if (!strncmp (key, "Uid", strlen ("Uid")))
       {
@@ -1053,11 +1060,11 @@ parse_status_file (FILE  *f,
       g_warning ("Failed to parse 'status::%s': %s",
                  key, g_strerror (-r));
 
-  } while (r == 0 && (!have_uid || !have_pid));
+  } while (r == 0 && (!have_pid || !have_nspid || !have_uid));
 
   if (r != 0)
     return r;
-  else if (!have_uid || !have_pid)
+  else if (!have_pid || !have_nspid || !have_uid)
     return -ENXIO; /* ENOENT for the fields */
 
   return 0;
@@ -1066,6 +1073,7 @@ parse_status_file (FILE  *f,
 static gboolean
 pid_dirfd_parse_status (int      pid_dirfd,
                         pid_t   *pid_out,
+                        pid_t   *nspid_out,
                         uid_t   *uid_out,
                         GError **error)
 {
@@ -1091,7 +1099,7 @@ pid_dirfd_parse_status (int      pid_dirfd,
       return FALSE;
     }
 
-  r = parse_status_file (f, pid_out, uid_out);
+  r = parse_status_file (f, pid_out, nspid_out, uid_out);
   fclose (f);
 
   if (r < 0)
@@ -1165,7 +1173,7 @@ xdp_map_pids_full (DIR     *proc,
       if (r < 0)
         continue;
 
-      if (!pid_dirfd_parse_status (pid_dirfd, &inside, &uid, NULL))
+      if (!pid_dirfd_parse_status (pid_dirfd, NULL, &inside, &uid, NULL))
         continue;
 
       if (!find_pid (pids, n_pids, inside, &idx))
