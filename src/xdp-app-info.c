@@ -393,7 +393,7 @@ xdp_app_info_get_pidns (XdpAppInfo  *app_info,
       return FALSE;
     }
 
-  if (!xdp_pid_dirfd_get_pidns (priv->pidfd, &ns, error))
+  if (!xdp_pidfd_get_pidns (priv->pidfd, &ns, error))
     return FALSE;
 
   priv->pidns_id = ns;
