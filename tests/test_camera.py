@@ -16,14 +16,6 @@ def required_templates():
     }
 
 
-@pytest.fixture
-def app_id():
-    # x-d-p currently defaults to the empty app id for the camera portal for
-    # host XdpAppInfos (which the XdpAppInfoTest is). So use the empty app_id
-    # for now.
-    return ""
-
-
 class TestCamera:
     def set_permissions(self, dbus_con, appid, permissions):
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
@@ -38,7 +30,8 @@ class TestCamera:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Camera", 1)
 
-    def test_access(self, portals, dbus_con, app_id):
+    def test_access(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -55,10 +48,17 @@ class TestCamera:
         method_calls = mock_intf.GetMethodCalls("AccessDialog")
         assert len(method_calls) == 1
         _, args = method_calls[-1]
-        assert args[1] == app_id
+
+        # Workaround in x-d-p to make camera access more reliable
+        # should be removed in the future.
+        if xdp_app_info.kind == xdp.AppInfoKind.HOST:
+            assert args[1] == ""
+        else:
+            assert args[1] == app_id
 
     @pytest.mark.parametrize("template_params", ({"access": {"response": 1}},))
-    def test_access_cancel(self, portals, dbus_con, app_id):
+    def test_access_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -75,10 +75,15 @@ class TestCamera:
         method_calls = mock_intf.GetMethodCalls("AccessDialog")
         assert len(method_calls) == 1
         _, args = method_calls[-1]
-        assert args[1] == app_id
+
+        if xdp_app_info.kind == xdp.AppInfoKind.HOST:
+            assert args[1] == ""
+        else:
+            assert args[1] == app_id
 
     @pytest.mark.parametrize("template_params", ({"access": {"expect-close": True}},))
-    def test_access_close(self, portals, dbus_con, app_id):
+    def test_access_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -96,12 +101,16 @@ class TestCamera:
         method_calls = mock_intf.GetMethodCalls("AccessDialog")
         assert len(method_calls) == 1
         _, args = method_calls[-1]
-        assert args[1] == app_id
+
+        if xdp_app_info.kind == xdp.AppInfoKind.HOST:
+            assert args[1] == ""
+        else:
+            assert args[1] == app_id
 
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-camera": True}},)
     )
-    def test_access_lockdown(self, portals, dbus_con, app_id):
+    def test_access_lockdown(self, portals, dbus_con):
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -119,7 +128,8 @@ class TestCamera:
         method_calls = mock_intf.GetMethodCalls("AccessDialog")
         assert len(method_calls) == 0
 
-    def test_access_denied(self, portals, dbus_con, app_id):
+    def test_access_denied(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -130,6 +140,13 @@ class TestCamera:
             "AccessCamera",
             options={},
         )
+
+        # Workaround in x-d-p to make camera access more reliable
+        # should be removed in the future.
+        if xdp_app_info.kind == xdp.AppInfoKind.HOST:
+            assert response
+            assert response.response == 0
+            return
 
         assert response
         assert response.response == 1
