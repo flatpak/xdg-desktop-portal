@@ -130,9 +130,9 @@ gboolean xdp_pidfds_to_pids (const int  *pidfds,
                              gint        count,
                              GError    **error);
 
-gboolean xdp_pidfd_get_namespace (int      pidfd,
-                                  ino_t   *ns,
-                                  GError **error);
+gboolean xdp_pidfd_get_pidns (int      pidfd,
+                              ino_t   *ns,
+                              GError **error);
 
 gboolean xdp_map_pids_full (DIR     *proc,
                             ino_t    pidns,
