@@ -1,0 +1,231 @@
+# Arabic translation of xdg-desktop-portal.
+# Copyright (C) 2025 xdg-desktop-portal'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Ahmed Najmawi <iramosu@protonmail.com>, 2025.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"PO-Revision-Date: 2025-06-08 21:59+0300\n"
+"Last-Translator: Ahmed Najmawi <iramosu@protonmail.com>\n"
+"Language-Team: \n"
+"Language: ar\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 3.5\n"
+
+#: src/background.c:827
+#, c-format
+msgid "Allow %s to run in the background?"
+msgstr "أأسمح لـ %s بالعمل في الخلفية؟"
+
+#: src/background.c:831
+#, c-format
+msgid "%s requests to be started automatically and run in the background."
+msgstr "يطلب %s أن يبدأ آليًا ويعمل في الخلفية."
+
+#: src/background.c:833
+#, c-format
+msgid "%s requests to run in the background."
+msgstr "يطلب %s العمل في الخلفية."
+
+#: src/background.c:834
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the application "
+"settings."
+msgstr "يمكن تغيير صلاحية «العمل في الخلفية» في أي وقت من إعدادات التطبيق."
+
+#: src/background.c:838
+msgid "Don't allow"
+msgstr "لا تسمح"
+
+#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+msgid "Allow"
+msgstr "اسمح"
+
+#: src/camera.c:105
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "أأسمح لـ %s باستخدام المصوِّرة؟"
+
+#: src/camera.c:106
+#, c-format
+msgid "%s wants to access camera devices."
+msgstr "يود %s الوصول إلى أجهزة التصوير."
+
+#: src/camera.c:110
+msgid "Allow app to Use the Camera?"
+msgstr "أأسمح للتطبيق باستخدام المصوِّرة؟"
+
+#: src/camera.c:111
+msgid "An app wants to access camera devices."
+msgstr "يود أحد التطبيقات الوصول إلى أجهزة التصوير."
+
+#: src/dynamic-launcher.c:122
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "معرِّف ملف سطح المكتب يفتقد اللاحقة ‏‎.desktop‏: %s"
+
+#: src/dynamic-launcher.c:133
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "معرِّف ملف سطح المكتب غير صالح"
+
+#: src/dynamic-launcher.c:306
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ ليست ملف مفاتيح صالح"
+
+#: src/dynamic-launcher.c:319
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ يجب أن تحتوي على مجموعة واحدة بالضبط"
+
+#: src/dynamic-launcher.c:356
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "الأمارة المعطاة غير صالحة: %s"
+
+#: src/dynamic-launcher.c:400
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ غير صالحة"
+
+#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831 src/dynamic-launcher.c:880
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "ملف سطح المكتب يتجاوز الحجم الأقصى (%d): ‏%s"
+
+#: src/dynamic-launcher.c:563
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr "المسار المُعطى غير صالح: %s"
+
+#: src/dynamic-launcher.c:586
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "نوع المُطلِق غير صالح: %x"
+
+#: src/dynamic-launcher.c:593
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "نوع المُطلِق غير مدعوم: %x"
+
+#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+msgid "Dynamic launcher icon failed validation"
+msgstr "تعذَّر التحقق من أيقونة المشغِّل الحركية"
+
+#: src/dynamic-launcher.c:741
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "الدالة ‏‎RequestInstallToken()‎‏ غير مسموح بها لمعرِّف التطبيق %s"
+
+#: src/dynamic-launcher.c:920
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "أيقونة ملف سطح المكتب ’%s‘ موجودة في مسار مجهول."
+
+#: src/dynamic-launcher.c:943
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "تعذَّرت سلسلة أيقونة ملف سطح المكتب ’%s‘"
+
+#: src/dynamic-launcher.c:982
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "لا يوجد مشغِّل حركي بالمعرِّف ’%s‘."
+
+#: src/dynamic-launcher.c:1001
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr "تعذَّر إنشاء ‏‎GDesktopAppInfo‎‏ للمشغِّل بالمعرِّف ’%s‘."
+
+#: src/location.c:544
+msgid "Deny Access"
+msgstr "ارفض الوصول"
+
+#: src/location.c:546
+msgid "Grant Access"
+msgstr "امنح الوصول"
+
+#: src/location.c:566
+#, c-format
+msgid "Give %s Access to Your Location?"
+msgstr "أأسمح لـ %s بالوصول إلى موقعك؟"
+
+#: src/location.c:571
+#, c-format
+msgid "%s wants to use your location."
+msgstr "يود %s استخدام موقعك."
+
+#: src/location.c:580
+msgid "Grant Access to Your Location?"
+msgstr "أأسمح بالوصول إلى موقعك؟"
+
+#: src/location.c:581
+msgid "An application wants to use your location."
+msgstr "يود أحد التطبيقات استخدام موقعك."
+
+#: src/location.c:584
+msgid "Location access can be changed at any time from the privacy settings."
+msgstr "يمكن تغيير صلاحية الوصول إلى الموقع في أي وقت من إعدادات الخصوصية."
+
+#: src/screenshot.c:245 src/wallpaper.c:185
+msgid "Deny"
+msgstr "ارفض"
+
+#: src/screenshot.c:267
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "أأسمح لـ %s بالتقاط لقطات شاشة؟"
+
+#: src/screenshot.c:268
+#, c-format
+msgid "%s wants to be able to take screenshots at any time."
+msgstr "يود %s التمكن من التقاط لقطات شاشة في أي وقت."
+
+#: src/screenshot.c:276
+msgid "Allow Applications to Take Screenshots?"
+msgstr "أأسمح للتطبيقات بالتقاط لقطات شاشة؟"
+
+#: src/screenshot.c:277
+msgid "An application wants to be able to take screenshots at any time."
+msgstr "يود أحد التطبيقات التمكُّن من التقاط لقطات شاشة في أي وقت."
+
+#: src/screenshot.c:280 src/wallpaper.c:220
+msgid "This permission can be changed at any time from the privacy settings."
+msgstr "يمكن تغيير هذه الصلاحية في أي وقت من إعدادات الخصوصية."
+
+#: src/settings.c:187 src/settings.c:223
+msgid "Requested setting not found"
+msgstr "الإعداد المطلوب غير موجود."
+
+#: src/usb.c:1328
+msgid "Device not available"
+msgstr "الجهاز غير متاح"
+
+#: src/usb.c:1342
+msgid "Not allowed"
+msgstr "غير مسموح"
+
+#: src/wallpaper.c:207
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "أأسمح لـ %s بتعيين صور الخلفية؟"
+
+#: src/wallpaper.c:208
+#, c-format
+msgid "%s is requesting to be able to change the background image."
+msgstr "يطلب %s التمكُّن من تغيير صورة الخلفية."
+
+#: src/wallpaper.c:217
+msgid "Allow Applications to Set Backgrounds?"
+msgstr "أأسمح للتطبيقات بتعيين خلفية الشاشة؟"
+
+#: src/wallpaper.c:218
+msgid "An application is requesting to be able to change the background image."
+msgstr "يطلب أحد التطبيقات التمكُّن من تغيير صورة الخلفية."
