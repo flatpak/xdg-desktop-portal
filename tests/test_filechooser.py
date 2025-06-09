@@ -6,16 +6,28 @@ import tests.xdp_utils as xdp
 
 import dbus
 import pytest
+import os
+from pathlib import Path
 
 
 FILECHOOSER_RESULTS = {
-    "uris": ["file:///test.txt", "file:///example/test2.txt"],
+    "uris": ["FILLED OUT LATER"],
     "choices": [("encoding", "utf8"), ("reencode", "true"), ("third", "a")],
 }
 
 
 @pytest.fixture
 def required_templates():
+    test_file1 = Path(os.environ["XDG_DATA_HOME"]) / "test1.txt"
+    test_file1.write_text("test1")
+    test_file2 = Path(os.environ["XDG_DATA_HOME"]) / "test2.txt"
+    test_file2.write_text("test2")
+
+    FILECHOOSER_RESULTS["uris"] = [
+        f"file://{test_file1.absolute().as_posix()}",
+        f"file://{test_file2.absolute().as_posix()}",
+    ]
+
     return {
         "filechooser": {
             "results": dbus.Dictionary(FILECHOOSER_RESULTS, signature="sv"),
@@ -28,7 +40,8 @@ class TestFilechooser:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "FileChooser", 4)
 
-    def test_open_file_basic(self, portals, dbus_con, app_id):
+    def test_open_file_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -49,7 +62,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("OpenFile")
@@ -62,7 +77,8 @@ class TestFilechooser:
         assert args[4]["multiple"] == multiple
 
     @pytest.mark.parametrize("template_params", ({"filechooser": {"response": 1}},))
-    def test_open_file_cancel(self, portals, dbus_con, app_id):
+    def test_open_file_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -97,7 +113,8 @@ class TestFilechooser:
     @pytest.mark.parametrize(
         "template_params", ({"filechooser": {"expect-close": True}},)
     )
-    def test_open_file_close(self, portals, dbus_con, app_id):
+    def test_open_file_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -161,7 +178,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         method_calls = mock_intf.GetMethodCalls("OpenFile")
         assert len(method_calls) == 1
@@ -230,7 +249,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         method_calls = mock_intf.GetMethodCalls("OpenFile")
         assert len(method_calls) == 1
@@ -259,7 +280,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         method_calls = mock_intf.GetMethodCalls("OpenFile")
         assert len(method_calls) == 1
@@ -369,7 +392,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         method_calls = mock_intf.GetMethodCalls("OpenFile")
         assert len(method_calls) == 1
@@ -426,7 +451,8 @@ class TestFilechooser:
                 == "org.freedesktop.portal.Error.InvalidArgument"
             )
 
-    def test_save_file_basic(self, portals, dbus_con, app_id):
+    def test_save_file_basic(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -447,7 +473,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("SaveFile")
@@ -460,7 +488,8 @@ class TestFilechooser:
         assert args[4]["current_name"] == current_name
 
     @pytest.mark.parametrize("template_params", ({"filechooser": {"response": 1}},))
-    def test_save_file_cancel(self, portals, dbus_con, app_id):
+    def test_save_file_cancel(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -495,7 +524,8 @@ class TestFilechooser:
     @pytest.mark.parametrize(
         "template_params", ({"filechooser": {"expect-close": True}},)
     )
-    def test_save_file_close(self, portals, dbus_con, app_id):
+    def test_save_file_close(self, portals, dbus_con, xdp_app_info):
+        app_id = xdp_app_info.app_id
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -528,7 +558,7 @@ class TestFilechooser:
         assert args[4]["accept_label"] == accept_label
         assert args[4]["current_name"] == current_name
 
-    def test_save_file_filters(self, portals, dbus_con, app_id):
+    def test_save_file_filters(self, portals, dbus_con):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -559,7 +589,9 @@ class TestFilechooser:
 
         assert response
         assert response.response == 0
-        assert response.results["uris"] == FILECHOOSER_RESULTS["uris"]
+        assert xdp.uris_same_files(
+            FILECHOOSER_RESULTS["uris"], response.results["uris"]
+        )
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("SaveFile")
@@ -570,7 +602,7 @@ class TestFilechooser:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-save-to-disk": True}},)
     )
-    def test_save_file_lockdown(self, portals, dbus_con, app_id):
+    def test_save_file_lockdown(self, portals, dbus_con):
         filechooser_intf = xdp.get_portal_iface(dbus_con, "FileChooser")
         mock_intf = xdp.get_mock_iface(dbus_con)
 

@@ -649,10 +649,10 @@ app_has_file_access (const char *target_app_id,
       res = xdp_spawn (&error, "flatpak", "info", arg, target_app_id, NULL);
     }
 
-  g_strchomp (res);
-
   if (res)
     {
+      g_strchomp (res);
+
       if (strcmp (res, "read-write") == 0)
         return TRUE;
 
