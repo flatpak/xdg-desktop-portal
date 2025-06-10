@@ -88,6 +88,7 @@ xdg_desktop_portal_sources = files(
   'clipboard.c',
   'dynamic-launcher.c',
   'email.c',
+  'file-access.c',
   'file-chooser.c',
   'flatpak-instance.c',
   'gamemode.c',
