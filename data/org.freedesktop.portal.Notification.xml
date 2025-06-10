@@ -337,6 +337,10 @@
 
             Intended to be used to display an extreme weather warning.
 
+          * ``cellbroadcast.danger.presidential``
+
+            Intended to be used to display nationwide or presidential warnings broadcasted by the cell network.
+
           * ``cellbroadcast.danger.extreme``
 
             Intended to be used to display extreme danger warnings broadcasted by the cell network.
@@ -344,6 +348,10 @@
           * ``cellbroadcast.danger.severe``
 
             Intended to be used to display severe danger warnings broadcasted by the cell network.
+
+          * ``cellbroadcast.public-safety``
+
+            Intended to be used to display public safety warnings broadcasted by the cell network.
 
           * ``cellbroadcast.amber-alert``
 
