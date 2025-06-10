@@ -45,6 +45,7 @@
 #include "clipboard.h"
 #include "dynamic-launcher.h"
 #include "email.h"
+#include "file-access.h"
 #include "file-chooser.h"
 #include "gamemode.h"
 #include "global-shortcuts.h"
@@ -334,6 +335,9 @@ on_bus_acquired (GDBusConnection *connection,
                                     camera_create (connection,
                                                    access_impl->dbus_name,
                                                    lockdown));
+
+      export_portal_implementation (connection,
+                                    file_access_create (connection, access_impl->dbus_name));
 
       tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
       if (tmp != NULL)
