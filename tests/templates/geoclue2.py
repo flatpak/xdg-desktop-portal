@@ -20,6 +20,78 @@ VERSION = 1
 logger = init_logger(__name__)
 
 
+class GeoClueClient(mockobject.DBusMockObject):
+    def __init__(self, *args, **kwargs):
+        super(GeoClueClient, self).__init__(*args, **kwargs)
+
+        self.started = False
+        self.location = 0
+        self.data = {"Latitude": 0, "Longitude": 0, "Accuracy": 0}
+
+    @dbus.service.method(
+        CLIENT_IFACE,
+        in_signature="",
+        out_signature="",
+    )
+    def Start(self):
+        logger.debug("Start()")
+        self.started = True
+        self.ChangeLocation(self.data)
+
+    @dbus.service.method(
+        CLIENT_IFACE,
+        in_signature="",
+        out_signature="",
+    )
+    def Stop(self):
+        logger.debug("Stop()")
+        self.started = False
+        self.RemoveObject(f"/org/freedesktop/GeoClue2/Location/{self.location}")
+
+    @dbus.service.method(
+        MOCK_IFACE,
+        in_signature="a{sv}",
+        out_signature="",
+    )
+    def ChangeLocation(self, data):
+        logger.debug(f"ChangeLocation({data})")
+
+        self.data = data
+
+        if not self.started:
+            return
+
+        old_path = "/"
+        if self.location > 0:
+            old_path = f"/org/freedesktop/GeoClue2/Location/{self.location}"
+        self.location = self.location + 1
+        new_path = f"/org/freedesktop/GeoClue2/Location/{self.location}"
+
+        self.AddObject(
+            new_path,
+            LOCATION_IFACE,
+            {
+                "Latitude": data["Latitude"],
+                "Longitude": data["Longitude"],
+                "Accuracy": data["Accuracy"],
+            },
+            [],
+        )
+
+        if old_path != "/":
+            self.RemoveObject(old_path)
+
+        self.EmitSignal(
+            CLIENT_IFACE,
+            "LocationUpdated",
+            "oo",
+            [
+                dbus.ObjectPath(old_path),
+                dbus.ObjectPath(new_path),
+            ],
+        )
+
+
 def load(mock, parameters={}):
     mock.AddMethods(
         MAIN_IFACE,
@@ -41,81 +113,6 @@ def load(mock, parameters={}):
             "TimeThreshold": 0,
             "RequestedAccuracyLevel": 0,
         },
-        [
-            ("Start", "", "", Start),
-            ("Stop", "", "", Stop),
-        ],
-    )
-    mock.client = mockobject.objects["/org/freedesktop/GeoClue2/Client/1"]
-    mock.client.manager = mock
-    mock.client.started = False
-    mock.client.location = 0
-    mock.client.props = {"Latitude": 0, "Longitude": 0, "Accuracy": 0}
-
-    mock.client.AddMethod(MOCK_IFACE, "ChangeLocation", "a{sv}", "", ChangeLocation)
-
-
-@dbus.service.method(
-    CLIENT_IFACE,
-    in_signature="",
-    out_signature="",
-)
-def Start(self):
-    logger.debug("Start()")
-    self.started = True
-    self.ChangeLocation(self.props)
-
-
-@dbus.service.method(
-    CLIENT_IFACE,
-    in_signature="",
-    out_signature="",
-)
-def Stop(self):
-    logger.debug("Stop()")
-    self.started = False
-    self.RemoveObject(f"/org/freedesktop/GeoClue2/Location/{self.location}")
-
-
-@dbus.service.method(
-    MOCK_IFACE,
-    in_signature="a{sv}",
-    out_signature="",
-)
-def ChangeLocation(self, props):
-    logger.debug(f"ChangeLocation({props})")
-
-    self.props = props
-
-    if not self.started:
-        return
-
-    old_path = "/"
-    if self.location > 0:
-        old_path = f"/org/freedesktop/GeoClue2/Location/{self.location}"
-    self.location = self.location + 1
-    new_path = f"/org/freedesktop/GeoClue2/Location/{self.location}"
-
-    self.AddObject(
-        new_path,
-        LOCATION_IFACE,
-        {
-            "Latitude": props["Latitude"],
-            "Longitude": props["Longitude"],
-            "Accuracy": props["Accuracy"],
-        },
         [],
-    )
-
-    if old_path != "/":
-        self.RemoveObject(old_path)
-
-    self.EmitSignal(
-        CLIENT_IFACE,
-        "LocationUpdated",
-        "oo",
-        [
-            dbus.ObjectPath(old_path),
-            dbus.ObjectPath(new_path),
-        ],
+        mock_class=GeoClueClient,
     )
