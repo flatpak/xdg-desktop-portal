@@ -202,7 +202,7 @@ class TestInputCapture:
             assert pos == cursor_position
 
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "InputCapture", 1)
+        xdp.check_version(dbus_con, "InputCapture", 2)
 
     @pytest.mark.parametrize(
         "template_params",
