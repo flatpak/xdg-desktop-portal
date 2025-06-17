@@ -3,8 +3,6 @@
 /* SPDX-FileCopyrightText: Copyright © 2019 Red Hat Inc. */
 /* SPDX-License-Identifier: MIT */
 
-#include "config.h"
-
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -18,12 +16,6 @@
 #include <spa/utils/string.h>
 #include <spa/utils/result.h>
 #include <spa/support/dbus.h>
-#include <spa-private/dbus-helpers.h>
-
-#include "pipewire/context.h"
-#include "pipewire/impl-client.h"
-#include "pipewire/log.h"
-#include "pipewire/module.h"
 #include "pipewire/utils.h"
 
 /** \page page_module_portal Portal
@@ -63,6 +55,12 @@
  *\endcode
  *
  */
+
+#include <pipewire/context.h>
+#include <pipewire/impl-client.h>
+#include <pipewire/log.h>
+#include <pipewire/module.h>
+#include <pipewire/utils.h>
 
 #define NAME "portal"
 
@@ -130,7 +128,11 @@ static void module_destroy(void *data)
 	spa_hook_remove(&impl->context_listener);
 	spa_hook_remove(&impl->module_listener);
 
-	cancel_and_unref(&impl->portal_pid_pending);
+	if (impl->portal_pid_pending) {
+		dbus_pending_call_cancel(impl->portal_pid_pending);
+		dbus_pending_call_unref(impl->portal_pid_pending);
+		impl->portal_pid_pending = NULL;
+	}
 
 	if (impl->bus)
 		dbus_connection_unref(impl->bus);
@@ -150,10 +152,13 @@ static void on_portal_pid_received(DBusPendingCall *pending,
 				   void *user_data)
 {
 	struct impl *impl = user_data;
+	DBusMessage *m;
+	DBusError error;
 	uint32_t portal_pid = 0;
 
-	spa_assert(impl->portal_pid_pending == pending);
-	spa_autoptr(DBusMessage) m = steal_reply_and_unref(&impl->portal_pid_pending);
+	m = dbus_pending_call_steal_reply(pending);
+	dbus_pending_call_unref(pending);
+	impl->portal_pid_pending = NULL;
 
 	if (!m) {
 		pw_log_error("Failed to receive portal pid");
@@ -171,13 +176,15 @@ static void on_portal_pid_received(DBusPendingCall *pending,
 		return;
 	}
 
-	spa_auto(DBusError) error = DBUS_ERROR_INIT;
+	dbus_error_init(&error);
 	dbus_message_get_args(m, &error, DBUS_TYPE_UINT32, &portal_pid,
 			      DBUS_TYPE_INVALID);
+	dbus_message_unref(m);
 
 	if (dbus_error_is_set(&error)) {
 		impl->portal_pid = 0;
 		pw_log_warn("Could not get portal pid: %s", error.message);
+		dbus_error_free(&error);
 	} else {
 		pw_log_info("Got portal pid %d", portal_pid);
 		impl->portal_pid = portal_pid;
@@ -186,13 +193,21 @@ static void on_portal_pid_received(DBusPendingCall *pending,
 
 static void update_portal_pid(struct impl *impl)
 {
-	impl->portal_pid = 0;
-	cancel_and_unref(&impl->portal_pid_pending);
+	DBusMessage *m;
+	DBusPendingCall *pending;
 
-	spa_autoptr(DBusMessage) m = dbus_message_new_method_call("org.freedesktop.DBus",
-								  "/org/freedesktop/DBus",
-								  "org.freedesktop.DBus",
-								  "GetConnectionUnixProcessID");
+	impl->portal_pid = 0;
+
+	if (impl->portal_pid_pending) {
+		dbus_pending_call_cancel(impl->portal_pid_pending);
+		dbus_pending_call_unref(impl->portal_pid_pending);
+		impl->portal_pid_pending = NULL;
+	}
+
+	m = dbus_message_new_method_call("org.freedesktop.DBus",
+					 "/org/freedesktop/DBus",
+					 "org.freedesktop.DBus",
+					 "GetConnectionUnixProcessID");
 	if (!m)
 		return;
 
@@ -201,7 +216,19 @@ static void update_portal_pid(struct impl *impl)
 				      DBUS_TYPE_INVALID))
 		return;
 
-	impl->portal_pid_pending = send_with_reply(impl->bus, m, on_portal_pid_received, impl);
+	if (!dbus_connection_send_with_reply(impl->bus, m, &pending, -1))
+		return;
+
+	if (!pending)
+		return;
+
+	if (!dbus_pending_call_set_notify(pending, on_portal_pid_received, impl, NULL)) {
+		dbus_pending_call_cancel(pending);
+		dbus_pending_call_unref(pending);
+		return;
+	}
+
+	impl->portal_pid_pending = pending;
 }
 
 static DBusHandlerResult name_owner_changed_handler(DBusConnection *connection,
@@ -231,7 +258,11 @@ static DBusHandlerResult name_owner_changed_handler(DBusConnection *connection,
 
 	if (spa_streq(new_owner, "")) {
 		impl->portal_pid = 0;
-		cancel_and_unref(&impl->portal_pid_pending);
+		if (impl->portal_pid_pending) {
+			dbus_pending_call_cancel(impl->portal_pid_pending);
+			dbus_pending_call_unref(impl->portal_pid_pending);
+			impl->portal_pid_pending = NULL;
+		}
 	}
 	else {
 		update_portal_pid(impl);
@@ -242,6 +273,8 @@ static DBusHandlerResult name_owner_changed_handler(DBusConnection *connection,
 
 static int init_dbus_connection(struct impl *impl)
 {
+	DBusError error;
+
 	impl->bus = spa_dbus_connection_get(impl->conn);
 	if (impl->bus == NULL)
 		return -EIO;
@@ -249,7 +282,7 @@ static int init_dbus_connection(struct impl *impl)
 	/* XXX: we don't handle dbus reconnection yet, so ref the handle instead */
 	dbus_connection_ref(impl->bus);
 
-	spa_auto(DBusError) error = DBUS_ERROR_INIT;
+	dbus_error_init(&error);
 
 	dbus_bus_add_match(impl->bus,
 			   "type='signal',\
@@ -261,6 +294,7 @@ static int init_dbus_connection(struct impl *impl)
 	if (dbus_error_is_set(&error)) {
 		pw_log_error("Failed to add name owner changed listener: %s",
 			     error.message);
+		dbus_error_free(&error);
 		return -EIO;
 	}
 
