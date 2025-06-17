@@ -3,8 +3,6 @@
 /* SPDX-FileCopyrightText: Copyright © 2019 Red Hat Inc. */
 /* SPDX-License-Identifier: MIT */
 
-#include "config.h"
-
 #include <string.h>
 #include <stdio.h>
 #include <errno.h>
@@ -14,17 +12,14 @@
 #include <unistd.h>
 
 #include <dbus/dbus.h>
-
+#include <pipewire/context.h>
+#include <pipewire/impl-client.h>
+#include <pipewire/log.h>
+#include <pipewire/module.h>
+#include <pipewire/utils.h>
 #include <spa/utils/string.h>
 #include <spa/utils/result.h>
 #include <spa/support/dbus.h>
-#include <spa-private/dbus-helpers.h>
-
-#include "pipewire/context.h"
-#include "pipewire/impl-client.h"
-#include "pipewire/log.h"
-#include "pipewire/module.h"
-#include "pipewire/utils.h"
 
 /** \page page_module_portal Portal
  *
@@ -84,6 +79,59 @@ struct impl {
 	DBusPendingCall *portal_pid_pending;
 	pid_t portal_pid;
 };
+
+/* SPA D-Bus helpers */
+
+static inline void cancel_and_unref(DBusPendingCall **pp)
+{
+	DBusPendingCall *pending_call = spa_steal_ptr(*pp);
+
+	if (pending_call) {
+		dbus_pending_call_cancel(pending_call);
+		dbus_pending_call_unref(pending_call);
+	}
+}
+
+static inline DBusMessage *steal_reply_and_unref(DBusPendingCall **pp)
+{
+	DBusPendingCall *pending_call = spa_steal_ptr(*pp);
+
+	DBusMessage *reply = dbus_pending_call_steal_reply(pending_call);
+	dbus_pending_call_unref(pending_call);
+
+	return reply;
+}
+
+SPA_DEFINE_AUTOPTR_CLEANUP(DBusMessage, DBusMessage, {
+	spa_clear_ptr(*thing, dbus_message_unref);
+})
+
+static inline DBusPendingCall *send_with_reply(DBusConnection *conn,
+					       DBusMessage *m,
+					       DBusPendingCallNotifyFunction callback, void *user_data)
+{
+	DBusPendingCall *pending_call;
+
+	if (!dbus_connection_send_with_reply(conn, m, &pending_call, DBUS_TIMEOUT_USE_DEFAULT))
+		return NULL;
+
+	if (!pending_call)
+		return NULL;
+
+	if (!dbus_pending_call_set_notify(pending_call, callback, user_data, NULL)) {
+		dbus_pending_call_cancel(pending_call);
+		dbus_pending_call_unref(pending_call);
+		return NULL;
+	}
+
+	return pending_call;
+}
+
+SPA_DEFINE_AUTO_CLEANUP(DBusError, DBusError, {
+	dbus_error_free(thing);
+})
+
+/*********************/
 
 static void
 context_check_access(void *data, struct pw_impl_client *client)
