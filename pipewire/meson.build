@@ -2,3 +2,4 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 subdir('pw-module')
+subdir('wp-plugin')
