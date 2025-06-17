@@ -1,4 +1,7 @@
-/* PipeWire */
+/* SPDX-License-Identifier: LGPL-2.1-or-later */
+/* SPDX-FileCopyrightText: Copyright © 2025 tytan652 */
+
+/* Base code imported from PipeWire */
 /* SPDX-FileCopyrightText: Copyright © 2016 Wim Taymans <wim.taymans@gmail.com> */
 /* SPDX-FileCopyrightText: Copyright © 2019 Red Hat Inc. */
 /* SPDX-License-Identifier: MIT */
@@ -16,45 +19,6 @@
 #include <spa/utils/string.h>
 #include <spa/utils/result.h>
 #include <spa/support/dbus.h>
-#include "pipewire/utils.h"
-
-/** \page page_module_portal Portal
- *
- * The `portal` module performs access control management for clients started
- * inside an XDG portal.
- *
- * The module connects to the session DBus and subscribes to
- * `NameOwnerChanged` signals for the `org.freedesktop.portal.Desktop` name.
- * The PID of the DBus name owner is the portal.
- *
- * A client connection from the portal PID to PipeWire gets assigned a \ref
- * PW_KEY_ACCESS of `"portal"` and set to permissions ALL - it is the
- * responsibility of the portal to limit the permissions before passing the
- * connection on to the client. See \ref page_access for details on
- * permissions.
- *
- * Clients connecting from other PIDs are ignored by this module.
- *
- * ## Module Name
- *
- * `libpipewire-module-portal`
- *
- * ## Module Options
- *
- * There are no module-specific options.
- *
- * ## General options
- *
- * There are no general options for this module.
- *
- * ## Example configuration
- *\code{.unparsed}
- * context.modules = [
- *  {   name = libpipewire-module-portal }
- * ]
- *\endcode
- *
- */
 
 #include <pipewire/context.h>
 #include <pipewire/impl-client.h>
@@ -62,7 +26,7 @@
 #include <pipewire/module.h>
 #include <pipewire/utils.h>
 
-#define NAME "portal"
+#define NAME "xdg-desktop-portal"
 
 #define PORTAL_SERVICE_NAME "org.freedesktop.portal.Desktop"
 
@@ -104,7 +68,7 @@ context_check_access(void *data, struct pw_impl_client *client)
 	if (pid != impl->portal_pid)
 		return;
 
-	items[0] = SPA_DICT_ITEM_INIT(PW_KEY_ACCESS, "portal");
+	items[0] = SPA_DICT_ITEM_INIT(PW_KEY_ACCESS, "xdg-desktop-portal");
 	pw_impl_client_update_properties(client, &SPA_DICT_INIT(items, 1));
 
 	pw_log_info("%p: portal managed client %p added", impl, client);
