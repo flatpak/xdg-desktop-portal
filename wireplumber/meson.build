@@ -18,3 +18,9 @@ xdp_wireplumber_module = shared_library(
   install: true,
   install_dir: wireplumber_module_dir,
 )
+
+install_data(
+  'wireplumber.conf',
+  rename: '10-xdg-desktop-portal.conf',
+  install_dir: wireplumber_conf_d_dir,
+)

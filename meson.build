@@ -41,8 +41,18 @@ endif
 pipewire_dep_base_name = 'pipewire-0.3'
 pipewire_module_dir = libdir / pipewire_dep_base_name
 
+pipewire_conf_d_dir = get_option('pipewire-drop-in-conf-dir')
+if pipewire_conf_d_dir == ''
+  pipewire_conf_d_dir = prefix / datadir / 'pipewire' / 'pipewire.conf.d'
+endif
+
 wireplumber_dep_name = 'wireplumber-0.5'
 wireplumber_module_dir = libdir / wireplumber_dep_name
+
+wireplumber_conf_d_dir = get_option('wireplumber-conf-fragments-dir')
+if wireplumber_conf_d_dir == ''
+  wireplumber_conf_d_dir = prefix / datadir / 'wireplumber' / 'wireplumber.conf.d'
+endif
 
 dataroot_dir = get_option('datarootdir')
 if dataroot_dir == ''
@@ -58,7 +68,9 @@ summary({
 	'Flatpak interfaces dir': flatpak_intf_dir,
 	'systemd user unit dir': systemd_userunit_dir,
 	'PipeWire module dir': pipewire_module_dir,
+	'PipeWire drop-in configuration dir:': pipewire_conf_d_dir,
 	'WirePlumber module dir': wireplumber_module_dir,
+	'WirePlumber configuration fragments dir': wireplumber_conf_d_dir,
 	'Installed tests dir': installed_tests_dir,
 	},
 	section: 'Directories',
