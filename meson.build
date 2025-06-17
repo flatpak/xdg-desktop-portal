@@ -38,6 +38,9 @@ if systemd_userunit_dir == ''
     systemd_userunit_dir = prefix / 'lib' / 'systemd' / 'user'
 endif
 
+pipewire_dep_base_name = 'pipewire-0.3'
+pipewire_module_dir = libdir / pipewire_dep_base_name
+
 dataroot_dir = get_option('datarootdir')
 if dataroot_dir == ''
     dataroot_dir = datadir
@@ -51,6 +54,7 @@ summary({
 	'DBus service dir': dbus_service_dir,
 	'Flatpak interfaces dir': flatpak_intf_dir,
 	'systemd user unit dir': systemd_userunit_dir,
+	'PipeWire module dir': pipewire_module_dir,
 	'Installed tests dir': installed_tests_dir,
 	},
 	section: 'Directories',
@@ -119,7 +123,12 @@ geoclue_dep = dependency(
   version: '>= 2.5.2',
   required: get_option('geoclue'),
 )
-pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
+pipewire_dep = dependency(f'lib@pipewire_dep_base_name@', version: '>= 1.3.81', required: false)
+pw_portal_disableable = pipewire_dep.found()
+if not pipewire_dep.found()
+  pipewire_dep = dependency(f'lib@pipewire_dep_base_name@', version: '>= 0.2.90')
+endif
+libdbus_dep = dependency('dbus-1', required: pw_portal_disableable)
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
@@ -208,6 +217,9 @@ pkgconfig.generate(
 subdir('data')
 subdir('src')
 subdir('document-portal')
+if pw_portal_disableable
+  subdir('pipewire')
+endif
 subdir('po')
 subdir('doc')
 
