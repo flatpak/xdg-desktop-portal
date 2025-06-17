@@ -9,3 +9,9 @@ xdp_pipewire_module = shared_library(
   install: true,
   install_dir: pipewire_module_dir,
 )
+
+install_data(
+  'pipewire.conf',
+  rename: '10-xdg-desktop-portal.conf',
+  install_dir: pipewire_conf_d_dir,
+)
