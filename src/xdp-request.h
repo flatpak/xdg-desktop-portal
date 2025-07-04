@@ -68,8 +68,9 @@ XDP_IS_REQUEST (gpointer ptr)
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpRequest, g_object_unref)
 
-void xdp_request_init_invocation (GDBusMethodInvocation *invocation,
-                                  XdpAppInfo            *app_info);
+gboolean xdp_request_init_invocation (GDBusMethodInvocation *invocation,
+                                      XdpAppInfo            *app_info,
+                                      GError               **error);
 
 XdpRequest *xdp_request_from_invocation (GDBusMethodInvocation *invocation);
 

@@ -4,6 +4,7 @@
 
 import tests.xdp_utils as xdp
 
+import dbus
 import pytest
 from enum import Enum, Flag
 
@@ -70,6 +71,22 @@ class TestInhibit:
         assert args[2] == ""  # parent window
         assert args[3] == flags.value
         assert args[4]["reason"] == reason
+
+    @pytest.mark.parametrize(
+        "token", ("Invalid-Token&", "", "/foo", "something-else", "😄")
+    )
+    def test_inhibit_invalid_handle_token(self, portals, dbus_con, token):
+        inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
+
+        request = xdp.Request(dbus_con, inhibit_intf)
+        options = {"handle_token": token}
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            request.call("Inhibit", window="", flags=0, options=options)
+
+        e = excinfo.value
+        assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert "Invalid token" in e.get_dbus_message()
 
     @pytest.mark.parametrize("template_params", ({"inhibit": {"response": 1}},))
     def test_cancel(self, portals, dbus_con, app_id):
