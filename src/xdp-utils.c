@@ -343,6 +343,23 @@ xdp_is_valid_app_id (const char *string)
   return TRUE;
 }
 
+gboolean
+xdp_is_valid_token (const char *string)
+{
+  g_autofree char *path = NULL;
+  int i;
+
+  for (i = 0; string[i]; i++)
+    {
+      if (G_UNLIKELY (!is_valid_name_character (string[i], FALSE)))
+        return FALSE;
+    }
+
+  path = g_strdup_printf ("/foo/%s", string);
+
+  return g_variant_is_object_path (path);
+}
+
 char *
 xdp_get_app_id_from_desktop_id (const char *desktop_id)
 {

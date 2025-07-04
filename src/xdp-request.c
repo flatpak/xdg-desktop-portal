@@ -200,9 +200,10 @@ get_token (GDBusMethodInvocation *invocation)
   return token ? token : "t";
 }
 
-void
+gboolean
 xdp_request_init_invocation (GDBusMethodInvocation *invocation,
-                             XdpAppInfo            *app_info)
+                             XdpAppInfo            *app_info,
+                             GError               **error)
 {
   XdpRequest *request;
   guint32 r;
@@ -211,13 +212,22 @@ xdp_request_init_invocation (GDBusMethodInvocation *invocation,
   g_autofree char *sender = NULL;
   int i;
 
+  token = get_token (invocation);
+  if (!xdp_is_valid_token (token))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid token: %s", token);
+      return FALSE;
+    }
+
   request = g_object_new (xdp_request_get_type (), NULL);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
   request->app_info = g_object_ref (app_info);
 
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
 
-  token = get_token (invocation);
   sender = g_strdup (request->sender + 1);
   for (i = 0; sender[i]; i++)
     if (sender[i] == '.')
@@ -247,6 +257,7 @@ xdp_request_init_invocation (GDBusMethodInvocation *invocation,
 
 
   g_object_set_data_full (G_OBJECT (invocation), "request", request, g_object_unref);
+  return TRUE;
 }
 
 XdpRequest *

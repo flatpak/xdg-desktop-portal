@@ -46,7 +46,9 @@ class TestRemoteDesktop:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    @pytest.mark.parametrize("token", ("Invalid-Token&", "", "/foo"))
+    @pytest.mark.parametrize(
+        "token", ("Invalid-Token&", "", "/foo", "something-else", "😄")
+    )
     def test_remote_desktop_create_session_invalid(self, portals, dbus_con, token):
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 

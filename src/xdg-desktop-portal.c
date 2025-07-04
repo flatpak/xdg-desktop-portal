@@ -152,7 +152,13 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   if (method_needs_request (invocation))
-    xdp_request_init_invocation (invocation, app_info);
+    {
+      if (!xdp_request_init_invocation (invocation, app_info, &error))
+        {
+          g_dbus_method_invocation_return_gerror (invocation, error);
+          return FALSE;
+        }
+    }
   else
     xdp_call_init_invocation (invocation, app_info);
 
