@@ -39,7 +39,9 @@ G_DECLARE_FINAL_TYPE (XdpPortalConfig,
                       XDP, PORTAL_CONFIG,
                       GObject)
 
-XdpPortalConfig * xdp_portal_config_new (gboolean opt_verbose);
+typedef struct _XdpContext XdpContext;
+
+XdpPortalConfig * xdp_portal_config_new (XdpContext *config);
 
 XdpImplConfig * xdp_portal_config_find (XdpPortalConfig *portal_config,
                                         const char      *impl_interface);

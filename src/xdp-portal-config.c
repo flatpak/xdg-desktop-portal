@@ -31,6 +31,8 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+#include "xdp-context.h"
+
 typedef struct _PortalInterface {
   /* dbus_name is NULL if this is the default */
   char *dbus_name;
@@ -610,9 +612,10 @@ xdp_portal_config_init (XdpPortalConfig *portal_config)
 }
 
 XdpPortalConfig *
-xdp_portal_config_new (gboolean opt_verbose)
+xdp_portal_config_new (XdpContext *context)
 {
   XdpPortalConfig *portal_config = g_object_new (XDP_TYPE_PORTAL_CONFIG, NULL);
+  gboolean opt_verbose = xdp_context_is_verbose (context);
 
   portal_config->current_desktops = get_current_lowercase_desktops ();
   portal_config->impl_configs = load_installed_portals (portal_config, opt_verbose);
