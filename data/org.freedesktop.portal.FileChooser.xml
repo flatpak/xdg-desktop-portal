@@ -33,6 +33,10 @@
       (which may involve adding it to the :ref:`Documents
       portal<org.freedesktop.portal.Documents>`).
 
+      Files added to the :ref:`Documents
+      portal<org.freedesktop.portal.Documents>` by this portal stay
+      accessible across sessions.
+
       This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.FileChooser">

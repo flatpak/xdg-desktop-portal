@@ -41,6 +41,10 @@
        files in the document store as necessary to make them accessible to the
        target.
 
+       Files added to the :ref:`Documents
+       portal<org.freedesktop.portal.Documents>` by this portal do not stay
+       accessible across sessions.
+
        The D-Bus interface for the this portal is available under the
        bus name org.freedesktop.portal.Documents and the object path
        ``/org/freedesktop/portal/documents``.
