@@ -6,9 +6,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2025-02-22 16:52+0100\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-08-03 03:57+0000\n"
+"PO-Revision-Date: 2025-08-03 09:48+0200\n"
 "Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
 "Language-Team: Bulgarian <dict-notifications@fsa-bg.org>\n"
 "Language: bg\n"
@@ -84,11 +84,9 @@ msgstr ""
 "Записът за работния плот, зададен за „Install()“, е неправилен ключов файл"
 
 #: src/dynamic-launcher.c:319
-#, fuzzy, c-format
+#, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr ""
-"Записът за работния плот, зададен за „Install()“, трябва да има само една "
-"група"
+msgstr "Записът за работния плот, зададен за „Install()“, трябва да има точно една група"
 
 #: src/dynamic-launcher.c:356
 #, c-format
@@ -217,12 +215,11 @@ msgstr "Поисканата настройка липсва"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "Устройството не е налично"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "Забраняване"
+msgstr "Забранено"
 
 #: src/wallpaper.c:207
 #, c-format
