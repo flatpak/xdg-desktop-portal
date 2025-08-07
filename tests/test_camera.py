@@ -16,14 +16,6 @@ def required_templates():
     }
 
 
-@pytest.fixture
-def app_id():
-    # x-d-p currently defaults to the empty app id for the camera portal for
-    # host XdpAppInfos (which the XdpAppInfoTest is). So use the empty app_id
-    # for now.
-    return ""
-
-
 class TestCamera:
     def set_permissions(self, dbus_con, appid, permissions):
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
