@@ -186,16 +186,6 @@ handle_access_camera_in_thread_func (GTask *task,
     }
 }
 
-static const char *
-app_id_from_app_info (XdpAppInfo *app_info)
-{
-  /* Automatically grant camera access to unsandboxed apps. */
-  if (xdp_app_info_is_host (app_info))
-    return "";
-
-  return xdp_app_info_get_id (app_info);
-}
-
 static gboolean
 handle_access_camera (XdpDbusCamera *object,
                       GDBusMethodInvocation *invocation,
@@ -217,7 +207,7 @@ handle_access_camera (XdpDbusCamera *object,
 
   REQUEST_AUTOLOCK (request);
 
-  app_id = app_id_from_app_info (request->app_info);
+  app_id = xdp_app_info_get_id (request->app_info);
   g_object_set_data_full (G_OBJECT (request), "app-id", g_strdup (app_id), g_free);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
@@ -292,7 +282,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
     }
 
   app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
-  app_id = app_id_from_app_info (app_info);
+  app_id = xdp_app_info_get_id (app_info);
   permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission != XDP_PERMISSION_YES)
     {
