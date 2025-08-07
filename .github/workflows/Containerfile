@@ -2,7 +2,7 @@
 # When this file is changed, or one needs to rebuild the image for another
 # reason, bump the `IMAGE_TAG` in the container.yml workflow.
 
-FROM ubuntu:latest
+FROM ubuntu:rolling
 
 RUN apt update
 RUN apt upgrade -y
@@ -37,9 +37,10 @@ RUN apt install -y --no-install-recommends \
     libsystemd-dev \
     libtool \
     llvm \
-    libclang-rt-18-dev \
+    libclang-rt-20-dev \
     python3-gi \
-    shared-mime-info
+    shared-mime-info \
+    libwireplumber-0.5-dev
 
 # Install meson
 RUN apt install -y --no-install-recommends meson
