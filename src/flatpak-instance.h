@@ -46,7 +46,9 @@ typedef struct
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (FlatpakInstance, g_object_unref)
 #endif
 
-GPtrArray *  flatpak_instance_get_all (void);
+GPtrArray *       flatpak_instance_get_all (void);
+FlatpakInstance * flatpak_instance_from_metadata (GKeyFile *metadata,
+                                                  GError **error);
 
 const char * flatpak_instance_get_id (FlatpakInstance *self);
 const char * flatpak_instance_get_app (FlatpakInstance *self);
@@ -57,6 +59,7 @@ const char * flatpak_instance_get_runtime (FlatpakInstance *self);
 const char * flatpak_instance_get_runtime_commit (FlatpakInstance *self);
 int          flatpak_instance_get_pid (FlatpakInstance *self);
 int          flatpak_instance_get_child_pid (FlatpakInstance *self);
+char *       flatpak_instance_get_root_path (FlatpakInstance *self);
 GKeyFile *   flatpak_instance_get_info (FlatpakInstance *self);
 
 gboolean     flatpak_instance_is_running (FlatpakInstance *self);
