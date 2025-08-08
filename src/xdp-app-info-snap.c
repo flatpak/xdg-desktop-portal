@@ -308,7 +308,6 @@ xdp_app_info_snap_new (const char  *sender,
                        GError     **error)
 {
   g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
-
   g_autoptr(GError) local_error = NULL;
   g_autofree char *pid_str = NULL;
   g_autofree char *output = NULL;
