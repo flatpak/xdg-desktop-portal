@@ -67,6 +67,7 @@
 #include "screenshot.h"
 #include "secret.h"
 #include "settings.h"
+#include "speech-synthesis.h"
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
@@ -340,6 +341,12 @@ on_bus_acquired (GDBusConnection *connection,
                                     camera_create (connection,
                                                    access_impl->dbus_name,
                                                    lockdown));
+
+#ifdef HAVE_LIBSPIEL
+      export_portal_implementation (connection,
+                                    speech_synthesis_create (connection,
+                                                             access_impl->dbus_name));
+#endif
 
       tmp = find_portal_implementation ("org.freedesktop.impl.portal.Screenshot");
       if (tmp != NULL)
