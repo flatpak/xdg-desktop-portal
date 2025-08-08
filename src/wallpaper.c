@@ -175,7 +175,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       g_autoptr(GVariant) access_results = NULL;
       g_auto(GVariantBuilder) access_opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree gchar *app_id = NULL;
+      const char *app_id;
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
       const gchar *body;
@@ -190,18 +190,10 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       if (g_strcmp0 (id, "") != 0)
         {
           GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
-          const gchar *name = NULL;
+          const gchar *name = id;
 
           if (info)
-            {
-              name = g_app_info_get_display_name (G_APP_INFO (info));
-              app_id = xdp_get_app_id_from_desktop_id (g_app_info_get_id (info));
-            }
-          else
-            {
-              name = id;
-              app_id = g_strdup (id);
-            }
+            name = g_app_info_get_display_name (G_APP_INFO (info));
 
           title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), name);
           subtitle = g_strdup_printf (_("%s is requesting to be able to change the background image."), name);
@@ -212,7 +204,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
-          app_id = g_strdup ("");
+          app_id = "";
           title = g_strdup (_("Allow Applications to Set Backgrounds?"));
           subtitle = g_strdup (_("An application is requesting to be able to change the background image."));
         }
