@@ -217,7 +217,7 @@ handle_screenshot_in_thread_func (GTask *task,
   if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
     goto query_impl;
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
@@ -298,7 +298,9 @@ handle_screenshot_in_thread_func (GTask *task,
         }
 
       if (permission == XDP_PERMISSION_UNSET)
-        xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+        xdp_set_permission_sync (request->app_info, PERMISSION_TABLE,
+                                 PERMISSION_ID, access_response == 0 ?
+                                 XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
         {

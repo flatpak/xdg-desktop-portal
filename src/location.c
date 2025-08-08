@@ -340,7 +340,6 @@ get_location_permissions (XdpAppInfo *app_info,
                           GClueAccuracyLevel *accuracy,
                           gint64 *last_used)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
   g_auto(GStrv) perms = NULL;
 
   if (xdp_app_info_is_host (app_info))
@@ -351,9 +350,10 @@ get_location_permissions (XdpAppInfo *app_info,
       return TRUE;
     }
 
-  g_debug ("Getting location permissions for '%s'", app_id);
+  g_debug ("Getting location permissions for '%s'",
+           xdp_app_info_get_id (app_info));
 
-  perms = xdp_get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (perms == NULL)
     return FALSE;
@@ -373,15 +373,12 @@ get_location_permissions (XdpAppInfo *app_info,
 }
 
 static void
-set_location_permissions (const char *app_id,
+set_location_permissions (XdpAppInfo *app_info,
                           GClueAccuracyLevel accuracy,
                           gint64 timestamp)
 {
   g_autofree char *date = NULL;
   const char *permissions[3];
-
-  if (app_id == NULL)
-    return;
 
   date = g_strdup_printf ("%" G_GINT64_FORMAT, timestamp);
   permissions[0] = gclue_accuracy_level_to_string (accuracy);
@@ -390,7 +387,7 @@ set_location_permissions (const char *app_id,
 
   g_debug ("set permission store accuracy: %d -> %s", accuracy, permissions[0]);
 
-  xdp_set_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, permissions);
+  xdp_set_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID, permissions);
 }
 
 /*** Location boilerplace ***/
@@ -608,7 +605,7 @@ handle_start_in_thread_func (GTask *task,
   if (accuracy != GCLUE_ACCURACY_LEVEL_NONE)
     last_used = g_get_monotonic_time ();
 
-  set_location_permissions (id, accuracy, last_used);
+  set_location_permissions (request->app_info, accuracy, last_used);
 
   if (accuracy == GCLUE_ACCURACY_LEVEL_NONE)
     {

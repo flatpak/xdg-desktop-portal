@@ -123,7 +123,6 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
   XdpCall *call = xdp_call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
-  const char *app_id = xdp_app_info_get_id (call->app_info);
   XdpPermission permission;
 
   if (!realtime->rtkit_proxy)
@@ -135,7 +134,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -174,7 +173,6 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
   XdpCall *call = xdp_call_from_invocation (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
-  const char *app_id = xdp_app_info_get_id (call->app_info);
   XdpPermission permission;
 
   if (!realtime->rtkit_proxy)
@@ -186,7 +184,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
