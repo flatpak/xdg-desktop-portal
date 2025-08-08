@@ -474,7 +474,7 @@ def xdp_app_info(request) -> xdp.AppInfo:
     if app_info_kind == xdp.AppInfoKind.SNAP:
         return xdp.AppInfo.new_snap(
             common_id=app_id,
-            snap_name="test",
+            snap_name="example",
             app_name="test",
         )
 

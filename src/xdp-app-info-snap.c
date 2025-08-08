@@ -38,7 +38,7 @@ struct _XdpAppInfoSnap
 {
   XdpAppInfo parent;
 
-  char *desktop_file;
+  char *permissions_id;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
@@ -46,22 +46,18 @@ G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
 enum
 {
   PROP_0,
-  PROP_DESKTOP_FILE,
+  PROP_PERMISSIONS_ID,
   N_PROPS,
 };
 
 static GParamSpec *properties [N_PROPS];
 
-static GAppInfo *
-xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
+static const char *
+xdp_app_info_snap_get_permissions_id (XdpAppInfo *app_info)
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (app_info);
-  g_autoptr(GAppInfo) gappinfo = NULL;
 
-  gappinfo =
-    G_APP_INFO (g_desktop_app_info_new (app_info_snap->desktop_file));
-
-  return g_steal_pointer (&gappinfo);
+  return app_info_snap->permissions_id;
 }
 
 static void
@@ -69,7 +65,7 @@ xdp_app_info_snap_finalize (GObject *object)
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
 
-  g_clear_pointer (&app_info_snap->desktop_file, g_free);
+  g_clear_pointer (&app_info_snap->permissions_id, g_free);
 
   G_OBJECT_CLASS (xdp_app_info_snap_parent_class)->finalize (object);
 }
@@ -84,8 +80,8 @@ xdp_app_info_snap_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_DESKTOP_FILE:
-      g_value_set_string (value, app_info_snap->desktop_file);
+    case PROP_PERMISSIONS_ID:
+      g_value_set_string (value, app_info_snap->permissions_id);
       break;
 
     default:
@@ -103,9 +99,9 @@ xdp_app_info_snap_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_DESKTOP_FILE:
-      g_assert (app_info_snap->desktop_file == NULL);
-      app_info_snap->desktop_file = g_value_dup_string (value);
+    case PROP_PERMISSIONS_ID:
+      g_assert (app_info_snap->permissions_id == NULL);
+      app_info_snap->permissions_id = g_value_dup_string (value);
       break;
 
     default:
@@ -123,10 +119,10 @@ xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
   object_class->get_property = xdp_app_info_snap_get_property;
   object_class->set_property = xdp_app_info_snap_set_property;
 
-  app_info_class->create_gappinfo = xdp_app_info_snap_create_gappinfo;
+  app_info_class->get_permissions_id = xdp_app_info_snap_get_permissions_id;
 
-  properties[PROP_DESKTOP_FILE] =
-    g_param_spec_string ("desktop-file", NULL, NULL,
+  properties[PROP_PERMISSIONS_ID] =
+    g_param_spec_string ("permissions-id", NULL, NULL,
                          NULL,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
@@ -226,6 +222,18 @@ end:
   return is_snap;
 }
 
+static char *
+app_id_for_desktop_id (const char *desktop_id)
+{
+  char *id, *dot;
+
+  id = g_path_get_basename (desktop_id);
+  if (g_str_has_suffix (desktop_id, ".desktop") && (dot = strrchr (id, '.')))
+    *dot = '\0';
+
+  return id;
+}
+
 static XdpAppInfo *
 xdp_app_info_snap_new_testing (const char  *sender,
                                GError     **error)
@@ -235,7 +243,8 @@ xdp_app_info_snap_new_testing (const char  *sender,
   gboolean result;
   g_autoptr(GKeyFile) metadata = NULL;
   g_autofree char *snap_name = NULL;
-  g_autofree char *snap_id = NULL;
+  g_autofree char *app_id = NULL;
+  g_autofree char *permissions_id = NULL;
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
@@ -254,14 +263,16 @@ xdp_app_info_snap_new_testing (const char  *sender,
                                      error);
   g_assert (snap_name != NULL);
 
-  snap_id = g_strconcat ("snap.", snap_name, NULL);
-  g_assert (snap_id != NULL);
+  permissions_id = g_strconcat ("snap.", snap_name, NULL);
+  g_assert (permissions_id != NULL);
 
   desktop_id = g_key_file_get_string (metadata,
                                       SNAP_METADATA_GROUP_INFO,
                                       SNAP_METADATA_KEY_DESKTOP_FILE,
                                       error);
   g_assert (desktop_id != NULL);
+
+  app_id = app_id_for_desktop_id (desktop_id);
 
   has_network = g_key_file_get_boolean (metadata,
                                         SNAP_METADATA_GROUP_INFO,
@@ -276,9 +287,9 @@ xdp_app_info_snap_new_testing (const char  *sender,
                                   NULL,
                                   error,
                                   "engine", SNAP_ENGINE_ID,
-                                  "id", snap_id,
+                                  "id", app_id,
+                                  "permissions-id", permissions_id,
                                   "flags", flags,
-                                  "desktop-file", desktop_id,
                                   "sender", sender,
                                   NULL);
 
@@ -303,7 +314,8 @@ xdp_app_info_snap_new (const char  *sender,
   g_autofree char *output = NULL;
   g_autoptr(GKeyFile) metadata = NULL;
   g_autofree char *snap_name = NULL;
-  g_autofree char *snap_id = NULL;
+  g_autofree char *app_id = NULL;
+  g_autofree char *permissions_id = NULL;
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
@@ -351,7 +363,7 @@ xdp_app_info_snap_new (const char  *sender,
   if (snap_name == NULL)
     return NULL;
 
-  snap_id = g_strconcat ("snap.", snap_name, NULL);
+  permissions_id = g_strconcat ("snap.", snap_name, NULL);
 
   desktop_id = g_key_file_get_string (metadata,
                                       SNAP_METADATA_GROUP_INFO,
@@ -359,6 +371,8 @@ xdp_app_info_snap_new (const char  *sender,
                                       error);
   if (desktop_id == NULL)
     return NULL;
+
+  app_id = app_id_for_desktop_id (desktop_id);
 
   has_network = g_key_file_get_boolean (metadata,
                                         SNAP_METADATA_GROUP_INFO,
@@ -372,10 +386,10 @@ xdp_app_info_snap_new (const char  *sender,
                                   NULL,
                                   error,
                                   "engine", SNAP_ENGINE_ID,
-                                  "id", snap_id,
+                                  "id", app_id,
+                                  "permissions-id", permissions_id,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", flags,
-                                  "desktop-file", desktop_id,
                                   "sender", sender,
                                   NULL);
 
