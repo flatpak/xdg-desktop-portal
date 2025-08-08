@@ -98,12 +98,12 @@ inhibit_done (GObject *source,
 }
 
 static guint32
-get_allowed_inhibit (const char *app_id)
+get_allowed_inhibit (XdpAppInfo *app_info)
 {
   g_auto(GStrv) perms = NULL;
   guint32 ret = 0;
 
-  perms = xdp_get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (perms != NULL)
     {
@@ -126,7 +126,8 @@ get_allowed_inhibit (const char *app_id)
   else
     ret = INHIBIT_ALL; /* all allowed */
 
-  g_debug ("Inhibit permissions for %s: %d", app_id, ret);
+  g_debug ("Inhibit permissions for %s: %d",
+           xdp_app_info_get_id (app_info), ret);
 
   return ret;
 }
@@ -150,7 +151,7 @@ handle_inhibit_in_thread_func (GTask *task,
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
   app_id = xdp_app_info_get_id (request->app_info);
-  flags = flags & get_allowed_inhibit (app_id);
+  flags = flags & get_allowed_inhibit (request->app_info);
 
   if (flags == 0)
     return;

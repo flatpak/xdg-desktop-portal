@@ -326,8 +326,8 @@ usb_sender_info_get_device_permission (UsbSenderInfo *sender_info,
   g_assert (G_UDEV_IS_DEVICE (device));
 
   permission_id = unique_permission_id_for_device (device);
-  return xdp_get_permission_sync (xdp_app_info_get_id (sender_info->app_info),
-                              PERMISSION_TABLE, permission_id);
+  return xdp_get_permission_sync (sender_info->app_info,
+                                  PERMISSION_TABLE, permission_id);
 }
 
 static void
@@ -340,7 +340,7 @@ usb_sender_info_set_device_permission (UsbSenderInfo *sender_info,
   g_assert (G_UDEV_IS_DEVICE (device));
 
   permission_id = unique_permission_id_for_device (device);
-  xdp_set_permission_sync (xdp_app_info_get_id (sender_info->app_info),
+  xdp_set_permission_sync (sender_info->app_info,
                            PERMISSION_TABLE, permission_id, permission);
 }
 
@@ -805,9 +805,9 @@ handle_create_session (XdpDbusUsb            *object,
 
   g_debug ("[usb] Handling CreateSession");
 
-  permission = xdp_get_permission_sync (xdp_app_info_get_id (call->app_info),
-                                    PERMISSION_TABLE,
-                                    PERMISSION_ID);
+  permission = xdp_get_permission_sync (call->app_info,
+                                        PERMISSION_TABLE,
+                                        PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -910,9 +910,9 @@ handle_enumerate_devices (XdpDbusUsb            *object,
   self = XDP_USB (object);
   call = xdp_call_from_invocation (invocation);
 
-  permission = xdp_get_permission_sync (xdp_app_info_get_id (call->app_info),
-                                    PERMISSION_TABLE,
-                                    PERMISSION_ID);
+  permission = xdp_get_permission_sync (call->app_info,
+                                        PERMISSION_TABLE,
+                                        PERMISSION_ID);
 
   if (permission == XDP_PERMISSION_NO)
     {
@@ -1174,9 +1174,9 @@ handle_acquire_devices (XdpDbusUsb            *object,
 
   REQUEST_AUTOLOCK (request);
 
-  permission = xdp_get_permission_sync (xdp_app_info_get_id (request->app_info),
-                                    PERMISSION_TABLE,
-                                    PERMISSION_ID);
+  permission = xdp_get_permission_sync (request->app_info,
+                                        PERMISSION_TABLE,
+                                        PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -1276,7 +1276,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (xdp_app_info_get_id (call->app_info),
+  permission = xdp_get_permission_sync (call->app_info,
                                         PERMISSION_TABLE,
                                         PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)

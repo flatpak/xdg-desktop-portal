@@ -23,6 +23,7 @@
 #pragma once
 
 #include <gio/gio.h>
+#include "xdp-app-info.h"
 #include "xdp-impl-dbus.h"
 
 typedef enum _XdpPermission
@@ -33,20 +34,20 @@ typedef enum _XdpPermission
   XDP_PERMISSION_ASK
 } XdpPermission;
 
-char **xdp_get_permissions_sync (const char *app_id,
+char **xdp_get_permissions_sync (XdpAppInfo *app_info,
                                  const char *table,
                                  const char *id);
 
-void xdp_set_permissions_sync (const char         *app_id,
+void xdp_set_permissions_sync (XdpAppInfo         *app_info,
                                const char         *table,
                                const char         *id,
                                const char * const *permissions);
 
-XdpPermission xdp_get_permission_sync (const char *app_id,
+XdpPermission xdp_get_permission_sync (XdpAppInfo *app_info,
                                        const char *table,
                                        const char *id);
 
-void xdp_set_permission_sync (const char    *app_id,
+void xdp_set_permission_sync (XdpAppInfo    *app_info,
                               const char    *table,
                               const char    *id,
                               XdpPermission  permission);
