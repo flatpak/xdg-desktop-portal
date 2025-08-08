@@ -87,6 +87,8 @@ config_h.set_quoted('LOCALEDIR', localedir)
 config_h.set_quoted('SYSCONFDIR', sysconfdir)
 config_h.set_quoted('GETTEXT_PACKAGE', 'xdg-desktop-portal')
 config_h.set_quoted('PACKAGE_STRING', 'xdg-desktop-portal @0@'.format(meson.project_version()))
+config_h.set_quoted('VERSION_STRING', meson.project_version())
+config_h.set('VERSION_MINOR', meson.project_version().split('.')[1])
 if cc.has_function('renameat2')
   config_h.set('HAVE_RENAMEAT2', 1)
 endif
