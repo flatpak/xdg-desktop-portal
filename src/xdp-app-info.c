@@ -77,6 +77,7 @@ typedef struct _XdpAppInfoPrivate
 } XdpAppInfoPrivate;
 
 static void g_initable_init_iface (GInitableIface *iface);
+static GAppInfo * xdp_app_info_create_gappinfo (XdpAppInfo *app_info);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
                                   G_ADD_PRIVATE (XdpAppInfo)
@@ -105,8 +106,7 @@ xdp_app_info_initable_init (GInitable     *initable,
   XdpAppInfo *app_info = XDP_APP_INFO (initable);
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
-  priv->gappinfo =
-    XDP_APP_INFO_GET_CLASS (app_info)->create_gappinfo (app_info);
+  priv->gappinfo = xdp_app_info_create_gappinfo (app_info);
 
   if ((priv->flags & XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO) && !priv->gappinfo)
     {
@@ -125,7 +125,7 @@ g_initable_init_iface (GInitableIface *iface)
 }
 
 static GAppInfo *
-xdp_app_info_real_create_gappinfo (XdpAppInfo *app_info)
+xdp_app_info_create_gappinfo (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
   g_autoptr(GAppInfo) gappinfo = NULL;
@@ -255,8 +255,6 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
   object_class->dispose = xdp_app_info_dispose;
   object_class->get_property = xdp_app_info_get_property;
   object_class->set_property = xdp_app_info_set_property;
-
-  klass->create_gappinfo = xdp_app_info_real_create_gappinfo;
 
   properties[PROP_ENGINE] =
     g_param_spec_string ("engine", NULL, NULL,
