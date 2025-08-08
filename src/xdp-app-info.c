@@ -463,6 +463,17 @@ xdp_app_info_get_id (XdpAppInfo *app_info)
 }
 
 const char *
+xdp_app_info_get_permissions_id (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+  return priv->id;
+}
+
+const char *
 xdp_app_info_get_instance (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv;
