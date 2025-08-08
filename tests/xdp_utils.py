@@ -390,8 +390,9 @@ enumerable-devices={usb_queries}
         metadata: bytes | None = None,
     ):
         kind = AppInfoKind.SNAP
-        app_id = f"snap.{snap_name}"
-        desktop_file = f"{snap_name}_{app_name}.desktop"
+        app_id = f"{snap_name}_{app_name}"
+        desktop_file = f"{app_id}.desktop"
+        permissions_id = f"snap.{snap_name}"
         env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "snap",
         }
@@ -401,7 +402,7 @@ enumerable-devices={usb_queries}
             desktop_entry_str = f"""
 [Desktop Entry]
 Version=1.0
-Name=Example App
+Name=Example Snap App
 Exec=true %u
 Type=Application
 X-SnapInstanceName={snap_name}
@@ -431,7 +432,7 @@ DesktopFile={desktop_file}
         return cls(
             kind=kind,
             app_id=app_id,
-            permissions_id=app_id,
+            permissions_id=permissions_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
