@@ -254,6 +254,7 @@ class AppInfo:
 
     kind: AppInfoKind
     app_id: str
+    permissions_id: str
     desktop_file: str
     env: dict[str, str] = field(default_factory=dict)
     files: dict[Path, bytes] = field(default_factory=dict)
@@ -290,6 +291,7 @@ class AppInfo:
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
@@ -364,6 +366,7 @@ enumerable-devices={usb_queries}
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
@@ -372,26 +375,32 @@ enumerable-devices={usb_queries}
     @classmethod
     def new_snap(
         cls,
+        common_id: str,
         snap_name: str,
+        app_name: str,
         desktop_entry: bytes | None = None,
         metadata: bytes | None = None,
     ):
         kind = AppInfoKind.SNAP
-        app_id = f"snap.{snap_name}"
-        desktop_file = f"desktop-file-{snap_name}.desktop"
+        permissions_id = f"snap.{snap_name}"
+        app_id = f"{snap_name}_{app_name}.desktop"
+        desktop_file = f"{app_id}.desktop"
         env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "snap",
         }
         files = {}
 
         if not desktop_entry:
-            desktop_entry = b"""
+            desktop_entry_str = f"""
 [Desktop Entry]
 Version=1.0
 Name=Example App
 Exec=true %u
 Type=Application
+X-SnapInstanceName={snap_name}
+X-SnapAppName={app_name}
 """
+            desktop_entry = desktop_entry_str.encode("UTF-8")
 
         desktop_entry_path = (
             Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file
@@ -403,6 +412,8 @@ Type=Application
             metadata_str = f"""
 [Snap Info]
 InstanceName={snap_name}
+AppName={app_name}
+CommonID={common_id}
 DesktopFile={desktop_file}
 """
             metadata = metadata_str.encode("UTF-8")
@@ -417,6 +428,7 @@ DesktopFile={desktop_file}
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=permissions_id,
             desktop_file=desktop_file,
             env=env,
             files=files,

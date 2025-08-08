@@ -115,11 +115,10 @@ class TestCamera:
         assert len(method_calls) == 0
 
     def test_access_denied(self, portals, dbus_con, xdp_app_info):
-        app_id = xdp_app_info.app_id
         camera_intf = xdp.get_portal_iface(dbus_con, "Camera")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        self.set_permissions(dbus_con, app_id, ["no"])
+        self.set_permissions(dbus_con, xdp_app_info.permissions_id, ["no"])
 
         request = xdp.Request(dbus_con, camera_intf)
         response = request.call(

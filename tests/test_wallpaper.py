@@ -126,11 +126,10 @@ class TestWallpaper:
         assert response.response == 1
 
     def test_wallpaper_permission(self, portals, dbus_con, xdp_app_info):
-        app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        self.set_permission(dbus_con, app_id, "no")
+        self.set_permission(dbus_con, xdp_app_info.permissions_id, "no")
 
         uri = "file:///test"
         show_preview = True

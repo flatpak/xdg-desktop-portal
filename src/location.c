@@ -340,7 +340,6 @@ get_location_permissions (XdpAppInfo *app_info,
                           GClueAccuracyLevel *accuracy,
                           gint64 *last_used)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
   g_auto(GStrv) perms = NULL;
 
   if (xdp_app_info_is_host (app_info))
@@ -351,9 +350,10 @@ get_location_permissions (XdpAppInfo *app_info,
       return TRUE;
     }
 
-  g_debug ("Getting location permissions for '%s'", app_id);
+  g_debug ("Getting location permissions for '%s'",
+           xdp_app_info_get_permissions_id (app_info));
 
-  perms = xdp_get_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (perms == NULL)
     return FALSE;
@@ -373,15 +373,12 @@ get_location_permissions (XdpAppInfo *app_info,
 }
 
 static void
-set_location_permissions (const char *app_id,
+set_location_permissions (XdpAppInfo *app_info,
                           GClueAccuracyLevel accuracy,
                           gint64 timestamp)
 {
   g_autofree char *date = NULL;
   const char *permissions[3];
-
-  if (app_id == NULL)
-    return;
 
   date = g_strdup_printf ("%" G_GINT64_FORMAT, timestamp);
   permissions[0] = gclue_accuracy_level_to_string (accuracy);
@@ -390,7 +387,7 @@ set_location_permissions (const char *app_id,
 
   g_debug ("set permission store accuracy: %d -> %s", accuracy, permissions[0]);
 
-  xdp_set_permissions_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, permissions);
+  xdp_set_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID, permissions);
 }
 
 /*** Location boilerplace ***/
@@ -527,9 +524,9 @@ handle_start_in_thread_func (GTask *task,
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
       g_auto(GVariantBuilder) access_opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
+      const char *app_id;
       const char *body;
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
@@ -550,18 +547,12 @@ handle_start_in_thread_func (GTask *task,
       if (g_strcmp0 (id, "") != 0)
         {
           GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
-          const gchar *name = NULL;
+          const gchar *name = id;
+
+          app_id = xdp_app_info_get_id (request->app_info);
 
           if (info)
-            {
-              name = g_app_info_get_display_name (G_APP_INFO (info));
-              app_id = xdp_get_app_id_from_desktop_id (g_app_info_get_id (info));
-            }
-          else
-            {
-              name = app_id;
-              app_id = g_strdup (id);
-            }
+            name = g_app_info_get_display_name (G_APP_INFO (info));
 
           title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
 
@@ -576,7 +567,7 @@ handle_start_in_thread_func (GTask *task,
            * apps for which an app ID can't be determined.
            */
           g_assert (xdp_app_info_is_host (request->app_info));
-          app_id = g_strdup ("");
+          app_id = "";
           title = g_strdup (_("Grant Access to Your Location?"));
           subtitle = g_strdup (_("An application wants to use your location."));
         }
@@ -608,7 +599,7 @@ handle_start_in_thread_func (GTask *task,
   if (accuracy != GCLUE_ACCURACY_LEVEL_NONE)
     last_used = g_get_monotonic_time ();
 
-  set_location_permissions (id, accuracy, last_used);
+  set_location_permissions (request->app_info, accuracy, last_used);
 
   if (accuracy == GCLUE_ACCURACY_LEVEL_NONE)
     {

@@ -290,7 +290,6 @@ static GKeyFile *
 get_desktop_entry (const char  *desktop_file_id,
                    const char  *desktop_entry,
                    const char  *name,
-                   const char  *app_id,
                    char        *icon_path,
                    GError     **error)
 {
@@ -336,7 +335,6 @@ handle_install (XdpDbusDynamicLauncher *object,
                 GVariant               *arg_options)
 {
   XdpCall *call = xdp_call_from_invocation (invocation);
-  const char *app_id = xdp_app_info_get_id (call->app_info);
   g_autoptr(GVariant) launcher_data = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GKeyFile) desktop_keyfile = NULL;
@@ -375,7 +373,6 @@ handle_install (XdpDbusDynamicLauncher *object,
   desktop_keyfile = get_desktop_entry (arg_desktop_file_id,
                                        arg_desktop_entry,
                                        name,
-                                       app_id,
                                        icon_path,
                                        &error);
   if (desktop_keyfile == NULL)

@@ -217,7 +217,7 @@ handle_screenshot_in_thread_func (GTask *task,
   if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
     goto query_impl;
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
@@ -252,17 +252,11 @@ handle_screenshot_in_thread_func (GTask *task,
 
       if (g_strcmp0 (app_id, "") != 0)
         {
-          g_autoptr(GDesktopAppInfo) info = NULL;
-          g_autofree gchar *id = NULL;
-          const gchar *name = NULL;
-
-          id = g_strconcat (app_id, ".desktop", NULL);
-          info = g_desktop_app_info_new (id);
+          GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
+          const gchar *name = app_id;
 
           if (info)
             name = g_app_info_get_display_name (G_APP_INFO (info));
-          else
-            name = app_id;
 
           title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
           subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
@@ -298,7 +292,9 @@ handle_screenshot_in_thread_func (GTask *task,
         }
 
       if (permission == XDP_PERMISSION_UNSET)
-        xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+        xdp_set_permission_sync (request->app_info, PERMISSION_TABLE,
+                                 PERMISSION_ID, access_response == 0 ?
+                                 XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
         {

@@ -34,6 +34,9 @@ struct _XdpAppInfoClass
 {
   GObjectClass parent_class;
 
+
+  const char * (*get_permissions_id) (XdpAppInfo *app_info);
+
   gboolean (*is_valid_sub_app_id) (XdpAppInfo *app_info,
                                    const char *sub_app_id);
 
@@ -51,7 +54,5 @@ struct _XdpAppInfoClass
   gboolean (*validate_dynamic_launcher) (XdpAppInfo  *app_info,
                                          GKeyFile    *key_file,
                                          GError     **error);
-
-  GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
 
