@@ -79,7 +79,7 @@ query_permission_sync (XdpRequest *request)
   const char *app_id = xdp_app_info_get_id (app_info);
   gboolean allowed;
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
     {
       g_auto(GVariantBuilder) opt_builder =
@@ -141,8 +141,9 @@ query_permission_sync (XdpRequest *request)
 
       if (permission == XDP_PERMISSION_UNSET)
         {
-          xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA,
-                               allowed ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+          xdp_set_permission_sync (app_info,
+                                   PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA,
+                                   allowed ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
         }
     }
   else
@@ -253,7 +254,6 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
                              GVariant *arg_options)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  const char *app_id;
   XdpPermission permission;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   int fd;
@@ -272,8 +272,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
     }
 
   app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
-  app_id = xdp_app_info_get_id (app_info);
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission != XDP_PERMISSION_YES)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -283,7 +282,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  remote = open_pipewire_camera_remote (app_id, &error);
+  remote = open_pipewire_camera_remote (xdp_app_info_get_id (app_info), &error);
   if (!remote)
     {
       g_dbus_method_invocation_return_error (invocation,

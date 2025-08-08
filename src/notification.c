@@ -207,20 +207,22 @@ add_done (GObject *source,
 }
 
 static gboolean
-get_notification_allowed (const char *app_id)
+get_notification_allowed (XdpAppInfo *app_info)
 {
   XdpPermission permission;
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (permission == XDP_PERMISSION_NO)
     return FALSE;
 
   if (permission == XDP_PERMISSION_UNSET)
     {
-      g_debug ("No notification permissions stored for %s: allowing", app_id);
+      g_debug ("No notification permissions stored for %s: allowing",
+               xdp_app_info_get_id (app_info));
 
-      xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, XDP_PERMISSION_YES);
+      xdp_set_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID,
+                               XDP_PERMISSION_YES);
     }
 
   return TRUE;
@@ -1050,7 +1052,7 @@ handle_add_in_thread_func (GTask        *task,
   CALL_DATA_AUTOLOCK (call_data);
 
   if (!xdp_app_info_is_host (call_data->app_info) &&
-      !get_notification_allowed (xdp_app_info_get_id (call_data->app_info)))
+      !get_notification_allowed (call_data->app_info))
     {
       g_set_error_literal (&error,
                            XDG_DESKTOP_PORTAL_ERROR,

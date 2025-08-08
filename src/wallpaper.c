@@ -160,8 +160,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
       return;
     }
 
-
-  permission = xdp_get_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
 
   if (permission == XDP_PERMISSION_NO)
     {
@@ -238,7 +237,9 @@ handle_set_wallpaper_in_thread_func (GTask *task,
         }
 
       if (permission == XDP_PERMISSION_UNSET)
-        xdp_set_permission_sync (id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+        xdp_set_permission_sync (request->app_info, PERMISSION_TABLE,
+                                 PERMISSION_ID, access_response == 0 ?
+                                 XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
         {
