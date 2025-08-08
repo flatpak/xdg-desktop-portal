@@ -234,20 +234,64 @@ app_id_for_desktop_id (const char *desktop_id)
   return id;
 }
 
-static XdpAppInfo *
-xdp_app_info_snap_new_testing (const char  *sender,
-                               GError     **error)
+static gboolean
+parse_snap_metadata (GKeyFile         *metadata,
+                     char            **app_id_out,
+                     char            **permissions_id_out,
+                     XdpAppInfoFlags  *flags_out,
+                     GError          **error)
 {
-  g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
-  const char *metadata_path;
-  gboolean result;
-  g_autoptr(GKeyFile) metadata = NULL;
   g_autofree char *snap_name = NULL;
   g_autofree char *app_id = NULL;
   g_autofree char *permissions_id = NULL;
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
+
+  snap_name = g_key_file_get_string (metadata,
+                                     SNAP_METADATA_GROUP_INFO,
+                                     SNAP_METADATA_KEY_INSTANCE_NAME,
+                                     error);
+  if (snap_name == NULL)
+    return FALSE;
+
+  permissions_id = g_strconcat ("snap.", snap_name, NULL);
+
+  desktop_id = g_key_file_get_string (metadata,
+                                      SNAP_METADATA_GROUP_INFO,
+                                      SNAP_METADATA_KEY_DESKTOP_FILE,
+                                      error);
+  if (desktop_id == NULL)
+    return FALSE;
+
+  app_id = app_id_for_desktop_id (desktop_id);
+
+  has_network = g_key_file_get_boolean (metadata,
+                                        SNAP_METADATA_GROUP_INFO,
+                                        SNAP_METADATA_KEY_NETWORK,
+                                        NULL);
+
+  if (has_network)
+    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+
+  *app_id_out = g_steal_pointer (&app_id);
+  *permissions_id_out = g_steal_pointer (&permissions_id);
+  *flags_out = flags;
+
+  return TRUE;
+}
+
+static XdpAppInfo *
+xdp_app_info_snap_new_testing (const char  *sender,
+                               GError     **error)
+{
+  g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
+  const char *metadata_path;
+  g_autoptr(GKeyFile) metadata = NULL;
+  g_autofree char *app_id = NULL;
+  g_autofree char *permissions_id = NULL;
+  XdpAppInfoFlags flags = 0;
+  gboolean result;
 
   metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA");
   g_assert (metadata_path != NULL);
@@ -257,31 +301,13 @@ xdp_app_info_snap_new_testing (const char  *sender,
                                       G_KEY_FILE_NONE, NULL);
   g_assert (result == TRUE);
 
-  snap_name = g_key_file_get_string (metadata,
-                                     SNAP_METADATA_GROUP_INFO,
-                                     SNAP_METADATA_KEY_INSTANCE_NAME,
-                                     error);
-  g_assert (snap_name != NULL);
+  if (!parse_snap_metadata (metadata, &app_id, &permissions_id, &flags, error))
+    {
+      g_error ("Failed to parse metadata: %s", (*error)->message);
+      return NULL;
+    }
 
-  permissions_id = g_strconcat ("snap.", snap_name, NULL);
-  g_assert (permissions_id != NULL);
-
-  desktop_id = g_key_file_get_string (metadata,
-                                      SNAP_METADATA_GROUP_INFO,
-                                      SNAP_METADATA_KEY_DESKTOP_FILE,
-                                      error);
-  g_assert (desktop_id != NULL);
-
-  app_id = app_id_for_desktop_id (desktop_id);
-
-  has_network = g_key_file_get_boolean (metadata,
-                                        SNAP_METADATA_GROUP_INFO,
-                                        SNAP_METADATA_KEY_NETWORK,
-                                        NULL);
-
-  flags = XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
-  if (has_network)
-    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
+  flags |= XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
 
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
@@ -317,7 +343,6 @@ xdp_app_info_snap_new (const char  *sender,
   g_autofree char *permissions_id = NULL;
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
-  gboolean has_network;
   const char *test_app_info_kind;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -352,34 +377,11 @@ xdp_app_info_snap_new (const char  *sender,
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Can't read snap info for pid %u: %s", pid, local_error->message);
-      return FALSE;
+      return NULL;
     }
 
-  snap_name = g_key_file_get_string (metadata,
-                                     SNAP_METADATA_GROUP_INFO,
-                                     SNAP_METADATA_KEY_INSTANCE_NAME,
-                                     error);
-  if (snap_name == NULL)
+  if (!parse_snap_metadata (metadata, &app_id, &permissions_id, &flags, error))
     return NULL;
-
-  permissions_id = g_strconcat ("snap.", snap_name, NULL);
-
-  desktop_id = g_key_file_get_string (metadata,
-                                      SNAP_METADATA_GROUP_INFO,
-                                      SNAP_METADATA_KEY_DESKTOP_FILE,
-                                      error);
-  if (desktop_id == NULL)
-    return NULL;
-
-  app_id = app_id_for_desktop_id (desktop_id);
-
-  has_network = g_key_file_get_boolean (metadata,
-                                        SNAP_METADATA_GROUP_INFO,
-                                        SNAP_METADATA_KEY_NETWORK,
-                                        NULL);
-
-  if (has_network)
-    flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
