@@ -219,7 +219,7 @@ get_notification_allowed (XdpAppInfo *app_info)
   if (permission == XDP_PERMISSION_UNSET)
     {
       g_debug ("No notification permissions stored for %s: allowing",
-               xdp_app_info_get_id (app_info));
+               xdp_app_info_get_permissions_id (app_info));
 
       xdp_set_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID,
                                XDP_PERMISSION_YES);

@@ -351,7 +351,7 @@ get_location_permissions (XdpAppInfo *app_info,
     }
 
   g_debug ("Getting location permissions for '%s'",
-           xdp_app_info_get_id (app_info));
+           xdp_app_info_get_permissions_id (app_info));
 
   perms = xdp_get_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
 
