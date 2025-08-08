@@ -262,6 +262,7 @@ class AppInfo:
 
     kind: AppInfoKind
     app_id: str
+    permissions_id: str
     desktop_file: str
     env: dict[str, str] = field(default_factory=dict)
     files: dict[Path, bytes] = field(default_factory=dict)
@@ -302,6 +303,7 @@ class AppInfo:
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
@@ -372,6 +374,7 @@ enumerable-devices={usb_queries}
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
@@ -428,6 +431,7 @@ DesktopFile={desktop_file}
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
@@ -490,6 +494,7 @@ Network=shared
         return cls(
             kind=kind,
             app_id=app_id,
+            permissions_id=app_id,
             desktop_file=desktop_file,
             env=env,
             files=files,
