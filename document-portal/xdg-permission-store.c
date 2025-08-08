@@ -506,6 +506,48 @@ handle_set_value (XdgPermissionStore     *object,
   return TRUE;
 }
 
+static gboolean
+handle_get_tables (XdgPermissionStore     *object,
+                       GDBusMethodInvocation  *invocation)
+{
+  g_autoptr(GVariantBuilder) builder = NULL;
+  g_autofree char *path = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GDir) dir = NULL;
+  g_autofree const gchar *filename = NULL;
+
+  builder = g_variant_builder_new (G_VARIANT_TYPE ("as"));
+
+  path = g_build_filename (g_get_user_data_dir (), "flatpak/db", NULL);
+
+  if (!g_file_test (path, G_FILE_TEST_IS_DIR))
+   {
+     g_dbus_method_invocation_return_value (invocation, g_variant_new ("(as)", builder));
+     return TRUE;
+   }
+
+  dir = g_dir_open(path, 0, &error);
+
+  if (error != NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Unable to list tables: %s", error->message);
+      return TRUE;
+    }
+
+  while ((filename = g_dir_read_name(dir)))
+    {
+      g_variant_builder_add (builder, "s", filename);
+    }
+
+  g_dir_close(dir);
+
+  g_dbus_method_invocation_return_value (invocation, g_variant_new ("(as)", builder));
+
+  return TRUE;
+}
+
 void
 xdg_permission_store_start (GDBusConnection *connection)
 {
@@ -519,7 +561,7 @@ xdg_permission_store_start (GDBusConnection *connection)
 
   store = xdg_permission_store_skeleton_new ();
 
-  xdg_permission_store_set_version (XDG_PERMISSION_STORE (store), 2);
+  xdg_permission_store_set_version (XDG_PERMISSION_STORE (store), 3);
 
   g_signal_connect (store, "handle-list", G_CALLBACK (handle_list), NULL);
   g_signal_connect (store, "handle-lookup", G_CALLBACK (handle_lookup), NULL);
@@ -529,6 +571,7 @@ xdg_permission_store_start (GDBusConnection *connection)
   g_signal_connect (store, "handle-delete", G_CALLBACK (handle_delete), NULL);
   g_signal_connect (store, "handle-delete-permission", G_CALLBACK (handle_delete_permission), NULL);
   g_signal_connect (store, "handle-get-permission", G_CALLBACK (handle_get_permission), NULL);
+  g_signal_connect (store, "handle-get-tables", G_CALLBACK (handle_get_tables), NULL);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (store),
                                          connection,
