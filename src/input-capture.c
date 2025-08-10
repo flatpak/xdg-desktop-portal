@@ -27,12 +27,16 @@
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
 
 #include "input-capture.h"
+
+#define PERMISSION_TABLE "inputcapture"
+#define PERMISSION_ID "inputcapture"
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
@@ -152,6 +156,76 @@ input_capture_session_new (InputCapture     *input_capture,
   return (InputCaptureSession*)session;
 }
 
+static gboolean
+get_capability_masks_from_permission_store (XdpAppInfo *app_info,
+                                            uint32_t   *clamp_mask,
+                                            uint32_t   *yes_mask,
+                                            uint32_t   *ask_mask)
+{
+  g_auto(GStrv) permissions = NULL;
+
+  permissions = xdp_get_permissions_sync (app_info,
+                                          INPUT_CAPTURE_PERMISSION_TABLE,
+                                          INPUT_CAPTURE_PERMISSION_ID);
+  if (!permissions || g_strv_length (permissions) < 3)
+    {
+      *clamp_mask = ~0;
+      *yes_mask = 0;
+      *ask_mask = ~0;
+      return FALSE;
+    }
+
+  *clamp_mask = g_ascii_strtoull (permissions[0], NULL, 10);
+  *yes_mask = g_ascii_strtoull (permissions[1], NULL, 10);
+  *ask_mask = g_ascii_strtoull (permissions[2], NULL, 10);
+
+  return TRUE;
+}
+
+static XdpPermission
+check_capabilities_permission (XdpAppInfo *app_info,
+                               uint32_t    requested_capabilities,
+                               uint32_t   *allowed_capabilities)
+{
+  uint32_t clamp_mask, yes_mask, ask_mask, clamped_capabilities;
+
+  /* The permission store stores three masks: clamp-mask, yes-mask and ask-mask.
+   * The requested capabilities are reduced to the set of caps in the clamp-mask, then:
+   * - if the requested capabilities are a subset of yes, it's permitted, otherwise
+   * - if the requested capabilities are a subset of ask, it's asked, otherwise
+   * - deny the request
+   */
+  if (!get_capability_masks_from_permission_store (app_info, &clamp_mask, &yes_mask, &ask_mask))
+    {
+      /* No stored masks - default to ask */
+      *allowed_capabilities = requested_capabilities;
+      return XDP_PERMISSION_ASK;
+    }
+
+  clamped_capabilities = requested_capabilities & clamp_mask;
+  if (clamped_capabilities == 0 || (yes_mask | ask_mask) == 0)
+    {
+      *allowed_capabilities = 0;
+      return XDP_PERMISSION_NO;
+    }
+
+  if ((clamped_capabilities & yes_mask) == clamped_capabilities)
+    {
+      *allowed_capabilities = clamped_capabilities;
+      return XDP_PERMISSION_YES;
+    }
+
+  if ((clamped_capabilities & ask_mask) == clamped_capabilities)
+    {
+      *allowed_capabilities = clamped_capabilities;
+      return XDP_PERMISSION_ASK;
+    }
+
+  /* Otherwise deny */
+  *allowed_capabilities = 0;
+  return XDP_PERMISSION_NO;
+}
+
 static void
 create_session_done (GObject      *source_object,
                      GAsyncResult *res,
@@ -231,14 +305,9 @@ out:
 }
 
 static gboolean
-validate_capabilities (const char  *key,
-                       GVariant    *value,
-                       GVariant    *options,
-                       gpointer     user_data,
-                       GError     **error)
+validate_capabilities (uint32_t   types,
+                       GError   **error)
 {
-  uint32_t types = g_variant_get_uint32 (value);
-
   if (types == 0 || (types & ~(1 | 2 | 4 | 8)) != 0)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -248,10 +317,6 @@ validate_capabilities (const char  *key,
 
   return TRUE;
 }
-
-static XdpOptionKey input_capture_create_session_options[] = {
-  { "capabilities", G_VARIANT_TYPE_UINT32, validate_capabilities },
-};
 
 static gboolean
 handle_create_session (XdpDbusInputCapture   *object,
@@ -269,8 +334,36 @@ handle_create_session (XdpDbusInputCapture   *object,
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   XdpSession *session;
+  uint32_t requested_capabilities = 0;
+  uint32_t allowed_capabilities = 0;
+  XdpPermission permission = XDP_PERMISSION_ASK;
 
   REQUEST_AUTOLOCK (request);
+
+  if (!g_variant_lookup (arg_options, "capabilities", "u", &requested_capabilities))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "Missing 'capabilities' in CreateSession");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!validate_capabilities (requested_capabilities, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  permission = check_capabilities_permission (request->app_info, requested_capabilities, &allowed_capabilities);
+  if (permission == XDP_PERMISSION_NO)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Application is not allowed to use input capture");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   impl_request = xdp_dbus_impl_request_proxy_new_sync (
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
@@ -300,14 +393,9 @@ handle_create_session (XdpDbusInputCapture   *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!xdp_filter_options (arg_options, &options_builder,
-                           input_capture_create_session_options,
-                           G_N_ELEMENTS (input_capture_create_session_options),
-                           NULL, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
+  g_variant_builder_add (&options_builder, "{sv}", "capabilities", g_variant_new_uint32 (allowed_capabilities));
+  g_variant_builder_add (&options_builder, "{sv}", "permission_store_validated", g_variant_new_boolean (permission == XDP_PERMISSION_YES));
+
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
   g_object_set_qdata_full (G_OBJECT (request),

@@ -28,7 +28,7 @@
       :ref:`org.freedesktop.portal.InputCapture` portal, see that portal's
       documentation for details on methods, signals and arguments.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.InputCapture">
     <!--
@@ -60,6 +60,14 @@
 
           The capabilities available to this session. This is always a
           subset of the requested capabilities.
+
+        * ``permission_store_validated`` (``b``)
+
+          Hint whether the Input Capture portal has validated the 'inputcapture' permission for
+          the requesting app. If true, all capabilities are permitted without further user
+          interaction. Defaults to false.
+
+          This option was added in version 2 of this interface.
     -->
     <method name="CreateSession">
       <arg type="o" name="handle" direction="in"/>
