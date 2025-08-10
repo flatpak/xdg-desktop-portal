@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2025-02-07 14:00+0300\n"
+"PO-Revision-Date: 2025-08-10 14:11+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
 "Language: ru\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.6\n"
 
 #: src/background.c:827
 #, c-format
@@ -89,10 +89,10 @@ msgstr ""
 "ключа"
 
 #: src/dynamic-launcher.c:319
-#, fuzzy, c-format
+#, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
-"Desktop-запись, переданная в Install(), должна иметь только одну группу"
+"Desktop-запись, переданная в Install(), должна иметь ровно одну группу"
 
 #: src/dynamic-launcher.c:356
 #, c-format
