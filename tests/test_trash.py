@@ -5,6 +5,7 @@
 import tests.xdp_utils as xdp
 
 import os
+import pytest
 import tempfile
 from pathlib import Path
 
@@ -15,8 +16,11 @@ class TestTrash:
 
     def test_trash_file_fails(self, portals, dbus_con):
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
-        with open("/proc/cmdline") as fd:
-            result = trash_intf.TrashFile(fd.fileno())
+        try:
+            with open("/proc/cmdline") as fd:
+                result = trash_intf.TrashFile(fd.fileno())
+        except PermissionError as e:
+            pytest.skip(f"Couldn't open file /proc/cmdline: {e}")
 
         assert result == 0
 
