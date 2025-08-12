@@ -1722,7 +1722,7 @@ main (int    argc,
 
   g_autoptr(GError) error = NULL;
   g_autofree char *path = NULL;
-  GDBusConnection *session_bus;
+  g_autoptr(GDBusConnection) session_bus = NULL;
   g_autoptr(GOptionContext) context = NULL;
   GDBusMethodInvocation *invocation;
 
