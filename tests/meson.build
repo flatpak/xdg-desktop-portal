@@ -150,6 +150,7 @@ if enable_installed_tests
     'xdp_utils.py',
     'xdp_doc_utils.py',
     'asan.suppression',
+    'valgrind.suppression',
     install_dir: installed_tests_dir / 'tests',
   )
   install_data(
