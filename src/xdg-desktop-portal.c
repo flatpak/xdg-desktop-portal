@@ -431,13 +431,13 @@ on_name_lost (GDBusConnection *connection,
               const gchar     *name,
               gpointer         user_data)
 {
-  g_main_loop_quit (loop);
+  exit_with_status (0);
 }
 
 static gboolean
 signal_handler_cb (gpointer user_data)
 {
-  g_main_loop_quit (loop);
+  exit_with_status (0);
   g_debug ("Terminated with signal.");
   return G_SOURCE_REMOVE;
 }
