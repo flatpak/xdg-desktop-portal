@@ -450,6 +450,7 @@ main (int argc, char *argv[])
   g_autoptr(GDBusConnection) session_bus = NULL;
   g_autoptr(GSource) signal_handler_source = NULL;
   g_autoptr(GOptionContext) context = NULL;
+  g_autoptr(XdpPortalConfig) portal_config = NULL;
 
   if (g_getenv ("XDG_DESKTOP_PORTAL_WAIT_FOR_DEBUGGER") != NULL)
     {
@@ -516,8 +517,7 @@ main (int argc, char *argv[])
 
   g_set_prgname (argv[0]);
 
-  load_portal_configuration (opt_verbose);
-  load_installed_portals (opt_verbose);
+  portal_config = xdp_portal_config_new (opt_verbose);
 
   loop = g_main_loop_new (NULL, FALSE);
 
