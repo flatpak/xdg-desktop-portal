@@ -217,29 +217,34 @@ handle_screenshot_in_thread_func (GTask *task,
   if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
     goto query_impl;
 
-  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
-
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
 
   if (!g_variant_lookup (options, "modal", "b", &modal))
     modal = TRUE;
 
-  if (!interactive && permission != XDP_PERMISSION_YES)
+  if (interactive)
+    goto query_impl;
+
+  /* Non-interactive */
+  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
+
+  if (permission == XDP_PERMISSION_NO)
+    {
+      send_response (request, 2, g_variant_builder_end (&opt_builder));
+      return;
+    }
+
+  if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
     {
       g_autoptr(GVariant) access_results = NULL;
       g_auto(GVariantBuilder) access_opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree gchar *subtitle = NULL;
       g_autofree gchar *title = NULL;
-      const gchar *body;
+      const gchar *body = "";
       guint access_response = 2;
 
-      if (permission == XDP_PERMISSION_NO)
-        {
-          send_response (request, 2, g_variant_builder_end (&opt_builder));
-          return;
-        }
 
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny")));
@@ -260,20 +265,37 @@ handle_screenshot_in_thread_func (GTask *task,
           else
             name = app_id;
 
-          title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+          if (permission == XDP_PERMISSION_UNSET)
+            {
+              title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
+              subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+            }
+          else /* permission == XDP_PERMISSION_ASK */
+            {
+              title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
+              subtitle = g_strdup_printf (_("%s wants to take a screenshot."), name);
+            }
         }
       else
         {
-          /* Note: this will set the wallpaper permission for all unsandboxed
-           * apps for which an app ID can't be determined.
-           */
           g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+          if (permission == XDP_PERMISSION_UNSET)
+            {
+              /* Note: this will set the screenshot permission for all unsandboxed
+               * apps for which an app ID can't be determined.
+               */
+              title = g_strdup (_("Allow Applications to Take Screenshots?"));
+              subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+           }
+          else /* permission == XDP_PERMISSION_ASK */
+            {
+              title = g_strdup (_("Allow to Take a Screenshot?"));
+              subtitle = g_strdup (_("An application wants to take a screenshot."));
+            }
         }
 
-      body = _("This permission can be changed at any time from the privacy settings.");
+      if (permission == XDP_PERMISSION_UNSET) 
+        body = _("This permission can be changed at any time from the privacy settings.");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
