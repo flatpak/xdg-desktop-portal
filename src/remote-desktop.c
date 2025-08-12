@@ -1471,7 +1471,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *fd;
+  g_autoptr(GVariant) fd = NULL;
 
   session = xdp_session_from_call (arg_session_handle, call);
   if (!session)

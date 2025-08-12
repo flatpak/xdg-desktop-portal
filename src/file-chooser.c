@@ -81,9 +81,9 @@ send_response_in_thread_func (GTask        *task,
   GVariant *options;
   XdpDocumentFlags flags = XDP_DOCUMENT_FLAG_WRITABLE | XDP_DOCUMENT_FLAG_DIRECTORY;
   g_autofree char **uris = NULL;
-  GVariant *choices;
-  GVariant *current_filter;
-  GVariant *writable;
+  g_autoptr(GVariant) choices = NULL;
+  g_autoptr(GVariant) current_filter = NULL;
+  g_autoptr(GVariant) writable = NULL;
 
   REQUEST_AUTOLOCK (request);
 

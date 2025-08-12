@@ -136,7 +136,7 @@ create_session_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) results_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *results;
+  g_autoptr(GVariant) results = NULL;
   XdpSession *session;
   gboolean should_close_session;
   uint32_t capabilities = 0;
@@ -596,7 +596,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                                                          arg_session_handle,
                                                          xdp_app_info_get_id (request->app_info),
                                                          options,
-                                                         g_variant_ref (arg_barriers), /* FIXME: validation? */
+                                                         arg_barriers, /* FIXME: validation? */
                                                          arg_zone_set, /* FIXME: validation? */
                                                          NULL,
                                                          set_pointer_barriers_done,
@@ -922,7 +922,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) empty =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *fd;
+  g_autoptr(GVariant) fd = NULL;
 
   session = xdp_session_from_call (arg_session_handle, call);
   if (!session)
