@@ -571,12 +571,12 @@ xdp_portal_config_init (XdpPortalConfig *portal_config)
 XdpPortalConfig *
 xdp_portal_config_new (gboolean opt_verbose)
 {
-  XdpPortalConfig *portal_impls = g_object_new (XDP_TYPE_PORTAL_IMPLS, NULL);
+  XdpPortalConfig *portal_config = g_object_new (XDP_TYPE_PORTAL_CONFIG, NULL);
 
   load_portal_configuration (opt_verbose);
   load_installed_portals (opt_verbose);
 
-  return portal_impls;
+  return portal_config;
 }
 
 static PortalInterface *
@@ -828,7 +828,8 @@ find_gtk_fallback_portal_implementation (const char *interface)
 }
 
 XdpPortalImplementation *
-find_portal_implementation (const char *interface)
+xdp_portal_config_find_impl (XdpPortalConfig *portal_config,
+                             const char      *interface)
 {
   const char **desktops;
 
@@ -877,7 +878,8 @@ find_portal_implementation (const char *interface)
 }
 
 GPtrArray *
-find_all_portal_implementations (const char *interface)
+xdp_portal_config_find_all_impls (XdpPortalConfig *portal_config,
+                                  const char      *interface)
 {
   const char **desktops;
   PortalInterface *iface;
