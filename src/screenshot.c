@@ -207,6 +207,7 @@ handle_screenshot_in_thread_func (GTask *task,
   gboolean modal;
   const char *parent_window;
   const char *app_id;
+  gboolean store_permission;
 
   REQUEST_AUTOLOCK (request);
 
@@ -214,10 +215,15 @@ handle_screenshot_in_thread_func (GTask *task,
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
 
+  /* Only memorize the permission for applications that can be uniquely
+   * identified by their app ID.
+   */
+  store_permission = g_strcmp0 (app_id, "") != 0;
+
   if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
     goto query_impl;
 
-  permission = xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID);
+  permission = store_permission ? xdp_get_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID) : XDP_PERMISSION_UNSET;
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
@@ -250,7 +256,7 @@ handle_screenshot_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "modal", g_variant_new_boolean (modal));
 
-      if (g_strcmp0 (app_id, "") != 0)
+      if (store_permission)
         {
           g_autoptr(GDesktopAppInfo) info = NULL;
           g_autofree gchar *id = NULL;
@@ -266,18 +272,15 @@ handle_screenshot_in_thread_func (GTask *task,
 
           title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
           subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+          body = _("This permission can be changed at any time from the privacy settings.");
         }
       else
         {
-          /* Note: this will set the wallpaper permission for all unsandboxed
-           * apps for which an app ID can't be determined.
-           */
           g_assert (xdp_app_info_is_host (request->app_info));
-          title = g_strdup (_("Allow Applications to Take Screenshots?"));
-          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+          title = g_strdup (_("Allow Screenshot?"));
+          subtitle = g_strdup (_("An unknown application wants to take a screenshot."));
+          body = _("This permission will only be granted once. The application will have to request permission again in the future.");
         }
-
-      body = _("This permission can be changed at any time from the privacy settings.");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
@@ -297,7 +300,7 @@ handle_screenshot_in_thread_func (GTask *task,
           return;
         }
 
-      if (permission == XDP_PERMISSION_UNSET)
+      if (store_permission && permission == XDP_PERMISSION_UNSET)
         xdp_set_permission_sync (app_id, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
 
       if (access_response != 0)
