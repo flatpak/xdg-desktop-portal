@@ -41,8 +41,8 @@ G_DECLARE_FINAL_TYPE (XdpPortalImpls,
 
 XdpPortalImpls * xdp_portal_impls_new (gboolean opt_verbose);
 
-void load_installed_portals (gboolean opt_verbose);
-void load_portal_configuration (gboolean opt_verbose);
-XdpPortalImplementation *find_portal_implementation (const char *interface);
-GPtrArray *find_all_portal_implementations (const char *interface);
+XdpPortalImplementation * xdp_portal_impls_find (XdpPortalImpls *portal_impls,
+                                                 const char     *interface);
 
+GPtrArray * xdp_portal_impls_find_all (XdpPortalImpls *portal_impls,
+                                       const char     *interface);

@@ -828,7 +828,8 @@ find_gtk_fallback_portal_implementation (const char *interface)
 }
 
 XdpPortalImplementation *
-find_portal_implementation (const char *interface)
+xdp_portal_impls_find (XdpPortalImpls *portal_impls,
+                       const char     *interface)
 {
   const char **desktops;
 
@@ -877,7 +878,8 @@ find_portal_implementation (const char *interface)
 }
 
 GPtrArray *
-find_all_portal_implementations (const char *interface)
+xdp_portal_impls_find_all (XdpPortalImpls *portal_impls,
+                           const char     *interface)
 {
   const char **desktops;
   PortalInterface *iface;
