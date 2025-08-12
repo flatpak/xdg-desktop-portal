@@ -50,6 +50,7 @@ struct _XdpPortalConfig
 
   char **current_desktops;
   GPtrArray *impls;
+  PortalConfig *config;
 };
 
 G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT)
@@ -172,8 +173,6 @@ get_current_lowercase_desktops (void)
   return tmp;
 }
 /* }}} */
-
-static PortalConfig *config = NULL;
 
 static gboolean
 register_portal (GHashTable  *portals,
@@ -458,49 +457,55 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
 /*
  * Returns: %TRUE if configuration was found in @dir
  */
-static gboolean
-load_config_directory (const char *dir,
+static PortalConfig *
+load_config_directory (const char  *dir,
                        const char **desktops,
-                       gboolean opt_verbose)
+                       gboolean     opt_verbose)
 {
-  g_autoptr(PortalConfig) conf = NULL;
-
   for (size_t i = 0; desktops[i] != NULL; i++)
     {
-      g_autofree char *portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
+      g_autoptr(PortalConfig) config = NULL;
+      g_autofree char *portals_conf = NULL;
 
-      conf = load_portal_configuration_for_dir (opt_verbose, dir, portals_conf);
+      portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
+      config = load_portal_configuration_for_dir (opt_verbose, dir, portals_conf);
 
-      if (conf != NULL)
+      if (config != NULL)
         {
           if (opt_verbose)
-            g_debug ("Using portal configuration file '%s/%s' for desktop '%s'",
-                     dir, portals_conf, desktops[i]);
+            {
+              g_debug ("Using portal configuration file '%s/%s' for desktop '%s'",
+                       dir, portals_conf, desktops[i]);
+            }
 
-          config = g_steal_pointer (&conf);
-          return TRUE;
+          return g_steal_pointer (&config);
         }
     }
 
-  conf = load_portal_configuration_for_dir (opt_verbose, dir, "portals.conf");
+  {
+    g_autoptr(PortalConfig) config = NULL;
 
-  if (conf != NULL)
-    {
-      if (opt_verbose)
-        g_debug ("Using portal configuration file '%s/%s' for non-specific desktop",
-                 dir, "portals.conf");
+    config = load_portal_configuration_for_dir (opt_verbose, dir, "portals.conf");
+    if (config != NULL)
+      {
+        if (opt_verbose)
+          {
+            g_debug ("Using portal configuration file '%s/%s' for non-specific desktop",
+                     dir, "portals.conf");
+          }
 
-      config = g_steal_pointer (&conf);
-      return TRUE;
-    }
+        return g_steal_pointer (&config);
+      }
+  }
 
-  return FALSE;
+  return NULL;
 }
 
-void
+static PortalConfig *
 load_portal_configuration (XdpPortalConfig *portal_config,
                            gboolean        opt_verbose)
 {
+  g_autoptr(PortalConfig) config = NULL;
   g_autofree char *user_portal_dir = NULL;
   const char * const *dirs;
   const char * const *iter;
@@ -514,16 +519,16 @@ load_portal_configuration (XdpPortalConfig *portal_config,
 
   if (portal_dir != NULL)
     {
-      load_config_directory (portal_dir, desktops, opt_verbose);
       /* All other config directories are ignored when this is set */
-      return;
+      return load_config_directory (portal_dir, desktops, opt_verbose);
     }
 
   /* $XDG_CONFIG_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf */
   user_portal_dir = g_build_filename (g_get_user_config_dir (), XDP_SUBDIR, NULL);
 
-  if (load_config_directory (user_portal_dir, desktops, opt_verbose))
-    return;
+  config = load_config_directory (user_portal_dir, desktops, opt_verbose);
+  if (config)
+    return g_steal_pointer (&config);
 
   /* $XDG_CONFIG_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
   dirs = g_get_system_config_dirs ();
@@ -532,21 +537,25 @@ load_portal_configuration (XdpPortalConfig *portal_config,
     {
       g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
 
-      if (load_config_directory (dir, desktops, opt_verbose))
-        return;
+      config = load_config_directory (dir, desktops, opt_verbose);
+      if (config)
+        return g_steal_pointer (&config);
     }
 
   /* ${sysconfdir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
-  if (load_config_directory (SYSCONFDIR "/" XDP_SUBDIR, desktops, opt_verbose))
-    return;
+  config = load_config_directory (SYSCONFDIR "/" XDP_SUBDIR, desktops, opt_verbose);
+  if (config)
+    return g_steal_pointer (&config);
+
 
   /* $XDG_DATA_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf
    * (just for consistency with other XDG specifications) */
   g_clear_pointer (&user_portal_dir, g_free);
   user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, NULL);
 
-  if (load_config_directory (user_portal_dir, desktops, opt_verbose))
-    return;
+  config = load_config_directory (user_portal_dir, desktops, opt_verbose);
+  if (config)
+    return g_steal_pointer (&config);
 
   /* $XDG_DATA_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
   dirs = g_get_system_data_dirs ();
@@ -555,13 +564,17 @@ load_portal_configuration (XdpPortalConfig *portal_config,
     {
       g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
 
-      if (load_config_directory (dir, desktops, opt_verbose))
-        return;
+      config = load_config_directory (dir, desktops, opt_verbose);
+      if (config)
+        return g_steal_pointer (&config);
     }
 
   /* ${datadir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
-  if (load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose))
-    return;
+  config = load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose);
+  if (config)
+    return g_steal_pointer (&config);
+
+  return NULL;
 }
 
 static void
@@ -571,6 +584,7 @@ xdp_portal_config_dispose (GObject *object)
 
   g_clear_pointer (&portal_config->current_desktops, g_strfreev);
   g_clear_pointer (&portal_config->impls, g_ptr_array_unref);
+  g_clear_pointer (&portal_config->config, portal_config_free);
 
   G_OBJECT_CLASS (xdp_portal_config_parent_class)->dispose (object);
 }
@@ -595,15 +609,17 @@ xdp_portal_config_new (gboolean opt_verbose)
 
   portal_config->current_desktops = get_current_lowercase_desktops ();
   portal_config->impls = load_installed_portals (portal_config, opt_verbose);
-
-  load_portal_configuration (portal_config, opt_verbose);
+  portal_config->config = load_portal_configuration (portal_config, opt_verbose);
 
   return portal_config;
 }
 
 static PortalInterface *
-find_matching_iface_config (const char *interface)
+find_matching_iface_config (XdpPortalConfig *portal_config,
+                            const char      *interface)
 {
+  PortalConfig *config = portal_config->config;
+
   if (config == NULL)
     return NULL;
 
@@ -619,8 +635,10 @@ find_matching_iface_config (const char *interface)
 }
 
 static gboolean
-portal_default_prefers_none (void)
+portal_default_prefers_none (XdpPortalConfig *portal_config)
 {
+  PortalConfig *config = portal_config->config;
+
   if (config && config->default_portal &&
       g_strv_contains ((const char * const *) config->default_portal->portals, "none"))
     {
@@ -632,11 +650,14 @@ portal_default_prefers_none (void)
 }
 
 static gboolean
-portal_interface_prefers_none (const char *interface)
+portal_interface_prefers_none (XdpPortalConfig *portal_config,
+                               const char      *interface)
 {
-  const PortalInterface *iface = find_matching_iface_config (interface);
+  const PortalInterface *iface =
+    find_matching_iface_config (portal_config, interface);
+
   if (iface == NULL)
-    return portal_default_prefers_none ();
+    return portal_default_prefers_none (portal_config);
 
   if (g_strv_contains ((const char * const *) iface->portals, "none"))
     {
@@ -800,6 +821,7 @@ static XdpPortalImplementation *
 find_default_implementation_iface (XdpPortalConfig *portal_config,
                                    const char      *interface)
 {
+  PortalConfig *config = portal_config->config;
   PortalInterface *iface;
 
   if (config == NULL || config->default_portal == NULL)
@@ -830,6 +852,8 @@ add_all_default_portal_implementations_iface (XdpPortalConfig *portal_config,
                                               const char      *interface,
                                               GPtrArray       *impls)
 {
+  PortalConfig *config = portal_config->config;
+
   if (config == NULL || config->default_portal == NULL)
     return;
 
@@ -875,14 +899,16 @@ xdp_portal_config_find_impl (XdpPortalConfig *portal_config,
                              const char      *interface)
 {
   GPtrArray *implementations = portal_config->impls;
+  PortalConfig *config = portal_config->config;
   const char **desktops = xdp_portal_config_get_current_desktops (portal_config);
 
-  if (portal_interface_prefers_none (interface))
+  if (portal_interface_prefers_none (portal_config, interface))
     return NULL;
 
   if (config)
     {
-      PortalInterface *iface = find_matching_iface_config (interface);
+      PortalInterface *iface =
+        find_matching_iface_config (portal_config, interface);
       XdpPortalImplementation *impl =
         find_portal_implementation_iface (portal_config, iface);
 
@@ -932,10 +958,10 @@ xdp_portal_config_find_all_impls (XdpPortalConfig *portal_config,
 
   impls = g_ptr_array_new ();
 
-  if (portal_interface_prefers_none (interface))
+  if (portal_interface_prefers_none (portal_config, interface))
     return g_steal_pointer (&impls);
 
-  iface = find_matching_iface_config (interface);
+  iface = find_matching_iface_config (portal_config, interface);
   add_all_portal_implementations_iface (portal_config, iface, impls);
   if (impls->len > 0)
     return g_steal_pointer (&impls);
