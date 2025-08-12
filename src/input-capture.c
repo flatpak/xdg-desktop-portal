@@ -239,7 +239,7 @@ validate_capabilities (const char  *key,
 {
   uint32_t types = g_variant_get_uint32 (value);
 
-  if ((types & ~(1 | 2 | 4 | 8)) != 0)
+  if (types == 0 || (types & ~(1 | 2 | 4 | 8)) != 0)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                    "Unsupported capability: %x", types & ~(1 | 2 | 4 | 8));
