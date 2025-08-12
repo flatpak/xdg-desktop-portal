@@ -47,6 +47,8 @@ typedef struct _PortalConfig {
 struct _XdpPortalConfig
 {
   GObject parent_instance;
+
+  char **current_desktops;
 };
 
 G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT)
@@ -89,6 +91,12 @@ portal_implementation_free (XdpPortalImplementation *impl)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(XdpPortalImplementation, portal_implementation_free)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalInterface, portal_interface_free)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(PortalConfig, portal_config_free)
+
+static const char **
+xdp_portal_config_get_current_desktops (XdpPortalConfig *portal_config)
+{
+  return (const char **) portal_config->current_desktops;
+}
 
 /* Validation code taken from gdesktopappinfo.c {{{ */
 
@@ -148,26 +156,19 @@ get_valid_current_desktops (void)
   return tmp;
 }
 
-static const char **
+static char **
 get_current_lowercase_desktops (void)
 {
-  static char **result;
+  char **tmp = get_valid_current_desktops ();
 
-  if (g_once_init_enter (&result))
+  for (size_t i = 0; tmp[i] != NULL; i++)
     {
-      char **tmp = get_valid_current_desktops ();
-
-      for (size_t i = 0; tmp[i] != NULL; i++)
-        {
-          /* Convert to lowercase */
-          for (size_t j = 0; tmp[i][j] != '\0'; j++)
-            tmp[i][j] = g_ascii_tolower (tmp[i][j]);
-        }
-
-      g_once_init_leave (&result, tmp);
+      /* Convert to lowercase */
+      for (size_t j = 0; tmp[i][j] != '\0'; j++)
+        tmp[i][j] = g_ascii_tolower (tmp[i][j]);
     }
 
-  return (const char **) result;
+  return tmp;
 }
 /* }}} */
 
@@ -260,14 +261,14 @@ g_strv_case_contains (const gchar * const *strv,
 
 static gint
 sort_impl_by_use_in_and_name (gconstpointer a,
-                              gconstpointer b)
+                              gconstpointer b,
+                              gpointer      user_data)
 {
   const XdpPortalImplementation *pa = a;
   const XdpPortalImplementation *pb = b;
-  const char **desktops;
+  XdpPortalConfig *portal_config = XDP_PORTAL_CONFIG (user_data);
+  const char **desktops = xdp_portal_config_get_current_desktops (portal_config);
   int i;
-
-  desktops = get_current_lowercase_desktops ();
 
   for (i = 0; desktops[i] != NULL; i++)
     {
@@ -335,7 +336,8 @@ load_installed_portals_dir (GHashTable *portals,
 }
 
 void
-load_installed_portals (gboolean opt_verbose)
+load_installed_portals (XdpPortalConfig *portal_config,
+                        gboolean        opt_verbose)
 {
   g_autoptr (GHashTable) portals = NULL;
   const char *portal_dir;
@@ -379,7 +381,9 @@ out:
 
   g_clear_pointer (&implementations, g_ptr_array_unref);
   implementations = g_hash_table_steal_all_values (portals);
-  g_ptr_array_sort_values (implementations, sort_impl_by_use_in_and_name);
+  g_ptr_array_sort_values_with_data (implementations,
+                                     sort_impl_by_use_in_and_name,
+                                     portal_config);
 }
 
 static PortalConfig *
@@ -493,7 +497,8 @@ load_config_directory (const char *dir,
 }
 
 void
-load_portal_configuration (gboolean opt_verbose)
+load_portal_configuration (XdpPortalConfig *portal_config,
+                           gboolean        opt_verbose)
 {
   g_autofree char *user_portal_dir = NULL;
   const char * const *dirs;
@@ -501,7 +506,7 @@ load_portal_configuration (gboolean opt_verbose)
   const char **desktops;
   const char *portal_dir;
 
-  desktops = get_current_lowercase_desktops ();
+  desktops = xdp_portal_config_get_current_desktops (portal_config);
 
   /* We need to override this in the tests */
   portal_dir = g_getenv ("XDG_DESKTOP_PORTAL_DIR");
@@ -559,8 +564,21 @@ load_portal_configuration (gboolean opt_verbose)
 }
 
 static void
+xdp_portal_config_dispose (GObject *object)
+{
+  XdpPortalConfig *portal_config = XDP_PORTAL_CONFIG (object);
+
+  g_clear_pointer (&portal_config->current_desktops, g_strfreev);
+
+  G_OBJECT_CLASS (xdp_portal_config_parent_class)->dispose (object);
+}
+
+static void
 xdp_portal_config_class_init (XdpPortalConfigClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = xdp_portal_config_dispose;
 }
 
 static void
@@ -573,8 +591,10 @@ xdp_portal_config_new (gboolean opt_verbose)
 {
   XdpPortalConfig *portal_config = g_object_new (XDP_TYPE_PORTAL_CONFIG, NULL);
 
-  load_portal_configuration (opt_verbose);
-  load_installed_portals (opt_verbose);
+  portal_config->current_desktops = get_current_lowercase_desktops ();
+
+  load_portal_configuration (portal_config, opt_verbose);
+  load_installed_portals (portal_config, opt_verbose);
 
   return portal_config;
 }
@@ -851,7 +871,7 @@ xdp_portal_config_find_impl (XdpPortalConfig *portal_config,
         }
     }
 
-  desktops = get_current_lowercase_desktops ();
+  desktops = xdp_portal_config_get_current_desktops (portal_config);
 
   /* Fallback to the old UseIn key */
   for (size_t i = 0; desktops[i] != NULL; i++)
@@ -900,7 +920,7 @@ xdp_portal_config_find_all_impls (XdpPortalConfig *portal_config,
   if (impls->len > 0)
     return g_steal_pointer (&impls);
 
-  desktops = get_current_lowercase_desktops ();
+  desktops = xdp_portal_config_get_current_desktops (portal_config);
 
   /* Fallback to the old UseIn key */
   for (size_t i = 0; desktops[i] != NULL; i++)
