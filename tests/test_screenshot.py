@@ -35,6 +35,16 @@ def required_templates():
 
 
 class TestScreenshot:
+    def set_permission(self, dbus_con, appid, permission):
+        perm_store_intf = xdp.get_permission_store_iface(dbus_con)
+        perm_store_intf.SetPermission(
+            "screenshot",
+            True,
+            "screenshot",
+            appid,
+            [permission],
+        )
+
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Screenshot", 2)
 
@@ -132,6 +142,56 @@ class TestScreenshot:
         assert args[2] == ""  # parent window
         assert args[3]["modal"] == modal
         assert args[3]["interactive"] == interactive
+
+    @pytest.mark.parametrize("permission", ["", "yes", "no", "ask"])
+    def test_screenshot_permissions(
+        self, xdg_document_portal, portals, dbus_con, xdp_app_info, permission
+    ):
+        app_id = xdp_app_info.app_id
+        screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        self.set_permission(dbus_con, app_id, permission)
+
+        request = xdp.Request(dbus_con, screenshot_intf)
+        options = {
+            "modal": True,
+            "interactive": False,
+            "handle_token": request.handle_token,
+        }
+        response = request.call(
+            "Screenshot",
+            parent_window="",
+            options=options,
+        )
+
+        assert response
+        if permission == "no":
+            assert response.response != 0
+            return
+
+        assert response.response == 0
+        method_calls = mock_intf.GetMethodCalls("AccessDialog")
+        if permission == "yes":
+            assert len(method_calls) == 0
+        else:
+            assert len(method_calls) > 0
+
+        request = xdp.Request(dbus_con, screenshot_intf)
+        options["handle_token"] = request.handle_token
+        response = request.call(
+            "Screenshot",
+            parent_window="",
+            options=options,
+        )
+
+        assert response
+        assert response.response == 0
+        method_calls_2 = mock_intf.GetMethodCalls("AccessDialog")
+        if permission == "ask":
+            assert len(method_calls_2) > len(method_calls)
+        else:
+            assert len(method_calls_2) == len(method_calls)
 
     def test_pick_color_basic(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
