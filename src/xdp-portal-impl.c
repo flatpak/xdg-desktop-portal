@@ -44,6 +44,13 @@ typedef struct _PortalConfig {
   PortalInterface *default_portal;
 } PortalConfig;
 
+struct _XdpPortalImpls
+{
+  GObject parent_instance;
+};
+
+G_DEFINE_FINAL_TYPE (XdpPortalImpls, xdp_portal_impls, G_TYPE_OBJECT)
+
 #define XDP_SUBDIR "xdg-desktop-portal"
 
 static void
@@ -549,6 +556,27 @@ load_portal_configuration (gboolean opt_verbose)
   /* ${datadir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
   if (load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose))
     return;
+}
+
+static void
+xdp_portal_impls_class_init (XdpPortalImplsClass *klass)
+{
+}
+
+static void
+xdp_portal_impls_init (XdpPortalImpls *portal_impls)
+{
+}
+
+XdpPortalImpls *
+xdp_portal_impls_new (gboolean opt_verbose)
+{
+  XdpPortalImpls *portal_impls = g_object_new (XDP_TYPE_PORTAL_IMPLS, NULL);
+
+  load_portal_configuration (opt_verbose);
+  load_installed_portals (opt_verbose);
+
+  return portal_impls;
 }
 
 static PortalInterface *
