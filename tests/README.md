@@ -53,6 +53,9 @@ harness behaves.
 * `XDP_TEST_RUN_LONG`: If set (to any value), some tests will run more
     iterations or otherwise test more thoroughly
 
+* `XDP_TEST_VALGRIND`: If set (to any value), tests will run via Valgrind's
+    Memcheck.
+
 * `FLATPAK_BWRAP`: Path to the **bwrap**(1) executable
     (default: discovered at build-time)
 
