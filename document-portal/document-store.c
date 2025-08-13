@@ -71,12 +71,12 @@ DocumentPermissionFlags
 document_entry_get_permissions (PermissionDbEntry *entry,
                                 XdpAppInfo        *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
 
   if (xdp_app_info_is_host (app_info))
     return DOCUMENT_PERMISSION_FLAGS_ALL;
 
-  return document_entry_get_permissions_by_app_id (entry, app_id);
+  return document_entry_get_permissions_by_app_id (entry, permissions_id);
 }
 
 gboolean
