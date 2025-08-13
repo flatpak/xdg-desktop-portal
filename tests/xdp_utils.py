@@ -236,6 +236,11 @@ def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
         assert e is None, str(e)
 
 
+def desktop_files_path() -> Path:
+    """Returns the default path for desktop files"""
+    return Path(os.environ["XDG_DATA_HOME"]) / "applications"
+
+
 class AppInfoKind(Enum):
     HOST = 1
     FLATPAK = 2
@@ -289,10 +294,7 @@ class AppInfo:
         files = {}
 
         if desktop_entry:
-            desktop_entry_path = (
-                Path(os.environ["XDG_DATA_HOME"]) / "applications" / f"{app_id}.desktop"
-            )
-            files[desktop_entry_path] = desktop_entry
+            files[desktop_files_path() / desktop_file] = desktop_entry
 
         return cls(
             kind=kind,
@@ -330,11 +332,7 @@ Exec=true %u
 Type=Application
 """
 
-        desktop_entry_path = (
-            Path(os.environ["XDG_DATA_HOME"]) / "applications" / f"{app_id}.desktop"
-        )
-
-        files[desktop_entry_path] = desktop_entry
+        files[desktop_files_path() / desktop_file] = desktop_entry
 
         if not metadata:
             metadata_str = f"""
@@ -405,11 +403,7 @@ X-SnapAppName={app_name}
 """
             desktop_entry = desktop_entry_str.encode("UTF-8")
 
-        desktop_entry_path = (
-            Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file
-        )
-
-        files[desktop_entry_path] = desktop_entry
+        files[desktop_files_path() / desktop_file] = desktop_entry
 
         if not metadata:
             metadata_str = f"""
