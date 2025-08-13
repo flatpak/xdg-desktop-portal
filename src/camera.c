@@ -213,15 +213,16 @@ handle_access_camera (XdpDbusCamera *object,
 }
 
 static PipeWireRemote *
-open_pipewire_camera_remote (const char *app_id,
+open_pipewire_camera_remote (XdpAppInfo *app_info,
                              GError **error)
 {
   PipeWireRemote *remote;
   struct pw_permission permission_items[3];
   struct pw_properties *pipewire_properties;
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
 
   pipewire_properties =
-    pw_properties_new ("pipewire.access.portal.app_id", app_id,
+    pw_properties_new ("pipewire.access.portal.app_id", permissions_id,
                        "pipewire.access.portal.media_roles", "Camera",
                        NULL);
   remote = pipewire_remote_new_sync (pipewire_properties,
@@ -282,7 +283,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  remote = open_pipewire_camera_remote (xdp_app_info_get_id (app_info), &error);
+  remote = open_pipewire_camera_remote (app_info, &error);
   if (!remote)
     {
       g_dbus_method_invocation_return_error (invocation,
