@@ -273,11 +273,11 @@ class AppInfo:
             env[key] = val
 
     def gapp_info(self) -> Gio.DesktopAppInfo:
-        for f in self.files:
-            if f.name == self.desktop_file:
-                return Gio.DesktopAppInfo.new_from_filename(str(f))
+        desktop_file_path = desktop_files_path() / self.desktop_file
+        if not os.path.exists(desktop_file_path):
+            return None
 
-        return None
+        return Gio.DesktopAppInfo.new_from_filename(str(desktop_file_path))
 
     @classmethod
     def new_host(
