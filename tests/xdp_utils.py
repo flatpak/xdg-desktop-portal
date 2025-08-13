@@ -267,6 +267,13 @@ class AppInfo:
         for key, val in self.env.items():
             env[key] = val
 
+    def gapp_info(self) -> Gio.DesktopAppInfo:
+        for f in self.files:
+            if f.name == self.desktop_file:
+                return Gio.DesktopAppInfo.new_from_filename(str(f))
+
+        return None
+
     @classmethod
     def new_host(
         cls,

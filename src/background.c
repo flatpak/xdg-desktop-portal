@@ -701,6 +701,7 @@ enable_autostart_sync (XdpAppInfo          *app_info,
   g_autofree char *path = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
   const char *appid = xdp_app_info_get_id (app_info);
+  GAppInfo *info;
 
   if (!appid)
     {
@@ -709,9 +710,14 @@ enable_autostart_sync (XdpAppInfo          *app_info,
       return FALSE;
     }
 
+  info = xdp_app_info_get_gappinfo (app_info);
   file = g_strconcat (appid, ".desktop", NULL);
   dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
-  path = g_build_filename (dir, file, NULL);
+
+  if (info)
+    path = g_build_filename (dir, g_app_info_get_id (info), NULL);
+  else
+    path = g_build_filename (dir, file, NULL);
 
   if (!enable)
     {
@@ -737,7 +743,7 @@ enable_autostart_sync (XdpAppInfo          *app_info,
   g_key_file_set_string (keyfile,
                          G_KEY_FILE_DESKTOP_GROUP,
                          G_KEY_FILE_DESKTOP_KEY_NAME,
-                         appid); /* FIXME: The app id isn't the name */
+                         info ? g_app_info_get_name (info) : appid);
   g_key_file_set_string (keyfile,
                          G_KEY_FILE_DESKTOP_GROUP,
                          "X-XDP-Autostart",

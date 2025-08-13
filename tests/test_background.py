@@ -93,10 +93,13 @@ class TestBackground:
             assert not response.results["autostart"]
             return
 
+        gapp_info = xdp_app_info.gapp_info()
+        autostart_name = gapp_info.get_name() if gapp_info else app_id
+
         assert response.results["autostart"]
         keyfile = self.get_autostart_keyfile(app_id)
         assert keyfile.get_string("Desktop Entry", "Type") == "Application"
-        assert keyfile.get_string("Desktop Entry", "Name") == app_id
+        assert keyfile.get_string("Desktop Entry", "Name") == autostart_name
         assert keyfile.get_string("Desktop Entry", "X-XDP-Autostart") == app_id
         assert keyfile.get_boolean("Desktop Entry", "DBusActivatable")
 
