@@ -1367,7 +1367,7 @@ portal_list (GDBusMethodInvocation *invocation,
              GVariant *parameters,
              XdpAppInfo *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *app_id;
   g_auto(GStrv) ids = NULL;
   GVariantBuilder builder;
   int i;
