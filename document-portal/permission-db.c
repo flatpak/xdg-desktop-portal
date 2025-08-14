@@ -49,11 +49,11 @@ struct PermissionDb
 
   gboolean   dirty;
 
-  /* Map id => GVariant (data, sorted-dict[appid->perms]) */
+  /* Map id => GVariant (data, sorted-dict[app_permissions_id->perms]) */
   GvdbTable  *main_table;
   GHashTable *main_updates;
 
-  /* (reverse) Map app id => [ id ]*/
+  /* (reverse) Map app permissions id => [ id ]*/
   GvdbTable  *app_table;
   GHashTable *app_additions;
   GHashTable *app_removals;

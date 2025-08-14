@@ -45,7 +45,7 @@ PermissionDb *     permission_db_new (const char *path,
 char **        permission_db_list_ids (PermissionDb *self);
 char **        permission_db_list_apps (PermissionDb *self);
 char **        permission_db_list_ids_by_app (PermissionDb  *self,
-                                              const char *app);
+                                              const char *app_permissions_id);
 char **        permission_db_list_ids_by_value (PermissionDb *self,
                                                 GVariant  *data);
 PermissionDbEntry *permission_db_lookup (PermissionDb  *self,
@@ -79,7 +79,7 @@ void            permission_db_entry_unref (PermissionDbEntry *entry);
 GVariant *      permission_db_entry_get_data (PermissionDbEntry *entry);
 const char **   permission_db_entry_list_apps (PermissionDbEntry *entry);
 const char **   permission_db_entry_list_permissions (PermissionDbEntry *entry,
-                                                      const char     *app);
+                                                      const char     *app_permissions_id);
 GString *       permission_db_entry_print_string (PermissionDbEntry *entry,
                                                   GString        *string);
 
@@ -87,10 +87,10 @@ PermissionDbEntry  *permission_db_entry_new (GVariant *data);
 PermissionDbEntry  *permission_db_entry_modify_data (PermissionDbEntry *entry,
                                                      GVariant       *data);
 PermissionDbEntry  *permission_db_entry_set_app_permissions (PermissionDbEntry *entry,
-                                                             const char     *app,
+                                                             const char     *app_permissions_id,
                                                              const char    **permissions);
 PermissionDbEntry  *permission_db_entry_remove_app_permissions (PermissionDbEntry *entry,
-                                                                const char        *app);
+                                                                const char        *app_permissions_id);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDb, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDbEntry, permission_db_entry_unref)
