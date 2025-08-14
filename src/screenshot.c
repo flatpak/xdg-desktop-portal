@@ -189,6 +189,111 @@ static XdpOptionKey screenshot_options[] = {
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
 };
 
+static gboolean
+check_non_interactive_permission_in_thread (XdpRequest *request,
+                                            const char *parent_window,
+                                            gboolean modal)
+{
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GVariant) access_results = NULL;
+  g_auto(GVariantBuilder) access_opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  XdpPermission permission;
+  g_autofree char *subtitle = NULL;
+  g_autofree char *title = NULL;
+  const char *body = "";
+  uint access_response = 2;
+  const char *app_id;
+
+  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
+
+  if (permission == XDP_PERMISSION_YES)
+    return TRUE;
+
+  if (permission == XDP_PERMISSION_NO)
+    return FALSE;
+
+  g_variant_builder_add (&access_opt_builder, "{sv}",
+                         "deny_label", g_variant_new_string (_("Deny")));
+  g_variant_builder_add (&access_opt_builder, "{sv}",
+                         "grant_label", g_variant_new_string (_("Allow")));
+  g_variant_builder_add (&access_opt_builder, "{sv}",
+                         "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
+  g_variant_builder_add (&access_opt_builder, "{sv}",
+                         "modal", g_variant_new_boolean (modal));
+
+  app_id = xdp_app_info_get_id (request->app_info);
+
+  if (g_strcmp0 (app_id, "") != 0)
+    {
+      g_autoptr(GDesktopAppInfo) info = NULL;
+      g_autofree gchar *id = NULL;
+      const gchar *name = NULL;
+
+      id = g_strconcat (app_id, ".desktop", NULL);
+      info = g_desktop_app_info_new (id);
+
+      if (info)
+        name = g_app_info_get_display_name (G_APP_INFO (info));
+      else
+        name = app_id;
+
+      if (permission == XDP_PERMISSION_UNSET)
+        {
+          title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
+          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+        }
+      else /* permission == XDP_PERMISSION_ASK */
+        {
+          title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
+          subtitle = g_strdup_printf (_("%s wants to take a screenshot."), name);
+        }
+    }
+  else
+    {
+      g_assert (xdp_app_info_is_host (request->app_info));
+      if (permission == XDP_PERMISSION_UNSET)
+        {
+          /* Note: this will set the screenshot permission for all unsandboxed
+           * apps for which an app ID can't be determined.
+           */
+          title = g_strdup (_("Allow Applications to Take Screenshots?"));
+          subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
+        }
+      else /* permission == XDP_PERMISSION_ASK */
+        {
+          title = g_strdup (_("Allow to Take a Screenshot?"));
+          subtitle = g_strdup (_("An application wants to take a screenshot."));
+        }
+    }
+
+  if (permission == XDP_PERMISSION_UNSET)
+    body = _("This permission can be changed at any time from the privacy settings.");
+
+  if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+                                                     request->id,
+                                                     app_id,
+                                                     parent_window,
+                                                     title,
+                                                     subtitle,
+                                                     body,
+                                                     g_variant_builder_end (&access_opt_builder),
+                                                     &access_response,
+                                                     &access_results,
+                                                     NULL,
+                                                     &error))
+    {
+      g_warning ("Failed to show access dialog: %s", error->message);
+      return FALSE;
+    }
+
+  if (permission == XDP_PERMISSION_UNSET)
+    xdp_set_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+
+  return access_response == 0;
+}
+
+
 static void
 handle_screenshot_in_thread_func (GTask *task,
                                   gpointer source_object,
@@ -200,7 +305,6 @@ handle_screenshot_in_thread_func (GTask *task,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  XdpPermission permission;
   GVariant *options;
   gboolean permission_store_checked = FALSE;
   gboolean interactive;
@@ -214,8 +318,6 @@ handle_screenshot_in_thread_func (GTask *task,
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
 
-  if (xdp_dbus_impl_screenshot_get_version (impl) < 2)
-    goto query_impl;
 
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
@@ -223,113 +325,15 @@ handle_screenshot_in_thread_func (GTask *task,
   if (!g_variant_lookup (options, "modal", "b", &modal))
     modal = TRUE;
 
-  if (interactive)
-    goto query_impl;
-
-  /* Non-interactive */
-  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
-
-  if (permission == XDP_PERMISSION_NO)
+  if (xdp_dbus_impl_screenshot_get_version (impl) >= 2)
     {
-      send_response (request, 2, g_variant_builder_end (&opt_builder));
-      return;
-    }
-
-  if (permission == XDP_PERMISSION_ASK || permission == XDP_PERMISSION_UNSET)
-    {
-      g_autoptr(GVariant) access_results = NULL;
-      g_auto(GVariantBuilder) access_opt_builder =
-        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree gchar *subtitle = NULL;
-      g_autofree gchar *title = NULL;
-      const gchar *body = "";
-      guint access_response = 2;
-
-
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "deny_label", g_variant_new_string (_("Deny")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "grant_label", g_variant_new_string (_("Allow")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "icon", g_variant_new_string ("applets-screenshooter-symbolic"));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "modal", g_variant_new_boolean (modal));
-
-      if (g_strcmp0 (app_id, "") != 0)
-        {
-          GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
-          const gchar *name = NULL;
-
-          if (info)
-            name = g_app_info_get_display_name (G_APP_INFO (info));
-          else
-            name = app_id;
-
-          if (permission == XDP_PERMISSION_UNSET)
-            {
-              title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-              subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
-            }
-          else /* permission == XDP_PERMISSION_ASK */
-            {
-              title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
-              subtitle = g_strdup_printf (_("%s wants to take a screenshot."), name);
-            }
-        }
-      else
-        {
-          g_assert (xdp_app_info_is_host (request->app_info));
-          if (permission == XDP_PERMISSION_UNSET)
-            {
-              /* Note: this will set the screenshot permission for all unsandboxed
-               * apps for which an app ID can't be determined.
-               */
-              title = g_strdup (_("Allow Applications to Take Screenshots?"));
-              subtitle = g_strdup (_("An application wants to be able to take screenshots at any time."));
-           }
-          else /* permission == XDP_PERMISSION_ASK */
-            {
-              title = g_strdup (_("Allow to Take a Screenshot?"));
-              subtitle = g_strdup (_("An application wants to take a screenshot."));
-            }
-        }
-
-      if (permission == XDP_PERMISSION_UNSET) 
-        body = _("This permission can be changed at any time from the privacy settings.");
-
-      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
-                                                         request->id,
-                                                         app_id,
-                                                         parent_window,
-                                                         title,
-                                                         subtitle,
-                                                         body,
-                                                         g_variant_builder_end (&access_opt_builder),
-                                                         &access_response,
-                                                         &access_results,
-                                                         NULL,
-                                                         &error))
-        {
-          g_warning ("Failed to show access dialog: %s", error->message);
-          send_response (request, 2, g_variant_builder_end (&opt_builder));
-          return;
-        }
-
-      if (permission == XDP_PERMISSION_UNSET)
-        xdp_set_permission_sync (request->app_info, PERMISSION_TABLE,
-                                 PERMISSION_ID, access_response == 0 ?
-                                 XDP_PERMISSION_YES : XDP_PERMISSION_NO);
-
-      if (access_response != 0)
+      if (!interactive && !check_non_interactive_permission_in_thread (request, parent_window, modal))
         {
           send_response (request, 2, g_variant_builder_end (&opt_builder));
           return;
         }
+      permission_store_checked = TRUE;
     }
-
-  permission_store_checked = TRUE;
-
-query_impl:
 
   impl_request =
     xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
