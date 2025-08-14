@@ -167,19 +167,20 @@ handle_list (XdgPermissionStore     *object,
 static GVariant *
 get_app_permissions (PermissionDbEntry *entry)
 {
-  g_autofree const char **apps = NULL;
+  g_autofree const char **apps_permissions_ids = NULL;
   GVariantBuilder builder;
   int i;
 
-  apps = permission_db_entry_list_apps (entry);
+  apps_permissions_ids = permission_db_entry_list_apps (entry);
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sas}"));
 
-  for (i = 0; apps[i] != NULL; i++)
+  for (i = 0; apps_permissions_ids[i] != NULL; i++)
     {
-      g_autofree const char **permissions = permission_db_entry_list_permissions (entry, apps[i]);
+      g_autofree const char **permissions =
+        permission_db_entry_list_permissions (entry, apps_permissions_ids[i]);
       g_variant_builder_add_value (&builder,
                                    g_variant_new ("{s@as}",
-                                                  apps[i],
+                                                  apps_permissions_ids[i],
                                                   g_variant_new_strv (permissions, -1)));
     }
 
@@ -299,7 +300,7 @@ handle_delete_permission (XdgPermissionStore     *object,
                           const char             *app)
 {
   Table *table;
-
+  const char *permissions_id = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
@@ -316,7 +317,8 @@ handle_delete_permission (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  new_entry = permission_db_entry_remove_app_permissions (entry, app);
+  permissions_id = app;
+  new_entry = permission_db_entry_remove_app_permissions (entry, permissions_id);
   permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
 
@@ -336,6 +338,7 @@ handle_get_permission (XdgPermissionStore     *object,
 
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree const char **permission = NULL;
+  const char *permissions_id;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
@@ -350,7 +353,8 @@ handle_get_permission (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  permission = permission_db_entry_list_permissions (entry, app);
+  permissions_id = app;
+  permission = permission_db_entry_list_permissions (entry, permissions_id);
 
   xdg_permission_store_complete_get_permission (object, invocation, permission);
 
@@ -397,12 +401,16 @@ handle_set (XdgPermissionStore     *object,
     {
       g_autoptr(PermissionDbEntry) old_entry = NULL;
       const char *child_app_id;
+      const char *child_permissions_id;
       g_autofree const char **permissions;
 
       g_variant_get (child, "{&s^a&s}", &child_app_id, &permissions);
 
       old_entry = new_entry;
-      new_entry = permission_db_entry_set_app_permissions (new_entry, child_app_id, (const char **) permissions);
+      child_permissions_id = child_app_id;
+      new_entry = permission_db_entry_set_app_permissions (new_entry,
+                                                           child_permissions_id,
+                                                           (const char **) permissions);
 
       g_variant_unref (child);
     }
@@ -425,7 +433,7 @@ handle_set_permission (XdgPermissionStore     *object,
                        const gchar *const     *permissions)
 {
   Table *table;
-
+  const char *permissions_id;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
@@ -449,7 +457,9 @@ handle_set_permission (XdgPermissionStore     *object,
         }
     }
 
-  new_entry = permission_db_entry_set_app_permissions (entry, app, (const char **) permissions);
+  permissions_id = app;
+  new_entry = permission_db_entry_set_app_permissions (entry, permissions_id,
+                                                       (const char **) permissions);
   permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
 
