@@ -80,12 +80,6 @@ GVariant *      permission_db_entry_get_data (PermissionDbEntry *entry);
 const char **   permission_db_entry_list_apps (PermissionDbEntry *entry);
 const char **   permission_db_entry_list_permissions (PermissionDbEntry *entry,
                                                       const char     *app);
-gboolean        permission_db_entry_has_permission (PermissionDbEntry *entry,
-                                                    const char     *app,
-                                                    const char     *permission);
-gboolean        permission_db_entry_has_permissions (PermissionDbEntry *entry,
-                                                     const char     *app,
-                                                     const char    **permissions);
 GString *       permission_db_entry_print_string (PermissionDbEntry *entry,
                                                   GString        *string);
 
