@@ -106,16 +106,16 @@ persist_entry (PermissionDbEntry *entry)
 static void
 do_set_permissions (PermissionDbEntry    *entry,
                     const char        *doc_id,
-                    const char        *app_id,
+                    const char        *permissions_id,
                     DocumentPermissionFlags perms)
 {
   g_autofree const char **perms_s = xdg_unparse_permissions (perms);
 
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
-  g_debug ("set_permissions %s %s %x", doc_id, app_id, perms);
+  g_debug ("set_permissions %s %s %x", doc_id, permissions_id, perms);
 
-  new_entry = permission_db_entry_set_app_permissions (entry, app_id, perms_s);
+  new_entry = permission_db_entry_set_app_permissions (entry, permissions_id, perms_s);
   permission_db_set_entry (db, doc_id, new_entry);
 
   if (persist_entry (new_entry))
@@ -124,7 +124,7 @@ do_set_permissions (PermissionDbEntry    *entry,
                                                 TABLE_NAME,
                                                 FALSE,
                                                 doc_id,
-                                                app_id,
+                                                permissions_id,
                                                 perms_s,
                                                 NULL,
                                                 NULL, NULL);
@@ -137,6 +137,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
                           XdpAppInfo            *app_info)
 {
   const char *target_app_id;
+  const char *target_permissions_id;
   const char *id;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags perms;
@@ -158,11 +159,12 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!xdp_is_valid_app_id (target_app_id))
+    target_permissions_id = target_app_id;
+    if (!xdp_is_valid_permissions_id (target_permissions_id))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                               "'%s' is not a valid app name", target_app_id);
+                                               "'%s' is not a valid app permissions ID", target_permissions_id);
         return;
       }
 
@@ -183,12 +185,12 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    do_set_permissions (entry, id, target_app_id,
-                        perms | document_entry_get_permissions_by_app_id (entry, target_app_id));
+    do_set_permissions (entry, id, target_permissions_id,
+                        perms | document_entry_get_permissions_by_app_permissions_id (entry, target_permissions_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
-  xdp_fuse_invalidate_doc_app (id, target_app_id);
+  xdp_fuse_invalidate_doc_app (id, target_permissions_id);
 
   g_dbus_method_invocation_return_value (invocation, g_variant_new ("()"));
 }
@@ -198,8 +200,9 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
                            GVariant              *parameters,
                            XdpAppInfo            *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
   const char *target_app_id;
+  const char *target_permissions_id;
   const char *id;
   g_autofree const char **permissions = NULL;
   GError *error = NULL;
@@ -221,11 +224,12 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    if (!xdp_is_valid_app_id (target_app_id))
+    target_permissions_id = target_app_id;
+    if (!xdp_is_valid_permissions_id (target_permissions_id))
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                               "'%s' is not a valid app name", target_app_id);
+                                               "'%s' is not a valid app permissions ID", target_permissions_id);
         return;
       }
 
@@ -239,7 +243,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     /* Must have grant-permissions, or be itself */
     if (!document_entry_has_permissions (entry, app_info,
                                     DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS) ||
-        strcmp (app_id, target_app_id) == 0)
+        strcmp (permissions_id, target_permissions_id) == 0)
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -247,12 +251,12 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    do_set_permissions (entry, id, target_app_id,
-                        ~perms & document_entry_get_permissions_by_app_id (entry, target_app_id));
+    do_set_permissions (entry, id, target_permissions_id,
+                        ~perms & document_entry_get_permissions_by_app_permissions_id (entry, target_permissions_id));
   }
 
   /* Invalidate with lock dropped to avoid deadlock */
-  xdp_fuse_invalidate_doc_app (id, target_app_id);
+  xdp_fuse_invalidate_doc_app (id, target_permissions_id);
 
   g_dbus_method_invocation_return_value (invocation, g_variant_new ("()"));
 }
@@ -575,7 +579,7 @@ metadata_check_file_access (const char *keyfile_path,
  * to (e.g. when the app has a more strict access but the file is
  * still accessible) */
 static gboolean
-app_has_file_access_fallback (const char *target_app_id,
+app_has_file_access_fallback (const char *target_permissions_id,
                               DocumentPermissionFlags target_perms,
                               const char *path)
 {
@@ -596,10 +600,10 @@ app_has_file_access_fallback (const char *target_app_id,
   if (g_str_has_prefix (path, "/usr") || g_str_has_prefix (path, "/app") || g_str_has_prefix (path, "/tmp"))
     return FALSE;
 
-  user_metadata = g_build_filename (user_installation, "app", target_app_id, "current/active/metadata", NULL);
-  system_metadata = g_build_filename (system_installation, "app", target_app_id, "current/active/metadata", NULL);
-  user_override = g_build_filename (user_installation, "overrides", target_app_id, NULL);
-  system_override = g_build_filename (system_installation, "overrides", target_app_id, NULL);
+  user_metadata = g_build_filename (user_installation, "app", target_permissions_id, "current/active/metadata", NULL);
+  system_metadata = g_build_filename (system_installation, "app", target_permissions_id, "current/active/metadata", NULL);
+  user_override = g_build_filename (user_installation, "overrides", target_permissions_id, NULL);
+  system_override = g_build_filename (system_installation, "overrides", target_permissions_id, NULL);
   user_global_override = g_build_filename (user_installation, "overrides", "global", NULL);
   system_global_override = g_build_filename (system_installation, "overrides", "global", NULL);
 
@@ -630,7 +634,7 @@ app_has_file_access_fallback (const char *target_app_id,
 
 
 static gboolean
-app_has_file_access (const char *target_app_id,
+app_has_file_access (const char *target_permissions_id,
                      DocumentPermissionFlags target_perms,
                      const char *path)
 {
@@ -638,19 +642,19 @@ app_has_file_access (const char *target_app_id,
   g_autofree char *res = NULL;
   g_autofree char *arg = NULL;
 
-  if (target_app_id == NULL || target_app_id[0] == '\0')
+  if (target_permissions_id == NULL || target_permissions_id[0] == '\0')
     return FALSE;
 
-  if (g_str_has_prefix (target_app_id, "snap."))
+  if (g_str_has_prefix (target_permissions_id, "snap."))
     {
       res = xdp_spawn (&error, "snap", "routine", "file-access",
-                        target_app_id + strlen ("snap."), path, NULL);
+                        target_permissions_id + strlen ("snap."), path, NULL);
     }
   else
     {
       /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
       arg = g_strdup_printf ("--file-access=%s", path);
-      res = xdp_spawn (&error, "flatpak", "info", arg, target_app_id, NULL);
+      res = xdp_spawn (&error, "flatpak", "info", arg, target_permissions_id, NULL);
     }
 
   if (res)
@@ -669,7 +673,7 @@ app_has_file_access (const char *target_app_id,
 
   /* Secondly we fall back to a simple check that will not be perfect but should not
      cause false positives. */
-  return app_has_file_access_fallback (target_app_id, target_perms, path);
+  return app_has_file_access_fallback (target_permissions_id, target_perms, path);
 }
 
 static void
@@ -680,6 +684,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autoptr(GVariant) array = NULL;
   guint32 flags;
   const char *target_app_id;
+  const char *target_permissions_id;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags target_perms;
   gsize n_args;
@@ -739,7 +744,9 @@ portal_add_full (GDBusMethodInvocation *invocation,
         fd[i] = -1;
     }
 
-  ids = document_add_full (fd, NULL, NULL, documents_flags, n_args, app_info, target_app_id, target_perms, &error);
+  target_permissions_id = target_app_id;
+  ids = document_add_full (fd, NULL, NULL, documents_flags, n_args, app_info,
+                           target_permissions_id, target_perms, &error);
 
   if (ids == NULL)
     {
@@ -769,11 +776,11 @@ document_add_full (int                      *fd,
                    DocumentAddFullFlags     *documents_flags,
                    int                       n_args,
                    XdpAppInfo               *app_info,
-                   const char               *target_app_id,
+                   const char               *target_permissions_id,
                    DocumentPermissionFlags   target_perms,
                    GError                  **error)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
   g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
   g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
   g_autofree struct stat *real_dir_st_bufs = NULL;
@@ -887,7 +894,7 @@ document_add_full (int                      *fd,
         g_assert (path != NULL);
 
         if (as_needed_by_app &&
-            app_has_file_access (target_app_id, target_perms, path))
+            app_has_file_access (target_permissions_id, target_perms, path))
           {
             g_free (g_ptr_array_index(ids,i));
             g_ptr_array_index(ids,i) = g_strdup ("");
@@ -899,7 +906,7 @@ document_add_full (int                      *fd,
             char *id = do_create_doc (&real_dir_st_bufs[i], path, reuse_existing, persistent, is_dir);
             g_ptr_array_index(ids,i) = id;
 
-            if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
+            if (permissions_id[0] != '\0' && strcmp (permissions_id, target_permissions_id) != 0)
               {
                 DocumentPermissionFlags caller_perms = caller_base_perms;
 
@@ -907,13 +914,13 @@ document_add_full (int                      *fd,
                   caller_perms |= caller_write_perms;
 
                 g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
-                do_set_permissions (entry, id, app_id, caller_perms);
+                do_set_permissions (entry, id, permissions_id, caller_perms);
               }
 
-            if (target_app_id[0] != '\0' && target_perms != 0)
+            if (target_permissions_id[0] != '\0' && target_perms != 0)
               {
                 g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
-                do_set_permissions (entry, id, target_app_id, target_perms);
+                do_set_permissions (entry, id, target_permissions_id, target_perms);
               }
           }
       }
@@ -929,10 +936,10 @@ document_add_full (int                      *fd,
         continue;
 
       xdp_fuse_invalidate_doc_app (id, NULL);
-      if (app_id[0] != '\0')
-        xdp_fuse_invalidate_doc_app (id, app_id);
-      if (target_app_id[0] != '\0' && target_perms != 0)
-        xdp_fuse_invalidate_doc_app (id, target_app_id);
+      if (permissions_id[0] != '\0')
+        xdp_fuse_invalidate_doc_app (id, permissions_id);
+      if (target_permissions_id[0] != '\0' && target_perms != 0)
+        xdp_fuse_invalidate_doc_app (id, target_permissions_id);
     }
 
   g_ptr_array_index(ids,n_args) = NULL;
@@ -945,7 +952,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
                        GVariant              *parameters,
                        XdpAppInfo            *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
   GDBusMessage *message;
   GUnixFDList *fd_list;
   int parent_fd_id, parent_fd, fds_len;
@@ -956,6 +963,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   guint32 flags = 0;
   const char *filename;
   const char *target_app_id;
+  const char *target_permissions_id;
   g_autofree const char **permissions = NULL;
   g_autofree char *id = NULL;
   g_autofree char *path = NULL;
@@ -1049,8 +1057,10 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
 
     XDP_AUTOLOCK (db);
 
+    target_permissions_id = target_app_id;
+
     if (as_needed_by_app &&
-        app_has_file_access (target_app_id, target_perms, path))
+        app_has_file_access (target_permissions_id, target_perms, path))
       {
         id = g_strdup ("");
       }
@@ -1058,16 +1068,16 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       {
         id = do_create_doc (&parent_st_buf, path, reuse_existing, persistent, FALSE);
 
-        if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
+        if (permissions_id[0] != '\0' && strcmp (permissions_id, target_permissions_id) != 0)
           {
             g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
-            do_set_permissions (entry, id, app_id, caller_perms);
+            do_set_permissions (entry, id, permissions_id, caller_perms);
           }
 
-        if (target_app_id[0] != '\0' && target_perms != 0)
+        if (target_permissions_id[0] != '\0' && target_perms != 0)
           {
             g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);
-            do_set_permissions (entry, id, target_app_id, target_perms);
+            do_set_permissions (entry, id, target_permissions_id, target_perms);
           }
       }
   }
@@ -1078,10 +1088,10 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   if (*id != 0)
     {
       xdp_fuse_invalidate_doc_app (id, NULL);
-      if (app_id[0] != '\0')
-        xdp_fuse_invalidate_doc_app (id, app_id);
-      if (target_app_id[0] != '\0' && target_perms != 0)
-        xdp_fuse_invalidate_doc_app (id, target_app_id);
+      if (permissions_id[0] != '\0')
+        xdp_fuse_invalidate_doc_app (id, permissions_id);
+      if (target_permissions_id[0] != '\0' && target_perms != 0)
+        xdp_fuse_invalidate_doc_app (id, target_permissions_id);
     }
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sv}"));
@@ -1297,18 +1307,21 @@ portal_lookup (GDBusMethodInvocation *invocation,
 static GVariant *
 get_app_permissions (PermissionDbEntry *entry)
 {
-  g_autofree const char **apps = NULL;
+  g_autofree const char **apps_permissions_ids = NULL;
   GVariantBuilder builder;
   int i;
 
-  apps = permission_db_entry_list_apps (entry);
+  apps_permissions_ids = permission_db_entry_list_apps (entry);
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{sas}"));
 
-  for (i = 0; apps[i] != NULL; i++)
+  for (i = 0; apps_permissions_ids[i] != NULL; i++)
     {
-      g_autofree const char **permissions = permission_db_entry_list_permissions (entry, apps[i]);
+      g_autofree const char **permissions =
+        permission_db_entry_list_permissions (entry, apps_permissions_ids[i]);
       g_variant_builder_add_value (&builder,
-                                   g_variant_new ("{s^as}", apps[i], permissions));
+                                   g_variant_new ("{s^as}",
+                                                  apps_permissions_ids[i],
+                                                  permissions));
     }
 
   return g_variant_builder_end (&builder);
@@ -1385,9 +1398,15 @@ portal_list (GDBusMethodInvocation *invocation,
   XDP_AUTOLOCK (db);
 
   if (strcmp (app_id, "") == 0)
-    ids = permission_db_list_ids (db);
+    {
+      ids = permission_db_list_ids (db);
+    }
   else
-    ids = permission_db_list_ids_by_app (db, app_id);
+    {
+      const char *permissions_id = app_id;
+
+      ids = permission_db_list_ids_by_app (db, permissions_id);
+    }
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a{say}"));
   for (i = 0; ids[i]; i++)
@@ -1433,16 +1452,16 @@ get_host_path_internal (GDBusMethodInvocation *invocation,
 
   if (!xdp_app_info_is_host (app_info))
     {
-      g_autofree const char **apps = NULL;
-      const char *app_id = NULL;
+      g_autofree const char **apps_permissions_ids = NULL;
+      const char *permissions_id = NULL;
       gboolean app_found = FALSE;
 
-      app_id = xdp_app_info_get_id (app_info);
+      permissions_id = xdp_app_info_get_permissions_id (app_info);
 
-      apps = permission_db_entry_list_apps (entry);
-      for (size_t i = 0; apps[i] != NULL; i++)
+      apps_permissions_ids = permission_db_entry_list_apps (entry);
+      for (size_t i = 0; apps_permissions_ids[i] != NULL; i++)
         {
-          if (g_strcmp0 (app_id, apps[i]) == 0)
+          if (g_strcmp0 (permissions_id, apps_permissions_ids[i]) == 0)
             {
               app_found = TRUE;
               break;
