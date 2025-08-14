@@ -91,12 +91,13 @@ class TestPermissionStore:
         )
         assert int(portal_version) == 2
 
-    def test_delete_race(self, portals, dbus_con):
+    def test_delete_race(self, portals, dbus_con, xdp_app_info):
         permission_store_intf = PermissionStore()
         finished_count = 0
 
         table = "inhibit"
         id = "inhibit"
+        permissions_id = xdp_app_info.permissions_id
         perms = ["logout", "suspend"]
 
         def cb(_):
@@ -105,9 +106,12 @@ class TestPermissionStore:
             finished_count += 1
 
         permission_store_intf.SetPermissionAsync(table, True, id, "a", perms, cb)
+        permission_store_intf.SetPermissionAsync(
+            table, True, id, permissions_id, perms, cb
+        )
         permission_store_intf.DeleteAsync(table, id, cb)
 
-        xdp.wait_for(lambda: finished_count >= 2)
+        xdp.wait_for(lambda: finished_count >= 3)
 
         try:
             permission_store_intf.Lookup(table, id)
@@ -116,34 +120,38 @@ class TestPermissionStore:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
             assert e.matches(Gio.io_error_quark(), Gio.IOErrorEnum.DBUS_ERROR)
 
+        permission_store_intf.SetPermissionAsync(
+            table, True, id, permissions_id, perms, cb
+        )
         permission_store_intf.SetPermissionAsync(table, True, id, "a", perms, cb)
         permission_store_intf.SetPermissionAsync(table, True, id, "b", perms, cb)
         permission_store_intf.DeletePermissionAsync(table, id, "a", cb)
 
-        xdp.wait_for(lambda: finished_count >= 4)
+        xdp.wait_for(lambda: finished_count >= 6)
 
         result, _ = permission_store_intf.Lookup(table, id)
         perms_out = result.unpack()[0]
-        assert perms_out == {"b": perms}
+        assert perms_out == {"b": perms, xdp_app_info.permissions_id: perms}
 
         permission_store_intf.SetPermissionAsync(table, True, id, "a", perms, cb)
         permission_store_intf.DeletePermissionAsync(table, id, "b", cb)
         permission_store_intf.DeletePermissionAsync(table, id, "a", cb)
+        permission_store_intf.DeletePermissionAsync(table, id, permissions_id, cb)
 
-        xdp.wait_for(lambda: finished_count >= 7)
+        xdp.wait_for(lambda: finished_count >= 9)
 
         result, _ = permission_store_intf.Lookup(table, id)
         perms_out = result.unpack()[0]
         assert perms_out == {}
 
-    def test_change(self, portals, dbus_con):
+    def test_change(self, portals, dbus_con, xdp_app_info):
         permission_store_intf = PermissionStore()
         changed_count = 0
 
         table = "TEST"
         id = "test-resource"
-        app = "one.two.three"
         perms = ["one", "two"]
+        permissions_id = xdp_app_info.permissions_id
 
         def cb_changed1(results):
             nonlocal changed_count
@@ -153,12 +161,14 @@ class TestPermissionStore:
             assert cb_table == table
             assert cb_id == id
             assert not deleted
-            assert cb_perms[app] == perms
+            assert cb_perms[permissions_id] == perms
 
             changed_count += 1
 
         cs = permission_store_intf.connect_to_signal("Changed", cb_changed1)
-        permission_store_intf.SetPermissionAsync(table, True, id, app, perms, None)
+        permission_store_intf.SetPermissionAsync(
+            table, True, id, permissions_id, perms, None
+        )
         xdp.wait_for(lambda: changed_count >= 1)
         cs.disconnect()
 
@@ -226,12 +236,12 @@ class TestPermissionStore:
         assert perms_out == {}
         assert data_out == data
 
-    def test_create(self, portals, dbus_con):
+    def test_create(self, portals, dbus_con, xdp_app_info):
         permission_store_intf = PermissionStore()
 
         table = "inhibit"
         id = "inhibit"
-        app = ""
+        permissions_id = xdp_app_info.permissions_id
         perms = ["logout", "suspend"]
 
         try:
@@ -240,21 +250,21 @@ class TestPermissionStore:
                 # Do not create if it does not exist
                 False,
                 id,
-                app,
+                permissions_id,
                 perms,
             )
             assert False, "This statement should not be reached"
         except GLib.GError as e:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
 
-        permission_store_intf.SetPermission(table, True, id, app, perms)
+        permission_store_intf.SetPermission(table, True, id, permissions_id, perms)
 
-    def test_delete(self, portals, dbus_con):
+    def test_delete(self, portals, dbus_con, xdp_app_info):
         permission_store_intf = PermissionStore()
 
         table = "inhibit"
         id = "inhibit"
-        app = ""
+        permissions_id = xdp_app_info.permissions_id
         perms = ["logout", "suspend"]
 
         try:
@@ -263,7 +273,7 @@ class TestPermissionStore:
         except GLib.GError as e:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
 
-        permission_store_intf.SetPermission(table, True, id, app, perms)
+        permission_store_intf.SetPermission(table, True, id, permissions_id, perms)
 
         permission_store_intf.Delete(table, id)
 
@@ -273,23 +283,23 @@ class TestPermissionStore:
         except GLib.GError as e:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
 
-    def test_get_permission(self, portals, dbus_con):
+    def test_get_permission(self, portals, dbus_con, xdp_app_info):
         permission_store_intf = PermissionStore()
 
         table = "notifications"
         id = "notification"
-        app = "a"
+        permissions_id = xdp_app_info.permissions_id
         perms = ["yes"]
 
         try:
-            permission_store_intf.GetPermission(table, id, app)
+            permission_store_intf.GetPermission(table, id, permissions_id)
             assert False, "This statement should not be reached"
         except GLib.GError as e:
             assert "org.freedesktop.portal.Error.NotFound" in e.message
 
-        permission_store_intf.SetPermission(table, True, id, app, perms)
+        permission_store_intf.SetPermission(table, True, id, permissions_id, perms)
 
-        result, _ = permission_store_intf.GetPermission(table, id, app)
+        result, _ = permission_store_intf.GetPermission(table, id, permissions_id)
         permissions = result.unpack()[0]
         assert permissions == perms
 
