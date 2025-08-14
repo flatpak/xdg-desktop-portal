@@ -253,12 +253,10 @@ handle_screenshot_in_thread_func (GTask *task,
       if (g_strcmp0 (app_id, "") != 0)
         {
           GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
-          const gchar *name = NULL;
+          const gchar *name = app_id;
 
           if (info)
             name = g_app_info_get_display_name (G_APP_INFO (info));
-          else
-            name = app_id;
 
           title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
           subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);

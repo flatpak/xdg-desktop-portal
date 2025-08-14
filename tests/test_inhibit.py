@@ -156,11 +156,11 @@ class TestInhibit:
         assert args[4]["reason"] == reason
 
     def test_permission(self, portals, dbus_con, xdp_app_info):
-        app_id = xdp_app_info.app_id
+        permissions_id = xdp_app_info.permissions_id
         inhibit_intf = xdp.get_portal_iface(dbus_con, "Inhibit")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        self.set_permissions(dbus_con, app_id, ["logout", "suspend"])
+        self.set_permissions(dbus_con, permissions_id, ["logout", "suspend"])
 
         reason = "reason"
         flags = InhibitFlags.LOGOUT | InhibitFlags.SUSPEND | InhibitFlags.IDLE
@@ -184,7 +184,7 @@ class TestInhibit:
         _, args = method_calls[-1]
         assert args[3] == allowed_flags.value
 
-        self.set_permissions(dbus_con, app_id, ["suspend"])
+        self.set_permissions(dbus_con, permissions_id, ["suspend"])
 
         flags = InhibitFlags.LOGOUT | InhibitFlags.SUSPEND | InhibitFlags.IDLE
         allowed_flags = InhibitFlags.SUSPEND
