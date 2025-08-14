@@ -511,6 +511,12 @@ xdp_is_valid_app_id (const char *string)
 }
 
 gboolean
+xdp_is_valid_permissions_id (const char *string)
+{
+  return xdp_is_valid_app_id (string);
+}
+
+gboolean
 xdp_is_valid_token (const char *string)
 {
   g_autofree char *path = NULL;
