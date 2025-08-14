@@ -1075,37 +1075,6 @@ permission_db_entry_list_permissions (PermissionDbEntry *entry,
     return g_new0 (const char *, 1);
 }
 
-gboolean
-permission_db_entry_has_permission (PermissionDbEntry *entry,
-                                    const char     *app,
-                                    const char     *permission)
-{
-  g_autofree const char **app_permissions = NULL;
-
-  app_permissions = permission_db_entry_list_permissions (entry, app);
-
-  return g_strv_contains (app_permissions, permission);
-}
-
-gboolean
-permission_db_entry_has_permissions (PermissionDbEntry *entry,
-                                     const char     *app,
-                                     const char    **permissions)
-{
-  g_autofree const char **app_permissions = NULL;
-  int i;
-
-  app_permissions = permission_db_entry_list_permissions (entry, app);
-
-  for (i = 0; permissions[i] != NULL; i++)
-    {
-      if (!g_strv_contains (app_permissions, permissions[i]))
-        return FALSE;
-    }
-
-  return TRUE;
-}
-
 static GVariant *
 make_entry (GVariant *data,
             GVariant *app_permissions)
