@@ -17,6 +17,7 @@ more complex parts of XDG Desktop Portal.
 
    building-and-running
    pull-requests
+   merge-requirements
    architecture
 
 .. cssclass:: tiled-toc
@@ -38,6 +39,16 @@ more complex parts of XDG Desktop Portal.
       :class: only-dark
 
    :doc:`Pull Requests </pull-requests>`
+
+*  .. image:: _static/img/tiles/Pull-request-l.png
+      :target: merge-requirements.html
+      :class: only-light
+   .. image:: _static/img/tiles/Pull-request-d.png
+      :target: merge-requirements.html
+      :class: only-dark
+
+   :doc:`Merge requirements </merge-requirements>`
+
 *  .. image:: _static/img/tiles/Architecture-l.png
       :target: architecture.html
       :class: only-light
