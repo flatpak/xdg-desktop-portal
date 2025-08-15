@@ -1,0 +1,4 @@
+[wrap-git]
+directory=libspiel
+url=https://github.com/project-spiel/libspiel.git
+revision=main
