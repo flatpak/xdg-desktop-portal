@@ -8,9 +8,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2023-12-27 17:44+0100\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-08-15 04:00+0000\n"
+"PO-Revision-Date: 2025-08-15 15:16+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,53 +18,53 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 3.4.1\n"
+"X-Generator: Poedit 3.6\n"
 
-#: src/background.c:827
+#: src/background.c:833
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Povolit aplikaci %s běh na pozadí?"
 
-#: src/background.c:831
+#: src/background.c:837
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Aplikace %s požaduje automatické spouštění a běh na pozadí."
 
-#: src/background.c:833
+#: src/background.c:839
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Aplikace %s požaduje běh na pozadí."
 
-#: src/background.c:834
+#: src/background.c:840
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
 msgstr ""
 "Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace."
 
-#: src/background.c:838
+#: src/background.c:844
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Povolit"
 
-#: src/camera.c:105
+#: src/camera.c:99
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Povolit aplikaci %s používat kameru?"
 
-#: src/camera.c:106
+#: src/camera.c:100
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "Aplikace %s chce přistupovat ke kamerám."
 
-#: src/camera.c:110
+#: src/camera.c:104
 msgid "Allow app to Use the Camera?"
 msgstr "Povolit aplikaci používat kameru?"
 
-#: src/camera.c:111
+#: src/camera.c:105
 msgid "An app wants to access camera devices."
 msgstr "Nějaká aplikace chce přistupovat ke kamerám."
 
@@ -78,131 +78,152 @@ msgstr ""
 msgid "Desktop file id is not valid"
 msgstr ""
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:354
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:397
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr ""
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:406 src/dynamic-launcher.c:828
+#: src/dynamic-launcher.c:877
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:560
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:583
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:590
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr ""
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:652 src/dynamic-launcher.c:722
 msgid "Dynamic launcher icon failed validation"
 msgstr ""
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:738
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:917
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr ""
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:940
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:979
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr ""
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:998
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:544
+#: src/location.c:541
 msgid "Deny Access"
 msgstr "Zamítnout přístup"
 
-#: src/location.c:546
+#: src/location.c:543
 msgid "Grant Access"
 msgstr "Schválit přístup"
 
-#: src/location.c:566
+#: src/location.c:563
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Schválit pro %s přístup k vaší poloze?"
 
-#: src/location.c:571
+#: src/location.c:568
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Aplikace %s chce použít vaši polohu."
 
-#: src/location.c:580
+#: src/location.c:577
 msgid "Grant Access to Your Location?"
 msgstr "Schválit přístup k vaší poloze?"
 
-#: src/location.c:581
+#: src/location.c:578
 msgid "An application wants to use your location."
 msgstr "Nějaká aplikace chce použít vaši polohu."
 
-#: src/location.c:584
+#: src/location.c:581
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
 "soukromí."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:217 src/wallpaper.c:184
 msgid "Deny"
 msgstr "Zamítnout"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:243
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Povolit aplikaci %s pořizovat snímky obrazovky?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:244
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "Aplikace %s chce mít možnost kdykoliv pořizovat snímky obrazovky."
 
-#: src/screenshot.c:276
+#: src/screenshot.c:248
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Povolit aplikaci %s pořídit snímek obrazovky?"
+
+#: src/screenshot.c:249
+#, c-format
+msgid "%s wants to take a screenshot."
+msgstr "Aplikace %s chce pořídit snímek obrazovky."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:260
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
 
-#: src/screenshot.c:277
+#: src/screenshot.c:261
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Nějaká aplikace chce mít možnost kdykoliv pořizovat snímky obrazovky."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
+#: src/screenshot.c:265
+msgid "Allow to Take a Screenshot?"
+msgstr "Povolit aplikaci pořídit snímek obrazovky?"
+
+#: src/screenshot.c:266
+msgid "An application wants to take a screenshot."
+msgstr "Nějaká aplikace chce pořídit snímek obrazovky."
+
+#: src/screenshot.c:271 src/wallpaper.c:219
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr "Toto oprávnění můžete kdykoliv změnit v nastavení soukromí."
 
@@ -212,28 +233,27 @@ msgstr "Požadované nastavení nebylo nalezeno"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "Zařízení není dostupné"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "Nepovolit"
+msgstr "Není povoleno"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:206
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Povolit aplikaci %s možnost nastavit pozadí?"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:207
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikace %s požaduje mít možnost změnit obrázek na pozadí."
 
-#: src/wallpaper.c:217
+#: src/wallpaper.c:216
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Povolit aplikacím možnost nastavit pozadí?"
 
-#: src/wallpaper.c:218
+#: src/wallpaper.c:217
 msgid "An application is requesting to be able to change the background image."
 msgstr "Aplikace požaduje mít možnost změnit obrázek na pozadí."
 
