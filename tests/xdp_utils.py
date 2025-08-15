@@ -66,6 +66,10 @@ def run_long_tests() -> bool:
     return os.environ.get("XDP_TEST_RUN_LONG") is not None
 
 
+def is_valgrind() -> bool:
+    return os.getenv("XDP_TEST_VALGRIND") is not None
+
+
 def check_program_success(cmd) -> bool:
     proc = subprocess.Popen(
         cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
@@ -512,7 +516,7 @@ class Closable:
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
         assert 0 < timeout_ms < DBUS_TIMEOUT
-        GLib.timeout_add(timeout_ms, self.close)
+        GLib.timeout_add(timeout_ms * 10 if is_valgrind() else timeout_ms, self.close)
 
 
 class Request(Closable):
@@ -603,7 +607,9 @@ class Request(Closable):
 
         # Anything that takes longer than 5s needs to fail
         self._mainloop = GLib.MainLoop()
-        GLib.timeout_add(DBUS_TIMEOUT, self._mainloop.quit)
+        GLib.timeout_add(
+            DBUS_TIMEOUT * 10 if is_valgrind() else DBUS_TIMEOUT, self._mainloop.quit
+        )
 
         method = getattr(self.interface, methodname)
         assert method
