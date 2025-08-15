@@ -37,6 +37,7 @@
 #include <gio/gunixfdlist.h>
 #include <gio/gdesktopappinfo.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "open-uri.h"
 #include "xdp-request.h"
 #include "xdp-dbus.h"
@@ -1159,6 +1160,11 @@ open_uri_create (GDBusConnection *connection,
       g_warning ("Failed to create app chooser proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "OpenURI",
+                                                 dbus_name,
+                                                 0);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
