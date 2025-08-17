@@ -67,6 +67,11 @@
           Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
           bypass the print dialog.
 
+        * ``supported_output_file_formats`` (``as``)
+
+          File formats supported by the app to use for print-to-file. If not set, all formats
+          are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
+
         The :ref:`org.freedesktop.portal.Print.Print` documentation has details about
         the supported keys in settings and page-setup.
     -->
