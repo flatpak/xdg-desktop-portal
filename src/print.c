@@ -251,6 +251,8 @@ static XdpOptionKey prepare_print_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN },
   { "accept_label", G_VARIANT_TYPE_STRING },
   { "supported_output_file_formats", G_VARIANT_TYPE_STRING_ARRAY, validate_supported_output_file_formats },
+  { "has_current_page", G_VARIANT_TYPE_BOOLEAN },
+  { "has_selected_pages", G_VARIANT_TYPE_BOOLEAN },
 };
 
 static gboolean
