@@ -34,7 +34,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -73,6 +73,18 @@
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
 
           This option was added in version 3.
+
+        * ``has_current_page`` (``b``)
+
+          Whether it makes sense to return "current" for the ``print-pages`` setting.
+
+          This option was added in version 4.
+
+        * ``has_selected_pages`` (``b``)
+
+          Whether it makes sense to return "selection" for the ``print-pages`` setting.
+
+          This option was added in version 4.
 
         The @settings and @page_setup vardict contain hints for the initial state of the print dialog.
 
