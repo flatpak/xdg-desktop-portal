@@ -67,6 +67,14 @@
           Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
           bypass the print dialog.
 
+        * ``has_current_page`` (``b``)
+
+          Whether it makes sense to return "current" for the ``print-pages`` setting.
+
+        * ``has_selected_pages`` (``b``)
+
+          Whether it makes sense to return "selection" for the ``print-pages`` setting.
+
         The :ref:`org.freedesktop.portal.Print.Print` documentation has details about
         the supported keys in settings and page-setup.
     -->
