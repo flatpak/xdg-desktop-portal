@@ -1,6 +1,6 @@
-Changes in 1.21.0
-=================
-Released: Not yet
+Changes in 2.rc0
+================
+Released: 2025-08-19
 
 ...
 
