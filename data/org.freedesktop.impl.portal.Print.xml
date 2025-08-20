@@ -72,7 +72,7 @@
           File formats supported by the app to use for print-to-file. If not set, all formats
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
 
-        The :ref:`org.freedesktop.portal.Print.Print` documentation has details about
+        The :ref:`org.freedesktop.portal.Print.PreparePrint` documentation has details about
         the supported keys in settings and page-setup.
     -->
     <method name="PreparePrint">
