@@ -23,7 +23,7 @@
 
 #pragma once
 
-#include <glib.h>
+#include <glib-object.h>
 
 typedef struct {
   char *source;
@@ -33,8 +33,16 @@ typedef struct {
   int priority;
 } XdpPortalImplementation;
 
-void load_installed_portals (gboolean opt_verbose);
-void load_portal_configuration (gboolean opt_verbose);
-XdpPortalImplementation *find_portal_implementation (const char *interface);
-GPtrArray *find_all_portal_implementations (const char *interface);
+#define XDP_TYPE_PORTAL_IMPLS (xdp_portal_impls_get_type())
+G_DECLARE_FINAL_TYPE (XdpPortalImpls,
+                      xdp_portal_impls,
+                      XDP, PORTAL_IMPLS,
+                      GObject)
 
+XdpPortalImpls * xdp_portal_impls_new (gboolean opt_verbose);
+
+XdpPortalImplementation * xdp_portal_impls_find (XdpPortalImpls *portal_impls,
+                                                 const char     *interface);
+
+GPtrArray * xdp_portal_impls_find_all (XdpPortalImpls *portal_impls,
+                                       const char     *interface);
