@@ -310,7 +310,7 @@ xdp_app_info_new (uint32_t   pid,
                   GError   **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autofd int pidfd_owned = -1;
+  g_autofd int pidfd_owned = pidfd;
   g_autoptr(GError) local_error = NULL;
 
   app_info = xdp_app_info_flatpak_new (pid, &pidfd_owned, &local_error);
