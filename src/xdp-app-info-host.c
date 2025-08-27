@@ -237,6 +237,21 @@ xdp_app_info_host_new (int  pid,
       app_id = get_appid_from_pid (pid);
     }
 
+  /* There are no security guarantees for host apps, so let's just make sure
+   * we get the pidfd from the pid. It is racy (pid could be recycled) but it
+   * doesn't matter here.
+   */
+  if (*pidfd == -1)
+    {
+      g_autoptr(GError) local_error = NULL;
+
+      if (!xdp_pid_to_pidfd (pid, pidfd, &local_error))
+        {
+          g_warning ("Failed to get pidfd for host process %d: %s",
+                     pid, local_error->message);
+        }
+    }
+
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   NULL,
