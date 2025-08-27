@@ -30,6 +30,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#if HAVE_PIDFD_OPEN
+#include <sys/pidfd.h>
+#else
+#include <sys/syscall.h>
+#include <unistd.h>
+#endif
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -42,6 +48,15 @@
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
+
+#if !HAVE_PIDFD_OPEN
+static int
+pidfd_open (pid_t        pid,
+            unsigned int flags)
+{
+   return syscall (SYS_pidfd_open, pid, flags);
+}
+#endif
 
 /* Based on g_mkstemp from glib */
 gint
@@ -735,6 +750,27 @@ xdp_variant_contains_key (GVariant *dictionary,
     }
 
   return FALSE;
+}
+
+gboolean
+xdp_pid_to_pidfd (pid_t    pid,
+                  int     *pidfd_out,
+                  GError **error)
+{
+  g_autofd int pidfd = -1;
+
+  pidfd = pidfd_open (pid, 0);
+
+  if (pidfd < 0)
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Unable to pidfd from pid %d: %s", pid, g_strerror (errno));
+      return FALSE;
+    }
+
+  if (pidfd_out)
+    *pidfd_out = g_steal_fd (&pidfd);
+  return TRUE;
 }
 
 static int

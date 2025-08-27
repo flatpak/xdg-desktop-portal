@@ -123,6 +123,10 @@ char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);
 
+gboolean xdp_pid_to_pidfd (pid_t    pid,
+                           int     *pidfd_out,
+                           GError **error);
+
 pid_t xdp_pidfd_to_pid (int      pidfd,
                         GError **error);
 
