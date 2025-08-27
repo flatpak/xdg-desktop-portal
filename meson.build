@@ -91,6 +91,7 @@ config_h.set_quoted('PACKAGE_STRING', 'xdg-desktop-portal @0@'.format(meson.proj
 foreach ident : [
         ['renameat2',         '''#include <stdio.h>'''],
         ['splice',            '''#include <fcntl.h>'''],
+        ['pidfd_open',        '''#include <sys/pidfd.h>'''], # since glibc-2.36
 ]
   have = cc.has_function(ident[0], prefix: ident[1], args: '-D_GNU_SOURCE')
   config_h.set10('HAVE_' + ident[0].to_upper(), have)
