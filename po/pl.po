@@ -1,15 +1,15 @@
 # Polish translation for xdg-desktop-portal.
-# Copyright © 2016-2024 the xdg-desktop-portal authors.
+# Copyright © 2016-2025 the xdg-desktop-portal authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2016-2024.
-# Aviary.pl <community-poland@mozilla.org>, 2016-2024.
+# Piotr Drąg <piotrdrag@gmail.com>, 2016-2025.
+# Aviary.pl <community-poland@mozilla.org>, 2016-2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2024-03-03 14:55+0100\n"
+"POT-Creation-Date: 2025-08-27 04:08+0000\n"
+"PO-Revision-Date: 2025-08-27 14:24+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
 "Language: pl\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: src/background.c:827
+#: src/background.c:833
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Pozwolić programowi „%s” na działanie w tle?"
 
-#: src/background.c:831
+#: src/background.c:837
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "Program „%s” potrzebuje być automatycznie uruchamiany i działać w tle."
 
-#: src/background.c:833
+#: src/background.c:839
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Program „%s” potrzebuje działać w tle."
 
-#: src/background.c:834
+#: src/background.c:840
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -42,170 +42,111 @@ msgstr ""
 "Uprawnienie do działania w tle można zmienić w każdej chwili w ustawieniach "
 "programów."
 
-#: src/background.c:838
+#: src/background.c:844
 msgid "Don't allow"
 msgstr "Nie zezwalaj"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Zezwól"
 
-#: src/camera.c:105
+#: src/camera.c:99
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Pozwolić programowi „%s” na używanie kamery?"
 
-#: src/camera.c:106
+#: src/camera.c:100
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "Program „%s” potrzebuje dostępu do kamer."
 
-#: src/camera.c:110
+#: src/camera.c:104
 msgid "Allow app to Use the Camera?"
 msgstr "Pozwolić programowi na używanie kamery?"
 
-#: src/camera.c:111
+#: src/camera.c:105
 msgid "An app wants to access camera devices."
 msgstr "Program potrzebuje dostępu do kamer."
 
-#: src/dynamic-launcher.c:122
-#, c-format
-msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:133
-#, c-format
-msgid "Desktop file id is not valid"
-msgstr ""
-
-#: src/dynamic-launcher.c:306
-#, c-format
-msgid "Desktop entry given to Install() not a valid key file"
-msgstr ""
-
-#: src/dynamic-launcher.c:319
-#, c-format
-msgid "Desktop entry given to Install() must have exactly one group"
-msgstr ""
-
-#: src/dynamic-launcher.c:356
-#, c-format
-msgid "Token given is invalid: %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:400
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr ""
-
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
-#, c-format
-msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:563
-#, c-format
-msgid "URL given is invalid: %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:586
-#, c-format
-msgid "Invalid launcher type: %x"
-msgstr ""
-
-#: src/dynamic-launcher.c:593
-#, c-format
-msgid "Unsupported launcher type: %x"
-msgstr ""
-
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
-msgid "Dynamic launcher icon failed validation"
-msgstr ""
-
-#: src/dynamic-launcher.c:741
-#, c-format
-msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
-
-#: src/dynamic-launcher.c:920
-#, c-format
-msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
-
-#: src/dynamic-launcher.c:943
-#, c-format
-msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
-
-#: src/dynamic-launcher.c:982
-#, c-format
-msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
-
-#: src/dynamic-launcher.c:1001
-#, c-format
-msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr ""
-
-#: src/location.c:544
+#: src/location.c:541
 msgid "Deny Access"
 msgstr "Odmów dostępu"
 
-#: src/location.c:546
+#: src/location.c:543
 msgid "Grant Access"
 msgstr "Udziel dostępu"
 
-#: src/location.c:566
+#: src/location.c:563
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Udzielić dostęp do położenia programowi „%s”?"
 
-#: src/location.c:571
+#: src/location.c:568
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Program „%s” potrzebuje dostępu do położenia."
 
-#: src/location.c:580
+#: src/location.c:577
 msgid "Grant Access to Your Location?"
 msgstr "Udzielić dostęp do położenia?"
 
-#: src/location.c:581
+#: src/location.c:578
 msgid "An application wants to use your location."
 msgstr "Program potrzebuje dostępu do położenia."
 
-#: src/location.c:584
+#: src/location.c:581
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:217 src/wallpaper.c:184
 msgid "Deny"
 msgstr "Odmów"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:243
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Pozwolić programowi „%s” na wykonywanie zrzutów ekranu?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:244
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 "Program „%s” potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:276
+#: src/screenshot.c:248
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Pozwolić programowi „%s” na wykonanie zrzutu ekranu?"
+
+#: src/screenshot.c:249
+#, c-format
+msgid "%s wants to take a screenshot."
+msgstr "Program „%s” potrzebuje wykonać zrzut ekranu."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:260
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Pozwolić programowi na wykonywanie zrzutów ekranu?"
 
-#: src/screenshot.c:277
+#: src/screenshot.c:261
 msgid "An application wants to be able to take screenshots at any time."
 msgstr ""
 "Program potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
+#: src/screenshot.c:265
+msgid "Allow to Take a Screenshot?"
+msgstr "Pozwolić programowi na wykonanie zrzutu ekranu?"
+
+#: src/screenshot.c:266
+msgid "An application wants to take a screenshot."
+msgstr "Program potrzebuje wykonać zrzut ekranu."
+
+#: src/screenshot.c:271 src/wallpaper.c:219
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
@@ -216,55 +157,26 @@ msgstr "Nie odnaleziono żądanego ustawienia"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "Urządzenie jest niedostępne"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "Nie zezwalaj"
+msgstr "Niedozwolone"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:206
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Pozwolić programowi „%s” na ustawianie tła?"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:207
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "Program „%s” potrzebuje mieć możliwość zmiany obrazu tła."
 
-#: src/wallpaper.c:217
+#: src/wallpaper.c:216
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Pozwolić programowi na ustawianie tła?"
 
-#: src/wallpaper.c:218
+#: src/wallpaper.c:217
 msgid "An application is requesting to be able to change the background image."
 msgstr "Program potrzebuje mieć możliwość zmiany obrazu tła."
-
-#, c-format
-#~ msgid "Allow %s to Use the Microphone?"
-#~ msgstr "Pozwolić programowi „%s” na używanie mikrofonu?"
-
-#, c-format
-#~ msgid "%s wants to access recording devices."
-#~ msgstr "Program „%s” potrzebuje dostępu do urządzeń nagrywających."
-
-#~ msgid "Allow app to Use the Microphone?"
-#~ msgstr "Pozwolić programowi na używanie mikrofonu?"
-
-#~ msgid "An app wants to access recording devices."
-#~ msgstr "Program potrzebuje dostępu do urządzeń nagrywających."
-
-#, c-format
-#~ msgid "Allow %s to Use the Speakers?"
-#~ msgstr "Pozwolić programowi „%s” na używanie głośników?"
-
-#, c-format
-#~ msgid "%s wants to access audio devices."
-#~ msgstr "Program „%s” potrzebuje dostępu do urządzeń dźwiękowych."
-
-#~ msgid "Allow app to Use the Speakers?"
-#~ msgstr "Pozwolić programowi na używanie głośników?"
-
-#~ msgid "An app wants to access audio devices."
-#~ msgstr "Program potrzebuje dostępu do urządzeń dźwiękowych."
