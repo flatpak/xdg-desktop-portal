@@ -38,17 +38,17 @@
 #include <glib/gprintf.h>
 #include <gio/gio.h>
 #include <pthread.h>
-#ifdef HAVE_SYS_STATFS_H
+#if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
 #include <sys/types.h>
-#ifdef HAVE_SYS_MOUNT_H
+#if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
-#ifdef HAVE_SYS_XATTR_H
+#if HAVE_SYS_XATTR_H
 #include <sys/xattr.h>
 #endif
-#ifdef HAVE_SYS_EXTATTR_H
+#if HAVE_SYS_EXTATTR_H
 #include <sys/extattr.h>
 #endif
 #include <sys/time.h>
@@ -3169,9 +3169,9 @@ xdp_fuse_setxattr (fuse_req_t  req,
   else
     {
       path = fd_to_path (inode->physical->fd);
-#if defined(HAVE_SYS_XATTR_H)
+#if HAVE_SYS_XATTR_H
       res = setxattr (path, name, value, size, flags);
-#elif defined(HAVE_SYS_EXTATTR_H)
+#elif HAVE_SYS_EXTATTR_H
       res = extattr_set_file (path, EXTATTR_NAMESPACE_USER, name, value, size);
 #else
 #error "Not implemented for your platform"
@@ -3214,9 +3214,9 @@ xdp_fuse_getxattr (fuse_req_t  req,
     }
   else
     {
-#if defined(HAVE_SYS_XATTR_H)
+#if HAVE_SYS_XATTR_H
       res = getxattr (path, name, buf, size);
-#elif defined(HAVE_SYS_EXTATTR_H)
+#elif HAVE_SYS_EXTATTR_H
       res = extattr_get_file (path, EXTATTR_NAMESPACE_USER, name, buf, size);
 #else
 #error "Not implemented for your platform"
@@ -3280,9 +3280,9 @@ xdp_fuse_listxattr (fuse_req_t req,
     }
   else
     {
-#if defined(HAVE_SYS_XATTR_H)
+#if HAVE_SYS_XATTR_H
       res = listxattr (path, buf, size);
-#elif defined(HAVE_SYS_EXTATTR_H)
+#elif HAVE_SYS_EXTATTR_H
       res = extattr_list_file (path, EXTATTR_NAMESPACE_USER, buf, size);
 #else
 #error "Not implemented for your platform"
@@ -3326,9 +3326,9 @@ xdp_fuse_removexattr (fuse_req_t  req,
   else
     {
       path = fd_to_path (inode->physical->fd);
-#if defined(HAVE_SYS_XATTR_H)
+#if HAVE_SYS_XATTR_H
       res = removexattr (path, name);
-#elif defined(HAVE_SYS_EXTATTR_H)
+#elif HAVE_SYS_EXTATTR_H
       res = extattr_delete_file (path, EXTATTR_NAMESPACE_USER, name);
 #else
 #error "Not implemented for your platform"
@@ -3533,7 +3533,7 @@ xdp_fuse_thread (gpointer data)
     }
 
   fuse_opts = g_new0 (XdpFuseOptions, 1);
-#ifdef WITH_SPLICE
+#if HAVE_SPLICE
   fuse_opts->use_splice = TRUE;
 #endif
 

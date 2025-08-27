@@ -19,7 +19,7 @@
 
 #include "config.h"
 
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
 #include <systemd/sd-login.h>
 #include "sd-escape.h"
 #endif
@@ -110,7 +110,7 @@ xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
     g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
 }
 
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
 char *
 _xdp_app_info_host_parse_app_id_from_unit_name (const char *unit)
 {
@@ -164,7 +164,7 @@ _xdp_app_info_host_parse_app_id_from_unit_name (const char *unit)
 static char *
 get_appid_from_pid (pid_t pid)
 {
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
   g_autofree char *unit = NULL;
   int res;
 

@@ -329,7 +329,7 @@ on_bus_acquired (GDBusConnection *connection,
     {
       XdpPortalImplementation *tmp;
 
-#ifdef HAVE_GEOCLUE
+#if HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
                                                      access_impl->dbus_name,
@@ -408,7 +408,7 @@ on_bus_acquired (GDBusConnection *connection,
     export_portal_implementation (connection,
                                   input_capture_create (connection, implementation->dbus_name));
 
-#ifdef HAVE_GUDEV
+#if HAVE_GUDEV
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Usb");
   if (implementation != NULL)
     export_portal_implementation (connection,

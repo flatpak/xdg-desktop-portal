@@ -21,7 +21,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#ifdef HAVE_SYS_VFS_H
+#if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
 
