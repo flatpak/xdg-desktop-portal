@@ -133,7 +133,7 @@ test_alternate_doc_path (void)
   xdp_set_documents_mountpoint (NULL);
 }
 
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
 static void
 test_app_id_via_systemd_unit (void)
 {
@@ -198,7 +198,7 @@ int main (int argc, char **argv)
   g_test_add_func ("/parse-cgroup/systemd", test_parse_cgroup_systemd);
   g_test_add_func ("/parse-cgroup/not-snap", test_parse_cgroup_not_snap);
   g_test_add_func ("/alternate-doc-path", test_alternate_doc_path);
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
   g_test_add_func ("/app-id-via-systemd-unit", test_app_id_via_systemd_unit);
 #endif
   return g_test_run ();

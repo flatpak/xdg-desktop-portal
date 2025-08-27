@@ -40,7 +40,7 @@ xdp_app_info_host_new_registered (int         *pidfd,
                                   const char  *app_id,
                                   GError     **error);
 
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
 XDP_EXPORT_TEST
 char * _xdp_app_info_host_parse_app_id_from_unit_name (const char *unit);
 #endif

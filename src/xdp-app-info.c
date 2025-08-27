@@ -28,13 +28,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#ifdef HAVE_SYS_VFS_H
+#if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
-#ifdef HAVE_SYS_MOUNT_H
+#if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
-#ifdef HAVE_LIBSYSTEMD
+#if HAVE_LIBSYSTEMD
 #include <systemd/sd-login.h>
 #include "sd-escape.h"
 #endif
