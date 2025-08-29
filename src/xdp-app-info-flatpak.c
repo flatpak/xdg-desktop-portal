@@ -654,6 +654,7 @@ open_flatpak_info (int      pid,
       if (errno == EACCES)
         {
           struct statfs buf;
+          struct stat stat_buf;
 
           /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
            * filesystem, such as in a toolbox container. We will never have a fuse rootfs
@@ -665,6 +666,18 @@ open_flatpak_info (int      pid,
             {
               g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
                            "Not a flatpak (fuse rootfs)");
+              return -1;
+            }
+
+          /* Permission to dereference or read the symbolic link to the root dir may not
+           * have been granted. See proc_pid_root(5) for more information. This can happen
+           * if non-flatpak versions of Gimp and Firefox start a child process to capture
+           * a screen.
+           */
+          if (lstat (root_path, &stat_buf) == 0 && S_ISLNK (stat_buf.st_mode))
+            {
+              g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                           "Not a flatpak (restricted link)");
               return -1;
             }
         }
