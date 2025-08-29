@@ -1157,6 +1157,12 @@ add_permissions (GVariant *app_permissions,
 
       g_variant_get (child, "{&s@as}", &child_app_id, &old_perms_array);
 
+      if (child_app_id == NULL)
+        {
+          g_warning ("Got NULL app-id in the store when adding permissions for %s", new_app_id);
+          continue;
+        }
+
       cmp = strcmp (new_app_id, child_app_id);
       if (cmp == 0)
         {
