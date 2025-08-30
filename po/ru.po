@@ -7,9 +7,9 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2025-08-10 14:11+0300\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-08-30 03:51+0000\n"
+"PO-Revision-Date: 2025-08-30 14:31+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
 "Language: ru\n"
@@ -18,26 +18,26 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.7\n"
 
-#: src/background.c:827
+#: src/background.c:833
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Разрешить приложению \"%s\" работать в фоне?"
 
-#: src/background.c:831
+#: src/background.c:837
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr ""
 "Приложение \"%s\" запрашивает доступ на автоматический запуск и работу в "
 "фоне."
 
-#: src/background.c:833
+#: src/background.c:839
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "Приложение \"%s\" запрашивает доступ на работу в фоне."
 
-#: src/background.c:834
+#: src/background.c:840
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the "
 "application settings."
@@ -45,29 +45,29 @@ msgstr ""
 "Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
 "приложения."
 
-#: src/background.c:838
+#: src/background.c:844
 msgid "Don't allow"
 msgstr "Запретить"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Разрешить"
 
-#: src/camera.c:105
+#: src/camera.c:99
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Разрешить приложению \"%s\" использовать камеру?"
 
-#: src/camera.c:106
+#: src/camera.c:100
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "Приложение \"%s\" хочет получить доступ к устройствам камеры."
 
-#: src/camera.c:110
+#: src/camera.c:104
 msgid "Allow app to Use the Camera?"
 msgstr "Разрешить приложению использовать камеру?"
 
-#: src/camera.c:111
+#: src/camera.c:105
 msgid "An app wants to access camera devices."
 msgstr "Приложение хочет получить доступ к устройствам камеры."
 
@@ -81,137 +81,158 @@ msgstr "В идентификаторе desktop-файла отсутствуе�
 msgid "Desktop file id is not valid"
 msgstr "Идентификатор desktop-файла недействителен"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Desktop-запись, переданная в Install(), не содержит действительного файла "
 "ключа"
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:318
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr ""
-"Desktop-запись, переданная в Install(), должна иметь ровно одну группу"
+msgstr "Desktop-запись, переданная в Install(), должна иметь ровно одну группу"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:354
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Указанный токен недействителен: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:397
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop-запись, переданная в Install(), недействительна"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:406 src/dynamic-launcher.c:828
+#: src/dynamic-launcher.c:877
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-файл превышает максимальный размер (%d): %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:560
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Указанный URL недействителен: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:583
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Недействительный тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:590
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Неподдерживаемый тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:652 src/dynamic-launcher.c:722
 msgid "Dynamic launcher icon failed validation"
 msgstr "Значок динамической программы запуска не прошел проверку"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:738
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() не разрешен для идентификатора приложения %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:917
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Значок desktop-файла '%s' находится по нераспознанному пути"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:940
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Не удалось сериализовать значок desktop-файла '%s'"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:979
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Не существует динамической программы запуска с идентификатором '%s'"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:998
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Не удалось создать GDesktopAppInfo для программы запуска с идентификатором "
 "'%s'"
 
-#: src/location.c:544
+#: src/location.c:541
 msgid "Deny Access"
 msgstr "Отказать в доступе"
 
-#: src/location.c:546
+#: src/location.c:543
 msgid "Grant Access"
 msgstr "Предоставить доступ"
 
-#: src/location.c:566
+#: src/location.c:563
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Дать приложению \"%s\" доступ к вашему местоположению?"
 
-#: src/location.c:571
+#: src/location.c:568
 #, c-format
 msgid "%s wants to use your location."
 msgstr "Приложение \"%s\" хочет использовать ваше местоположение."
 
-#: src/location.c:580
+#: src/location.c:577
 msgid "Grant Access to Your Location?"
 msgstr "Предоставить доступ к вашему местоположению?"
 
-#: src/location.c:581
+#: src/location.c:578
 msgid "An application wants to use your location."
 msgstr "Приложение хочет использовать ваше местоположение."
 
-#: src/location.c:584
+#: src/location.c:581
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Доступ к местоположению можно изменить в любой момент в настройках "
 "конфиденциальности."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:217 src/wallpaper.c:184
 msgid "Deny"
 msgstr "Отказать"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:243
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Разрешить приложению \"%s\" делать снимки экрана?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:244
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr ""
 "Приложение \"%s\" хочет иметь возможность делать снимки экрана в любое время."
 
-#: src/screenshot.c:276
+#: src/screenshot.c:248
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Разрешить приложению \"%s\" сделать снимок экрана?"
+
+#: src/screenshot.c:249
+#, c-format
+msgid "%s wants to take a screenshot."
+msgstr ""
+"Приложение \"%s\" хочет сделать снимок экрана."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:260
 msgid "Allow Applications to Take Screenshots?"
 msgstr "Разрешить приложениям делать снимки экрана?"
 
-#: src/screenshot.c:277
+#: src/screenshot.c:261
 msgid "An application wants to be able to take screenshots at any time."
 msgstr "Приложение хочет иметь возможность делать снимки экрана в любое время."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
+#: src/screenshot.c:265
+msgid "Allow to Take a Screenshot?"
+msgstr "Разрешить сделать снимок экрана?"
+
+#: src/screenshot.c:266
+msgid "An application wants to take a screenshot."
+msgstr "Приложение хочет сделать снимок экрана."
+
+#: src/screenshot.c:271 src/wallpaper.c:219
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Это разрешение можно изменить в любой момент в настройках конфиденциальности."
@@ -228,22 +249,22 @@ msgstr "Устройство недоступно"
 msgid "Not allowed"
 msgstr "Запрещено"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:206
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Разрешить приложению \"%s\" устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:207
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr ""
 "Приложение \"%s\" запрашивает возможность изменения фонового изображения."
 
-#: src/wallpaper.c:217
+#: src/wallpaper.c:216
 msgid "Allow Applications to Set Backgrounds?"
 msgstr "Разрешить приложениям устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:218
+#: src/wallpaper.c:217
 msgid "An application is requesting to be able to change the background image."
 msgstr "Приложение запрашивает возможность изменения фонового изображения."
 
