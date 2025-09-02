@@ -1029,6 +1029,35 @@ out:
 }
 
 static gboolean
+filter_access_devices_writable (const char   *key,
+                                GVariant     *value,
+                                GUdevDevice  *device,
+                                GError      **error)
+{
+  const char *device_file;
+  gboolean writable = g_variant_get_boolean (value);
+
+  if (!writable)
+    return TRUE;
+
+  device_file = g_udev_device_get_device_file (device);
+  if (access (device_file, W_OK) != -1)
+    return TRUE;
+
+  g_set_error (error,
+               XDG_DESKTOP_PORTAL_ERROR,
+               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+               "Requested writable access for read-only device");
+  return FALSE;
+}
+
+typedef struct {
+  const char *key;
+  const GVariantType *type;
+  gboolean (* filter) (const char *key, GVariant *value, GUdevDevice *device, GError **error);
+} XdpUsbAccessOptionKey;
+
+static gboolean
 filter_access_devices (XdpUsb         *self,
                        UsbSenderInfo  *sender_info,
                        GVariant       *devices,
@@ -1042,8 +1071,8 @@ filter_access_devices (XdpUsb         *self,
   const char *device_id;
   size_t n_devices;
 
-  static const XdpOptionKey usb_device_options[] = {
-    { "writable", G_VARIANT_TYPE_BOOLEAN, NULL },
+  static const XdpUsbAccessOptionKey usb_device_options[] = {
+    { "writable", G_VARIANT_TYPE_BOOLEAN, filter_access_devices_writable },
   };
 
   g_assert (self != NULL);
@@ -1122,6 +1151,11 @@ filter_access_devices (XdpUsb         *self,
                                device_option);
                   return FALSE;
                 }
+
+              if (usb_device_options[i].filter &&
+                  !usb_device_options[i].filter (device_option, value,
+                                                 device, out_error))
+                return FALSE;
 
               g_variant_dict_insert_value (&device_options_dict,
                                            device_option,
