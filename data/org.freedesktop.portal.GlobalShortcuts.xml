@@ -214,6 +214,13 @@
         @options: Vardict with optional further information
 
         Notifies about a shortcut becoming active.
+
+        Supported keys in the @options vardict include:
+
+        * ``activation_token`` (``s``)
+
+          A token that can be used to activate a window in response to the
+          shortcut getting activated.
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="out"/>
@@ -231,6 +238,13 @@
         @options: Vardict with optional further information
 
         Notifies that a shortcut is not active anymore.
+
+        Supported keys in the @options vardict include:
+
+        * ``activation_token`` (``s``)
+
+          A token that can be used to activate a window in response to the
+          shortcut getting deactivated.
     -->
     <signal name="Deactivated">
       <arg type="o" name="session_handle" direction="out"/>
