@@ -36,7 +36,7 @@
 #include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
-#include "xdp-portal-impl.h"
+#include "xdp-portal-config.h"
 #include "xdp-session-persistence.h"
 
 #include "account.h"
