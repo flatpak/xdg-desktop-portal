@@ -3615,18 +3615,17 @@ xdp_fuse_init (GError **error)
   path = xdp_fuse_get_mountpoint ();
 
   if ((stat (path, &st) == -1 && errno == ENOTCONN) ||
-      (((statfs_res = statfs (path, &stfs)) == -1 && errno == ENOTCONN) ||
-       (statfs_res == 0 && stfs.f_type == 0x65735546 /* fuse */)))
+      ((statfs_res = statfs (path, &stfs)) == -1 && errno == ENOTCONN) ||
+      (statfs_res == 0 && stfs.f_type == 0x65735546 /* fuse */))
     {
-      int count;
+      int count = 0;
       char *umount_argv[] = { "fusermount3", "-u", "-z", (char *) path, NULL };
 
       g_spawn_sync (NULL, umount_argv, NULL, G_SPAWN_SEARCH_PATH,
                     NULL, NULL, NULL, NULL, NULL, NULL);
 
       g_usleep (10000); /* 10ms */
-      count = 0;
-      while (stat (path, &st) == -1 && count < 10)
+      while (stat (path, &st) == -1 && count++ < 10)
         g_usleep (10000); /* 10ms */
     }
 
