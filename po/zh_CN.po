@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-09-01 15:58+0000\n"
-"PO-Revision-Date: 2025-09-02 10:12+0800\n"
+"POT-Creation-Date: 2025-09-03 03:59+0000\n"
+"PO-Revision-Date: 2025-09-03 16:38+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -38,8 +38,8 @@ msgstr "%s 请求在后台运行。"
 
 #: src/background.c:840
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings."
 msgstr "您可随时在应用设置中修改“后台运行”的权限。"
 
 #: src/background.c:844
@@ -171,8 +171,8 @@ msgid "Grant Access to Your Location?"
 msgstr "授权访问您的位置信息？"
 
 #: src/location.c:578
-msgid "An application wants to use your location."
-msgstr "有应用程序想使用您的位置信息。"
+msgid "An app wants to use your location."
+msgstr "有应用想使用您的位置信息。"
 
 #: src/location.c:581
 msgid "Location access can be changed at any time from the privacy settings."
@@ -206,20 +206,20 @@ msgstr "%s 想要获取截屏。"
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:260
-msgid "Allow Applications to Take Screenshots?"
-msgstr "允许应用程序获取截屏吗？"
+msgid "Allow Apps to Take Screenshots?"
+msgstr "允许应用获取截屏吗？"
 
 #: src/screenshot.c:261
-msgid "An application wants to be able to take screenshots at any time."
-msgstr "有应用程序想要在任何时候都能获取截屏。"
+msgid "An app wants to be able to take screenshots at any time."
+msgstr "有应用想要在任何时候都能获取截屏。"
 
 #: src/screenshot.c:265
 msgid "Allow to Take a Screenshot?"
 msgstr "允许获取截屏吗？"
 
 #: src/screenshot.c:266
-msgid "An application wants to take a screenshot."
-msgstr "有应用程序想要获取截屏。"
+msgid "An app wants to take a screenshot."
+msgstr "有应用想要获取截屏。"
 
 #: src/screenshot.c:271 src/wallpaper.c:219
 msgid "This permission can be changed at any time from the privacy settings."
@@ -248,12 +248,18 @@ msgid "%s is requesting to be able to change the background image."
 msgstr "%s 正在请求允许修改背景图像。"
 
 #: src/wallpaper.c:216
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "允许应用程序设置背景吗？"
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "允许应用设置背景吗？"
 
 #: src/wallpaper.c:217
-msgid "An application is requesting to be able to change the background image."
-msgstr "一个应用程序正在请求允许修改背景图像。"
+msgid "An app is requesting to be able to change the background image."
+msgstr "有应用正在请求允许其修改背景图像。"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "允许应用程序获取截屏吗？"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "允许应用程序设置背景吗？"
 
 #, c-format
 #~ msgid "Allow %s to Use the Microphone?"
