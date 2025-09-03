@@ -1,15 +1,15 @@
 # Swedish translation for xdg-desktop-portal.
-# Copyright © 2016, 2020, 2022, 2023, 2024 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright © 2016, 2020, 2022-2025 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Sebastian Rasmussen <sebras@gmail.com>, 2016.
-# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022, 2023, 2024.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022, 2023, 2024, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2024-10-07 18:22+0200\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-09-03 15:58+0000\n"
+"PO-Revision-Date: 2025-09-03 22:14+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -17,54 +17,54 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.7\n"
 
-#: src/background.c:827
+#: src/background.c:833
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
-#: src/background.c:831
+#: src/background.c:837
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s begär att startas automatiskt och köras i bakgrunden."
 
-#: src/background.c:833
+#: src/background.c:839
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s begär att köras i bakgrunden."
 
-#: src/background.c:834
+#: src/background.c:840
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings."
 msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
 "programinställningarna."
 
-#: src/background.c:838
+#: src/background.c:844
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Tillåt"
 
-#: src/camera.c:105
+#: src/camera.c:99
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Tillåt %s att använda kameran?"
 
-#: src/camera.c:106
+#: src/camera.c:100
 #, c-format
 msgid "%s wants to access camera devices."
 msgstr "%s vill komma åt kameraenheter."
 
-#: src/camera.c:110
+#: src/camera.c:104
 msgid "Allow app to Use the Camera?"
 msgstr "Tillåt program att använda kameran?"
 
-#: src/camera.c:111
+#: src/camera.c:105
 msgid "An app wants to access camera devices."
 msgstr "Ett program vill komma åt kameraenheter."
 
@@ -78,129 +78,150 @@ msgstr "Desktop-filens ID saknar .desktop-ändelse: %s"
 msgid "Desktop file id is not valid"
 msgstr "Desktop-filens ID är ogiltigt"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:305
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Desktop-post som ges till Install() är inte en giltig nyckelfil"
 
-#: src/dynamic-launcher.c:319
-#, fuzzy, c-format
+#: src/dynamic-launcher.c:318
+#, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr "Desktop-post som ges till Install() får endast ha en grupp"
+msgstr "Desktop-post som ges till Install() måste ha exakt en grupp"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:354
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Angiven token är ogiltig: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:397
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop-post som ges till Install() är ogiltig"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:406 src/dynamic-launcher.c:828
+#: src/dynamic-launcher.c:877
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-filen överskrider maximal storlek (%d): %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:560
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Angiven URL är ogiltig: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:583
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Ogiltig startartyp: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:590
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Startartyp som inte stöds: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:652 src/dynamic-launcher.c:722
 msgid "Dynamic launcher icon failed validation"
 msgstr "Dynamisk startarikon kunde inte valideras"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:738
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() inte tillåtet för program-ID %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:917
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop-filen ”%s” har ikon på okänd sökväg"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:940
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop-filen ”%s” har ikon som inte kunde serialiseras"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:979
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Ingen dynamisk startare finns med ID ”%s”"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:998
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Misslyckades med att skapa GDesktopAppInfo för startare med ID ”%s”"
 
-#: src/location.c:544
+#: src/location.c:541
 msgid "Deny Access"
 msgstr "Neka åtkomst"
 
-#: src/location.c:546
+#: src/location.c:543
 msgid "Grant Access"
 msgstr "Bevilja åtkomst"
 
-#: src/location.c:566
+#: src/location.c:563
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Ge %s åtkomst till din plats?"
 
-#: src/location.c:571
+#: src/location.c:568
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s vill använda din plats."
 
-#: src/location.c:580
+#: src/location.c:577
 msgid "Grant Access to Your Location?"
 msgstr "Bevilja åtkomst till din plats?"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
+#: src/location.c:578
+msgid "An app wants to use your location."
 msgstr "Ett program vill använda din plats."
 
-#: src/location.c:584
+#: src/location.c:581
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:217 src/wallpaper.c:184
 msgid "Deny"
 msgstr "Neka"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:243
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Tillåt %s att ta skärmbilder?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:244
 #, c-format
 msgid "%s wants to be able to take screenshots at any time."
 msgstr "%s vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
+#: src/screenshot.c:248
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Tillåt %s att ta en skärmbild?"
+
+#: src/screenshot.c:249
+#, c-format
+msgid "%s wants to take a screenshot."
+msgstr "%s vill ta en skärmbild."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:260
+msgid "Allow Apps to Take Screenshots?"
 msgstr "Tillåt program att ta skärmbilder?"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
+#: src/screenshot.c:261
+msgid "An app wants to be able to take screenshots at any time."
 msgstr "Ett program vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
+#: src/screenshot.c:265
+msgid "Allow to Take a Screenshot?"
+msgstr "Tillåt att ta en skärmbild?"
+
+#: src/screenshot.c:266
+msgid "An app wants to take a screenshot."
+msgstr "Ett program vill ta en skärmbild."
+
+#: src/screenshot.c:271 src/wallpaper.c:219
 msgid "This permission can be changed at any time from the privacy settings."
 msgstr ""
 "Denna rättighet kan ändras när som helst från sekretessinställningarna."
@@ -211,30 +232,35 @@ msgstr "Begärd inställning hittades inte"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "Enhet inte tillgänglig"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "Tillåt inte"
+msgstr "Inte tillåtet"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:206
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Tillåt %s att ställa in bakgrunder?"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:207
 #, c-format
 msgid "%s is requesting to be able to change the background image."
 msgstr "%s begär att kunna ändra bakgrundsbilden."
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
+#: src/wallpaper.c:216
+msgid "Allow Apps to Set Backgrounds?"
 msgstr "Tillåt program att ställa in bakgrunder?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:217
+msgid "An app is requesting to be able to change the background image."
 msgstr "Ett program begär att kunna ändra bakgrundsbilden."
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Tillåt program att ta skärmbilder?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Tillåt program att ställa in bakgrunder?"
 
 #, c-format
 #~ msgid "Allow %s to Use the Microphone?"
@@ -260,9 +286,6 @@ msgstr "Ett program begär att kunna ändra bakgrundsbilden."
 
 #~ msgid "Allow app to Use the Speakers?"
 #~ msgstr "Tillåt program att använda högtalarna?"
-
-#~ msgid "An app wants to access audio devices."
-#~ msgstr "Ett program vill komma åt ljudenheter."
 
 #, c-format
 #~ msgid "Desktop file id missing app id prefix '%s.': %s"
