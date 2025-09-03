@@ -1,0 +1,41 @@
+{
+  pw/context_load_module
+  Memcheck:Leak
+  fun:*alloc
+  ...
+  fun:pw_context_load_module
+}
+
+{
+  glib/thread_new
+  Memcheck:Leak
+  fun:calloc
+  ...
+  fun:g_thread_new_internal
+}
+
+{
+  glib/module_close
+  Memcheck:Leak
+  fun:malloc
+  ...
+  fun:g_module_close
+}
+
+# This is too broad; need to properly own things to avoid this
+{
+  xdp/notification_init
+  Memcheck:Leak
+  fun:*alloc
+  ...
+  fun:notification_init
+}
+
+# This is too broad; need to properly own things to avoid this
+{
+  xdp/dynamic_launcher_init
+  Memcheck:Leak
+  fun:*alloc
+  ...
+  fun:dynamic_launcher_init
+}

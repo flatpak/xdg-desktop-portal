@@ -78,7 +78,8 @@ class TestCamera:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         request = xdp.Request(dbus_con, camera_intf)
-        request.schedule_close(1000)
+        # technically racy, and valgrind is really slow
+        request.schedule_close(3000 if xdp.is_valgrind() else 500)
         request.call(
             "AccessCamera",
             options={},
