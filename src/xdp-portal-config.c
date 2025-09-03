@@ -23,7 +23,7 @@
 
 #include "config.h"
 
-#include "xdp-portal-impl.h"
+#include "xdp-portal-config.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -30,7 +30,7 @@
 #include "settings.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
-#include "xdp-portal-impl.h"
+#include "xdp-portal-config.h"
 #include "xdp-utils.h"
 
 typedef struct _Settings Settings;
