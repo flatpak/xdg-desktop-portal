@@ -63,6 +63,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCapture, g_object_unref)
 typedef enum _InputCaptureSessionState
 {
   INPUT_CAPTURE_SESSION_STATE_INIT,
+  INPUT_CAPTURE_SESSION_STATE_STARTED,
   INPUT_CAPTURE_SESSION_STATE_ENABLED,
   INPUT_CAPTURE_SESSION_STATE_ACTIVE,
   INPUT_CAPTURE_SESSION_STATE_DISABLED,
@@ -188,6 +189,12 @@ create_session_done (GObject      *source_object,
 
   if (request->exported && response == 0)
     {
+      InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
+
+      /* In this deprecated way to create the session, we immediately transition
+       * to the started state. */
+      input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
+
       if (!xdp_session_export (session, &error))
         {
           g_warning ("Failed to export session: %s", error->message);
@@ -429,11 +436,12 @@ handle_get_zones (XdpDbusInputCapture   *object,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         break;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         g_dbus_method_invocation_return_error (invocation,
                                                G_DBUS_ERROR,
@@ -588,11 +596,12 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         break;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         g_dbus_method_invocation_return_error (invocation,
                                                G_DBUS_ERROR,
@@ -691,7 +700,7 @@ handle_enable (XdpDbusInputCapture   *object,
 
    switch (input_capture_session->state)
      {
-       case INPUT_CAPTURE_SESSION_STATE_INIT:
+       case INPUT_CAPTURE_SESSION_STATE_STARTED:
          g_dbus_method_invocation_return_error (invocation,
                                                G_DBUS_ERROR,
                                                G_DBUS_ERROR_FAILED,
@@ -701,6 +710,7 @@ handle_enable (XdpDbusInputCapture   *object,
        case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
        case INPUT_CAPTURE_SESSION_STATE_DISABLED:
          break;
+       case INPUT_CAPTURE_SESSION_STATE_INIT:
        case INPUT_CAPTURE_SESSION_STATE_CLOSED:
          g_dbus_method_invocation_return_error (invocation,
                                                 G_DBUS_ERROR,
@@ -725,15 +735,16 @@ handle_enable (XdpDbusInputCapture   *object,
    */
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT: /* ignore, handled above */
-        g_assert_not_reached ();
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_ENABLED;
         break;
-      case INPUT_CAPTURE_SESSION_STATE_CLOSED: /* ignore, handled above */
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
+      case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+        /* ignore, handled above */
         g_assert_not_reached ();
     }
 
@@ -792,7 +803,7 @@ handle_disable (XdpDbusInputCapture   *object,
 
    switch (input_capture_session->state)
      {
-       case INPUT_CAPTURE_SESSION_STATE_INIT:
+       case INPUT_CAPTURE_SESSION_STATE_STARTED:
          g_dbus_method_invocation_return_error (invocation,
                                                 G_DBUS_ERROR,
                                                 G_DBUS_ERROR_FAILED,
@@ -802,6 +813,7 @@ handle_disable (XdpDbusInputCapture   *object,
        case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
        case INPUT_CAPTURE_SESSION_STATE_DISABLED:
          break;
+       case INPUT_CAPTURE_SESSION_STATE_INIT:
        case INPUT_CAPTURE_SESSION_STATE_CLOSED:
          g_dbus_method_invocation_return_error (invocation,
                                                 G_DBUS_ERROR,
@@ -825,15 +837,16 @@ handle_disable (XdpDbusInputCapture   *object,
    */
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT: /* ignore, handled above */
-        g_assert_not_reached ();
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
         input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_DISABLED;
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         break;
-      case INPUT_CAPTURE_SESSION_STATE_CLOSED: /* ignore, handled above */
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
+      case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+        /* ignore, handled above */
         g_assert_not_reached ();
     }
 
@@ -894,7 +907,7 @@ handle_release (XdpDbusInputCapture   *object,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
         g_dbus_method_invocation_return_error (invocation,
                                                G_DBUS_ERROR,
                                                G_DBUS_ERROR_FAILED,
@@ -904,6 +917,7 @@ handle_release (XdpDbusInputCapture   *object,
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         break;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         g_dbus_method_invocation_return_error (invocation,
                                                G_DBUS_ERROR,
@@ -927,8 +941,6 @@ handle_release (XdpDbusInputCapture   *object,
    */
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT: /* ignore, handled above */
-        g_assert_not_reached ();
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
         break;
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
@@ -936,7 +948,10 @@ handle_release (XdpDbusInputCapture   *object,
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
         break;
-      case INPUT_CAPTURE_SESSION_STATE_CLOSED: /* ignore, handled above */
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
+      case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+        /* ignore, handled above */
         g_assert_not_reached ();
     }
 
@@ -995,7 +1010,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
           break;
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
@@ -1005,6 +1020,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
                                                  G_DBUS_ERROR_FAILED,
                                                  "Already connected");
           return G_DBUS_METHOD_INVOCATION_HANDLED;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
           g_dbus_method_invocation_return_error (invocation,
                                                  G_DBUS_ERROR,
@@ -1082,7 +1098,7 @@ on_disabled_cb (XdpDbusImplInputCapture *impl,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
         break;
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
@@ -1090,7 +1106,7 @@ on_disabled_cb (XdpDbusImplInputCapture *impl,
         input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_DISABLED;
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
-        break;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         break;
     }
@@ -1115,7 +1131,7 @@ on_activated_cb (XdpDbusImplInputCapture *impl,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
         break;
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
         pass_signal (impl, "Activated", session_id, options);
@@ -1123,6 +1139,7 @@ on_activated_cb (XdpDbusImplInputCapture *impl,
         break;
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         break;
     }
@@ -1147,7 +1164,7 @@ on_deactivated_cb (XdpDbusImplInputCapture *impl,
 
   switch (input_capture_session->state)
     {
-      case INPUT_CAPTURE_SESSION_STATE_INIT:
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
       case INPUT_CAPTURE_SESSION_STATE_ENABLED:
         break;
       case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
@@ -1155,6 +1172,7 @@ on_deactivated_cb (XdpDbusImplInputCapture *impl,
         input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_ENABLED;
         break;
       case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
       case INPUT_CAPTURE_SESSION_STATE_CLOSED:
         break;
     }
@@ -1179,12 +1197,13 @@ on_zones_changed_cb (XdpDbusImplInputCapture *impl,
 
   switch (input_capture_session->state)
     {
-    case INPUT_CAPTURE_SESSION_STATE_INIT:
+    case INPUT_CAPTURE_SESSION_STATE_STARTED:
     case INPUT_CAPTURE_SESSION_STATE_ENABLED:
     case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
     case INPUT_CAPTURE_SESSION_STATE_DISABLED:
       pass_signal (impl, "ZonesChanged", session_id, options);
       break;
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
     case INPUT_CAPTURE_SESSION_STATE_CLOSED:
       break;
     }
