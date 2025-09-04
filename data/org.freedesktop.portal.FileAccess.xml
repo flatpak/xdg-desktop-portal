@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 20125 JakobDev
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.FileAccess:
+      @short_description: Portal requesting file access
+
+      This simple interface lets sandboxed applications
+      request access to a path.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.FileAccess">
+    <!--
+        RequestPathAccess:
+        @window: Identifier for the window
+        @path: The path the app wants to access
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Gets information about the user.
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        * ``reason`` (``b``)
+
+          If only read only access is needed
+
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``uri`` (``s``)
+
+          The uri to the path.
+    -->
+    <method name="RequestPathAccess">
+      <arg type="s" name="window" direction="in"/>
+      <arg type="s" name="path" direction="in"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
