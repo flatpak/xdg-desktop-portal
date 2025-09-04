@@ -10,7 +10,7 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2025-09-04 04:08+0000\n"
-"PO-Revision-Date: 2025-09-04 12:28+0200\n"
+"PO-Revision-Date: 2025-09-04 13:08+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -255,7 +255,7 @@ msgstr "Povolit aplikacím možnost nastavit pozadí?"
 
 #: src/wallpaper.c:217
 msgid "An app is requesting to be able to change the background image."
-msgstr "Aplikace požaduje mít možnost změnit obrázek na pozadí."
+msgstr "Nějaká aplikace požaduje mít možnost změnit obrázek na pozadí."
 
 #~ msgid "Allow Applications to Take Screenshots?"
 #~ msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
