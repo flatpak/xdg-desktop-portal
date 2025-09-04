@@ -31,8 +31,6 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
-#define VERSION_1  1 /* Makes grep easier */
-
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
 
@@ -126,89 +124,6 @@ input_capture_session_new (GVariant         *options,
   return (InputCaptureSession*)session;
 }
 
-static void
-create_session_done (GObject      *source_object,
-                     GAsyncResult *res,
-                     gpointer      data)
-{
-  g_autoptr(XdpRequest) request = data;
-  g_autoptr(GError) error = NULL;
-  g_auto(GVariantBuilder) results_builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  g_autoptr(GVariant) results = NULL;
-  XdpSession *session;
-  gboolean should_close_session;
-  uint32_t capabilities = 0;
-  uint32_t response = 2;
-
-  REQUEST_AUTOLOCK (request);
-
-  session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
-  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
-  g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
-
-  if (!xdp_dbus_impl_input_capture_call_create_session_finish (impl,
-                                                               &response,
-                                                               &results,
-                                                               res,
-                                                               &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("A backend call failed: %s", error->message);
-      should_close_session = TRUE;
-      goto out;
-    }
-
-  if (request->exported && response == 0)
-    {
-      InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
-
-      /* In this deprecated way to create the session, we immediately transition
-       * to the started state. */
-      input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
-
-      if (!xdp_session_export (session, &error))
-        {
-          g_warning ("Failed to export session: %s", error->message);
-          response = 2;
-          should_close_session = TRUE;
-          goto out;
-        }
-
-      if (!g_variant_lookup (results, "capabilities", "u", &capabilities))
-        {
-          g_warning ("Impl did not set capabilities");
-          response = 2;
-          should_close_session = TRUE;
-          goto out;
-        }
-
-      should_close_session = FALSE;
-      xdp_session_register (session);
-
-      g_variant_builder_add (&results_builder, "{sv}",
-                            "capabilities", g_variant_new_uint32 (capabilities));
-      g_variant_builder_add (&results_builder, "{sv}",
-                             "session_handle", g_variant_new ("o", session->id));
-    }
-  else
-    {
-      should_close_session = TRUE;
-    }
-
-out:
-  if (request->exported)
-    {
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                      response,
-                                      g_variant_builder_end (&results_builder));
-      xdp_request_unexport (request);
-    }
-
-  if (should_close_session)
-    xdp_session_close (session, FALSE);
-}
-
 static gboolean
 validate_capabilities (const char  *key,
                        GVariant    *value,
@@ -226,6 +141,10 @@ validate_capabilities (const char  *key,
 
   return TRUE;
 }
+
+static void start_done (GObject      *source_object,
+                        GAsyncResult *res,
+                        gpointer      data);
 
 static XdpOptionKey input_capture_create_session_options[] = {
   { "capabilities", G_VARIANT_TYPE_UINT32, validate_capabilities },
@@ -290,17 +209,297 @@ handle_create_session (XdpDbusInputCapture   *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_input_capture_call_create_session (impl,
-                                                   request->id,
-                                                   session->id,
-                                                   xdp_app_info_get_id (request->app_info),
-                                                   arg_parent_window,
-                                                   options,
-                                                   NULL,
-                                                   create_session_done,
-                                                   g_object_ref (request));
+  if (impl_version < 2)
+    {
+      xdp_dbus_impl_input_capture_call_create_session (impl,
+                                                       request->id,
+                                                       session->id,
+                                                       session->app_id,
+                                                       arg_parent_window,
+                                                       options,
+                                                       NULL,
+                                                       start_done,
+                                                       g_object_ref (request));
+    }
+  else
+    {
+      xdp_dbus_impl_input_capture_call_start (impl,
+                                              request->id,
+                                              session->id,
+                                              session->app_id,
+                                              arg_parent_window,
+                                              options,
+                                              NULL,
+                                              start_done,
+                                              g_object_ref (request));
+    }
 
   xdp_dbus_input_capture_complete_create_session (object, invocation, request->id);
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static XdpOptionKey input_capture_create_session2_options[] = {
+};
+
+static gboolean
+handle_create_session2 (XdpDbusInputCapture   *object,
+                        GDBusMethodInvocation *invocation,
+                        GVariant              *arg_options)
+{
+  XdpCall *call = xdp_call_from_invocation (invocation);
+  GDBusConnection *connection =
+    g_dbus_method_invocation_get_connection (invocation);
+  g_autoptr(XdpSession) session = NULL;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+
+  if (impl_version < 2)
+    return G_DBUS_METHOD_INVOCATION_UNHANDLED;
+
+
+  session = XDP_SESSION (input_capture_session_new (arg_options,
+                                                    connection,
+                                                    call->sender,
+                                                    call->app_info,
+                                                    &error));
+  if (!session)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           input_capture_create_session2_options,
+                           G_N_ELEMENTS (input_capture_create_session2_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+
+  if (!xdp_session_export (session, &error))
+    {
+      xdp_session_close (session, FALSE);
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_session_register (session);
+
+  xdp_dbus_input_capture_complete_create_session2 (object,
+                                                   invocation,
+                                                   session->id);
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
+}
+
+static void
+start_done (GObject      *source_object,
+            GAsyncResult *res,
+            gpointer      data)
+{
+  g_autoptr(XdpRequest) request = XDP_REQUEST (data);
+  XdpSession *session;
+  g_autoptr(GVariant) results = NULL;
+  g_autoptr(GError) error = NULL;
+  gboolean should_close_session = FALSE;
+  uint32_t response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  REQUEST_AUTOLOCK (request);
+
+  session = g_object_get_qdata (G_OBJECT (request), quark_request_session);
+  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+  g_object_set_qdata (G_OBJECT (request), quark_request_session, NULL);
+
+  if (impl_version < 2)
+    {
+      if (!xdp_dbus_impl_input_capture_call_create_session_finish (impl,
+                                                                   &response,
+                                                                   &results,
+                                                                   res,
+                                                                   &error))
+        {
+          g_dbus_error_strip_remote_error (error);
+          g_warning ("A backend call failed: %s", error->message);
+        }
+    }
+  else
+    {
+      if (!xdp_dbus_impl_input_capture_call_start_finish (impl,
+                                                          &response,
+                                                          &results,
+                                                          res,
+                                                          &error))
+        {
+          g_dbus_error_strip_remote_error (error);
+          g_warning ("A backend call failed: %s", error->message);
+        }
+    }
+
+  /* For the legacy CreateSession we have to take care of exporting it now */
+  if (!session->exported)
+    {
+      if (!xdp_session_export (session, &error))
+        {
+          g_warning ("Failed to export session: %s", error->message);
+          response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+          should_close_session = TRUE;
+          goto out;
+        }
+
+      xdp_session_register (session);
+    }
+
+  if (request->exported && response == XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS)
+    {
+      InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
+      uint32_t capabilities = 0;
+
+      input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
+
+      g_variant_builder_add (&results_builder, "{sv}",
+                             "session_handle", g_variant_new ("o", session->id));
+
+      if (!g_variant_lookup (results, "capabilities", "u", &capabilities))
+        {
+          g_warning ("Impl did not set capabilities");
+          response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+          should_close_session = TRUE;
+          goto out;
+        }
+
+      g_variant_builder_add (&results_builder, "{sv}",
+                            "capabilities", g_variant_new_uint32 (capabilities));
+    }
+  else
+    {
+      should_close_session = TRUE;
+    }
+
+out:
+  if (request->exported)
+    {
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      g_variant_builder_end (&results_builder));
+      xdp_request_unexport (request);
+    }
+
+  if (should_close_session)
+    xdp_session_close (session, FALSE);
+}
+
+static XdpOptionKey input_capture_start_options[] = {
+  { "capabilities", G_VARIANT_TYPE_UINT32, validate_capabilities },
+};
+
+static gboolean
+handle_start (XdpDbusInputCapture   *object,
+              GDBusMethodInvocation *invocation,
+              const char            *arg_session_handle,
+              const char            *arg_parent_window,
+              GVariant              *arg_options)
+{
+  XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpSession *session;
+  InputCaptureSession *input_capture_session;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_auto(GVariantBuilder) options_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(GVariant) options = NULL;
+  g_autoptr(GError) error = NULL;
+
+  if (impl_version < 2)
+    return G_DBUS_METHOD_INVOCATION_UNHANDLED;
+
+  REQUEST_AUTOLOCK (request);
+
+  session = xdp_session_from_request (arg_session_handle, request);
+  if (!session)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  SESSION_AUTOLOCK_UNREF (session);
+
+  if (!IS_INPUT_CAPTURE_SESSION (session))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_FAILED,
+                                             "Invalid session");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  input_capture_session = INPUT_CAPTURE_SESSION (session);
+
+  switch (input_capture_session->state)
+    {
+      case INPUT_CAPTURE_SESSION_STATE_STARTED:
+      case INPUT_CAPTURE_SESSION_STATE_ENABLED:
+      case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
+      case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+      case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+        g_dbus_method_invocation_return_error (invocation,
+                                               G_DBUS_ERROR,
+                                               G_DBUS_ERROR_FAILED,
+                                               "Invalid session");
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      case INPUT_CAPTURE_SESSION_STATE_INIT:
+        break;
+    }
+
+  impl_request =
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          request->id,
+                                          NULL, &error);
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  if (!xdp_filter_options (arg_options, &options_builder,
+                           input_capture_start_options,
+                           G_N_ELEMENTS (input_capture_start_options),
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+
+  g_object_set_qdata_full (G_OBJECT (request),
+                           quark_request_session,
+                           g_object_ref (session),
+                           g_object_unref);
+
+  xdp_dbus_impl_input_capture_call_start (impl,
+                                          request->id,
+                                          arg_session_handle,
+                                          session->app_id,
+                                          arg_parent_window,
+                                          options,
+                                          NULL,
+                                          start_done,
+                                          g_object_ref (request));
+
+  xdp_dbus_input_capture_complete_start (object, invocation, request->id);
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -315,7 +514,7 @@ get_zones_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   XdpSession *session;
   gboolean should_close_session;
-  uint32_t response = 2;
+  uint32_t response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
 
   request = XDP_REQUEST (data);
 
@@ -335,7 +534,8 @@ get_zones_done (GObject      *source_object,
       g_warning ("A backend call failed: %s", error->message);
     }
 
-  should_close_session = !request->exported || response != 0;
+  should_close_session = !request->exported ||
+                         response != XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
 
   if (request->exported)
     {
@@ -471,7 +671,7 @@ set_pointer_barriers_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   gboolean should_close_session;
   XdpSession *session;
-  uint32_t response = 2;
+  uint32_t response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
 
   request = XDP_REQUEST (data);
 
@@ -492,7 +692,8 @@ set_pointer_barriers_done (GObject      *source_object,
       g_clear_error (&error);
     }
 
-  should_close_session = !request->exported || response != 0;
+  should_close_session = !request->exported ||
+                         response != XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
 
   if (request->exported)
     {
@@ -1011,6 +1212,8 @@ static void
 input_capture_iface_init (XdpDbusInputCaptureIface *iface)
 {
   iface->handle_create_session = handle_create_session;
+  iface->handle_create_session2 = handle_create_session2;
+  iface->handle_start = handle_start;
   iface->handle_get_zones = handle_get_zones;
   iface->handle_set_pointer_barriers = handle_set_pointer_barriers;
   iface->handle_connect_to_eis = handle_connect_to_eis;
@@ -1173,7 +1376,8 @@ input_capture_init (InputCapture *input_capture)
 {
   unsigned int supported_capabilities;
 
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_1);
+  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture),
+                                      MIN (impl_version, 2));
 
   supported_capabilities =
     xdp_dbus_impl_input_capture_get_supported_capabilities (impl);
