@@ -701,23 +701,18 @@ enable_autostart_sync (XdpAppInfo          *app_info,
   g_autofree char *path = NULL;
   g_autoptr(GKeyFile) keyfile = NULL;
   const char *appid = xdp_app_info_get_id (app_info);
-  GAppInfo *info;
+  GAppInfo *info = xdp_app_info_get_gappinfo (app_info);
 
-  if (!appid)
+  if (g_strcmp0 (appid, "") == 0)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                   "Autostart not supported");
+                   "Autostart not supported (no AppId detected)");
       return FALSE;
     }
 
-  info = xdp_app_info_get_gappinfo (app_info);
   file = g_strconcat (appid, ".desktop", NULL);
   dir = g_build_filename (g_get_user_config_dir (), "autostart", NULL);
-
-  if (info)
-    path = g_build_filename (dir, g_app_info_get_id (info), NULL);
-  else
-    path = g_build_filename (dir, file, NULL);
+  path = g_build_filename (dir, file, NULL);
 
   if (!enable)
     {
