@@ -18,7 +18,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.InputCapture"
-VERSION = 1
+VERSION = 2
 
 
 logger = init_logger(__name__)
@@ -80,9 +80,9 @@ def load(mock, parameters={}):
     in_signature="oossa{sv}",
     out_signature="ua{sv}",
 )
-def CreateSession(self, handle, session_handle, app_id, parent_window, options):
+def Start(self, handle, session_handle, app_id, parent_window, options):
     try:
-        logger.debug(f"CreateSession({parent_window}, {options})")
+        logger.debug(f"Start({session_handle}, {app_id}, {parent_window}, {options})")
         params = self.inputcapture_params
 
         assert "capabilities" in options
@@ -99,7 +99,7 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
         response.results["capabilities"] = dbus.UInt32(capabilities)
         self.active_session_handles.append(session_handle)
 
-        logger.debug(f"CreateSession with response {response}")
+        logger.debug(f"Start with response {response}")
 
         return response.response, response.results
     except Exception as e:
