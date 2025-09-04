@@ -40,6 +40,7 @@ class InputcaptureParameters:
     activated_delay: int
     deactivated_delay: int
     zones_changed_delay: int
+    force_clipboard_enabled: bool
 
 
 def load(mock, parameters={}):
@@ -55,6 +56,7 @@ def load(mock, parameters={}):
         activated_delay=parameters.get("activated-delay", 0),
         deactivated_delay=parameters.get("deactivated-delay", 0),
         zones_changed_delay=parameters.get("zones-changed-delay", 0),
+        force_clipboard_enabled=parameters.get("force-clipboard-enabled", False),
     )
 
     mock.current_zones = mock.inputcapture_params.default_zone
@@ -116,6 +118,9 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
 
         capabilities &= params.supported_capabilities
         response = Response(0, {})
+
+        if params.force_clipboard_enabled:
+            response.results["clipboard_enabled"] = True
 
         response.results["capabilities"] = dbus.UInt32(capabilities)
         self.active_session_handles.append(session_handle)
