@@ -72,6 +72,8 @@ typedef struct _InputCaptureSession
   XdpSession parent;
 
   InputCaptureSessionState state;
+  gboolean clipboard_requested;
+  gboolean clipboard_enabled;
 } InputCaptureSession;
 
 typedef struct _InputCaptureSessionClass
@@ -79,21 +81,7 @@ typedef struct _InputCaptureSessionClass
   XdpSessionClass parent_class;
 } InputCaptureSessionClass;
 
-GType input_capture_session_get_type (void);
-
 G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ())
-
-G_GNUC_UNUSED static inline InputCaptureSession *
-INPUT_CAPTURE_SESSION (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_CAST (ptr, input_capture_session_get_type (), InputCaptureSession);
-}
-
-G_GNUC_UNUSED static inline gboolean
-IS_INPUT_CAPTURE_SESSION (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
-}
 
 static InputCaptureSession *
 input_capture_session_new (GVariant         *options,
@@ -122,6 +110,36 @@ input_capture_session_new (GVariant         *options,
     g_debug ("capture input session owned by '%s' created", sender);
 
   return (InputCaptureSession*)session;
+}
+
+gboolean
+input_capture_session_can_request_clipboard (InputCaptureSession *session)
+{
+  if (session->clipboard_requested)
+    return FALSE;
+
+  if (impl_version < 2)
+    return FALSE;
+
+  switch (session->state)
+    {
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
+      return TRUE;
+    default:
+      return FALSE;
+    }
+}
+
+gboolean
+input_capture_session_is_clipboard_enabled (InputCaptureSession *session)
+{
+  return session->clipboard_enabled;
+}
+
+void
+input_capture_session_clipboard_requested (InputCaptureSession *session)
+{
+  session->clipboard_requested = TRUE;
 }
 
 static gboolean
@@ -329,6 +347,7 @@ start_done (GObject      *source_object,
     {
       InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
       uint32_t capabilities = 0;
+      gboolean clipboard_enabled = FALSE;
 
       input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
 
@@ -345,6 +364,15 @@ start_done (GObject      *source_object,
 
       g_variant_builder_add (&results_builder, "{sv}",
                             "capabilities", g_variant_new_uint32 (capabilities));
+
+      if (g_variant_lookup (results, "clipboard_enabled", "b", &clipboard_enabled))
+        {
+          input_capture_session->clipboard_enabled = clipboard_enabled;
+
+          g_variant_builder_add (&results_builder, "{sv}",
+                                 "clipboard_enabled",
+                                 g_variant_new ("b", clipboard_enabled));
+        }
     }
   else
     {
