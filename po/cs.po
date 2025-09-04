@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-08-15 04:00+0000\n"
-"PO-Revision-Date: 2025-08-15 15:16+0200\n"
+"POT-Creation-Date: 2025-09-04 04:08+0000\n"
+"PO-Revision-Date: 2025-09-04 12:28+0200\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
 "Language: cs\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Generator: Poedit 3.6\n"
+"X-Generator: Poedit 3.7\n"
 
 #: src/background.c:833
 #, c-format
@@ -37,8 +37,8 @@ msgstr "Aplikace %s požaduje běh na pozadí."
 
 #: src/background.c:840
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings."
 msgstr ""
 "Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace."
 
@@ -171,7 +171,7 @@ msgid "Grant Access to Your Location?"
 msgstr "Schválit přístup k vaší poloze?"
 
 #: src/location.c:578
-msgid "An application wants to use your location."
+msgid "An app wants to use your location."
 msgstr "Nějaká aplikace chce použít vaši polohu."
 
 #: src/location.c:581
@@ -208,11 +208,11 @@ msgstr "Aplikace %s chce pořídit snímek obrazovky."
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:260
-msgid "Allow Applications to Take Screenshots?"
+msgid "Allow Apps to Take Screenshots?"
 msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
 
 #: src/screenshot.c:261
-msgid "An application wants to be able to take screenshots at any time."
+msgid "An app wants to be able to take screenshots at any time."
 msgstr "Nějaká aplikace chce mít možnost kdykoliv pořizovat snímky obrazovky."
 
 #: src/screenshot.c:265
@@ -220,7 +220,7 @@ msgid "Allow to Take a Screenshot?"
 msgstr "Povolit aplikaci pořídit snímek obrazovky?"
 
 #: src/screenshot.c:266
-msgid "An application wants to take a screenshot."
+msgid "An app wants to take a screenshot."
 msgstr "Nějaká aplikace chce pořídit snímek obrazovky."
 
 #: src/screenshot.c:271 src/wallpaper.c:219
@@ -250,12 +250,18 @@ msgid "%s is requesting to be able to change the background image."
 msgstr "Aplikace %s požaduje mít možnost změnit obrázek na pozadí."
 
 #: src/wallpaper.c:216
-msgid "Allow Applications to Set Backgrounds?"
+msgid "Allow Apps to Set Backgrounds?"
 msgstr "Povolit aplikacím možnost nastavit pozadí?"
 
 #: src/wallpaper.c:217
-msgid "An application is requesting to be able to change the background image."
+msgid "An app is requesting to be able to change the background image."
 msgstr "Aplikace požaduje mít možnost změnit obrázek na pozadí."
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Povolit aplikacím pořizovat snímky obrazovky?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Povolit aplikacím možnost nastavit pozadí?"
 
 #, c-format
 #~ msgid "Allow %s to Use the Microphone?"
