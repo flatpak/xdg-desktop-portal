@@ -83,7 +83,11 @@ typedef struct _InputCaptureSession
 {
   XdpSession parent;
 
+  int impl_version;
+
   InputCaptureSessionState state;
+  gboolean clipboard_requested;
+  gboolean clipboard_enabled;
 } InputCaptureSession;
 
 typedef struct _InputCaptureSessionClass
@@ -91,21 +95,7 @@ typedef struct _InputCaptureSessionClass
   XdpSessionClass parent_class;
 } InputCaptureSessionClass;
 
-GType input_capture_session_get_type (void);
-
 G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ())
-
-G_GNUC_UNUSED static inline InputCaptureSession *
-INPUT_CAPTURE_SESSION (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_CAST (ptr, input_capture_session_get_type (), InputCaptureSession);
-}
-
-G_GNUC_UNUSED static inline gboolean
-IS_INPUT_CAPTURE_SESSION (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
-}
 
 static void
 input_capture_session_close (XdpSession *session)
@@ -140,6 +130,7 @@ input_capture_session_new (InputCapture     *input_capture,
 {
   const char *session_token;
   XdpSession *session;
+  InputCaptureSession *input_capture_session;
   GDBusConnection *impl_connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl));
   const char *impl_dbus_name =
@@ -155,13 +146,59 @@ input_capture_session_new (InputCapture     *input_capture,
                             "impl-dbus-name", impl_dbus_name,
                             NULL);
 
-  if (session)
+  if (!session)
+    return NULL;
+
+  input_capture_session = (InputCaptureSession*) session;
+  input_capture_session->impl_version = input_capture->impl_version;
+
+  g_debug ("capture input session owned by '%s' created",
+           xdp_app_info_get_sender (app_info));
+
+  return input_capture_session;
+}
+
+gboolean
+input_capture_session_can_request_clipboard (InputCaptureSession *session)
+{
+  if (session->clipboard_requested)
+    return FALSE;
+
+  if (session->impl_version < 2)
+    return FALSE;
+
+  switch (session->state)
     {
-      g_debug ("capture input session owned by '%s' created",
-               xdp_app_info_get_sender (app_info));
+    case INPUT_CAPTURE_SESSION_STATE_INIT:
+      return TRUE;
+    case INPUT_CAPTURE_SESSION_STATE_STARTED:
+    case INPUT_CAPTURE_SESSION_STATE_ENABLED:
+    case INPUT_CAPTURE_SESSION_STATE_ACTIVE:
+    case INPUT_CAPTURE_SESSION_STATE_DISABLED:
+    case INPUT_CAPTURE_SESSION_STATE_CLOSED:
+      return FALSE;
     }
 
-  return (InputCaptureSession*)session;
+  g_assert_not_reached ();
+}
+
+gboolean
+input_capture_session_is_clipboard_enabled (InputCaptureSession *session)
+{
+  return session->clipboard_enabled;
+}
+
+void
+input_capture_session_clipboard_requested (InputCaptureSession *session)
+{
+  session->clipboard_requested = TRUE;
+}
+
+gboolean
+input_capture_session_can_access_clipboard (InputCaptureSession *session)
+{
+  return session->clipboard_enabled &&
+         session->state == INPUT_CAPTURE_SESSION_STATE_ACTIVE;
 }
 
 static gboolean
@@ -444,6 +481,7 @@ start_done (GObject      *source_object,
     {
       InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
       uint32_t capabilities = 0;
+      gboolean clipboard_enabled = FALSE;
 
       input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
 
@@ -460,6 +498,15 @@ start_done (GObject      *source_object,
 
       g_variant_builder_add (&results_builder, "{sv}",
                             "capabilities", g_variant_new_uint32 (capabilities));
+
+      if (g_variant_lookup (results, "clipboard_enabled", "b", &clipboard_enabled))
+        {
+          input_capture_session->clipboard_enabled = clipboard_enabled;
+
+          g_variant_builder_add (&results_builder, "{sv}",
+                                 "clipboard_enabled",
+                                 g_variant_new ("b", clipboard_enabled));
+        }
     }
   else
     {

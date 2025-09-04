@@ -130,6 +130,14 @@
         The session must be started with :ref:`org.freedesktop.portal.InputCapture.Start`
         before using methods in this interface which take a session.
 
+        To capture clipboard content, you can call
+        :ref:`org.freedesktop.portal.Clipboard.RequestClipboard`. When clipboard
+        access has been granted (see `clipboard_enabled` in
+        :ref:`org.freedesktop.portal.InputCapture.Start`), the clipboard may be
+        accessed, but only when the session is active. See
+        :ref:`org.freedesktop.portal.Clipboard` for more information on the
+        clipboard integration.
+
         Supported keys in the @options vardict include:
 
         * ``session_handle_token`` (``s``)
@@ -196,6 +204,12 @@
           It is best to view this set as a negative confirmation - a
           capability that was requested but is missing is an indication that
           this application may not capture events of that capability.
+
+        * ``clipboard_enabled`` (``b``)
+
+          A boolean for whether the clipboard was enabled ('true') or not ('false').
+          See the :ref:`org.freedesktop.portal.Clipboard` documentation for more
+          information.
 
         This method was added in version 2 of this interface.
     -->

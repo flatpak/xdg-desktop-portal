@@ -45,6 +45,8 @@
         documentation.
         See :ref:`org.freedesktop.portal.RemoteDesktop` to integrate clipboard with the
         remote desktop session.
+        See :ref:`org.freedesktop.portal.InputCapture` to integrate clipboard with the
+        input capture session.
     -->
     <method name="RequestClipboard">
       <arg type="o" name="session_handle" direction="in"/>

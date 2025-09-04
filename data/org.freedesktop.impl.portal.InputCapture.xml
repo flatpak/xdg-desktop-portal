@@ -141,6 +141,12 @@
           capability that was requested but is missing is an indication that
           this application may not capture events of that capability.
 
+        * ``clipboard_enabled`` (``b``)
+
+          A boolean for whether the clipboard was enabled ('true') or not ('false').
+          See the :ref:`org.freedesktop.portal.Clipboard` documentation for more
+          information.
+
         This method was added in version 2 of this interface.
     -->
     <method name="Start">
