@@ -30,7 +30,7 @@ def zones():
 
 
 class TestInputCapture:
-    def create_session(self, dbus_con, capabilities=0x7):
+    def create_legacy_session(self, dbus_con, capabilities=0x7):
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -64,7 +64,51 @@ class TestInputCapture:
         self.current_session_handle = response.results["session_handle"]
 
         # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("Start")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[3] == ""  # parent window
+        assert args[4]["capabilities"] == capabilities
+
+        return response
+
+    def create_session(self, dbus_con, capabilities=0x7):
+        """
+        Call CreateSession for the given capabilities and return the
+        (response, results) tuple.
+        """
+        inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        capabilities = dbus.UInt32(capabilities, variant_level=1)
+        session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
+
+        result = inputcapture_intf.CreateSession2(
+            {"session_handle_token": session_handle_token}
+        )
+        session = xdp.Session(dbus_con, result["session_handle"])
+
+        request = xdp.Request(dbus_con, inputcapture_intf)
+        response = request.call(
+            "Start",
+            session_handle=session.handle,
+            parent_window="",
+            options={
+                "capabilities": capabilities,
+            },
+        )
+
+        self.current_session_handle = session.handle
+
+        assert response
+        assert response.response == 0
+        assert "capabilities" in response.results
+        caps = response.results["capabilities"]
+        # Returned capabilities must be a subset of the requested ones
+        assert caps & ~capabilities == 0
+
+        # Check the impl portal was called with the right args
+        method_calls = mock_intf.GetMethodCalls("Start")
         assert len(method_calls) > 0
         _, args = method_calls[-1]
         assert args[3] == ""  # parent window
@@ -202,7 +246,7 @@ class TestInputCapture:
             assert pos == cursor_position
 
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "InputCapture", 1)
+        xdp.check_version(dbus_con, "InputCapture", 2)
 
     @pytest.mark.parametrize(
         "template_params",
@@ -223,16 +267,8 @@ class TestInputCapture:
         assert caps == 0b101
 
     def test_create_session(self, portals, dbus_con):
-        mock_intf = xdp.get_mock_iface(dbus_con)
-
         self.create_session(dbus_con, capabilities=0b1)  # KEYBOARD
-
-        # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
-        assert len(method_calls) == 1
-        _, args = method_calls.pop(0)
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == 0b1
+        self.create_legacy_session(dbus_con, capabilities=0b1)  # KEYBOARD
 
     @pytest.mark.parametrize(
         "template_params",
@@ -246,20 +282,11 @@ class TestInputCapture:
         ),
     )
     def test_create_session_limited_caps(self, portals, dbus_con):
-        mock_intf = xdp.get_mock_iface(dbus_con)
-
         # Request more caps than are supported
         response, results = self.create_session(dbus_con, capabilities=0b111)
         caps = results["capabilities"]
         # Returned capabilities must the ones we set up in the params
         assert caps == 0b110
-
-        # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
-        assert len(method_calls) == 1
-        _, args = method_calls.pop(0)
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == 0b111
 
     @pytest.mark.parametrize(
         "template_params",
@@ -284,7 +311,7 @@ class TestInputCapture:
             assert z1 == z2
 
         # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("Start")
         assert len(method_calls) == 1
         method_calls = mock_intf.GetMethodCalls("GetZones")
         assert len(method_calls) == 1
@@ -392,7 +419,7 @@ class TestInputCapture:
             assert id in failed_barriers
 
         # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        method_calls = mock_intf.GetMethodCalls("Start")
         assert len(method_calls) == 1
         method_calls = mock_intf.GetMethodCalls("GetZones")
         assert len(method_calls) == 1
