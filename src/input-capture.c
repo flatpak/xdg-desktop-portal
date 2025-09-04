@@ -136,7 +136,7 @@ create_session_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) results_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *results;
+  g_autoptr(GVariant) results = NULL;
   XdpSession *session;
   gboolean should_close_session;
   uint32_t capabilities = 0;
