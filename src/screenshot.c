@@ -241,12 +241,12 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
       if (permission == XDP_PERMISSION_UNSET)
         {
           title = g_strdup_printf (_("Allow %s to Take Screenshots?"), name);
-          subtitle = g_strdup_printf (_("%s wants to be able to take screenshots at any time."), name);
+          subtitle = g_strdup_printf (_("%s wants to take screenshots at any time"), name);
         }
       else /* permission == XDP_PERMISSION_ASK */
         {
           title = g_strdup_printf (_("Allow %s to Take a Screenshot?"), name);
-          subtitle = g_strdup_printf (_("%s wants to take a screenshot."), name);
+          subtitle = g_strdup_printf (_("%s wants to take a screenshot"), name);
         }
     }
   else
@@ -258,17 +258,17 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
            * apps for which an app ID can't be determined.
            */
           title = g_strdup (_("Allow Apps to Take Screenshots?"));
-          subtitle = g_strdup (_("An app wants to be able to take screenshots at any time."));
+          subtitle = g_strdup (_("An app wants to take screenshots at any time"));
         }
       else /* permission == XDP_PERMISSION_ASK */
         {
           title = g_strdup (_("Allow to Take a Screenshot?"));
-          subtitle = g_strdup (_("An app wants to take a screenshot."));
+          subtitle = g_strdup (_("An app wants to take a screenshot"));
         }
     }
 
   if (permission == XDP_PERMISSION_UNSET)
-    body = _("This permission can be changed at any time from the privacy settings.");
+    body = _("This permission can be changed at any time from the privacy settings");
 
   if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                      request->id,
