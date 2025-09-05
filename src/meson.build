@@ -145,6 +145,12 @@ if have_gudev
   )
 endif
 
+if have_libspiel
+  xdg_desktop_portal_sources += files(
+    'speech-synthesis.c',
+  )
+endif
+
 common_deps = [
   glib_dep,
   gio_dep,
@@ -161,6 +167,10 @@ xdg_desktop_portal_deps = common_deps + [
   pipewire_dep,
   xdp_utils_deps,
 ]
+
+if libspiel_dep.found()
+  xdg_desktop_portal_deps += libspiel_dep
+endif
 
 incs_xdg_desktop_portal = [
   include_directories('../document-portal'),
