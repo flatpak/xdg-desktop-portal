@@ -491,9 +491,7 @@ handle_start_in_thread_func (GTask *task,
 {
   XdpRequest *request = XDP_REQUEST (task_data);
   const char *parent_window;
-  const char *id;
   gint64 last_used = 0;
-  g_autoptr(GError) error = NULL;
   guint response = 2;
   XdpSession *session;
   LocationSession *loc_session;
@@ -508,19 +506,20 @@ handle_start_in_thread_func (GTask *task,
 
   parent_window = (const char *)g_object_get_data (G_OBJECT (request), "parent-window");
 
-  id = xdp_app_info_get_id (request->app_info);
-
   if (!get_location_permissions (request->app_info, &accuracy, &last_used))
     {
+      const char *app_id = xdp_app_info_get_id (request->app_info);
+      const char *app_name = xdp_app_info_get_app_display_name (request->app_info);
+      GAppInfo *app_info = xdp_app_info_get_gappinfo (request->app_info);
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
       g_auto(GVariantBuilder) access_opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
       const char *body;
+      g_autoptr(GError) error = NULL;
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
                                                            G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
@@ -537,41 +536,29 @@ handle_start_in_thread_func (GTask *task,
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "icon", g_variant_new_string ("find-location-symbolic"));
 
-      if (g_strcmp0 (id, "") != 0)
+      if (app_name)
         {
-          GAppInfo *info = xdp_app_info_get_gappinfo (request->app_info);
-          const gchar *name = NULL;
+          title = g_strdup_printf (_("Allow %s to Access Your Location?"), app_name);
 
-          if (info)
+          if (app_info)
             {
-              name = g_app_info_get_display_name (G_APP_INFO (info));
-              app_id = xdp_get_app_id_from_desktop_id (g_app_info_get_id (info));
-            }
-          else
-            {
-              name = app_id;
-              app_id = g_strdup (id);
+              subtitle = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (app_info),
+                                                        "X-Geoclue-Reason");
             }
 
-          title = g_strdup_printf (_("Give %s Access to Your Location?"), name);
-
-          if (info && g_desktop_app_info_has_key (G_DESKTOP_APP_INFO (info), "X-Geoclue-Reason"))
-            subtitle = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (info), "X-Geoclue-Reason");
-          else
-            subtitle = g_strdup_printf (_("%s wants to use your location."), name);
+          if (!subtitle)
+            {
+              subtitle = g_strdup_printf (_("%s wants to use your location"),
+                                          app_name);
+            }
         }
       else
         {
-          /* Note: this will set the location permission for all unsandboxed
-           * apps for which an app ID can't be determined.
-           */
-          g_assert (xdp_app_info_is_host (request->app_info));
-          app_id = g_strdup ("");
-          title = g_strdup (_("Grant Access to Your Location?"));
-          subtitle = g_strdup (_("An app wants to use your location."));
+          title = g_strdup (_("Allow Apps to Access Your Location?"));
+          subtitle = g_strdup (_("An app wants to use your location"));
         }
 
-      body = _("Location access can be changed at any time from the privacy settings.");
+      body = _("Location access can be changed at any time from the privacy settings");
 
       if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
                                                          request->id,
