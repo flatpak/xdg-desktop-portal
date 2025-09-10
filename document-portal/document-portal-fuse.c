@@ -3036,6 +3036,19 @@ xdp_fuse_statfs (fuse_req_t req,
 
   g_debug ("STATFS %" G_GINT64_MODIFIER "x", ino);
 
+  if (xdp_domain_is_virtual_type (inode->domain))
+    {
+      /* statfs data doesn't make much sense for a virtual filesystem, so we reply with
+       * a mostly empty buffer, mimicking an empty .statfs. This is consistent with what
+       * libfuse does if we don't supply a statfs implementation. */
+      buf = (struct statvfs) {
+        .f_namemax = 255,
+        .f_bsize = 512,
+      };
+      fuse_reply_statfs (req, &buf);
+      return;
+    }
+
   if (!xdp_document_inode_checks (op, req, inode, 0))
     return;
 
