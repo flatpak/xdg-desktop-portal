@@ -76,7 +76,6 @@ query_permission_sync (XdpRequest *request)
 {
   XdpPermission permission;
   XdpAppInfo *app_info = request->app_info;
-  const char *app_id = xdp_app_info_get_id (app_info);
   gboolean allowed;
 
   permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
@@ -90,18 +89,19 @@ query_permission_sync (XdpRequest *request)
       g_autoptr(GVariant) results = NULL;
       g_autoptr(GError) error = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-      GAppInfo* info = xdp_app_info_get_gappinfo (app_info);
+      const char *app_id = xdp_app_info_get_id (app_info);
+      const char *app_name = xdp_app_info_get_app_display_name (app_info);
 
       g_variant_builder_add (&opt_builder, "{sv}", "icon", g_variant_new_string ("camera-web-symbolic"));
 
-      if (info)
+      if (app_name)
         {
-          title = g_strdup_printf (_("Allow %s to Use the Camera?"), g_app_info_get_display_name (info));
-          body = g_strdup_printf (_("%s wants to access camera devices."), g_app_info_get_display_name (info));
+          title = g_strdup_printf (_("Allow %s to Use the Camera?"), app_name);
+          body = g_strdup_printf (_("%s wants to access camera devices."), app_name);
         }
       else
         {
-          title = g_strdup (_("Allow app to Use the Camera?"));
+          title = g_strdup (_("Allow Apps to Use the Camera?"));
           body = g_strdup (_("An app wants to access camera devices."));
         }
 
