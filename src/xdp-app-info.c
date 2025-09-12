@@ -1047,7 +1047,7 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  detected_app_info = xdp_app_info_new (pid, pidfd, error);
+  detected_app_info = xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
   if (!detected_app_info)
     return NULL;
 
@@ -1058,6 +1058,9 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
                    xdp_app_info_get_engine_display_name (detected_app_info));
       return NULL;
     }
+
+  if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
+    return NULL;
 
   app_info = xdp_app_info_host_new_registered (&pidfd, app_id, error);
   if (!app_info)
