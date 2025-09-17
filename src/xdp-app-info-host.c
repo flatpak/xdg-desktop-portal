@@ -185,24 +185,20 @@ get_appid_from_pid (pid_t pid)
 #endif /* HAVE_LIBSYSTEMD */
 }
 
-/*
- * @pidfd: (inout) (not nullable): Pointer to process ID file descriptor.
- *  This function may take ownership of the fd. If it does, it will
- *  set `*pidfd` to -1.
- */
 XdpAppInfo *
-xdp_app_info_host_new_registered (int         *pidfd,
+xdp_app_info_host_new_registered (int          pidfd,
                                   const char  *app_id,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
+  g_autofd int pidfd_owned = pidfd;
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   error,
                                   "engine", NULL,
                                   "id", app_id,
-                                  "pidfd", g_steal_fd (pidfd),
+                                  "pidfd", g_steal_fd (&pidfd_owned),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
                                            XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
