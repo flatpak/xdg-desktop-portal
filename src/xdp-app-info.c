@@ -1035,6 +1035,7 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
   g_autoptr(XdpAppInfo) detected_app_info = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autofd int pidfd = -1;
+  g_autofd int pidfd_dup = -1;
   uint32_t pid;
 
   if (cache_has_app_info_by_sender (sender))
@@ -1047,7 +1048,19 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
   if (!xdp_connection_get_pidfd (connection, sender, cancellable, &pidfd, &pid, error))
     return NULL;
 
-  detected_app_info = xdp_app_info_new (pid, pidfd, error);
+  if (pidfd >= 0)
+    {
+      pidfd_dup = dup (pidfd);
+
+      if (pidfd_dup < 0)
+        {
+          g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                       "Internal error");
+          return NULL;
+        }
+    }
+
+  detected_app_info = xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
   if (!detected_app_info)
     return NULL;
 
@@ -1059,7 +1072,8 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
       return NULL;
     }
 
-  app_info = xdp_app_info_host_new_registered (&pidfd, app_id, error);
+  app_info = xdp_app_info_host_new_registered (g_steal_fd (&pidfd_dup),
+                                               app_id, error);
   if (!app_info)
     return NULL;
 
