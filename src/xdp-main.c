@@ -40,9 +40,9 @@ typedef struct _XdpMain
 } XdpMain;
 
 static void
-message_handler (const gchar    *log_domain,
+message_handler (const char     *log_domain,
                  GLogLevelFlags  log_level,
-                 const gchar    *message,
+                 const char     *message,
                  gpointer        user_data)
 {
   /* Make this look like normal console output */
@@ -53,7 +53,7 @@ message_handler (const gchar    *log_domain,
 }
 
 static void
-printerr_handler (const gchar *string)
+printerr_handler (const char *string)
 {
   int is_tty = isatty (1);
   const char *prefix = "";
@@ -76,7 +76,7 @@ xdp_main_exit (XdpMain *xdp_main,
 
 static void
 on_bus_acquired (GDBusConnection *connection,
-                 const gchar     *name,
+                 const char      *name,
                  gpointer         user_data)
 {
   XdpMain *xdp_main = user_data;
@@ -85,13 +85,13 @@ on_bus_acquired (GDBusConnection *connection,
   if (!xdp_context_register (xdp_main->context, connection, &error))
     {
       g_critical ("Starting portals failed: %s", error->message);
-      xdp_main_exit (xdp_main, 1);
+      xdp_main_exit (xdp_main, EXIT_FAILURE);
     }
 }
 
 static void
 on_name_acquired (GDBusConnection *connection,
-                  const gchar     *name,
+                  const char      *name,
                   gpointer         user_data)
 {
   g_debug ("%s acquired", name);
@@ -99,12 +99,12 @@ on_name_acquired (GDBusConnection *connection,
 
 static void
 on_name_lost (GDBusConnection *connection,
-              const gchar     *name,
+              const char      *name,
               gpointer         user_data)
 {
   XdpMain *xdp_main = user_data;
 
-  xdp_main_exit (xdp_main, 0);
+  xdp_main_exit (xdp_main, EXIT_SUCCESS);
   g_debug ("Terminated because dbus name was lost.");
 }
 
@@ -113,7 +113,7 @@ on_signal (gpointer user_data)
 {
   XdpMain *xdp_main = user_data;
 
-  xdp_main_exit (xdp_main, 0);
+  xdp_main_exit (xdp_main, EXIT_SUCCESS);
   g_debug ("Terminated with signal.");
 
   return G_SOURCE_REMOVE;
@@ -173,16 +173,16 @@ main (int argc, char *argv[])
 
   option_context = g_option_context_new ("- desktop portal");
   g_option_context_set_summary (option_context,
-      "A portal service for flatpak and other desktop containment frameworks.");
+    "A portal service for flatpak and other desktop containment frameworks.");
   g_option_context_set_description (option_context,
-      "xdg-desktop-portal works by exposing D-Bus interfaces known as portals\n"
-      "under the well-known name org.freedesktop.portal.Desktop and object\n"
-      "path /org/freedesktop/portal/desktop.\n"
-      "\n"
-      "Documentation for the available D-Bus interfaces can be found at\n"
-      "https://flatpak.github.io/xdg-desktop-portal/docs/\n"
-      "\n"
-      "Please report issues at https://github.com/flatpak/xdg-desktop-portal/issues");
+    "xdg-desktop-portal works by exposing D-Bus interfaces known as portals\n"
+    "under the well-known name org.freedesktop.portal.Desktop and object\n"
+    "path /org/freedesktop/portal/desktop.\n"
+    "\n"
+    "Documentation for the available D-Bus interfaces can be found at\n"
+    "https://flatpak.github.io/xdg-desktop-portal/docs/\n"
+    "\n"
+    "Please report issues at https://github.com/flatpak/xdg-desktop-portal/issues");
   g_option_context_add_main_entries (option_context, entries, NULL);
   if (!g_option_context_parse (option_context, &argc, &argv, &error))
     {
