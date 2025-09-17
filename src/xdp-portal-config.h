@@ -31,7 +31,7 @@ typedef struct {
   char **interfaces;
   char **use_in;
   int priority;
-} XdpPortalImplementation;
+} XdpImplConfig;
 
 #define XDP_TYPE_PORTAL_CONFIG (xdp_portal_config_get_type())
 G_DECLARE_FINAL_TYPE (XdpPortalConfig,
@@ -41,8 +41,8 @@ G_DECLARE_FINAL_TYPE (XdpPortalConfig,
 
 XdpPortalConfig * xdp_portal_config_new (gboolean opt_verbose);
 
-XdpPortalImplementation * xdp_portal_config_find_impl (XdpPortalConfig *portal_config,
-                                                       const char      *interface);
+XdpImplConfig * xdp_portal_config_find (XdpPortalConfig *portal_config,
+                                        const char      *impl_interface);
 
-GPtrArray * xdp_portal_config_find_all_impls (XdpPortalConfig *portal_config,
-                                              const char      *interface);
+GPtrArray * xdp_portal_config_find_all (XdpPortalConfig *portal_config,
+                                        const char      *impl_interface);
