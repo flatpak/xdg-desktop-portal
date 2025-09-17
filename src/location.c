@@ -42,7 +42,6 @@ static GClueAccuracyLevel gclue_accuracy_level_from_string (const char *str);
 static const char *       gclue_accuracy_level_to_string   (GClueAccuracyLevel level);
 
 static GQuark quark_request_session;
-extern gboolean opt_verbose;
 
 typedef enum {
   LOCATION_SESSION_STATE_INIT,
@@ -183,12 +182,6 @@ location_updated (GeoclueClient *client,
     }
 
   g_variant_get (ret, "(@a{sv})", &dict);
-
-  if (opt_verbose)
-    {
-      g_autofree char *a = g_variant_print (dict, FALSE);
-      g_debug ("location data: %s\n", a);
-    }
 
   if (!g_dbus_connection_emit_signal (session->connection,
                                       session->sender,
