@@ -273,22 +273,19 @@ settings_class_init (SettingsClass *klass)
 
 GDBusInterfaceSkeleton *
 settings_create (GDBusConnection *connection,
-                 GPtrArray       *implementations)
+                 GPtrArray       *impl_configs)
 {
   g_autoptr(Settings) settings = NULL;
   g_autoptr(GError) error = NULL;
-  int i;
-  int n_impls_tmp;
 
-  n_impls_tmp = implementations->len;
-  impls = g_new (XdpDbusImplSettings *, n_impls_tmp);
+  impls = g_new (XdpDbusImplSettings *, impl_configs->len);
 
   settings = g_object_new (settings_get_type (), NULL);
 
-  for (i = 0; i < n_impls_tmp; i++)
+  for (size_t i = 0; i < impl_configs->len; i++)
     {
-      XdpPortalImplementation *impl = g_ptr_array_index (implementations, i);
-      const char *dbus_name = impl->dbus_name;
+      XdpImplConfig *impl_config = g_ptr_array_index (impl_configs, i);
+      const char *dbus_name = impl_config->dbus_name;
 
       XdpDbusImplSettings *impl_proxy =
         xdp_dbus_impl_settings_proxy_new_sync (connection,
@@ -304,14 +301,14 @@ settings_create (GDBusConnection *connection,
       else
         {
           impls[n_impls++] = impl_proxy;
-          g_signal_connect (impl_proxy, "setting-changed", G_CALLBACK (on_impl_settings_changed), settings);
+          g_signal_connect (impl_proxy, "setting-changed",
+                            G_CALLBACK (on_impl_settings_changed),
+                            settings);
         }
     }
 
-  if (!n_impls)
-    {
-      return NULL;
-    }
+  if (n_impls == 0)
+    return NULL;
 
   return G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings));
 }
