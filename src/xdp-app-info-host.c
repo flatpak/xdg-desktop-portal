@@ -185,13 +185,36 @@ get_appid_from_pid (pid_t pid)
 #endif /* HAVE_LIBSYSTEMD */
 }
 
+static void
+maybe_get_pidfd_from_pid (int  pid,
+                          int *pidfd)
+{
+  g_autoptr(GError) error = NULL;
+
+  if (*pidfd >= 0)
+    return;
+
+  /* There are no security guarantees for host apps, so let's just make sure
+   * we get the pidfd from the pid. It is racy (pid could be recycled) but it
+   * doesn't matter here.
+   */
+  if (!xdp_pid_to_pidfd (pid, pidfd, &error))
+    {
+      g_warning ("Failed to get pidfd for host process %d: %s",
+                 pid, error->message);
+    }
+}
+
 XdpAppInfo *
-xdp_app_info_host_new_registered (int          pidfd,
+xdp_app_info_host_new_registered (int          pid,
+                                  int          pidfd,
                                   const char  *app_id,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofd int pidfd_owned = pidfd;
+
+  maybe_get_pidfd_from_pid (pid, &pidfd_owned);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
@@ -233,20 +256,7 @@ xdp_app_info_host_new (int  pid,
       app_id = get_appid_from_pid (pid);
     }
 
-  /* There are no security guarantees for host apps, so let's just make sure
-   * we get the pidfd from the pid. It is racy (pid could be recycled) but it
-   * doesn't matter here.
-   */
-  if (*pidfd == -1)
-    {
-      g_autoptr(GError) local_error = NULL;
-
-      if (!xdp_pid_to_pidfd (pid, pidfd, &local_error))
-        {
-          g_warning ("Failed to get pidfd for host process %d: %s",
-                     pid, local_error->message);
-        }
-    }
+  maybe_get_pidfd_from_pid (pid, pidfd);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
