@@ -123,6 +123,18 @@ pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
+libspiel_dep = dependency(
+  'libspiel',
+  version: '>= 1.0.5',
+  required: get_option('libspiel'),
+  fallback: ['libspiel', 'spiel_lib_dep'],
+  default_options: [
+    'utils=false',
+    'docs=false',
+    'tests=false',
+    'introspection=false',
+  ],
+)
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()
@@ -161,6 +173,14 @@ config_h.set10('HAVE_LIBSYSTEMD', have_libsystemd)
 
 have_gudev = gudev_dep.found()
 config_h.set10('HAVE_GUDEV', have_gudev)
+
+message('what??')
+have_libspiel = libspiel_dep.found()
+if have_libspiel
+  config_h.set('HAVE_LIBSPIEL', 1)
+else
+  config_h.set('HAVE_LIBSPIEL', 0)
+endif
 
 add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72'], language: 'c')
 
