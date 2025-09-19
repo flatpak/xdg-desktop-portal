@@ -22,7 +22,6 @@
 
 #include "config.h"
 
-#include "xdp-call.h"
 #include "xdp-permissions.h"
 
 #include "xdp-app-info.h"
@@ -373,9 +372,8 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
                            GDBusMethodInvocation *invocation,
                            GUnixFDList           *fdlist)
 {
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
-  XdpAppInfo *app_info;
-  XdpCall *call;
   CallData *call_data;
 
   if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
@@ -384,9 +382,6 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
                                              "File descriptor number is incorrect");
       return;
     }
-
-  call = xdp_call_from_invocation (invocation);
-  app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
   call_data->fdlist = g_object_ref (fdlist);
@@ -404,13 +399,9 @@ handle_call_in_thread (XdpDbusGameMode       *object,
                        gint                   target,
                        gint                   requester)
 {
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
-  XdpAppInfo *app_info;
-  XdpCall *call;
   CallData *call_data;
-
-  call = xdp_call_from_invocation (invocation);
-  app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
 

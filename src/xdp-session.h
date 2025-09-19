@@ -20,10 +20,10 @@
 
 #pragma once
 
-#include "xdp-request.h"
-#include "xdp-call.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-request.h"
+#include "xdp-types.h"
 
 typedef struct _XdpSession
 {
@@ -81,8 +81,8 @@ const char * lookup_session_token (GVariant *options);
 XdpSession * xdp_session_from_request (const char *session_handle,
                                        XdpRequest *request);
 
-XdpSession * xdp_session_from_call (const char *session_handle,
-                                    XdpCall    *call);
+XdpSession * xdp_session_from_app_info (const char *session_handle,
+                                        XdpAppInfo *app_info);
 
 XdpSession * xdp_session_lookup (const char *session_handle);
 

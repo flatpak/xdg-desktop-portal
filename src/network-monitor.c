@@ -26,7 +26,6 @@
 #include <gio/gio.h>
 
 #include "network-monitor.h"
-#include "xdp-call.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
@@ -60,9 +59,9 @@ static gboolean
 handle_get_available (XdpDbusNetworkMonitor *object,
                       GDBusMethodInvocation *invocation)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -84,9 +83,9 @@ static gboolean
 handle_get_metered (XdpDbusNetworkMonitor *object,
                     GDBusMethodInvocation *invocation)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -108,9 +107,9 @@ static gboolean
 handle_get_connectivity (XdpDbusNetworkMonitor *object,
                          GDBusMethodInvocation *invocation)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -132,9 +131,9 @@ static gboolean
 handle_get_status (XdpDbusNetworkMonitor *object,
                    GDBusMethodInvocation *invocation)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -184,9 +183,9 @@ handle_can_reach (XdpDbusNetworkMonitor *object,
                   const char            *hostname,
                   guint                  port)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,

@@ -606,7 +606,7 @@ handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
                             const char             *arg_parent_window,
                             GVariant               *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) options_builder =
@@ -622,7 +622,7 @@ handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,

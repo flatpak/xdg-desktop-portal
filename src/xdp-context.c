@@ -21,7 +21,6 @@
 
 #include "xdp-app-info-registry.h"
 #include "xdp-utils.h"
-#include "xdp-call.h"
 #include "xdp-dbus.h"
 #include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
@@ -189,8 +188,6 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
           return FALSE;
         }
     }
-  else
-    xdp_call_init_invocation (invocation, app_info);
 
   return TRUE;
 }

@@ -27,7 +27,6 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "xdp-call.h"
 #include "background.h"
 #include "xdp-background-monitor.h"
 #include "flatpak-instance.h"
@@ -1049,14 +1048,13 @@ handle_set_status_in_thread_func (GTask        *task,
                                   GCancellable *cancellable)
 {
   GDBusMethodInvocation *invocation = task_data;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autofree char *message = NULL;
   InstanceData *data;
   const char *id = NULL;
   GVariant *options;
-  XdpCall *call;
 
-  call = xdp_call_from_invocation (invocation);
-  id = xdp_app_info_get_instance (call->app_info);
+  id = xdp_app_info_get_instance (app_info);
 
   options = g_object_get_data (G_OBJECT (invocation), "options");
   g_variant_lookup (options, "message", "s", &message);
@@ -1104,7 +1102,7 @@ handle_set_status_in_thread_func (GTask        *task,
 
       data = g_new0 (InstanceData, 1);
       data->instance = g_object_ref (instance);
-      data->state = get_one_app_state (xdp_app_info_get_id (call->app_info), app_states);
+      data->state = get_one_app_state (xdp_app_info_get_id (app_info), app_states);
       g_hash_table_insert (applications, g_strdup (id), data);
     }
 
@@ -1157,19 +1155,17 @@ handle_set_status (XdpDbusBackground     *object,
                    GDBusMethodInvocation *invocation,
                    GVariant              *arg_options)
 {
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   const char *id = NULL;
-  XdpCall *call;
 
-  call = xdp_call_from_invocation (invocation);
+  g_debug ("Handling SetStatus call from %s", xdp_app_info_get_id (app_info));
 
-  g_debug ("Handling SetStatus call from %s", xdp_app_info_get_id (call->app_info));
-
-  if (xdp_app_info_is_host (call->app_info))
+  if (xdp_app_info_is_host (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -1178,7 +1174,7 @@ handle_set_status (XdpDbusBackground     *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  id = xdp_app_info_get_instance (call->app_info);
+  id = xdp_app_info_get_instance (app_info);
   if (!id)
     {
       g_dbus_method_invocation_return_error (invocation,
