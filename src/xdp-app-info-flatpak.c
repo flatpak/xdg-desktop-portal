@@ -698,7 +698,8 @@ open_flatpak_info (int      pid,
 }
 
 static XdpAppInfo *
-xdp_app_info_flatpak_new_testing (GError **error)
+xdp_app_info_flatpak_new_testing (const char  *sender,
+                                  GError     **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
   const char *metadata_path;
@@ -762,6 +763,7 @@ xdp_app_info_flatpak_new_testing (GError **error)
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
+                                     "sender", sender,
                                      NULL);
 
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
@@ -775,9 +777,10 @@ xdp_app_info_flatpak_new_testing (GError **error)
  *  set `*pidfd` to -1.
  */
 XdpAppInfo *
-xdp_app_info_flatpak_new (int      pid,
-                          int     *pidfd,
-                          GError **error)
+xdp_app_info_flatpak_new (const char  *sender,
+                          int          pid,
+                          int         *pidfd,
+                          GError     **error)
 {
   g_autoptr (XdpAppInfoFlatpak) app_info_flatpak = NULL;
   XdpAppInfoFlags flags = 0;
@@ -805,7 +808,7 @@ xdp_app_info_flatpak_new (int      pid,
           return NULL;
         }
 
-      return xdp_app_info_flatpak_new_testing (error);
+      return xdp_app_info_flatpak_new_testing (sender, error);
     }
 
   info_fd = open_flatpak_info (pid, error);
@@ -895,6 +898,7 @@ xdp_app_info_flatpak_new (int      pid,
                                      "id", id,
                                      "instance", instance,
                                      "pidfd", g_steal_fd (&bwrap_pidfd),
+                                     "sender", sender,
                                      NULL);
   if (!app_info_flatpak)
     return NULL;

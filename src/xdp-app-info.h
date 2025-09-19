@@ -63,6 +63,8 @@ const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_engine (XdpAppInfo *app_info);
 
+const char * xdp_app_info_get_sender (XdpAppInfo *app_info);
+
 const char * xdp_app_info_get_app_display_name (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_engine_display_name (XdpAppInfo *app_info);
