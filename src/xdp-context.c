@@ -75,6 +75,8 @@ struct _XdpContext
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
+
+  GCancellable *cancellable;
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -94,6 +96,8 @@ xdp_context_dispose (GObject *object)
       context->peer_disconnect_handle_id = 0;
     }
 
+  g_cancellable_cancel (context->cancellable);
+  g_clear_object (&context->cancellable);
   g_clear_object (&context->portal_config);
   g_clear_object (&context->connection);
   g_clear_object (&context->lockdown_impl);
@@ -115,6 +119,7 @@ xdp_context_class_init (XdpContextClass *klass)
 static void
 xdp_context_init (XdpContext *context)
 {
+  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -376,7 +381,7 @@ xdp_context_register (XdpContext       *context,
   init_wallpaper (context);
   init_account (context);
   init_email (context);
-  init_secret (context);
+  init_secret (context, context->cancellable);
   init_global_shortcuts (context);
   init_dynamic_launcher (context);
   init_screen_cast (context);
