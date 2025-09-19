@@ -69,6 +69,8 @@ struct _XdpContext
   gboolean verbose;
 
   XdpPortalConfig *portal_config;
+
+  GCancellable *cancellable;
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -80,6 +82,8 @@ xdp_context_dispose (GObject *object)
 {
   XdpContext *context = XDP_CONTEXT (object);
 
+  g_cancellable_cancel (context->cancellable);
+  g_clear_object (&context->cancellable);
   g_clear_object (&context->portal_config);
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
@@ -96,6 +100,7 @@ xdp_context_class_init (XdpContextClass *klass)
 static void
 xdp_context_init (XdpContext *context)
 {
+  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -238,6 +243,27 @@ on_peer_died (const char *name)
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
 }
 
+static void
+secret_impl_created_cb (GObject      *source_object,
+                        GAsyncResult *result,
+                        gpointer      user_data)
+{
+  GDBusConnection *connection;
+  g_autoptr(GDBusInterfaceSkeleton) skeleton = NULL;
+  g_autoptr(GError) error = NULL;
+
+  skeleton = secret_create_finish (result, &error);
+  if (!skeleton)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Failed to create secret proxy: %s", error->message);
+      return;
+    }
+
+  connection = G_DBUS_CONNECTION (user_data);
+  export_portal_implementation (connection, g_steal_pointer (&skeleton));
+}
+
 gboolean
 xdp_context_register (XdpContext       *context,
                       GDBusConnection  *connection,
@@ -368,8 +394,8 @@ xdp_context_register (XdpContext       *context,
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Secret");
   if (impl_config != NULL)
-    export_portal_implementation (connection,
-                                  secret_create (connection, impl_config->dbus_name));
+    secret_create_async (connection, impl_config->dbus_name,
+                         context->cancellable, secret_impl_created_cb, connection);
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.GlobalShortcuts");
   if (impl_config != NULL)

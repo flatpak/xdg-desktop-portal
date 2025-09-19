@@ -24,5 +24,11 @@
 
 #include <gio/gio.h>
 
-GDBusInterfaceSkeleton * secret_create (GDBusConnection *connection,
-					const char *dbus_name);
+GDBusInterfaceSkeleton * secret_create_finish (GAsyncResult  *result,
+                                               GError       **error);
+
+void secret_create_async (GDBusConnection     *connection,
+                          const char          *dbus_name,
+                          GCancellable        *cancellable,
+                          GAsyncReadyCallback  callback,
+                          gpointer             user_data);
