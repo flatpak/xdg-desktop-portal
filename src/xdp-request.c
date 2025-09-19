@@ -29,7 +29,9 @@
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (XdpRequest, xdp_request, XDP_DBUS_TYPE_REQUEST_SKELETON,
+G_DEFINE_TYPE_WITH_CODE (XdpRequest,
+                         xdp_request,
+                         XDP_DBUS_TYPE_REQUEST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
                                                 xdp_request_skeleton_iface_init))
 
@@ -64,8 +66,8 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
 }
 
 static gboolean
-xd_request_handle_close (XdpDbusRequest        *object,
-                         GDBusMethodInvocation *invocation)
+xdp_request_handle_close (XdpDbusRequest        *object,
+                          GDBusMethodInvocation *invocation)
 {
   XdpRequest *request = XDP_REQUEST (object);
   g_autoptr(GError) error = NULL;
@@ -96,7 +98,7 @@ xd_request_handle_close (XdpDbusRequest        *object,
 static void
 xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface)
 {
-  iface->handle_close = xd_request_handle_close;
+  iface->handle_close = xdp_request_handle_close;
   iface->response = xdp_request_on_signal_response;
 }
 
@@ -222,7 +224,7 @@ xdp_request_init_invocation (GDBusMethodInvocation *invocation,
       return FALSE;
     }
 
-  request = g_object_new (xdp_request_get_type (), NULL);
+  request = g_object_new (XDP_TYPE_REQUEST, NULL);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
   request->app_info = g_object_ref (app_info);
 
