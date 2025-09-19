@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include "xdp-app-info-registry.h"
 #include "xdp-utils.h"
 #include "xdp-call.h"
 #include "xdp-dbus.h"
@@ -72,6 +73,7 @@ struct _XdpContext
   GDBusConnection *connection;
   XdpDbusImplLockdown *lockdown_impl;
   guint peer_disconnect_handle_id;
+  XdpAppInfoRegistry *app_info_registry;
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -95,6 +97,7 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->connection);
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->connection);
+  g_clear_object (&context->app_info_registry);
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
@@ -119,6 +122,7 @@ xdp_context_new (gboolean opt_verbose)
 
   context->verbose = opt_verbose;
   context->portal_config = xdp_portal_config_new (context);
+  context->app_info_registry = xdp_app_info_registry_new ();
 
   return context;
 }
@@ -127,6 +131,12 @@ gboolean
 xdp_context_is_verbose (XdpContext *context)
 {
   return context->verbose;
+}
+
+XdpAppInfoRegistry *
+xdp_context_get_app_info_registry (XdpContext *context)
+{
+  return context->app_info_registry;
 }
 
 static gboolean
@@ -153,10 +163,14 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     GDBusMethodInvocation  *invocation,
                     gpointer                user_data)
 {
+  XdpContext *context = user_data;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
+                                                               invocation,
+                                                               NULL,
+                                                               &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -165,6 +179,8 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                                              "Portal operation not allowed: %s", error->message);
       return FALSE;
     }
+
+  g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
 
   if (method_needs_request (invocation))
     {
@@ -195,7 +211,8 @@ export_portal_implementation (XdpContext             *context,
   g_dbus_interface_skeleton_set_flags (skeleton,
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
   g_signal_connect (skeleton, "g-authorize-method",
-                    G_CALLBACK (authorize_callback), NULL);
+                    G_CALLBACK (authorize_callback),
+                    context);
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          context->connection,
@@ -248,7 +265,9 @@ static void
 on_peer_disconnect (const char *name,
                     gpointer    user_data)
 {
-  xdp_app_info_delete_for_sender (name);
+  XdpContext *context = XDP_CONTEXT (user_data);
+
+  xdp_app_info_registry_delete (context->app_info_registry, name);
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
@@ -433,7 +452,7 @@ xdp_context_register (XdpContext       *context,
                                   xdp_usb_create (connection, impl_config->dbus_name));
 #endif
 
-  export_host_portal_implementation (context, registry_create (connection));
+  export_host_portal_implementation (context, registry_create (context));
 
   return TRUE;
 }

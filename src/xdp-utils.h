@@ -33,6 +33,7 @@
 #include <gio/gio.h>
 #include <errno.h>
 
+#include "xdp-types.h"
 #include "xdp-sealed-fd.h"
 
 #define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
@@ -76,6 +77,8 @@ gboolean xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
                                         int              *out_pidfd,
                                         uint32_t         *out_pid,
                                         GError          **error);
+
+XdpAppInfo * xdp_invocation_get_app_info (GDBusMethodInvocation *invocation);
 
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)

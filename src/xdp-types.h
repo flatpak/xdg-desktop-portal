@@ -21,4 +21,5 @@
 
 typedef struct _XdpContext XdpContext;
 typedef struct _XdpAppInfo XdpAppInfo;
+typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
 

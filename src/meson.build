@@ -69,6 +69,7 @@ xdp_utils_sources = enums_sources + files(
   'xdp-app-info.c',
   'xdp-app-info-flatpak.c',
   'xdp-app-info-host.c',
+  'xdp-app-info-registry.c',
   'xdp-app-info-snap.c',
   'xdp-sealed-fd.c',
   'xdp-usb-query.c',

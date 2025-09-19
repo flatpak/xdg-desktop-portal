@@ -133,7 +133,7 @@ location_session_new (GVariant *options,
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
-  XdpAppInfo *app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, NULL);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
 
   session = g_initable_new (location_session_get_type (), NULL, error,

@@ -21,6 +21,8 @@
 
 #include <gio/gio.h>
 
+#include "xdp-types.h"
+
 #define XDP_TYPE_CONTEXT (xdp_context_get_type())
 G_DECLARE_FINAL_TYPE (XdpContext,
                       xdp_context,
@@ -34,3 +36,5 @@ gboolean xdp_context_register (XdpContext       *context,
                                GError          **error);
 
 gboolean xdp_context_is_verbose (XdpContext *context);
+
+XdpAppInfoRegistry * xdp_context_get_app_info_registry (XdpContext *context);
