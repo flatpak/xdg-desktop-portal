@@ -70,6 +70,7 @@ struct _XdpContext
 
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
+  XdpDbusImplLockdown *lockdown_impl;
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -83,6 +84,7 @@ xdp_context_dispose (GObject *object)
 
   g_clear_object (&context->portal_config);
   g_clear_object (&context->connection);
+  g_clear_object (&context->lockdown_impl);
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
@@ -250,7 +252,6 @@ xdp_context_register (XdpContext       *context,
   XdpImplConfig *lockdown_impl_config;
   XdpImplConfig *access_impl_config;
   GPtrArray *impl_configs;
-  XdpDbusImplLockdown *lockdown;
   GQuark portal_errors G_GNUC_UNUSED;
 
   /* make sure errors are registered */
@@ -275,15 +276,16 @@ xdp_context_register (XdpContext       *context,
   lockdown_impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Lockdown");
   if (lockdown_impl_config != NULL)
     {
-      lockdown = xdp_dbus_impl_lockdown_proxy_new_sync (connection,
-                                                        G_DBUS_PROXY_FLAGS_NONE,
-                                                        lockdown_impl_config->dbus_name,
-                                                        DESKTOP_PORTAL_OBJECT_PATH,
-                                                        NULL, NULL);
+      context->lockdown_impl =
+        xdp_dbus_impl_lockdown_proxy_new_sync (connection,
+                                               G_DBUS_PROXY_FLAGS_NONE,
+                                               lockdown_impl_config->dbus_name,
+                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               NULL, NULL);
     }
 
-  if (lockdown == NULL)
-    lockdown = xdp_dbus_impl_lockdown_skeleton_new ();
+  if (context->lockdown_impl == NULL)
+    context->lockdown_impl = xdp_dbus_impl_lockdown_skeleton_new ();
 
   export_portal_implementation (context, memory_monitor_create (connection));
   export_portal_implementation (context, power_profile_monitor_create (connection));
@@ -301,17 +303,20 @@ xdp_context_register (XdpContext       *context,
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.FileChooser");
   if (impl_config != NULL)
     export_portal_implementation (context,
-                                  file_chooser_create (connection, impl_config->dbus_name, lockdown));
+                                  file_chooser_create (connection, impl_config->dbus_name,
+                                                       context->lockdown_impl));
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.AppChooser");
   if (impl_config != NULL)
     export_portal_implementation (context,
-                                  open_uri_create (connection, impl_config->dbus_name, lockdown));
+                                  open_uri_create (connection, impl_config->dbus_name,
+                                                   context->lockdown_impl));
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Print");
   if (impl_config != NULL)
     export_portal_implementation (context,
-                                  print_create (connection, impl_config->dbus_name, lockdown));
+                                  print_create (connection, impl_config->dbus_name,
+                                                context->lockdown_impl));
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Notification");
   if (impl_config != NULL)
@@ -330,13 +335,13 @@ xdp_context_register (XdpContext       *context,
       export_portal_implementation (context,
                                     location_create (connection,
                                                      access_impl_config->dbus_name,
-                                                     lockdown));
+                                                     context->lockdown_impl));
 #endif
 
       export_portal_implementation (context,
                                     camera_create (connection,
                                                    access_impl_config->dbus_name,
-                                                   lockdown));
+                                                   context->lockdown_impl));
 
       impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Screenshot");
       if (impl_config != NULL)
