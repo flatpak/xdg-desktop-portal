@@ -27,6 +27,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <glib/gstdio.h>
 #include <gio/gio.h>
@@ -68,6 +69,13 @@ guint xdp_connection_track_peer_disconnect (GDBusConnection           *connectio
 
 void xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
                                              guint            subscription_id);
+
+gboolean xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
+                                        const char       *sender,
+                                        GCancellable     *cancellable,
+                                        int              *out_pidfd,
+                                        uint32_t         *out_pid,
+                                        GError          **error);
 
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
