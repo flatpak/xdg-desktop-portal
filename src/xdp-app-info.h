@@ -46,9 +46,10 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
 
 void xdp_app_info_delete_for_sender (const char *sender);
 
-XdpAppInfo * xdp_app_info_new (uint32_t   pid,
-                               int        pidfd,
-                               GError   **error);
+XdpAppInfo * xdp_app_info_new (const char  *sender,
+                               uint32_t     pid,
+                               int          pidfd,
+                               GError     **error);
 
 XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
                                                    GCancellable           *cancellable,
@@ -66,6 +67,8 @@ const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_engine (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_sender (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_app_display_name (XdpAppInfo *app_info);
 
