@@ -145,7 +145,13 @@
 
         * ``name`` (``s``)
 
-          The name chosen by the user for the launcher.
+          The chosen name for the launcher. This can be either a user chosen
+          name, or the name passed in @name.
+
+        * ``icon`` (``v``)
+
+          The chosen icon for the launcher. This can be either a user chosen
+          icon, or the icon passed in @icon_v.
 
         * ``token`` (``s``)
 
