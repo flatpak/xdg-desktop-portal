@@ -339,6 +339,26 @@ xdp_app_info_new (uint32_t   pid,
   return g_steal_pointer (&app_info);
 }
 
+static XdpAppInfo *
+xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
+                                      GCancellable           *cancellable,
+                                      GError                **error)
+{
+  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autofd int pidfd = -1;
+  uint32_t pid;
+  g_autoptr(GError) local_error = NULL;
+
+  if (!xdp_connection_get_pidfd_sync (connection, sender,
+                                      cancellable,
+                                      &pidfd, &pid,
+                                      error))
+    return NULL;
+
+  return xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
+}
+
 const char *
 xdp_app_info_get_app_display_name (XdpAppInfo *app_info)
 {
@@ -877,26 +897,21 @@ xdp_app_info_delete_for_sender (const char *sender)
   G_UNLOCK (app_infos);
 }
 
-static XdpAppInfo *
-xdp_connection_create_app_info_sync (GDBusConnection  *connection,
-                                     const char       *sender,
-                                     GCancellable     *cancellable,
-                                     GError          **error)
+XdpAppInfo *
+xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
+                                     GCancellable           *cancellable,
+                                     GError                **error)
 {
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autofd int pidfd = -1;
-  uint32_t pid;
-  g_autoptr(GError) local_error = NULL;
 
-  if (!xdp_connection_get_pidfd_sync (connection, sender,
-                                      cancellable,
-                                      &pidfd, &pid,
-                                      error))
-    return NULL;
+  app_info = cache_lookup_app_info_by_sender (sender);
+  if (app_info)
+    return g_steal_pointer (&app_info);
 
-  app_info = xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
-  if (!app_info)
-    return NULL;
+  app_info = xdp_app_info_new_for_invocation_sync (invocation,
+                                                   cancellable,
+                                                   error);
 
   g_debug ("Adding %s app '%s'",
            xdp_app_info_get_engine_display_name (app_info),
@@ -905,25 +920,6 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
   cache_insert_app_info (sender, app_info);
 
   return g_steal_pointer (&app_info);
-}
-
-XdpAppInfo *
-xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
-                                     GCancellable           *cancellable,
-                                     GError                **error)
-{
-  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autoptr(XdpAppInfo) app_info = NULL;
-
-  app_info = cache_lookup_app_info_by_sender (sender);
-  if (app_info)
-    return g_steal_pointer (&app_info);
-
-  return xdp_connection_create_app_info_sync (connection,
-                                              sender,
-                                              cancellable,
-                                              error);
 }
 
 XdpAppInfo *
