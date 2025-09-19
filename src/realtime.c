@@ -26,7 +26,6 @@
 #include <gio/gio.h>
 
 #include "realtime.h"
-#include "xdp-call.h"
 #include "xdp-permissions.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
@@ -119,11 +118,11 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
                                       guint64                thread,
                                       guint32                priority)
 {
-  g_autoptr (GError) error = NULL;
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   XdpPermission permission;
+  g_autoptr (GError) error = NULL;
 
   if (!realtime->rtkit_proxy)
     {
@@ -134,7 +133,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -144,7 +143,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (call->app_info, pids, tids, &error))
+  if (!map_pid (app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -169,11 +168,11 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
                                            guint64                thread,
                                            gint32                 priority)
 {
-  g_autoptr (GError) error = NULL;
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   XdpPermission permission;
+  g_autoptr (GError) error = NULL;
 
   if (!realtime->rtkit_proxy)
     {
@@ -184,7 +183,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -194,7 +193,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (call->app_info, pids, tids, &error))
+  if (!map_pid (app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

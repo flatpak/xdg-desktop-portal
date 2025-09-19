@@ -29,7 +29,6 @@
 #include <gio/gunixoutputstream.h>
 
 #include "notification.h"
-#include "xdp-call.h"
 #include "xdp-permissions.h"
 #include "xdp-request.h"
 #include "xdp-app-info.h"
@@ -1094,13 +1093,13 @@ notification_handle_add_notification (XdpDbusNotification *object,
                                       const char *arg_id,
                                       GVariant *notification)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
   CallData *call_data;
 
   call_data = call_data_new (invocation,
-                             call->app_info,
-                             call->sender,
+                             app_info,
+                             xdp_app_info_get_sender (app_info),
                              arg_id,
                              notification,
                              in_fd_list);
@@ -1138,20 +1137,20 @@ remove_done (GObject *source,
 }
 
 static gboolean
-notification_handle_remove_notification (XdpDbusNotification *object,
+notification_handle_remove_notification (XdpDbusNotification   *object,
                                          GDBusMethodInvocation *invocation,
-                                         const char *arg_id)
+                                         const char            *arg_id)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   CallData *call_data = call_data_new (invocation,
-                                       call->app_info,
-                                       call->sender,
+                                       app_info,
+                                       xdp_app_info_get_sender (app_info),
                                        arg_id,
                                        NULL,
                                        NULL);
 
   xdp_dbus_impl_notification_call_remove_notification (impl,
-                                                       xdp_app_info_get_id (call->app_info),
+                                                       xdp_app_info_get_id (app_info),
                                                        arg_id,
                                                        NULL,
                                                        remove_done, call_data);
