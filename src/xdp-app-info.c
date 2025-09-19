@@ -68,6 +68,9 @@ typedef struct _XdpAppInfoPrivate
   /* calling process */
   int pidfd;
 
+  /* dbus name of the sender */
+  char *sender;
+
   /* pid namespace mapping */
   GMutex pidns_lock;
   ino_t pidns_id;
@@ -91,6 +94,7 @@ enum
   PROP_ID,
   PROP_INSTANCE,
   PROP_PIDFD,
+  PROP_SENDER,
   N_PROPS
 };
 
@@ -147,6 +151,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
   g_clear_object (&priv->gappinfo);
+  g_clear_pointer (&priv->sender, g_free);
 
   if (!g_clear_fd (&priv->pidfd, &error))
     g_warning ("Error closing pidfd: %s", error->message);
@@ -189,6 +194,10 @@ xdp_app_info_get_property (GObject    *object,
       g_value_set_int (value, priv->pidfd);
       break;
 
+    case PROP_SENDER:
+      g_value_set_string (value, priv->sender);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -229,6 +238,11 @@ xdp_app_info_set_property (GObject      *object,
       g_assert (priv->pidfd == -1);
       /* Steals ownership from the GValue */
       priv->pidfd = g_value_get_int (value);
+      break;
+
+    case PROP_SENDER:
+      g_assert (priv->sender == NULL);
+      priv->sender = g_value_dup_string (value);
       break;
 
     default:
@@ -290,6 +304,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                       G_PARAM_CONSTRUCT_ONLY |
                       G_PARAM_STATIC_STRINGS);
 
+  properties[PROP_SENDER] =
+    g_param_spec_string ("sender", NULL, NULL,
+                         NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, N_PROPS, properties);
 }
 
@@ -302,15 +323,16 @@ xdp_app_info_init (XdpAppInfo *app_info)
 }
 
 static XdpAppInfo *
-xdp_app_info_new (uint32_t   pid,
-                  int        pidfd,
-                  GError   **error)
+xdp_app_info_new (const char  *sender,
+                  uint32_t     pid,
+                  int          pidfd,
+                  GError     **error)
 {
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autofd int pidfd_owned = pidfd;
   g_autoptr(GError) local_error = NULL;
 
-  app_info = xdp_app_info_flatpak_new (pid, &pidfd_owned, &local_error);
+  app_info = xdp_app_info_flatpak_new (sender, pid, &pidfd_owned, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -321,7 +343,7 @@ xdp_app_info_new (uint32_t   pid,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_snap_new (pid, &pidfd_owned, &local_error);
+    app_info = xdp_app_info_snap_new (sender, pid, &pidfd_owned, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))
@@ -332,7 +354,7 @@ xdp_app_info_new (uint32_t   pid,
   g_clear_error (&local_error);
 
   if (app_info == NULL)
-    app_info = xdp_app_info_host_new (pid, &pidfd_owned);
+    app_info = xdp_app_info_host_new (sender, pid, &pidfd_owned);
 
   g_assert (XDP_IS_APP_INFO (app_info));
 
@@ -356,7 +378,7 @@ xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
                                       error))
     return NULL;
 
-  return xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
+  return xdp_app_info_new (sender, pid, g_steal_fd (&pidfd), error);
 }
 
 XdpAppInfo *
@@ -377,7 +399,8 @@ xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
                                       error))
     return NULL;
 
-  return xdp_app_info_host_new_registered (pid, g_steal_fd (&pidfd),
+  return xdp_app_info_host_new_registered (sender,
+                                           pid, g_steal_fd (&pidfd),
                                            app_id,
                                            error);
 }
@@ -453,6 +476,18 @@ xdp_app_info_get_engine (XdpAppInfo *app_info)
   priv = xdp_app_info_get_instance_private (app_info);
 
   return priv->engine;
+}
+
+const char *
+xdp_app_info_get_sender (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->sender;
 }
 
 GAppInfo *

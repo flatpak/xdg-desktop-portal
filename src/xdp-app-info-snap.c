@@ -227,7 +227,8 @@ end:
 }
 
 static XdpAppInfo *
-xdp_app_info_snap_new_testing (GError **error)
+xdp_app_info_snap_new_testing (const char  *sender,
+                               GError     **error)
 {
   g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
   const char *metadata_path;
@@ -278,6 +279,7 @@ xdp_app_info_snap_new_testing (GError **error)
                                   "id", snap_id,
                                   "flags", flags,
                                   "desktop-file", desktop_id,
+                                  "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));
@@ -289,9 +291,10 @@ xdp_app_info_snap_new_testing (GError **error)
  *  set `*pidfd` to -1.
  */
 XdpAppInfo *
-xdp_app_info_snap_new (int      pid,
-                       int     *pidfd,
-                       GError **error)
+xdp_app_info_snap_new (const char  *sender,
+                       int          pid,
+                       int         *pidfd,
+                       GError     **error)
 {
   g_autoptr (XdpAppInfoSnap) app_info_snap = NULL;
 
@@ -317,7 +320,7 @@ xdp_app_info_snap_new (int      pid,
           return NULL;
         }
 
-      return xdp_app_info_snap_new_testing (error);
+      return xdp_app_info_snap_new_testing (sender, error);
     }
 
   /* Check the process's cgroup membership to fail quickly for non-snaps */
@@ -373,6 +376,7 @@ xdp_app_info_snap_new (int      pid,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", flags,
                                   "desktop-file", desktop_id,
+                                  "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_snap));

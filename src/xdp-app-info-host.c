@@ -222,7 +222,8 @@ maybe_get_pidfd_from_pid (int  pid,
 }
 
 XdpAppInfo *
-xdp_app_info_host_new_registered (int          pid,
+xdp_app_info_host_new_registered (const char  *sender,
+                                  int          pid,
                                   int          pidfd,
                                   const char  *app_id,
                                   GError     **error)
@@ -241,6 +242,7 @@ xdp_app_info_host_new_registered (int          pid,
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH |
                                            XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO,
+                                   "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));
@@ -252,8 +254,9 @@ xdp_app_info_host_new_registered (int          pid,
  *  set `*pidfd` to -1.
  */
 XdpAppInfo *
-xdp_app_info_host_new (int  pid,
-                       int *pidfd)
+xdp_app_info_host_new (const char *sender,
+                       int         pid,
+                       int        *pidfd)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
@@ -283,6 +286,7 @@ xdp_app_info_host_new (int  pid,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
+                                   "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));
