@@ -97,10 +97,10 @@ handle_request_clipboard (XdpDbusClipboard *object,
                           const char *arg_session_handle,
                           GVariant *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -143,14 +143,14 @@ handle_set_selection (XdpDbusClipboard *object,
                       const char *arg_session_handle,
                       GVariant *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -266,10 +266,10 @@ handle_selection_write (XdpDbusClipboard *object,
                         const char *arg_session_handle,
                         guint arg_serial)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -317,10 +317,10 @@ handle_selection_write_done (XdpDbusClipboard *object,
                              guint arg_serial,
                              gboolean arg_success)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -421,10 +421,10 @@ handle_selection_read (XdpDbusClipboard *object,
                        const char *arg_session_handle,
                        const char *arg_mime_type)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,

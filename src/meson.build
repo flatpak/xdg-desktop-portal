@@ -113,7 +113,6 @@ xdg_desktop_portal_sources = files(
   'wallpaper.c',
   'xdp-app-launch-context.c',
   'xdp-background-monitor.c',
-  'xdp-call.c',
   'xdp-context.c',
   'xdp-documents.c',
   'xdp-main.c',

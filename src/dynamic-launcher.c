@@ -37,7 +37,6 @@
 #include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
 
-#include "xdp-call.h"
 #include "dynamic-launcher.h"
 #include "xdp-app-launch-context.h"
 #include "xdp-request.h"
@@ -334,7 +333,7 @@ handle_install (XdpDbusDynamicLauncher *object,
                 const gchar            *arg_desktop_entry,
                 GVariant               *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GVariant) launcher_data = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(GKeyFile) desktop_keyfile = NULL;
@@ -361,7 +360,7 @@ handle_install (XdpDbusDynamicLauncher *object,
   g_assert (icon_extension != NULL && icon_extension[0] != '\0');
   g_assert (icon_size != NULL && icon_size[0] != '\0');
 
-  if (!validate_desktop_file_id (call->app_info, arg_desktop_file_id, &error))
+  if (!validate_desktop_file_id (app_info, arg_desktop_file_id, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -381,7 +380,7 @@ handle_install (XdpDbusDynamicLauncher *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!xdp_app_info_validate_dynamic_launcher (call->app_info,
+  if (!xdp_app_info_validate_dynamic_launcher (app_info,
                                                desktop_keyfile,
                                                &error))
     {
@@ -679,8 +678,8 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
                               GVariant               *arg_icon_v,
                               GVariant               *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
-  const char *app_id = xdp_app_info_get_id (call->app_info);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GError) error = NULL;
   g_autofree char *token = NULL;
   g_autofree char *icon_format = NULL;
@@ -693,7 +692,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
    * app was launched from the CLI:
    * https://github.com/flatpak/xdg-desktop-portal/pull/719#issuecomment-1057412221
    */
-  if (xdp_app_info_is_host (call->app_info) && g_str_equal (app_id, ""))
+  if (xdp_app_info_is_host (app_info) && g_str_equal (app_id, ""))
     {
       response = 0;
     }
@@ -736,7 +735,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              _("RequestInstallToken() not allowed for app id %s"),
-                                             xdp_app_info_get_id (call->app_info));
+                                             xdp_app_info_get_id (app_info));
     }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -748,7 +747,7 @@ handle_uninstall (XdpDbusDynamicLauncher *object,
                   const gchar            *arg_desktop_file_id,
                   GVariant               *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(GError) desktop_file_error = NULL;
   g_autofree char *icon_dir = NULL;
@@ -759,7 +758,7 @@ handle_uninstall (XdpDbusDynamicLauncher *object,
   g_autoptr(GFile) link_file = NULL;
   g_autoptr(GKeyFile) desktop_keyfile = NULL;
 
-  if (!validate_desktop_file_id (call->app_info, arg_desktop_file_id, &error))
+  if (!validate_desktop_file_id (app_info, arg_desktop_file_id, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -806,14 +805,14 @@ handle_get_desktop_entry (XdpDbusDynamicLauncher *object,
                           GDBusMethodInvocation  *invocation,
                           const gchar            *arg_desktop_file_id)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
   g_autofree char *contents = NULL;
   g_autofree char *desktop_path = NULL;
   gsize length;
 
-  if (!validate_desktop_file_id (call->app_info, arg_desktop_file_id, &error))
+  if (!validate_desktop_file_id (app_info, arg_desktop_file_id, &error))
     goto error;
 
   desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
@@ -843,7 +842,7 @@ handle_get_icon (XdpDbusDynamicLauncher *object,
                  GDBusMethodInvocation  *invocation,
                  const gchar            *arg_desktop_file_id)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
   g_autofree char *contents = NULL;
@@ -861,7 +860,7 @@ handle_get_icon (XdpDbusDynamicLauncher *object,
   const gchar *icon_format = NULL;
   int icon_size = 0;
 
-  if (!validate_desktop_file_id (call->app_info, arg_desktop_file_id, &error))
+  if (!validate_desktop_file_id (app_info, arg_desktop_file_id, &error))
     goto error;
 
   desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
@@ -957,16 +956,16 @@ handle_launch (XdpDbusDynamicLauncher *object,
                const gchar            *arg_desktop_file_id,
                GVariant               *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GError) error = NULL;
   g_autofree char *desktop_dir = NULL;
   g_autofree char *desktop_path = NULL;
   const char *activation_token = NULL;
   g_autoptr(XdpAppLaunchContext) xdp_launch_context = NULL;
   GAppLaunchContext *launch_context = NULL;
-  g_autoptr(GDesktopAppInfo) app_info = NULL;
+  g_autoptr(GDesktopAppInfo) gappinfo = NULL;
 
-  if (!validate_desktop_file_id (call->app_info, arg_desktop_file_id, &error))
+  if (!validate_desktop_file_id (app_info, arg_desktop_file_id, &error))
     goto error;
 
   desktop_dir = g_build_filename (g_get_user_data_dir (), XDG_PORTAL_APPLICATIONS_DIR, NULL);
@@ -990,8 +989,8 @@ handle_launch (XdpDbusDynamicLauncher *object,
   xdp_app_launch_context_set_activation_token (xdp_launch_context,
                                                activation_token);
 
-  app_info = g_desktop_app_info_new_from_filename (desktop_path);
-  if (app_info == NULL)
+  gappinfo = g_desktop_app_info_new_from_filename (desktop_path);
+  if (gappinfo == NULL)
     {
       g_set_error (&error,
                    XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_FAILED,
@@ -1001,7 +1000,7 @@ handle_launch (XdpDbusDynamicLauncher *object,
     }
 
   g_debug ("Launching %s", arg_desktop_file_id);
-  if (!g_app_info_launch (G_APP_INFO (app_info), NULL, launch_context, &error))
+  if (!g_app_info_launch (G_APP_INFO (gappinfo), NULL, launch_context, &error))
     goto error;
 
   xdp_dbus_dynamic_launcher_complete_launch (object, invocation);

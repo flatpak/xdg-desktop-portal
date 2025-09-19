@@ -20,7 +20,6 @@
 
 #include "xdp-session.h"
 #include "xdp-request.h"
-#include "xdp-call.h"
 
 #include <string.h>
 
@@ -90,8 +89,8 @@ xdp_session_from_request (const char *session_handle,
 }
 
 XdpSession *
-xdp_session_from_call (const char *session_handle,
-                       XdpCall    *call)
+xdp_session_from_app_info (const char *session_handle,
+                           XdpAppInfo *app_info)
 {
   g_autoptr(XdpSession) session = NULL;
 
@@ -104,10 +103,10 @@ xdp_session_from_call (const char *session_handle,
   if (!session)
     return NULL;
 
-  if (g_strcmp0 (session->sender, call->sender) != 0)
+  if (g_strcmp0 (session->sender, xdp_app_info_get_sender (app_info)) != 0)
     return NULL;
 
-  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (call->app_info)) != 0)
+  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (app_info)) != 0)
     return NULL;
 
   return g_steal_pointer (&session);

@@ -939,7 +939,7 @@ handle_open_pipewire_remote (XdpDbusScreenCast *object,
                              const char *arg_session_handle,
                              GVariant *arg_options)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
   GList *streams;
   PipeWireRemote *remote;
@@ -948,7 +948,7 @@ handle_open_pipewire_remote (XdpDbusScreenCast *object,
   int fd_id;
   g_autoptr(GError) error = NULL;
 
-  session = xdp_session_from_call (arg_session_handle, call);
+  session = xdp_session_from_app_info (arg_session_handle, app_info);
   if (!session)
     {
       g_dbus_method_invocation_return_error (invocation,
