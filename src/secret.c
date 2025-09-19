@@ -192,26 +192,50 @@ secret_class_init (SecretClass *klass)
 }
 
 GDBusInterfaceSkeleton *
-secret_create (GDBusConnection *connection,
-	       const char      *dbus_name)
+secret_create_finish (GAsyncResult  *result,
+                      GError       **error)
 {
+  GTask *task = G_TASK (result);
+
+  return g_task_propagate_pointer (task, error);
+}
+
+static void
+proxy_created_cb (GObject      *source_object,
+                  GAsyncResult *result,
+                  gpointer      user_data)
+{
+  g_autoptr(GTask) task = G_TASK (user_data);
   g_autoptr(GError) error = NULL;
 
-  impl = xdp_dbus_impl_secret_proxy_new_sync (connection,
-                                              G_DBUS_PROXY_FLAGS_NONE,
-                                              dbus_name,
-                                              DESKTOP_PORTAL_OBJECT_PATH,
-                                              NULL,
-                                              &error);
-  if (impl == NULL)
+  impl = xdp_dbus_impl_secret_proxy_new_finish (result, &error);
+  if (!impl)
     {
-      g_warning ("Failed to create secret proxy: %s", error->message);
-      return NULL;
+      g_task_return_error (task, g_steal_pointer (&error));
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   secret = g_object_new (secret_get_type (), NULL);
+  g_task_return_pointer (task, secret, g_object_unref);
+}
 
-  return G_DBUS_INTERFACE_SKELETON (secret);
+void
+secret_create_async (GDBusConnection     *connection,
+                     const char          *dbus_name,
+                     GCancellable        *cancellable,
+                     GAsyncReadyCallback  callback,
+                     gpointer             user_data)
+{
+  g_autoptr(GTask) task = NULL;
+
+  task = g_task_new (NULL, cancellable, callback, user_data);
+  xdp_dbus_impl_secret_proxy_new (connection,
+                                  G_DBUS_PROXY_FLAGS_NONE,
+                                  dbus_name,
+                                  DESKTOP_PORTAL_OBJECT_PATH,
+                                  cancellable,
+                                  proxy_created_cb,
+                                  g_steal_pointer (&task));
 }

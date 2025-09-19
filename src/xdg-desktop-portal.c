@@ -87,6 +87,8 @@ static GOptionEntry entries[] = {
 
 XdpDbusImplLockdown *lockdown;
 
+static GCancellable *cancellable;
+
 static void
 message_handler (const gchar *log_domain,
                  GLogLevelFlags log_level,
@@ -239,6 +241,27 @@ exit_with_status (int status)
 }
 
 static void
+secret_impl_created_cb (GObject      *source_object,
+                        GAsyncResult *result,
+                        gpointer      user_data)
+{
+  GDBusConnection *connection;
+  g_autoptr(GDBusInterfaceSkeleton) skeleton = NULL;
+  g_autoptr(GError) error = NULL;
+
+  skeleton = secret_create_finish (result, &error);
+  if (!skeleton)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Failed to create secret proxy: %s", error->message);
+      return;
+    }
+
+  connection = G_DBUS_CONNECTION (user_data);
+  export_portal_implementation (connection, g_steal_pointer (&skeleton));
+}
+
+static void
 on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
@@ -369,8 +392,8 @@ on_bus_acquired (GDBusConnection *connection,
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.Secret");
   if (implementation != NULL)
-    export_portal_implementation (connection,
-                                  secret_create (connection, implementation->dbus_name));
+    secret_create_async (connection, implementation->dbus_name,
+                         cancellable, secret_impl_created_cb, connection);
 
   implementation = find_portal_implementation ("org.freedesktop.impl.portal.GlobalShortcuts");
   if (implementation != NULL)
@@ -510,6 +533,8 @@ main (int argc, char *argv[])
 
   g_set_prgname (argv[0]);
 
+  cancellable = g_cancellable_new ();
+
   load_portal_configuration (opt_verbose);
   load_installed_portals (opt_verbose);
 
@@ -537,6 +562,9 @@ main (int argc, char *argv[])
                              on_name_lost,
                              NULL,
                              NULL);
+
+  g_cancellable_cancel (cancellable);
+  g_clear_object (&cancellable);
 
   g_main_loop_run (loop);
 
