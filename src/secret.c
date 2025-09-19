@@ -222,35 +222,50 @@ secret_new (XdpDbusImplSecret *impl)
   return secret;
 }
 
-void
-init_secret (XdpContext *context)
+static void
+proxy_created_cb (GObject      *source_object,
+                  GAsyncResult *result,
+                  gpointer      user_data)
 {
+  XdpContext *context;
+  g_autoptr(XdpDbusImplSecret) impl = NULL;
+  g_autoptr(GError) error = NULL;
   g_autoptr(Secret) secret = NULL;
+
+  impl = xdp_dbus_impl_secret_proxy_new_finish (result, &error);
+  if (!impl)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Failed to create secret proxy: %s", error->message);
+      return;
+    }
+
+  context = XDP_CONTEXT (user_data);
+
+  secret = secret_new (impl);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&secret)),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+}
+
+void
+init_secret (XdpContext   *context,
+             GCancellable *cancellable)
+{
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
-  g_autoptr(XdpDbusImplSecret) impl = NULL;
   g_autoptr(GError) error = NULL;
 
   impl_config = xdp_portal_config_find (config, SECRET_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
-  impl = xdp_dbus_impl_secret_proxy_new_sync (connection,
-                                              G_DBUS_PROXY_FLAGS_NONE,
-                                              impl_config->dbus_name,
-                                              DESKTOP_DBUS_PATH,
-                                              NULL,
-                                              &error);
-  if (impl == NULL)
-    {
-      g_warning ("Failed to create secret proxy: %s", error->message);
-      return;
-    }
-
-  secret = secret_new (impl);
-
-  xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&secret)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+  xdp_dbus_impl_secret_proxy_new (connection,
+                                  G_DBUS_PROXY_FLAGS_NONE,
+                                  impl_config->dbus_name,
+                                  DESKTOP_DBUS_PATH,
+                                  cancellable,
+                                  proxy_created_cb,
+                                  context);
 }

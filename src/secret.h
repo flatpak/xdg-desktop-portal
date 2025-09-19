@@ -24,4 +24,5 @@
 
 #include "xdp-types.h"
 
-void init_secret (XdpContext *context);
+void init_secret (XdpContext   *context,
+                  GCancellable *cancellable);
