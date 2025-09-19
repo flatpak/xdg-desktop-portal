@@ -1495,7 +1495,8 @@ portal_get_host_paths (GDBusMethodInvocation *invocation,
 }
 
 static void
-peer_died_cb (const char *name)
+on_peer_disconnect (const char *name,
+                    gpointer    user_data)
 {
   stop_file_transfers_for_sender (name);
 }
@@ -1529,7 +1530,7 @@ on_bus_acquired (GDBusConnection *connection,
   g_dbus_interface_skeleton_set_flags (file_transfer,
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
 
-  xdp_connection_track_name_owners (connection, peer_died_cb);
+  xdp_connection_track_peer_disconnect (connection, on_peer_disconnect, NULL);
 
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (dbus_api),
                                          connection,

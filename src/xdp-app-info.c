@@ -994,12 +994,12 @@ cache_insert_app_info (const char *sender,
   G_UNLOCK (app_infos);
 }
 
-static void
-on_peer_died (const char *name)
+void
+xdp_app_info_delete_for_sender (const char *sender)
 {
   G_LOCK (app_infos);
   if (app_info_by_unique_name)
-    g_hash_table_remove (app_info_by_unique_name, name);
+    g_hash_table_remove (app_info_by_unique_name, sender);
   G_UNLOCK (app_infos);
 }
 
@@ -1026,8 +1026,6 @@ xdp_connection_create_app_info_sync (GDBusConnection  *connection,
            xdp_app_info_get_id (app_info));
 
   cache_insert_app_info (sender, app_info);
-
-  xdp_connection_track_name_owners (connection, on_peer_died);
 
   return g_steal_pointer (&app_info);
 }
@@ -1107,8 +1105,6 @@ xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
   g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));
 
   cache_insert_app_info (sender, app_info);
-
-  xdp_connection_track_name_owners (connection, on_peer_died);
 
   return g_steal_pointer (&app_info);
 }

@@ -71,6 +71,7 @@ struct _XdpContext
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
   XdpDbusImplLockdown *lockdown_impl;
+  guint peer_disconnect_handle_id;
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -81,6 +82,14 @@ static void
 xdp_context_dispose (GObject *object)
 {
   XdpContext *context = XDP_CONTEXT (object);
+
+  if (context->peer_disconnect_handle_id)
+    {
+      g_assert (context->connection);
+      xdp_connection_untrack_peer_disconnect (context->connection,
+                                              context->peer_disconnect_handle_id);
+      context->peer_disconnect_handle_id = 0;
+    }
 
   g_clear_object (&context->portal_config);
   g_clear_object (&context->connection);
@@ -235,11 +244,14 @@ export_host_portal_implementation (XdpContext             *context,
 }
 
 static void
-on_peer_died (const char *name)
+on_peer_disconnect (const char *name,
+                    gpointer    user_data)
 {
+  xdp_app_info_delete_for_sender (name);
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
+  xdp_usb_delete_for_sender (name);
 }
 
 gboolean
@@ -259,7 +271,10 @@ xdp_context_register (XdpContext       *context,
 
   g_set_object (&context->connection, connection);
 
-  xdp_connection_track_name_owners (connection, on_peer_died);
+  context->peer_disconnect_handle_id =
+    xdp_connection_track_peer_disconnect (connection,
+                                          on_peer_disconnect,
+                                          context);
 
   if (!xdp_init_permission_store (connection, error))
     {

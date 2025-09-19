@@ -1560,8 +1560,8 @@ xdp_usb_init (XdpUsb *self)
     }
 }
 
-static void
-peer_died_cb (const char *sender)
+void
+xdp_usb_delete_for_sender (const char *sender)
 {
   if (usb && g_hash_table_remove (usb->sender_infos, sender))
     g_debug ("Removed sender %s", sender);
@@ -1584,8 +1584,6 @@ xdp_usb_create (GDBusConnection *connection,
       g_warning ("Failed to create USB proxy: %s", error->message);
       return NULL;
     }
-
-  xdp_connection_track_name_owners (connection, peer_died_cb);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (usb_impl), G_MAXINT);
 
