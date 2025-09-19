@@ -24,4 +24,6 @@
 
 #include <gio/gio.h>
 
-GDBusInterfaceSkeleton * registry_create (GDBusConnection *connection);
+#include "xdp-types.h"
+
+GDBusInterfaceSkeleton * registry_create (XdpContext *context);

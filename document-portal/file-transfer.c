@@ -41,6 +41,7 @@
 
 #include "file-transfer.h"
 #include "src/xdp-app-info.h"
+#include "src/xdp-app-info-registry.h"
 #include "src/xdp-utils.h"
 #include "document-portal-dbus.h"
 #include "document-enums.h"
@@ -48,6 +49,8 @@
 #include "document-portal-fuse.h"
 
 static XdpDbusFileTransfer *file_transfer;
+
+extern XdpAppInfoRegistry *app_info_registry;
 
 typedef struct
 {
@@ -530,7 +533,10 @@ handle_method (GCallback              method_callback,
   g_autoptr(XdpAppInfo) app_info = NULL;
   PortalMethod portal_method = (PortalMethod)method_callback;
 
-  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_app_info_registry_ensure_for_invocation_sync (app_info_registry,
+                                                               invocation,
+                                                               NULL,
+                                                               &error);
   if (app_info == NULL)
     g_dbus_method_invocation_return_gerror (invocation, error);
   else
