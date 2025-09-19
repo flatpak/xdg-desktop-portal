@@ -43,6 +43,8 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           XDP, APP_INFO,
                           GObject)
 
+void xdp_app_info_delete_for_sender (const char *sender);
+
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);

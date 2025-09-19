@@ -59,7 +59,15 @@ gboolean xdp_validate_icon (XdpSealedFd  *icon,
 
 gboolean xdp_validate_sound (XdpSealedFd *sound);
 
-typedef void (*XdpPeerDiedCallback) (const char *name);
+typedef void (*XdpPeerDisconnectCallback) (const char *name,
+                                           gpointer    user_data);
+
+guint xdp_connection_track_peer_disconnect (GDBusConnection           *connection,
+                                            XdpPeerDisconnectCallback  peer_disconnect_cb,
+                                            gpointer                   user_data);
+
+void xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
+                                             guint            subscription_id);
 
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
@@ -67,9 +75,6 @@ G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
 void xdp_set_documents_mountpoint (const char *path);
 const char * xdp_get_documents_mountpoint (void);
 char * xdp_get_alternate_document_path (const char *path, const char *app_id);
-
-void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
-                                          XdpPeerDiedCallback    peer_died_cb);
 
 gboolean xdp_variant_contains_key (GVariant *dictionary,
                                    const char *key);

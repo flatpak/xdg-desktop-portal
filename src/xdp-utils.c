@@ -138,6 +138,12 @@ needs_quoting (const char *arg)
   return FALSE;
 }
 
+typedef struct
+{
+  XdpPeerDisconnectCallback peer_disconnect_cb;
+  gpointer user_data;
+} PeerDisconnectData;
+
 static void
 name_owner_changed (GDBusConnection *connection,
                     const gchar     *sender_name,
@@ -147,10 +153,10 @@ name_owner_changed (GDBusConnection *connection,
                     GVariant        *parameters,
                     gpointer         user_data)
 {
+  PeerDisconnectData *data = user_data;
   const char *name, *from, *to;
-  XdpPeerDiedCallback peer_died_cb = user_data;
 
-  if (!peer_died_cb)
+  if (!data->peer_disconnect_cb)
     return;
 
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
@@ -160,22 +166,36 @@ name_owner_changed (GDBusConnection *connection,
       strcmp (to, "") != 0)
     return;
 
-  peer_died_cb (name);
+  data->peer_disconnect_cb (name, data->user_data);
+}
+
+guint
+xdp_connection_track_peer_disconnect (GDBusConnection           *connection,
+                                      XdpPeerDisconnectCallback  peer_disconnect_cb,
+                                      gpointer                   user_data)
+{
+  PeerDisconnectData *data = g_new0 (PeerDisconnectData, 1);
+
+  data->peer_disconnect_cb = peer_disconnect_cb;
+  data->user_data = user_data;
+
+  return g_dbus_connection_signal_subscribe (connection,
+                                             DBUS_NAME_DBUS,
+                                             DBUS_INTERFACE_DBUS,
+                                             "NameOwnerChanged",
+                                             DBUS_PATH_DBUS,
+                                             NULL,
+                                             G_DBUS_SIGNAL_FLAGS_NONE,
+                                             name_owner_changed,
+                                             g_steal_pointer (&data),
+                                             g_free);
 }
 
 void
-xdp_connection_track_name_owners (GDBusConnection     *connection,
-                                  XdpPeerDiedCallback  peer_died_cb)
+xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
+                                        guint            subscription_id)
 {
-  g_dbus_connection_signal_subscribe (connection,
-                                      DBUS_NAME_DBUS,
-                                      DBUS_INTERFACE_DBUS,
-                                      "NameOwnerChanged",
-                                      DBUS_PATH_DBUS,
-                                      NULL,
-                                      G_DBUS_SIGNAL_FLAGS_NONE,
-                                      name_owner_changed,
-                                      peer_died_cb, NULL);
+  g_dbus_connection_signal_unsubscribe (connection, subscription_id);
 }
 
 gboolean
