@@ -26,7 +26,7 @@
 
 #include <stdio.h>
 
-#include "xdp-app-info-private.h"
+#include "xdp-app-info.h"
 #include "xdp-host-dbus.h"
 #include "xdp-utils.h"
 
