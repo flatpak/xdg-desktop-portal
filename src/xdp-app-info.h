@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdint.h>
 
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
@@ -44,6 +45,15 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           GObject)
 
 void xdp_app_info_delete_for_sender (const char *sender);
+
+XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
+                                                   GCancellable           *cancellable,
+                                                   GError                **error);
+
+XdpAppInfo * xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
+                                                   const char             *app_id,
+                                                   GCancellable           *cancellable,
+                                                   GError                **error);
 
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 

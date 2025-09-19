@@ -339,7 +339,7 @@ xdp_app_info_new (uint32_t   pid,
   return g_steal_pointer (&app_info);
 }
 
-static XdpAppInfo *
+XdpAppInfo *
 xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
                                       GCancellable           *cancellable,
                                       GError                **error)
@@ -359,7 +359,7 @@ xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
   return xdp_app_info_new (pid, g_steal_fd (&pidfd), error);
 }
 
-static XdpAppInfo *
+XdpAppInfo *
 xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
                                       const char             *app_id,
                                       GCancellable           *cancellable,
