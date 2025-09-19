@@ -39,6 +39,7 @@
 #include "document-portal-dbus.h"
 #include "document-store.h"
 #include "src/xdp-app-info.h"
+#include "src/xdp-app-info-registry.h"
 #include "src/xdp-utils.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"
@@ -67,6 +68,8 @@ static GError *exit_error = NULL;
 static dev_t fuse_dev = 0;
 static GQueue get_mount_point_invocations = G_QUEUE_INIT;
 static XdpDbusDocuments *dbus_api;
+
+XdpAppInfoRegistry *app_info_registry;
 
 G_LOCK_DEFINE (db);
 
@@ -1177,7 +1180,10 @@ handle_method (GCallback              method_callback,
   g_autoptr(XdpAppInfo) app_info = NULL;
   PortalMethod portal_method = (PortalMethod)method_callback;
 
-  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_app_info_registry_ensure_for_invocation_sync (app_info_registry,
+                                                               invocation,
+                                                               NULL,
+                                                               &error);
   if (app_info == NULL)
     g_dbus_method_invocation_return_gerror (invocation, error);
   else
@@ -1510,6 +1516,8 @@ on_bus_acquired (GDBusConnection *connection,
   GDBusInterfaceSkeleton *file_transfer;
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
+
+  app_info_registry = xdp_app_info_registry_new ();
 
   xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 5);
 

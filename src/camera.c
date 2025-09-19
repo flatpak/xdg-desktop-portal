@@ -274,7 +274,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
+  app_info = xdp_invocation_get_app_info (invocation);
   permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_DEVICE_CAMERA);
   if (permission != XDP_PERMISSION_YES)
     {

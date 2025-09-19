@@ -321,6 +321,12 @@ xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
   return TRUE;
 }
 
+XdpAppInfo *
+xdp_invocation_get_app_info (GDBusMethodInvocation *invocation)
+{
+  return g_object_get_data (G_OBJECT (invocation), "xdp-app-info");
+}
+
 gboolean
 xdp_filter_options (GVariant *options,
                     GVariantBuilder *filtered,
