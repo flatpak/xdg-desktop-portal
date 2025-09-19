@@ -342,7 +342,21 @@ xdp_app_info_new (uint32_t   pid,
   return g_steal_pointer (&app_info);
 }
 
-static const char *
+const char *
+xdp_app_info_get_app_display_name (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (priv->gappinfo)
+    return g_app_info_get_display_name (priv->gappinfo);
+
+  if (g_strcmp0 (priv->id, "") != 0)
+    return priv->id;
+
+  return NULL;
+}
+
+const char *
 xdp_app_info_get_engine_display_name (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
@@ -387,6 +401,18 @@ xdp_app_info_get_instance (XdpAppInfo *app_info)
   priv = xdp_app_info_get_instance_private (app_info);
 
   return priv->instance;
+}
+
+const char *
+xdp_app_info_get_engine (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv;
+
+  g_return_val_if_fail (app_info != NULL, NULL);
+
+  priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->engine;
 }
 
 GAppInfo *
@@ -670,7 +696,8 @@ xdp_app_info_get_path_for_fd (XdpAppInfo   *app_info,
         {
           g_set_error (error, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
                        "App \"%s\" of type %s does not support O_PATH fd passing",
-                       priv->id, priv->engine);
+                       priv->id,
+                       xdp_app_info_get_engine_display_name (app_info));
           return NULL;
         }
 
