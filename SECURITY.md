@@ -10,7 +10,7 @@ please check
 
 | Version   | Supported          | Status
 | --------  | ------------------ | ------------------------------------------------------------- |
-| 1.21.x    | :white_check_mark: | Development branch, releases may include non-security changes |
+| 2.rc0     | :white_check_mark: | Development branch, releases may include non-security changes |
 | 1.20.x    | :white_check_mark: | Stable branch, recommended for use in distributions           |
 | 1.18.x    | :white_check_mark: | Old stable branch, still maintained                           |
 | <= 1.16.x | :x:                | Older branches, no longer supported                           |
