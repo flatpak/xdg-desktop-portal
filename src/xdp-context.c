@@ -212,56 +212,32 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 
 void
 xdp_context_export_portal (XdpContext             *context,
-                           GDBusInterfaceSkeleton *skeleton)
+                           GDBusInterfaceSkeleton *skeleton,
+                           XdpContextExportFlags   flags)
 {
   g_autoptr(GError) error = NULL;
 
-  if (skeleton == NULL)
+  g_return_if_fail (XDP_IS_CONTEXT (context));
+  g_return_if_fail (G_IS_DBUS_INTERFACE_SKELETON (skeleton));
+
+  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
     {
-      g_warning ("No skeleton to export");
-      return;
+      /* Host portal dbus method invocations run in the main thread without yielding
+       * to the main loop. This means that any later method call of any portal will
+       * see the effects of the host portal method call.
+       *
+       * This is important because the Registry modifies the XdpAppInfo and later
+       * method calls must see the modified value.
+       */
+
+      g_dbus_interface_skeleton_set_flags (
+        skeleton,
+        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+
+      g_signal_connect (skeleton, "g-authorize-method",
+                        G_CALLBACK (authorize_callback),
+                        context);
     }
-
-  g_dbus_interface_skeleton_set_flags (skeleton,
-                                       G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-  g_signal_connect (skeleton, "g-authorize-method",
-                    G_CALLBACK (authorize_callback),
-                    context);
-
-  if (!g_dbus_interface_skeleton_export (skeleton,
-                                         context->connection,
-                                         DESKTOP_PORTAL_OBJECT_PATH,
-                                         &error))
-    {
-      g_warning ("Error: %s", error->message);
-      return;
-    }
-
-  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
-}
-
-void
-xdp_context_export_host_portal (XdpContext             *context,
-                                GDBusInterfaceSkeleton *skeleton)
-{
-  /* Host portal dbus method invocations run in the main thread without yielding
-   * to the main loop. This means that any later method call of any portal will
-   * see the effects of the host portal method call.
-   *
-   * This is important because the Registry modifies the XdpAppInfo and later
-   * method calls must see the modified value.
-   */
-
-  g_autoptr(GError) error = NULL;
-
-  if (skeleton == NULL)
-    {
-      g_warning ("No skeleton to export");
-      return;
-    }
-
-  g_dbus_interface_skeleton_set_flags (skeleton,
-                                       G_DBUS_INTERFACE_SKELETON_FLAGS_NONE);
 
   if (!g_dbus_interface_skeleton_export (skeleton,
                                          context->connection,
