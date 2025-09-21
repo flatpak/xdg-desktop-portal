@@ -26,20 +26,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "trash.h"
-#include "xdp-documents.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+
+#include "trash.h"
 
 typedef struct _Trash Trash;
 typedef struct _TrashClass TrashClass;
@@ -145,10 +145,15 @@ trash_class_init (TrashClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-trash_create (GDBusConnection *connection)
+void
+init_trash (XdpContext *context)
 {
   trash = g_object_new (trash_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (trash);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (trash));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-trash",
+                          trash,
+                          g_object_unref);
 }

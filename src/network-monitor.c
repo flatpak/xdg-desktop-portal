@@ -25,10 +25,12 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "network-monitor.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+
+#include "network-monitor.h"
 
 typedef struct _NetworkMonitor NetworkMonitor;
 typedef struct _NetworkMonitorClass NetworkMonitorClass;
@@ -237,10 +239,16 @@ network_monitor_class_init (NetworkMonitorClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-network_monitor_create (GDBusConnection *connection)
+void
+init_network_monitor (XdpContext *context)
 {
   network_monitor = g_object_new (network_monitor_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (network_monitor);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (network_monitor));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-network-monitor",
+                          network_monitor,
+                          g_object_unref);
 }

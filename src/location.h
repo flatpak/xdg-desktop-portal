@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * location_create (GDBusConnection *connection,
-                                          const char *dbus_name,
-                                          gpointer lockdown);
+void init_location (XdpContext *context);

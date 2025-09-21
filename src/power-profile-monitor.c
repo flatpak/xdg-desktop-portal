@@ -25,10 +25,11 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "power-profile-monitor.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
-#include "xdp-utils.h"
+#include "xdp-request.h"
+
+#include "power-profile-monitor.h"
 
 #if GLIB_CHECK_VERSION(2, 69, 1)
 #define HAS_POWER_PROFILE_MONITOR 1
@@ -108,10 +109,16 @@ power_profile_monitor_class_init (PowerProfileMonitorClass *klass)
   object_class->finalize = power_profile_monitor_finalize;
 }
 
-GDBusInterfaceSkeleton *
-power_profile_monitor_create (GDBusConnection *connection)
+void
+init_power_profile_monitor (XdpContext *context)
 {
   power_profile_monitor = g_object_new (power_profile_monitor_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (power_profile_monitor);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (power_profile_monitor));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-power-profile-monitor",
+                          power_profile_monitor,
+                          g_object_unref);
 }

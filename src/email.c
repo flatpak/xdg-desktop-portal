@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,12 +33,15 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "email.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "email.h"
 
 typedef struct _Email Email;
 typedef struct _EmailClass EmailClass;
@@ -325,15 +327,22 @@ email_class_init (EmailClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-email_create (GDBusConnection *connection,
-              const char      *dbus_name)
+void
+init_email (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Email");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_email_proxy_new_sync (connection,
                                              G_DBUS_PROXY_FLAGS_NONE,
-                                             dbus_name,
+                                             impl_config->dbus_name,
                                              DESKTOP_PORTAL_OBJECT_PATH,
                                              NULL,
                                              &error);
@@ -341,12 +350,17 @@ email_create (GDBusConnection *connection,
   if (impl == NULL)
     {
       g_warning ("Failed to create email proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   email = g_object_new (email_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (email);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (email));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-email",
+                          email,
+                          g_object_unref);
 }

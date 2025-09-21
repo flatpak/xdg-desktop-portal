@@ -20,18 +20,21 @@
 
 #include "config.h"
 
-#include "remote-desktop.h"
+#include <gio/gunixfdlist.h>
+#include <stdint.h>
+
 #include "screen-cast.h"
-#include "xdp-request.h"
 #include "pipewire.h"
-#include "xdp-session.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
 #include "xdp-session-persistence.h"
 #include "xdp-utils.h"
 
-#include <gio/gunixfdlist.h>
-#include <stdint.h>
+#include "remote-desktop.h"
 
 #define REMOTE_DESKTOP_TABLE "remote-desktop"
 
@@ -1608,29 +1611,41 @@ remote_desktop_class_init (RemoteDesktopClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-remote_desktop_create (GDBusConnection *connection,
-                       const char *dbus_name)
+void
+init_remote_desktop (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.RemoteDesktop");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_remote_desktop_proxy_new_sync (connection,
                                                       G_DBUS_PROXY_FLAGS_NONE,
-                                                      dbus_name,
+                                                      impl_config->dbus_name,
                                                       DESKTOP_PORTAL_OBJECT_PATH,
                                                       NULL,
                                                       &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create remote desktop proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   remote_desktop = g_object_new (remote_desktop_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (remote_desktop);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (remote_desktop));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-remote-desktop",
+                          remote_desktop,
+                          g_object_unref);
 }
 
 static void

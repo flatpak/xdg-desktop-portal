@@ -25,7 +25,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,13 +33,16 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "screenshot.h"
-#include "xdp-permissions.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "screenshot.h"
 
 #define PERMISSION_TABLE "screenshot"
 #define PERMISSION_ID "screenshot"
@@ -501,24 +503,46 @@ screenshot_class_init (ScreenshotClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-screenshot_create (GDBusConnection *connection,
-                   const char *dbus_name_access,
-                   const char *dbus_name_screenshot)
+void
+init_screenshot (XdpContext *context)
 {
-  g_autoptr(GError) error = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *access_impl_config;
+  XdpImplConfig *impl_config;
   g_autoptr(GVariant) version = NULL;
+  g_autoptr(GError) error = NULL;
+
+  access_impl_config =
+    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Screenshot");
+
+  if (access_impl_config == NULL || impl_config == NULL)
+    return;
+
+  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
+                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                     access_impl_config->dbus_name,
+                                                     DESKTOP_PORTAL_OBJECT_PATH,
+                                                     NULL, &error);
+  if (access_impl == NULL)
+    {
+      g_warning ("Failed to create access proxy: %s", error->message);
+      return;
+    }
 
   impl = xdp_dbus_impl_screenshot_proxy_new_sync (connection,
                                                   G_DBUS_PROXY_FLAGS_NONE,
-                                                  dbus_name_screenshot,
+                                                  impl_config->dbus_name,
                                                   DESKTOP_PORTAL_OBJECT_PATH,
                                                   NULL,
                                                   &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create screenshot proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
@@ -529,12 +553,10 @@ screenshot_create (GDBusConnection *connection,
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
 
-  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
-                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                     dbus_name_access,
-                                                     DESKTOP_PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (screenshot));
 
-  return G_DBUS_INTERFACE_SKELETON (screenshot);
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-screenshot",
+                          screenshot,
+                          g_object_unref);
 }

@@ -155,11 +155,16 @@ registry_class_init (RegistryClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-registry_create (XdpContext *context)
+void
+init_registry (XdpContext *context)
 {
   registry = g_object_new (registry_get_type (), NULL);
   registry->context = context;
 
-  return G_DBUS_INTERFACE_SKELETON (registry);
+  xdp_context_export_host_portal (context, G_DBUS_INTERFACE_SKELETON (registry));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-registry",
+                          registry,
+                          g_object_unref);
 }

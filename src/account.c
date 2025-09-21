@@ -26,19 +26,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 
-#include "account.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "account.h"
 
 typedef struct _Account Account;
 typedef struct _AccountClass AccountClass;
@@ -244,15 +245,22 @@ account_class_init (AccountClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-account_create (GDBusConnection *connection,
-                const char      *dbus_name)
+void
+init_account (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Account");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_account_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
+                                               impl_config->dbus_name,
                                                DESKTOP_PORTAL_OBJECT_PATH,
                                                NULL,
                                                &error);
@@ -260,13 +268,17 @@ account_create (GDBusConnection *connection,
   if (impl == NULL)
     {
       g_warning ("Failed to create account proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
-  g_debug ("using %s at %s\n", "org.freedesktop.impl.portal.Account", dbus_name);
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   account = g_object_new (account_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (account);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (account));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-account",
+                          account,
+                          g_object_unref);
 }

@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -37,12 +36,15 @@
 #include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
 
-#include "dynamic-launcher.h"
 #include "xdp-app-launch-context.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "dynamic-launcher.h"
 
 #define MAX_DESKTOP_SIZE_BYTES 1048576
 
@@ -1037,27 +1039,39 @@ dynamic_launcher_class_init (DynamicLauncherClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-dynamic_launcher_create (GDBusConnection *connection,
-                         const char      *dbus_name)
+void
+init_dynamic_launcher (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.DynamicLauncher");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_dynamic_launcher_proxy_new_sync (connection,
                                                         G_DBUS_PROXY_FLAGS_NONE,
-                                                        dbus_name,
+                                                        impl_config->dbus_name,
                                                         DESKTOP_PORTAL_OBJECT_PATH,
                                                         NULL,
                                                         &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create dynamic_launcher proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   dynamic_launcher = g_object_new (dynamic_launcher_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (dynamic_launcher);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (dynamic_launcher));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-dynamic-launcher",
+                          dynamic_launcher,
+                          g_object_unref);
 }

@@ -26,9 +26,10 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "memory-monitor.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
-#include "xdp-utils.h"
+
+#include "memory-monitor.h"
 
 #if GLIB_CHECK_VERSION(2, 63, 3)
 #define HAS_MEMORY_MONITOR 1
@@ -108,10 +109,16 @@ memory_monitor_class_init (MemoryMonitorClass *klass)
   object_class->finalize = memory_monitor_finalize;
 }
 
-GDBusInterfaceSkeleton *
-memory_monitor_create (GDBusConnection *connection)
+void
+init_memory_monitor (XdpContext *context)
 {
   memory_monitor = g_object_new (memory_monitor_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (memory_monitor);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (memory_monitor));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-memory-monitor",
+                          memory_monitor,
+                          g_object_unref);
 }

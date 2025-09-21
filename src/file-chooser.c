@@ -27,19 +27,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 
-#include "file-chooser.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "file-chooser.h"
 
 typedef struct _FileChooser FileChooser;
 typedef struct _FileChooserClass FileChooserClass;
@@ -54,7 +55,7 @@ struct _FileChooserClass
   XdpDbusFileChooserSkeletonClass parent_class;
 };
 
-static XdpDbusImplLockdown *lockdown;
+static XdpContext *context;
 static XdpDbusImplFileChooser *impl;
 static FileChooser *file_chooser;
 
@@ -601,6 +602,7 @@ handle_save_file (XdpDbusFileChooser *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
   g_auto(GVariantBuilder) options =
@@ -736,6 +738,7 @@ handle_save_files (XdpDbusFileChooser *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
   g_auto(GVariantBuilder) options =
@@ -812,18 +815,24 @@ file_chooser_class_init (FileChooserClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-file_chooser_create (GDBusConnection *connection,
-                     const char      *dbus_name,
-                     gpointer         lockdown_proxy)
+void
+init_file_chooser (XdpContext *context_)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context_);
+  XdpPortalConfig *config = xdp_context_get_config (context_);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  context = context_;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.FileChooser");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_file_chooser_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                    dbus_name,
+                                                    impl_config->dbus_name,
                                                     DESKTOP_PORTAL_OBJECT_PATH,
                                                     NULL,
                                                     &error);
@@ -831,12 +840,18 @@ file_chooser_create (GDBusConnection *connection,
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   file_chooser = g_object_new (file_chooser_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (file_chooser);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (file_chooser));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-file-chooser",
+                          file_chooser,
+                          g_object_unref);
 }

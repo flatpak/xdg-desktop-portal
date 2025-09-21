@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,11 +33,14 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "print.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "print.h"
 
 typedef struct _Print Print;
 typedef struct _PrintClass PrintClass;
@@ -53,9 +55,9 @@ struct _PrintClass
   XdpDbusPrintSkeletonClass parent_class;
 };
 
+static XdpContext *context;
 static XdpDbusImplPrint *impl;
 static Print *print;
-static XdpDbusImplLockdown *lockdown;
 
 GType print_get_type (void) G_GNUC_CONST;
 static void print_iface_init (XdpDbusPrintIface *iface);
@@ -150,6 +152,7 @@ handle_print (XdpDbusPrint *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -266,6 +269,7 @@ handle_prepare_print (XdpDbusPrint *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -334,30 +338,41 @@ print_class_init (PrintClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-print_create (GDBusConnection *connection,
-              const char *dbus_name,
-              gpointer lockdown_proxy)
+void
+init_print (XdpContext *context_)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context_);
+  XdpPortalConfig *config = xdp_context_get_config (context_);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  context = context_;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Print");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_print_proxy_new_sync (connection,
                                              G_DBUS_PROXY_FLAGS_NONE,
-                                             dbus_name,
+                                             impl_config->dbus_name,
                                              DESKTOP_PORTAL_OBJECT_PATH,
                                              NULL,
                                              &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create print proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
   print = g_object_new (print_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (print);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (print));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-print",
+                          print,
+                          g_object_unref);
 }
