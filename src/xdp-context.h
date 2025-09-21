@@ -23,6 +23,12 @@
 
 #include "xdp-types.h"
 
+typedef enum _XdpContextExportFlags
+{
+  XDP_CONTEXT_EXPORT_FLAGS_NONE = 0,
+  XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL = (1 << 0),
+} XdpContextExportFlags;
+
 #define XDP_TYPE_CONTEXT (xdp_context_get_type())
 G_DECLARE_FINAL_TYPE (XdpContext,
                       xdp_context,
@@ -46,7 +52,5 @@ XdpPortalConfig * xdp_context_get_config (XdpContext *context);
 XdpDbusImplLockdown * xdp_context_get_lockdown (XdpContext *context);
 
 void xdp_context_export_portal (XdpContext             *context,
-                                GDBusInterfaceSkeleton *skeleton);
-
-void xdp_context_export_host_portal (XdpContext             *context,
-                                     GDBusInterfaceSkeleton *skeleton);
+                                GDBusInterfaceSkeleton *skeleton,
+                                XdpContextExportFlags   flags);

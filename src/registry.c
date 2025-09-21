@@ -161,7 +161,9 @@ init_registry (XdpContext *context)
   registry = g_object_new (registry_get_type (), NULL);
   registry->context = context;
 
-  xdp_context_export_host_portal (context, G_DBUS_INTERFACE_SKELETON (registry));
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (registry),
+                             XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-registry",
