@@ -1505,6 +1505,7 @@ xdp_usb_dispose (GObject *object)
   g_clear_pointer (&self->ids_to_devices, g_hash_table_unref);
   g_clear_pointer (&self->syspaths_to_ids, g_hash_table_unref);
   g_clear_pointer (&self->sessions, g_hash_table_unref);
+  g_clear_pointer (&self->sender_infos, g_hash_table_unref);
 
   g_clear_object (&self->gudev_client);
 }
