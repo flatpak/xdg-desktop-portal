@@ -20,9 +20,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-#include "xdp-session.h"
-
-GDBusInterfaceSkeleton *clipboard_create (GDBusConnection *connection,
-                                          const char *dbus_name);
+void init_clipboard (XdpContext *context);

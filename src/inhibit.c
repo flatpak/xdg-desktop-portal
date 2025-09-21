@@ -25,13 +25,16 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "inhibit.h"
-#include "xdp-request.h"
-#include "xdp-session.h"
-#include "xdp-permissions.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
+
+#include "inhibit.h"
 
 #define PERMISSION_TABLE "inhibit"
 #define PERMISSION_ID "inhibit"
@@ -521,21 +524,28 @@ state_changed_cb (XdpDbusImplInhibit *impl,
                                    NULL);
 }
 
-GDBusInterfaceSkeleton *
-inhibit_create (GDBusConnection *connection,
-                const char *dbus_name)
+void
+init_inhibit (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Inhibit");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_inhibit_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
+                                               impl_config->dbus_name,
                                                "/org/freedesktop/portal/desktop",
                                                NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create inhibit proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
@@ -544,5 +554,10 @@ inhibit_create (GDBusConnection *connection,
 
   g_signal_connect (impl, "state-changed", G_CALLBACK (state_changed_cb), inhibit);
 
-  return G_DBUS_INTERFACE_SKELETON (inhibit);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (inhibit));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-inhibit",
+                          inhibit,
+                          g_object_unref);
 }

@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -37,14 +36,17 @@
 #include <gio/gunixfdlist.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "open-uri.h"
-#include "xdp-request.h"
-#include "xdp-dbus.h"
-#include "xdp-impl-dbus.h"
-#include "xdp-utils.h"
-#include "xdp-permissions.h"
 #include "xdp-app-launch-context.h"
+#include "xdp-context.h"
+#include "xdp-dbus.h"
 #include "xdp-documents.h"
+#include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-utils.h"
+
+#include "open-uri.h"
 
 #define FILE_MANAGER_DBUS_NAME "org.freedesktop.FileManager1"
 #define FILE_MANAGER_DBUS_IFACE "org.freedesktop.FileManager1"
@@ -77,10 +79,10 @@ enum {
   LAST_PERM
 };
 
+static XdpContext *context;
 static XdpDbusImplAppChooser *impl;
 static OpenURI *open_uri;
 static GAppInfoMonitor *monitor;
-static XdpDbusImplLockdown *lockdown;
 
 GType open_uri_get_type (void) G_GNUC_CONST;
 static void open_uri_iface_init (XdpDbusOpenURIIface *iface);
@@ -947,6 +949,7 @@ handle_open_uri (XdpDbusOpenURI *object,
                  GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -998,6 +1001,7 @@ handle_open_file (XdpDbusOpenURI *object,
                  GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -1067,6 +1071,7 @@ handle_open_directory (XdpDbusOpenURI *object,
                        GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
   const char *activation_token = NULL;
@@ -1140,24 +1145,30 @@ open_uri_class_init (OpenURIClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-open_uri_create (GDBusConnection *connection,
-                 const char *dbus_name,
-                 gpointer lockdown_proxy)
+void
+init_open_uri (XdpContext *context_)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context_);
+  XdpPortalConfig *config = xdp_context_get_config (context_);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  context = context_;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.AppChooser");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_app_chooser_proxy_new_sync (connection,
                                                    G_DBUS_PROXY_FLAGS_NONE,
-                                                   dbus_name,
+                                                   impl_config->dbus_name,
                                                    DESKTOP_PORTAL_OBJECT_PATH,
                                                    NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create app chooser proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
@@ -1166,6 +1177,12 @@ open_uri_create (GDBusConnection *connection,
 
   monitor = g_app_info_monitor_get ();
 
-  return G_DBUS_INTERFACE_SKELETON (open_uri);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (open_uri));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-open-uri",
+                          open_uri,
+                          g_object_unref);
 }
 

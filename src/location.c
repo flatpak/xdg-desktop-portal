@@ -23,20 +23,21 @@
 #include "config.h"
 
 #include <string.h>
-
 #include <glib/gi18n.h>
-
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <geoclue.h>
+
+#include "geoclue-dbus.h"
+#include "xdp-context.h"
+#include "xdp-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
+#include "xdp-utils.h"
 
 #include "location.h"
-#include "xdp-request.h"
-#include "xdp-permissions.h"
-#include "xdp-dbus.h"
-#include "xdp-utils.h"
-#include "xdp-session.h"
-#include "geoclue-dbus.h"
-#include <geoclue.h>
 
 static GClueAccuracyLevel gclue_accuracy_level_from_string (const char *str);
 static const char *       gclue_accuracy_level_to_string   (GClueAccuracyLevel level);
@@ -395,9 +396,9 @@ typedef struct
   XdpDbusLocationSkeletonClass parent_class;
 } LocationClass;
 
+static XdpContext *context;
 static Location *location;
 static XdpDbusImplAccess *access_impl;
-static XdpDbusImplLockdown *lockdown;
 
 GType location_get_type (void) G_GNUC_CONST;
 static void location_iface_init (XdpDbusLocationIface *iface);
@@ -412,6 +413,7 @@ handle_create_session (XdpDbusLocation *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GError) error = NULL;
   LocationSession *loc_session;
   XdpSession *session;
@@ -634,6 +636,7 @@ handle_start (XdpDbusLocation *object,
               GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   XdpSession *session;
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;
@@ -723,27 +726,39 @@ location_class_init (LocationClass *klass)
   quark_request_session = g_quark_from_static_string ("-xdp-request-location-session");
 }
 
-GDBusInterfaceSkeleton *
-location_create (GDBusConnection *connection,
-                 const char *dbus_name,
-                 gpointer lockdown_proxy)
+void
+init_location (XdpContext *context_)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context_);
+  XdpPortalConfig *config = xdp_context_get_config (context_);
+  XdpImplConfig *access_impl_config;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  context = context_;
+
+  access_impl_config =
+    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
+
+  if (access_impl_config == NULL)
+    return;
 
   access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                     dbus_name,
+                                                     access_impl_config->dbus_name,
                                                      DESKTOP_PORTAL_OBJECT_PATH,
                                                      NULL, &error);
   if (access_impl == NULL)
     {
       g_warning ("Failed to create access proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   location = g_object_new (location_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (location);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (location));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-location",
+                          location,
+                          g_object_unref);
 }

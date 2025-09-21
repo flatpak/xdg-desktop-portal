@@ -25,13 +25,16 @@
 #include <string.h>
 #include <glib-object.h>
 
-#include "global-shortcuts.h"
-#include "xdp-request.h"
-#include "xdp-session.h"
-#include "xdp-permissions.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
+
+#include "global-shortcuts.h"
 
 typedef struct _GlobalShortcuts GlobalShortcuts;
 typedef struct _GlobalShortcutsClass GlobalShortcutsClass;
@@ -741,29 +744,43 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
                                    NULL);
 }
 
-GDBusInterfaceSkeleton *
-global_shortcuts_create (GDBusConnection *connection,
-                         const char *dbus_name)
+void
+init_global_shortcuts (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.GlobalShortcuts");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_global_shortcuts_proxy_new_sync (connection,
                                                         G_DBUS_PROXY_FLAGS_NONE,
-                                                        dbus_name,
+                                                        impl_config->dbus_name,
                                                         "/org/freedesktop/portal/desktop",
                                                         NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create global_shortcuts proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-  global_shortcuts = g_object_new (global_shortcuts_get_type (), NULL);
 
   g_signal_connect (impl, "activated", G_CALLBACK (activated_cb), global_shortcuts);
   g_signal_connect (impl, "deactivated", G_CALLBACK (deactivated_cb), global_shortcuts);
   g_signal_connect (impl, "shortcuts-changed", G_CALLBACK (shortcuts_changed_cb), global_shortcuts);
 
-  return G_DBUS_INTERFACE_SKELETON (global_shortcuts);
+  global_shortcuts = g_object_new (global_shortcuts_get_type (), NULL);
+
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (global_shortcuts));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-global-shortcuts",
+                          global_shortcuts,
+                          g_object_unref);
 }

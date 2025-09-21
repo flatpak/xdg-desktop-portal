@@ -28,12 +28,15 @@
 #include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
-#include "notification.h"
-#include "xdp-permissions.h"
-#include "xdp-request.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "notification.h"
 
 #define PERMISSION_TABLE "notifications"
 #define PERMISSION_ID "notification"
@@ -1247,21 +1250,28 @@ notification_class_init (NotificationClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-notification_create (GDBusConnection *connection,
-                     const char *dbus_name)
+void
+init_notification (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Notification");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_notification_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                    dbus_name,
+                                                    impl_config->dbus_name,
                                                     DESKTOP_PORTAL_OBJECT_PATH,
                                                     NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create notification proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
@@ -1272,7 +1282,7 @@ notification_create (GDBusConnection *connection,
   active = g_hash_table_new_full (pair_hash, pair_equal, pair_free, g_free);
 
   g_dbus_connection_signal_subscribe (connection,
-                                      dbus_name,
+                                      impl_config->dbus_name,
                                       "org.freedesktop.impl.portal.Notification",
                                       "ActionInvoked",
                                       DESKTOP_PORTAL_OBJECT_PATH,
@@ -1291,5 +1301,11 @@ notification_create (GDBusConnection *connection,
                                       name_owner_changed,
                                       NULL, NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (notification);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (notification));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-notification",
+                          notification,
+                          g_object_unref);
 }

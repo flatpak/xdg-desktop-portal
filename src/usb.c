@@ -28,7 +28,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -38,17 +37,19 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gdesktopappinfo.h>
-
 #include <gudev/gudev.h>
 
-#include "usb.h"
-#include "xdp-request.h"
-#include "xdp-permissions.h"
-#include "xdp-session.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
 #include "xdp-usb-query.h"
+
+#include "usb.h"
 
 #define PERMISSION_TABLE "usb"
 #define PERMISSION_ID "usb"
@@ -1553,22 +1554,29 @@ xdp_usb_delete_for_sender (const char *sender)
     g_debug ("Removed sender %s", sender);
 }
 
-GDBusInterfaceSkeleton *
-xdp_usb_create (GDBusConnection *connection,
-                const char      *dbus_name)
+void
+init_usb (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Usb");
+  if (impl_config == NULL)
+    return;
 
   usb_impl = xdp_dbus_impl_usb_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
+                                               impl_config->dbus_name,
                                                DESKTOP_PORTAL_OBJECT_PATH,
                                                NULL,
                                                &error);
   if (usb_impl == NULL)
     {
       g_warning ("Failed to create USB proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (usb_impl), G_MAXINT);
@@ -1578,5 +1586,10 @@ xdp_usb_create (GDBusConnection *connection,
 
   usb = g_object_new (xdp_usb_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (usb);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (usb));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-usb",
+                          usb,
+                          g_object_unref);
 }

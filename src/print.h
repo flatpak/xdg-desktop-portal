@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * print_create (GDBusConnection *connection,
-                                       const char      *dbus_name,
-                                       gpointer         lockdown);
+void init_print (XdpContext *context);

@@ -27,11 +27,13 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
-#include "settings.h"
 #include "xdp-dbus.h"
+#include "xdp-context.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-utils.h"
+
+#include "settings.h"
 
 typedef struct _Settings Settings;
 typedef struct _SettingsClass SettingsClass;
@@ -271,12 +273,19 @@ settings_class_init (SettingsClass *klass)
   object_class->finalize = settings_finalize;
 }
 
-GDBusInterfaceSkeleton *
-settings_create (GDBusConnection *connection,
-                 GPtrArray       *impl_configs)
+void
+init_settings (XdpContext *context)
 {
   g_autoptr(Settings) settings = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  g_autoptr(GPtrArray) impl_configs = NULL;
   g_autoptr(GError) error = NULL;
+
+  impl_configs = xdp_portal_config_find_all (config,
+                                             "org.freedesktop.impl.portal.Settings");
+  if (impl_configs->len == 0)
+    return;
 
   impls = g_new (XdpDbusImplSettings *, impl_configs->len);
 
@@ -308,7 +317,13 @@ settings_create (GDBusConnection *connection,
     }
 
   if (n_impls == 0)
-    return NULL;
+    return;
 
-  return G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings));
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (settings));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-settings",
+                          g_steal_pointer (&settings),
+                          g_object_unref);
 }

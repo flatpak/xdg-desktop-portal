@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * power_profile_monitor_create (GDBusConnection *connection);
+void init_power_profile_monitor (XdpContext *context);

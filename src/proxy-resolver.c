@@ -25,10 +25,12 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "proxy-resolver.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+
+#include "proxy-resolver.h"
 
 typedef struct _ProxyResolver ProxyResolver;
 typedef struct _ProxyResolverClass ProxyResolverClass;
@@ -116,10 +118,16 @@ proxy_resolver_class_init (ProxyResolverClass *klass)
   object_class->dispose = proxy_resolver_dispose;
 }
 
-GDBusInterfaceSkeleton *
-proxy_resolver_create (GDBusConnection *connection)
+void
+init_proxy_resolver (XdpContext *context)
 {
   proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (proxy_resolver);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (proxy_resolver));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-proxy-resolver",
+                          proxy_resolver,
+                          g_object_unref);
 }
