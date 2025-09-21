@@ -27,15 +27,18 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
-#include "background.h"
-#include "xdp-background-monitor.h"
 #include "flatpak-instance.h"
-#include "xdp-permissions.h"
-#include "xdp-request.h"
+#include "xdp-app-info.h"
+#include "xdp-background-monitor.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
-#include "xdp-app-info.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "background.h"
 
 /* Implementation notes:
  *
@@ -1225,48 +1228,60 @@ background_class_init (BackgroundClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-background_create (GDBusConnection *connection,
-                   const char *dbus_name_access,
-                   const char *dbus_name_background)
+void
+init_background (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *access_impl_config;
+  XdpImplConfig *impl_config;
   g_autofree char *instance_path = NULL;
   g_autoptr(GFile) instance_dir = NULL;
   g_autoptr(GError) error = NULL;
 
+  access_impl_config =
+    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Background");
+
+  if (access_impl_config == NULL || impl_config == NULL)
+    return;
+
   access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                     dbus_name_access,
+                                                     access_impl_config->dbus_name,
                                                      DESKTOP_PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error);
+                                                     NULL, &error);
   if (access_impl == NULL)
     {
       g_warning ("Failed to create access proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
   background_impl = xdp_dbus_impl_background_proxy_new_sync (connection,
                                                              G_DBUS_PROXY_FLAGS_NONE,
-                                                             dbus_name_background,
+                                                             impl_config->dbus_name,
                                                              DESKTOP_PORTAL_OBJECT_PATH,
                                                              NULL,
                                                              &error);
   if (background_impl == NULL)
     {
       g_warning ("Failed to create background proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
+
   background = g_object_new (background_get_type (), NULL);
+
   background->monitor = xdp_background_monitor_new (NULL, &error);
   if (background->monitor == NULL)
     {
       g_warning ("Failed to create background monitor: %s", error->message);
-      return NULL;
+      return;
     }
 
   start_background_monitor ();
@@ -1283,5 +1298,10 @@ background_create (GDBusConnection *connection,
   else
     g_signal_connect (instance_monitor, "changed", G_CALLBACK (instances_changed), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (background);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (background));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-background",
+                          background,
+                          g_object_unref);
 }

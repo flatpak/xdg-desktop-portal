@@ -25,11 +25,13 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "realtime.h"
-#include "xdp-permissions.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-permissions.h"
 #include "xdp-utils.h"
+
+#include "realtime.h"
 
 #define PERMISSION_TABLE "realtime"
 #define PERMISSION_ID "realtime"
@@ -289,8 +291,8 @@ load_all_properties (GDBusProxy *proxy)
     }
 }
 
-GDBusInterfaceSkeleton *
-realtime_create (GDBusConnection *connection)
+void
+init_realtime (XdpContext *context)
 {
   GDBusProxy *rtkit_proxy = NULL;
   g_autoptr (GError) error = NULL;
@@ -316,5 +318,11 @@ realtime_create (GDBusConnection *connection)
   if (realtime->rtkit_proxy)
     load_all_properties (realtime->rtkit_proxy);
 
-  return G_DBUS_INTERFACE_SKELETON (realtime);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (realtime));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-realtime",
+                          realtime,
+                          g_object_unref);
 }

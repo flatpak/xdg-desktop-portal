@@ -137,6 +137,24 @@ xdp_context_get_app_info_registry (XdpContext *context)
   return context->app_info_registry;
 }
 
+GDBusConnection *
+xdp_context_get_connection (XdpContext *context)
+{
+  return context->connection;
+}
+
+XdpPortalConfig *
+xdp_context_get_config (XdpContext *context)
+{
+  return context->portal_config;
+}
+
+XdpDbusImplLockdown *
+xdp_context_get_lockdown (XdpContext *context)
+{
+  return context->lockdown_impl;
+}
+
 static gboolean
 method_needs_request (GDBusMethodInvocation *invocation)
 {
@@ -192,9 +210,9 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
   return TRUE;
 }
 
-static void
-export_portal_implementation (XdpContext             *context,
-                              GDBusInterfaceSkeleton *skeleton)
+void
+xdp_context_export_portal (XdpContext             *context,
+                           GDBusInterfaceSkeleton *skeleton)
 {
   g_autoptr(GError) error = NULL;
 
@@ -222,9 +240,9 @@ export_portal_implementation (XdpContext             *context,
   g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
 }
 
-static void
-export_host_portal_implementation (XdpContext             *context,
-                                   GDBusInterfaceSkeleton *skeleton)
+void
+xdp_context_export_host_portal (XdpContext             *context,
+                                GDBusInterfaceSkeleton *skeleton)
 {
   /* Host portal dbus method invocations run in the main thread without yielding
    * to the main loop. This means that any later method call of any portal will
@@ -276,10 +294,7 @@ xdp_context_register (XdpContext       *context,
                       GError          **error)
 {
   XdpPortalConfig *portal_config = context->portal_config;
-  XdpImplConfig *impl_config;
   XdpImplConfig *lockdown_impl_config;
-  XdpImplConfig *access_impl_config;
-  GPtrArray *impl_configs;
   GQuark portal_errors G_GNUC_UNUSED;
 
   /* make sure errors are registered */
@@ -318,137 +333,39 @@ xdp_context_register (XdpContext       *context,
   if (context->lockdown_impl == NULL)
     context->lockdown_impl = xdp_dbus_impl_lockdown_skeleton_new ();
 
-  export_portal_implementation (context, memory_monitor_create (connection));
-  export_portal_implementation (context, power_profile_monitor_create (connection));
-  export_portal_implementation (context, network_monitor_create (connection));
-  export_portal_implementation (context, proxy_resolver_create (connection));
-  export_portal_implementation (context, trash_create (connection));
-  export_portal_implementation (context, game_mode_create (connection));
-  export_portal_implementation (context, realtime_create (connection));
-
-  impl_configs = xdp_portal_config_find_all (portal_config, "org.freedesktop.impl.portal.Settings");
-  if (impl_configs->len > 0)
-    export_portal_implementation (context, settings_create (connection, impl_configs));
-  g_ptr_array_free (impl_configs, TRUE);
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.FileChooser");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  file_chooser_create (connection, impl_config->dbus_name,
-                                                       context->lockdown_impl));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.AppChooser");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  open_uri_create (connection, impl_config->dbus_name,
-                                                   context->lockdown_impl));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Print");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  print_create (connection, impl_config->dbus_name,
-                                                context->lockdown_impl));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Notification");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  notification_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Inhibit");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  inhibit_create (connection, impl_config->dbus_name));
-
-  access_impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Access");
-  if (access_impl_config != NULL)
-    {
+  init_memory_monitor (context);
+  init_power_profile_monitor (context);
+  init_network_monitor (context);
+  init_proxy_resolver (context);
+  init_trash (context);
+  init_game_mode (context);
+  init_realtime (context);
+  init_settings (context);
+  init_file_chooser (context);
+  init_open_uri (context);
+  init_print (context);
+  init_notification (context);
+  init_inhibit (context);
 #if HAVE_GEOCLUE
-      export_portal_implementation (context,
-                                    location_create (connection,
-                                                     access_impl_config->dbus_name,
-                                                     context->lockdown_impl));
+  init_location (context);
 #endif
-
-      export_portal_implementation (context,
-                                    camera_create (connection,
-                                                   access_impl_config->dbus_name,
-                                                   context->lockdown_impl));
-
-      impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Screenshot");
-      if (impl_config != NULL)
-        export_portal_implementation (context,
-                                      screenshot_create (connection,
-                                                         access_impl_config->dbus_name,
-                                                         impl_config->dbus_name));
-
-      impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Background");
-      if (impl_config != NULL)
-        export_portal_implementation (context,
-                                      background_create (connection,
-                                                         access_impl_config->dbus_name,
-                                                         impl_config->dbus_name));
-
-      impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Wallpaper");
-      if (impl_config != NULL)
-        export_portal_implementation (context,
-                                      wallpaper_create (connection,
-                                                        access_impl_config->dbus_name,
-                                                        impl_config->dbus_name));
-    }
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Account");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  account_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Email");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  email_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Secret");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  secret_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.GlobalShortcuts");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  global_shortcuts_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.DynamicLauncher");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  dynamic_launcher_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.ScreenCast");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  screen_cast_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.RemoteDesktop");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  remote_desktop_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Clipboard");
-  if (impl_config != NULL)
-    export_portal_implementation (
-        context, clipboard_create (connection, impl_config->dbus_name));
-
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.InputCapture");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  input_capture_create (connection, impl_config->dbus_name));
-
+  init_camera (context);
+  init_screenshot (context);
+  init_background (context);
+  init_wallpaper (context);
+  init_account (context);
+  init_email (context);
+  init_secret (context);
+  init_global_shortcuts (context);
+  init_dynamic_launcher (context);
+  init_screen_cast (context);
+  init_remote_desktop (context);
+  init_clipboard (context);
+  init_input_capture (context);
 #if HAVE_GUDEV
-  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Usb");
-  if (impl_config != NULL)
-    export_portal_implementation (context,
-                                  xdp_usb_create (connection, impl_config->dbus_name));
+  init_usb (context);
 #endif
-
-  export_host_portal_implementation (context, registry_create (context));
+  init_registry (context);
 
   return TRUE;
 }

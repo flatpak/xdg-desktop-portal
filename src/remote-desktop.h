@@ -22,8 +22,9 @@
 
 #include <gio/gio.h>
 
-#include "xdp-session.h"
 #include "screen-cast.h"
+#include "xdp-session.h"
+#include "xdp-types.h"
 
 typedef struct _RemoteDesktopSession RemoteDesktopSession;
 
@@ -53,5 +54,4 @@ void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
 
 void remote_desktop_session_clipboard_requested (RemoteDesktopSession *session);
 
-GDBusInterfaceSkeleton * remote_desktop_create (GDBusConnection *connection,
-                                                const char      *dbus_name);
+void init_remote_desktop (XdpContext *context);

@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * network_monitor_create (GDBusConnection *connection);
+void init_network_monitor (XdpContext *context);

@@ -24,12 +24,15 @@
 #include <glib.h>
 #include <gio/gunixfdlist.h>
 
-#include "xdp-session.h"
-#include "input-capture.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
+
+#include "input-capture.h"
 
 #define VERSION_1  1 /* Makes grep easier */
 
@@ -1208,22 +1211,29 @@ input_capture_session_class_init (InputCaptureSessionClass *klass)
   session_class->close = input_capture_session_close;
 }
 
-GDBusInterfaceSkeleton *
-input_capture_create (GDBusConnection *connection,
-                      const char      *dbus_name)
+void
+init_input_capture (XdpContext *context)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.InputCapture");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_input_capture_proxy_new_sync (connection,
                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                     dbus_name,
+                                                     impl_config->dbus_name,
                                                      DESKTOP_PORTAL_OBJECT_PATH,
                                                      NULL,
                                                      &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create capture input proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   impl_version = xdp_dbus_impl_input_capture_get_version (impl);
@@ -1232,5 +1242,10 @@ input_capture_create (GDBusConnection *connection,
 
   input_capture = g_object_new (input_capture_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (input_capture);
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (input_capture));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-input-capture",
+                          input_capture,
+                          g_object_unref);
 }

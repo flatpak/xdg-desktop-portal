@@ -20,22 +20,26 @@
 
 #include "config.h"
 
+#include <stdio.h>
 #include <glib/gi18n.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gdesktopappinfo.h>
-#include <stdio.h>
 
-#include "xdp-request.h"
-#include "xdp-permissions.h"
 #include "pipewire.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "camera.h"
 
 #define PERMISSION_TABLE "devices"
 #define PERMISSION_DEVICE_CAMERA "camera"
 
-static XdpDbusImplLockdown *lockdown;
+static XdpContext *context;
 static XdpDbusImplAccess *access_impl;
 
 typedef struct _Camera Camera;
@@ -190,6 +194,7 @@ handle_access_camera (XdpDbusCamera *object,
                       GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(GTask) task = NULL;
 
   if (xdp_dbus_impl_lockdown_get_disable_camera (lockdown))
@@ -256,6 +261,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
                              GUnixFDList *in_fd_list,
                              GVariant *arg_options)
 {
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
   g_autoptr(XdpAppInfo) app_info = NULL;
   XdpPermission permission;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
@@ -520,30 +526,42 @@ camera_class_init (CameraClass *klass)
   object_class->finalize = camera_finalize;
 }
 
-GDBusInterfaceSkeleton *
-camera_create (GDBusConnection *connection,
-               const char      *access_impl_dbus_name,
-               gpointer         lockdown_proxy)
+
+void
+init_camera (XdpContext *context_)
 {
+  GDBusConnection *connection = xdp_context_get_connection (context_);
+  XdpPortalConfig *config = xdp_context_get_config (context_);
+  XdpImplConfig *access_impl_config;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  context = context_;
 
-  camera = g_object_new (camera_get_type (), NULL);
+  access_impl_config =
+    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
+
+  if (access_impl_config == NULL)
+    return;
 
   access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
                                                      G_DBUS_PROXY_FLAGS_NONE,
-                                                     access_impl_dbus_name,
+                                                     access_impl_config->dbus_name,
                                                      DESKTOP_PORTAL_OBJECT_PATH,
-                                                     NULL,
-                                                     &error);
+                                                     NULL, &error);
   if (access_impl == NULL)
     {
       g_warning ("Failed to create access proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
-  return G_DBUS_INTERFACE_SKELETON (camera);
+  camera = g_object_new (camera_get_type (), NULL);
+
+  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (camera));
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-camera",
+                          camera,
+                          g_object_unref);
 }

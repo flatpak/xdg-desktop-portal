@@ -22,3 +22,5 @@
 typedef struct _XdpContext XdpContext;
 typedef struct _XdpAppInfo XdpAppInfo;
 typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
+typedef struct _XdpPortalConfig XdpPortalConfig;
+typedef struct _XdpDbusImplLockdown XdpDbusImplLockdown;

@@ -23,6 +23,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * proxy_resolver_create (GDBusConnection *connection);
+void init_proxy_resolver (XdpContext *context);

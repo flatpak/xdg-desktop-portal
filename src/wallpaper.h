@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * wallpaper_create (GDBusConnection *connection,
-					   const char *dbus_name_access,
-					   const char *dbus_name_wallpaper);
+void init_wallpaper (XdpContext *context);

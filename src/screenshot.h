@@ -22,8 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * screenshot_create (GDBusConnection *connection,
-                                            const char      *dbus_name_access,
-                                            const char      *dbus_name_screenshot);
+void init_screenshot (XdpContext *context);

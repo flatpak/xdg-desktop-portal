@@ -38,3 +38,15 @@ gboolean xdp_context_register (XdpContext       *context,
 gboolean xdp_context_is_verbose (XdpContext *context);
 
 XdpAppInfoRegistry * xdp_context_get_app_info_registry (XdpContext *context);
+
+GDBusConnection * xdp_context_get_connection (XdpContext *context);
+
+XdpPortalConfig * xdp_context_get_config (XdpContext *context);
+
+XdpDbusImplLockdown * xdp_context_get_lockdown (XdpContext *context);
+
+void xdp_context_export_portal (XdpContext             *context,
+                                GDBusInterfaceSkeleton *skeleton);
+
+void xdp_context_export_host_portal (XdpContext             *context,
+                                     GDBusInterfaceSkeleton *skeleton);
