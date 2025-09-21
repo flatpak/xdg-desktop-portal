@@ -553,7 +553,9 @@ init_screenshot (XdpContext *context)
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
 
-  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (screenshot));
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (screenshot),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-screenshot",

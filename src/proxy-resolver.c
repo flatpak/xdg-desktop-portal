@@ -124,7 +124,8 @@ init_proxy_resolver (XdpContext *context)
   proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
 
   xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (proxy_resolver));
+                             G_DBUS_INTERFACE_SKELETON (proxy_resolver),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-proxy-resolver",

@@ -594,7 +594,9 @@ init_clipboard (XdpContext *context)
                     G_CALLBACK (selection_owner_changed_cb),
                     clipboard);
 
-  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (clipboard));
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (clipboard),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-clipboard",

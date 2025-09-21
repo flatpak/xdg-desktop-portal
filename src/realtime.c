@@ -319,7 +319,8 @@ init_realtime (XdpContext *context)
     load_all_properties (realtime->rtkit_proxy);
 
   xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (realtime));
+                             G_DBUS_INTERFACE_SKELETON (realtime),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-realtime",

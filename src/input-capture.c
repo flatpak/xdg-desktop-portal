@@ -1242,7 +1242,9 @@ init_input_capture (XdpContext *context)
 
   input_capture = g_object_new (input_capture_get_type (), NULL);
 
-  xdp_context_export_portal (context, G_DBUS_INTERFACE_SKELETON (input_capture));
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (input_capture),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-input-capture",

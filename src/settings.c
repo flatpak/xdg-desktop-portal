@@ -320,7 +320,8 @@ init_settings (XdpContext *context)
     return;
 
   xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (settings));
+                             G_DBUS_INTERFACE_SKELETON (settings),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-settings",
