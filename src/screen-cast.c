@@ -265,7 +265,7 @@ out:
     }
 
   if (should_close_session)
-    xdp_session_close (session, FALSE);
+    xdp_session_close (session, FALSE, FALSE);
 }
 
 static gboolean
@@ -378,7 +378,7 @@ select_sources_done (GObject *source_object,
 
   if (should_close_session)
     {
-      xdp_session_close (session, TRUE);
+      xdp_session_close (session, TRUE, FALSE);
     }
   else if (!session->closed)
     {
@@ -890,7 +890,7 @@ start_done (GObject *source_object,
 
   if (should_close_session)
     {
-      xdp_session_close (session, TRUE);
+      xdp_session_close (session, TRUE, FALSE);
     }
   else if (!session->closed)
     {

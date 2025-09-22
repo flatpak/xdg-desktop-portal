@@ -168,7 +168,8 @@ xdp_session_unregister (XdpSession *session)
 
 void
 xdp_session_close (XdpSession *session,
-                   gboolean    notify_closed)
+                   gboolean    notify_closed,
+                   gboolean    voluntary)
 {
   if (session->closed)
     return;
@@ -196,10 +197,28 @@ xdp_session_close (XdpSession *session,
 
   if (session->impl_session)
     {
+      gboolean success;
       g_autoptr(GError) error = NULL;
 
-      if (!xdp_dbus_impl_session_call_close_sync (session->impl_session,
-                                                  NULL, &error))
+      if (xdp_dbus_impl_session_get_version (session->impl_session) >= 2)
+        {
+          g_auto(GVariantBuilder) options_builder =
+            G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+          g_variant_builder_add (&options_builder, "{sv}", "voluntary",
+                                 g_variant_new_boolean (voluntary));
+
+          success = xdp_dbus_impl_session_call_close2_sync (session->impl_session,
+                                                            g_variant_builder_end (&options_builder),
+                                                            NULL, &error);
+        }
+      else
+        {
+          success = xdp_dbus_impl_session_call_close_sync (session->impl_session,
+                                                           NULL, &error);
+        }
+
+      if (!success)
         g_warning ("Failed to close session implementation: %s",
                    error->message);
 
@@ -220,7 +239,7 @@ handle_close (XdpDbusSession *object,
 
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
-  xdp_session_close (session, FALSE);
+  xdp_session_close (session, FALSE, TRUE);
 
   xdp_dbus_session_complete_close (object, invocation);
 
@@ -262,7 +281,7 @@ close_sessions_in_thread_func (GTask *task,
       XdpSession *session = l->data;
 
       SESSION_AUTOLOCK (session);
-      xdp_session_close (session, FALSE);
+      xdp_session_close (session, FALSE, FALSE);
     }
 
   g_slist_free_full (list, g_object_unref);
@@ -287,7 +306,7 @@ on_closed (XdpDbusImplSession *object, GObject *data)
   SESSION_AUTOLOCK_UNREF (g_object_ref (session));
 
   g_clear_object (&session->impl_session);
-  xdp_session_close (session, TRUE);
+  xdp_session_close (session, TRUE, FALSE);
 }
 
 static gboolean

@@ -31,7 +31,9 @@
       object, which will stay alive for the duration of the session.
 
       The portal can abort the interaction by calling
-      org.freedesktop.impl.portal.Session.Close() on the Session object.
+      org.freedesktop.impl.portal.Session.Close2() on the Session object.
+
+      This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Session">
 
@@ -39,8 +41,31 @@
         Close:
 
         Close the session.
+
+        This method is deprecated since version 2 of this interface and will no
+        longer by called by xdg-desktop-portal.
     -->
     <method name="Close">
+    </method>
+
+    <!--
+        Close2:
+        @options: Vardict with optional further information
+
+        Close the session.
+
+        Supported keys in the @options vardict include:
+
+        * ``voluntary`` (``b``)
+
+          A boolean that indicates whether the app voluntarily called Close on
+          the session. If false, the session was closed by the portal.
+
+        Since version 2.
+    -->
+    <method name="Close2">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
     </method>
 
     <!--
@@ -50,6 +75,7 @@
     -->
     <signal name="Closed">
     </signal>
+
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
