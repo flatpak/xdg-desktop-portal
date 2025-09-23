@@ -235,6 +235,16 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
 
   REQUEST_AUTOLOCK (request);
 
+  /* shortcuts really need to be scoped to a specific app */
+  if (g_strcmp0 (xdp_app_info_get_id (request->app_info), "") == 0)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "An app id is required");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_create_session_options,
                            G_N_ELEMENTS (global_shortcuts_create_session_options),
