@@ -62,6 +62,18 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
+    * ``org.freedesktop.appearance``  ``cursor-theme`` (``s``)
+
+      Indicates the system's preferred cursor theme.
+
+    * ``org.freedesktop.appearance``  ``cursor-theme-size`` (``u``)
+
+      Indicates the system's preferred cursor theme size. The size is in logical
+      pixels, The effective used cursor theme size depends on the scale the cursor
+      is presented using. For example, a cursor displayed on a HiDPI monitor
+      with scaling factor 2 will have the effective cursor theme size
+      ``cursor-theme-size * 2``.
+
     This documentation describes version 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Settings">
