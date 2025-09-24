@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-08-30 03:51+0000\n"
-"PO-Revision-Date: 2025-08-30 14:31+0300\n"
+"POT-Creation-Date: 2025-09-07 03:55+0000\n"
+"PO-Revision-Date: 2025-09-07 18:45+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
 "Language: ru\n"
@@ -39,8 +39,8 @@ msgstr "Приложение \"%s\" запрашивает доступ на р�
 
 #: src/background.c:840
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings."
 msgstr ""
 "Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
 "приложения."
@@ -178,7 +178,7 @@ msgid "Grant Access to Your Location?"
 msgstr "Предоставить доступ к вашему местоположению?"
 
 #: src/location.c:578
-msgid "An application wants to use your location."
+msgid "An app wants to use your location."
 msgstr "Приложение хочет использовать ваше местоположение."
 
 #: src/location.c:581
@@ -210,18 +210,17 @@ msgstr "Разрешить приложению \"%s\" сделать снимо
 #: src/screenshot.c:249
 #, c-format
 msgid "%s wants to take a screenshot."
-msgstr ""
-"Приложение \"%s\" хочет сделать снимок экрана."
+msgstr "Приложение \"%s\" хочет сделать снимок экрана."
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:260
-msgid "Allow Applications to Take Screenshots?"
+msgid "Allow Apps to Take Screenshots?"
 msgstr "Разрешить приложениям делать снимки экрана?"
 
 #: src/screenshot.c:261
-msgid "An application wants to be able to take screenshots at any time."
+msgid "An app wants to be able to take screenshots at any time."
 msgstr "Приложение хочет иметь возможность делать снимки экрана в любое время."
 
 #: src/screenshot.c:265
@@ -229,7 +228,7 @@ msgid "Allow to Take a Screenshot?"
 msgstr "Разрешить сделать снимок экрана?"
 
 #: src/screenshot.c:266
-msgid "An application wants to take a screenshot."
+msgid "An app wants to take a screenshot."
 msgstr "Приложение хочет сделать снимок экрана."
 
 #: src/screenshot.c:271 src/wallpaper.c:219
@@ -261,12 +260,18 @@ msgstr ""
 "Приложение \"%s\" запрашивает возможность изменения фонового изображения."
 
 #: src/wallpaper.c:216
-msgid "Allow Applications to Set Backgrounds?"
+msgid "Allow Apps to Set Backgrounds?"
 msgstr "Разрешить приложениям устанавливать фоновые изображения?"
 
 #: src/wallpaper.c:217
-msgid "An application is requesting to be able to change the background image."
+msgid "An app is requesting to be able to change the background image."
 msgstr "Приложение запрашивает возможность изменения фонового изображения."
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Разрешить приложениям делать снимки экрана?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Разрешить приложениям устанавливать фоновые изображения?"
 
 #, c-format
 #~ msgid "Allow %s to Use the Microphone?"
