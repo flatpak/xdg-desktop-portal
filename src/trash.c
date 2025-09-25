@@ -54,14 +54,14 @@ struct _TrashClass
   XdpDbusTrashSkeletonClass parent_class;
 };
 
-static Trash *trash;
-
 GType trash_get_type (void) G_GNUC_CONST;
 static void trash_iface_init (XdpDbusTrashIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Trash, trash, XDP_DBUS_TYPE_TRASH_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_TRASH,
                                                 trash_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Trash, g_object_unref)
 
 static guint
 trash_file (XdpAppInfo *app_info,
@@ -137,7 +137,6 @@ trash_iface_init (XdpDbusTrashIface *iface)
 static void
 trash_init (Trash *trash)
 {
-  xdp_dbus_trash_set_version (XDP_DBUS_TRASH (trash), 1);
 }
 
 static void
@@ -148,7 +147,10 @@ trash_class_init (TrashClass *klass)
 void
 init_trash (XdpContext *context)
 {
+  g_autoptr(Trash) trash = NULL;
+
   trash = g_object_new (trash_get_type (), NULL);
+  xdp_dbus_trash_set_version (XDP_DBUS_TRASH (trash), 1);
 
   xdp_context_export_portal (context,
                              G_DBUS_INTERFACE_SKELETON (trash),
@@ -156,6 +158,6 @@ init_trash (XdpContext *context)
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-trash",
-                          trash,
+                          g_steal_pointer (&trash),
                           g_object_unref);
 }

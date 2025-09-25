@@ -47,8 +47,6 @@ struct _RegistryClass
   XdpDbusHostRegistrySkeletonClass parent_class;
 };
 
-static Registry *registry;
-
 GType registry_get_type (void) G_GNUC_CONST;
 static void registry_iface_init (XdpDbusHostRegistryIface *iface);
 
@@ -57,8 +55,11 @@ G_DEFINE_TYPE_WITH_CODE (Registry, registry,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_HOST_TYPE_REGISTRY,
                                                 registry_iface_init));
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Registry, g_object_unref)
+
 static XdpAppInfo *
-register_host_app_info_sync (GDBusMethodInvocation  *invocation,
+register_host_app_info_sync (Registry               *registry,
+                             GDBusMethodInvocation  *invocation,
                              const char             *app_id,
                              GCancellable           *cancellable,
                              GError                **error)
@@ -110,10 +111,15 @@ handle_register (XdpDbusHostRegistry   *object,
                  const char            *arg_app_id,
                  GVariant              *arg_options)
 {
+  Registry *registry = (Registry *) object;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = register_host_app_info_sync (invocation, arg_app_id, NULL, &error);
+  app_info = register_host_app_info_sync (registry,
+                                          invocation,
+                                          arg_app_id,
+                                          NULL,
+                                          &error);
   if (!app_info)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -147,7 +153,6 @@ registry_iface_init (XdpDbusHostRegistryIface *iface)
 static void
 registry_init (Registry *registry)
 {
-  xdp_dbus_host_registry_set_version (XDP_DBUS_HOST_REGISTRY (registry), 1);
 }
 
 static void
@@ -155,11 +160,24 @@ registry_class_init (RegistryClass *klass)
 {
 }
 
+static Registry *
+registry_new (XdpContext *context)
+{
+  Registry *registry;
+
+  registry = g_object_new (registry_get_type (), NULL);
+  registry->context = context;
+  xdp_dbus_host_registry_set_version (XDP_DBUS_HOST_REGISTRY (registry), 1);
+
+  return registry;
+}
+
 void
 init_registry (XdpContext *context)
 {
-  registry = g_object_new (registry_get_type (), NULL);
-  registry->context = context;
+  g_autoptr(Registry) registry = NULL;
+
+  registry = registry_new (context);
 
   xdp_context_export_portal (context,
                              G_DBUS_INTERFACE_SKELETON (registry),
@@ -167,6 +185,6 @@ init_registry (XdpContext *context)
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-registry",
-                          registry,
+                          g_steal_pointer (&registry),
                           g_object_unref);
 }

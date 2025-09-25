@@ -22,7 +22,6 @@
 
 #include <gio/gio.h>
 
-#include "screen-cast.h"
 #include "xdp-session.h"
 #include "xdp-types.h"
 

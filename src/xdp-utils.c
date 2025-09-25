@@ -40,11 +40,9 @@
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
 
-#include "xdp-utils.h"
+#include "xdp-types.h"
 
-#define DBUS_NAME_DBUS "org.freedesktop.DBus"
-#define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
-#define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+#include "xdp-utils.h"
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
@@ -180,10 +178,10 @@ xdp_connection_track_peer_disconnect (GDBusConnection           *connection,
   data->user_data = user_data;
 
   return g_dbus_connection_signal_subscribe (connection,
-                                             DBUS_NAME_DBUS,
-                                             DBUS_INTERFACE_DBUS,
+                                             DBUS_DBUS_NAME,
+                                             DBUS_DBUS_IFACE,
                                              "NameOwnerChanged",
-                                             DBUS_PATH_DBUS,
+                                             DBUS_DBUS_PATH,
                                              NULL,
                                              G_DBUS_SIGNAL_FLAGS_NONE,
                                              name_owner_changed,
@@ -209,9 +207,9 @@ xdp_connection_get_pid_legacy (GDBusConnection  *connection,
   g_autoptr(GVariant) reply = NULL;
 
   reply = g_dbus_connection_call_sync (connection,
-                                       DBUS_NAME_DBUS,
-                                       DBUS_PATH_DBUS,
-                                       DBUS_INTERFACE_DBUS,
+                                       DBUS_DBUS_NAME,
+                                       DBUS_DBUS_PATH,
+                                       DBUS_DBUS_IFACE,
                                        "GetConnectionUnixProcessID",
                                        g_variant_new ("(s)", sender),
                                        G_VARIANT_TYPE ("(u)"),
@@ -246,9 +244,9 @@ xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
   g_autofd int pidfd = -1;
 
   reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
-                                                         DBUS_NAME_DBUS,
-                                                         DBUS_PATH_DBUS,
-                                                         DBUS_INTERFACE_DBUS,
+                                                         DBUS_DBUS_NAME,
+                                                         DBUS_DBUS_PATH,
+                                                         DBUS_DBUS_IFACE,
                                                          "GetConnectionCredentials",
                                                          g_variant_new ("(s)", sender),
                                                          G_VARIANT_TYPE ("(a{sv})"),
@@ -328,11 +326,12 @@ xdp_invocation_get_app_info (GDBusMethodInvocation *invocation)
 }
 
 gboolean
-xdp_filter_options (GVariant *options,
-                    GVariantBuilder *filtered,
-                    const XdpOptionKey *supported_options,
-                    int n_supported_options,
-                    GError **error)
+xdp_filter_options (GVariant            *options,
+                    GVariantBuilder     *filtered,
+                    const XdpOptionKey  *supported_options,
+                    int                  n_supported_options,
+                    gpointer             user_data,
+                    GError             **error)
 {
   int i;
   gboolean ret = TRUE;
@@ -365,7 +364,11 @@ xdp_filter_options (GVariant *options,
         {
           g_autoptr(GError) local_error = NULL;
 
-          if (!supported_options[i].validate (supported_options[i].key, value, options, &local_error))
+          if (!supported_options[i].validate (supported_options[i].key,
+                                              value,
+                                              options,
+                                              user_data,
+                                              &local_error))
             {
               if (error && *error == NULL)
                 g_propagate_error (error, g_steal_pointer (&local_error));

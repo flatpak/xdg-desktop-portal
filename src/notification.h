@@ -25,4 +25,6 @@
 
 #include "xdp-types.h"
 
+void notification_delete_for_sender (const char *sender);
+
 void init_notification (XdpContext *context);

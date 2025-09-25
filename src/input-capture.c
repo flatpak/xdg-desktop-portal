@@ -34,24 +34,20 @@
 
 #include "input-capture.h"
 
-#define VERSION_1  1 /* Makes grep easier */
-
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
 
 struct _InputCapture
 {
   XdpDbusInputCaptureSkeleton parent_instance;
+
+  XdpDbusImplInputCapture *impl;
 };
 
 struct _InputCaptureClass
 {
   XdpDbusInputCaptureSkeletonClass parent_class;
 };
-
-static XdpDbusImplInputCapture *impl;
-static int impl_version;
-static InputCapture *input_capture;
 
 static GQuark quark_request_session;
 
@@ -61,6 +57,8 @@ static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_INPUT_CAPTURE,
                                                 input_capture_iface_init))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCapture, g_object_unref)
 
 typedef enum _InputCaptureSessionState
 {
@@ -99,8 +97,43 @@ IS_INPUT_CAPTURE_SESSION (gpointer ptr)
   return G_TYPE_CHECK_INSTANCE_TYPE (ptr, input_capture_session_get_type ());
 }
 
+static void
+input_capture_session_close (XdpSession *session)
+{
+  InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
+
+  input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_CLOSED;
+
+  g_debug ("screen cast session owned by '%s' closed", session->sender);
+}
+
+static void
+input_capture_session_finalize (GObject *object)
+{
+  G_OBJECT_CLASS (input_capture_session_parent_class)->finalize (object);
+}
+
+static void
+input_capture_session_init (InputCaptureSession *input_capture_session)
+{
+}
+
+static void
+input_capture_session_class_init (InputCaptureSessionClass *klass)
+{
+  GObjectClass *object_class;
+  XdpSessionClass *session_class;
+
+  object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize = input_capture_session_finalize;
+
+  session_class = (XdpSessionClass *)klass;
+  session_class->close = input_capture_session_close;
+}
+
 static InputCaptureSession *
-input_capture_session_new (GVariant         *options,
+input_capture_session_new (InputCapture     *input_capture,
+                           GVariant         *options,
                            GDBusConnection  *connection,
                            const char       *sender,
                            XdpAppInfo       *app_info,
@@ -109,8 +142,9 @@ input_capture_session_new (GVariant         *options,
   const char *session_token;
   XdpSession *session;
   GDBusConnection *impl_connection =
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl));
+  const char *impl_dbus_name =
+    g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl));
 
   session_token = lookup_session_token (options);
   session = g_initable_new (input_capture_session_get_type (), NULL, error,
@@ -133,6 +167,7 @@ create_session_done (GObject      *source_object,
                      GAsyncResult *res,
                      gpointer      data)
 {
+  XdpDbusImplInputCapture *impl = (XdpDbusImplInputCapture *) source_object;
   g_autoptr(XdpRequest) request = data;
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) results_builder =
@@ -209,6 +244,7 @@ static gboolean
 validate_capabilities (const char  *key,
                        GVariant    *value,
                        GVariant    *options,
+                       gpointer     user_data,
                        GError     **error)
 {
   uint32_t types = g_variant_get_uint32 (value);
@@ -233,6 +269,7 @@ handle_create_session (XdpDbusInputCapture   *object,
                        const char            *arg_parent_window,
                        GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   GDBusConnection *connection =
     g_dbus_method_invocation_get_connection (invocation);
@@ -245,12 +282,13 @@ handle_create_session (XdpDbusInputCapture   *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -260,7 +298,8 @@ handle_create_session (XdpDbusInputCapture   *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, connection);
 
-  session = XDP_SESSION (input_capture_session_new (arg_options,
+  session = XDP_SESSION (input_capture_session_new (input_capture,
+                                                    arg_options,
                                                     connection,
                                                     request->sender,
                                                     request->app_info,
@@ -274,7 +313,7 @@ handle_create_session (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_create_session_options,
                            G_N_ELEMENTS (input_capture_create_session_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -286,7 +325,7 @@ handle_create_session (XdpDbusInputCapture   *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_input_capture_call_create_session (impl,
+  xdp_dbus_impl_input_capture_call_create_session (input_capture->impl,
                                                    request->id,
                                                    session->id,
                                                    xdp_app_info_get_id (request->app_info),
@@ -306,6 +345,7 @@ get_zones_done (GObject      *source_object,
                 GAsyncResult *res,
                 gpointer      data)
 {
+  XdpDbusImplInputCapture *impl = (XdpDbusImplInputCapture *) source_object;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(XdpRequest) request = NULL;
   g_autoptr(GError) error = NULL;
@@ -362,6 +402,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
                   const char            *arg_session_handle,
                   GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   InputCaptureSession *input_capture_session;
@@ -411,12 +452,13 @@ handle_get_zones (XdpDbusInputCapture   *object,
         return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -429,7 +471,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_get_zones_options,
                            G_N_ELEMENTS (input_capture_get_zones_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -442,7 +484,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_input_capture_call_get_zones (impl,
+  xdp_dbus_impl_input_capture_call_get_zones (input_capture->impl,
                                               request->id,
                                               arg_session_handle,
                                               xdp_app_info_get_id (request->app_info),
@@ -461,6 +503,7 @@ set_pointer_barriers_done (GObject      *source_object,
                            GAsyncResult *res,
                            gpointer      data)
 {
+  XdpDbusImplInputCapture *impl = (XdpDbusImplInputCapture *) source_object;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(XdpRequest) request = NULL;
   g_autoptr(GError) error = NULL;
@@ -518,6 +561,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                              GVariant              *arg_barriers,
                              uint32_t               arg_zone_set)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   InputCaptureSession *input_capture_session;
@@ -567,12 +611,13 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
         return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (input_capture->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (input_capture->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -585,7 +630,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_set_pointer_barriers_options,
                            G_N_ELEMENTS (input_capture_set_pointer_barriers_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -598,7 +643,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_input_capture_call_set_pointer_barriers (impl,
+  xdp_dbus_impl_input_capture_call_set_pointer_barriers (input_capture->impl,
                                                          request->id,
                                                          arg_session_handle,
                                                          xdp_app_info_get_id (request->app_info),
@@ -623,6 +668,7 @@ handle_enable (XdpDbusInputCapture   *object,
                const char            *arg_session_handle,
                GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   InputCaptureSession *input_capture_session;
@@ -676,7 +722,7 @@ handle_enable (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_enable_options,
                            G_N_ELEMENTS (input_capture_enable_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -701,7 +747,7 @@ handle_enable (XdpDbusInputCapture   *object,
         g_assert_not_reached ();
     }
 
-  xdp_dbus_impl_input_capture_call_enable (impl,
+  xdp_dbus_impl_input_capture_call_enable (input_capture->impl,
                                            arg_session_handle,
                                            xdp_app_info_get_id (app_info),
                                            g_variant_builder_end (&options_builder),
@@ -723,6 +769,7 @@ handle_disable (XdpDbusInputCapture   *object,
                 const char            *arg_session_handle,
                 GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   InputCaptureSession *input_capture_session;
@@ -776,7 +823,7 @@ handle_disable (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_disable_options,
                            G_N_ELEMENTS (input_capture_disable_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -800,7 +847,7 @@ handle_disable (XdpDbusInputCapture   *object,
         g_assert_not_reached ();
     }
 
-  xdp_dbus_impl_input_capture_call_disable (impl,
+  xdp_dbus_impl_input_capture_call_disable (input_capture->impl,
                                             arg_session_handle,
                                             xdp_app_info_get_id (app_info),
                                             g_variant_builder_end (&options_builder),
@@ -824,6 +871,7 @@ handle_release (XdpDbusInputCapture   *object,
                 const char            *arg_session_handle,
                 GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   InputCaptureSession *input_capture_session;
@@ -877,7 +925,7 @@ handle_release (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_release_options,
                            G_N_ELEMENTS (input_capture_release_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -902,7 +950,7 @@ handle_release (XdpDbusInputCapture   *object,
         g_assert_not_reached ();
     }
 
-  xdp_dbus_impl_input_capture_call_release (impl,
+  xdp_dbus_impl_input_capture_call_release (input_capture->impl,
                                             arg_session_handle,
                                             xdp_app_info_get_id (app_info),
                                             g_variant_builder_end (&options_builder),
@@ -922,6 +970,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
                        const char            *arg_session_handle,
                        GVariant              *arg_options)
 {
+  InputCapture *input_capture = (InputCapture *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   InputCaptureSession *input_capture_session;
@@ -974,7 +1023,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
           return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!xdp_dbus_impl_input_capture_call_connect_to_eis_sync (impl,
+  if (!xdp_dbus_impl_input_capture_call_connect_to_eis_sync (input_capture->impl,
                                                              arg_session_handle,
                                                              xdp_app_info_get_id (app_info),
                                                              g_variant_builder_end (&empty),
@@ -1018,8 +1067,8 @@ pass_signal (XdpDbusImplInputCapture *impl,
 
   g_dbus_connection_emit_signal (connection,
                                  session->sender,
-                                 "/org/freedesktop/portal/desktop",
-                                 "org.freedesktop.portal.InputCapture",
+                                 DESKTOP_DBUS_PATH,
+                                 INPUT_CAPTURE_DBUS_IFACE,
                                  signal_name,
                                  g_variant_new ("(o@a{sv})", session_id, options),
                                  NULL);
@@ -1153,74 +1202,74 @@ on_zones_changed_cb (XdpDbusImplInputCapture *impl,
 }
 
 static void
+input_capture_dispose (GObject *object)
+{
+  InputCapture *input_capture = (InputCapture *) object;
+
+  g_clear_object (&input_capture->impl);
+
+  G_OBJECT_CLASS (input_capture_parent_class)->dispose (object);
+}
+
+static void
 input_capture_init (InputCapture *input_capture)
 {
-  unsigned int supported_capabilities;
-
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), VERSION_1);
-
-  supported_capabilities =
-    xdp_dbus_impl_input_capture_get_supported_capabilities (impl);
-  xdp_dbus_input_capture_set_supported_capabilities (XDP_DBUS_INPUT_CAPTURE (input_capture),
-                                                     supported_capabilities);
-
-  g_signal_connect (impl, "disabled", G_CALLBACK (on_disabled_cb), input_capture);
-  g_signal_connect (impl, "activated", G_CALLBACK (on_activated_cb), input_capture);
-  g_signal_connect (impl, "deactivated", G_CALLBACK (on_deactivated_cb), input_capture);
-  g_signal_connect (impl, "zones-changed", G_CALLBACK (on_zones_changed_cb), input_capture);
 }
 
 static void
 input_capture_class_init (InputCaptureClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = input_capture_dispose;
+
   quark_request_session =
     g_quark_from_static_string ("-xdp-request-capture-input-session");
 }
 
-static void
-input_capture_session_close (XdpSession *session)
+static InputCapture *
+input_capture_new (XdpDbusImplInputCapture *impl)
 {
-  InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
+  InputCapture *input_capture;
 
-  input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_CLOSED;
+  input_capture = g_object_new (input_capture_get_type (), NULL);
+  input_capture->impl = g_object_ref (impl);
 
-  g_debug ("screen cast session owned by '%s' closed", session->sender);
-}
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (input_capture->impl), G_MAXINT);
 
-static void
-input_capture_session_finalize (GObject *object)
-{
-  G_OBJECT_CLASS (input_capture_session_parent_class)->finalize (object);
-}
+  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture), 1);
 
-static void
-input_capture_session_init (InputCaptureSession *input_capture_session)
-{
-}
+  g_object_bind_property (G_OBJECT (input_capture->impl), "supported-capabilities",
+                          G_OBJECT (input_capture), "supported-capabilities",
+                          G_BINDING_SYNC_CREATE);
 
-static void
-input_capture_session_class_init (InputCaptureSessionClass *klass)
-{
-  GObjectClass *object_class;
-  XdpSessionClass *session_class;
+  g_signal_connect (input_capture->impl, "disabled",
+                    G_CALLBACK (on_disabled_cb),
+                    input_capture->impl);
+  g_signal_connect (input_capture->impl, "activated",
+                    G_CALLBACK (on_activated_cb),
+                    input_capture->impl);
+  g_signal_connect (input_capture->impl, "deactivated",
+                    G_CALLBACK (on_deactivated_cb),
+                    input_capture->impl);
+  g_signal_connect (input_capture->impl, "zones-changed",
+                    G_CALLBACK (on_zones_changed_cb),
+                    input_capture->impl);
 
-  object_class = G_OBJECT_CLASS (klass);
-  object_class->finalize = input_capture_session_finalize;
-
-  session_class = (XdpSessionClass *)klass;
-  session_class->close = input_capture_session_close;
+  return input_capture;
 }
 
 void
 init_input_capture (XdpContext *context)
 {
+  g_autoptr(InputCapture) input_capture = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplInputCapture) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.InputCapture");
+  impl_config = xdp_portal_config_find (config, INPUT_CAPTURE_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -1236,11 +1285,7 @@ init_input_capture (XdpContext *context)
       return;
     }
 
-  impl_version = xdp_dbus_impl_input_capture_get_version (impl);
-
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  input_capture = g_object_new (input_capture_get_type (), NULL);
+  input_capture = input_capture_new (impl);
 
   xdp_context_export_portal (context,
                              G_DBUS_INTERFACE_SKELETON (input_capture),
@@ -1248,6 +1293,6 @@ init_input_capture (XdpContext *context)
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-input-capture",
-                          input_capture,
+                          g_steal_pointer (&input_capture),
                           g_object_unref);
 }

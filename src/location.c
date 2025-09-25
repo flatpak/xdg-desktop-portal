@@ -39,6 +39,11 @@
 
 #include "location.h"
 
+#define GEO_CLUE2_BUS_NAME "org.freedesktop.GeoClue2"
+#define GEO_CLUE2_MANAGER_OBJECT_PATH "/org/freedesktop/GeoClue2/Manager"
+#define GEO_CLUE2_MANAGER_IFACE "org.freedesktop.GeoClue2.Manager"
+#define GEO_CLUE2_LOCATION_IFACE "org.freedesktop.GeoClue2.Location"
+
 static GClueAccuracyLevel gclue_accuracy_level_from_string (const char *str);
 static const char *       gclue_accuracy_level_to_string   (GClueAccuracyLevel level);
 
@@ -153,10 +158,10 @@ location_session_new (GVariant *options,
 /*** GeoClue integration ***/
 
 static void
-location_updated (GeoclueClient *client,
-                  const char *old_location,
-                  const char *new_location,
-                  gpointer data)
+on_location_updated (GeoclueClient *client,
+                     const char    *old_location,
+                     const char    *new_location,
+                     gpointer       data)
 {
   XdpSession *session = data;
   g_autoptr(GVariant) ret = NULL;
@@ -169,11 +174,11 @@ location_updated (GeoclueClient *client,
     return;
 
   ret = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (client)),
-                                     "org.freedesktop.GeoClue2",
+                                     GEO_CLUE2_BUS_NAME,
                                      new_location,
-                                     "org.freedesktop.DBus.Properties",
+                                     DBUS_DBUS_IFACE ".Properties",
                                      "GetAll",
-                                     g_variant_new ("(s)", "org.freedesktop.GeoClue2.Location"),
+                                     g_variant_new ("(s)", GEO_CLUE2_LOCATION_IFACE),
                                      G_VARIANT_TYPE ("(a{sv})"),
                                      0, -1, NULL, &error);
   if (ret == NULL)
@@ -186,8 +191,8 @@ location_updated (GeoclueClient *client,
 
   if (!g_dbus_connection_emit_signal (session->connection,
                                       session->sender,
-                                      "/org/freedesktop/portal/desktop",
-                                      "org.freedesktop.portal.Location",
+                                      DESKTOP_DBUS_PATH,
+                                      LOCATION_DBUS_IFACE,
                                       "LocationUpdated",
                                       g_variant_new ("(o@a{sv})", session->id, dict),
                                       &error))
@@ -208,9 +213,9 @@ location_session_start (LocationSession *loc_session)
 
   system_bus = g_bus_get_sync (G_BUS_TYPE_SYSTEM, NULL, NULL);
   ret = g_dbus_connection_call_sync (system_bus,
-                                     "org.freedesktop.GeoClue2",
-                                     "/org/freedesktop/GeoClue2/Manager",
-                                     "org.freedesktop.GeoClue2.Manager",
+                                     GEO_CLUE2_BUS_NAME,
+                                     GEO_CLUE2_MANAGER_OBJECT_PATH,
+                                     GEO_CLUE2_MANAGER_IFACE,
                                      "GetClient",
                                      NULL,
                                      G_VARIANT_TYPE ("(o)"),
@@ -226,7 +231,7 @@ location_session_start (LocationSession *loc_session)
 
   loc_session->client = geoclue_client_proxy_new_sync (system_bus,
                                                        G_DBUS_PROXY_FLAGS_NONE,
-                                                       "org.freedesktop.GeoClue2",
+                                                       GEO_CLUE2_BUS_NAME,
                                                        client_id,
                                                        NULL,
                                                        &error);
@@ -252,7 +257,8 @@ location_session_start (LocationSession *loc_session)
                 NULL);
   
   g_signal_connect (loc_session->client, "location-updated",
-                    G_CALLBACK (location_updated), loc_session);
+                    G_CALLBACK (on_location_updated),
+                    loc_session);
 
   if (!geoclue_client_call_start_sync (loc_session->client, NULL, &error))
     {
@@ -286,9 +292,6 @@ location_session_start (LocationSession *loc_session)
  * When no entry is found, we ask the user whether he wants to grant
  * access, and use EXACT as the accuracy.
  */
-
-#define PERMISSION_TABLE "location"
-#define PERMISSION_ID "location"
 
 static struct { const char *name; GClueAccuracyLevel level; } accuracy_levels[] = {
   { "NONE", GCLUE_ACCURACY_LEVEL_NONE },
@@ -347,7 +350,9 @@ get_location_permissions (XdpAppInfo *app_info,
   g_debug ("Getting location permissions for '%s'",
            xdp_app_info_get_id (app_info));
 
-  perms = xdp_get_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
+  perms = xdp_get_permissions_sync (app_info,
+                                    LOCATION_PERMISSION_TABLE,
+                                    LOCATION_PERMISSION_ID);
 
   if (perms == NULL)
     return FALSE;
@@ -381,7 +386,10 @@ set_location_permissions (XdpAppInfo *app_info,
 
   g_debug ("set permission store accuracy: %d -> %s", accuracy, permissions[0]);
 
-  xdp_set_permissions_sync (app_info, PERMISSION_TABLE, PERMISSION_ID, permissions);
+  xdp_set_permissions_sync (app_info,
+                            LOCATION_PERMISSION_TABLE,
+                            LOCATION_PERMISSION_ID,
+                            permissions);
 }
 
 /*** Location boilerplace ***/
@@ -389,6 +397,9 @@ set_location_permissions (XdpAppInfo *app_info,
 typedef struct
 {
   XdpDbusLocationSkeleton parent_instance;
+
+  XdpContext *context;
+  XdpDbusImplAccess *access_impl;
 } Location;
 
 typedef struct 
@@ -396,15 +407,13 @@ typedef struct
   XdpDbusLocationSkeletonClass parent_class;
 } LocationClass;
 
-static XdpContext *context;
-static Location *location;
-static XdpDbusImplAccess *access_impl;
-
 GType location_get_type (void) G_GNUC_CONST;
 static void location_iface_init (XdpDbusLocationIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Location, g_object_unref)
 
 /*** CreateSession ***/
 
@@ -413,7 +422,8 @@ handle_create_session (XdpDbusLocation *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  Location *location = (Location *) object;
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (location->context);
   g_autoptr(GError) error = NULL;
   LocationSession *loc_session;
   XdpSession *session;
@@ -491,6 +501,7 @@ handle_start_in_thread_func (GTask *task,
                              gpointer task_data,
                              GCancellable *cancellable)
 {
+  Location *location = (Location *) source_object;
   XdpRequest *request = XDP_REQUEST (task_data);
   const char *parent_window;
   const char *id;
@@ -524,11 +535,12 @@ handle_start_in_thread_func (GTask *task,
       g_autofree char *subtitle = NULL;
       const char *body;
 
-      impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
-                                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                                           g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
-                                                           request->id,
-                                                           NULL, NULL);
+      impl_request = xdp_dbus_impl_request_proxy_new_sync (
+        g_dbus_proxy_get_connection (G_DBUS_PROXY (location->access_impl)),
+        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+        g_dbus_proxy_get_name (G_DBUS_PROXY (location->access_impl)),
+        request->id,
+        NULL, NULL);
 
       xdp_request_set_impl_request (request, impl_request);
 
@@ -575,7 +587,7 @@ handle_start_in_thread_func (GTask *task,
 
       body = _("Location access can be changed at any time from the privacy settings.");
 
-      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (location->access_impl,
                                                          request->id,
                                                          app_id,
                                                          parent_window,
@@ -648,8 +660,9 @@ handle_start (XdpDbusLocation *object,
               const char *arg_parent_window,
               GVariant *arg_options)
 {
+  Location *location = (Location *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (location->context);
   XdpSession *session;
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;
@@ -711,7 +724,7 @@ handle_start (XdpDbusLocation *object,
 
   xdp_dbus_location_complete_start (object, invocation, request->id);
 
-  task = g_task_new (object, NULL, NULL, NULL);
+  task = g_task_new (location, NULL, NULL, NULL);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_start_in_thread_func);
 
@@ -728,30 +741,56 @@ location_iface_init (XdpDbusLocationIface *iface)
 }
 
 static void
+location_dispose (GObject *object)
+{
+  Location *location = (Location *) object;
+
+  g_clear_object (&location->access_impl);
+
+  G_OBJECT_CLASS (location_parent_class)->dispose (object);
+}
+
+static void
 location_init (Location *location)
 {
-  xdp_dbus_location_set_version (XDP_DBUS_LOCATION (location), 1);
 }
 
 static void
 location_class_init (LocationClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = location_dispose;
+
   quark_request_session = g_quark_from_static_string ("-xdp-request-location-session");
 }
 
-void
-init_location (XdpContext *context_)
+static Location *
+location_new (XdpContext        *context,
+              XdpDbusImplAccess *access_impl)
 {
-  GDBusConnection *connection = xdp_context_get_connection (context_);
-  XdpPortalConfig *config = xdp_context_get_config (context_);
+  Location *location;
+
+  location = g_object_new (location_get_type (), NULL);
+  location->context = context;
+  location->access_impl = g_object_ref (access_impl);
+
+  xdp_dbus_location_set_version (XDP_DBUS_LOCATION (location), 1);
+
+  return location;
+}
+
+void
+init_location (XdpContext *context)
+{
+  g_autoptr(Location) location = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *access_impl_config;
+  g_autoptr(XdpDbusImplAccess) access_impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  context = context_;
-
-  access_impl_config =
-    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
-
+  access_impl_config = xdp_portal_config_find (config, ACCESS_DBUS_IMPL_IFACE);
   if (access_impl_config == NULL)
     return;
 
@@ -766,7 +805,7 @@ init_location (XdpContext *context_)
       return;
     }
 
-  location = g_object_new (location_get_type (), NULL);
+  location = location_new (context, access_impl);
 
   xdp_context_export_portal (context,
                              G_DBUS_INTERFACE_SKELETON (location),
@@ -774,6 +813,6 @@ init_location (XdpContext *context_)
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-location",
-                          location,
+                          g_steal_pointer (&location),
                           g_object_unref);
 }

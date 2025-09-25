@@ -183,7 +183,7 @@ xdp_session_close (XdpSession *session,
       g_dbus_connection_emit_signal (session->connection,
                                      session->sender,
                                      session->id,
-                                     "org.freedesktop.portal.Session",
+                                     DESKTOP_DBUS_IFACE ".Session",
                                      "Closed",
                                      g_variant_new ("(@a{sv})", g_variant_builder_end (&details_builder)),
                                      NULL);
@@ -343,7 +343,7 @@ xdp_session_initable_init (GInitable     *initable,
       return FALSE;
     }
 
-  id = g_strdup_printf ("/org/freedesktop/portal/desktop/session/%s/%s",
+  id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s",
                         sender_escaped, session->token);
 
   if (session->impl_dbus_name)

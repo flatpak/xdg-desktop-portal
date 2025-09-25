@@ -48,6 +48,9 @@ typedef struct _PrintClass PrintClass;
 struct _Print
 {
   XdpDbusPrintSkeleton parent_instance;
+
+  XdpContext *context;
+  XdpDbusImplPrint *impl;
 };
 
 struct _PrintClass
@@ -55,16 +58,14 @@ struct _PrintClass
   XdpDbusPrintSkeletonClass parent_class;
 };
 
-static XdpContext *context;
-static XdpDbusImplPrint *impl;
-static Print *print;
-
 GType print_get_type (void) G_GNUC_CONST;
 static void print_iface_init (XdpDbusPrintIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Print, print, XDP_DBUS_TYPE_PRINT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_PRINT,
                                                 print_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Print, g_object_unref)
 
 static void
 print_done (GObject *source,
@@ -105,6 +106,7 @@ static gboolean
 validate_supported_output_file_formats (const char  *key,
                                         GVariant    *value,
                                         GVariant    *options,
+                                        gpointer     user_data,
                                         GError     **error)
 {
   const char * const supported_output_file_formats[] = {
@@ -150,9 +152,10 @@ handle_print (XdpDbusPrint *object,
               GVariant *arg_fd,
               GVariant *arg_options)
 {
+  Print *print = (Print *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (print->context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -171,9 +174,9 @@ handle_print (XdpDbusPrint *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (print->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (print->impl)),
                                                        request->id,
                                                        NULL, &error);
   if (!impl_request)
@@ -186,8 +189,9 @@ handle_print (XdpDbusPrint *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &opt_builder,
-                      print_options, G_N_ELEMENTS (print_options), NULL);
-  xdp_dbus_impl_print_call_print(impl,
+                      print_options, G_N_ELEMENTS (print_options),
+                      NULL, NULL);
+  xdp_dbus_impl_print_call_print(print->impl,
                                  request->id,
                                  app_id,
                                  arg_parent_window,
@@ -240,7 +244,7 @@ prepare_print_done (GObject *source,
       if (response == 0)
         xdp_filter_options (options, &opt_builder,
                             response_options, G_N_ELEMENTS (response_options),
-                            NULL);
+                            NULL, NULL);
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       response,
@@ -267,9 +271,10 @@ handle_prepare_print (XdpDbusPrint *object,
                       GVariant *arg_page_setup,
                       GVariant *arg_options)
 {
+  Print *print = (Print *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (print->context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -287,9 +292,9 @@ handle_prepare_print (XdpDbusPrint *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (print->impl)),
                                                        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (print->impl)),
                                                        request->id,
                                                        NULL, &error);
   if (!impl_request)
@@ -302,8 +307,9 @@ handle_prepare_print (XdpDbusPrint *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &opt_builder,
-                      prepare_print_options, G_N_ELEMENTS (prepare_print_options), NULL);
-  xdp_dbus_impl_print_call_prepare_print (impl,
+                      prepare_print_options, G_N_ELEMENTS (prepare_print_options),
+                      NULL, NULL);
+  xdp_dbus_impl_print_call_prepare_print (print->impl,
                                           request->id,
                                           app_id,
                                           arg_parent_window,
@@ -328,28 +334,56 @@ print_iface_init (XdpDbusPrintIface *iface)
 }
 
 static void
+print_dispose (GObject *object)
+{
+  Print *print = (Print *) object;
+
+  g_clear_object (&print->impl);
+
+  G_OBJECT_CLASS (print_parent_class)->dispose (object);
+}
+
+static void
 print_init (Print *print)
 {
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
 }
 
 static void
 print_class_init (PrintClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = print_dispose;
+}
+
+static Print *
+print_new (XdpContext       *context,
+           XdpDbusImplPrint *impl)
+{
+  Print *print;
+
+  print = g_object_new (print_get_type (), NULL);
+  print->context = context;
+  print->impl = g_object_ref (impl);
+
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (print->impl), G_MAXINT);
+
+  return print;
 }
 
 void
-init_print (XdpContext *context_)
+init_print (XdpContext *context)
 {
-  GDBusConnection *connection = xdp_context_get_connection (context_);
-  XdpPortalConfig *config = xdp_context_get_config (context_);
+  g_autoptr(Print) print = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplPrint) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  context = context_;
-
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.Print");
+  impl_config = xdp_portal_config_find (config, PRINT_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -365,9 +399,7 @@ init_print (XdpContext *context_)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  print = g_object_new (print_get_type (), NULL);
+  print = print_new (context, impl);
 
   xdp_context_export_portal (context,
                              G_DBUS_INTERFACE_SKELETON (print),
@@ -375,6 +407,6 @@ init_print (XdpContext *context_)
 
   g_object_set_data_full (G_OBJECT (context),
                           "-xdp-portal-print",
-                          print,
+                          g_steal_pointer (&print),
                           g_object_unref);
 }
