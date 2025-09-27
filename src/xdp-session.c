@@ -20,7 +20,6 @@
 
 #include "xdp-session.h"
 #include "xdp-request.h"
-#include "xdp-call.h"
 
 #include <string.h>
 
@@ -90,8 +89,8 @@ xdp_session_from_request (const char *session_handle,
 }
 
 XdpSession *
-xdp_session_from_call (const char *session_handle,
-                       XdpCall    *call)
+xdp_session_from_app_info (const char *session_handle,
+                           XdpAppInfo *app_info)
 {
   g_autoptr(XdpSession) session = NULL;
 
@@ -104,10 +103,10 @@ xdp_session_from_call (const char *session_handle,
   if (!session)
     return NULL;
 
-  if (g_strcmp0 (session->sender, call->sender) != 0)
+  if (g_strcmp0 (session->sender, xdp_app_info_get_sender (app_info)) != 0)
     return NULL;
 
-  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (call->app_info)) != 0)
+  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (app_info)) != 0)
     return NULL;
 
   return g_steal_pointer (&session);
@@ -184,7 +183,7 @@ xdp_session_close (XdpSession *session,
       g_dbus_connection_emit_signal (session->connection,
                                      session->sender,
                                      session->id,
-                                     "org.freedesktop.portal.Session",
+                                     DESKTOP_DBUS_IFACE ".Session",
                                      "Closed",
                                      g_variant_new ("(@a{sv})", g_variant_builder_end (&details_builder)),
                                      NULL);
@@ -344,7 +343,7 @@ xdp_session_initable_init (GInitable     *initable,
       return FALSE;
     }
 
-  id = g_strdup_printf ("/org/freedesktop/portal/desktop/session/%s/%s",
+  id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s",
                         sender_escaped, session->token);
 
   if (session->impl_dbus_name)

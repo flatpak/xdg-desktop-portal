@@ -26,6 +26,9 @@
 
 #include "xdp-permissions.h"
 
+#define PERMISSION_STORE_DBUS_NAME "org.freedesktop.impl.portal.PermissionStore"
+#define PERMISSION_STORE_DBUS_PATH "/org/freedesktop/impl/portal/PermissionStore"
+
 static XdpDbusImplPermissionStore *permission_store = NULL;
 
 char **
@@ -172,11 +175,12 @@ gboolean
 xdp_init_permission_store (GDBusConnection  *connection,
                            GError          **error)
 {
-  permission_store = xdp_dbus_impl_permission_store_proxy_new_sync (connection,
-                                                                    G_DBUS_PROXY_FLAGS_NONE,
-                                                                    "org.freedesktop.impl.portal.PermissionStore",
-                                                                    "/org/freedesktop/impl/portal/PermissionStore",
-                                                                    NULL, error);
+  permission_store =
+    xdp_dbus_impl_permission_store_proxy_new_sync (connection,
+                                                   G_DBUS_PROXY_FLAGS_NONE,
+                                                   PERMISSION_STORE_DBUS_NAME,
+                                                   PERMISSION_STORE_DBUS_PATH,
+                                                   NULL, error);
   return (permission_store != NULL);
 }
 

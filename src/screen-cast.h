@@ -23,6 +23,8 @@
 #include <gio/gio.h>
 #include <stdint.h>
 
+#include "xdp-types.h"
+
 typedef struct _ScreenCastStream ScreenCastStream;
 
 uint32_t screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream);
@@ -41,5 +43,4 @@ void screen_cast_remove_transient_permissions_for_sender (const char *sender);
 
 GList * collect_screen_cast_stream_data (GVariantIter *streams_iter);
 
-GDBusInterfaceSkeleton * screen_cast_create (GDBusConnection *connection,
-                                             const char      *dbus_name);
+void init_screen_cast (XdpContext *context);

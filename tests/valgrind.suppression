@@ -21,21 +21,3 @@
   ...
   fun:g_module_close
 }
-
-# This is too broad; need to properly own things to avoid this
-{
-  xdp/notification_init
-  Memcheck:Leak
-  fun:*alloc
-  ...
-  fun:notification_init
-}
-
-# This is too broad; need to properly own things to avoid this
-{
-  xdp/dynamic_launcher_init
-  Memcheck:Leak
-  fun:*alloc
-  ...
-  fun:dynamic_launcher_init
-}

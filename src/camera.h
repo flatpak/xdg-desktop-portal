@@ -20,8 +20,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * camera_create (GDBusConnection *connection,
-                                        const char      *access_impl_dbus_name,
-                                        gpointer         lockdown_proxy);
+void init_camera (XdpContext *context);

@@ -40,11 +40,9 @@
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
 
-#include "xdp-utils.h"
+#include "xdp-types.h"
 
-#define DBUS_NAME_DBUS "org.freedesktop.DBus"
-#define DBUS_INTERFACE_DBUS DBUS_NAME_DBUS
-#define DBUS_PATH_DBUS "/org/freedesktop/DBus"
+#include "xdp-utils.h"
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
@@ -138,6 +136,12 @@ needs_quoting (const char *arg)
   return FALSE;
 }
 
+typedef struct
+{
+  XdpPeerDisconnectCallback peer_disconnect_cb;
+  gpointer user_data;
+} PeerDisconnectData;
+
 static void
 name_owner_changed (GDBusConnection *connection,
                     const gchar     *sender_name,
@@ -147,10 +151,10 @@ name_owner_changed (GDBusConnection *connection,
                     GVariant        *parameters,
                     gpointer         user_data)
 {
+  PeerDisconnectData *data = user_data;
   const char *name, *from, *to;
-  XdpPeerDiedCallback peer_died_cb = user_data;
 
-  if (!peer_died_cb)
+  if (!data->peer_disconnect_cb)
     return;
 
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
@@ -160,30 +164,174 @@ name_owner_changed (GDBusConnection *connection,
       strcmp (to, "") != 0)
     return;
 
-  peer_died_cb (name);
+  data->peer_disconnect_cb (name, data->user_data);
+}
+
+guint
+xdp_connection_track_peer_disconnect (GDBusConnection           *connection,
+                                      XdpPeerDisconnectCallback  peer_disconnect_cb,
+                                      gpointer                   user_data)
+{
+  PeerDisconnectData *data = g_new0 (PeerDisconnectData, 1);
+
+  data->peer_disconnect_cb = peer_disconnect_cb;
+  data->user_data = user_data;
+
+  return g_dbus_connection_signal_subscribe (connection,
+                                             DBUS_DBUS_NAME,
+                                             DBUS_DBUS_IFACE,
+                                             "NameOwnerChanged",
+                                             DBUS_DBUS_PATH,
+                                             NULL,
+                                             G_DBUS_SIGNAL_FLAGS_NONE,
+                                             name_owner_changed,
+                                             g_steal_pointer (&data),
+                                             g_free);
 }
 
 void
-xdp_connection_track_name_owners (GDBusConnection     *connection,
-                                  XdpPeerDiedCallback  peer_died_cb)
+xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
+                                        guint            subscription_id)
 {
-  g_dbus_connection_signal_subscribe (connection,
-                                      DBUS_NAME_DBUS,
-                                      DBUS_INTERFACE_DBUS,
-                                      "NameOwnerChanged",
-                                      DBUS_PATH_DBUS,
-                                      NULL,
-                                      G_DBUS_SIGNAL_FLAGS_NONE,
-                                      name_owner_changed,
-                                      peer_died_cb, NULL);
+  g_dbus_connection_signal_unsubscribe (connection, subscription_id);
+}
+
+static gboolean
+xdp_connection_get_pid_legacy (GDBusConnection  *connection,
+                               const char       *sender,
+                               GCancellable     *cancellable,
+                               int              *out_pidfd,
+                               uint32_t         *out_pid,
+                               GError          **error)
+{
+  g_autoptr(GVariant) reply = NULL;
+
+  reply = g_dbus_connection_call_sync (connection,
+                                       DBUS_DBUS_NAME,
+                                       DBUS_DBUS_PATH,
+                                       DBUS_DBUS_IFACE,
+                                       "GetConnectionUnixProcessID",
+                                       g_variant_new ("(s)", sender),
+                                       G_VARIANT_TYPE ("(u)"),
+                                       G_DBUS_CALL_FLAGS_NONE,
+                                       30000,
+                                       cancellable,
+                                       error);
+  if (!reply)
+    return FALSE;
+
+  *out_pidfd = -1;
+  g_variant_get (reply, "(u)", out_pid);
+  return TRUE;
 }
 
 gboolean
-xdp_filter_options (GVariant *options,
-                    GVariantBuilder *filtered,
-                    const XdpOptionKey *supported_options,
-                    int n_supported_options,
-                    GError **error)
+xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
+                               const char       *sender,
+                               GCancellable     *cancellable,
+                               int              *out_pidfd,
+                               uint32_t         *out_pid,
+                               GError          **error)
+{
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GVariant) dict = NULL;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GVariant) process_fd = NULL;
+  g_autoptr(GVariant) process_id = NULL;
+  uint32_t pid;
+  int fd_index;
+  g_autoptr(GUnixFDList) fd_list = NULL;
+  g_autofd int pidfd = -1;
+
+  reply = g_dbus_connection_call_with_unix_fd_list_sync (connection,
+                                                         DBUS_DBUS_NAME,
+                                                         DBUS_DBUS_PATH,
+                                                         DBUS_DBUS_IFACE,
+                                                         "GetConnectionCredentials",
+                                                         g_variant_new ("(s)", sender),
+                                                         G_VARIANT_TYPE ("(a{sv})"),
+                                                         G_DBUS_CALL_FLAGS_NONE,
+                                                         30000,
+                                                         NULL,
+                                                         &fd_list,
+                                                         cancellable,
+                                                         &local_error);
+
+  if (!reply)
+    {
+      if (g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE))
+        {
+          return xdp_connection_get_pid_legacy (connection,
+                                                sender,
+                                                cancellable,
+                                                out_pidfd,
+                                                out_pid,
+                                                error);
+        }
+
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return FALSE;
+    }
+
+  g_variant_get (reply, "(@a{sv})", &dict);
+
+  process_id = g_variant_lookup_value (dict, "ProcessID", G_VARIANT_TYPE_UINT32);
+  if (!process_id)
+    {
+      return xdp_connection_get_pid_legacy (connection,
+                                            sender,
+                                            cancellable,
+                                            out_pidfd,
+                                            out_pid,
+                                            error);
+    }
+
+  pid = g_variant_get_uint32 (process_id);
+
+  process_fd = g_variant_lookup_value (dict, "ProcessFD", G_VARIANT_TYPE_HANDLE);
+  if (!process_fd)
+    {
+      *out_pidfd = -1;
+      *out_pid = pid;
+      return TRUE;
+    }
+
+  fd_index = g_variant_get_handle (process_fd);
+
+  if (fd_list == NULL)
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+      return FALSE;
+    }
+
+  if (fd_index >= g_unix_fd_list_get_length (fd_list))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Pidfd index is out of bounds");
+      return FALSE;
+    }
+
+  pidfd = g_unix_fd_list_get (fd_list, fd_index, error);
+  if (pidfd < 0)
+    return FALSE;
+
+  *out_pidfd = g_steal_fd (&pidfd);
+  *out_pid = pid;
+  return TRUE;
+}
+
+XdpAppInfo *
+xdp_invocation_get_app_info (GDBusMethodInvocation *invocation)
+{
+  return g_object_get_data (G_OBJECT (invocation), "xdp-app-info");
+}
+
+gboolean
+xdp_filter_options (GVariant            *options,
+                    GVariantBuilder     *filtered,
+                    const XdpOptionKey  *supported_options,
+                    int                  n_supported_options,
+                    gpointer             user_data,
+                    GError             **error)
 {
   int i;
   gboolean ret = TRUE;
@@ -216,7 +364,11 @@ xdp_filter_options (GVariant *options,
         {
           g_autoptr(GError) local_error = NULL;
 
-          if (!supported_options[i].validate (supported_options[i].key, value, options, &local_error))
+          if (!supported_options[i].validate (supported_options[i].key,
+                                              value,
+                                              options,
+                                              user_data,
+                                              &local_error))
             {
               if (error && *error == NULL)
                 g_propagate_error (error, g_steal_pointer (&local_error));

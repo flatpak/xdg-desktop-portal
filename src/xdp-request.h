@@ -47,30 +47,20 @@ typedef struct _XdpRequest
   XdpDbusImplRequest *impl_request;
 } XdpRequest;
 
-typedef struct _XdpRequestClass
+struct _XdpRequestClass
 {
   XdpDbusRequestSkeletonClass parent_class;
-} XdpRequestClass;
+};
 
-GType xdp_request_get_type (void) G_GNUC_CONST;
+#define XDP_TYPE_REQUEST (xdp_request_get_type ())
+G_DECLARE_FINAL_TYPE (XdpRequest,
+                      xdp_request,
+                      XDP, REQUEST,
+                      XdpDbusRequestSkeleton)
 
-G_GNUC_UNUSED static inline XdpRequest *
-XDP_REQUEST (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_CAST (ptr, xdp_request_get_type (), XdpRequest);
-}
-
-G_GNUC_UNUSED static inline gboolean
-XDP_IS_REQUEST (gpointer ptr)
-{
-  return G_TYPE_CHECK_INSTANCE_TYPE (ptr, xdp_request_get_type ());
-}
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpRequest, g_object_unref)
-
-gboolean xdp_request_init_invocation (GDBusMethodInvocation *invocation,
-                                      XdpAppInfo            *app_info,
-                                      GError               **error);
+gboolean xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
+                                      XdpAppInfo             *app_info,
+                                      GError                **error);
 
 XdpRequest *xdp_request_from_invocation (GDBusMethodInvocation *invocation);
 
@@ -101,4 +91,6 @@ auto_lock_helper (GMutex *mutex)
   return mutex;
 }
 
-#define REQUEST_AUTOLOCK(request) G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) GMutex * G_PASTE (request_auto_unlock, __LINE__) = auto_lock_helper (&request->mutex);
+#define REQUEST_AUTOLOCK(request) \
+  G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) \
+  GMutex * G_PASTE (request_auto_unlock, __LINE__) = auto_lock_helper (&request->mutex);

@@ -23,8 +23,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * background_create (GDBusConnection *connection,
-                                            const char *dbus_name_access,
-                                            const char *dbus_name_background);
+void init_background (XdpContext *context);

@@ -229,7 +229,7 @@ register_portal (GHashTable  *portals,
                        impl_config->interfaces[i]);
           return FALSE;
         }
-      if (!g_str_has_prefix (impl_config->interfaces[i], "org.freedesktop.impl.portal."))
+      if (!g_str_has_prefix (impl_config->interfaces[i], DESKTOP_DBUS_IMPL_IFACE "."))
         {
           g_set_error (error, G_KEY_FILE_ERROR, G_KEY_FILE_ERROR_INVALID_VALUE,
                        "Not a portal backend interface: %s",
@@ -895,7 +895,7 @@ xdp_portal_config_find_gtk_fallback_impl_config (XdpPortalConfig *portal_config,
       XdpImplConfig *impl_config = g_ptr_array_index (impl_configs, i);
 
       if (!g_str_equal (impl_config->dbus_name,
-                        "org.freedesktop.impl.portal.desktop.gtk"))
+                        DESKTOP_DBUS_IMPL_IFACE ".desktop.gtk"))
         continue;
 
       if (!xdp_impl_config_supports_iface (impl_config, interface))
