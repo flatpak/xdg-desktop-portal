@@ -25,12 +25,13 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "realtime.h"
-#include "xdp-call.h"
-#include "xdp-permissions.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-permissions.h"
 #include "xdp-utils.h"
+
+#include "realtime.h"
 
 #define PERMISSION_TABLE "realtime"
 #define PERMISSION_ID "realtime"
@@ -119,11 +120,11 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
                                       guint64                thread,
                                       guint32                priority)
 {
-  g_autoptr (GError) error = NULL;
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   XdpPermission permission;
+  g_autoptr (GError) error = NULL;
 
   if (!realtime->rtkit_proxy)
     {
@@ -134,7 +135,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -144,7 +145,7 @@ handle_make_thread_realtime_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (call->app_info, pids, tids, &error))
+  if (!map_pid (app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -169,11 +170,11 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
                                            guint64                thread,
                                            gint32                 priority)
 {
-  g_autoptr (GError) error = NULL;
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   pid_t pids[1] = { process };
   pid_t tids[1] = { thread };
   XdpPermission permission;
+  g_autoptr (GError) error = NULL;
 
   if (!realtime->rtkit_proxy)
     {
@@ -184,7 +185,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  permission = xdp_get_permission_sync (call->app_info, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (app_info, PERMISSION_TABLE, PERMISSION_ID);
   if (permission == XDP_PERMISSION_NO)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -194,7 +195,7 @@ handle_make_thread_high_priority_with_pid (XdpDbusRealtime       *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!map_pid (call->app_info, pids, tids, &error))
+  if (!map_pid (app_info, pids, tids, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -290,8 +291,8 @@ load_all_properties (GDBusProxy *proxy)
     }
 }
 
-GDBusInterfaceSkeleton *
-realtime_create (GDBusConnection *connection)
+void
+init_realtime (XdpContext *context)
 {
   GDBusProxy *rtkit_proxy = NULL;
   g_autoptr (GError) error = NULL;
@@ -317,5 +318,12 @@ realtime_create (GDBusConnection *connection)
   if (realtime->rtkit_proxy)
     load_all_properties (realtime->rtkit_proxy);
 
-  return G_DBUS_INTERFACE_SKELETON (realtime);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (realtime),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-realtime",
+                          realtime,
+                          g_object_unref);
 }

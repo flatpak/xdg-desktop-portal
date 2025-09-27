@@ -23,7 +23,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * settings_create (GDBusConnection *connection,
-                                          GPtrArray       *impls);
+void init_settings (XdpContext *context);

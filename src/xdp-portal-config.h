@@ -25,6 +25,8 @@
 
 #include <glib-object.h>
 
+#include "xdp-types.h"
+
 typedef struct {
   char *source;
   char *dbus_name;
@@ -38,8 +40,6 @@ G_DECLARE_FINAL_TYPE (XdpPortalConfig,
                       xdp_portal_config,
                       XDP, PORTAL_CONFIG,
                       GObject)
-
-typedef struct _XdpContext XdpContext;
 
 XdpPortalConfig * xdp_portal_config_new (XdpContext *config);
 

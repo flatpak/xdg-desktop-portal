@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * registry_create (GDBusConnection *connection);
+void init_registry (XdpContext *context);

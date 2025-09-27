@@ -28,13 +28,15 @@
 #include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
-#include "notification.h"
-#include "xdp-call.h"
-#include "xdp-permissions.h"
-#include "xdp-request.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "notification.h"
 
 #define PERMISSION_TABLE "notifications"
 #define PERMISSION_ID "notification"
@@ -1095,13 +1097,13 @@ notification_handle_add_notification (XdpDbusNotification *object,
                                       const char *arg_id,
                                       GVariant *notification)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
   CallData *call_data;
 
   call_data = call_data_new (invocation,
-                             call->app_info,
-                             call->sender,
+                             app_info,
+                             xdp_app_info_get_sender (app_info),
                              arg_id,
                              notification,
                              in_fd_list);
@@ -1139,20 +1141,20 @@ remove_done (GObject *source,
 }
 
 static gboolean
-notification_handle_remove_notification (XdpDbusNotification *object,
+notification_handle_remove_notification (XdpDbusNotification   *object,
                                          GDBusMethodInvocation *invocation,
-                                         const char *arg_id)
+                                         const char            *arg_id)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   CallData *call_data = call_data_new (invocation,
-                                       call->app_info,
-                                       call->sender,
+                                       app_info,
+                                       xdp_app_info_get_sender (app_info),
                                        arg_id,
                                        NULL,
                                        NULL);
 
   xdp_dbus_impl_notification_call_remove_notification (impl,
-                                                       xdp_app_info_get_id (call->app_info),
+                                                       xdp_app_info_get_id (app_info),
                                                        arg_id,
                                                        NULL,
                                                        remove_done, call_data);
@@ -1248,22 +1250,29 @@ notification_class_init (NotificationClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-notification_create (GDBusConnection *connection,
-                     const char *dbus_name)
+void
+init_notification (XdpContext *context)
 {
-  g_autoptr(GError) error = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(GVariant) version = NULL;
+  g_autoptr(GError) error = NULL;
+
+  impl_config = xdp_portal_config_find (config,
+                                        "org.freedesktop.impl.portal.Notification");
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_notification_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                    dbus_name,
+                                                    impl_config->dbus_name,
                                                     DESKTOP_PORTAL_OBJECT_PATH,
                                                     NULL, &error);
   if (impl == NULL)
     {
       g_warning ("Failed to create notification proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
@@ -1275,7 +1284,7 @@ notification_create (GDBusConnection *connection,
   impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 1;
 
   g_dbus_connection_signal_subscribe (connection,
-                                      dbus_name,
+                                      impl_config->dbus_name,
                                       "org.freedesktop.impl.portal.Notification",
                                       "ActionInvoked",
                                       DESKTOP_PORTAL_OBJECT_PATH,
@@ -1294,5 +1303,12 @@ notification_create (GDBusConnection *connection,
                                       name_owner_changed,
                                       NULL, NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (notification);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (notification),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-notification",
+                          notification,
+                          g_object_unref);
 }

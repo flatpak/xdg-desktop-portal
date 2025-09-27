@@ -25,11 +25,12 @@
 #include <string.h>
 #include <gio/gio.h>
 
-#include "proxy-resolver.h"
-#include "xdp-call.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
+
+#include "proxy-resolver.h"
 
 typedef struct _ProxyResolver ProxyResolver;
 typedef struct _ProxyResolverClass ProxyResolverClass;
@@ -62,9 +63,9 @@ proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
                               const char *arg_uri)
 {
   ProxyResolver *resolver = (ProxyResolver *)object;
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
 
-  if (!xdp_app_info_has_network (call->app_info))
+  if (!xdp_app_info_has_network (app_info))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -117,10 +118,17 @@ proxy_resolver_class_init (ProxyResolverClass *klass)
   object_class->dispose = proxy_resolver_dispose;
 }
 
-GDBusInterfaceSkeleton *
-proxy_resolver_create (GDBusConnection *connection)
+void
+init_proxy_resolver (XdpContext *context)
 {
   proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (proxy_resolver);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (proxy_resolver),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-proxy-resolver",
+                          proxy_resolver,
+                          g_object_unref);
 }
