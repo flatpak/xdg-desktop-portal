@@ -210,6 +210,7 @@ handle_print (XdpDbusPrint *object,
 static XdpOptionKey response_options[] = {
   { "settings", G_VARIANT_TYPE_VARDICT, NULL },
   { "page-setup", G_VARIANT_TYPE_VARDICT, NULL },
+  { "printer-info", G_VARIANT_TYPE_VARDICT, NULL },
   { "token", G_VARIANT_TYPE_UINT32, NULL }
 };
 
@@ -259,6 +260,8 @@ static XdpOptionKey prepare_print_options[] = {
   { "supported_output_file_formats", G_VARIANT_TYPE_STRING_ARRAY, validate_supported_output_file_formats },
   { "has_current_page", G_VARIANT_TYPE_BOOLEAN },
   { "has_selected_pages", G_VARIANT_TYPE_BOOLEAN },
+  { "has_n_copies", G_VARIANT_TYPE_BOOLEAN },
+  { "has_number_up", G_VARIANT_TYPE_BOOLEAN },
 };
 
 static gboolean
@@ -364,7 +367,7 @@ print_new (XdpDbusImplPrint    *impl,
   print->impl = g_object_ref (impl);
   print->lockdown_impl = g_object_ref (lockdown_impl);
 
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 5);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (print->impl), G_MAXINT);
 
