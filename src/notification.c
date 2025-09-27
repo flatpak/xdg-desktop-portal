@@ -1237,7 +1237,8 @@ notification_iface_init (XdpDbusNotificationIface *iface)
 static void
 notification_init (Notification *notification)
 {
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification), 2);
+  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification),
+                                     impl_version);
   g_object_bind_property (G_OBJECT (impl), "supported-options",
                           G_OBJECT (notification), "supported-options",
                           G_BINDING_SYNC_CREATE);
@@ -1268,11 +1269,11 @@ notification_create (GDBusConnection *connection,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 
+  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
+  impl_version = MAX (version ? g_variant_get_uint32 (version) : 0, 1);
+
   notification = g_object_new (notification_get_type (), NULL);
   active = g_hash_table_new_full (pair_hash, pair_equal, pair_free, g_free);
-
-  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
-  impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 1;
 
   g_dbus_connection_signal_subscribe (connection,
                                       dbus_name,
