@@ -366,27 +366,62 @@ class TestNotification:
 
         assert options == SUPPORTED_OPTIONS
 
-    def test_icon_themed(self, portals, dbus_con):
-        notification_intf = NotificationPortal()
+    def test_icon_themed(self, portals, dbus_con, xdp_app_info):
         icon = Gio.ThemedIcon.new("test-icon-symbolic")
 
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = icon.serialize()
 
-        notification_intf.AddNotification("test1", notification)
+        self.check_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+            notification,
+        )
 
-    def test_icon_bytes(self, portals, dbus_con):
-        notification_intf = NotificationPortal()
-        bytes = GLib.Bytes.new(SVG_IMAGE_DATA.encode("utf-8"))
-        icon = Gio.BytesIcon.new(bytes)
+    def test_icon_themed_string(self, portals, dbus_con, xdp_app_info):
+        notification = NOTIFICATION_BASIC.copy()
+        notification["icon"] = GLib.Variant("s", "test-icon-symbolic")
+
+        expected = notification.copy()
+        expected["icon"] = Gio.ThemedIcon.new("test-icon-symbolic").serialize()
+
+        self.check_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+            expected,
+        )
+
+    def test_icon_bytes(self, portals, dbus_con, xdp_app_info):
+        image_bytes = SVG_IMAGE_DATA.encode("utf-8")
+        icon = Gio.BytesIcon.new(GLib.Bytes.new(image_bytes))
 
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = icon.serialize()
 
-        notification_intf.AddNotification("test1", notification)
+        added_notification = self.add_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+        )
 
-    def test_icon_file(self, portals, dbus_con):
-        notification_intf = NotificationPortal()
+        assert "icon" in added_notification
+        assert added_notification["icon"][0] == "file-descriptor"
+        assert added_notification["icon"][1] is not None
+
+        mock_fd = added_notification["icon"][1]
+        mock_fd = mock_fd.take()
+
+        fd_contents = os.read(mock_fd, 1000)
+        assert fd_contents == image_bytes
+
+        os.close(mock_fd)
+
+    def test_icon_file(self, portals, dbus_con, xdp_app_info):
         fd, file_path = tempfile.mkstemp(prefix="notification_icon_", dir=Path.home())
         os.write(fd, SVG_IMAGE_DATA.encode("utf-8"))
 
@@ -396,12 +431,48 @@ class TestNotification:
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = icon.serialize()
 
-        notification = {
-            "title": GLib.Variant("s", "title"),
-            "icon": icon.serialize(),
-        }
+        added_notification = self.add_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+        )
 
-        notification_intf.AddNotification("test1", notification)
+        assert "icon" not in added_notification
+
+    def test_icon_fd(self, portals, dbus_con, xdp_app_info):
+        svg_image_bytes = SVG_IMAGE_DATA.encode("utf-8")
+
+        fd = os.memfd_create("notification_sound_test", os.MFD_ALLOW_SEALING)
+        os.write(fd, svg_image_bytes)
+
+        notification = NOTIFICATION_BASIC.copy()
+        notification["icon"] = GLib.Variant(
+            "(sv)",
+            (
+                "file-descriptor",
+                GLib.Variant("h", 0),
+            ),
+        )
+
+        added_notification = self.add_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+            [fd],
+        )
+
+        assert added_notification["icon"][0] == "file-descriptor"
+        mock_fd = added_notification["icon"][1]
+        mock_fd = mock_fd.take()
+
+        os.lseek(fd, 0, os.SEEK_SET)
+        fd_contents = os.read(mock_fd, 1000)
+        assert fd_contents == svg_image_bytes
+
+        os.close(mock_fd)
+        os.close(fd)
 
     def test_icon_bad(self, portals, dbus_con):
         notification_intf = NotificationPortal()
