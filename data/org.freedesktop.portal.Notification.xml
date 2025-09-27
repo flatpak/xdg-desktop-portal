@@ -116,9 +116,7 @@
             Since version 2, this is deprecated and should not be used.
             Please use the `themed` or `file-descriptor` option to set an icon.
 
-            This is the same format as a serialized `GBytesIcon
-            <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the moment,
-            but this interoperability may change in the future.
+            This is the icon bytes into a serialized variant bytes array.
 
           * ``file-descriptor`` (``h``)
 
