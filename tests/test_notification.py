@@ -53,6 +53,11 @@ NOTIFICATION_BUTTONS = {
     ),
 }
 
+ALL_VERSIONS_PARAMS = (
+    {"notification": {"version": 1}},
+    {"notification": {"version": 2}},
+)
+
 
 @pytest.fixture
 def required_templates():
@@ -108,6 +113,9 @@ class TestNotification:
         self, dbus_con, app_id, id, notification_in, notification_expected
     ):
         mock_notification = self.add_notification(dbus_con, app_id, id, notification_in)
+        self.compare_notification(mock_notification, notification_expected)
+
+    def compare_notification(self, mock_notification, notification_expected):
         assert (
             mock_notification == GLib.Variant("a{sv}", notification_expected).unpack()
         )
@@ -115,6 +123,7 @@ class TestNotification:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Notification", 2)
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_basic(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
 
@@ -126,6 +135,7 @@ class TestNotification:
             NOTIFICATION_BASIC,
         )
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_remove(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
 
@@ -148,6 +158,7 @@ class TestNotification:
         assert args[0] == app_id
         assert args[1] == id
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_buttons(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
 
@@ -237,6 +248,7 @@ class TestNotification:
             NOTIFICATION_BASIC,
         )
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_bad_priority(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
@@ -254,6 +266,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid not a priority" in e.message
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_bad_button(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BUTTONS.copy()
@@ -366,6 +379,7 @@ class TestNotification:
 
         assert options == SUPPORTED_OPTIONS
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_themed(self, portals, dbus_con, xdp_app_info):
         icon = Gio.ThemedIcon.new("test-icon-symbolic")
 
@@ -380,6 +394,7 @@ class TestNotification:
             notification,
         )
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_themed_string(self, portals, dbus_con, xdp_app_info):
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = GLib.Variant("s", "test-icon-symbolic")
@@ -395,7 +410,8 @@ class TestNotification:
             expected,
         )
 
-    def test_icon_bytes(self, portals, dbus_con, xdp_app_info):
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
+    def test_icon_bytes(self, portals, dbus_con, xdp_app_info, template_params):
         image_bytes = SVG_IMAGE_DATA.encode("utf-8")
         icon = Gio.BytesIcon.new(GLib.Bytes.new(image_bytes))
 
@@ -409,6 +425,10 @@ class TestNotification:
             notification,
         )
 
+        if template_params["notification"]["version"] == 1:
+            self.compare_notification(added_notification, notification)
+            return
+
         assert "icon" in added_notification
         assert added_notification["icon"][0] == "file-descriptor"
         assert added_notification["icon"][1] is not None
@@ -421,6 +441,7 @@ class TestNotification:
 
         os.close(mock_fd)
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_file(self, portals, dbus_con, xdp_app_info):
         fd, file_path = tempfile.mkstemp(prefix="notification_icon_", dir=Path.home())
         os.write(fd, SVG_IMAGE_DATA.encode("utf-8"))
@@ -474,6 +495,7 @@ class TestNotification:
         os.close(mock_fd)
         os.close(fd)
 
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_bad(self, portals, dbus_con):
         notification_intf = NotificationPortal()
 
