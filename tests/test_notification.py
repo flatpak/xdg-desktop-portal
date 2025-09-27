@@ -120,8 +120,11 @@ class TestNotification:
             mock_notification == GLib.Variant("a{sv}", notification_expected).unpack()
         )
 
-    def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "Notification", 2)
+    @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
+    def test_version(self, portals, dbus_con, template_params):
+        xdp.check_version(
+            dbus_con, "Notification", template_params["notification"]["version"]
+        )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_basic(self, portals, dbus_con, xdp_app_info):
