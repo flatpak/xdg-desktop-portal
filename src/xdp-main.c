@@ -131,9 +131,9 @@ main (int argc, char *argv[])
   g_autoptr(GSource) signal_handler_source = NULL;
   g_autoptr(GOptionContext) option_context = NULL;
 
-  gboolean opt_verbose;
-  gboolean opt_replace;
-  gboolean opt_show_version;
+  gboolean opt_verbose = FALSE;
+  gboolean opt_replace = FALSE;
+  gboolean opt_show_version = FALSE;
 
   GOptionEntry entries[] = {
     { "verbose", 'v', 0, G_OPTION_ARG_NONE, &opt_verbose, "Print debug information during command processing", NULL },
