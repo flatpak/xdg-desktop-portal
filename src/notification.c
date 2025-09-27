@@ -28,6 +28,7 @@
 #include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "notification.h"
 #include "xdp-call.h"
 #include "xdp-permissions.h"
@@ -1273,6 +1274,11 @@ notification_create (GDBusConnection *connection,
 
   version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
   impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 1;
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Notification",
+                                                 dbus_name,
+                                                 impl_version);
 
   g_dbus_connection_signal_subscribe (connection,
                                       dbus_name,

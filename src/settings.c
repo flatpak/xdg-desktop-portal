@@ -27,6 +27,7 @@
 #include <glib/gi18n.h>
 #include <gio/gio.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "settings.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -275,6 +276,7 @@ GDBusInterfaceSkeleton *
 settings_create (GDBusConnection *connection,
                  GPtrArray       *impl_configs)
 {
+  XdpDiagnosticDesktop *diagnostic_desktop = xdp_diagnostic_desktop_get (NULL);
   g_autoptr(Settings) settings = NULL;
   g_autoptr(GError) error = NULL;
 
@@ -304,6 +306,10 @@ settings_create (GDBusConnection *connection,
           g_signal_connect (impl_proxy, "setting-changed",
                             G_CALLBACK (on_impl_settings_changed),
                             settings);
+          xdp_diagnostic_desktop_add_portal_impl (diagnostic_desktop,
+                                                  "Settings",
+                                                  dbus_name,
+                                                  xdp_dbus_impl_settings_get_version (impl_proxy));
         }
     }
 

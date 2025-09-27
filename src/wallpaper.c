@@ -28,6 +28,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <gio/gunixfdlist.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "wallpaper.h"
 #include "xdp-permissions.h"
 #include "xdp-request.h"
@@ -416,6 +417,11 @@ wallpaper_create (GDBusConnection *connection,
       g_warning ("Failed to create wallpaper proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Wallpaper",
+                                                 dbus_name_wallpaper,
+                                                 0);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
   wallpaper = g_object_new (wallpaper_get_type (), NULL);

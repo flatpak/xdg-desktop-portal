@@ -22,6 +22,7 @@
 #include "xdp-utils.h"
 #include "xdp-call.h"
 #include "xdp-dbus.h"
+#include "xdp-diagnostic-desktop.h"
 #include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-method-info.h"
@@ -249,6 +250,7 @@ xdp_context_register (XdpContext       *context,
   XdpImplConfig *access_impl_config;
   GPtrArray *impl_configs;
   XdpDbusImplLockdown *lockdown;
+  XdpDiagnosticDesktop *diagnostic_desktop;
   GQuark portal_errors G_GNUC_UNUSED;
 
   /* make sure errors are registered */
@@ -268,6 +270,13 @@ xdp_context_register (XdpContext       *context,
       return FALSE;
     }
 
+  diagnostic_desktop = xdp_diagnostic_desktop_get (error);
+  if (diagnostic_desktop == NULL)
+    {
+      g_prefix_error_literal (error, "No diagnostic portal desktop interfaces created: ");
+      return FALSE;
+    }
+
   lockdown_impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Lockdown");
   if (lockdown_impl_config != NULL)
     {
@@ -276,6 +285,8 @@ xdp_context_register (XdpContext       *context,
                                                         lockdown_impl_config->dbus_name,
                                                         DESKTOP_PORTAL_OBJECT_PATH,
                                                         NULL, NULL);
+      xdp_diagnostic_desktop_set_lockdown_impl (diagnostic_desktop,
+                                                lockdown_impl_config->dbus_name);
     }
 
   if (lockdown == NULL)
@@ -322,6 +333,8 @@ xdp_context_register (XdpContext       *context,
   access_impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Access");
   if (access_impl_config != NULL)
     {
+      xdp_diagnostic_desktop_set_access_impl (diagnostic_desktop, access_impl_config->dbus_name);
+
 #if HAVE_GEOCLUE
       export_portal_implementation (connection,
                                     location_create (connection,
@@ -409,6 +422,8 @@ xdp_context_register (XdpContext       *context,
 #endif
 
   export_host_portal_implementation (connection, registry_create (connection));
+
+  xdp_diagnostic_desktop_update_properties (diagnostic_desktop);
 
   return TRUE;
 }
