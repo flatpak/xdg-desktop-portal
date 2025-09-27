@@ -86,16 +86,14 @@ class NotificationPortal(xdp.GDBusIface):
 
 
 class TestNotification:
-    def check_notification(
-        self, dbus_con, app_id, id, notification_in, notification_expected
-    ):
+    def add_notification(self, dbus_con, app_id, id, notification, fds=[]):
         notification_intf = NotificationPortal()
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         method_calls = mock_intf.GetMethodCalls("AddNotification")
         backend_calls = len(method_calls)
 
-        notification_intf.AddNotification(id, notification_in)
+        notification_intf.AddNotification(id, notification, fds)
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("AddNotification")
@@ -104,7 +102,12 @@ class TestNotification:
         assert args[0] == app_id
         assert args[1] == id
 
-        mock_notification = args[2]
+        return args[2]
+
+    def check_notification(
+        self, dbus_con, app_id, id, notification_in, notification_expected
+    ):
+        mock_notification = self.add_notification(dbus_con, app_id, id, notification_in)
         assert (
             mock_notification == GLib.Variant("a{sv}", notification_expected).unpack()
         )
@@ -462,10 +465,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid sound: invalid option" in e.message
 
-    def test_sound_file(self, portals, dbus_con):
-        notification_intf = NotificationPortal()
-        mock_intf = xdp.get_mock_iface(dbus_con)
-
+    def test_sound_file(self, portals, dbus_con, xdp_app_info):
         fd, file_path = tempfile.mkstemp(prefix="notification_sound_", dir=Path.home())
         os.write(fd, SOUND_DATA)
 
@@ -480,19 +480,16 @@ class TestNotification:
             ),
         )
 
-        notification_intf.AddNotification("test1", notification)
-
-        method_calls = mock_intf.GetMethodCalls("AddNotification")
-        assert len(method_calls) == 1
-        _, args = method_calls[-1]
-        mock_notification = args[2]
+        mock_notification = self.add_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+        )
 
         assert "sound" not in mock_notification
 
-    def test_sound_fd(self, portals, dbus_con):
-        notification_intf = NotificationPortal()
-        mock_intf = xdp.get_mock_iface(dbus_con)
-
+    def test_sound_fd(self, portals, dbus_con, xdp_app_info):
         fd = os.memfd_create("notification_sound_test", os.MFD_ALLOW_SEALING)
         os.write(fd, SOUND_DATA)
 
@@ -505,12 +502,13 @@ class TestNotification:
             ),
         )
 
-        notification_intf.AddNotification("test1", notification, [fd])
-
-        method_calls = mock_intf.GetMethodCalls("AddNotification")
-        assert len(method_calls) == 1
-        _, args = method_calls[-1]
-        mock_notification = args[2]
+        mock_notification = self.add_notification(
+            dbus_con,
+            xdp_app_info.app_id,
+            "test1",
+            notification,
+            [fd],
+        )
 
         assert mock_notification["sound"][0] == "file-descriptor"
         mock_fd = mock_notification["sound"][1]
