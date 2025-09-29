@@ -93,6 +93,47 @@ find_last_char (const char *str, gsize len, int c)
   return NULL;
 }
 
+/* Compares if str has a specific path prefix. This differs
+   from a regular prefix in two ways. First of all there may
+   be multiple slashes separating the path elements, and
+   secondly, if a prefix is matched that has to be en entire
+   path element. For instance /a/prefix matches /a/prefix/foo/bar,
+   but not /a/prefixfoo/bar.
+
+   Copied from https://github.com/flatpak/flatpak/blob/446afd82b05441d15216bf09aff9c68ecfe2ec27/common/flatpak-utils.c#L199 */
+gboolean
+flatpak_has_path_prefix (const char *str,
+                         const char *prefix)
+{
+  while (TRUE)
+    {
+      /* Skip consecutive slashes to reach next path
+         element */
+      while (*str == '/')
+        str++;
+      while (*prefix == '/')
+        prefix++;
+
+      /* No more prefix path elements? Done! */
+      if (*prefix == 0)
+        return TRUE;
+
+      /* Compare path element */
+      while (*prefix != 0 && *prefix != '/')
+        {
+          if (*str != *prefix)
+            return FALSE;
+          str++;
+          prefix++;
+        }
+
+      /* Matched prefix path element,
+         must be entire str path element */
+      if (*str != '/' && *str != 0)
+        return FALSE;
+    }
+}
+
 /**
  * flatpak_is_valid_name:
  * @string: The string to check
@@ -246,7 +287,7 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
                              path + strlen ("/var/data/"), NULL);
   else if (g_strcmp0 (path, "/tmp") == 0 && !app_info_flatpak->host_tmp_access)
     return g_build_filename (app_info_flatpak->root_path, "tmp", NULL);
-  else if (g_str_has_prefix (path, "/tmp") && !app_info_flatpak->host_tmp_access)
+  else if (flatpak_has_path_prefix (path, "/tmp") && !app_info_flatpak->host_tmp_access)
     return g_build_filename (app_info_flatpak->root_path, "tmp",
                              path + strlen("/tmp/"), NULL);
 
