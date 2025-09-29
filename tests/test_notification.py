@@ -384,10 +384,14 @@ class TestNotification:
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_themed(self, portals, dbus_con, xdp_app_info):
-        icon = Gio.ThemedIcon.new("test-icon-symbolic")
-
         notification = NOTIFICATION_BASIC.copy()
-        notification["icon"] = icon.serialize()
+        notification["icon"] = GLib.Variant(
+            "(sv)",
+            (
+                "themed",
+                GLib.Variant("as", ["test-icon-symbolic"]),
+            ),
+        )
 
         self.check_notification(
             dbus_con,
@@ -400,10 +404,17 @@ class TestNotification:
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_themed_string(self, portals, dbus_con, xdp_app_info):
         notification = NOTIFICATION_BASIC.copy()
-        notification["icon"] = GLib.Variant("s", "test-icon-symbolic")
+        icon = Gio.ThemedIcon.new("test-icon-symbolic")
+        notification["icon"] = GLib.Variant("s", icon.get_names()[0])
 
         expected = notification.copy()
-        expected["icon"] = Gio.ThemedIcon.new("test-icon-symbolic").serialize()
+        expected["icon"] = GLib.Variant(
+            "(sv)",
+            (
+                "themed",
+                GLib.Variant("as", icon.get_names()),
+            ),
+        )
 
         self.check_notification(
             dbus_con,
@@ -416,10 +427,14 @@ class TestNotification:
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
     def test_icon_bytes(self, portals, dbus_con, xdp_app_info, template_params):
         image_bytes = SVG_IMAGE_DATA.encode("utf-8")
-        icon = Gio.BytesIcon.new(GLib.Bytes.new(image_bytes))
-
         notification = NOTIFICATION_BASIC.copy()
-        notification["icon"] = icon.serialize()
+        notification["icon"] = GLib.Variant(
+            "(sv)",
+            (
+                "bytes",
+                GLib.Variant("ay", image_bytes),
+            ),
+        )
 
         added_notification = self.add_notification(
             dbus_con,
