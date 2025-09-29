@@ -309,6 +309,20 @@ flatpak_instance_get_child_pid (FlatpakInstance *self)
 }
 
 /**
+ * flatpak_instance_get_root_path:
+ * @self: a #FlatpakInstance
+ *
+ * Gets the sandboxed root path of application
+ *
+ * Returns: the root path
+ */
+char *
+flatpak_instance_get_root_path (FlatpakInstance *self)
+{
+  return g_strdup_printf ("/proc/%d/root", flatpak_instance_get_child_pid (self));
+}
+
+/**
  * flatpak_instance_get_info:
  * @self: a #FlatpakInstance
  *
@@ -501,6 +515,30 @@ flatpak_instance_get_all (void)
     }
 
   return g_steal_pointer (&instances);
+}
+
+/**
+ * flatpak_instance_from_metadata:
+ *
+ * Gets FlatpakInstance objects from teh flatpak info metadata
+ *
+ * Returns: a #FlatpakInstance object
+ */
+FlatpakInstance *
+flatpak_instance_from_metadata (GKeyFile *metadata,
+                                GError **error)
+{
+  g_autofree char *instance_id = NULL;
+
+  instance_id = g_key_file_get_string (metadata,
+                                       FLATPAK_METADATA_GROUP_INSTANCE,
+                                       FLATPAK_METADATA_KEY_INSTANCE_ID,
+                                       error);
+
+  if (instance_id == NULL)
+    return NULL;
+
+  return flatpak_instance_new_for_id (instance_id);
 }
 
 /**
