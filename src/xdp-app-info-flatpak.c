@@ -933,13 +933,9 @@ xdp_app_info_flatpak_new (int      pid,
                                            NULL, NULL);
 
   if (filesystems)
-    {
-      has_tmp_access = g_strv_contains ((const char * const *)filesystems, "/tmp");
-    }
+    has_tmp_access = g_strv_contains ((const char * const *)filesystems, "/tmp");
   else
-    {
-      has_tmp_access = FALSE;
-    }
+    has_tmp_access = FALSE;
 
   /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
    * of the connected process but we can get the pidfd of the bwrap instance
