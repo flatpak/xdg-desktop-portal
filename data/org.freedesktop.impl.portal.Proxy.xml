@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Copyright (C) 2025 Dallas Strouse
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Dallas Strouse <dallas.strouse2007@gmail.com>
+-->
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
+  <!--
+      org.freedesktop.impl.portal.Proxy:
+      @short_description: Proxy information
+
+      The Proxy interface provides network proxy information to
+      xdg-desktop-portal, which then provides this information to sandboxed
+      applications.
+
+      All properties are allowed to exist at the same time; however, if pac_url
+      exists, other properties shouldn't be utilized without user intervention,
+      and aren't guaranteed to exist, or even match what pac_url would be
+      equivalent to.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.Proxy">
+    <!--
+    The following values are valid:
+      0: Proxy should not be used.
+      1: Automatic proxy mode; use pac_url.
+      2: Manual proxy mode; read associated settings manually.
+    -->
+    <property name="use_proxy" type="u" access="read"/>
+    <property name="pac_url" type="s" access="read"/>
+    <property name="https_proxy" type="as" access="read"/>
+    <property name="http_proxy" type="as" access="read"/>
+    <!--
+      socks_proxy:
+      An integer value of 0 is equivalent to SOCKS; of 4 is SOCKS4,
+      and 5 is SOCKS5. Any other value is invalid, but if present, can
+      be assumed to be equivalent to 0.
+    -->
+    <property name="socks_proxy" type="a(su)" access="read"/>
+    <property name="ftp_proxy" type="as" access="read"/>
+    <property name="ignored_hosts" type="as" access="read"/>
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
+
