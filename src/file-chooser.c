@@ -86,11 +86,13 @@ send_response_in_thread_func (GTask        *task,
   g_autoptr(GVariant) writable = NULL;
 
   REQUEST_AUTOLOCK (request);
-
-  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save")) == TRUE)
-    flags |= XDP_DOCUMENT_FLAG_FOR_SAVE;
-  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory")) == FALSE)
-    flags &= ~XDP_DOCUMENT_FLAG_DIRECTORY;
+  if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "file_directory")) == FALSE)
+    {
+      if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "for-save")) == TRUE)
+        flags |= XDP_DOCUMENT_FLAG_FOR_SAVE;
+      if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "directory")) == FALSE)
+        flags &= ~XDP_DOCUMENT_FLAG_DIRECTORY;
+    }
   response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
   options = (GVariant *)g_object_get_data (G_OBJECT (request), "options");
 
@@ -467,6 +469,7 @@ static XdpOptionKey open_file_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "multiple", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "directory", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "file_directory", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "filters", (const GVariantType *)"a(sa(us))", validate_filters },
   { "current_filter", (const GVariantType *)"(sa(us))", validate_current_filter },
   { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices },
@@ -486,6 +489,7 @@ handle_open_file (XdpDbusFileChooser *object,
   g_auto(GVariantBuilder) options =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GVariant) dir_option = NULL;
+  g_autoptr(GVariant) file_directory_option = NULL;
 
   g_debug ("Handling OpenFile");
 
@@ -531,6 +535,12 @@ handle_open_file (XdpDbusFileChooser *object,
                                        G_VARIANT_TYPE_BOOLEAN);
   if (dir_option && g_variant_get_boolean (dir_option))
     g_object_set_data (G_OBJECT (request), "directory", GINT_TO_POINTER (TRUE));
+  file_directory_option = g_variant_lookup_value (arg_options,
+                                               "file_directory",
+                                               G_VARIANT_TYPE_BOOLEAN);
+  if (file_directory_option && g_variant_get_boolean (file_directory_option))
+    g_object_set_data (G_OBJECT (request), "file_directory", GINT_TO_POINTER (TRUE));
+
 
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
