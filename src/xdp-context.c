@@ -308,6 +308,11 @@ xdp_context_register (XdpContext *context,
     export_portal_implementation (connection,
                                   print_create (connection, impl_config->dbus_name, lockdown));
 
+  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Notification");
+  if (impl_config != NULL)
+    export_portal_implementation (connection,
+                                  proxy_resolver_create (connection, impl_config->dbus_name));
+
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Proxy");
   if (impl_config != NULL)
     export_portal_implementation (connection,

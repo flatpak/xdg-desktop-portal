@@ -46,13 +46,7 @@
     <property name="pac_url" type="s" access="read"/>
     <property name="https_proxy" type="as" access="read"/>
     <property name="http_proxy" type="as" access="read"/>
-    <!--
-      socks_proxy:
-      An integer value of 0 is equivalent to SOCKS; of 4 is SOCKS4,
-      and 5 is SOCKS5. Any other value is invalid, but if present, can
-      be assumed to be equivalent to 0.
-    -->
-    <property name="socks_proxy" type="a(su)" access="read"/>
+    <property name="socks_proxy" type="as" access="read"/>
     <property name="ftp_proxy" type="as" access="read"/>
     <property name="ignored_hosts" type="as" access="read"/>
     <property name="version" type="u" access="read"/>

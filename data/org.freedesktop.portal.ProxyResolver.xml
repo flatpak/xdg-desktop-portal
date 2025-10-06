@@ -48,7 +48,9 @@
         protocol. ``direct://`` is used when no proxy is needed.
 
         This is a convenience wrapper over reading the PAC file or the other
-        portal settings, in that order of priority from highest to lowest.
+        portal settings, in that order of priority from highest to lowest. It
+        is provided to ensure backwards compatibility with older versions
+        of GLib.
     -->
     <method name="Lookup">
       <arg type="s" name="uri" direction="in"/>
@@ -76,14 +78,9 @@
     -->
     <property name="http_proxy" type="as" access="read"/>
     <!--
-      socks_proxy:
-      An integer value of 0 is equivalent to SOCKS; of 4 is SOCKS4,
-      and 5 is SOCKS5. Any other value is invalid, but if present, can
-      be assumed to be equivalent to 0.
-
       This property was added in version 2.
     -->
-    <property name="socks_proxy" type="a(su)" access="read"/>
+    <property name="socks_proxy" type="as" access="read"/>
     <!--
       This property was added in version 2.
     -->
