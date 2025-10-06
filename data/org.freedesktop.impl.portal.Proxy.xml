@@ -39,8 +39,8 @@
     <!--
     The following values are valid:
       0: Proxy should not be used.
-      1: Automatic proxy mode; use pac_url.
-      2: Manual proxy mode; read associated settings manually.
+      1: Manual proxy mode; read associated settings manually.
+      2: Automatic proxy mode; use pac_url
     -->
     <property name="use_proxy" type="u" access="read"/>
     <property name="pac_url" type="s" access="read"/>
