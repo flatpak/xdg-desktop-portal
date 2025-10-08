@@ -934,7 +934,7 @@ handle_enumerate_devices (XdpDbusUsb            *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  devices = list_permitted_devices(self, call);
+  devices = list_permitted_devices (self, call);
 
   xdp_dbus_usb_complete_enumerate_devices (object, invocation, devices);
 
@@ -1029,20 +1029,50 @@ out:
 }
 
 static gboolean
+filter_access_devices_writable (const char   *key,
+                                GVariant     *value,
+                                GUdevDevice  *device,
+                                GError      **error)
+{
+  const char *device_file;
+  gboolean writable = g_variant_get_boolean (value);
+
+  if (!writable)
+    return TRUE;
+
+  device_file = g_udev_device_get_device_file (device);
+  if (access (device_file, W_OK) != -1)
+    return TRUE;
+
+  g_set_error (error,
+               XDG_DESKTOP_PORTAL_ERROR,
+               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+               "Requested writable access for read-only device");
+  return FALSE;
+}
+
+typedef struct {
+  const char *key;
+  const GVariantType *type;
+  gboolean (* filter) (const char *key, GVariant *value, GUdevDevice *device, GError **error);
+} XdpUsbAccessOptionKey;
+
+static gboolean
 filter_access_devices (XdpUsb         *self,
                        UsbSenderInfo  *sender_info,
                        GVariant       *devices,
                        GVariant      **out_filtered_devices,
                        GError        **out_error)
 {
-  GVariantBuilder filtered_devices_builder;
+  g_auto(GVariantBuilder) filtered_devices_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a(sa{sv}a{sv})"));
   GVariantIter *device_options_iter;
   GVariantIter devices_iter;
   const char *device_id;
   size_t n_devices;
 
-  static const XdpOptionKey usb_device_options[] = {
-    { "writable", G_VARIANT_TYPE_BOOLEAN, NULL },
+  static const XdpUsbAccessOptionKey usb_device_options[] = {
+    { "writable", G_VARIANT_TYPE_BOOLEAN, filter_access_devices_writable },
   };
 
   g_assert (self != NULL);
@@ -1062,8 +1092,6 @@ filter_access_devices (XdpUsb         *self,
       return FALSE;
     }
 
-  g_variant_builder_init (&filtered_devices_builder, G_VARIANT_TYPE ("a(sa{sv}a{sv})"));
-
   while (g_variant_iter_next (&devices_iter,
                               "(&sa{sv})",
                               &device_id,
@@ -1071,7 +1099,7 @@ filter_access_devices (XdpUsb         *self,
     {
       g_autoptr(GVariantIter) owned_deviced_options_iter = device_options_iter;
       g_autoptr(GVariant) device_variant = NULL;
-      GVariantDict device_options_dict;
+      g_auto(GVariantDict) device_options_dict = G_VARIANT_DICT_INIT (NULL);
       GUdevDevice *device;
       GVariant *device_option_value;
       const char *device_option;
@@ -1102,34 +1130,36 @@ filter_access_devices (XdpUsb         *self,
           return FALSE;
         }
 
-      g_variant_dict_init (&device_options_dict, NULL);
-
       while (g_variant_iter_next (device_options_iter,
                                   "{&sv}",
                                   &device_option,
                                   &device_option_value))
         {
+          g_autoptr(GVariant) value = device_option_value;
+
           for (size_t i = 0; i < G_N_ELEMENTS (usb_device_options); i++)
             {
               if (g_strcmp0 (device_option, usb_device_options[i].key) != 0)
                 continue;
 
-              if (!g_variant_is_of_type (device_option_value, usb_device_options[i].type))
+              if (!g_variant_is_of_type (value, usb_device_options[i].type))
                 {
                   g_set_error (out_error,
                                XDG_DESKTOP_PORTAL_ERROR,
                                XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                "Invalid type for option '%s'",
                                device_option);
-                  g_variant_builder_clear (&filtered_devices_builder);
-                  g_variant_dict_clear (&device_options_dict);
-                  g_clear_pointer (&device_option_value, g_variant_unref);
                   return FALSE;
                 }
 
-              g_variant_dict_insert_value (&device_options_dict, device_option, device_option_value);
+              if (usb_device_options[i].filter &&
+                  !usb_device_options[i].filter (device_option, value,
+                                                 device, out_error))
+                return FALSE;
 
-              g_clear_pointer (&device_option_value, g_variant_unref);
+              g_variant_dict_insert_value (&device_options_dict,
+                                           device_option,
+                                           value);
             }
         }
 
