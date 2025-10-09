@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <sys/stat.h>
+#include <stdint.h>
 
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
@@ -43,11 +44,33 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           XDP, APP_INFO,
                           GObject)
 
+XdpAppInfo * xdp_app_info_new (const char  *sender,
+                               uint32_t     pid,
+                               int          pidfd,
+                               GError     **error);
+
+XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
+                                                   GCancellable           *cancellable,
+                                                   GError                **error);
+
+XdpAppInfo * xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
+                                                   const char             *app_id,
+                                                   GCancellable           *cancellable,
+                                                   GError                **error);
+
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_instance (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_engine (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_sender (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_app_display_name (XdpAppInfo *app_info);
+
+const char * xdp_app_info_get_engine_display_name (XdpAppInfo *app_info);
 
 GAppInfo * xdp_app_info_get_gappinfo (XdpAppInfo *app_info);
 
@@ -78,12 +101,3 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                  GError     **error);
 
 const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
-
-XdpAppInfo * xdp_invocation_ensure_app_info_sync (GDBusMethodInvocation  *invocation,
-                                                  GCancellable           *cancellable,
-                                                  GError                **error);
-
-XdpAppInfo * xdp_invocation_register_host_app_info_sync (GDBusMethodInvocation  *invocation,
-                                                         const char             *app_id,
-                                                         GCancellable           *cancellable,
-                                                         GError                **error);

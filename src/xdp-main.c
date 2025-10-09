@@ -176,8 +176,8 @@ main (int argc, char *argv[])
     "A portal service for flatpak and other desktop containment frameworks.");
   g_option_context_set_description (option_context,
     "xdg-desktop-portal works by exposing D-Bus interfaces known as portals\n"
-    "under the well-known name org.freedesktop.portal.Desktop and object\n"
-    "path /org/freedesktop/portal/desktop.\n"
+    "under the well-known name " DESKTOP_DBUS_NAME " and object\n"
+    "path " DESKTOP_DBUS_PATH ".\n"
     "\n"
     "Documentation for the available D-Bus interfaces can be found at\n"
     "https://flatpak.github.io/xdg-desktop-portal/docs/\n"
@@ -232,7 +232,7 @@ main (int argc, char *argv[])
     }
 
   owner_id = g_bus_own_name (G_BUS_TYPE_SESSION,
-                             "org.freedesktop.portal.Desktop",
+                             DESKTOP_DBUS_NAME,
                              (G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT |
                               (opt_replace ? G_BUS_NAME_OWNER_FLAGS_REPLACE : 0)),
                              on_bus_acquired,

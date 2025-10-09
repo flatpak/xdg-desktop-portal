@@ -22,7 +22,9 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * xdp_usb_create (GDBusConnection *connection,
-					 const char      *dbus_name);
+void xdp_usb_delete_for_sender (XdpContext *context,
+                                const char *sender);
+
+void init_usb (XdpContext *context);

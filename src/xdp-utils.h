@@ -27,14 +27,14 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <stdint.h>
 
 #include <glib/gstdio.h>
 #include <gio/gio.h>
 #include <errno.h>
 
+#include "xdp-types.h"
 #include "xdp-sealed-fd.h"
-
-#define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
 
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
@@ -59,7 +59,24 @@ gboolean xdp_validate_icon (XdpSealedFd  *icon,
 
 gboolean xdp_validate_sound (XdpSealedFd *sound);
 
-typedef void (*XdpPeerDiedCallback) (const char *name);
+typedef void (*XdpPeerDisconnectCallback) (const char *name,
+                                           gpointer    user_data);
+
+guint xdp_connection_track_peer_disconnect (GDBusConnection           *connection,
+                                            XdpPeerDisconnectCallback  peer_disconnect_cb,
+                                            gpointer                   user_data);
+
+void xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
+                                             guint            subscription_id);
+
+gboolean xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
+                                        const char       *sender,
+                                        GCancellable     *cancellable,
+                                        int              *out_pidfd,
+                                        uint32_t         *out_pid,
+                                        GError          **error);
+
+XdpAppInfo * xdp_invocation_get_app_info (GDBusMethodInvocation *invocation);
 
 typedef int XdpFd;
 G_DEFINE_AUTO_CLEANUP_FREE_FUNC(XdpFd, close, -1)
@@ -68,23 +85,27 @@ void xdp_set_documents_mountpoint (const char *path);
 const char * xdp_get_documents_mountpoint (void);
 char * xdp_get_alternate_document_path (const char *path, const char *app_id);
 
-void   xdp_connection_track_name_owners  (GDBusConnection       *connection,
-                                          XdpPeerDiedCallback    peer_died_cb);
-
 gboolean xdp_variant_contains_key (GVariant *dictionary,
                                    const char *key);
+
+typedef gboolean (*XdpOptionKeyValidate) (const char  *key,
+                                          GVariant    *value,
+                                          GVariant    *options,
+                                          gpointer     user_data,
+                                          GError     **error);
 
 typedef struct {
   const char *key;
   const GVariantType *type;
-  gboolean (* validate) (const char *key, GVariant *value, GVariant *options, GError **error);
+  XdpOptionKeyValidate validate;
 } XdpOptionKey;
 
-gboolean xdp_filter_options (GVariant *options_in,
-                             GVariantBuilder *options_out,
-                             const XdpOptionKey *supported_options,
-                             int n_supported_options,
-                             GError **error);
+gboolean xdp_filter_options (GVariant            *options_in,
+                             GVariantBuilder     *options_out,
+                             const XdpOptionKey  *supported_options,
+                             int                  n_supported_options,
+                             gpointer             user_data,
+                             GError             **error);
 
 typedef enum {
   XDG_DESKTOP_PORTAL_ERROR_FAILED     = 0,

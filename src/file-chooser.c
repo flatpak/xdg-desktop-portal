@@ -27,19 +27,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 
-#include "file-chooser.h"
-#include "xdp-request.h"
+#include "xdp-context.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
 #include "xdp-utils.h"
+
+#include "file-chooser.h"
 
 typedef struct _FileChooser FileChooser;
 typedef struct _FileChooserClass FileChooserClass;
@@ -47,16 +48,15 @@ typedef struct _FileChooserClass FileChooserClass;
 struct _FileChooser
 {
   XdpDbusFileChooserSkeleton parent_instance;
+
+  XdpContext *context;
+  XdpDbusImplFileChooser *impl;
 };
 
 struct _FileChooserClass
 {
   XdpDbusFileChooserSkeletonClass parent_class;
 };
-
-static XdpDbusImplLockdown *lockdown;
-static XdpDbusImplFileChooser *impl;
-static FileChooser *file_chooser;
 
 GType file_chooser_get_type (void) G_GNUC_CONST;
 static void file_chooser_iface_init (XdpDbusFileChooserIface *iface);
@@ -65,6 +65,8 @@ G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser,
                          XDP_DBUS_TYPE_FILE_CHOOSER_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_FILE_CHOOSER,
                                                 file_chooser_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (FileChooser, g_object_unref)
 
 static void
 send_response_in_thread_func (GTask        *task,
@@ -275,10 +277,11 @@ check_filter (GVariant *filter,
 }
 
 static gboolean
-validate_filters (const char *key,
-                  GVariant *value,
-                  GVariant *options,
-                  GError **error)
+validate_filters (const char  *key,
+                  GVariant    *value,
+                  GVariant    *options,
+                  gpointer     user_data,
+                  GError     **error)
 {
   gsize i;
 
@@ -300,10 +303,11 @@ validate_filters (const char *key,
 }
 
 static gboolean
-validate_current_filter (const char *key,
-                         GVariant *value,
-                         GVariant *options,
-                         GError **error)
+validate_current_filter (const char  *key,
+                         GVariant    *value,
+                         GVariant    *options,
+                         gpointer     user_data,
+                         GError     **error)
 {
   g_autoptr(GVariant) filters = NULL;
   gsize i, n_children;
@@ -437,10 +441,11 @@ check_choice (GVariant *choice,
 }
 
 static gboolean
-validate_choices (const char *key,
-                  GVariant *value,
-                  GVariant *options,
-                  GError **error)
+validate_choices (const char  *key,
+                  GVariant    *value,
+                  GVariant    *options,
+                  gpointer     user_data,
+                  GError     **error)
 {
   int i;
 
@@ -479,6 +484,8 @@ handle_open_file (XdpDbusFileChooser *object,
                   const gchar *arg_title,
                   GVariant *arg_options)
 {
+  FileChooser *file_chooser = (FileChooser *) object;
+  XdpDbusImplFileChooser *impl = file_chooser->impl;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -493,7 +500,7 @@ handle_open_file (XdpDbusFileChooser *object,
 
   if (!xdp_filter_options (arg_options, &options,
                            open_file_options, G_N_ELEMENTS (open_file_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -599,6 +606,10 @@ handle_save_file (XdpDbusFileChooser *object,
                   const gchar *arg_title,
                   GVariant *arg_options)
 {
+  FileChooser *file_chooser = (FileChooser *) object;
+  XdpDbusImplLockdown *lockdown =
+    xdp_context_get_lockdown (file_chooser->context);
+  XdpDbusImplFileChooser *impl = file_chooser->impl;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -622,7 +633,7 @@ handle_save_file (XdpDbusFileChooser *object,
 
   if (!xdp_filter_options (arg_options, &options,
                            save_file_options, G_N_ELEMENTS (save_file_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -734,6 +745,10 @@ handle_save_files (XdpDbusFileChooser *object,
                    const gchar *arg_title,
                    GVariant *arg_options)
 {
+  FileChooser *file_chooser = (FileChooser *) object;
+  XdpDbusImplLockdown *lockdown =
+    xdp_context_get_lockdown (file_chooser->context);
+  XdpDbusImplFileChooser *impl = file_chooser->impl;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -755,7 +770,7 @@ handle_save_files (XdpDbusFileChooser *object,
 
   if (!xdp_filter_options (arg_options, &options,
                            save_files_options, G_N_ELEMENTS (save_files_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -802,28 +817,62 @@ file_chooser_iface_init (XdpDbusFileChooserIface *iface)
 }
 
 static void
+file_chooser_dispose (GObject *object)
+{
+  FileChooser *fc = (FileChooser *) object;
+
+  g_clear_object (&fc->impl);
+
+  G_OBJECT_CLASS (file_chooser_parent_class)->dispose (object);
+}
+
+static void
 file_chooser_init (FileChooser *fc)
 {
-  xdp_dbus_file_chooser_set_version (XDP_DBUS_FILE_CHOOSER (fc), 4);
 }
 
 static void
 file_chooser_class_init (FileChooserClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = file_chooser_dispose;
 }
 
-GDBusInterfaceSkeleton *
-file_chooser_create (GDBusConnection *connection,
-                     const char      *dbus_name,
-                     gpointer         lockdown_proxy)
+static FileChooser *
+file_chooser_new (XdpContext             *context,
+                  XdpDbusImplFileChooser *impl)
 {
+  FileChooser *file_chooser;
+
+  file_chooser = g_object_new (file_chooser_get_type (), NULL);
+  file_chooser->context = context;
+  file_chooser->impl = g_object_ref (impl);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (file_chooser->impl), G_MAXINT);
+
+  xdp_dbus_file_chooser_set_version (XDP_DBUS_FILE_CHOOSER (file_chooser), 4);
+
+  return file_chooser;
+}
+
+void
+init_file_chooser (XdpContext *context)
+{
+  g_autoptr(FileChooser) file_chooser = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplFileChooser) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  lockdown = lockdown_proxy;
+  impl_config = xdp_portal_config_find (config, FILE_CHOOSER_DBUS_IMPL_IFACE);
+  if (impl_config == NULL)
+    return;
 
   impl = xdp_dbus_impl_file_chooser_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                    dbus_name,
+                                                    impl_config->dbus_name,
                                                     DESKTOP_PORTAL_OBJECT_PATH,
                                                     NULL,
                                                     &error);
@@ -831,12 +880,17 @@ file_chooser_create (GDBusConnection *connection,
   if (impl == NULL)
     {
       g_warning ("Failed to create file chooser proxy: %s", error->message);
-      return NULL;
+      return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
+  file_chooser = file_chooser_new (context, impl);
 
-  file_chooser = g_object_new (file_chooser_get_type (), NULL);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (file_chooser),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
 
-  return G_DBUS_INTERFACE_SKELETON (file_chooser);
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-file-chooser",
+                          g_steal_pointer (&file_chooser),
+                          g_object_unref);
 }

@@ -38,6 +38,9 @@
 #include "xdp-documents.h"
 #include "document-enums.h"
 
+#define DOCUMENT_PORTAL_DBUS_NAME "org.freedesktop.portal.Documents"
+#define DOCUMENT_PORTAL_DBUS_PATH "/org/freedesktop/portal/documents"
+
 static XdpDbusDocuments *documents = NULL;
 static char *documents_mountpoint = NULL;
 
@@ -48,8 +51,8 @@ xdp_init_document_proxy (GDBusConnection  *connection,
   g_autoptr(GError) local_error = NULL;
 
   documents = xdp_dbus_documents_proxy_new_sync (connection, 0,
-                                                 "org.freedesktop.portal.Documents",
-                                                 "/org/freedesktop/portal/documents",
+                                                 DOCUMENT_PORTAL_DBUS_NAME,
+                                                 DOCUMENT_PORTAL_DBUS_PATH,
                                                  NULL, error);
   if (!documents)
     return FALSE;

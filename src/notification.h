@@ -23,7 +23,8 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * notification_create (GDBusConnection *connection,
-                                              const char *dbus_name);
+void notification_delete_for_sender (const char *sender);
+
+void init_notification (XdpContext *context);
