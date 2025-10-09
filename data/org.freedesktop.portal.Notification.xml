@@ -305,7 +305,9 @@
 
               The user response (``s``) will be placed as the second value
               in the ``parameter`` array of the invoked action for both exported
-              and not exported ones.
+              and not exported ones. In the case that the application provided
+              no ``target``, then an empty array (``av``) must be sent to the
+              application as the first value of the ``parameter`` array.
 
           * ``alarm.ringing``
 
