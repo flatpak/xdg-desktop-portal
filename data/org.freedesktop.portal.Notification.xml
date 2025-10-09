@@ -107,17 +107,19 @@
 
             A themed icon containing an array of strings with the icon names.
 
-            This is the same format as a serialized `GThemedIcon
-            <https://docs.gtk.org/gio/class.ThemedIcon.html>`_ at the moment,
-            but this interoperability may change in the future.
+            This is the same format as a
+            `serialized <https://docs.gtk.org/gio/method.Icon.to_string.html>`_
+            `GThemedIcon <https://docs.gtk.org/gio/class.ThemedIcon.html>`_ at
+            the moment, but this interoperability may change in the future.
 
           * ``bytes`` (``ay``)
 
             The icon bytes into a variant bytes array.
 
-            This is the same format as a serialized `GBytesIcon
-            <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the moment,
-            but this interoperability may change in the future.
+            This is the same format as a
+            `serialized <https://docs.gtk.org/gio/method.Icon.to_string.html>`_
+            `GBytesIcon <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the
+            moment, but this interoperability may change in the future.
 
             Since version 2, this is deprecated and should not be used.
             Please use the `themed` or `file-descriptor` option to set an icon.
