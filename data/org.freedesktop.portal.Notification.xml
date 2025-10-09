@@ -290,7 +290,7 @@
           Additional categories and button purposes may be defined by notification servers
           using ``x-vendor`` prefix e.g. ``x-gnome.class.specific``
 
-          The following categories are standarized so far:
+          The following categories are standardized so far:
 
           * ``im.received``
 
