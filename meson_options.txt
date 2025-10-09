@@ -54,3 +54,11 @@ option('sandboxed-sound-validation',
        type: 'feature',
        value: 'enabled',
        description: 'Use Bubblewrap to sandbox sound validation. Disabling this option may lead to security vulnerabilities.')
+option('pipewire-drop-in-conf-dir',
+       type: 'string',
+       value: '',
+       description: 'directory for PipeWire drop-in configuration files (default: PREFIX/share/pipewire/pipewire.conf.d)')
+option('wireplumber-conf-fragments-dir',
+       type: 'string',
+       value: '',
+       description: 'directory for WirePlumber configuration fragments (default: PREFIX/share/wireplumber/wireplumber.d)')
