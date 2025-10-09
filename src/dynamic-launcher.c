@@ -38,6 +38,7 @@
 #include <glib/gi18n.h>
 
 #include "xdp-call.h"
+#include "xdp-diagnostic-desktop.h"
 #include "dynamic-launcher.h"
 #include "xdp-app-launch-context.h"
 #include "xdp-request.h"
@@ -1055,6 +1056,11 @@ dynamic_launcher_create (GDBusConnection *connection,
       g_warning ("Failed to create dynamic_launcher proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "DynamicLauncher",
+                                                 dbus_name,
+                                                 xdp_dbus_impl_dynamic_launcher_get_version (impl));
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

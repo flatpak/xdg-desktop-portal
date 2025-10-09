@@ -23,6 +23,7 @@
 #include <stdint.h>
 
 #include "clipboard.h"
+#include "xdp-diagnostic-desktop.h"
 #include "remote-desktop.h"
 #include "xdp-session.h"
 #include "xdp-dbus.h"
@@ -571,6 +572,11 @@ clipboard_create (GDBusConnection *connection,
       g_warning ("Failed to create clipboard: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Clipboard",
+                                                 dbus_name,
+                                                 xdp_dbus_impl_clipboard_get_version (impl));
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

@@ -24,6 +24,7 @@
 #include <pipewire/pipewire.h>
 #include <gio/gunixfdlist.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "xdp-session.h"
 #include "screen-cast.h"
 #include "remote-desktop.h"
@@ -1111,6 +1112,10 @@ screen_cast_create (GDBusConnection *connection,
     }
 
   impl_version = xdp_dbus_impl_screen_cast_get_version (impl);
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "ScreenCast",
+                                                 dbus_name,
+                                                 impl_version);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

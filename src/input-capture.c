@@ -24,6 +24,7 @@
 #include <glib.h>
 #include <gio/gunixfdlist.h>
 
+#include "xdp-diagnostic-desktop.h"
 #include "xdp-session.h"
 #include "input-capture.h"
 #include "xdp-request.h"
@@ -1227,6 +1228,11 @@ input_capture_create (GDBusConnection *connection,
     }
 
   impl_version = xdp_dbus_impl_input_capture_get_version (impl);
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "InputCapture",
+                                                 dbus_name,
+                                                 impl_version);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
 

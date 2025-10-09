@@ -34,6 +34,7 @@
 #include <gio/gio.h>
 
 #include "account.h"
+#include "xdp-diagnostic-desktop.h"
 #include "xdp-request.h"
 #include "xdp-documents.h"
 #include "xdp-dbus.h"
@@ -262,6 +263,11 @@ account_create (GDBusConnection *connection,
       g_warning ("Failed to create account proxy: %s", error->message);
       return NULL;
     }
+
+  xdp_diagnostic_desktop_set_portal_unique_impl (xdp_diagnostic_desktop_get (NULL),
+                                                 "Account",
+                                                 dbus_name,
+                                                 0);
 
   g_debug ("using %s at %s\n", "org.freedesktop.impl.portal.Account", dbus_name);
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
