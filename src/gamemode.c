@@ -22,17 +22,8 @@
 
 #include "config.h"
 
-#include "xdp-call.h"
-#include "xdp-permissions.h"
-
-#include "xdp-app-info.h"
-#include "xdp-dbus.h"
-#include "xdp-impl-dbus.h"
-#include "xdp-utils.h"
-
-#include <gio/gunixfdlist.h>
-
 #define _GNU_SOURCE 1
+#include <gio/gunixfdlist.h>
 #include <errno.h>
 #include <locale.h>
 #include <sys/types.h>
@@ -40,7 +31,16 @@
 #include <sys/stat.h>
 #include <sys/un.h>
 #include <sys/wait.h>
-#include <unistd.h> /* unlinkat, fork */
+#include <unistd.h>
+
+#include "xdp-app-info.h"
+#include "xdp-context.h"
+#include "xdp-dbus.h"
+#include "xdp-impl-dbus.h"
+#include "xdp-permissions.h"
+#include "xdp-utils.h"
+
+#include "gamemode.h"
 
 /* well known names*/
 #define GAMEMODE_DBUS_NAME "com.feralinteractive.GameMode"
@@ -373,9 +373,8 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
                            GDBusMethodInvocation *invocation,
                            GUnixFDList           *fdlist)
 {
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
-  XdpAppInfo *app_info;
-  XdpCall *call;
   CallData *call_data;
 
   if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
@@ -384,9 +383,6 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
                                              "File descriptor number is incorrect");
       return;
     }
-
-  call = xdp_call_from_invocation (invocation);
-  app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
   call_data->fdlist = g_object_ref (fdlist);
@@ -404,13 +400,9 @@ handle_call_in_thread (XdpDbusGameMode       *object,
                        gint                   target,
                        gint                   requester)
 {
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GTask) task = NULL;
-  XdpAppInfo *app_info;
-  XdpCall *call;
   CallData *call_data;
-
-  call = xdp_call_from_invocation (invocation);
-  app_info = call->app_info;
 
   call_data = call_data_new (invocation, app_info, method);
 
@@ -581,28 +573,28 @@ client_properties_changed (GDBusProxy *proxy,
 
 
 /* public API */
-GDBusInterfaceSkeleton *
-game_mode_create (GDBusConnection *connection)
+void
+init_game_mode (XdpContext *context)
 {
-  g_autoptr(GError) err = NULL;
   GDBusProxy *client;
   GDBusProxyFlags flags;
+  g_autoptr(GError) error = NULL;
 
   flags = G_DBUS_PROXY_FLAGS_DO_NOT_AUTO_START_AT_CONSTRUCTION |
           G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES;
-  client = g_dbus_proxy_new_sync (connection,
+  client = g_dbus_proxy_new_sync (xdp_context_get_connection (context),
                                   flags,
                                   NULL,
                                   GAMEMODE_DBUS_NAME,
                                   GAMEMODE_DBUS_PATH,
                                   GAMEMODE_DBUS_IFACE,
                                   NULL,
-                                  &err);
+                                  &error);
 
   if (client == NULL)
     {
-      g_warning ("Failed to create GameMode proxy: %s", err->message);
-      return NULL;
+      g_warning ("Failed to create GameMode proxy: %s", error->message);
+      return;
     }
 
   gamemode = g_object_new (game_mode_get_type (), NULL);
@@ -613,5 +605,12 @@ game_mode_create (GDBusConnection *connection)
 
   update_active_state_from_cache (client);
 
-  return G_DBUS_INTERFACE_SKELETON (gamemode);;
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (gamemode),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-gamemode",
+                          gamemode,
+                          g_object_unref);
 }

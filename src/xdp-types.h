@@ -1,5 +1,5 @@
 /*
- * Copyright © 2018 Red Hat, Inc
+ * Copyright © 2025 Red Hat, Inc
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -10,27 +10,17 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
 #pragma once
 
-#include <gio/gio.h>
-#include "xdp-app-info.h"
-#include "xdp-utils.h"
-
-typedef struct _XdpCall
-{
-  XdpAppInfo *app_info;
-  char *sender;
-} XdpCall;
-
-void xdp_call_init_invocation (GDBusMethodInvocation *invocation,
-                               XdpAppInfo            *app_info);
-
-XdpCall *xdp_call_from_invocation (GDBusMethodInvocation *invocation);
+typedef struct _XdpContext XdpContext;
+typedef struct _XdpAppInfo XdpAppInfo;
+typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
+typedef struct _XdpPortalConfig XdpPortalConfig;
+typedef struct _XdpDbusImplLockdown XdpDbusImplLockdown;

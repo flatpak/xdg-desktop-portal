@@ -24,6 +24,8 @@
 
 #include <gio/gio.h>
 
+#include "xdp-types.h"
+
 typedef enum {
   XDP_DOCUMENT_FLAG_NONE      = 0,
   XDP_DOCUMENT_FLAG_FOR_SAVE  = (1 << 0),

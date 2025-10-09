@@ -26,21 +26,20 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "trash.h"
-#include "xdp-call.h"
-#include "xdp-documents.h"
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
+
+#include "trash.h"
 
 typedef struct _Trash Trash;
 typedef struct _TrashClass TrashClass;
@@ -66,8 +65,7 @@ G_DEFINE_TYPE_WITH_CODE (Trash, trash, XDP_DBUS_TYPE_TRASH_SKELETON,
 
 static guint
 trash_file (XdpAppInfo *app_info,
-            const char *sender,
-            int fd)
+            int         fd)
 {
   g_autofree char *path = NULL;
   gboolean writable;
@@ -104,7 +102,7 @@ handle_trash_file (XdpDbusTrash *object,
                    GUnixFDList *fd_list,
                    GVariant *arg_fd)
 {
-  XdpCall *call = xdp_call_from_invocation (invocation);
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   int idx;
   g_autofd int fd = -1;
   guint result;
@@ -123,7 +121,7 @@ handle_trash_file (XdpDbusTrash *object,
 
   fd = g_unix_fd_list_get (fd_list, idx, NULL);
 
-  result = trash_file (call->app_info, call->sender, fd);
+  result = trash_file (app_info, fd);
 
   xdp_dbus_trash_complete_trash_file (object, invocation, NULL, result);
 
@@ -147,10 +145,17 @@ trash_class_init (TrashClass *klass)
 {
 }
 
-GDBusInterfaceSkeleton *
-trash_create (GDBusConnection *connection)
+void
+init_trash (XdpContext *context)
 {
   trash = g_object_new (trash_get_type (), NULL);
 
-  return G_DBUS_INTERFACE_SKELETON (trash);
+  xdp_context_export_portal (context,
+                             G_DBUS_INTERFACE_SKELETON (trash),
+                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
+
+  g_object_set_data_full (G_OBJECT (context),
+                          "-xdp-portal-trash",
+                          trash,
+                          g_object_unref);
 }

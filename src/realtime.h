@@ -22,6 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * realtime_create (GDBusConnection *connection);
+void init_realtime (XdpContext *context);

@@ -22,12 +22,11 @@
 
 #pragma once
 
-#include "config.h"
-
 #include <gio/gio.h>
+
+#include "xdp-types.h"
 
 #define XDG_PORTAL_APPLICATIONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "applications"
 #define XDG_PORTAL_ICONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "icons"
 
-GDBusInterfaceSkeleton * dynamic_launcher_create (GDBusConnection *connection,
-                                                  const char      *dbus_name);
+void init_dynamic_launcher (XdpContext *context);

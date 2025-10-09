@@ -22,7 +22,6 @@
 
 #pragma once
 
-#include <gio/gio.h>
+#include "xdp-types.h"
 
-GDBusInterfaceSkeleton * account_create (GDBusConnection *connection,
-                                         const char      *dbus_name);
+void init_account (XdpContext *context);
