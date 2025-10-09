@@ -20,9 +20,9 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-
 #pragma once
 
 #include <gio/gio.h>
 
-GDBusInterfaceSkeleton * proxy_resolver_create (GDBusConnection *connection);
+GDBusInterfaceSkeleton *proxy_resolver_create (GDBusConnection *connection, const char *dbus_name);
+

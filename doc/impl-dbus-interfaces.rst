@@ -23,6 +23,7 @@ accessible to sandboxed applications.
    doc-org.freedesktop.impl.portal.Notification.rst
    doc-org.freedesktop.impl.portal.PermissionStore.rst
    doc-org.freedesktop.impl.portal.Print.rst
+   doc-org.freedesktop.impl.portal.Proxy.rst
    doc-org.freedesktop.impl.portal.RemoteDesktop.rst
    doc-org.freedesktop.impl.portal.Request.rst
    doc-org.freedesktop.impl.portal.ScreenCast.rst

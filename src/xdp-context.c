@@ -19,7 +19,6 @@
 
 #include "config.h"
 
-#include "xdp-utils.h"
 #include "xdp-call.h"
 #include "xdp-dbus.h"
 #include "xdp-documents.h"
@@ -27,6 +26,7 @@
 #include "xdp-method-info.h"
 #include "xdp-portal-config.h"
 #include "xdp-session-persistence.h"
+#include "xdp-utils.h"
 
 #include "account.h"
 #include "background.h"
@@ -44,14 +44,12 @@
 #include "network-monitor.h"
 #include "notification.h"
 #include "open-uri.h"
-#include "xdp-permissions.h"
 #include "power-profile-monitor.h"
 #include "print.h"
 #include "proxy-resolver.h"
 #include "realtime.h"
 #include "registry.h"
 #include "remote-desktop.h"
-#include "xdp-request.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"
@@ -59,6 +57,8 @@
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
+#include "xdp-permissions.h"
+#include "xdp-request.h"
 
 #include "xdp-context.h"
 
@@ -131,16 +131,16 @@ method_needs_request (GDBusMethodInvocation *invocation)
     g_warning ("Support for %s::%s missing in %s",
                interface, method, G_STRLOC);
 
-  return method_info ?  method_info->uses_request : TRUE;
+  return method_info ? method_info->uses_request : TRUE;
 }
 
 static gboolean
 authorize_callback (GDBusInterfaceSkeleton *interface,
-                    GDBusMethodInvocation  *invocation,
-                    gpointer                user_data)
+                    GDBusMethodInvocation *invocation,
+                    gpointer user_data)
 {
-  g_autoptr(XdpAppInfo) app_info = NULL;
-  g_autoptr(GError) error = NULL;
+  g_autoptr (XdpAppInfo) app_info = NULL;
+  g_autoptr (GError) error = NULL;
 
   app_info = xdp_invocation_ensure_app_info_sync (invocation, NULL, &error);
   if (app_info == NULL)
@@ -167,10 +167,10 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 static void
-export_portal_implementation (GDBusConnection        *connection,
+export_portal_implementation (GDBusConnection *connection,
                               GDBusInterfaceSkeleton *skeleton)
 {
-  g_autoptr(GError) error = NULL;
+  g_autoptr (GError) error = NULL;
 
   if (skeleton == NULL)
     {
@@ -196,7 +196,7 @@ export_portal_implementation (GDBusConnection        *connection,
 }
 
 static void
-export_host_portal_implementation (GDBusConnection        *connection,
+export_host_portal_implementation (GDBusConnection *connection,
                                    GDBusInterfaceSkeleton *skeleton)
 {
   /* Host portal dbus method invocations run in the main thread without yielding
@@ -207,7 +207,7 @@ export_host_portal_implementation (GDBusConnection        *connection,
    * method calls must see the modified value.
    */
 
-  g_autoptr(GError) error = NULL;
+  g_autoptr (GError) error = NULL;
 
   if (skeleton == NULL)
     {
@@ -239,9 +239,9 @@ on_peer_died (const char *name)
 }
 
 gboolean
-xdp_context_register (XdpContext       *context,
-                      GDBusConnection  *connection,
-                      GError          **error)
+xdp_context_register (XdpContext *context,
+                      GDBusConnection *connection,
+                      GError **error)
 {
   XdpPortalConfig *portal_config = context->portal_config;
   XdpImplConfig *impl_config;
@@ -284,7 +284,6 @@ xdp_context_register (XdpContext       *context,
   export_portal_implementation (connection, memory_monitor_create (connection));
   export_portal_implementation (connection, power_profile_monitor_create (connection));
   export_portal_implementation (connection, network_monitor_create (connection));
-  export_portal_implementation (connection, proxy_resolver_create (connection));
   export_portal_implementation (connection, trash_create (connection));
   export_portal_implementation (connection, game_mode_create (connection));
   export_portal_implementation (connection, realtime_create (connection));
@@ -312,7 +311,15 @@ xdp_context_register (XdpContext       *context,
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Notification");
   if (impl_config != NULL)
     export_portal_implementation (connection,
-                                  notification_create (connection, impl_config->dbus_name));
+                                  proxy_resolver_create (connection, impl_config->dbus_name));
+
+  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Proxy");
+  if (impl_config != NULL)
+    export_portal_implementation (connection,
+                                  proxy_resolver_create (connection, impl_config->dbus_name));
+  else
+    export_portal_implementation (connection,
+                                  proxy_resolver_create (connection, NULL));
 
   impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Inhibit");
   if (impl_config != NULL)

@@ -1,6 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  Copyright (C) 2016 Red Hat, Inc.
+ Copyright (C) 2025 Dallas Strouse
 
  SPDX-License-Identifier: LGPL-2.1-or-later
 
@@ -18,8 +19,9 @@
  License along with this library. If not, see <http://www.gnu.org/licenses/>.
 
  Author: Matthias Clasen <mclasen@redhat.com>
+ Author: Dallas Strouse @ v2 <dallas.strouse2007@mail.com>
 -->
-<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+<node xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd" name="/">
   <!--
       org.freedesktop.portal.ProxyResolver:
       @short_description: Proxy information
@@ -29,7 +31,10 @@
       user interaction. Applications are expected to use this interface indirectly,
       via a library API such as the GLib GProxyResolver interface.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
+
+      If pac_url exists, it should be the only setting read;
+      if it doesn't, the associated dbus properties should be utilized.
   -->
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
@@ -41,11 +46,50 @@
         proxy uri are of the form ``protocol://[user[:password] AT host:port``.
         The protocol can be ``http``, ``rtsp``, ``socks`` or another proxying
         protocol. ``direct://`` is used when no proxy is needed.
+
+        This is a convenience wrapper over reading the PAC file or the other
+        portal settings, in that order of priority from highest to lowest. It
+        is provided to ensure backwards compatibility with older versions
+        of GLib.
     -->
     <method name="Lookup">
       <arg type="s" name="uri" direction="in"/>
       <arg type="as" name="proxies" direction="out"/>
     </method>
+    <!--
+    The following values are valid:
+      0: Proxy should not be used.
+      1: Automatic proxy mode; use pac_url.
+      2: Manual proxy mode; read associated settings manually.
+
+      This property was added in version 2.
+    -->
+    <property name="use_proxy" type="u" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="pac_url" type="s" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="https_proxy" type="as" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="http_proxy" type="as" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="socks_proxy" type="as" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="ftp_proxy" type="as" access="read"/>
+    <!--
+      This property was added in version 2.
+    -->
+    <property name="ignored_hosts" type="as" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>
+
