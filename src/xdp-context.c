@@ -52,6 +52,7 @@
 #include "registry.h"
 #include "remote-desktop.h"
 #include "xdp-request.h"
+#include "save-restore.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"
@@ -407,6 +408,11 @@ xdp_context_register (XdpContext       *context,
     export_portal_implementation (connection,
                                   xdp_usb_create (connection, impl_config->dbus_name));
 #endif
+
+  impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.SaveRestore");
+  if (impl_config != NULL)
+    export_portal_implementation (connection,
+                                  save_restore_create (connection, impl_config->dbus_name));
 
   export_host_portal_implementation (connection, registry_create (connection));
 

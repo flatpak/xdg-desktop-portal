@@ -87,7 +87,8 @@ gboolean xdp_session_export (XdpSession  *session,
 void close_sessions_for_sender (const char *sender);
 
 void xdp_session_close (XdpSession *session,
-                        gboolean    notify_close);
+                        gboolean    notify_close,
+                        gboolean    voluntary);
 
 static inline void
 auto_session_unlock_unref_helper (XdpSession **session)
