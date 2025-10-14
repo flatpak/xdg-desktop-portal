@@ -52,7 +52,7 @@ static InputCapture *input_capture;
 
 static GQuark quark_request_session;
 
-GType input_capture_get_type (void);
+GType input_capture_get_type (void)  G_GNUC_CONST;
 static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
@@ -97,24 +97,22 @@ IS_INPUT_CAPTURE_SESSION (gpointer ptr)
 }
 
 static InputCaptureSession *
-input_capture_session_new (GVariant    *options,
-                           XdpRequest  *request,
-                           GError     **error)
+input_capture_session_new (GVariant         *options,
+                           GDBusConnection  *connection,
+                           const char       *sender,
+                           XdpAppInfo       *app_info,
+                           GError          **error)
 {
-  XdpSession *session;
-  GDBusInterfaceSkeleton *interface_skeleton =
-    G_DBUS_INTERFACE_SKELETON (request);
   const char *session_token;
-  GDBusConnection *connection =
-    g_dbus_interface_skeleton_get_connection (interface_skeleton);
+  XdpSession *session;
   GDBusConnection *impl_connection =
     g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
   const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
 
   session_token = lookup_session_token (options);
   session = g_initable_new (input_capture_session_get_type (), NULL, error,
-                            "sender", request->sender,
-                            "app-id", xdp_app_info_get_id (request->app_info),
+                            "sender", sender,
+                            "app-id", xdp_app_info_get_id (app_info),
                             "token", session_token,
                             "connection", connection,
                             "impl-connection", impl_connection,
@@ -122,7 +120,7 @@ input_capture_session_new (GVariant    *options,
                             NULL);
 
   if (session)
-    g_debug ("capture input session owned by '%s' created", session->sender);
+    g_debug ("capture input session owned by '%s' created", sender);
 
   return (InputCaptureSession*)session;
 }
@@ -136,7 +134,7 @@ create_session_done (GObject      *source_object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) results_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *results;
+  g_autoptr(GVariant) results = NULL;
   XdpSession *session;
   gboolean should_close_session;
   uint32_t capabilities = 0;
@@ -233,6 +231,8 @@ handle_create_session (XdpDbusInputCapture   *object,
                        GVariant              *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  GDBusConnection *connection =
+    g_dbus_method_invocation_get_connection (invocation);
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) options_builder =
@@ -255,9 +255,13 @@ handle_create_session (XdpDbusInputCapture   *object,
     }
 
   xdp_request_set_impl_request (request, impl_request);
-  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+  xdp_request_export (request, connection);
 
-  session = XDP_SESSION (input_capture_session_new (arg_options, request, &error));
+  session = XDP_SESSION (input_capture_session_new (arg_options,
+                                                    connection,
+                                                    request->sender,
+                                                    request->app_info,
+                                                    &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -596,7 +600,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
                                                          arg_session_handle,
                                                          xdp_app_info_get_id (request->app_info),
                                                          options,
-                                                         g_variant_ref (arg_barriers), /* FIXME: validation? */
+                                                         arg_barriers, /* FIXME: validation? */
                                                          arg_zone_set, /* FIXME: validation? */
                                                          NULL,
                                                          set_pointer_barriers_done,
@@ -922,7 +926,7 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
   g_autoptr(GError) error = NULL;
   g_auto(GVariantBuilder) empty =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  GVariant *fd;
+  g_autoptr(GVariant) fd = NULL;
 
   session = xdp_session_from_call (arg_session_handle, call);
   if (!session)

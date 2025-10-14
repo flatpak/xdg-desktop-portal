@@ -1,5 +1,5 @@
 /*
- * Copyright © 2016 Red Hat, Inc
+ * Copyright © 2025 Red Hat, Inc
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -10,31 +10,27 @@
  *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
  * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
- *
- * Authors:
- *       Alexander Larsson <alexl@redhat.com>
- *       Matthias Clasen <mclasen@redhat.com>
  */
 
 #pragma once
 
-#include <glib.h>
+#include <gio/gio.h>
 
-typedef struct {
-  char *source;
-  char *dbus_name;
-  char **interfaces;
-  char **use_in;
-  int priority;
-} XdpPortalImplementation;
+#define XDP_TYPE_CONTEXT (xdp_context_get_type())
+G_DECLARE_FINAL_TYPE (XdpContext,
+                      xdp_context,
+                      XDP, CONTEXT,
+                      GObject)
 
-void load_installed_portals (gboolean opt_verbose);
-void load_portal_configuration (gboolean opt_verbose);
-XdpPortalImplementation *find_portal_implementation (const char *interface);
-GPtrArray *find_all_portal_implementations (const char *interface);
+XdpContext * xdp_context_new (gboolean opt_verbose);
 
+gboolean xdp_context_register (XdpContext       *context,
+                               GDBusConnection  *connection,
+                               GError          **error);
+
+gboolean xdp_context_is_verbose (XdpContext *context);

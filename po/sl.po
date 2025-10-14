@@ -2,53 +2,53 @@
 # Copyright (C) 2024 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 #
-# Martin <miles@filmsi.net>,  2024, 2025.
+# Martin Srebotnjak <miles@filmsi.net>,  2024, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-08-18 16:01+0000\n"
-"PO-Revision-Date: 2025-08-18 22:03+0200\n"
+"POT-Creation-Date: 2025-09-22 16:02+0000\n"
+"PO-Revision-Date: 2025-09-11 11:36+0200\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || n"
-"%100==4 ? 3 : 0) ;\n"
+"Plural-Forms: nplurals=4; plural=(n%100==1 ? 1 : n%100==2 ? 2 : n%100==3 || "
+"n%100==4 ? 3 : 0) ;\n"
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/background.c:833
+#: src/background.c:828
 #, c-format
 msgid "Allow %s to run in the background?"
 msgstr "Dovolite, da %s deluje v ozadju?"
 
-#: src/background.c:837
+#: src/background.c:832
 #, c-format
 msgid "%s requests to be started automatically and run in the background."
 msgstr "%s zahteve samodejni zagon in izvajanje v ozadju."
 
-#: src/background.c:839
+#: src/background.c:834
 #, c-format
 msgid "%s requests to run in the background."
 msgstr "%s zahteve izvajanje v ozadju."
 
-#: src/background.c:840
+#: src/background.c:835
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings."
 msgstr ""
 "Dovoljenje »zaženi v ozadju« lahko kadar koli spremenite v nastavitvah "
 "programa."
 
-#: src/background.c:844
+#: src/background.c:839
 msgid "Don't allow"
 msgstr "Ne dovoli"
 
-#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
+#: src/background.c:840 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Dovoli"
 
@@ -152,33 +152,33 @@ msgstr "Noben dinamični zaganjalnik ne obstaja z ID-jem »%s«"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Za zaganjalnik z ID-jem »%s« ni uspelo ustvariti GDesktopAppInfo"
 
-#: src/location.c:541
+#: src/location.c:534
 msgid "Deny Access"
 msgstr "Zavrni dostop"
 
-#: src/location.c:543
+#: src/location.c:536
 msgid "Grant Access"
 msgstr "Dovoli dostop"
 
-#: src/location.c:563
+#: src/location.c:556
 #, c-format
 msgid "Give %s Access to Your Location?"
 msgstr "Omogočite %s dostop do svoje lokacije?"
 
-#: src/location.c:568
+#: src/location.c:561
 #, c-format
 msgid "%s wants to use your location."
 msgstr "%s želi uporabiti vašo lokacijo."
 
-#: src/location.c:577
+#: src/location.c:570
 msgid "Grant Access to Your Location?"
 msgstr "Odobrite dostop do svoje lokacije?"
 
-#: src/location.c:578
-msgid "An application wants to use your location."
+#: src/location.c:571
+msgid "An app wants to use your location."
 msgstr "Program želi uporabiti vašo lokacijo."
 
-#: src/location.c:581
+#: src/location.c:574
 msgid "Location access can be changed at any time from the privacy settings."
 msgstr ""
 "Dostop do trenutnega mesta je mogoče spremeniti kadarkoli med nastavitvami "
@@ -212,11 +212,11 @@ msgstr "%s želi narediti posnetek zaslona."
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:260
-msgid "Allow Applications to Take Screenshots?"
-msgstr "Dovolite programom, da naredijo posnetke zaslona?"
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Dovolite programom snemanje posnetkov zaslona?"
 
 #: src/screenshot.c:261
-msgid "An application wants to be able to take screenshots at any time."
+msgid "An app wants to be able to take screenshots at any time."
 msgstr "Program želi kadar koli narediti posnetke zaslona."
 
 #: src/screenshot.c:265
@@ -224,7 +224,7 @@ msgid "Allow to Take a Screenshot?"
 msgstr "Dovolite snemanje posnetkov zaslona?"
 
 #: src/screenshot.c:266
-msgid "An application wants to take a screenshot."
+msgid "An app wants to take a screenshot."
 msgstr "Program želi narediti posnetek zaslona."
 
 #: src/screenshot.c:271 src/wallpaper.c:219
@@ -254,9 +254,9 @@ msgid "%s is requesting to be able to change the background image."
 msgstr "%s zahteva, da lahko spremeni sliko ozadja."
 
 #: src/wallpaper.c:216
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Dovolite programom, da nastavijo ozadja?"
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Dovolite programom nastavljati ozadja?"
 
 #: src/wallpaper.c:217
-msgid "An application is requesting to be able to change the background image."
+msgid "An app is requesting to be able to change the background image."
 msgstr "Program zahteva, da lahko spremeni sliko ozadja."

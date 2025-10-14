@@ -88,6 +88,14 @@ proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
 }
 
 static void
+proxy_resolver_dispose (GObject *object)
+{
+  ProxyResolver *resolver = (ProxyResolver *)object;
+
+  g_clear_object (&resolver->resolver);
+}
+
+static void
 proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface)
 {
   iface->handle_lookup = proxy_resolver_handle_lookup;
@@ -104,6 +112,9 @@ proxy_resolver_init (ProxyResolver *resolver)
 static void
 proxy_resolver_class_init (ProxyResolverClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = proxy_resolver_dispose;
 }
 
 GDBusInterfaceSkeleton *

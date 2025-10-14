@@ -1,8 +1,8 @@
 [Unit]
 Description=Portal service
 PartOf=graphical-session.target
-Requires=dbus.service
-After=dbus.service
+Requisite=graphical-session.target
+After=graphical-session.target
 
 [Service]
 Type=dbus
