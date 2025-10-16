@@ -224,8 +224,8 @@ open_pipewire_camera_remote (const char *app_id,
   struct pw_properties *pipewire_properties;
 
   pipewire_properties =
-    pw_properties_new ("pipewire.access.portal.app_id", app_id,
-                       "pipewire.access.portal.media_roles", "Camera",
+    pw_properties_new ("pipewire.access.xdg-desktop-portal.app_id", app_id,
+                       "pipewire.access.xdg-desktop-portal.media_roles", "Camera",
                        NULL);
   remote = pipewire_remote_new_sync (pipewire_properties,
                                      NULL, NULL, NULL, NULL,
@@ -418,8 +418,8 @@ create_pipewire_remote (Camera *camera,
       return FALSE;
     }
 
-  pipewire_properties = pw_properties_new ("pipewire.access.portal.is_portal", "true",
-                                           "portal.monitor", "Camera",
+  pipewire_properties = pw_properties_new ("pipewire.access.xdg-desktop-portal.is_portal", "true",
+                                           "xdg-desktop-portal.monitor", "Camera",
                                            NULL);
   camera->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
                                                       global_added_cb,
