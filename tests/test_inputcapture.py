@@ -72,7 +72,7 @@ class TestInputCapture:
 
         return response
 
-    def create_session(self, dbus_con, capabilities=0xF):
+    def create_session(self, dbus_con, capabilities=0x7):
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.

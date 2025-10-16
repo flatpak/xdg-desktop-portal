@@ -65,7 +65,7 @@ class TestClipboard:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
-        capabilities = 0xF
+        capabilities = 0x7
         capabilities = dbus.UInt32(capabilities, variant_level=1)
         session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
 
