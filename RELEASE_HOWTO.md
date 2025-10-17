@@ -2,7 +2,6 @@
 
 ### Prepare the release
 
-- Make sure the version in `meson.build` is correct
 - Create a branch
 ```sh
 $ git checkout -b release-${version}
@@ -13,30 +12,38 @@ $ ninja -C ${builddir} xdg-desktop-portal-update-po
 $ git add po/
 $ git commit -m "Update translations"
 ```
-- If this is the first release of a new stable release series, update
-  `SECURITY.md`. It should list the development branch, new stable branch, and
-  old stable branch as currently maintained.
-- Add your changelog to the `NEWS.md` file
-```sh
-$ git add NEWS.md
-$ git commit -m ${version}
+- Update `.github/ISSUE_TEMPLATE/bug-report.yml`. It should list `main`, and the
+  new currently maintained major releases, under "XDG Desktop Portal version".
+- Update version number in `meson.build` to the next version
+- If this is a major release, update `SECURITY.md`. It should list the
+  development version, the current version, and the previous, still maintained
+  version.
+- Add your changelog to a new section in the `NEWS.md` file
+```md
+Changes in ${version}
+=================
+Released: ${date}
+
+...
 ```
-- Push your branch
+- Commit changes and push your branch
 ```sh
+$ git add ...
+$ git commit -m ${version}
 $ git push -u ${fork} release-${version}
 ```
-- Open a pull request
-
-- Merge the pull request and wait for it to reach the `main` branch or the
-  stable branch
+- Open a pull request against the `main` branch for a major release, or the
+  major release branch (e.g. `xdg-desktop-portal-4`) for a minor release
+- Merge the pull request and wait for it to get merged and CI to succeed
 
 ### Create a Signed Tag
 
 **NOTE**: Only project maintainers can create a tag.
 
 Make sure that:
- - You're on the `main` branch, or a stable branch;
- - The tip of the branch is a release commit (e.g. `1.19.4`)
+ - You're on the correct branch (`main` or a major release branch)
+ - The tip of the branch is a release commit (e.g. `4` on the `main` branch,
+   or `5.1` on a major release branch)
  - The version in `meson.build` is correct
 
 Then create the tag:
@@ -49,30 +56,8 @@ $ git push -u origin ${version}
 Copy paste the release notes from NEWS.md into the tag message when running
 `git evtag`.
 
-### Post-Release
+### Branching
 
-- Update version number in `meson.build` to the next release version
-- Start a new section in `NEWS.md`
-```md
-Changes in ${nextVersion}
-=================
-Released: Not yet
-
-...
-```
-
-- Commit the changes as "Post-release version bump" and push to the
-  corresponding branch
-
-### Post-Branching
-
-After creating a stable branch:
- 
-- Update version number in `meson.build` to the next unstable release version.
-  For example if the created stable branch name is xdg-desktop-portal-1.N, bump
-  the version to 1.N+1.0. Commit as "Post-branching version bump".
-- Update `.github/ISSUE_TEMPLATE/bug-report.yml`. It should list the
-  development version, and the currently maintained stable versions, under "XDG
-  Desktop Portal version".
-- Update the pending entry in NEWS.md to refer to the next unstable version.
-- Push changes to the `main` branch.
+When appropriate (usually a bit after a major release), create a release branch
+(e.g. `xdg-desktop-portal-4` for the major version 4 series) and resume feature
+development on the `main` branch.
