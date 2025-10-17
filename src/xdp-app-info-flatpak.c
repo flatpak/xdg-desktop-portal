@@ -34,6 +34,8 @@
 #include "xdp-app-info-flatpak-private.h"
 #include "xdp-usb-query.h"
 
+#include "flatpak-instance.h"
+
 #define FLATPAK_ENGINE_ID "org.flatpak"
 
 #define FLATPAK_METADATA_GROUP_APPLICATION "Application"
@@ -46,12 +48,15 @@
 #define FLATPAK_METADATA_GROUP_CONTEXT "Context"
 #define FLATPAK_METADATA_KEY_SHARED "shared"
 #define FLATPAK_METADATA_CONTEXT_SHARED_NETWORK "network"
+#define FLATPAK_METADATA_KEY_FILESYSTEMS "filesystems"
 #define FLATPAK_METADATA_GROUP_RUNTIME "Runtime"
 
 struct _XdpAppInfoFlatpak
 {
   XdpAppInfo parent;
 
+  char *root_path;
+  gboolean host_tmp_access;
   GKeyFile *flatpak_info;
   GPtrArray *queries;
 };
@@ -86,6 +91,47 @@ find_last_char (const char *str, gsize len, int c)
       p--;
     }
   return NULL;
+}
+
+/* Compares if str has a specific path prefix. This differs
+   from a regular prefix in two ways. First of all there may
+   be multiple slashes separating the path elements, and
+   secondly, if a prefix is matched that has to be en entire
+   path element. For instance /a/prefix matches /a/prefix/foo/bar,
+   but not /a/prefixfoo/bar.
+
+   Copied from https://github.com/flatpak/flatpak/blob/446afd82b05441d15216bf09aff9c68ecfe2ec27/common/flatpak-utils.c#L199 */
+gboolean
+flatpak_has_path_prefix (const char *str,
+                         const char *prefix)
+{
+  while (TRUE)
+    {
+      /* Skip consecutive slashes to reach next path
+         element */
+      while (*str == '/')
+        str++;
+      while (*prefix == '/')
+        prefix++;
+
+      /* No more prefix path elements? Done! */
+      if (*prefix == 0)
+        return TRUE;
+
+      /* Compare path element */
+      while (*prefix != 0 && *prefix != '/')
+        {
+          if (*str != *prefix)
+            return FALSE;
+          str++;
+          prefix++;
+        }
+
+      /* Matched prefix path element,
+         must be entire str path element */
+      if (*str != '/' && *str != 0)
+        return FALSE;
+    }
 }
 
 /**
@@ -239,6 +285,11 @@ xdp_app_info_flatpak_remap_path (XdpAppInfo *app_info,
     return g_build_filename (g_get_home_dir (), ".var", "app",
                              app_id, "data",
                              path + strlen ("/var/data/"), NULL);
+  else if (g_strcmp0 (path, "/tmp") == 0 && !app_info_flatpak->host_tmp_access)
+    return g_build_filename (app_info_flatpak->root_path, "tmp", NULL);
+  else if (flatpak_has_path_prefix (path, "/tmp") && !app_info_flatpak->host_tmp_access)
+    return g_build_filename (app_info_flatpak->root_path, "tmp",
+                             path + strlen("/tmp/"), NULL);
 
   return g_strdup (path);
 }
@@ -487,6 +538,7 @@ xdp_app_info_flatpak_dispose (GObject *object)
 {
   XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
 
+  g_free (app_info->root_path);
   g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
   g_clear_pointer (&app_info->queries, g_ptr_array_unref);
 
@@ -791,7 +843,10 @@ xdp_app_info_flatpak_new (int      pid,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
+  g_auto(GStrv) filesystems = NULL;
+  gboolean has_tmp_access;
   g_autofd int bwrap_pidfd = -1;
+  g_autoptr(FlatpakInstance) flatpak_instance = NULL;
   const char *test_app_info_kind;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -872,6 +927,16 @@ xdp_app_info_flatpak_new (int      pid,
       has_network = FALSE;
     }
 
+  filesystems = g_key_file_get_string_list (metadata,
+                                           FLATPAK_METADATA_GROUP_CONTEXT,
+                                           FLATPAK_METADATA_KEY_FILESYSTEMS,
+                                           NULL, NULL);
+
+  if (filesystems)
+    has_tmp_access = g_strv_contains ((const char * const *)filesystems, "/tmp");
+  else
+    has_tmp_access = FALSE;
+
   /* flatpak has a xdg-dbus-proxy running which means we can't get the pidfd
    * of the connected process but we can get the pidfd of the bwrap instance
    * instead. This is okay because it has the same namespaces as the calling
@@ -887,6 +952,10 @@ xdp_app_info_flatpak_new (int      pid,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  flatpak_instance = flatpak_instance_from_metadata (metadata, error);
+  if (flatpak_instance == NULL)
+    return NULL;
+
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
@@ -899,7 +968,9 @@ xdp_app_info_flatpak_new (int      pid,
   if (!app_info_flatpak)
     return NULL;
 
+  app_info_flatpak->host_tmp_access = has_tmp_access;
   app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
+  app_info_flatpak->root_path = flatpak_instance_get_root_path (flatpak_instance);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }
