@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-09-07 03:55+0000\n"
-"PO-Revision-Date: 2025-09-07 18:45+0300\n"
+"POT-Creation-Date: 2025-10-17 04:07+0000\n"
+"PO-Revision-Date: 2025-10-17 15:17+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
 "Language: ru\n"
@@ -20,56 +20,59 @@ msgstr ""
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 3.7\n"
 
-#: src/background.c:833
+#: src/background.c:828
 #, c-format
-msgid "Allow %s to run in the background?"
+msgid "Allow %s to Run in the Background?"
 msgstr "Разрешить приложению \"%s\" работать в фоне?"
 
-#: src/background.c:837
+#: src/background.c:832
 #, c-format
-msgid "%s requests to be started automatically and run in the background."
-msgstr ""
-"Приложение \"%s\" запрашивает доступ на автоматический запуск и работу в "
-"фоне."
+msgid "%s wants to be started automatically and run in the background"
+msgstr "Приложение \"%s\" хочет запускаться автоматически и работать в фоне"
 
-#: src/background.c:839
+#: src/background.c:834
 #, c-format
-msgid "%s requests to run in the background."
-msgstr "Приложение \"%s\" запрашивает доступ на работу в фоне."
+msgid "%s wants to run in the background"
+msgstr "Приложение \"%s\" хочет работать в фоне"
 
-#: src/background.c:840
+#: src/background.c:835
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
-"settings."
+"settings"
 msgstr ""
 "Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
-"приложения."
+"приложения"
 
-#: src/background.c:844
+#: src/background.c:839
 msgid "Don't allow"
 msgstr "Запретить"
 
-#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
+#: src/background.c:840 src/screenshot.c:219 src/wallpaper.c:186
 msgid "Allow"
 msgstr "Разрешить"
 
-#: src/camera.c:99
+#: src/camera.c:100
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Разрешить приложению \"%s\" использовать камеру?"
 
-#: src/camera.c:100
+#: src/camera.c:101
 #, c-format
-msgid "%s wants to access camera devices."
-msgstr "Приложение \"%s\" хочет получить доступ к устройствам камеры."
-
-#: src/camera.c:104
-msgid "Allow app to Use the Camera?"
-msgstr "Разрешить приложению использовать камеру?"
+msgid "%s wants to access the camera"
+msgstr "Приложение \"%s\" хочет получить доступ к камере"
 
 #: src/camera.c:105
-msgid "An app wants to access camera devices."
-msgstr "Приложение хочет получить доступ к устройствам камеры."
+msgid "Allow Apps to Use the Camera?"
+msgstr "Разрешить приложениям использовать камеру?"
+
+#: src/camera.c:106
+msgid "An app wants to access the camera"
+msgstr "Приложение хочет получить доступ к камере"
+
+#: src/camera.c:109 src/screenshot.c:271 src/wallpaper.c:202
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"Это разрешение можно изменить в любой момент в настройках конфиденциальности"
 
 #: src/dynamic-launcher.c:122
 #, c-format
@@ -155,37 +158,37 @@ msgstr ""
 "Не удалось создать GDesktopAppInfo для программы запуска с идентификатором "
 "'%s'"
 
-#: src/location.c:541
+#: src/location.c:533
 msgid "Deny Access"
 msgstr "Отказать в доступе"
 
-#: src/location.c:543
+#: src/location.c:535
 msgid "Grant Access"
 msgstr "Предоставить доступ"
 
-#: src/location.c:563
+#: src/location.c:541
 #, c-format
-msgid "Give %s Access to Your Location?"
-msgstr "Дать приложению \"%s\" доступ к вашему местоположению?"
+msgid "Allow %s to Access Your Location?"
+msgstr "Разрешить приложению \"%s\" доступ к вашему местоположению?"
 
-#: src/location.c:568
+#: src/location.c:551
 #, c-format
-msgid "%s wants to use your location."
-msgstr "Приложение \"%s\" хочет использовать ваше местоположение."
+msgid "%s wants to use your location"
+msgstr "Приложение \"%s\" хочет использовать ваше местоположение"
 
-#: src/location.c:577
-msgid "Grant Access to Your Location?"
-msgstr "Предоставить доступ к вашему местоположению?"
+#: src/location.c:557
+msgid "Allow Apps to Access Your Location?"
+msgstr "Разрешить приложениям доступ к вашему местоположению?"
 
-#: src/location.c:578
-msgid "An app wants to use your location."
-msgstr "Приложение хочет использовать ваше местоположение."
+#: src/location.c:558
+msgid "An app wants to use your location"
+msgstr "Приложение хочет использовать ваше местоположение"
 
-#: src/location.c:581
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:561
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Доступ к местоположению можно изменить в любой момент в настройках "
-"конфиденциальности."
+"конфиденциальности"
 
 #: src/screenshot.c:217 src/wallpaper.c:184
 msgid "Deny"
@@ -198,9 +201,8 @@ msgstr "Разрешить приложению \"%s\" делать снимки
 
 #: src/screenshot.c:244
 #, c-format
-msgid "%s wants to be able to take screenshots at any time."
-msgstr ""
-"Приложение \"%s\" хочет иметь возможность делать снимки экрана в любое время."
+msgid "%s wants to take screenshots at any time"
+msgstr "Приложение \"%s\" хочет делать снимки экрана в любое время"
 
 #: src/screenshot.c:248
 #, c-format
@@ -209,8 +211,8 @@ msgstr "Разрешить приложению \"%s\" сделать снимо
 
 #: src/screenshot.c:249
 #, c-format
-msgid "%s wants to take a screenshot."
-msgstr "Приложение \"%s\" хочет сделать снимок экрана."
+msgid "%s wants to take a screenshot"
+msgstr "Приложение \"%s\" хочет сделать снимок экрана"
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
@@ -220,52 +222,49 @@ msgid "Allow Apps to Take Screenshots?"
 msgstr "Разрешить приложениям делать снимки экрана?"
 
 #: src/screenshot.c:261
-msgid "An app wants to be able to take screenshots at any time."
-msgstr "Приложение хочет иметь возможность делать снимки экрана в любое время."
+msgid "An app wants to take screenshots at any time"
+msgstr "Приложение хочет делать снимки экрана в любое время"
 
 #: src/screenshot.c:265
 msgid "Allow to Take a Screenshot?"
 msgstr "Разрешить сделать снимок экрана?"
 
 #: src/screenshot.c:266
-msgid "An app wants to take a screenshot."
-msgstr "Приложение хочет сделать снимок экрана."
-
-#: src/screenshot.c:271 src/wallpaper.c:219
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Это разрешение можно изменить в любой момент в настройках конфиденциальности."
+msgid "An app wants to take a screenshot"
+msgstr "Приложение хочет сделать снимок экрана"
 
 #: src/settings.c:187 src/settings.c:223
 msgid "Requested setting not found"
 msgstr "Запрашиваемая настройка не найдена"
 
-#: src/usb.c:1328
+#: src/usb.c:1358
 msgid "Device not available"
 msgstr "Устройство недоступно"
 
-#: src/usb.c:1342
+#: src/usb.c:1372
 msgid "Not allowed"
 msgstr "Запрещено"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:192
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Разрешить приложению \"%s\" устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:193
 #, c-format
-msgid "%s is requesting to be able to change the background image."
-msgstr ""
-"Приложение \"%s\" запрашивает возможность изменения фонового изображения."
+msgid "%s wants to change the background image"
+msgstr "Приложение \"%s\" хочет изменить фоновое изображение"
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:198
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Разрешить приложениям устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:217
-msgid "An app is requesting to be able to change the background image."
-msgstr "Приложение запрашивает возможность изменения фонового изображения."
+#: src/wallpaper.c:199
+msgid "An app wants to change the background image"
+msgstr "Приложение хочет изменить фоновое изображение"
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Предоставить доступ к вашему местоположению?"
 
 #~ msgid "Allow Applications to Take Screenshots?"
 #~ msgstr "Разрешить приложениям делать снимки экрана?"
