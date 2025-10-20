@@ -114,12 +114,7 @@ init_power_profile_monitor (XdpContext *context)
 {
   power_profile_monitor = g_object_new (power_profile_monitor_get_type (), NULL);
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (power_profile_monitor),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-power-profile-monitor",
-                          power_profile_monitor,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (power_profile_monitor),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

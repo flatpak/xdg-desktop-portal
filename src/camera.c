@@ -558,12 +558,7 @@ init_camera (XdpContext *context_)
 
   camera = g_object_new (camera_get_type (), NULL);
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (camera),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-camera",
-                          camera,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (camera),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

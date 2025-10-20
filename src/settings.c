@@ -319,12 +319,7 @@ init_settings (XdpContext *context)
   if (n_impls == 0)
     return;
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (settings),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-settings",
-                          g_steal_pointer (&settings),
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings)),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

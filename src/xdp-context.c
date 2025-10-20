@@ -73,6 +73,7 @@ struct _XdpContext
   XdpDbusImplLockdown *lockdown_impl;
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
+  GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -96,6 +97,7 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->connection);
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->app_info_registry);
+  g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
@@ -121,6 +123,9 @@ xdp_context_new (gboolean opt_verbose)
   context->verbose = opt_verbose;
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
+  context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                     g_free,
+                                                     g_object_unref);
 
   return context;
 }
@@ -211,14 +216,18 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 void
-xdp_context_export_portal (XdpContext             *context,
-                           GDBusInterfaceSkeleton *skeleton,
-                           XdpContextExportFlags   flags)
+xdp_context_take_and_export_portal (XdpContext             *context,
+                                    GDBusInterfaceSkeleton *skeleton_,
+                                    XdpContextExportFlags   flags)
 {
+  g_autoptr(GDBusInterfaceSkeleton) skeleton = skeleton_;
   g_autoptr(GError) error = NULL;
+  const char *name;
 
   g_return_if_fail (XDP_IS_CONTEXT (context));
   g_return_if_fail (G_IS_DBUS_INTERFACE_SKELETON (skeleton));
+
+  name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 
   if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
     {
@@ -239,16 +248,24 @@ xdp_context_export_portal (XdpContext             *context,
                         context);
     }
 
-  if (!g_dbus_interface_skeleton_export (skeleton,
-                                         context->connection,
-                                         DESKTOP_PORTAL_OBJECT_PATH,
-                                         &error))
-    {
-      g_warning ("Error: %s", error->message);
-      return;
-    }
+  if (g_dbus_interface_skeleton_export (skeleton,
+                                        context->connection,
+                                        DESKTOP_PORTAL_OBJECT_PATH,
+                                        &error))
+    g_debug ("Providing portal %s", name);
+  else
+    g_warning ("Exporting portal failed: %s", error->message);
 
-  g_debug ("providing portal %s", g_dbus_interface_skeleton_get_info (skeleton)->name);
+  g_hash_table_insert (context->exported_portals,
+                       g_strdup (name),
+                       g_steal_pointer (&skeleton));
+}
+
+GDBusInterfaceSkeleton *
+xdp_context_get_portal (XdpContext *context,
+                        const char *interface)
+{
+  return g_hash_table_lookup (context->exported_portals, interface);
 }
 
 static void
