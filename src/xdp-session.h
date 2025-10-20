@@ -69,6 +69,13 @@ XDP_IS_SESSION (gpointer ptr)
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpSession, g_object_unref)
 
+#define SESSION_AUTOLOCK(session) \
+  G_MUTEX_AUTO_LOCK (&session->mutex, G_PASTE (request_auto_locker, __LINE__));
+
+#define SESSION_AUTOLOCK_UNREF(session) \
+  G_MUTEX_AUTO_LOCK (&session->mutex, G_PASTE (request_auto_locker, __LINE__)); \
+  g_autoptr(XdpSession) G_PASTE (request_auto_unref, __LINE__) = session;
+
 const char * lookup_session_token (GVariant *options);
 
 XdpSession * xdp_session_from_request (const char *session_handle,
@@ -88,31 +95,3 @@ void close_sessions_for_sender (const char *sender);
 
 void xdp_session_close (XdpSession *session,
                         gboolean    notify_close);
-
-static inline void
-auto_session_unlock_unref_helper (XdpSession **session)
-{
-  if (!*session)
-    return;
-
-  g_mutex_unlock (&(*session)->mutex);
-  g_object_unref (*session);
-}
-
-static inline XdpSession *
-auto_session_lock_helper (XdpSession *session)
-{
-  if (session)
-    g_mutex_lock (&session->mutex);
-  return session;
-}
-
-#define SESSION_AUTOLOCK(session) \
-  G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) \
-  GMutex * G_PASTE (session_auto_unlock, __LINE__) = \
-    auto_lock_helper (&session->mutex);
-
-#define SESSION_AUTOLOCK_UNREF(session) \
-  G_GNUC_UNUSED __attribute__((cleanup (auto_session_unlock_unref_helper))) \
-  XdpSession * G_PASTE (session_auto_unlock_unref, __LINE__) = \
-    auto_session_lock_helper (session);
