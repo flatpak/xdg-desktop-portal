@@ -58,6 +58,9 @@ G_DECLARE_FINAL_TYPE (XdpRequest,
                       XDP, REQUEST,
                       XdpDbusRequestSkeleton)
 
+#define REQUEST_AUTOLOCK(request) \
+  G_MUTEX_AUTO_LOCK (&request->mutex, G_PASTE (request_auto_locker, __LINE__));
+
 gboolean xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
                                       XdpAppInfo             *app_info,
                                       GError                **error);
@@ -75,22 +78,3 @@ void close_requests_for_sender (const char *sender);
 
 void xdp_request_set_impl_request (XdpRequest         *request,
                                    XdpDbusImplRequest *impl_request);
-
-static inline void
-auto_unlock_helper (GMutex **mutex)
-{
-  if (*mutex)
-    g_mutex_unlock (*mutex);
-}
-
-static inline GMutex *
-auto_lock_helper (GMutex *mutex)
-{
-  if (mutex)
-    g_mutex_lock (mutex);
-  return mutex;
-}
-
-#define REQUEST_AUTOLOCK(request) \
-  G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) \
-  GMutex * G_PASTE (request_auto_unlock, __LINE__) = auto_lock_helper (&request->mutex);

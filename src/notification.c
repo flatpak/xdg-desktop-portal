@@ -118,7 +118,6 @@ struct _CallData {
 
 G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
 G_DEFINE_TYPE (CallData, call_data, G_TYPE_OBJECT);
-#define CALL_DATA_AUTOLOCK(call_data) G_GNUC_UNUSED __attribute__((cleanup (auto_unlock_helper))) GMutex * G_PASTE (request_auto_unlock, __LINE__) = auto_lock_helper (&call_data->mutex);
 
 static void
 call_data_init (CallData *call_data)
@@ -1051,7 +1050,7 @@ handle_add_in_thread_func (GTask        *task,
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
   g_autoptr(GError) error = NULL;
 
-  CALL_DATA_AUTOLOCK (call_data);
+  G_MUTEX_AUTO_LOCK (&call_data->mutex, call_data_locker);
 
   if (!xdp_app_info_is_host (call_data->app_info) &&
       !get_notification_allowed (call_data->app_info))
