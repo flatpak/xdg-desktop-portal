@@ -554,12 +554,7 @@ init_inhibit (XdpContext *context)
 
   g_signal_connect (impl, "state-changed", G_CALLBACK (state_changed_cb), inhibit);
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (inhibit),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-inhibit",
-                          inhibit,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (inhibit),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

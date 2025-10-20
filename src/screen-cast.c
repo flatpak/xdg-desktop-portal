@@ -1126,14 +1126,9 @@ init_screen_cast (XdpContext *context)
 
   screen_cast = g_object_new (screen_cast_get_type (), NULL);
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (screen_cast),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-screen-cast",
-                          screen_cast,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (screen_cast),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
 
 static void

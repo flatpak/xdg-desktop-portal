@@ -318,12 +318,7 @@ init_realtime (XdpContext *context)
   if (realtime->rtkit_proxy)
     load_all_properties (realtime->rtkit_proxy);
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (realtime),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-realtime",
-                          realtime,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (realtime),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

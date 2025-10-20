@@ -1177,13 +1177,8 @@ init_open_uri (XdpContext *context_)
 
   monitor = g_app_info_monitor_get ();
 
-  xdp_context_export_portal (context,
-                             G_DBUS_INTERFACE_SKELETON (open_uri),
-                             XDP_CONTEXT_EXPORT_FLAGS_NONE);
-
-  g_object_set_data_full (G_OBJECT (context),
-                          "-xdp-portal-open-uri",
-                          open_uri,
-                          g_object_unref);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (open_uri),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
 
