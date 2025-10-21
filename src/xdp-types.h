@@ -67,3 +67,7 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define FILE_CHOOSER_DBUS_IFACE DESKTOP_DBUS_IFACE ".FileChooser"
 #define FILE_CHOOSER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".FileChooser"
+
+#define GAMEMODE_DBUS_IFACE DESKTOP_DBUS_IFACE ".GameMode"
+#define GAMEMODE_PERMISSION_TABLE "gamemode"
+#define GAMEMODE_PERMISSION_ID "gamemode"
