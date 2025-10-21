@@ -133,3 +133,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define USB_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Usb"
 #define USB_PERMISSION_TABLE "usb"
 #define USB_PERMISSION_ID "usb"
+
+#define WALLPAPER_DBUS_IFACE DESKTOP_DBUS_IFACE ".Wallpaper"
+#define WALLPAPER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Wallpaper"
+#define WALLPAPER_PERMISSION_TABLE "wallpaper"
+#define WALLPAPER_PERMISSION_ID "wallpaper"
