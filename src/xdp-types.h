@@ -120,3 +120,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define SCREENSHOT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Screenshot"
 #define SCREENSHOT_PERMISSION_TABLE "screenshot"
 #define SCREENSHOT_PERMISSION_ID "screenshot"
+
+#define SECRET_DBUS_IFACE DESKTOP_DBUS_IFACE ".Secret"
+#define SECRET_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Secret"
