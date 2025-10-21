@@ -115,3 +115,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define SCREEN_CAST_DBUS_IFACE DESKTOP_DBUS_IFACE ".ScreenCast"
 #define SCREEN_CAST_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".ScreenCast"
 #define SCREEN_CAST_PERMISSION_TABLE "screencast"
+
+#define SCREENSHOT_DBUS_IFACE DESKTOP_DBUS_IFACE ".Screenshot"
+#define SCREENSHOT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Screenshot"
+#define SCREENSHOT_PERMISSION_TABLE "screenshot"
+#define SCREENSHOT_PERMISSION_ID "screenshot"
