@@ -46,3 +46,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define ACCOUNT_DBUS_IFACE DESKTOP_DBUS_IFACE ".Account"
 #define ACCOUNT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Account"
+
+#define BACKGROUND_DBUS_IFACE DESKTOP_DBUS_IFACE ".Background"
+#define BACKGROUND_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Background"
+#define BACKGROUND_PERMISSION_TABLE "background"
+#define BACKGROUND_PERMISSION_ID "background"
