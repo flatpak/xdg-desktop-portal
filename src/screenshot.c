@@ -44,15 +44,16 @@
 
 #include "screenshot.h"
 
-#define PERMISSION_TABLE "screenshot"
-#define PERMISSION_ID "screenshot"
-
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
 
 struct _Screenshot
 {
   XdpDbusScreenshotSkeleton parent_instance;
+
+  XdpDbusImplScreenshot *impl;
+  XdpDbusImplAccess *access_impl;
+  guint32 impl_version;
 };
 
 struct _ScreenshotClass
@@ -60,17 +61,14 @@ struct _ScreenshotClass
   XdpDbusScreenshotSkeletonClass parent_class;
 };
 
-static XdpDbusImplScreenshot *impl;
-static XdpDbusImplAccess *access_impl;
-static guint32 impl_version;
-static Screenshot *screenshot;
-
 GType screenshot_get_type (void) G_GNUC_CONST;
 static void screenshot_iface_init (XdpDbusScreenshotIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREENSHOT,
                                                 screenshot_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Screenshot, g_object_unref)
 
 static void
 send_response (XdpRequest *request,
@@ -192,9 +190,10 @@ static XdpOptionKey screenshot_options[] = {
 };
 
 static gboolean
-check_non_interactive_permission_in_thread (XdpRequest *request,
+check_non_interactive_permission_in_thread (Screenshot *screenshot,
+                                            XdpRequest *request,
                                             const char *parent_window,
-                                            gboolean modal)
+                                            gboolean    modal)
 {
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) access_results = NULL;
@@ -207,7 +206,9 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
   uint access_response = 2;
   const char *app_id;
 
-  permission = xdp_get_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID);
+  permission = xdp_get_permission_sync (request->app_info,
+                                        SCREENSHOT_PERMISSION_TABLE,
+                                        SCREENSHOT_PERMISSION_ID);
 
   if (permission == XDP_PERMISSION_YES)
     return TRUE;
@@ -272,7 +273,7 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
   if (permission == XDP_PERMISSION_UNSET)
     body = _("This permission can be changed at any time from the privacy settings");
 
-  if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+  if (!xdp_dbus_impl_access_call_access_dialog_sync (screenshot->access_impl,
                                                      request->id,
                                                      app_id,
                                                      parent_window,
@@ -290,7 +291,12 @@ check_non_interactive_permission_in_thread (XdpRequest *request,
     }
 
   if (permission == XDP_PERMISSION_UNSET)
-    xdp_set_permission_sync (request->app_info, PERMISSION_TABLE, PERMISSION_ID, access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+    {
+      xdp_set_permission_sync (request->app_info,
+                               SCREENSHOT_PERMISSION_TABLE,
+                               SCREENSHOT_PERMISSION_ID,
+                               access_response == 0 ? XDP_PERMISSION_YES : XDP_PERMISSION_NO);
+    }
 
   return access_response == 0;
 }
@@ -302,6 +308,7 @@ handle_screenshot_in_thread_func (GTask *task,
                                   gpointer task_data,
                                   GCancellable *cancellable)
 {
+  Screenshot *screenshot = (Screenshot *) source_object;
   XdpRequest *request = XDP_REQUEST (task_data);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -320,16 +327,19 @@ handle_screenshot_in_thread_func (GTask *task,
   parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
   options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
 
-
   if (!g_variant_lookup (options, "interactive", "b", &interactive))
     interactive = FALSE;
 
   if (!g_variant_lookup (options, "modal", "b", &modal))
     modal = TRUE;
 
-  if (xdp_dbus_impl_screenshot_get_version (impl) >= 2)
+  if (xdp_dbus_impl_screenshot_get_version (screenshot->impl) >= 2)
     {
-      if (!interactive && !check_non_interactive_permission_in_thread (request, parent_window, modal))
+      if (!interactive &&
+          !check_non_interactive_permission_in_thread (screenshot,
+                                                       request,
+                                                       parent_window,
+                                                       modal))
         {
           send_response (request, 2, g_variant_builder_end (&opt_builder));
           return;
@@ -338,9 +348,9 @@ handle_screenshot_in_thread_func (GTask *task,
     }
 
   impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
                                           request->id,
                                           NULL, &error);
   if (!impl_request)
@@ -362,7 +372,7 @@ handle_screenshot_in_thread_func (GTask *task,
     }
 
   g_debug ("Calling Screenshot with interactive=%d", interactive);
-  xdp_dbus_impl_screenshot_call_screenshot (impl,
+  xdp_dbus_impl_screenshot_call_screenshot (screenshot->impl,
                                             request->id,
                                             app_id,
                                             parent_window,
@@ -440,6 +450,7 @@ handle_pick_color (XdpDbusScreenshot *object,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
+  Screenshot *screenshot = (Screenshot *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -449,9 +460,9 @@ handle_pick_color (XdpDbusScreenshot *object,
   REQUEST_AUTOLOCK (request);
 
   impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
+    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (screenshot->impl)),
                                           G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
+                                          g_dbus_proxy_get_name (G_DBUS_PROXY (screenshot->impl)),
                                           request->id,
                                           NULL, &error);
   if (!impl_request)
@@ -467,7 +478,7 @@ handle_pick_color (XdpDbusScreenshot *object,
                       pick_color_options, G_N_ELEMENTS (pick_color_options),
                       NULL, NULL);
 
-  xdp_dbus_impl_screenshot_call_pick_color (impl,
+  xdp_dbus_impl_screenshot_call_pick_color (screenshot->impl,
                                             request->id,
                                             xdp_app_info_get_id (request->app_info),
                                             arg_parent_window,
@@ -489,47 +500,75 @@ screenshot_iface_init (XdpDbusScreenshotIface *iface)
 }
 
 static void
+screenshot_dispose (GObject *object)
+{
+  Screenshot *screenshot = (Screenshot *) object;
+
+  g_clear_object (&screenshot->impl);
+  g_clear_object (&screenshot->access_impl);
+
+  G_OBJECT_CLASS (screenshot_parent_class)->dispose (object);
+}
+
+static void
 screenshot_init (Screenshot *screenshot)
 {
-  /* Before there was a version property, the version was hardcoded to 2, so
-   * make sure we retain that behaviour */
-  impl_version = 2;
-  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
-                                   impl_version);
 }
 
 static void
 screenshot_class_init (ScreenshotClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = screenshot_dispose;
+}
+
+static Screenshot *
+screenshot_new (XdpDbusImplScreenshot *impl,
+                XdpDbusImplAccess     *access_impl)
+{
+  Screenshot *screenshot;
+  g_autoptr(GVariant) version = NULL;
+
+  screenshot = g_object_new (screenshot_get_type (), NULL);
+  screenshot->access_impl = g_object_ref (access_impl);
+  screenshot->impl = g_object_ref (impl);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screenshot->impl), G_MAXINT);
+
+
+  /* Before there was a version property, the version was hardcoded to 2, so
+   * make sure we retain that behaviour */
+  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (screenshot->impl),
+                                              "version");
+  screenshot->impl_version =
+    (version != NULL) ? g_variant_get_uint32 (version) : 2;
+
+  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
+                                   screenshot->impl_version);
+
+  return screenshot;
 }
 
 void
 init_screenshot (XdpContext *context)
 {
+  g_autoptr(Screenshot) screenshot = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
-  XdpImplConfig *access_impl_config;
+  XdpDbusImplAccess *access_impl;
   XdpImplConfig *impl_config;
-  g_autoptr(GVariant) version = NULL;
+  g_autoptr(XdpDbusImplScreenshot) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  access_impl_config =
-    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
-
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.Screenshot");
-
-  if (access_impl_config == NULL || impl_config == NULL)
+  impl_config = xdp_portal_config_find (config, SCREENSHOT_DBUS_IMPL_IFACE);
+  if (impl_config == NULL)
     return;
 
-  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
-                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                     access_impl_config->dbus_name,
-                                                     DESKTOP_DBUS_PATH,
-                                                     NULL, &error);
+  access_impl = xdp_context_get_access_impl (context);
   if (access_impl == NULL)
     {
-      g_warning ("Failed to create access proxy: %s", error->message);
+      g_warning ("The screenshot portal requires an access impl");
       return;
     }
 
@@ -545,15 +584,9 @@ init_screenshot (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  /* Set the version if supported; otherwise fallback to hardcoded version 2 */
-  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (impl), "version");
-  impl_version = (version != NULL) ? g_variant_get_uint32 (version) : 2;
-
-  screenshot = g_object_new (screenshot_get_type (), NULL);
+  screenshot = screenshot_new (impl, access_impl);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (screenshot),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&screenshot)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
