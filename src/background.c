@@ -67,9 +67,6 @@
  * - Enable or disable autostart
  */
 
-#define PERMISSION_TABLE "background"
-#define PERMISSION_ID "background"
-
 typedef struct _Background Background;
 typedef struct _BackgroundClass BackgroundClass;
 
@@ -77,18 +74,23 @@ struct _Background
 {
   XdpDbusBackgroundSkeleton parent_instance;
 
+  XdpDbusImplBackground *impl;
+  XdpDbusImplAccess *access_impl;
+  GFileMonitor *instance_monitor;
   XdpBackgroundMonitor *monitor;
+
+  GTask *monitor_task;
+  gboolean check_queued;
+  GCancellable *cancellable;
+
+  GHashTable *applications; /* instance ID -> InstanceData */
+  GMutex applications_lock;
 };
 
 struct _BackgroundClass
 {
   XdpDbusBackgroundSkeletonClass parent_class;
 };
-
-static XdpDbusImplAccess *access_impl;
-static XdpDbusImplBackground *background_impl;
-static Background *background;
-static GFileMonitor *instance_monitor;
 
 GType background_get_type (void) G_GNUC_CONST;
 static void background_iface_init (XdpDbusBackgroundIface *iface);
@@ -97,6 +99,8 @@ G_DEFINE_TYPE_WITH_CODE (Background, background,
                          XDP_DBUS_TYPE_BACKGROUND_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_BACKGROUND,
                                                 background_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Background, g_object_unref)
 
 typedef enum {
   BACKGROUND = 0,
@@ -118,8 +122,8 @@ get_all_permissions (void)
   g_autoptr(GVariant) out_data = NULL;
 
   if (!xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
-                                                        PERMISSION_TABLE,
-                                                        PERMISSION_ID,
+                                                        BACKGROUND_PERMISSION_TABLE,
+                                                        BACKGROUND_PERMISSION_ID,
                                                         &out_perms,
                                                         &out_data,
                                                         NULL,
@@ -208,9 +212,9 @@ set_permission (const char *app_id,
   permissions[1] = NULL;
 
   if (!xdp_dbus_impl_permission_store_call_set_permission_sync (xdp_get_permission_store (),
-                                                                PERMISSION_TABLE,
+                                                                BACKGROUND_PERMISSION_TABLE,
                                                                 TRUE,
-                                                                PERMISSION_ID,
+                                                                BACKGROUND_PERMISSION_ID,
                                                                 app_id,
                                                                 (const char * const*)permissions,
                                                                 NULL,
@@ -240,7 +244,7 @@ set_permission (const char *app_id,
  */
 
 static GHashTable *
-get_app_states (void)
+get_app_states (Background *background)
 {
   g_autoptr(GVariant) apps = NULL;
   g_autoptr(GHashTable) app_states = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
@@ -248,7 +252,9 @@ get_app_states (void)
   GVariant *value;
   g_autoptr(GError) error = NULL;
 
-  if (!xdp_dbus_impl_background_call_get_app_state_sync (background_impl, &apps, NULL, &error))
+  if (!xdp_dbus_impl_background_call_get_app_state_sync (background->impl,
+                                                         &apps,
+                                                         NULL, &error))
     {
       static int warned = 0;
 
@@ -300,18 +306,14 @@ instance_data_free (gpointer data)
   g_free (idata);
 }
 
-/* instance ID -> InstanceData
- */
-static GHashTable *applications;
-G_LOCK_DEFINE (applications);
-
 static void
-close_notification (const char *handle)
+close_notification (Background *background,
+                    const char *handle)
 {
-  g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (background_impl)),
-                          g_dbus_proxy_get_name (G_DBUS_PROXY (background_impl)),
+  g_dbus_connection_call (g_dbus_proxy_get_connection (G_DBUS_PROXY (background->impl)),
+                          g_dbus_proxy_get_name (G_DBUS_PROXY (background->impl)),
                           handle,
-                          "org.freedesktop.impl.portal.Request",
+                          DESKTOP_DBUS_IMPL_IFACE ".Request",
                           "Close",
                           NULL,
                           NULL,
@@ -321,7 +323,8 @@ close_notification (const char *handle)
 }
 
 static void
-remove_outdated_instances (int stamp)
+remove_outdated_instances (Background *background,
+                           int         stamp)
 {
   GHashTableIter iter;
   char *id;
@@ -331,8 +334,8 @@ remove_outdated_instances (int stamp)
 
   handles = g_ptr_array_new_with_free_func (g_free);
 
-  G_LOCK (applications);
-  g_hash_table_iter_init (&iter, applications);
+  g_mutex_lock (&background->applications_lock);
+  g_hash_table_iter_init (&iter, background->applications);
   while (g_hash_table_iter_next (&iter, (gpointer *)&id, (gpointer *)&data))
     {
       if (data->stamp < stamp)
@@ -342,17 +345,17 @@ remove_outdated_instances (int stamp)
           g_hash_table_iter_remove (&iter);
         }
     }
-  G_UNLOCK (applications);
+  g_mutex_unlock (&background->applications_lock);
 
   for (i = 0; i < handles->len; i++)
     {
       char *handle = g_ptr_array_index (handles, i);
-      close_notification (handle);
+      close_notification (background, handle);
     }
 }
 
 static void
-update_background_monitor_properties (void)
+update_background_monitor_properties (Background *background)
 {
   g_auto(GVariantBuilder) builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("aa{sv}"));
@@ -360,8 +363,8 @@ update_background_monitor_properties (void)
   InstanceData *data;
   char *id;
 
-  G_LOCK (applications);
-  g_hash_table_iter_init (&iter, applications);
+  g_mutex_lock (&background->applications_lock);
+  g_hash_table_iter_init (&iter, background->applications);
   while (g_hash_table_iter_next (&iter, (gpointer *)&id, (gpointer *)&data))
     {
       g_auto(GVariantBuilder) app_builder =
@@ -386,7 +389,7 @@ update_background_monitor_properties (void)
 
       g_variant_builder_add_value (&builder, g_variant_builder_end (&app_builder));
     }
-  G_UNLOCK (applications);
+  g_mutex_unlock (&background->applications_lock);
 
   xdp_dbus_background_monitor_set_background_apps (XDP_DBUS_BACKGROUND_MONITOR (background->monitor),
                                                    g_variant_builder_end (&builder));
@@ -412,6 +415,7 @@ flatpak_instance_get_display_name (FlatpakInstance *instance)
 }
 
 typedef struct {
+  Background *background;
   char *handle;
   char *app_id;
   char *id;
@@ -425,6 +429,7 @@ notification_data_free (gpointer data)
 {
   NotificationData *nd = data;
 
+  g_object_unref (nd->background);
   g_free (nd->handle);
   g_free (nd->app_id);
   g_free (nd->id);
@@ -438,13 +443,14 @@ notify_background_done (GObject *source,
                         gpointer data)
 {
   NotificationData *nd = (NotificationData *)data;
+  Background *background = nd->background;
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) results = NULL;
   guint response;
   guint result;
   InstanceData *idata;
 
-  if (!xdp_dbus_impl_background_call_notify_background_finish (background_impl,
+  if (!xdp_dbus_impl_background_call_notify_background_finish (background->impl,
                                                                &response,
                                                                &results,
                                                                res,
@@ -491,20 +497,20 @@ notify_background_done (GObject *source,
   if (nd->perm != XDP_PERMISSION_UNSET)
     set_permission (nd->app_id, nd->perm);
 
-  G_LOCK (applications);
-  idata = g_hash_table_lookup (applications, nd->id);
+  g_mutex_lock (&background->applications_lock);
+  idata = g_hash_table_lookup (background->applications, nd->id);
   if (idata)
     {
       g_clear_pointer (&idata->handle, g_free);
       idata->permission = nd->perm;
     }
-  G_UNLOCK (applications);
+  g_mutex_unlock (&background->applications_lock);
 
   notification_data_free (nd);
 }
 
 static void
-check_background_apps (void)
+check_background_apps (Background *background)
 {
   g_autoptr(GVariant) perms = NULL;
   g_autoptr(GHashTable) app_states = NULL;
@@ -513,7 +519,7 @@ check_background_apps (void)
   static int stamp;
   g_autoptr(GPtrArray) notifications = NULL;
 
-  app_states = get_app_states ();
+  app_states = get_app_states (background);
   if (app_states == NULL)
     return;
 
@@ -525,7 +531,7 @@ check_background_apps (void)
 
   stamp++;
 
-  G_LOCK (applications);
+  g_mutex_lock (&background->applications_lock);
   for (i = 0; i < instances->len; i++)
     {
       FlatpakInstance *instance = g_ptr_array_index (instances, i);
@@ -543,7 +549,7 @@ check_background_apps (void)
       app_id = flatpak_instance_get_app (instance);
       child_pid = flatpak_instance_get_child_pid (instance);
 
-      idata = g_hash_table_lookup (applications, id);
+      idata = g_hash_table_lookup (background->applications, id);
 
       if (!app_id)
         continue;
@@ -553,7 +559,7 @@ check_background_apps (void)
           is_new = TRUE;
           idata = g_new0 (InstanceData, 1);
           idata->instance = g_object_ref (instance);
-          g_hash_table_insert (applications, g_strdup (id), idata);
+          g_hash_table_insert (background->applications, g_strdup (id), idata);
         }
 
       idata->stamp = stamp;
@@ -594,13 +600,16 @@ check_background_apps (void)
 
             if (idata->handle)
               {
-                close_notification (idata->handle);
+                close_notification (background, idata->handle);
                 g_free (idata->handle);
               }
 
-            idata->handle = g_strdup_printf ("/org/freedesktop/portal/desktop/notify/background%d", stamp);
+            idata->handle =
+              g_strdup_printf (DESKTOP_DBUS_PATH "/notify/background%d",
+                               stamp);
             idata->notified = TRUE;
 
+            nd->background = g_object_ref (background);
             nd->handle = g_strdup (idata->handle);
             nd->name = flatpak_instance_get_display_name (instance);
             nd->app_id = g_strdup (app_id);
@@ -617,7 +626,7 @@ check_background_apps (void)
           break;
         }
     }
-  G_UNLOCK (applications);
+  g_mutex_unlock (&background->applications_lock);
 
   for (i = 0; i < notifications->len; i++)
     {
@@ -625,7 +634,7 @@ check_background_apps (void)
 
       g_debug ("Notify background for %s", nd->app_id);
 
-      xdp_dbus_impl_background_call_notify_background (background_impl,
+      xdp_dbus_impl_background_call_notify_background (background->impl,
                                                        nd->handle,
                                                        nd->app_id,
                                                        nd->name,
@@ -634,58 +643,90 @@ check_background_apps (void)
                                                        nd);
     }
 
-  remove_outdated_instances (stamp);
-  update_background_monitor_properties ();
+  remove_outdated_instances (background, stamp);
+  update_background_monitor_properties (background);
 }
 
-static GMainContext *monitor_context;
-
-static gpointer
-background_monitor (gpointer data)
+static void
+monitor_background_in_thread (GTask        *task,
+                              gpointer      source_object,
+                              gpointer      task_data,
+                              GCancellable *cancellable)
 {
-  applications = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                        g_free, instance_data_free);
+  Background *background = source_object;
 
-  while (TRUE)
+  /* We check twice, to avoid killing unlucky apps hit at a bad time */
+  sleep (5);
+
+  if (!g_task_set_return_on_cancel (task, FALSE))
+    return;
+  check_background_apps (background);
+  if (!g_task_set_return_on_cancel (task, TRUE))
+    return;
+
+  sleep (5);
+
+  if (!g_task_set_return_on_cancel (task, FALSE))
+    return;
+  check_background_apps (background);
+  if (!g_task_set_return_on_cancel (task, TRUE))
+    return;
+
+  g_task_return_boolean (task, TRUE);
+}
+
+static void monitor_background (Background *background);
+
+static void
+on_monitor_background_done (GObject      *object,
+                            GAsyncResult *result,
+                            gpointer      user_data)
+{
+  Background *background = (Background *) object;
+  g_autoptr(GTask) task = g_steal_pointer (&background->monitor_task);
+
+  g_return_if_fail (g_task_is_valid (result, background));
+
+  if (!g_task_propagate_boolean (task, NULL))
+    return;
+
+  if (background->check_queued)
+    monitor_background (background);
+}
+
+static void
+monitor_background (Background *background)
+{
+  if (background->monitor_task)
     {
-      g_main_context_iteration (monitor_context, TRUE);
-      /* We check twice, to avoid killing unlucky apps hit at a bad time */
-      sleep (5);
-      check_background_apps ();
-      sleep (5);
-      check_background_apps ();
+      background->check_queued = TRUE;
+      return;
     }
 
-  g_clear_pointer (&applications, g_hash_table_unref);
-  g_clear_pointer (&monitor_context, g_main_context_unref);
-
-  return NULL;
+  background->monitor_task = g_task_new (background,
+                                         background->cancellable,
+                                         on_monitor_background_done,
+                                         NULL);
+  g_task_set_return_on_cancel (background->monitor_task, TRUE);
+  g_task_run_in_thread (background->monitor_task, monitor_background_in_thread);
 }
 
 static void
-start_background_monitor (void)
+on_running_apps_changed (gpointer data)
 {
-  g_autoptr(GThread) thread = NULL;
+  Background *background = data;
 
-  g_debug ("Starting background app monitor");
-
-  monitor_context = g_main_context_new ();
-
-  thread = g_thread_new ("background monitor", background_monitor, NULL);
-}
-
-static void
-running_apps_changed (gpointer data)
-{
   g_debug ("Running app windows changed, wake up monitor thread");
-  g_main_context_wakeup (monitor_context);
+  monitor_background (background);
 }
 
 static void
-instances_changed (gpointer data)
+on_instances_changed (gpointer data)
 {
+  Background *background = data;
+
   g_debug ("Running instances changed, wake up monitor thread");
-  g_main_context_wakeup (monitor_context);
+  monitor_background (background);
 }
 
 gboolean
@@ -782,6 +823,7 @@ handle_request_background_in_thread_func (GTask *task,
                                           gpointer task_data,
                                           GCancellable *cancellable)
 {
+  Background *background = (Background *) source_object;
   XdpRequest *request = XDP_REQUEST (task_data);
   GVariant *options;
   const char *id;
@@ -840,7 +882,7 @@ handle_request_background_in_thread_func (GTask *task,
 
       g_variant_builder_add (&opt_builder, "{sv}", "deny_label", g_variant_new_string (_("Don't allow")));
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
-      if (!xdp_dbus_impl_access_call_access_dialog_sync (access_impl,
+      if (!xdp_dbus_impl_access_call_access_dialog_sync (background->access_impl,
                                                          request->id,
                                                          app_id,
                                                          "",
@@ -975,6 +1017,7 @@ handle_request_background (XdpDbusBackground *object,
                            const char *arg_window,
                            GVariant *arg_options)
 {
+  Background *background = (Background *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -986,8 +1029,7 @@ handle_request_background (XdpDbusBackground *object,
   REQUEST_AUTOLOCK (request);
 
   if (!xdp_filter_options (arg_options, &opt_builder,
-                           background_options,
-                           G_N_ELEMENTS (background_options),
+                           background_options, G_N_ELEMENTS (background_options),
                            NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -999,12 +1041,13 @@ handle_request_background (XdpDbusBackground *object,
   g_object_set_data_full (G_OBJECT (request), "window", g_strdup (arg_window), g_free);
   g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (access_impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (access_impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (background->access_impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (background->access_impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -1053,6 +1096,7 @@ handle_set_status_in_thread_func (GTask        *task,
                                   gpointer      task_data,
                                   GCancellable *cancellable)
 {
+  Background *background = (Background *) source_object;
   GDBusMethodInvocation *invocation = task_data;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autofree char *message = NULL;
@@ -1065,8 +1109,8 @@ handle_set_status_in_thread_func (GTask        *task,
   options = g_object_get_data (G_OBJECT (invocation), "options");
   g_variant_lookup (options, "message", "s", &message);
 
-  G_LOCK (applications);
-  data = g_hash_table_lookup (applications, id);
+  g_mutex_lock (&background->applications_lock);
+  data = g_hash_table_lookup (background->applications, id);
 
   if (!data)
     {
@@ -1087,7 +1131,7 @@ handle_set_status_in_thread_func (GTask        *task,
 
       if (!instance)
         {
-          G_UNLOCK (applications);
+          g_mutex_unlock (&background->applications_lock);
           g_task_return_new_error (task,
                                    XDG_DESKTOP_PORTAL_ERROR,
                                    XDG_DESKTOP_PORTAL_ERROR_FAILED,
@@ -1095,10 +1139,10 @@ handle_set_status_in_thread_func (GTask        *task,
           return;
         }
 
-      app_states = get_app_states ();
+      app_states = get_app_states (background);
       if (app_states == NULL)
         {
-          G_UNLOCK (applications);
+          g_mutex_unlock (&background->applications_lock);
           g_task_return_new_error (task,
                                    XDG_DESKTOP_PORTAL_ERROR,
                                    XDG_DESKTOP_PORTAL_ERROR_FAILED,
@@ -1109,16 +1153,16 @@ handle_set_status_in_thread_func (GTask        *task,
       data = g_new0 (InstanceData, 1);
       data->instance = g_object_ref (instance);
       data->state = get_one_app_state (xdp_app_info_get_id (app_info), app_states);
-      g_hash_table_insert (applications, g_strdup (id), data);
+      g_hash_table_insert (background->applications, g_strdup (id), data);
     }
 
   g_assert (data != NULL);
   g_clear_pointer (&data->status_message, g_free);
   data->status_message = g_steal_pointer (&message);
 
-  G_UNLOCK (applications);
+  g_mutex_unlock (&background->applications_lock);
 
-  update_background_monitor_properties ();
+  update_background_monitor_properties (background);
 
   g_task_return_boolean (task, TRUE);
 }
@@ -1222,48 +1266,115 @@ background_iface_init (XdpDbusBackgroundIface *iface)
 }
 
 static void
+background_dispose (GObject *object)
+{
+  Background *background = (Background *) object;
+
+  g_clear_object (&background->monitor_task);
+  g_cancellable_cancel (background->cancellable);
+  g_clear_object (&background->cancellable);
+
+  g_clear_object (&background->impl);
+  g_clear_object (&background->access_impl);
+  g_clear_object (&background->instance_monitor);
+  g_clear_object (&background->monitor);
+
+  if (background->applications)
+    {
+      g_clear_pointer (&background->applications, g_hash_table_unref);
+      g_mutex_clear (&background->applications_lock);
+    }
+
+  G_OBJECT_CLASS (background_parent_class)->dispose (object);
+}
+
+static void
 background_init (Background *background)
 {
-  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 2);
 }
 
 static void
 background_class_init (BackgroundClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = background_dispose;
+}
+
+static Background *
+background_new (XdpDbusImplBackground *background_impl,
+                XdpDbusImplAccess     *access_impl,
+                XdpBackgroundMonitor  *background_monitor)
+{
+  g_autoptr(Background) background = NULL;
+  g_autofree char *instance_path = NULL;
+  g_autoptr(GFile) instance_dir = NULL;
+  g_autoptr(GError) error = NULL;
+
+  background = g_object_new (background_get_type (), NULL);
+  background->impl = g_object_ref (background_impl);
+  background->access_impl = g_object_ref (access_impl);
+  background->monitor = g_object_ref (background_monitor);
+
+  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 2);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background->impl),
+                                    G_MAXINT);
+
+  g_mutex_init (&background->applications_lock);
+  background->applications = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                    g_free, instance_data_free);
+
+  g_signal_connect_object (background->impl, "running-applications-changed",
+                           G_CALLBACK (on_running_apps_changed),
+                           background,
+                           G_CONNECT_DEFAULT);
+
+  /* FIXME: it would be better if libflatpak had a monitor api for this */
+  instance_path = g_build_filename (g_get_user_runtime_dir (), ".flatpak", NULL);
+  instance_dir = g_file_new_for_path (instance_path);
+  background->instance_monitor = g_file_monitor_directory (instance_dir,
+                                                           G_FILE_MONITOR_NONE,
+                                                           NULL, &error);
+  if (!background->instance_monitor)
+    {
+      g_warning ("Failed to create a monitor for %s: %s",
+                 instance_path, error->message);
+      g_clear_error (&error);
+    }
+  else
+    {
+      g_signal_connect_object (background->instance_monitor, "changed",
+                               G_CALLBACK (on_instances_changed),
+                               background,
+                               G_CONNECT_DEFAULT);
+    }
+
+  return g_steal_pointer (&background);
 }
 
 void
 init_background (XdpContext *context)
 {
+  g_autoptr(Background) background = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
-  XdpImplConfig *access_impl_config;
+  XdpDbusImplAccess *access_impl;
   XdpImplConfig *impl_config;
-  g_autofree char *instance_path = NULL;
-  g_autoptr(GFile) instance_dir = NULL;
+  g_autoptr(XdpDbusImplBackground) background_impl = NULL;
+  g_autoptr(XdpBackgroundMonitor) background_monitor = NULL;
   g_autoptr(GError) error = NULL;
 
-  access_impl_config =
-    xdp_portal_config_find (config, "org.freedesktop.impl.portal.Access");
-
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.Background");
-
-  if (access_impl_config == NULL || impl_config == NULL)
+  impl_config = xdp_portal_config_find (config, BACKGROUND_DBUS_IMPL_IFACE);
+  if (impl_config == NULL)
     return;
 
-  access_impl = xdp_dbus_impl_access_proxy_new_sync (connection,
-                                                     G_DBUS_PROXY_FLAGS_NONE,
-                                                     access_impl_config->dbus_name,
-                                                     DESKTOP_DBUS_PATH,
-                                                     NULL, &error);
+  access_impl = xdp_context_get_access_impl (context);
   if (access_impl == NULL)
     {
-      g_warning ("Failed to create access proxy: %s", error->message);
+      g_warning ("The background portal requires an access impl");
       return;
     }
-
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (access_impl), G_MAXINT);
 
   background_impl = xdp_dbus_impl_background_proxy_new_sync (connection,
                                                              G_DBUS_PROXY_FLAGS_NONE,
@@ -1277,32 +1388,16 @@ init_background (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background_impl), G_MAXINT);
-
-  background = g_object_new (background_get_type (), NULL);
-
-  background->monitor = xdp_background_monitor_new (NULL, &error);
-  if (background->monitor == NULL)
+  background_monitor = xdp_background_monitor_new (NULL, &error);
+  if (background_monitor == NULL)
     {
       g_warning ("Failed to create background monitor: %s", error->message);
       return;
     }
 
-  start_background_monitor ();
-
-  g_signal_connect (background_impl, "running-applications-changed",
-                    G_CALLBACK (running_apps_changed), NULL);
-
-  /* FIXME: it would be better if libflatpak had a monitor api for this */
-  instance_path = g_build_filename (g_get_user_runtime_dir (), ".flatpak", NULL);
-  instance_dir = g_file_new_for_path (instance_path);
-  instance_monitor = g_file_monitor_directory (instance_dir, G_FILE_MONITOR_NONE, NULL, &error);
-  if (!instance_monitor)
-    g_warning ("Failed to create a monitor for %s: %s", instance_path, error->message);
-  else
-    g_signal_connect (instance_monitor, "changed", G_CALLBACK (instances_changed), NULL);
+  background = background_new (background_impl, access_impl, background_monitor);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (background),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&background)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
