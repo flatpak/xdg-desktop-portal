@@ -123,3 +123,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define SECRET_DBUS_IFACE DESKTOP_DBUS_IFACE ".Secret"
 #define SECRET_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Secret"
+
+#define SETTINGS_DBUS_IFACE DESKTOP_DBUS_IFACE ".Settings"
+#define SETTINGS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Settings"
