@@ -105,10 +105,11 @@ handle_set_wallpaper_uri_done (GObject *source,
 }
 
 static gboolean
-validate_set_on (const char *key,
-                 GVariant *value,
-                 GVariant *options,
-                 GError **error)
+validate_set_on (const char  *key,
+                 GVariant    *value,
+                 GVariant    *options,
+                 gpointer     user_data,
+                 GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
 
@@ -275,7 +276,7 @@ handle_set_wallpaper_in_thread_func (GTask *task,
 
   xdp_filter_options (options, &opt_builder,
                       wallpaper_options, G_N_ELEMENTS (wallpaper_options),
-                      NULL);
+                      NULL, NULL);
 
   g_debug ("Calling SetWallpaperURI with %s", uri);
   xdp_dbus_impl_wallpaper_call_set_wallpaper_uri (impl,

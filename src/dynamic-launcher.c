@@ -512,7 +512,7 @@ prepare_install_done (GObject      *source,
 
       if (!xdp_filter_options (results, &results_builder,
                                response_options, G_N_ELEMENTS (response_options),
-                               &error) ||
+                               NULL, &error) ||
           !g_variant_lookup (results, "name", "&s", &chosen_name) ||
           chosen_name[0] == '\0' ||
           !g_variant_lookup (results, "icon", "v", &chosen_icon))
@@ -547,6 +547,7 @@ static gboolean
 validate_url (const char  *key,
               GVariant    *value,
               GVariant    *options,
+              gpointer     user_data,
               GError     **error)
 {
   const char *url = g_variant_get_string (value, NULL);
@@ -569,6 +570,7 @@ static gboolean
 validate_launcher_type (const char  *key,
                         GVariant    *value,
                         GVariant    *options,
+                        gpointer     user_data,
                         GError     **error)
 {
   guint32 launcher_type = g_variant_get_uint32 (value);
@@ -638,7 +640,9 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   if (!xdp_filter_options (arg_options, &opt_builder,
-                           prepare_install_options, G_N_ELEMENTS (prepare_install_options), &error))
+                           prepare_install_options,
+                           G_N_ELEMENTS (prepare_install_options),
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

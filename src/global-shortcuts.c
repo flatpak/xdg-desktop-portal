@@ -251,7 +251,7 @@ handle_create_session (XdpDbusGlobalShortcuts *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_create_session_options,
                            G_N_ELEMENTS (global_shortcuts_create_session_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -369,7 +369,7 @@ xdp_verify_shortcuts (GVariant *shortcuts,
       if (!xdp_filter_options (values, &shortcut_builder,
                                global_shortcuts_keys,
                                G_N_ELEMENTS (global_shortcuts_keys),
-                               error))
+                               NULL, error))
         return FALSE;
       g_variant_builder_add (filtered, "(sa{sv})",
                              shortcut_name,
@@ -406,7 +406,7 @@ handle_bind_shortcuts (XdpDbusGlobalShortcuts *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_bind_shortcuts_options,
                            G_N_ELEMENTS (global_shortcuts_bind_shortcuts_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -530,7 +530,7 @@ handle_list_shortcuts (XdpDbusGlobalShortcuts *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_list_shortcuts_options,
                            G_N_ELEMENTS (global_shortcuts_list_shortcuts_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -619,7 +619,7 @@ handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_configure_shortcuts_options,
                            G_N_ELEMENTS (global_shortcuts_configure_shortcuts_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

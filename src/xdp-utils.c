@@ -328,11 +328,12 @@ xdp_invocation_get_app_info (GDBusMethodInvocation *invocation)
 }
 
 gboolean
-xdp_filter_options (GVariant *options,
-                    GVariantBuilder *filtered,
-                    const XdpOptionKey *supported_options,
-                    int n_supported_options,
-                    GError **error)
+xdp_filter_options (GVariant            *options,
+                    GVariantBuilder     *filtered,
+                    const XdpOptionKey  *supported_options,
+                    int                  n_supported_options,
+                    gpointer             user_data,
+                    GError             **error)
 {
   int i;
   gboolean ret = TRUE;
@@ -365,7 +366,11 @@ xdp_filter_options (GVariant *options,
         {
           g_autoptr(GError) local_error = NULL;
 
-          if (!supported_options[i].validate (supported_options[i].key, value, options, &local_error))
+          if (!supported_options[i].validate (supported_options[i].key,
+                                              value,
+                                              options,
+                                              user_data,
+                                              &local_error))
             {
               if (error && *error == NULL)
                 g_propagate_error (error, g_steal_pointer (&local_error));

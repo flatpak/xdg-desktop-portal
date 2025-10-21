@@ -90,17 +90,24 @@ char * xdp_get_alternate_document_path (const char *path, const char *app_id);
 gboolean xdp_variant_contains_key (GVariant *dictionary,
                                    const char *key);
 
+typedef gboolean (*XdpOptionKeyValidate) (const char  *key,
+                                          GVariant    *value,
+                                          GVariant    *options,
+                                          gpointer     user_data,
+                                          GError     **error);
+
 typedef struct {
   const char *key;
   const GVariantType *type;
-  gboolean (* validate) (const char *key, GVariant *value, GVariant *options, GError **error);
+  XdpOptionKeyValidate validate;
 } XdpOptionKey;
 
-gboolean xdp_filter_options (GVariant *options_in,
-                             GVariantBuilder *options_out,
-                             const XdpOptionKey *supported_options,
-                             int n_supported_options,
-                             GError **error);
+gboolean xdp_filter_options (GVariant            *options_in,
+                             GVariantBuilder     *options_out,
+                             const XdpOptionKey  *supported_options,
+                             int                  n_supported_options,
+                             gpointer             user_data,
+                             GError             **error);
 
 typedef enum {
   XDG_DESKTOP_PORTAL_ERROR_FAILED     = 0,

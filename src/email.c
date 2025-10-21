@@ -130,10 +130,11 @@ is_valid_email (const char *string)
 }
 
 static gboolean
-validate_email_address (const char *key,
-                        GVariant *value,
-                        GVariant *options,
-                        GError **error)
+validate_email_address (const char  *key,
+                        GVariant    *value,
+                        GVariant    *options,
+                        gpointer     user_data,
+                        GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
 
@@ -148,10 +149,11 @@ validate_email_address (const char *key,
 }
 
 static gboolean
-validate_email_addresses (const char *key,
-                          GVariant *value,
-                          GVariant *options,
-                          GError **error)
+validate_email_addresses (const char  *key,
+                          GVariant    *value,
+                          GVariant    *options,
+                          gpointer     user_data,
+                          GError     **error)
 {
   g_autofree const char *const *strings = g_variant_get_strv (value, NULL);
   int i;
@@ -170,10 +172,11 @@ validate_email_addresses (const char *key,
 }
 
 static gboolean
-validate_email_subject (const char *key,
-                        GVariant *value,
-                        GVariant *options,
-                        GError **error)
+validate_email_subject (const char  *key,
+                        GVariant    *value,
+                        GVariant    *options,
+                        gpointer     user_data,
+                        GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
 
@@ -285,8 +288,9 @@ handle_compose_email (XdpDbusEmail *object,
     }
 
   if (!xdp_filter_options (arg_options, &options,
-                           compose_email_options, G_N_ELEMENTS (compose_email_options),
-                           &error))
+                           compose_email_options,
+                           G_N_ELEMENTS (compose_email_options),
+                           NULL, &error))
     {
       g_debug ("Returning an error from option filtering");
       g_dbus_method_invocation_return_gerror (invocation, error);
