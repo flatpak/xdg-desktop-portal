@@ -52,8 +52,6 @@ struct _PowerProfileMonitorClass
   XdpDbusPowerProfileMonitorSkeletonClass parent_class;
 };
 
-static PowerProfileMonitor *power_profile_monitor;
-
 GType power_profile_monitor_get_type (void) G_GNUC_CONST;
 static void power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface);
 
@@ -62,6 +60,8 @@ G_DEFINE_TYPE_WITH_CODE (PowerProfileMonitor, power_profile_monitor,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_POWER_PROFILE_MONITOR,
                                                 power_profile_monitor_iface_init));
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (PowerProfileMonitor, g_object_unref)
+
 static void
 power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface)
 {
@@ -69,9 +69,9 @@ power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface)
 
 #ifdef HAS_POWER_PROFILE_MONITOR
 static void
-power_saver_enabled_changed_cb (GObject             *gobject,
-                                GParamSpec          *pspec,
-                                PowerProfileMonitor *ppm)
+on_power_saver_enabled_changed (GPowerProfileMonitor *monitor,
+                                GParamSpec           *pspec,
+                                PowerProfileMonitor  *ppm)
 {
   xdp_dbus_power_profile_monitor_set_power_saver_enabled (XDP_DBUS_POWER_PROFILE_MONITOR (ppm),
                                                           g_power_profile_monitor_get_power_saver_enabled (ppm->monitor));
@@ -81,12 +81,6 @@ power_saver_enabled_changed_cb (GObject             *gobject,
 static void
 power_profile_monitor_init (PowerProfileMonitor *ppm)
 {
-#ifdef HAS_POWER_PROFILE_MONITOR
-  ppm->monitor = g_power_profile_monitor_dup_default ();
-  g_signal_connect (ppm->monitor, "notify::power-saver-enabled", G_CALLBACK (power_saver_enabled_changed_cb), ppm);
-#endif /* HAS_POWER_PROFILE_MONITOR */
-
-  xdp_dbus_power_profile_monitor_set_version (XDP_DBUS_POWER_PROFILE_MONITOR (ppm), 1);
 }
 
 static void
@@ -109,12 +103,37 @@ power_profile_monitor_class_init (PowerProfileMonitorClass *klass)
   object_class->finalize = power_profile_monitor_finalize;
 }
 
+static PowerProfileMonitor *
+power_profile_monitor_new (void)
+{
+  PowerProfileMonitor *power_profile_monitor;
+
+  power_profile_monitor = g_object_new (power_profile_monitor_get_type (), NULL);
+
+#ifdef HAS_POWER_PROFILE_MONITOR
+  power_profile_monitor->monitor = g_power_profile_monitor_dup_default ();
+  g_signal_connect_object (power_profile_monitor->monitor,
+                           "notify::power-saver-enabled",
+                           G_CALLBACK (on_power_saver_enabled_changed),
+                           power_profile_monitor,
+                           G_CONNECT_DEFAULT);
+#endif /* HAS_POWER_PROFILE_MONITOR */
+
+  xdp_dbus_power_profile_monitor_set_version (
+    XDP_DBUS_POWER_PROFILE_MONITOR (power_profile_monitor),
+    1);
+
+  return power_profile_monitor;
+}
+
 void
 init_power_profile_monitor (XdpContext *context)
 {
-  power_profile_monitor = g_object_new (power_profile_monitor_get_type (), NULL);
+  g_autoptr(PowerProfileMonitor) power_profile_monitor = NULL;
+
+  power_profile_monitor = power_profile_monitor_new ();
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (power_profile_monitor),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&power_profile_monitor)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
