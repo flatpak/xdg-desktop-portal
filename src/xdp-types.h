@@ -128,3 +128,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define SETTINGS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Settings"
 
 #define TRASH_DBUS_IFACE DESKTOP_DBUS_IFACE ".Trash"
+
+#define USB_DBUS_IFACE DESKTOP_DBUS_IFACE ".Usb"
+#define USB_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Usb"
+#define USB_PERMISSION_TABLE "usb"
+#define USB_PERMISSION_ID "usb"
