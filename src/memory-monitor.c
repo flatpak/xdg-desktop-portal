@@ -52,8 +52,6 @@ struct _MemoryMonitorClass
   XdpDbusMemoryMonitorSkeletonClass parent_class;
 };
 
-static MemoryMonitor *memory_monitor;
-
 GType memory_monitor_get_type (void) G_GNUC_CONST;
 static void memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface);
 
@@ -62,6 +60,8 @@ G_DEFINE_TYPE_WITH_CODE (MemoryMonitor, memory_monitor,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_MEMORY_MONITOR, 
                                                 memory_monitor_iface_init));
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (MemoryMonitor, g_object_unref)
+
 static void
 memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface)
 {
@@ -69,9 +69,9 @@ memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface)
 
 #ifdef HAS_MEMORY_MONITOR
 static void
-low_memory_warning_cb (GObject *object,
-                       GMemoryMonitorWarningLevel level,
-                       MemoryMonitor *mm)
+on_low_memory_warning (GMemoryMonitor             *object,
+                       GMemoryMonitorWarningLevel  level,
+                       MemoryMonitor              *mm)
 {
   xdp_dbus_memory_monitor_emit_low_memory_warning (XDP_DBUS_MEMORY_MONITOR (mm),
                                                    level);
@@ -81,12 +81,6 @@ low_memory_warning_cb (GObject *object,
 static void
 memory_monitor_init (MemoryMonitor *mm)
 {
-#ifdef HAS_MEMORY_MONITOR
-  mm->monitor = g_memory_monitor_dup_default ();
-  g_signal_connect (mm->monitor, "low-memory-warning", G_CALLBACK (low_memory_warning_cb), mm);
-#endif /* HAS_MEMORY_MONITOR */
-
-  xdp_dbus_memory_monitor_set_version (XDP_DBUS_MEMORY_MONITOR (mm), 1);
 }
 
 static void
@@ -109,12 +103,34 @@ memory_monitor_class_init (MemoryMonitorClass *klass)
   object_class->finalize = memory_monitor_finalize;
 }
 
+static MemoryMonitor *
+memory_monitor_new (void)
+{
+  MemoryMonitor *memory_monitor;
+
+  memory_monitor = g_object_new (memory_monitor_get_type (), NULL);
+
+#ifdef HAS_MEMORY_MONITOR
+  memory_monitor->monitor = g_memory_monitor_dup_default ();
+  g_signal_connect_object (memory_monitor->monitor, "low-memory-warning",
+                           G_CALLBACK (on_low_memory_warning),
+                           memory_monitor,
+                           G_CONNECT_DEFAULT);
+#endif /* HAS_MEMORY_MONITOR */
+
+  xdp_dbus_memory_monitor_set_version (XDP_DBUS_MEMORY_MONITOR (memory_monitor), 1);
+
+  return memory_monitor;
+}
+
 void
 init_memory_monitor (XdpContext *context)
 {
-  memory_monitor = g_object_new (memory_monitor_get_type (), NULL);
+  g_autoptr(MemoryMonitor) memory_monitor = NULL;
+
+  memory_monitor = memory_monitor_new ();
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (memory_monitor),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&memory_monitor)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
