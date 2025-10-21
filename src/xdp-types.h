@@ -74,3 +74,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define GLOBAL_SHORTCUTS_DBUS_IFACE DESKTOP_DBUS_IFACE ".GlobalShortcuts"
 #define GLOBAL_SHORTCUTS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".GlobalShortcuts"
+
+#define INHIBIT_DBUS_IFACE DESKTOP_DBUS_IFACE ".Inhibit"
+#define INHIBIT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Inhibit"
+#define INHIBIT_PERMISSION_TABLE "inhibit"
+#define INHIBIT_PERMISSION_ID "inhibit"
