@@ -354,7 +354,7 @@ handle_screenshot_in_thread_func (GTask *task,
 
   xdp_filter_options (options, &opt_builder,
                       screenshot_options, G_N_ELEMENTS (screenshot_options),
-                      NULL);
+                      NULL, NULL);
   if (permission_store_checked)
     {
       g_variant_builder_add (&opt_builder, "{sv}", "permission_store_checked",
@@ -465,7 +465,7 @@ handle_pick_color (XdpDbusScreenshot *object,
 
   xdp_filter_options (arg_options, &opt_builder,
                       pick_color_options, G_N_ELEMENTS (pick_color_options),
-                      NULL);
+                      NULL, NULL);
 
   xdp_dbus_impl_screenshot_call_pick_color (impl,
                                             request->id,

@@ -209,6 +209,7 @@ static gboolean
 validate_capabilities (const char  *key,
                        GVariant    *value,
                        GVariant    *options,
+                       gpointer     user_data,
                        GError     **error)
 {
   uint32_t types = g_variant_get_uint32 (value);
@@ -274,7 +275,7 @@ handle_create_session (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_create_session_options,
                            G_N_ELEMENTS (input_capture_create_session_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -429,7 +430,7 @@ handle_get_zones (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_get_zones_options,
                            G_N_ELEMENTS (input_capture_get_zones_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -585,7 +586,7 @@ handle_set_pointer_barriers (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_set_pointer_barriers_options,
                            G_N_ELEMENTS (input_capture_set_pointer_barriers_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -676,7 +677,7 @@ handle_enable (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_enable_options,
                            G_N_ELEMENTS (input_capture_enable_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -776,7 +777,7 @@ handle_disable (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_disable_options,
                            G_N_ELEMENTS (input_capture_disable_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -877,7 +878,7 @@ handle_release (XdpDbusInputCapture   *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            input_capture_release_options,
                            G_N_ELEMENTS (input_capture_release_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

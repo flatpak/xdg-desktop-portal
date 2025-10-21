@@ -348,10 +348,11 @@ select_sources_done (GObject *source_object,
 }
 
 static gboolean
-validate_source_types (const char *key,
-                       GVariant *value,
-                       GVariant *options,
-                       GError **error)
+validate_source_types (const char  *key,
+                       GVariant    *value,
+                       GVariant    *options,
+                       gpointer     user_data,
+                       GError     **error)
 {
   guint32 types = g_variant_get_uint32 (value);
 
@@ -366,10 +367,11 @@ validate_source_types (const char *key,
 }
 
 static gboolean
-validate_cursor_mode (const char *key,
-                      GVariant *value,
-                      GVariant *options,
-                      GError **error)
+validate_cursor_mode (const char  *key,
+                      GVariant    *value,
+                      GVariant    *options,
+                      gpointer     user_data,
+                      GError     **error)
 {
   uint32_t mode = g_variant_get_uint32 (value);
 
@@ -391,10 +393,11 @@ validate_cursor_mode (const char *key,
 }
 
 static gboolean
-validate_restore_token (const char *key,
-                        GVariant *value,
-                        GVariant *options,
-                        GError **error)
+validate_restore_token (const char  *key,
+                        GVariant    *value,
+                        GVariant    *options,
+                        gpointer     user_data,
+                        GError     **error)
 {
   const char *restore_token = g_variant_get_string (value, NULL);
 
@@ -409,10 +412,11 @@ validate_restore_token (const char *key,
 }
 
 static gboolean
-validate_persist_mode (const char *key,
-                       GVariant *value,
-                       GVariant *options,
-                       GError **error)
+validate_persist_mode (const char  *key,
+                       GVariant    *value,
+                       GVariant    *options,
+                       gpointer     user_data,
+                       GError     **error)
 {
   uint32_t mode = g_variant_get_uint32 (value);
 
@@ -577,7 +581,7 @@ handle_select_sources (XdpDbusScreenCast *object,
   if (!xdp_filter_options (arg_options, &options_builder,
                            screen_cast_select_sources_options,
                            G_N_ELEMENTS (screen_cast_select_sources_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

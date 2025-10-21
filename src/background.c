@@ -904,10 +904,11 @@ handle_request_background_in_thread_func (GTask *task,
 }
 
 static gboolean
-validate_reason (const char *key,
-                 GVariant *value,
-                 GVariant *options,
-                 GError **error)
+validate_reason (const char  *key,
+                 GVariant    *value,
+                 GVariant    *options,
+                 gpointer     user_data,
+                 GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
 
@@ -922,10 +923,11 @@ validate_reason (const char *key,
 }
 
 static gboolean
-validate_commandline (const char *key,
-                      GVariant *value,
-                      GVariant *options,
-                      GError **error)
+validate_commandline (const char  *key,
+                      GVariant    *value,
+                      GVariant    *options,
+                      gpointer     user_data,
+                      GError     **error)
 {
   gsize length;
   g_autofree const char **strv = g_variant_get_strv (value, &length);
@@ -984,8 +986,9 @@ handle_request_background (XdpDbusBackground *object,
   REQUEST_AUTOLOCK (request);
 
   if (!xdp_filter_options (arg_options, &opt_builder,
-                           background_options, G_N_ELEMENTS (background_options),
-                           &error))
+                           background_options,
+                           G_N_ELEMENTS (background_options),
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -1124,6 +1127,7 @@ static gboolean
 validate_message (const char  *key,
                   GVariant    *value,
                   GVariant    *options,
+                  gpointer     user_data,
                   GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
@@ -1190,7 +1194,7 @@ handle_set_status (XdpDbusBackground     *object,
   if (!xdp_filter_options (arg_options, &opt_builder,
                            set_status_options,
                            G_N_ELEMENTS (set_status_options),
-                           &error))
+                           NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;

@@ -155,10 +155,11 @@ get_user_information_done (GObject *source,
 }
 
 static gboolean
-validate_reason (const char *key,
-                 GVariant *value,
-                 GVariant *options,
-                 GError **error)
+validate_reason (const char  *key,
+                 GVariant    *value,
+                 GVariant    *options,
+                 gpointer     user_data,
+                 GError     **error)
 {
   const char *string = g_variant_get_string (value, NULL);
 
@@ -208,8 +209,9 @@ handle_get_user_information (XdpDbusAccount *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &options,
-                      user_information_options, G_N_ELEMENTS (user_information_options),
-                      NULL);
+                      user_information_options,
+                      G_N_ELEMENTS (user_information_options),
+                      NULL, NULL);
 
   g_debug ("options filtered");
 
