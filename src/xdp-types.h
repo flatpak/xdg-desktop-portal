@@ -86,3 +86,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define LOCATION_DBUS_IFACE DESKTOP_DBUS_IFACE ".Location"
 #define LOCATION_PERMISSION_TABLE "location"
 #define LOCATION_PERMISSION_ID "location"
+
+#define NOTIFICATION_DBUS_IFACE DESKTOP_DBUS_IFACE ".Notification"
+#define NOTIFICATION_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Notification"
+#define NOTIFICATION_PERMISSION_TABLE "notifications"
+#define NOTIFICATION_PERMISSION_ID "notification"
