@@ -36,8 +36,6 @@
 #include "xdp-types.h"
 #include "xdp-sealed-fd.h"
 
-#define DESKTOP_PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
-
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,
                     int    flags,

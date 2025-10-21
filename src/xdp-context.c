@@ -250,7 +250,7 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   if (g_dbus_interface_skeleton_export (skeleton,
                                         context->connection,
-                                        DESKTOP_PORTAL_OBJECT_PATH,
+                                        DESKTOP_DBUS_PATH,
                                         &error))
     g_debug ("Providing portal %s", name);
   else
@@ -319,7 +319,7 @@ xdp_context_register (XdpContext       *context,
         xdp_dbus_impl_lockdown_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                lockdown_impl_config->dbus_name,
-                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               DESKTOP_DBUS_PATH,
                                                NULL, NULL);
     }
 

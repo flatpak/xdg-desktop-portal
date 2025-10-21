@@ -1540,7 +1540,7 @@ init_usb (XdpContext *context)
   usb_impl = xdp_dbus_impl_usb_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                impl_config->dbus_name,
-                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               DESKTOP_DBUS_PATH,
                                                NULL,
                                                &error);
   if (usb_impl == NULL)

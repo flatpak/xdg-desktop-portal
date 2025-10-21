@@ -1630,7 +1630,7 @@ init_remote_desktop (XdpContext *context)
   impl = xdp_dbus_impl_remote_desktop_proxy_new_sync (connection,
                                                       G_DBUS_PROXY_FLAGS_NONE,
                                                       impl_config->dbus_name,
-                                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                                      DESKTOP_DBUS_PATH,
                                                       NULL,
                                                       &error);
   if (impl == NULL)
