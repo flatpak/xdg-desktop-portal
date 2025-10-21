@@ -38,15 +38,14 @@ typedef struct _ClipboardClass ClipboardClass;
 struct _Clipboard
 {
   XdpDbusClipboardSkeleton parent_instance;
+
+  XdpDbusImplClipboard *impl;
 };
 
 struct _ClipboardClass
 {
   XdpDbusClipboardSkeletonClass parent_class;
 };
-
-static XdpDbusImplClipboard *impl;
-static Clipboard *clipboard;
 
 GType clipboard_get_type (void) G_GNUC_CONST;
 static void clipboard_iface_init (XdpDbusClipboardIface *iface);
@@ -56,6 +55,8 @@ G_DEFINE_TYPE_WITH_CODE (Clipboard,
                          XDP_DBUS_TYPE_CLIPBOARD_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CLIPBOARD,
                                                 clipboard_iface_init))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Clipboard, g_object_unref)
 
 static gboolean
 session_supports_clipboard (XdpSession *session)
@@ -100,6 +101,7 @@ handle_request_clipboard (XdpDbusClipboard *object,
                           const char *arg_session_handle,
                           GVariant *arg_options)
 {
+  Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
@@ -131,8 +133,10 @@ handle_request_clipboard (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_impl_clipboard_call_request_clipboard (
-    impl, session->id, arg_options, NULL, NULL, NULL);
+  xdp_dbus_impl_clipboard_call_request_clipboard (clipboard->impl,
+                                                  session->id,
+                                                  arg_options,
+                                                  NULL, NULL, NULL);
 
   session_clipboard_requested (session);
 
@@ -146,6 +150,7 @@ handle_set_selection (XdpDbusClipboard *object,
                       const char *arg_session_handle,
                       GVariant *arg_options)
 {
+  Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -194,8 +199,10 @@ handle_set_selection (XdpDbusClipboard *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_clipboard_call_set_selection (
-    impl, arg_session_handle, options, NULL, NULL, NULL);
+  xdp_dbus_impl_clipboard_call_set_selection (clipboard->impl,
+                                              arg_session_handle,
+                                              options,
+                                              NULL, NULL, NULL);
 
   xdp_dbus_clipboard_complete_set_selection (object, invocation);
 
@@ -207,6 +214,7 @@ selection_write_done (GObject *source_object,
                       GAsyncResult *res,
                       gpointer user_data)
 {
+  XdpDbusImplClipboard *impl = (XdpDbusImplClipboard *) source_object;
   g_autoptr(GDBusMethodInvocation) invocation = g_steal_pointer (&user_data);
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   g_autoptr(GUnixFDList) fd_list = NULL;
@@ -269,6 +277,7 @@ handle_selection_write (XdpDbusClipboard *object,
                         const char *arg_session_handle,
                         guint arg_serial)
 {
+  Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
@@ -302,7 +311,7 @@ handle_selection_write (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_impl_clipboard_call_selection_write (impl,
+  xdp_dbus_impl_clipboard_call_selection_write (clipboard->impl,
                                                 arg_session_handle,
                                                 arg_serial,
                                                 NULL,
@@ -320,6 +329,7 @@ handle_selection_write_done (XdpDbusClipboard *object,
                              guint arg_serial,
                              gboolean arg_success)
 {
+  Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
@@ -353,8 +363,11 @@ handle_selection_write_done (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_impl_clipboard_call_selection_write_done (
-    impl, arg_session_handle, arg_serial, arg_success, NULL, NULL, NULL);
+  xdp_dbus_impl_clipboard_call_selection_write_done (clipboard->impl,
+                                                     arg_session_handle,
+                                                     arg_serial,
+                                                     arg_success,
+                                                     NULL, NULL, NULL);
 
   xdp_dbus_clipboard_complete_selection_write_done (object, invocation);
 
@@ -366,6 +379,7 @@ selection_read_done (GObject *source_object,
                      GAsyncResult *res,
                      gpointer user_data)
 {
+  XdpDbusImplClipboard *impl = (XdpDbusImplClipboard *) source_object;
   g_autoptr(GDBusMethodInvocation) invocation = g_steal_pointer (&user_data);
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   g_autoptr(GUnixFDList) fd_list = NULL;
@@ -424,6 +438,7 @@ handle_selection_read (XdpDbusClipboard *object,
                        const char *arg_session_handle,
                        const char *arg_mime_type)
 {
+  Clipboard *clipboard = (Clipboard *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
   XdpSession *session;
 
@@ -457,7 +472,7 @@ handle_selection_read (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_impl_clipboard_call_selection_read (impl,
+  xdp_dbus_impl_clipboard_call_selection_read (clipboard->impl,
                                                arg_session_handle,
                                                arg_mime_type,
                                                NULL,
@@ -480,14 +495,26 @@ clipboard_iface_init (XdpDbusClipboardIface *iface)
 }
 
 static void
+clipboard_dispose (GObject *object)
+{
+  Clipboard *clipboard = (Clipboard *) object;
+
+  g_clear_object (&clipboard->impl);
+
+  G_OBJECT_CLASS (clipboard_parent_class)->dispose (object);
+}
+
+static void
 clipboard_init (Clipboard *clipboard)
 {
-  xdp_dbus_clipboard_set_version (XDP_DBUS_CLIPBOARD (clipboard), 1);
 }
 
 static void
 clipboard_class_init (ClipboardClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = clipboard_dispose;
 }
 
 static void
@@ -516,8 +543,8 @@ selection_transfer_cb (XdpDbusImplClipboard *impl,
       g_dbus_connection_emit_signal (
         connection,
         session->sender,
-        "/org/freedesktop/portal/desktop",
-        "org.freedesktop.portal.Clipboard",
+        DESKTOP_DBUS_PATH,
+        CLIPBOARD_DBUS_IFACE,
         "SelectionTransfer",
         g_variant_new ("(osu)", arg_session_handle, arg_mime_type, arg_serial),
         NULL);
@@ -549,24 +576,50 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
       g_dbus_connection_emit_signal (
         connection,
         session->sender,
-        "/org/freedesktop/portal/desktop",
-        "org.freedesktop.portal.Clipboard",
+        DESKTOP_DBUS_PATH,
+        CLIPBOARD_DBUS_IFACE,
         "SelectionOwnerChanged",
         g_variant_new ("(o@a{sv})", arg_session_handle, arg_options),
         NULL);
     }
 }
 
+static Clipboard *
+clipboard_new (XdpDbusImplClipboard *impl)
+{
+  Clipboard *clipboard;
+
+  clipboard = g_object_new (clipboard_get_type (), NULL);
+  clipboard->impl = g_object_ref (impl);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (clipboard->impl), G_MAXINT);
+
+  xdp_dbus_clipboard_set_version (XDP_DBUS_CLIPBOARD (clipboard), 1);
+
+  g_signal_connect_object (clipboard->impl, "selection-transfer",
+                           G_CALLBACK (selection_transfer_cb),
+                           impl,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (clipboard->impl, "selection-owner-changed",
+                           G_CALLBACK (selection_owner_changed_cb),
+                           impl,
+                           G_CONNECT_DEFAULT);
+
+  return clipboard;
+}
+
 void
 init_clipboard (XdpContext *context)
 {
+  g_autoptr(Clipboard) clipboard = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplClipboard) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.Clipboard");
+  impl_config = xdp_portal_config_find (config, CLIPBOARD_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -582,19 +635,9 @@ init_clipboard (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  clipboard = g_object_new (clipboard_get_type (), NULL);
-
-  g_signal_connect (
-    impl, "selection-transfer", G_CALLBACK (selection_transfer_cb), clipboard);
-
-  g_signal_connect (impl,
-                    "selection-owner-changed",
-                    G_CALLBACK (selection_owner_changed_cb),
-                    clipboard);
+  clipboard = clipboard_new (impl);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (clipboard),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&clipboard)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

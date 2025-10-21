@@ -55,3 +55,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define CAMERA_DBUS_IFACE DESKTOP_DBUS_IFACE ".Camera"
 #define CAMERA_PERMISSION_TABLE "devices"
 #define CAMERA_PERMISSION_DEVICE_CAMERA "camera"
+
+#define CLIPBOARD_DBUS_IFACE DESKTOP_DBUS_IFACE ".Clipboard"
+#define CLIPBOARD_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Clipboard"
