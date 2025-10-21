@@ -64,3 +64,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define EMAIL_DBUS_IFACE DESKTOP_DBUS_IFACE ".Email"
 #define EMAIL_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Email"
+
+#define FILE_CHOOSER_DBUS_IFACE DESKTOP_DBUS_IFACE ".FileChooser"
+#define FILE_CHOOSER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".FileChooser"
