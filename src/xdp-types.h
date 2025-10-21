@@ -107,3 +107,7 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define REALTIME_DBUS_IFACE DESKTOP_DBUS_IFACE ".Realtime"
 #define REALTIME_PERMISSION_TABLE "realtime"
 #define REALTIME_PERMISSION_ID "realtime"
+
+#define REMOTE_DESKTOP_DBUS_IFACE DESKTOP_DBUS_IFACE ".RemoteDesktop"
+#define REMOTE_DESKTOP_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".RemoteDesktop"
+#define REMOTE_DESKTOP_PERMISSION_TABLE "remote-desktop"

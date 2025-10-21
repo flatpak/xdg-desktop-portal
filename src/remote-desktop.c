@@ -36,23 +36,20 @@
 
 #include "remote-desktop.h"
 
-#define REMOTE_DESKTOP_TABLE "remote-desktop"
-
 typedef struct _RemoteDesktop RemoteDesktop;
 typedef struct _RemoteDesktopClass RemoteDesktopClass;
 
 struct _RemoteDesktop
 {
   XdpDbusRemoteDesktopSkeleton parent_instance;
+
+  XdpDbusImplRemoteDesktop *impl;
 };
 
 struct _RemoteDesktopClass
 {
   XdpDbusRemoteDesktopSkeletonClass parent_class;
 };
-
-static XdpDbusImplRemoteDesktop *impl;
-static RemoteDesktop *remote_desktop;
 
 GType remote_desktop_get_type (void) G_GNUC_CONST;
 static void remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface);
@@ -63,6 +60,8 @@ G_DEFINE_TYPE_WITH_CODE (RemoteDesktop, remote_desktop,
                          XDP_DBUS_TYPE_REMOTE_DESKTOP_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REMOTE_DESKTOP,
                                                 remote_desktop_iface_init))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (RemoteDesktop, g_object_unref)
 
 typedef enum _RemoteDesktopSessionState
 {
@@ -82,6 +81,8 @@ typedef enum _DeviceType
 typedef struct _RemoteDesktopSession
 {
   XdpSession parent;
+
+  RemoteDesktop *remote_desktop;
 
   RemoteDesktopSessionState state;
 
@@ -150,10 +151,12 @@ remote_desktop_session_can_select_devices (RemoteDesktopSession *session)
 gboolean
 remote_desktop_session_can_request_clipboard (RemoteDesktopSession *session)
 {
+  RemoteDesktop *remote_desktop = session->remote_desktop;
+
   if (session->clipboard_requested)
     return FALSE;
 
-  if (xdp_dbus_impl_remote_desktop_get_version (impl) < 2)
+  if (xdp_dbus_impl_remote_desktop_get_version (remote_desktop->impl) < 2)
     return FALSE;
 
   switch (session->state)
@@ -192,20 +195,67 @@ remote_desktop_session_clipboard_requested (RemoteDesktopSession *session)
   session->clipboard_requested = TRUE;
 }
 
+static void
+remote_desktop_session_close (XdpSession *session)
+{
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
+
+  remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_CLOSED;
+
+  g_debug ("remote desktop session owned by '%s' closed", session->sender);
+}
+
+static void
+remote_desktop_session_finalize (GObject *object)
+{
+  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (object);
+
+  g_list_free_full (remote_desktop_session->streams,
+                    (GDestroyNotify)screen_cast_stream_free);
+
+  g_clear_object (&remote_desktop_session->remote_desktop);
+
+  G_OBJECT_CLASS (remote_desktop_session_parent_class)->finalize (object);
+}
+
+static void
+remote_desktop_session_init (RemoteDesktopSession *remote_desktop_session)
+{
+}
+
+static void
+remote_desktop_session_class_init (RemoteDesktopSessionClass *klass)
+{
+  GObjectClass *object_class;
+  XdpSessionClass *session_class;
+
+  object_class = G_OBJECT_CLASS (klass);
+  object_class->finalize = remote_desktop_session_finalize;
+
+  session_class = (XdpSessionClass *)klass;
+  session_class->close = remote_desktop_session_close;
+
+  quark_request_session =
+    g_quark_from_static_string ("-xdp-request-remote-desktop-session");
+}
+
 static RemoteDesktopSession *
-remote_desktop_session_new (GVariant *options,
-                            XdpRequest *request,
-                            GError **error)
+remote_desktop_session_new (RemoteDesktop  *remote_desktop,
+                            GVariant       *options,
+                            XdpRequest     *request,
+                            GError        **error)
 {
   XdpSession *session;
+  RemoteDesktopSession *rd_session;
   GDBusInterfaceSkeleton *interface_skeleton =
     G_DBUS_INTERFACE_SKELETON (request);
   const char *session_token;
   GDBusConnection *connection =
     g_dbus_interface_skeleton_get_connection (interface_skeleton);
   GDBusConnection *impl_connection =
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (impl));
-  const char *impl_dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (impl));
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl));
+  const char *impl_dbus_name =
+    g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl));
 
   session_token = lookup_session_token (options);
   session = g_initable_new (remote_desktop_session_get_type (), NULL, error,
@@ -216,11 +266,15 @@ remote_desktop_session_new (GVariant *options,
                             "impl-connection", impl_connection,
                             "impl-dbus-name", impl_dbus_name,
                             NULL);
+  if (session == NULL)
+    return NULL;
 
-  if (session)
-    g_debug ("remote desktop session owned by '%s' created", session->sender);
+  rd_session = REMOTE_DESKTOP_SESSION (session);
+  rd_session->remote_desktop = g_object_ref (remote_desktop);
 
-  return REMOTE_DESKTOP_SESSION (session);
+  g_debug ("remote desktop session owned by '%s' created", session->sender);
+
+  return rd_session;
 }
 
 static void
@@ -228,6 +282,7 @@ create_session_done (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
+  XdpDbusImplRemoteDesktop *impl = (XdpDbusImplRemoteDesktop *) source_object;
   g_autoptr(XdpRequest) request = data;
   XdpSession *session;
   guint response = 2;
@@ -293,6 +348,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
@@ -303,12 +359,13 @@ handle_create_session (XdpDbusRemoteDesktop *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -318,7 +375,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
   xdp_request_set_impl_request (request, impl_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  session = XDP_SESSION (remote_desktop_session_new (arg_options, request, &error));
+  session = XDP_SESSION (remote_desktop_session_new (remote_desktop, arg_options, request, &error));
   if (!session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -332,7 +389,7 @@ handle_create_session (XdpDbusRemoteDesktop *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_remote_desktop_call_create_session (impl,
+  xdp_dbus_impl_remote_desktop_call_create_session (remote_desktop->impl,
                                                     request->id,
                                                     session->id,
                                                     xdp_app_info_get_id (request->app_info),
@@ -351,6 +408,7 @@ select_devices_done (GObject *source_object,
                      GAsyncResult *res,
                      gpointer data)
 {
+  XdpDbusImplRemoteDesktop *impl = (XdpDbusImplRemoteDesktop *) source_object;
   g_autoptr(XdpRequest) request = data;
   XdpSession *session;
   guint response = 2;
@@ -488,7 +546,7 @@ replace_remote_desktop_restore_token_with_data (XdpSession *session,
 
   remote_desktop_session->persist_mode = persist_mode;
   xdp_session_persistence_replace_restore_token_with_data (session,
-                                                           REMOTE_DESKTOP_TABLE,
+                                                           REMOTE_DESKTOP_PERMISSION_TABLE,
                                                            in_out_options,
                                                            &remote_desktop_session->restore_token);
 
@@ -501,6 +559,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
                        const char *arg_session_handle,
                        GVariant *arg_options)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   XdpSession *session;
   RemoteDesktopSession *remote_desktop_session;
@@ -535,12 +594,13 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -576,7 +636,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_remote_desktop_call_select_devices (impl,
+  xdp_dbus_impl_remote_desktop_call_select_devices (remote_desktop->impl,
                                                     request->id,
                                                     arg_session_handle,
                                                     xdp_app_info_get_id (request->app_info),
@@ -595,7 +655,7 @@ replace_restore_remote_desktop_data_with_token (RemoteDesktopSession *remote_des
                                                 GVariant **in_out_results)
 {
   xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (remote_desktop_session),
-                                                           REMOTE_DESKTOP_TABLE,
+                                                           REMOTE_DESKTOP_PERMISSION_TABLE,
                                                            in_out_results,
                                                            &remote_desktop_session->persist_mode,
                                                            &remote_desktop_session->restore_token,
@@ -635,6 +695,7 @@ start_done (GObject *source_object,
             GAsyncResult *res,
             gpointer data)
 {
+  XdpDbusImplRemoteDesktop *impl = (XdpDbusImplRemoteDesktop *) source_object;
   g_autoptr(XdpRequest) request = data;
   XdpSession *session;
   RemoteDesktopSession *remote_desktop_session;
@@ -709,6 +770,7 @@ handle_start (XdpDbusRemoteDesktop *object,
               const char *arg_parent_window,
               GVariant *arg_options)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   XdpSession *session;
   RemoteDesktopSession *remote_desktop_session;
@@ -754,12 +816,13 @@ handle_start (XdpDbusRemoteDesktop *object,
   g_object_set_data_full (G_OBJECT (request),
                           "window", g_strdup (arg_parent_window), g_free);
 
-  impl_request =
-    xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                          G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                          g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                          request->id,
-                                          NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -776,7 +839,7 @@ handle_start (XdpDbusRemoteDesktop *object,
                            g_object_ref (session),
                            g_object_unref);
 
-  xdp_dbus_impl_remote_desktop_call_start (impl,
+  xdp_dbus_impl_remote_desktop_call_start (remote_desktop->impl,
                                            request->id,
                                            arg_session_handle,
                                            xdp_app_info_get_id (request->app_info),
@@ -850,6 +913,7 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
                               double dx,
                               double dy)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -888,7 +952,7 @@ handle_notify_pointer_motion (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion (remote_desktop->impl,
                                                            session->id,
                                                            options,
                                                            dx, dy,
@@ -908,6 +972,7 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
                                        double x,
                                        double y)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -956,7 +1021,7 @@ handle_notify_pointer_motion_absolute (XdpDbusRemoteDesktop *object,
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion_absolute (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_motion_absolute (remote_desktop->impl,
                                                                     session->id,
                                                                     options,
                                                                     stream,
@@ -976,6 +1041,7 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
                               int32_t button,
                               uint32_t state)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1015,7 +1081,7 @@ handle_notify_pointer_button (XdpDbusRemoteDesktop *object,
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_pointer_button (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_button (remote_desktop->impl,
                                                            session->id,
                                                            options,
                                                            button,
@@ -1039,6 +1105,7 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
                             double dx,
                             double dy)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1078,7 +1145,7 @@ handle_notify_pointer_axis (XdpDbusRemoteDesktop *object,
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis (remote_desktop->impl,
                                                          session->id,
                                                          options,
                                                          dx, dy,
@@ -1097,6 +1164,7 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
                                      uint32_t axis,
                                      int32_t steps)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1135,7 +1203,7 @@ handle_notify_pointer_axis_discrete (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis_discrete (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_pointer_axis_discrete (remote_desktop->impl,
                                                                   session->id,
                                                                   options,
                                                                   axis,
@@ -1155,6 +1223,7 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
                                 int32_t keycode,
                                 uint32_t state)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1193,7 +1262,7 @@ handle_notify_keyboard_keycode (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keycode (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keycode (remote_desktop->impl,
                                                              session->id,
                                                              options,
                                                              keycode,
@@ -1213,6 +1282,7 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
                                int32_t keysym,
                                uint32_t state)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1251,7 +1321,7 @@ handle_notify_keyboard_keysym (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keysym (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_keyboard_keysym (remote_desktop->impl,
                                                             session->id,
                                                             options,
                                                             keysym,
@@ -1273,6 +1343,7 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
                           double x,
                           double y)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1320,7 +1391,7 @@ handle_notify_touch_down (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_touch_down (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_touch_down (remote_desktop->impl,
                                                        session->id,
                                                        options,
                                                        stream,
@@ -1343,6 +1414,7 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
                             double x,
                             double y)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1390,7 +1462,7 @@ handle_notify_touch_motion (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_touch_motion (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_touch_motion (remote_desktop->impl,
                                                          session->id,
                                                          options,
                                                          stream,
@@ -1410,6 +1482,7 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
                         GVariant *arg_options,
                         uint32_t slot)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   g_auto(GVariantBuilder) options_builder =
@@ -1448,7 +1521,7 @@ handle_notify_touch_up (XdpDbusRemoteDesktop *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  xdp_dbus_impl_remote_desktop_call_notify_touch_up (impl,
+  xdp_dbus_impl_remote_desktop_call_notify_touch_up (remote_desktop->impl,
                                                      session->id,
                                                      options,
                                                      slot,
@@ -1469,6 +1542,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
                        const char *arg_session_handle,
                        GVariant *arg_options)
 {
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
   RemoteDesktopSession *remote_desktop_session;
@@ -1537,7 +1611,7 @@ handle_connect_to_eis (XdpDbusRemoteDesktop *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (!xdp_dbus_impl_remote_desktop_call_connect_to_eis_sync (impl,
+  if (!xdp_dbus_impl_remote_desktop_call_connect_to_eis_sync (remote_desktop->impl,
                                                              arg_session_handle,
                                                              xdp_app_info_get_id (app_info),
                                                              g_variant_builder_end (&options_builder),
@@ -1580,50 +1654,59 @@ remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface)
 }
 
 static void
-sync_supported_device_types (RemoteDesktop *remote_desktop)
+remote_desktop_dispose (GObject *object)
 {
-  unsigned int available_device_types;
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
 
-  available_device_types =
-    xdp_dbus_impl_remote_desktop_get_available_device_types (impl);
-  xdp_dbus_remote_desktop_set_available_device_types (XDP_DBUS_REMOTE_DESKTOP (remote_desktop),
-                                                      available_device_types);
+  g_clear_object (&remote_desktop->impl);
+
+  G_OBJECT_CLASS (remote_desktop_parent_class)->dispose (object);
 }
 
-static void
-on_supported_device_types_changed (GObject *gobject,
-                                   GParamSpec *pspec,
-                                   RemoteDesktop *remote_desktop)
-{
-  sync_supported_device_types (remote_desktop);
-}
 
 static void
 remote_desktop_init (RemoteDesktop *remote_desktop)
 {
-  xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 2);
-
-  g_signal_connect (impl, "notify::supported-device-types",
-                    G_CALLBACK (on_supported_device_types_changed),
-                    remote_desktop);
-  sync_supported_device_types (remote_desktop);
 }
 
 static void
 remote_desktop_class_init (RemoteDesktopClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = remote_desktop_dispose;
+}
+
+static RemoteDesktop *
+remote_desktop_new (XdpDbusImplRemoteDesktop *impl)
+{
+  RemoteDesktop *remote_desktop;
+
+  remote_desktop = g_object_new (remote_desktop_get_type (), NULL);
+  remote_desktop->impl = g_object_ref (impl);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (remote_desktop->impl), G_MAXINT);
+
+  xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 2);
+
+  g_object_bind_property (G_OBJECT (remote_desktop->impl), "available-device-types",
+                          G_OBJECT (remote_desktop), "available-device-types",
+                          G_BINDING_SYNC_CREATE);
+
+  return remote_desktop;
 }
 
 void
 init_remote_desktop (XdpContext *context)
 {
+  g_autoptr(RemoteDesktop) remote_desktop = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplRemoteDesktop) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.RemoteDesktop");
+  impl_config = xdp_portal_config_find (config, REMOTE_DESKTOP_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -1639,54 +1722,9 @@ init_remote_desktop (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  remote_desktop = g_object_new (remote_desktop_get_type (), NULL);
+  remote_desktop = remote_desktop_new (impl);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (remote_desktop),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&remote_desktop)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
-
-static void
-remote_desktop_session_close (XdpSession *session)
-{
-  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
-
-  remote_desktop_session->state = REMOTE_DESKTOP_SESSION_STATE_CLOSED;
-
-  g_debug ("remote desktop session owned by '%s' closed", session->sender);
-}
-
-static void
-remote_desktop_session_finalize (GObject *object)
-{
-  RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (object);
-
-  g_list_free_full (remote_desktop_session->streams,
-                    (GDestroyNotify)screen_cast_stream_free);
-
-  G_OBJECT_CLASS (remote_desktop_session_parent_class)->finalize (object);
-}
-
-static void
-remote_desktop_session_init (RemoteDesktopSession *remote_desktop_session)
-{
-}
-
-static void
-remote_desktop_session_class_init (RemoteDesktopSessionClass *klass)
-{
-  GObjectClass *object_class;
-  XdpSessionClass *session_class;
-
-  object_class = G_OBJECT_CLASS (klass);
-  object_class->finalize = remote_desktop_session_finalize;
-
-  session_class = (XdpSessionClass *)klass;
-  session_class->close = remote_desktop_session_close;
-
-  quark_request_session =
-    g_quark_from_static_string ("-xdp-request-remote-desktop-session");
-}
-
