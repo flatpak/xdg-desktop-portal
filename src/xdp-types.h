@@ -44,6 +44,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define LOCKDOWN_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Lockdown"
 
+#define APP_CHOOSER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".AppChooser"
+
 #define ACCOUNT_DBUS_IFACE DESKTOP_DBUS_IFACE ".Account"
 #define ACCOUNT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Account"
 
@@ -91,3 +93,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define NOTIFICATION_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Notification"
 #define NOTIFICATION_PERMISSION_TABLE "notifications"
 #define NOTIFICATION_PERMISSION_ID "notification"
+
+#define OPEN_URI_DBUS_IFACE DESKTOP_DBUS_IFACE ".OpenURI"
+#define OPEN_URI_PERMISSION_TABLE "desktop-used-apps"
