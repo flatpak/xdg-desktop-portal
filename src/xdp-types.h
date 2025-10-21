@@ -61,3 +61,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define DYNAMIC_LAUNCHER_DBUS_IFACE DESKTOP_DBUS_IFACE ".DynamicLauncher"
 #define DYNAMIC_LAUNCHER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".DynamicLauncher"
+
+#define EMAIL_DBUS_IFACE DESKTOP_DBUS_IFACE ".Email"
+#define EMAIL_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Email"
