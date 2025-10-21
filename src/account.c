@@ -47,6 +47,8 @@ typedef struct _AccountClass AccountClass;
 struct _Account
 {
   XdpDbusAccountSkeleton parent_instance;
+
+  XdpDbusImplAccount *impl;
 };
 
 struct _AccountClass
@@ -54,15 +56,14 @@ struct _AccountClass
   XdpDbusAccountSkeletonClass parent_class;
 };
 
-static XdpDbusImplAccount *impl;
-static Account *account;
-
 GType account_get_type (void) G_GNUC_CONST;
 static void account_iface_init (XdpDbusAccountIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Account, account, XDP_DBUS_TYPE_ACCOUNT_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_ACCOUNT,
                                                 account_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Account, g_object_unref)
 
 static void
 send_response_in_thread_func (GTask        *task,
@@ -183,6 +184,7 @@ handle_get_user_information (XdpDbusAccount *object,
                              const gchar *arg_parent_window,
                              GVariant *arg_options)
 {
+  Account *account = (Account *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -194,11 +196,13 @@ handle_get_user_information (XdpDbusAccount *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                       request->id,
-                                                       NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (account->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (account->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -209,13 +213,12 @@ handle_get_user_information (XdpDbusAccount *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_filter_options (arg_options, &options,
-                      user_information_options,
-                      G_N_ELEMENTS (user_information_options),
+                      user_information_options, G_N_ELEMENTS (user_information_options),
                       NULL, NULL);
 
   g_debug ("options filtered");
 
-  xdp_dbus_impl_account_call_get_user_information (impl,
+  xdp_dbus_impl_account_call_get_user_information (account->impl,
                                                    request->id,
                                                    app_id,
                                                    arg_parent_window,
@@ -237,26 +240,54 @@ account_iface_init (XdpDbusAccountIface *iface)
 }
 
 static void
+account_dispose (GObject *object)
+{
+  Account *account = (Account *) object;
+
+  g_clear_object (&account->impl);
+
+  G_OBJECT_CLASS (account_parent_class)->dispose (object);
+}
+
+static void
 account_init (Account *account)
 {
-  xdp_dbus_account_set_version (XDP_DBUS_ACCOUNT (account), 1);
 }
 
 static void
 account_class_init (AccountClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = account_dispose;
+}
+
+static Account *
+account_new (XdpDbusImplAccount *impl)
+{
+  Account *account;
+
+  account = g_object_new (account_get_type (), NULL);
+  account->impl = g_object_ref (impl);
+
+  xdp_dbus_account_set_version (XDP_DBUS_ACCOUNT (account), 1);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (account->impl), G_MAXINT);
+
+  return account;
 }
 
 void
 init_account (XdpContext *context)
 {
+  g_autoptr(Account) account = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplAccount) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.Account");
+  impl_config = xdp_portal_config_find (config, ACCOUNT_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -273,11 +304,9 @@ init_account (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  account = g_object_new (account_get_type (), NULL);
+  account = account_new (impl);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (account),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&account)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
