@@ -98,3 +98,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define OPEN_URI_PERMISSION_TABLE "desktop-used-apps"
 
 #define POWER_PROFILE_MONITOR_DBUS_IFACE DESKTOP_DBUS_IFACE ".PowerProfileMonitor"
+
+#define PRINT_DBUS_IFACE DESKTOP_DBUS_IFACE ".Print"
+#define PRINT_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Print"
