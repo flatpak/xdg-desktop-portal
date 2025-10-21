@@ -1266,7 +1266,7 @@ init_notification (XdpContext *context)
   impl = xdp_dbus_impl_notification_proxy_new_sync (connection,
                                                     G_DBUS_PROXY_FLAGS_NONE,
                                                     impl_config->dbus_name,
-                                                    DESKTOP_PORTAL_OBJECT_PATH,
+                                                    DESKTOP_DBUS_PATH,
                                                     NULL, &error);
   if (impl == NULL)
     {
@@ -1285,7 +1285,7 @@ init_notification (XdpContext *context)
                                       impl_config->dbus_name,
                                       "org.freedesktop.impl.portal.Notification",
                                       "ActionInvoked",
-                                      DESKTOP_PORTAL_OBJECT_PATH,
+                                      DESKTOP_DBUS_PATH,
                                       NULL,
                                       G_DBUS_SIGNAL_FLAGS_NONE,
                                       action_invoked,

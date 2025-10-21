@@ -19,8 +19,26 @@
 
 #pragma once
 
+#include <gio/gio.h>
+
 typedef struct _XdpContext XdpContext;
 typedef struct _XdpAppInfo XdpAppInfo;
 typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
 typedef struct _XdpPortalConfig XdpPortalConfig;
 typedef struct _XdpDbusImplLockdown XdpDbusImplLockdown;
+
+#define XDG_PORTAL_APPLICATIONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "applications"
+#define XDG_PORTAL_ICONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "icons"
+
+#define DBUS_DBUS_NAME "org.freedesktop.DBus"
+#define DBUS_DBUS_IFACE "org.freedesktop.DBus"
+#define DBUS_DBUS_PATH "/org/freedesktop/DBus"
+
+#define DESKTOP_DBUS_NAME "org.freedesktop.portal.Desktop"
+#define DESKTOP_DBUS_IFACE "org.freedesktop.portal"
+#define DESKTOP_DBUS_IMPL_IFACE "org.freedesktop.impl.portal"
+#define DESKTOP_DBUS_PATH "/org/freedesktop/portal/desktop"
+
+#define ACCESS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Access"
+
+#define LOCKDOWN_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Lockdown"

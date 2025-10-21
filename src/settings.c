@@ -300,7 +300,7 @@ init_settings (XdpContext *context)
         xdp_dbus_impl_settings_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                dbus_name,
-                                               DESKTOP_PORTAL_OBJECT_PATH,
+                                               DESKTOP_DBUS_PATH,
                                                NULL,
                                                &error);
       if (impl_proxy == NULL)
