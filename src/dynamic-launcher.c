@@ -26,6 +26,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdint.h>
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -54,18 +56,16 @@ typedef struct _DynamicLauncherClass DynamicLauncherClass;
 struct _DynamicLauncher
 {
   XdpDbusDynamicLauncherSkeleton parent_instance;
+
+  XdpDbusImplDynamicLauncher *impl;
+  GMutex transient_permissions_lock;
+  GHashTable *transient_permissions;
 };
 
 struct _DynamicLauncherClass
 {
   XdpDbusDynamicLauncherSkeletonClass parent_class;
 };
-
-static XdpDbusImplDynamicLauncher *impl;
-static DynamicLauncher *dynamic_launcher;
-
-static GMutex transient_permissions_lock;
-static GHashTable *transient_permissions;
 
 GType dynamic_launcher_get_type (void) G_GNUC_CONST;
 static void dynamic_launcher_iface_init (XdpDbusDynamicLauncherIface *iface);
@@ -75,24 +75,29 @@ G_DEFINE_TYPE_WITH_CODE (DynamicLauncher, dynamic_launcher,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_DYNAMIC_LAUNCHER,
                                                 dynamic_launcher_iface_init));
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (DynamicLauncher, g_object_unref)
+
 typedef enum {
   DYNAMIC_LAUNCHER_TYPE_APPLICATION = 1,
   DYNAMIC_LAUNCHER_TYPE_WEBAPP = 2,
 } DynamicLauncherType;
 
 static GVariant *
-get_launcher_data_and_revoke_token (const char *token)
+get_launcher_data_and_revoke_token (DynamicLauncher *dynamic_launcher,
+                                    const char      *token)
 {
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+  g_autoptr(GMutexLocker) locker =
+    g_mutex_locker_new (&dynamic_launcher->transient_permissions_lock);
   GVariant *launcher_data_wrapped;
 
-  if (!transient_permissions)
+  if (!dynamic_launcher->transient_permissions)
     return NULL;
 
   if (!g_uuid_string_is_valid (token))
     return NULL;
 
-  launcher_data_wrapped = g_hash_table_lookup (transient_permissions, token);
+  launcher_data_wrapped =
+    g_hash_table_lookup (dynamic_launcher->transient_permissions, token);
   if (launcher_data_wrapped)
     {
       g_autoptr(GVariant) launcher_data = NULL;
@@ -101,7 +106,7 @@ get_launcher_data_and_revoke_token (const char *token)
       g_variant_get (launcher_data_wrapped, "(vu)", &launcher_data, &timeout_id);
 
       g_source_remove (timeout_id);
-      g_hash_table_remove (transient_permissions, token);
+      g_hash_table_remove (dynamic_launcher->transient_permissions, token);
 
       return g_steal_pointer (&launcher_data);
     }
@@ -335,6 +340,7 @@ handle_install (XdpDbusDynamicLauncher *object,
                 const gchar            *arg_desktop_entry,
                 GVariant               *arg_options)
 {
+  DynamicLauncher *dynamic_launcher = (DynamicLauncher *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GVariant) launcher_data = NULL;
   g_autoptr(GError) error = NULL;
@@ -346,7 +352,8 @@ handle_install (XdpDbusDynamicLauncher *object,
   g_autofree char *icon_path = NULL;
   g_autoptr(GDesktopAppInfo) desktop_app_info = NULL;
 
-  launcher_data = get_launcher_data_and_revoke_token (arg_token);
+  launcher_data = get_launcher_data_and_revoke_token (dynamic_launcher,
+                                                      arg_token);
   if (launcher_data == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -433,41 +440,68 @@ static XdpOptionKey response_options[] = {
   { "token", G_VARIANT_TYPE_UINT32, NULL }
 };
 
-static gboolean
-install_token_timeout (gpointer data)
+typedef struct _InstallTokenTimeoutData
 {
-  g_autoptr(GVariant) launcher_data = NULL;
-  const char *token = data;
+  DynamicLauncher *dynamic_launcher;
+  char *token;
+} InstallTokenTimeoutData;
 
-  g_debug ("Revoking install token %s", token);
-  launcher_data = get_launcher_data_and_revoke_token (token);
+static InstallTokenTimeoutData *
+install_token_timeout_data_new (DynamicLauncher *dynamic_launcher,
+                                const char      *token)
+{
+  InstallTokenTimeoutData *data = g_new0 (InstallTokenTimeoutData, 1);
+
+  data->dynamic_launcher = g_object_ref (dynamic_launcher);
+  data->token = g_strdup (token);
+
+  return data;
+}
+
+static void
+install_token_timeout_data_free (InstallTokenTimeoutData *data)
+{
+  g_object_unref (data->dynamic_launcher);
+  g_free (data->token);
+  g_free (data);
+}
+
+static gboolean
+install_token_timeout (gpointer user_data)
+{
+  InstallTokenTimeoutData *data = user_data;
+  g_autoptr(GVariant) launcher_data = NULL;
+
+  g_debug ("Revoking install token %s", data->token);
+  launcher_data = get_launcher_data_and_revoke_token (data->dynamic_launcher,
+                                                      data->token);
 
   return G_SOURCE_REMOVE;
 }
 
 static void
-set_launcher_data_for_token (const char *token,
-                             GVariant   *launcher_data)
+set_launcher_data_for_token (DynamicLauncher *dynamic_launcher,
+                             const char      *token,
+                             GVariant        *launcher_data)
 {
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+  g_autoptr(GMutexLocker) locker =
+    g_mutex_locker_new (&dynamic_launcher->transient_permissions_lock);
   guint timeout_id;
   g_autoptr(GVariant) launcher_data_wrapped = NULL;
-
-  if (!transient_permissions)
-    {
-      transient_permissions = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                                     g_free, (GDestroyNotify)g_variant_unref);
-    }
 
   /* Revoke the token if it hasn't been used after 5 minutes, in case of
    * client bugs. This is what the GNOME print portal implementation does.
    */
-  timeout_id = g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 300, install_token_timeout,
-                                           g_strdup (token), g_free);
+  timeout_id =
+    g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 300,
+                                install_token_timeout,
+                                install_token_timeout_data_new (dynamic_launcher,
+                                                                token),
+                                (GDestroyNotify)install_token_timeout_data_free);
   launcher_data_wrapped =
     g_variant_ref_sink (g_variant_new ("(vu)", launcher_data, timeout_id));
 
-  g_hash_table_insert (transient_permissions,
+  g_hash_table_insert (dynamic_launcher->transient_permissions,
                        g_strdup (token),
                        g_steal_pointer (&launcher_data_wrapped));
 }
@@ -523,11 +557,13 @@ prepare_install_done (GObject      *source,
         }
       else
         {
+          DynamicLauncher *dynamic_launcher =
+            g_object_get_data (G_OBJECT (request), "dynamic-launcher");
           GVariant *launcher_data;
 
           /* Save the token in memory and return it to the caller */
           launcher_data = g_variant_new ("(svss)", chosen_name, chosen_icon, icon_format, icon_size);
-          set_launcher_data_for_token (token, launcher_data);
+          set_launcher_data_for_token (dynamic_launcher, token, launcher_data);
           g_variant_builder_add (&results_builder, "{sv}", "token", g_variant_new_string (token));
         }
     }
@@ -573,12 +609,10 @@ validate_launcher_type (const char  *key,
                         gpointer     user_data,
                         GError     **error)
 {
-  guint32 launcher_type = g_variant_get_uint32 (value);
-  guint32 supported_launcher_types;
-
-  supported_launcher_types =
-    xdp_dbus_dynamic_launcher_get_supported_launcher_types
-    (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher));
+  DynamicLauncher *dynamic_launcher = user_data;
+  uint32_t supported_launcher_types =
+    xdp_dbus_dynamic_launcher_get_supported_launcher_types (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher));
+  uint32_t launcher_type = g_variant_get_uint32 (value);
 
   if (__builtin_popcount (launcher_type) != 1)
     {
@@ -613,6 +647,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
                         GVariant               *arg_icon_v,
                         GVariant               *arg_options)
 {
+  DynamicLauncher *dynamic_launcher = (DynamicLauncher *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -625,11 +660,13 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (impl)),
-                                                       G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-                                                       g_dbus_proxy_get_name (G_DBUS_PROXY (impl)),
-                                                       request->id,
-                                                       NULL, &error);
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (dynamic_launcher->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (dynamic_launcher->impl)),
+    request->id,
+    NULL, &error);
+
   if (!impl_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -640,9 +677,8 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   if (!xdp_filter_options (arg_options, &opt_builder,
-                           prepare_install_options,
-                           G_N_ELEMENTS (prepare_install_options),
-                           NULL, &error))
+                           prepare_install_options, G_N_ELEMENTS (prepare_install_options),
+                           dynamic_launcher, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -658,10 +694,14 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_object_set_data_full (G_OBJECT (request), "icon-format", g_steal_pointer (&icon_format), g_free);
-  g_object_set_data_full (G_OBJECT (request), "icon-size", g_steal_pointer (&icon_size), g_free);
+  g_object_set_data_full (G_OBJECT (request), "dynamic-launcher",
+                          g_object_ref (dynamic_launcher), g_object_unref);
+  g_object_set_data_full (G_OBJECT (request), "icon-format",
+                          g_steal_pointer (&icon_format), g_free);
+  g_object_set_data_full (G_OBJECT (request), "icon-size",
+                          g_steal_pointer (&icon_size), g_free);
 
-  xdp_dbus_impl_dynamic_launcher_call_prepare_install (impl,
+  xdp_dbus_impl_dynamic_launcher_call_prepare_install (dynamic_launcher->impl,
                                                        request->id,
                                                        app_id,
                                                        arg_parent_window,
@@ -684,6 +724,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
                               GVariant               *arg_icon_v,
                               GVariant               *arg_options)
 {
+  DynamicLauncher *dynamic_launcher = (DynamicLauncher *) object;
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GError) error = NULL;
@@ -702,7 +743,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
     {
       response = 0;
     }
-  else if (!xdp_dbus_impl_dynamic_launcher_call_request_install_token_sync (impl,
+  else if (!xdp_dbus_impl_dynamic_launcher_call_request_install_token_sync (dynamic_launcher->impl,
                                                                             app_id,
                                                                             arg_options,
                                                                             &response,
@@ -732,7 +773,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
       token = g_uuid_string_random ();
 
       /* Save the token in memory and return it to the caller */
-      set_launcher_data_for_token (token, launcher_data);
+      set_launcher_data_for_token (dynamic_launcher, token, launcher_data);
 
       xdp_dbus_dynamic_launcher_complete_request_install_token (object, invocation, token);
     }
@@ -1030,29 +1071,70 @@ dynamic_launcher_iface_init (XdpDbusDynamicLauncherIface *iface)
 }
 
 static void
+dynamic_launcher_dispose (GObject *object)
+{
+  DynamicLauncher *dl = (DynamicLauncher *) object;
+
+  g_clear_object (&dl->impl);
+
+  if (dl->transient_permissions)
+    {
+      g_mutex_clear (&dl->transient_permissions_lock);
+      g_clear_pointer (&dl->transient_permissions, g_hash_table_unref);
+    }
+
+  G_OBJECT_CLASS (dynamic_launcher_parent_class)->dispose (object);
+}
+
+static void
 dynamic_launcher_init (DynamicLauncher *dl)
 {
-  xdp_dbus_dynamic_launcher_set_version (XDP_DBUS_DYNAMIC_LAUNCHER (dl), 1);
-  g_object_bind_property (G_OBJECT (impl), "supported-launcher-types",
-                          G_OBJECT (dl), "supported-launcher-types",
-                          G_BINDING_SYNC_CREATE);
 }
 
 static void
 dynamic_launcher_class_init (DynamicLauncherClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = dynamic_launcher_dispose;
+}
+
+static DynamicLauncher*
+dynamic_launcher_new (XdpDbusImplDynamicLauncher *impl)
+{
+  DynamicLauncher *dynamic_launcher;
+
+  dynamic_launcher = g_object_new (dynamic_launcher_get_type (), NULL);
+  dynamic_launcher->impl = g_object_ref (impl);
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (dynamic_launcher->impl),
+                                    G_MAXINT);
+
+  xdp_dbus_dynamic_launcher_set_version (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher), 1);
+
+  g_object_bind_property (G_OBJECT (dynamic_launcher->impl), "supported-launcher-types",
+                          G_OBJECT (dynamic_launcher), "supported-launcher-types",
+                          G_BINDING_SYNC_CREATE);
+
+  g_mutex_init (&dynamic_launcher->transient_permissions_lock);
+  dynamic_launcher->transient_permissions =
+    g_hash_table_new_full (g_str_hash, g_str_equal,
+                           g_free, (GDestroyNotify) g_variant_unref);
+
+  return dynamic_launcher;
 }
 
 void
 init_dynamic_launcher (XdpContext *context)
 {
+  g_autoptr(DynamicLauncher) dynamic_launcher = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
+  g_autoptr(XdpDbusImplDynamicLauncher) impl = NULL;
   g_autoptr(GError) error = NULL;
 
-  impl_config = xdp_portal_config_find (config,
-                                        "org.freedesktop.impl.portal.DynamicLauncher");
+  impl_config = xdp_portal_config_find (config, DYNAMIC_LAUNCHER_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
     return;
 
@@ -1068,11 +1150,9 @@ init_dynamic_launcher (XdpContext *context)
       return;
     }
 
-  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (impl), G_MAXINT);
-
-  dynamic_launcher = g_object_new (dynamic_launcher_get_type (), NULL);
+  dynamic_launcher = dynamic_launcher_new (impl);
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (dynamic_launcher),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&dynamic_launcher)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
