@@ -47,8 +47,6 @@ struct _ProxyResolverClass
   XdpDbusProxyResolverSkeletonClass parent_class;
 };
 
-static ProxyResolver *proxy_resolver;
-
 GType proxy_resolver_get_type (void) G_GNUC_CONST;
 static void proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface);
 
@@ -56,6 +54,8 @@ G_DEFINE_TYPE_WITH_CODE (ProxyResolver, proxy_resolver,
                          XDP_DBUS_TYPE_PROXY_RESOLVER_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_PROXY_RESOLVER,
                                                 proxy_resolver_iface_init));
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (ProxyResolver, g_object_unref)
 
 static gboolean
 proxy_resolver_handle_lookup (XdpDbusProxyResolver *object,
@@ -94,6 +94,8 @@ proxy_resolver_dispose (GObject *object)
   ProxyResolver *resolver = (ProxyResolver *)object;
 
   g_clear_object (&resolver->resolver);
+
+  G_OBJECT_CLASS (proxy_resolver_parent_class)->dispose (object);
 }
 
 static void
@@ -105,9 +107,6 @@ proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface)
 static void
 proxy_resolver_init (ProxyResolver *resolver)
 {
-  resolver->resolver = g_proxy_resolver_get_default ();
-
-  xdp_dbus_proxy_resolver_set_version (XDP_DBUS_PROXY_RESOLVER (resolver), 1);
 }
 
 static void
@@ -118,12 +117,27 @@ proxy_resolver_class_init (ProxyResolverClass *klass)
   object_class->dispose = proxy_resolver_dispose;
 }
 
+static ProxyResolver *
+proxy_resolver_new (void)
+{
+  ProxyResolver *proxy_resolver;
+
+  proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
+  proxy_resolver->resolver = g_proxy_resolver_get_default ();
+
+  xdp_dbus_proxy_resolver_set_version (XDP_DBUS_PROXY_RESOLVER (proxy_resolver), 1);
+
+  return proxy_resolver;
+}
+
 void
 init_proxy_resolver (XdpContext *context)
 {
-  proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
+  g_autoptr(ProxyResolver) proxy_resolver = NULL;
+
+  proxy_resolver = proxy_resolver_new ();
 
   xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (proxy_resolver),
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&proxy_resolver)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
