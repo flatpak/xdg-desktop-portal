@@ -51,3 +51,7 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define BACKGROUND_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Background"
 #define BACKGROUND_PERMISSION_TABLE "background"
 #define BACKGROUND_PERMISSION_ID "background"
+
+#define CAMERA_DBUS_IFACE DESKTOP_DBUS_IFACE ".Camera"
+#define CAMERA_PERMISSION_TABLE "devices"
+#define CAMERA_PERMISSION_DEVICE_CAMERA "camera"
