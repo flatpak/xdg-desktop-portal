@@ -126,3 +126,5 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define SETTINGS_DBUS_IFACE DESKTOP_DBUS_IFACE ".Settings"
 #define SETTINGS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Settings"
+
+#define TRASH_DBUS_IFACE DESKTOP_DBUS_IFACE ".Trash"
