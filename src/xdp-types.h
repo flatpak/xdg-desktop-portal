@@ -71,3 +71,6 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define GAMEMODE_DBUS_IFACE DESKTOP_DBUS_IFACE ".GameMode"
 #define GAMEMODE_PERMISSION_TABLE "gamemode"
 #define GAMEMODE_PERMISSION_ID "gamemode"
+
+#define GLOBAL_SHORTCUTS_DBUS_IFACE DESKTOP_DBUS_IFACE ".GlobalShortcuts"
+#define GLOBAL_SHORTCUTS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".GlobalShortcuts"
