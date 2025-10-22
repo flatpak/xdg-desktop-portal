@@ -51,6 +51,8 @@ XdpPortalConfig * xdp_context_get_config (XdpContext *context);
 
 XdpDbusImplLockdown * xdp_context_get_lockdown_impl (XdpContext *context);
 
+XdpDbusImplAccess * xdp_context_get_access_impl (XdpContext *context);
+
 void xdp_context_take_and_export_portal (XdpContext             *context,
                                          GDBusInterfaceSkeleton *skeleton,
                                          XdpContextExportFlags   flags);
