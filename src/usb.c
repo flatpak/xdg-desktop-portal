@@ -1018,11 +1018,13 @@ out:
 }
 
 static gboolean
-filter_access_devices_writable (const char   *key,
-                                GVariant     *value,
-                                GUdevDevice  *device,
-                                GError      **error)
+filter_access_devices_writable (const char  *key,
+                                GVariant    *value,
+                                GVariant    *options,
+                                gpointer     user_data,
+                                GError     **error)
 {
+  GUdevDevice *device = G_UDEV_DEVICE (user_data);
   const char *device_file;
   gboolean writable = g_variant_get_boolean (value);
 
@@ -1040,12 +1042,6 @@ filter_access_devices_writable (const char   *key,
   return FALSE;
 }
 
-typedef struct {
-  const char *key;
-  const GVariantType *type;
-  gboolean (* filter) (const char *key, GVariant *value, GUdevDevice *device, GError **error);
-} XdpUsbAccessOptionKey;
-
 static gboolean
 filter_access_devices (XdpUsb         *self,
                        UsbSenderInfo  *sender_info,
@@ -1055,12 +1051,12 @@ filter_access_devices (XdpUsb         *self,
 {
   g_auto(GVariantBuilder) filtered_devices_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a(sa{sv}a{sv})"));
-  GVariantIter *device_options_iter;
   GVariantIter devices_iter;
+  GVariant *device_options;
   const char *device_id;
   size_t n_devices;
 
-  static const XdpUsbAccessOptionKey usb_device_options[] = {
+  static const XdpOptionKey usb_device_options[] = {
     { "writable", G_VARIANT_TYPE_BOOLEAN, filter_access_devices_writable },
   };
 
@@ -1082,16 +1078,15 @@ filter_access_devices (XdpUsb         *self,
     }
 
   while (g_variant_iter_next (&devices_iter,
-                              "(&sa{sv})",
+                              "(&s@a{sv})",
                               &device_id,
-                              &device_options_iter))
+                              &device_options))
     {
-      g_autoptr(GVariantIter) owned_deviced_options_iter = device_options_iter;
+      g_autoptr(GVariant) owned_deviced_options = device_options;
       g_autoptr(GVariant) device_variant = NULL;
-      g_auto(GVariantDict) device_options_dict = G_VARIANT_DICT_INIT (NULL);
+      g_auto(GVariantBuilder) device_options_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       GUdevDevice *device;
-      GVariant *device_option_value;
-      const char *device_option;
 
       device = g_hash_table_lookup (self->ids_to_devices, device_id);
 
@@ -1119,38 +1114,13 @@ filter_access_devices (XdpUsb         *self,
           return FALSE;
         }
 
-      while (g_variant_iter_next (device_options_iter,
-                                  "{&sv}",
-                                  &device_option,
-                                  &device_option_value))
-        {
-          g_autoptr(GVariant) value = device_option_value;
-
-          for (size_t i = 0; i < G_N_ELEMENTS (usb_device_options); i++)
-            {
-              if (g_strcmp0 (device_option, usb_device_options[i].key) != 0)
-                continue;
-
-              if (!g_variant_is_of_type (value, usb_device_options[i].type))
-                {
-                  g_set_error (out_error,
-                               XDG_DESKTOP_PORTAL_ERROR,
-                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
-                               "Invalid type for option '%s'",
-                               device_option);
-                  return FALSE;
-                }
-
-              if (usb_device_options[i].filter &&
-                  !usb_device_options[i].filter (device_option, value,
-                                                 device, out_error))
-                return FALSE;
-
-              g_variant_dict_insert_value (&device_options_dict,
-                                           device_option,
-                                           value);
-            }
-        }
+      if (!xdp_filter_options (device_options,
+                               &device_options_builder,
+                               usb_device_options,
+                               G_N_ELEMENTS (usb_device_options),
+                               device,
+                               out_error))
+        return FALSE;
 
       device_variant = gudev_device_to_variant (self, sender_info, device);
 
@@ -1158,7 +1128,7 @@ filter_access_devices (XdpUsb         *self,
                              "(s@a{sv}@a{sv})",
                              device_id,
                              device_variant,
-                             g_variant_dict_end (&device_options_dict));
+                             g_variant_builder_end (&device_options_builder));
     }
 
   *out_filtered_devices =
