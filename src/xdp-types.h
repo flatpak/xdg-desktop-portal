@@ -26,6 +26,7 @@ typedef struct _XdpAppInfo XdpAppInfo;
 typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
 typedef struct _XdpPortalConfig XdpPortalConfig;
 typedef struct _XdpDbusImplLockdown XdpDbusImplLockdown;
+typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define XDG_PORTAL_APPLICATIONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "applications"
 #define XDG_PORTAL_ICONS_DIR "xdg-desktop-portal" G_DIR_SEPARATOR_S "icons"

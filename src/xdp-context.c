@@ -71,6 +71,7 @@ struct _XdpContext
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
   XdpDbusImplLockdown *lockdown_impl;
+  XdpDbusImplAccess *access_impl;
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
@@ -96,6 +97,7 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->portal_config);
   g_clear_object (&context->connection);
   g_clear_object (&context->lockdown_impl);
+  g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
   g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
@@ -158,6 +160,12 @@ XdpDbusImplLockdown *
 xdp_context_get_lockdown_impl (XdpContext *context)
 {
   return context->lockdown_impl;
+}
+
+XdpDbusImplAccess *
+xdp_context_get_access_impl (XdpContext *context)
+{
+  return context->access_impl;
 }
 
 static gboolean
@@ -288,6 +296,7 @@ xdp_context_register (XdpContext       *context,
 {
   XdpPortalConfig *portal_config = context->portal_config;
   XdpImplConfig *lockdown_impl_config;
+  XdpImplConfig *access_impl_config;
   GQuark portal_errors G_GNUC_UNUSED;
 
   /* make sure errors are registered */
@@ -325,6 +334,23 @@ xdp_context_register (XdpContext       *context,
 
   if (context->lockdown_impl == NULL)
     context->lockdown_impl = xdp_dbus_impl_lockdown_skeleton_new ();
+
+  access_impl_config = xdp_portal_config_find (portal_config, ACCESS_DBUS_IMPL_IFACE);
+  if (access_impl_config != NULL)
+    {
+      context->access_impl =
+        xdp_dbus_impl_access_proxy_new_sync (connection,
+                                             G_DBUS_PROXY_FLAGS_NONE,
+                                             access_impl_config->dbus_name,
+                                             DESKTOP_DBUS_PATH,
+                                             NULL, NULL);
+    }
+
+  if (context->access_impl)
+    {
+        g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (context->access_impl),
+                                          G_MAXINT);
+    }
 
   init_memory_monitor (context);
   init_power_profile_monitor (context);
