@@ -285,10 +285,10 @@ on_peer_disconnect (const char *name,
 
   xdp_usb_delete_for_sender (context, name);
   notification_delete_for_sender (context, name);
-  xdp_app_info_registry_delete (context->app_info_registry, name);
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
+  xdp_app_info_registry_delete (context->app_info_registry, name);
 }
 
 gboolean
