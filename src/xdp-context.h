@@ -49,7 +49,7 @@ GDBusConnection * xdp_context_get_connection (XdpContext *context);
 
 XdpPortalConfig * xdp_context_get_config (XdpContext *context);
 
-XdpDbusImplLockdown * xdp_context_get_lockdown (XdpContext *context);
+XdpDbusImplLockdown * xdp_context_get_lockdown_impl (XdpContext *context);
 
 void xdp_context_take_and_export_portal (XdpContext             *context,
                                          GDBusInterfaceSkeleton *skeleton,

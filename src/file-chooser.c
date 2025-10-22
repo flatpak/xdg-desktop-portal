@@ -605,7 +605,7 @@ handle_save_file (XdpDbusFileChooser *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
   g_auto(GVariantBuilder) options =
@@ -741,7 +741,7 @@ handle_save_files (XdpDbusFileChooser *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GError) error = NULL;
   XdpDbusImplRequest *impl_request;
   g_auto(GVariantBuilder) options =

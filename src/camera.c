@@ -194,7 +194,7 @@ handle_access_camera (XdpDbusCamera *object,
                       GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GTask) task = NULL;
 
   if (xdp_dbus_impl_lockdown_get_disable_camera (lockdown))
@@ -261,7 +261,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
                              GUnixFDList *in_fd_list,
                              GVariant *arg_options)
 {
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(XdpAppInfo) app_info = NULL;
   XdpPermission permission;
   g_autoptr(GUnixFDList) out_fd_list = NULL;

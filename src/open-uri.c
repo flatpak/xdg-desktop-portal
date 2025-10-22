@@ -949,7 +949,7 @@ handle_open_uri (XdpDbusOpenURI *object,
                  GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -1001,7 +1001,7 @@ handle_open_file (XdpDbusOpenURI *object,
                  GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GTask) task = NULL;
   gboolean writable;
   gboolean ask;
@@ -1071,7 +1071,7 @@ handle_open_directory (XdpDbusOpenURI *object,
                        GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GTask) task = NULL;
   int fd_id, fd;
   const char *activation_token = NULL;

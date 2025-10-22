@@ -413,7 +413,7 @@ handle_create_session (XdpDbusLocation *object,
                        GDBusMethodInvocation *invocation,
                        GVariant *arg_options)
 {
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GError) error = NULL;
   LocationSession *loc_session;
   XdpSession *session;
@@ -636,7 +636,7 @@ handle_start (XdpDbusLocation *object,
               GVariant *arg_options)
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   XdpSession *session;
   LocationSession *loc_session;
   g_autoptr(GTask) task = NULL;

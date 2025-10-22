@@ -155,7 +155,7 @@ xdp_context_get_config (XdpContext *context)
 }
 
 XdpDbusImplLockdown *
-xdp_context_get_lockdown (XdpContext *context)
+xdp_context_get_lockdown_impl (XdpContext *context)
 {
   return context->lockdown_impl;
 }
@@ -312,7 +312,7 @@ xdp_context_register (XdpContext       *context,
       return FALSE;
     }
 
-  lockdown_impl_config = xdp_portal_config_find (portal_config, "org.freedesktop.impl.portal.Lockdown");
+  lockdown_impl_config = xdp_portal_config_find (portal_config, LOCKDOWN_DBUS_IMPL_IFACE);
   if (lockdown_impl_config != NULL)
     {
       context->lockdown_impl =
