@@ -153,7 +153,7 @@ handle_print (XdpDbusPrint *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
@@ -271,7 +271,7 @@ handle_prepare_print (XdpDbusPrint *object,
 {
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
-  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown (context);
+  XdpDbusImplLockdown *lockdown = xdp_context_get_lockdown_impl (context);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
