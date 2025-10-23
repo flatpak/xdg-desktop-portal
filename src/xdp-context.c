@@ -251,9 +251,10 @@ xdp_context_take_and_export_portal (XdpContext             *context,
         skeleton,
         G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
 
-      g_signal_connect (skeleton, "g-authorize-method",
-                        G_CALLBACK (authorize_callback),
-                        context);
+      g_signal_connect_object (skeleton, "g-authorize-method",
+                               G_CALLBACK (authorize_callback),
+                               context,
+                               G_CONNECT_DEFAULT);
     }
 
   if (g_dbus_interface_skeleton_export (skeleton,
