@@ -357,7 +357,10 @@ xdp_session_initable_init (GInitable     *initable,
       if (!impl_session)
         return FALSE;
 
-      g_signal_connect (impl_session, "closed", G_CALLBACK (on_closed), session);
+      g_signal_connect_object (impl_session, "closed",
+                               G_CALLBACK (on_closed),
+                               session,
+                               G_CONNECT_DEFAULT);
 
       session->impl_session = g_steal_pointer (&impl_session);
     }
