@@ -2,7 +2,7 @@
 # When this file is changed, or one needs to rebuild the image for another
 # reason, bump the `IMAGE_TAG` in the container.yml workflow.
 
-FROM ubuntu:latest
+FROM ubuntu:24.04
 
 RUN apt update
 RUN apt upgrade -y
@@ -35,6 +35,7 @@ RUN apt install -y --no-install-recommends \
     libjson-glib-dev \
     libpipewire-0.3-dev \
     libsystemd-dev \
+    liblua5.3-dev \
     libtool \
     llvm \
     libclang-rt-18-dev \
@@ -70,3 +71,13 @@ RUN pip install --user --break-system-packages pre-commit
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
+
+# Install WirePlumber 0.5.8 (same as 25.04) since 24.04 only has 0.4
+RUN git clone --depth 1 --branch 0.5.8 \
+    https://gitlab.freedesktop.org/pipewire/wireplumber.git \
+    wireplumber
+RUN meson setup --prefix=/usr --libdir=lib/x86_64-linux-gnu \
+    -Dtests=false -Ddbus-tests=false -Dsystem-lua=true \
+    wp-build wireplumber
+RUN meson compile -C wp-build
+RUN meson install -C wp-build
