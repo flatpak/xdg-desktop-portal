@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2024-10-26 19:05+0200\n"
+"PO-Revision-Date: 2025-10-25 09:44+0200\n"
 "Last-Translator: Quentin PAGÈS\n"
 "Language-Team: Occitan\n"
 "Language: oc\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Generator: Poedit 3.5\n"
+"X-Generator: Poedit 3.8\n"
 
 #: src/background.c:827
 #, c-format
@@ -83,9 +83,9 @@ msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Entrada Desktop donada per Install() pas un fichièr clau valid"
 
 #: src/dynamic-launcher.c:319
-#, fuzzy, c-format
+#, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr "Entrada Desktop donada per Install() deu aver sonque un grop"
+msgstr "Entrada Desktop donada per Install() deu aver exactament un grop"
 
 #: src/dynamic-launcher.c:356
 #, c-format
@@ -213,12 +213,11 @@ msgstr "Paramètre demandat pas trobat"
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "Periferic indisponible"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "Permetre pas"
+msgstr "Non autorizat"
 
 #: src/wallpaper.c:207
 #, c-format
