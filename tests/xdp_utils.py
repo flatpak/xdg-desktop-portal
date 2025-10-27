@@ -249,6 +249,7 @@ class AppInfoKind(Enum):
     HOST = 1
     FLATPAK = 2
     SNAP = 3
+    LINYAPS = 4
 
 
 @dataclass
@@ -423,6 +424,68 @@ DesktopFile={desktop_file}
 
         files[metadata_path] = metadata
         env["XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA"] = (
+            metadata_path.absolute().as_posix()
+        )
+
+        return cls(
+            kind=kind,
+            app_id=app_id,
+            desktop_file=desktop_file,
+            env=env,
+            files=files,
+        )
+
+    @classmethod
+    def new_linyaps(
+        cls,
+        app_id: str,
+        instance_id: str | None = None,
+        desktop_entry: bytes | None = None,
+        metadata: bytes | None = None,
+    ):
+        kind = AppInfoKind.LINYAPS
+        desktop_file = f"{app_id}.desktop"
+        env = {
+            "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "linyaps",
+        }
+        files = {}
+
+        if not instance_id:
+            instance_id = (
+                "278575aac695dafe08974feb55c84bba69e862216e980b7ede28c5844e93682c"
+            )
+
+        if not desktop_entry:
+            desktop_entry = b"""
+[Desktop Entry]
+Version=1.0
+Name=Example App
+Exec=true %u
+Type=Application
+"""
+
+        files[desktop_files_path() / desktop_file] = desktop_entry
+
+        if not metadata:
+            metadata_str = f"""
+[General]
+Linyaps-version=1.10.0
+
+[Application]
+Id={app_id}
+
+[Instance]
+Id={instance_id}
+
+[Context]
+Network=shared
+"""
+            metadata = metadata_str.encode("utf8")
+
+        metadata_path = Path(os.environ["TMPDIR"]) / "linyaps-metadata"
+
+        files[metadata_path] = metadata
+        env["XDG_DESKTOP_PORTAL_TEST_LINYAPS_METADATA"] = (
             metadata_path.absolute().as_posix()
         )
 

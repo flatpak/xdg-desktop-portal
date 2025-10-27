@@ -62,3 +62,9 @@ KDE representatives:
 
 - David Edmundson
 - David Redondo
+
+Linyaps representative:
+
+- He YuMing
+- Iceyer
+- reddevillg
