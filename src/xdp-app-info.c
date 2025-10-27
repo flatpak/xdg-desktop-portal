@@ -45,6 +45,7 @@
 #include "xdp-app-info-private.h"
 #include "xdp-app-info-flatpak-private.h"
 #include "xdp-app-info-snap-private.h"
+#include "xdp-app-info-linyaps-private.h"
 #include "xdp-app-info-host-private.h"
 #include "xdp-enum-types.h"
 #include "xdp-utils.h"
@@ -340,6 +341,17 @@ xdp_app_info_new (const char  *sender,
 
   if (app_info == NULL)
     app_info = xdp_app_info_snap_new (sender, pid, &pidfd_owned, &local_error);
+
+  if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
+                                     XDP_APP_INFO_ERROR_WRONG_APP_KIND))
+    {
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return NULL;
+    }
+  g_clear_error (&local_error);
+
+  if (app_info == NULL)
+    app_info = xdp_app_info_linyaps_new (sender, pid, &pidfd_owned, &local_error);
 
   if (!app_info && !g_error_matches (local_error, XDP_APP_INFO_ERROR,
                                      XDP_APP_INFO_ERROR_WRONG_APP_KIND))

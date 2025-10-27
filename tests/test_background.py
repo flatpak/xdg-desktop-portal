@@ -88,8 +88,8 @@ class TestBackground:
         assert response.response == 0
         assert response.results["background"]
 
-        # Unsupported on snap
-        if xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+        # Unsupported on snap and linyaps
+        if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
             assert not response.results["autostart"]
             return
 
@@ -132,8 +132,8 @@ class TestBackground:
         assert response.response == 0
         assert response.results["background"]
 
-        # Unsupported on snap
-        if xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+        # Unsupported on snap and linyaps
+        if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
             assert not response.results["autostart"]
             return
 
