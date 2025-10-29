@@ -66,6 +66,9 @@
 
         Bind the shortcuts of this session. This will typically result the portal
         presenting a dialog letting the user configure shortcut triggers.
+        Backends might want to only show such a dialog if `shortcuts` includes shortcuts that were not
+        bound in previous sessions by the application or only include shortcuts in such a dialog that
+        were not used in previous `BindShortcuts` requests by the application.
     -->
     <method name="BindShortcuts">
       <arg type="o" name="handle" direction="in"/>
