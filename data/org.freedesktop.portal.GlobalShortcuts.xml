@@ -155,7 +155,10 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
         @options: Vardict with optional further information
 
-        Lists all shortcuts.
+        Lists shortcuts of a session.
+
+        If `BindShortcuts` was called for `session` all active shortcuts for `session` are returned.
+        Otherwise returns the shortcuts that were sucessfully bound in a previous session by this application.
 
         Supported keys in the @options vardict include:
 
