@@ -90,7 +90,10 @@
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @results: Vardict with the results of the call
 
-        List shortcuts registered in the global shortcuts session.
+        Lists shortcuts of a session.
+
+        If `BindShortcuts` was called for `session` all active shortcuts for `session` are returned.
+        Otherwise returns the shortcuts that were sucessfully bound in a previous session by the application.
 
         The following results get returned in the @results vardict:
 
