@@ -83,13 +83,13 @@
 
         The first string is a user-visible name for the filter. The ``a(us)``
         specifies a list of filter strings, which can be either a glob-style
-        pattern (indicated by 0) or a MIME type (indicated by 1). Patterns are
-        case-sensitive.
+        pattern (indicated by 0) or a MIME type (indicated by 1) which allows
+        wildcards for the subtype. Patterns are case-sensitive.
 
         To match different capitalizations of, e.g. ``'*.ico'``, use a pattern
         like: ``'*.[iI][cC][oO]'``.
 
-        Example: ``[('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')])]``
+        Example: ``[('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')]), (1, 'audio/*')])]``
 
         Note that filters are purely there to aid the user in making a useful
         selection. The portal may still allow the user to select files that
