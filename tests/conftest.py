@@ -396,7 +396,12 @@ def xdp_overwrite_env() -> dict[str, str]:
 
 
 @pytest.fixture(
-    params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK, xdp.AppInfoKind.SNAP]
+    params=[
+        xdp.AppInfoKind.HOST,
+        xdp.AppInfoKind.FLATPAK,
+        xdp.AppInfoKind.SNAP,
+        xdp.AppInfoKind.LINYAPS,
+    ]
 )
 def xdp_app_info(request) -> xdp.AppInfo:
     """
@@ -424,6 +429,11 @@ def xdp_app_info(request) -> xdp.AppInfo:
             common_id=app_id,
             snap_name="test",
             app_name="test",
+        )
+
+    if app_info_kind == xdp.AppInfoKind.LINYAPS:
+        return xdp.AppInfo.new_linyaps(
+            app_id=app_id,
         )
 
     assert_never(app_info_kind)
