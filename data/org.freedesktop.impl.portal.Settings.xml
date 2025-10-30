@@ -58,6 +58,33 @@
 
       Unknown values should be treated as 0 (no preference).
 
+    * ``org.freedesktop.appearance``  ``button-placement`` (``(asas)``)
+
+      Indicates the system's preferred arrangement of buttons on the titlebar.
+      In LTR locales, the first tuple is on the left (leading), and the second
+      tuple is on the right (trailing). In RTL locales, the first tuple is on
+      the right (leading), and the second tuple is on the left (trailing).
+      Supported values are:
+
+      - ``close``: The close button
+      - ``minimize``: The minimize button
+      - ``maximize``: The maximize button
+
+      Unknown values must be ignored if the client does not understand them.
+      Duplicate buttons across the tuples and string arrays are not allowed.
+      Examples:
+
+      - `(["close","minimize","maximize"][])` would result in the close,
+        minimize, and maximize buttons being drawn on the leading side of the
+        window, in that order; there will be no buttons on the trailing side
+        of the window.
+      - `([]["close"])` would result in the close button being drawn on the
+        trailing side of the window; there will be no buttons on the leading
+        side of the window.
+      - `(["close"]["maximize"])` would result in the close button being drawn
+        on the leading side of the window, and the maximize button being drawn
+        on the trailing side of the window.
+
     Implementations can provide other keys; they are entirely
     implementation details that are undocumented. If you are a
     toolkit and want to use this please open an issue.
