@@ -68,6 +68,7 @@ struct _XdpContext
 
   gboolean verbose;
 
+  GCancellable *cancellable;
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
   XdpDbusImplLockdown *lockdown_impl;
@@ -85,6 +86,9 @@ static void
 xdp_context_dispose (GObject *object)
 {
   XdpContext *context = XDP_CONTEXT (object);
+
+  g_cancellable_cancel (context->cancellable);
+  g_clear_object (&context->cancellable);
 
   if (context->peer_disconnect_handle_id)
     {
@@ -123,6 +127,7 @@ xdp_context_new (gboolean opt_verbose)
   XdpContext *context = g_object_new (XDP_TYPE_CONTEXT, NULL);
 
   context->verbose = opt_verbose;
+  context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
