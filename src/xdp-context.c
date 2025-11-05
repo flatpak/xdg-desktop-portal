@@ -119,7 +119,6 @@ xdp_context_class_init (XdpContextClass *klass)
 static void
 xdp_context_init (XdpContext *context)
 {
-  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -128,6 +127,7 @@ xdp_context_new (gboolean opt_verbose)
   XdpContext *context = g_object_new (XDP_TYPE_CONTEXT, NULL);
 
   context->verbose = opt_verbose;
+  context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
