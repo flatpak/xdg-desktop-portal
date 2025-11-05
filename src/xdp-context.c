@@ -68,7 +68,6 @@ struct _XdpContext
 
   gboolean verbose;
 
-  GCancellable *cancellable;
   XdpPortalConfig *portal_config;
   GDBusConnection *connection;
   XdpDbusImplLockdown *lockdown_impl;
@@ -88,9 +87,6 @@ static void
 xdp_context_dispose (GObject *object)
 {
   XdpContext *context = XDP_CONTEXT (object);
-
-  g_cancellable_cancel (context->cancellable);
-  g_clear_object (&context->cancellable);
 
   if (context->peer_disconnect_handle_id)
     {
@@ -123,7 +119,6 @@ xdp_context_class_init (XdpContextClass *klass)
 static void
 xdp_context_init (XdpContext *context)
 {
-  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -206,6 +201,10 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
+  // FIXME: this is awful if this is running in a fiber
+  // because it will block the main thread.
+  // We would need some kind of async variant of ensure_for_invocation_sync.
+  // Which would require some sort of async mutex
   app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
                                                                invocation,
                                                                NULL,
@@ -317,6 +316,7 @@ xdp_context_register (XdpContext       *context,
                       GError          **error)
 {
   XdpPortalConfig *portal_config = context->portal_config;
+  GCancellable *cancellable = context->cancellable;
   XdpImplConfig *lockdown_impl_config;
   XdpImplConfig *access_impl_config;
   GQuark portal_errors G_GNUC_UNUSED;
@@ -395,8 +395,8 @@ xdp_context_register (XdpContext       *context,
   init_background (context);
   init_wallpaper (context);
   init_account (context);
-  init_email (context);
-  init_secret (context, context->cancellable);
+  init_email (context, cancellable);
+  init_secret (context, cancellable);
   init_global_shortcuts (context);
   init_dynamic_launcher (context);
   init_screen_cast (context);

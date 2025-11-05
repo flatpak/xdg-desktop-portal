@@ -24,4 +24,5 @@
 
 #include "xdp-types.h"
 
-void init_email (XdpContext *context);
+void init_email (XdpContext   *context,
+                 GCancellable *cancellable);
