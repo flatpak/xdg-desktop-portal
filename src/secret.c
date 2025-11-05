@@ -245,7 +245,7 @@ proxy_created_cb (GObject      *source_object,
   secret = secret_new (impl);
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&secret)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
 
 void
