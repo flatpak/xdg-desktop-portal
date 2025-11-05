@@ -123,6 +123,7 @@ pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
+libdex_dep = dependency('libdex-1')
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()
