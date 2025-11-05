@@ -115,7 +115,7 @@ libglnx = subproject(
   ],
 )
 
-glib_dep = dependency('glib-2.0', version: '>= 2.76')
+glib_dep = dependency('glib-2.0', version: '>= 2.88')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
 json_glib_dep = dependency('json-glib-1.0')
@@ -132,6 +132,12 @@ libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 libglnx_dep = libglnx.get_variable('libglnx_dep')
+libdex_dep = dependency('libdex-1', version: '>=1.1')
+
+libdex_codegen_ext = libdex_dep.get_variable('gdbus_codegen_extension', default_value: '')
+if libdex_codegen_ext == ''
+  error('libdex needs to be build with gdbus support enabled')
+endif
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()
