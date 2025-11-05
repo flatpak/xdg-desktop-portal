@@ -1,12 +1,17 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+gdbus_codegen_extra_args = [
+  f'--extension-path=@libdex_codegen_ext@',
+]
+
 portal_built_sources = gnome.gdbus_codegen(
   'xdp-dbus',
   sources: portal_sources + flatpak_intf_sources,
   interface_prefix: 'org.freedesktop.portal',
   namespace: 'XdpDbus',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 host_built_sources = gnome.gdbus_codegen(
   'xdp-host-dbus',
@@ -14,6 +19,7 @@ host_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.host.portal',
   namespace: 'XdpDbusHost',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 impl_built_sources = gnome.gdbus_codegen(
   'xdp-impl-dbus',
@@ -21,6 +27,7 @@ impl_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
@@ -28,6 +35,7 @@ background_monitor_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.background',
   namespace: 'XdpDbusBackground',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
@@ -35,6 +43,7 @@ if have_geoclue
     sources: 'org.freedesktop.GeoClue2.Client.xml',
     interface_prefix: 'org.freedesktop.GeoClue2',
     namespace: 'Geoclue',
+    extra_args: gdbus_codegen_extra_args,
   )
 else
   geoclue_built_sources = []
@@ -118,6 +127,7 @@ common_deps = [
   gio_unix_dep,
   json_glib_dep,
   libglnx_dep,
+  libdex_dep,
 ]
 
 if gudev_dep.found()
