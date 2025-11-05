@@ -618,7 +618,7 @@ handle_session_event (XdpUsb        *self,
   g_assert (g_strcmp0 (g_udev_device_get_subsystem (device), "usb") == 0);
 
   registry = xdp_context_get_app_info_registry (self->context);
-  app_info = xdp_app_info_registry_lookup_sender (registry, session->sender);
+  app_info = xdp_app_info_registry_lookup (registry, session->sender);
   g_assert (app_info != NULL);
   sender_info = usb_sender_info_from_app_info (app_info);
   g_assert (sender_info != NULL);
