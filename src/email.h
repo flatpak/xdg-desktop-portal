@@ -24,5 +24,4 @@
 
 #include "xdp-types.h"
 
-void init_email (XdpContext   *context,
-                 GCancellable *cancellable);
+DexFuture * init_email (gpointer user_data);
