@@ -1,5 +1,5 @@
 /*
- * Copyright © 2017 Red Hat, Inc
+ * Copyright © 2025 Red Hat, Inc
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -15,9 +15,6 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
- *
- * Authors:
- *       Matthias Clasen <mclasen@redhat.com>
  */
 
 #include "config.h"
@@ -38,6 +35,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
+#include "xdp-request-future.h"
 #include "xdp-utils.h"
 
 #include "email.h"
@@ -46,6 +44,7 @@ struct _XdpEmail
 {
   XdpDbusEmailSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplEmail *impl;
 };
 
@@ -237,27 +236,10 @@ handle_compose_email (XdpDbusEmail          *object,
                       GVariant              *arg_options)
 {
   XdpEmail *email = XDP_EMAIL (object);
-  XdpRequest *request = xdp_request_from_invocation (invocation);
-  XdpAppInfo *app_info = request->app_info;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_autoptr(XdpRequestFuture) request = NULL;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   g_autoptr(GVariant) options = NULL;
-  g_autoptr(XdpDbusImplEmailComposeEmailResult) result = NULL;
-  XdgDesktopPortalResponseEnum response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
   g_autoptr(GError) error = NULL;
-
-  impl_request = dex_await_object (xdp_dbus_impl_request_proxy_new_future (
-      g_dbus_proxy_get_connection (G_DBUS_PROXY (email->impl)),
-      G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-      g_dbus_proxy_get_name (G_DBUS_PROXY (email->impl)),
-      request->id),
-    &error);
-
-  if (!impl_request)
-    {
-      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
-                                              error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
 
   options = compose_email_validate_options (app_info,
                                             fd_list,
@@ -270,51 +252,53 @@ handle_compose_email (XdpDbusEmail          *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  {
-    REQUEST_AUTOLOCK (request);
-
-    xdp_request_set_impl_request (request, impl_request);
-    xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  }
+  request = dex_await_object (xdp_request_future_new (email->context,
+                                                      app_info,
+                                                      G_DBUS_INTERFACE_SKELETON (object),
+                                                      G_DBUS_PROXY (email->impl),
+                                                      arg_options),
+                              &error);
+  if (!request)
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   xdp_dbus_email_complete_compose_email (object,
                                          g_steal_pointer (&invocation),
                                          NULL,
-                                         request->id);
-
-  result = dex_await_boxed (xdp_dbus_impl_email_call_compose_email_future (
-      email->impl,
-      request->id,
-      xdp_app_info_get_id (app_info),
-      arg_parent_window,
-      options),
-    &error);
-
-  if (result)
-    {
-      response = result->response;
-    }
-  else
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Backend call failed: %s", error->message);
-
-      response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
-    }
+                                         xdp_request_future_get_object_path (request));
 
   {
-    REQUEST_AUTOLOCK (request);
+    g_autoptr(XdpDbusImplEmailComposeEmailResult) result = NULL;
+    XdgDesktopPortalResponseEnum response;
+    g_auto(GVariantBuilder) new_results =
+      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-    if (request->exported)
+    result = dex_await_boxed (xdp_dbus_impl_email_call_compose_email_future (
+        email->impl,
+        xdp_request_future_get_object_path (request),
+        xdp_app_info_get_id (app_info),
+        arg_parent_window,
+        options),
+      &error);
+
+    if (result)
       {
-        g_auto(GVariantBuilder) new_results =
-          G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-
-        xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                        response,
-                                        g_variant_builder_end (&new_results));
-        xdp_request_unexport (request);
+        response = result->response;
       }
+    else
+      {
+        g_dbus_error_strip_remote_error (error);
+        g_warning ("Backend call failed: %s", error->message);
+
+        response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+      }
+
+    xdp_request_future_emit_response (request,
+                                      response,
+                                      g_variant_builder_end (&new_results));
   }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -350,11 +334,13 @@ xdp_email_class_init (XdpEmailClass *klass)
 }
 
 static XdpEmail *
-xdp_email_new (XdpDbusImplEmail *impl)
+xdp_email_new (XdpContext       *context,
+               XdpDbusImplEmail *impl)
 {
   XdpEmail *email;
 
   email = g_object_new (xdp_email_get_type (), NULL);
+  email->context = context; // FIXME there might be problems with the context lifetime
   email->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (email->impl), G_MAXINT);
@@ -364,10 +350,10 @@ xdp_email_new (XdpDbusImplEmail *impl)
   return email;
 }
 
-static DexFuture *
-run_email_fiber (gpointer user_data)
+DexFuture *
+init_email (gpointer user_data)
 {
-  XdpContext *context = user_data;
+  XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(XdpEmail) email = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
@@ -391,24 +377,10 @@ run_email_fiber (gpointer user_data)
       return dex_future_new_false ();
     }
 
-  email = xdp_email_new (impl);
+  email = xdp_email_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&email)),
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
   return dex_future_new_true ();
-}
-
-void
-init_email (XdpContext   *context,
-            GCancellable *cancellable)
-{
-  DexFuture *f;
-
-  f = dex_future_first (dex_scheduler_spawn (NULL, 0,
-                                             run_email_fiber,
-                                             context, NULL),
-                        dex_cancellable_new_from_cancellable (cancellable),
-                        NULL);
-  dex_future_disown (f);
 }
