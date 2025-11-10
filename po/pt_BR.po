@@ -1,247 +1,274 @@
 # Brazilian Portuguese translation for xdg-desktop-portal.
-# Copyright (C) 2024 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright (C) 2025 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Rafael Fontenelle <rafaelff@gnome.org>, 2016-2024.
+# Álvaro Burns <>, 2025.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2024-04-05 16:40-0300\n"
-"Last-Translator: Rafael Fontenelle <rafaelff@gnome.org>\n"
-"Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao>\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-11-09 15:57+0000\n"
+"PO-Revision-Date: 2025-03-15 10:27-0300\n"
+"Last-Translator: Álvaro Burns <>\n"
+"Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao/>\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1)\n"
-"X-Generator: Gtranslator 46.0\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Gtranslator 47.1\n"
 
-#: src/background.c:827
+#: src/background.c:872
 #, c-format
-msgid "Allow %s to run in the background?"
+msgid "Allow %s to Run in the Background?"
 msgstr "Permitir que %s execute em segundo plano?"
 
-#: src/background.c:831
+#: src/background.c:876
 #, c-format
-msgid "%s requests to be started automatically and run in the background."
-msgstr "%s solicita ser iniciado automaticamente e executado em segundo plano."
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s deseja ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:833
+#: src/background.c:878
 #, c-format
-msgid "%s requests to run in the background."
-msgstr "%s solicita ser executado em segundo plano."
+msgid "%s wants to run in the background"
+msgstr "%s deseja ser executado em segundo plano."
 
-#: src/background.c:834
+#: src/background.c:879
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr ""
 "A permissão “executar em segundo plano” pode ser alterada a qualquer tempo a "
-"partir das configurações do aplicativo."
+"partir das configurações do aplicativo"
 
-#: src/background.c:838
+#: src/background.c:883
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:884 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Permitir"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Permitir que %s use a câmera?"
 
-#: src/camera.c:106
+#: src/camera.c:105
 #, c-format
-msgid "%s wants to access camera devices."
-msgstr "%s deseja acessar dispositivos de câmera."
+msgid "%s wants to access the camera"
+msgstr "%s deseja acessar a câmera"
+
+#: src/camera.c:109
+msgid "Allow Apps to Use the Camera?"
+msgstr "Permitir que aplicativos usem a câmera?"
 
 #: src/camera.c:110
-msgid "Allow app to Use the Camera?"
-msgstr "Permitir que o aplicativo use a câmera?"
+msgid "An app wants to access the camera"
+msgstr "Um aplicativo deseja acessar a câmera"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
-msgstr "Um aplicativo deseja acessar dispositivos de câmera."
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"Essa permissão pode ser alterada a qualquer momento a partir das "
+"configurações de privacidades"
 
-#: src/dynamic-launcher.c:122
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Faltando sufixo .desktop no id do arquivo desktop: %s"
 
-#: src/dynamic-launcher.c:133
-#, fuzzy, c-format
+#: src/dynamic-launcher.c:139
+#, c-format
 msgid "Desktop file id is not valid"
-msgstr "A entrada desktop fornecida para Install() não é válida"
+msgstr "Identidade do arquivo desktop não é válida"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "A entrada desktop fornecida para Install() não é um arquivo de chave válido"
 
-#: src/dynamic-launcher.c:319
-#, fuzzy, c-format
+#: src/dynamic-launcher.c:324
+#, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr "A entrada desktop fornecida para Install() deve ter apenas um grupo"
+msgstr ""
+"A entrada desktop fornecida para Install() deve ter exatamente um grupo"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "O token fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O arquivo desktop excede o tamanho máximo (%d): %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "URL fornecida é inválida: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipo de lançador inválido: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipo de lançador não suportado: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "O ícone do lançador dinâmico falhou na validação"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() não permitido para o id de aplicativo %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "O ícone do arquivo desktop “%s” está em um caminho irreconhecível"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "O ícone do arquivo desktop “%s” falhou na serialização"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Nenhum lançador dinâmico existe com o id “%s”"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id “%s”"
 
-#: src/location.c:544
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "Negar acesso"
 
-#: src/location.c:546
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "Conceder acesso"
 
-#: src/location.c:566
+#: src/location.c:555
 #, c-format
-msgid "Give %s Access to Your Location?"
-msgstr "Dar %s acesso a sua localização?"
+msgid "Allow %s to Access Your Location?"
+msgstr "Permitir que %s acesse sua localização?"
+
+#: src/location.c:565
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s deseja usar sua localização"
 
 #: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
-msgstr "%s deseja usar sua localização."
+msgid "Allow Apps to Access Your Location?"
+msgstr "Permitir que aplicativos acessem sua localização?"
 
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "Conceder acesso à sua localização?"
+#: src/location.c:572
+msgid "An app wants to use your location"
+msgstr "Um aplicativo deseja usar sua localização"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
-msgstr "Um aplicativo deseja usar sua localização."
-
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
-"configurações de privacidades."
+"configurações de privacidades"
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "Negar"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Permitir que %s faça capturas de tela?"
 
-#: src/screenshot.c:268
+#: src/screenshot.c:247
 #, c-format
-msgid "%s wants to be able to take screenshots at any time."
-msgstr "%s deseja ser capaz de capturar a tela a qualquer momento."
+msgid "%s wants to take screenshots at any time"
+msgstr "%s deseja fazer capturas da tela a qualquer momento"
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
+#: src/screenshot.c:251
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Permitir que %s faça uma captura de tela?"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s deseja fazer uma captura a tela"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+msgid "Allow Apps to Take Screenshots?"
 msgstr "Permitir que aplicativos façam capturas de tela?"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
-msgstr ""
-"Um aplicativo deseja ser capaz de fazer capturas de tela a qualquer momento."
+#: src/screenshot.c:264
+msgid "An app wants to take screenshots at any time"
+msgstr "Um aplicativo deseja fazer capturas de tela a qualquer momento"
 
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Essa permissão pode ser alterada a qualquer momento a partir das "
-"configurações de privacidades."
+#: src/screenshot.c:268
+msgid "Allow to Take a Screenshot?"
+msgstr "Permitir que faça uma captura de tela?"
 
-#: src/settings.c:187 src/settings.c:223
+#: src/screenshot.c:269
+msgid "An app wants to take a screenshot"
+msgstr "Um aplicativo deseja fazer uma captura de tela"
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "A configuração requisitada não foi encontrada"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
-msgstr ""
+msgstr "Dispositivo não disponível"
 
-#: src/usb.c:1342
-#, fuzzy
+#: src/usb.c:1353
 msgid "Not allowed"
-msgstr "Não permitir"
+msgstr "Não permitido"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permitir que %s defina planos de fundo?"
 
-#: src/wallpaper.c:208
+#: src/wallpaper.c:198
 #, c-format
-msgid "%s is requesting to be able to change the background image."
-msgstr ""
-"%s está solicitando a capacidade de alterar a imagem de plano de fundo."
+msgid "%s wants to change the background image"
+msgstr "%s deseja alterar a imagem de plano de fundo"
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
+#: src/wallpaper.c:203
+msgid "Allow Apps to Set Backgrounds?"
 msgstr "Permitir que aplicativos definam planos de fundo?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
-msgstr ""
-"Um aplicativo está solicitando a capacidade de alterar a imagem de plano de "
-"fundo."
+#: src/wallpaper.c:204
+msgid "An app wants to change the background image"
+msgstr "Um aplicativo deseja alterar a imagem de plano de fundo"
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Conceder acesso à sua localização?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Permitir que aplicativos façam capturas de tela?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Permitir que aplicativos definam planos de fundo?"
 
 #, c-format
 #~ msgid "Allow %s to Use the Microphone?"
@@ -267,9 +294,6 @@ msgstr ""
 
 #~ msgid "Allow app to Use the Speakers?"
 #~ msgstr "Permitir que o aplicativo use os alto-falantes?"
-
-#~ msgid "An app wants to access audio devices."
-#~ msgstr "Um aplicativo deseja acessar os dispositivos de áudio."
 
 #, c-format
 #~ msgid "Desktop file id missing app id prefix '%s.': %s"
