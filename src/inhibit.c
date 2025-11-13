@@ -406,7 +406,7 @@ out:
     }
 
   if (should_close_session)
-    xdp_session_close (session, FALSE);
+    xdp_session_close (session, FALSE, FALSE);
 }
 
 static gboolean
