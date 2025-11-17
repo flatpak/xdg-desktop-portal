@@ -83,6 +83,8 @@ struct _XdpContext
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
+  GHashTable *registerd_object_paths; /* char *object_path set */
+  GMutex registerd_object_paths_lock;
 
   GCancellable *cancellable;
 };
@@ -112,6 +114,12 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
   g_clear_pointer (&context->exported_portals, g_hash_table_unref);
+
+  if (context->registerd_object_paths)
+    {
+      g_clear_pointer (&context->registerd_object_paths, g_hash_table_unref);
+      g_mutex_clear (&context->registerd_object_paths_lock);
+    }
 
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
@@ -146,9 +154,11 @@ xdp_context_new (gboolean opt_verbose)
   context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
-  context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                                     g_free,
-                                                     g_object_unref);
+  context->exported_portals =
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_object_unref);
+  context->registerd_object_paths =
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  g_mutex_init (&context->registerd_object_paths_lock);
 
   return context;
 }
@@ -265,7 +275,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 
   if (method_needs_request (invocation))
     {
-      if (!xdp_request_init_invocation (invocation, app_info, &error))
+      if (!xdp_request_init_invocation (invocation, context, app_info, &error))
         {
           g_dbus_method_invocation_return_gerror (invocation, error);
           return FALSE;
@@ -337,6 +347,9 @@ xdp_context_take_and_export_portal (XdpContext             *context,
   else
     g_warning ("Exporting portal failed: %s", error->message);
 
+  // FIXME: needs locking? probably not, we only use this on init?
+  // but we do async init now, so lookups can race?
+  // no, because async is always on the main thread
   g_hash_table_insert (context->exported_portals,
                        g_strdup (name),
                        g_steal_pointer (&skeleton));
@@ -367,8 +380,8 @@ on_peer_disconnect (const char *name,
 }
 
 static void
-xdp_context_register_portal_fiber (XdpContext   *context,
-                                   DexFiberFunc  portal_init_func)
+init_portal_in_fiber (XdpContext   *context,
+                      DexFiberFunc  portal_init_func)
 {
   g_autoptr(DexFuture) f = NULL;
   GCancellable *cancellable = context->cancellable;
@@ -444,7 +457,9 @@ xdp_context_register (XdpContext       *context,
                                           G_MAXINT);
     }
 
-  xdp_context_register_portal_fiber (context, init_email);
+  init_portal_in_fiber (context, init_email);
+  init_portal_in_fiber (context, init_wallpaper);
+  init_portal_in_fiber (context, init_global_shortcuts);
   init_memory_monitor (context);
   init_power_profile_monitor (context);
   init_network_monitor (context);
@@ -464,10 +479,8 @@ xdp_context_register (XdpContext       *context,
   init_camera (context);
   init_screenshot (context);
   init_background (context);
-  init_wallpaper (context);
   init_account (context);
-  init_secret (context);
-  init_global_shortcuts (context);
+  init_secret (context, context->cancellable);
   init_dynamic_launcher (context);
   init_screen_cast (context);
   init_remote_desktop (context);
@@ -479,4 +492,27 @@ xdp_context_register (XdpContext       *context,
   init_registry (context);
 
   return TRUE;
+}
+
+gboolean
+xdp_context_claim_object_path (XdpContext *context,
+                               const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registerd_object_paths_lock, locker);
+
+  if (g_hash_table_contains (context->registerd_object_paths, object_path))
+    return FALSE;
+
+  g_hash_table_add (context->registerd_object_paths,
+                    g_strdup (object_path));
+  return TRUE;
+}
+
+void
+xdp_context_unclaim_object_path (XdpContext *context,
+                                 const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registerd_object_paths_lock, locker);
+
+  g_hash_table_remove (context->registerd_object_paths, object_path);
 }

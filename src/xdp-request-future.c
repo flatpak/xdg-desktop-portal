@@ -17,7 +17,10 @@
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "config.h"
+
 #include "xdp-app-info.h"
+#include "xdp-context.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
 
@@ -27,6 +30,7 @@ typedef struct _XdpRequestFuture
 {
   XdpDbusRequestSkeleton parent_instance;
 
+  XdpContext *context;
   XdpAppInfo *app_info;
   XdpDbusImplRequest *impl_request;
   GDBusInterfaceSkeleton *skeleton;
@@ -48,28 +52,16 @@ xdp_request_future_on_signal_response (XdpDbusRequest *object,
                                        GVariant       *arg_results)
 {
   XdpRequestFuture *request = XDP_REQUEST_FUTURE (object);
-  GDBusInterfaceSkeleton *skeleton = G_DBUS_INTERFACE_SKELETON (object);
-  g_autoptr(GVariant) signal_variant = NULL;
-  g_autolist(GDBusConnection) connections = NULL;
 
-  signal_variant = g_variant_ref_sink (g_variant_new ("(u@a{sv})",
-                                                      arg_response,
-                                                      arg_results));
-
-  connections = g_dbus_interface_skeleton_get_connections (skeleton);
-
-  for (GList *l = connections; l != NULL; l = l->next)
-    {
-      GDBusConnection *connection = l->data;
-
-      g_dbus_connection_emit_signal (connection,
-                                     xdp_app_info_get_sender (request->app_info),
-                                     g_dbus_interface_skeleton_get_object_path (skeleton),
-                                     DESKTOP_DBUS_IFACE ".Request",
-                                     "Response",
-                                     signal_variant,
-                                     NULL);
-    }
+  g_dbus_connection_emit_signal (g_dbus_interface_skeleton_get_connection (request->skeleton),
+                                 xdp_app_info_get_sender (request->app_info),
+                                 request->id,
+                                 DESKTOP_DBUS_IFACE ".Request",
+                                 "Response",
+                                 g_variant_new ("(u@a{sv})",
+                                                arg_response,
+                                                arg_results),
+                                 NULL);
 }
 
 static gboolean
@@ -87,6 +79,7 @@ xdp_request_future_handle_close (XdpDbusRequest        *object,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   request->exported = FALSE;
+  xdp_context_unclaim_object_path (request->context, request->id);
 
   dex_await (xdp_dbus_impl_request_call_close_future (request->impl_request),
              &error);
@@ -118,6 +111,7 @@ xdp_request_future_dispose (GObject *object)
 
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
       request->exported = FALSE;
+      xdp_context_unclaim_object_path (request->context, request->id);
     }
 
   g_clear_object (&request->app_info);
@@ -172,7 +166,6 @@ typedef struct _RequestImplProxyCreateData {
 static void
 request_impl_proxy_create_data_free (RequestImplProxyCreateData *data)
 {
-  g_clear_object (&data->context);
   g_clear_object (&data->app_info);
   g_clear_object (&data->skeleton);
   g_clear_pointer (&data->id, g_free);
@@ -196,6 +189,7 @@ on_peer_disconnect (XdpContext *context,
 
   g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
   request->exported = FALSE;
+  xdp_context_unclaim_object_path (request->context, request->id);
 }
 
 static DexFuture *
@@ -211,13 +205,14 @@ on_impl_request_proxy_created (DexFuture *future,
   g_assert (impl_request);
 
   request = g_object_new (XDP_TYPE_REQUEST_FUTURE, NULL);
+  request->context = g_steal_pointer (&data->context);
   request->app_info = g_steal_pointer (&data->app_info);
   request->impl_request = g_steal_pointer (&impl_request);
   request->skeleton = g_steal_pointer (&data->skeleton);
   request->id = g_steal_pointer (&data->id);
   request->exported = TRUE;
 
-  g_signal_connect_object (data->context, "peer-disconnect",
+  g_signal_connect_object (request->context, "peer-disconnect",
                            G_CALLBACK (on_peer_disconnect),
                            request,
                            G_CONNECT_DEFAULT);
@@ -268,7 +263,15 @@ xdp_request_future_new (XdpContext             *context,
 
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s", sender, token);
 
-  // FIXME: register id with context, ensure unique
+  while (!xdp_context_claim_object_path (context, id))
+    {
+      uint32_t r = g_random_int ();
+      g_free (id);
+      id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%u",
+                            sender,
+                            token,
+                            r);
+    }
 
   future = xdp_dbus_impl_request_proxy_new_future (
     g_dbus_proxy_get_connection (proxy_impl),
@@ -277,7 +280,7 @@ xdp_request_future_new (XdpContext             *context,
     id);
 
   data = g_new0 (RequestImplProxyCreateData, 1);
-  data->context = g_object_ref (context);
+  data->context = context;
   data->app_info = g_object_ref (app_info);
   data->skeleton = g_object_ref (skeleton);
   data->id = g_steal_pointer (&id);
@@ -297,6 +300,14 @@ xdp_request_future_emit_response (XdpRequestFuture             *request,
 {
   if (!request->exported)
     return;
+
+  if (!results)
+    {
+      g_auto(GVariantBuilder) empty_results_builder =
+        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+      results = g_variant_builder_end (&empty_results_builder);
+    }
 
   xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                   response,

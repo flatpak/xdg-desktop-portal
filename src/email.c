@@ -273,8 +273,6 @@ handle_compose_email (XdpDbusEmail          *object,
   {
     g_autoptr(XdpDbusImplEmailComposeEmailResult) result = NULL;
     XdgDesktopPortalResponseEnum response;
-    g_auto(GVariantBuilder) new_results =
-      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
     result = dex_await_boxed (xdp_dbus_impl_email_call_compose_email_future (
         email->impl,
@@ -296,9 +294,7 @@ handle_compose_email (XdpDbusEmail          *object,
         response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
       }
 
-    xdp_request_future_emit_response (request,
-                                      response,
-                                      g_variant_builder_end (&new_results));
+    xdp_request_future_emit_response (request, response, NULL);
   }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -382,5 +378,12 @@ init_email (gpointer user_data)
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&email)),
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
+
+  // FIXME: cancellation: must call dex_dbus_interface_skeleton_cancel at some point
+  // just decreasing the ref-count doesn't stop anything because it iternally holds
+  // a ref. So really, this should call g_dbus_interface_skeleton_unexport and
+  // dex_dbus_interface_skeleton_cancel.
+  // (should dex_dbus_interface_skeleton_cancel be part of unexport?)
+
   return dex_future_new_true ();
 }

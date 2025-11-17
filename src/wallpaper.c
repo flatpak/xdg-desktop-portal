@@ -33,74 +33,33 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
-#include "xdp-request.h"
+#include "xdp-request-future.h"
 #include "xdp-utils.h"
 
 #include "wallpaper.h"
 
-typedef struct _Wallpaper Wallpaper;
-typedef struct _WallpaperClass WallpaperClass;
-
-struct _Wallpaper
+struct _XdpWallpaper
 {
   XdpDbusWallpaperSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplWallpaper *impl;
   XdpDbusImplAccess *access_impl;
 };
 
-struct _WallpaperClass
-{
-  XdpDbusWallpaperSkeletonClass parent_class;
-};
+#define XDP_TYPE_WALLPAPER (xdp_wallpaper_get_type ())
+G_DECLARE_FINAL_TYPE (XdpWallpaper,
+                      xdp_wallpaper,
+                      XDP, WALLPAPER,
+                      XdpDbusWallpaperSkeleton)
 
-GType wallpaper_get_type (void) G_GNUC_CONST;
-static void wallpaper_iface_init (XdpDbusWallpaperIface *iface);
+static void xdp_wallpaper_iface_init (XdpDbusWallpaperIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Wallpaper, wallpaper, XDP_DBUS_TYPE_WALLPAPER_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_WALLPAPER,
-                                                wallpaper_iface_init));
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Wallpaper, g_object_unref)
-
-static void
-send_response (XdpRequest *request,
-               guint response)
-{
-  if (request->exported)
-    {
-      g_auto(GVariantBuilder) opt_builder =
-        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-
-      g_debug ("sending response: %d", response);
-      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                      response,
-                                      g_variant_builder_end (&opt_builder));
-      xdp_request_unexport (request);
-    }
-}
-
-static void
-handle_set_wallpaper_uri_done (GObject *source,
-                               GAsyncResult *result,
-                               gpointer data)
-{
-  guint response = 2;
-  g_autoptr(GError) error = NULL;
-  XdpRequest *request = data;
-
-  if (!xdp_dbus_impl_wallpaper_call_set_wallpaper_uri_finish (XDP_DBUS_IMPL_WALLPAPER (source),
-                                                              &response,
-                                                              result,
-                                                              &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("A backend call failed: %s", error->message);
-    }
-
-  send_response (request, response);
-  g_object_unref (request);
-}
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpWallpaper,
+                               xdp_wallpaper,
+                               XDP_DBUS_TYPE_WALLPAPER_SKELETON,
+                               G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_WALLPAPER,
+                                                      xdp_wallpaper_iface_init));
 
 static gboolean
 validate_set_on (const char  *key,
@@ -121,294 +80,380 @@ static XdpOptionKey wallpaper_options[] = {
   { "set-on", G_VARIANT_TYPE_STRING, validate_set_on }
 };
 
-static void
-handle_set_wallpaper_in_thread_func (GTask *task,
-                                     gpointer source_object,
-                                     gpointer task_data,
-                                     GCancellable *cancellable)
+static gboolean
+get_permission (XdpWallpaper      *wallpaper,
+                XdpRequestFuture  *request,
+                XdpAppInfo        *app_info,
+                GVariant          *arg_options,
+                const char        *arg_parent_window,
+                gboolean          *permission_granted_out,
+                GError           **error)
 {
-  Wallpaper *wallpaper = (Wallpaper *) source_object;
-  XdpRequest *request = XDP_REQUEST (task_data);
-  const char *parent_window;
-  g_autoptr(GError) error = NULL;
-  g_autofree char *uri = NULL;
-  g_auto(GVariantBuilder) opt_builder =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  GVariant *options;
-  gboolean show_preview = FALSE;
-  g_autofd int fd = -1;
   XdpPermission permission;
+  gboolean show_preview = FALSE;
+  g_autoptr(XdpDbusImplAccessAccessDialogResult) result = NULL;
+  g_autoptr(GError) local_error = NULL;
 
-  REQUEST_AUTOLOCK (request);
-
-  parent_window = ((const char *)g_object_get_data (G_OBJECT (request), "parent-window"));
-  uri = g_strdup ((const char *)g_object_get_data (G_OBJECT (request), "uri"));
-  fd = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "fd"));
-  options = ((GVariant *)g_object_get_data (G_OBJECT (request), "options"));
-
-  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
-
-  if (uri != NULL && fd != -1)
+  permission = dex_await_uint (xdp_permission_get_future (app_info,
+                                                          WALLPAPER_PERMISSION_TABLE,
+                                                          WALLPAPER_PERMISSION_ID),
+                              &local_error);
+  if (local_error)
     {
-      g_warning ("Rejecting invalid set-wallpaper request (both URI and fd are set)");
-      if (request->exported)
-        {
-          xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                          g_variant_builder_end (&opt_builder));
-          xdp_request_unexport (request);
-        }
-      return;
+      g_propagate_error (error, g_steal_pointer (&local_error));
+      return FALSE;
     }
-
-  permission = xdp_get_permission_sync (request->app_info,
-                                        WALLPAPER_PERMISSION_TABLE,
-                                        WALLPAPER_PERMISSION_ID);
 
   if (permission == XDP_PERMISSION_NO)
     {
-      send_response (request, 2);
-      return;
+      *permission_granted_out = FALSE;
+      return TRUE;
     }
 
-  g_variant_lookup (options, "show-preview", "b", &show_preview);
-  if (!show_preview && permission != XDP_PERMISSION_YES)
+  g_variant_lookup (arg_options, "show-preview", "b", &show_preview);
+  if (permission == XDP_PERMISSION_YES || show_preview)
     {
-      const char *app_id = xdp_app_info_get_id (request->app_info);
-      const char *app_name = xdp_app_info_get_app_display_name (request->app_info);
-      guint access_response = 2;
-      g_autoptr(GVariant) access_results = NULL;
-      g_auto(GVariantBuilder) access_opt_builder =
-        G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree gchar *title = NULL;
-      g_autofree gchar *subtitle = NULL;
-      const gchar *body;
-
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "deny_label", g_variant_new_string (_("Deny")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "grant_label", g_variant_new_string (_("Allow")));
-      g_variant_builder_add (&access_opt_builder, "{sv}",
-                             "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
-
-      if (app_name)
-        {
-          title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), app_name);
-          subtitle = g_strdup_printf (_("%s wants to change the background image"),
-                                      app_name);
-        }
-      else
-        {
-          title = g_strdup (_("Allow Apps to Set Backgrounds?"));
-          subtitle = g_strdup (_("An app wants to change the background image"));
-        }
-
-      body = _("This permission can be changed at any time from the privacy settings");
-
-      if (!xdp_dbus_impl_access_call_access_dialog_sync (wallpaper->access_impl,
-                                                         request->id,
-                                                         app_id,
-                                                         parent_window,
-                                                         title,
-                                                         subtitle,
-                                                         body,
-                                                         g_variant_builder_end (&access_opt_builder),
-                                                         &access_response,
-                                                         &access_results,
-                                                         NULL,
-                                                         &error))
-        {
-          g_warning ("Failed to show access dialog: %s", error->message);
-          send_response (request, 2);
-          return;
-        }
-
-      if (permission == XDP_PERMISSION_UNSET)
-        xdp_set_permission_sync (request->app_info,
-                                 WALLPAPER_PERMISSION_TABLE,
-                                 WALLPAPER_PERMISSION_ID,
-                                 access_response == 0 ?
-                                 XDP_PERMISSION_YES : XDP_PERMISSION_NO);
-
-      if (access_response != 0)
-        {
-          send_response (request, 2);
-          return;
-        }
+      *permission_granted_out = TRUE;
+      return TRUE;
     }
 
-  if (!uri)
+  {
+    const char *app_name = xdp_app_info_get_app_display_name (app_info);
+    g_auto(GVariantBuilder) access_opt_builder =
+      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+    g_autofree gchar *title = NULL;
+    g_autofree gchar *subtitle = NULL;
+    const gchar *body;
+
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                           "deny_label", g_variant_new_string (_("Deny")));
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                           "grant_label", g_variant_new_string (_("Allow")));
+    g_variant_builder_add (&access_opt_builder, "{sv}",
+                           "icon", g_variant_new_string ("preferences-desktop-wallpaper-symbolic"));
+
+    if (app_name)
+      {
+        title = g_strdup_printf (_("Allow %s to Set Backgrounds?"), app_name);
+        subtitle = g_strdup_printf (_("%s wants to change the background image"),
+                                    app_name);
+      }
+    else
+      {
+        title = g_strdup (_("Allow Apps to Set Backgrounds?"));
+        subtitle = g_strdup (_("An app wants to change the background image"));
+      }
+
+    body = _("This permission can be changed at any time from the privacy settings");
+
+    result = dex_await_boxed (xdp_dbus_impl_access_call_access_dialog_future (
+        wallpaper->access_impl,
+        xdp_request_future_get_object_path (request),
+        xdp_app_info_get_id (app_info),
+        arg_parent_window,
+        title,
+        subtitle,
+        body,
+        g_variant_builder_end (&access_opt_builder)),
+      error);
+    if (!result)
+      return FALSE;
+  }
+
+  if (permission == XDP_PERMISSION_UNSET)
     {
-      g_autofree char *path = NULL;
-
-      path = xdp_app_info_get_path_for_fd (request->app_info, fd, 0, NULL, NULL, &error);
-      if (path == NULL)
-        {
-          g_debug ("Cannot get path for fd: %s", error->message);
-
-          /* Reject the request */
-          if (request->exported)
-            {
-              xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
-                                              XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
-                                              g_variant_builder_end (&opt_builder));
-              xdp_request_unexport (request);
-            }
-          return;
-        }
-
-      uri = g_filename_to_uri (path, NULL, NULL);
-      g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (uri), g_free);
+      if (!dex_await_boolean (xdp_permission_set_future (app_info,
+                                                         WALLPAPER_PERMISSION_TABLE,
+                                                         WALLPAPER_PERMISSION_ID,
+                                                         result->response == 0 ?
+                                                         XDP_PERMISSION_YES : XDP_PERMISSION_NO),
+                              &local_error))
+        g_warning ("Setting unset permission failed: %s", local_error->message);
     }
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (wallpaper->impl)),
-    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    g_dbus_proxy_get_name (G_DBUS_PROXY (wallpaper->impl)),
-    request->id,
-    NULL, &error);
-
-  if (!impl_request)
-    {
-      g_warning ("Failed to to create wallpaper implementation proxy: %s", error->message);
-      send_response (request, 2);
-      return;
-    }
-
-  xdp_request_set_impl_request (request, impl_request);
-
-  xdp_filter_options (options, &opt_builder,
-                      wallpaper_options, G_N_ELEMENTS (wallpaper_options),
-                      NULL, NULL);
-
-  g_debug ("Calling SetWallpaperURI with %s", uri);
-  xdp_dbus_impl_wallpaper_call_set_wallpaper_uri (wallpaper->impl,
-                                                  request->id,
-                                                  xdp_app_info_get_id (request->app_info),
-                                                  parent_window,
-                                                  uri,
-                                                  g_variant_builder_end (&opt_builder),
-                                                  NULL,
-                                                  handle_set_wallpaper_uri_done,
-                                                  g_object_ref (request));
+  *permission_granted_out = (result->response != 0);
+  return TRUE;
 }
 
 static gboolean
-handle_set_wallpaper_uri (XdpDbusWallpaper *object,
+handle_set_wallpaper_uri (XdpDbusWallpaper      *object,
                           GDBusMethodInvocation *invocation,
-                          const char *arg_parent_window,
-                          const char *arg_uri,
-                          GVariant *arg_options)
+                          const char            *arg_parent_window,
+                          const char            *arg_uri,
+                          GVariant              *arg_options)
 {
-  XdpRequest *request = xdp_request_from_invocation (invocation);
-  g_autoptr(GTask) task = NULL;
+  XdpWallpaper *wallpaper = XDP_WALLPAPER (object);
+  g_autoptr(XdpRequestFuture) request = NULL;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  gboolean permission_granted;
+  g_autoptr(GError) error = NULL;
 
-  g_debug ("Handle SetWallpaperURI");
+  if (!xdp_filter_options (arg_options,
+                           &opt_builder,
+                           wallpaper_options,
+                           G_N_ELEMENTS (wallpaper_options),
+                           NULL,
+                           &error))
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
-  g_object_set_data_full (G_OBJECT (request), "uri", g_strdup (arg_uri), g_free);
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
-  g_object_set_data_full (G_OBJECT (request),
-                          "options",
-                          g_variant_ref (arg_options),
-                          (GDestroyNotify)g_variant_unref);
+  request = dex_await_object (xdp_request_future_new (wallpaper->context,
+                                                      app_info,
+                                                      G_DBUS_INTERFACE_SKELETON (object),
+                                                      G_DBUS_PROXY (wallpaper->impl),
+                                                      arg_options),
+                              &error);
+  if (!request)
+    {
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
-  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, request->id);
+  xdp_dbus_wallpaper_complete_set_wallpaper_uri (object,
+                                                 g_steal_pointer (&invocation),
+                                                 xdp_request_future_get_object_path (request));
 
-  task = g_task_new (object, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
+  if (!get_permission (wallpaper,
+                       request,
+                       app_info,
+                       arg_options,
+                       arg_parent_window,
+                       &permission_granted,
+                       &error))
+    {
+      g_warning ("Getting permission failed: %s", error->message);
+      permission_granted = FALSE;
+    }
+
+  if (!permission_granted)
+    {
+      xdp_request_future_emit_response (request,
+                                        XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                        NULL);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  {
+    g_autoptr(XdpDbusImplWallpaperSetWallpaperURIResult) result = NULL;
+    XdgDesktopPortalResponseEnum response;
+
+    result = dex_await_boxed (xdp_dbus_impl_wallpaper_call_set_wallpaper_uri_future (
+        wallpaper->impl,
+        xdp_request_future_get_object_path (request),
+        xdp_app_info_get_id (app_info),
+        arg_parent_window,
+        arg_uri,
+        g_variant_builder_end (&opt_builder)),
+      &error);
+
+    if (result)
+      {
+        response = result->response;
+      }
+    else
+      {
+        g_dbus_error_strip_remote_error (error);
+        g_warning ("Backend call failed: %s", error->message);
+
+        response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+      }
+
+    xdp_request_future_emit_response (request, response, NULL);
+  }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static gboolean
-handle_set_wallpaper_file (XdpDbusWallpaper *object,
+handle_set_wallpaper_file (XdpDbusWallpaper      *object,
                            GDBusMethodInvocation *invocation,
-                           GUnixFDList *fd_list,
-                           const char *arg_parent_window,
-                           GVariant *arg_fd,
-                           GVariant *arg_options)
+                           GUnixFDList           *fd_list,
+                           const char            *arg_parent_window,
+                           GVariant              *arg_fd,
+                           GVariant              *arg_options)
 {
-  XdpRequest *request = xdp_request_from_invocation (invocation);
-  g_autoptr(GTask) task = NULL;
-  int fd_id, fd;
+  XdpWallpaper *wallpaper = XDP_WALLPAPER (object);
+  g_autoptr(XdpRequestFuture) request = NULL;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
+  g_autoptr(GVariant) options = NULL;
+  gboolean permission_granted;
+  g_autofd int fd = -1;
+  g_autofree char *uri = NULL;
   g_autoptr(GError) error = NULL;
 
-  g_debug ("Handle SetWallpaperFile");
+  {
+    g_auto(GVariantBuilder) opt_builder =
+      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-  g_variant_get (arg_fd, "h", &fd_id);
-  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+    if (!xdp_filter_options (arg_options,
+                             &opt_builder,
+                             wallpaper_options,
+                             G_N_ELEMENTS (wallpaper_options),
+                             NULL,
+                             &error))
+      {
+        g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                                error);
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+
+    options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
+  }
+
+  {
+    int fd_id;
+
+    g_variant_get (arg_fd, "h", &fd_id);
+
+    if (fd_id >= g_unix_fd_list_get_length (fd_list))
+      {
+        g_dbus_method_invocation_return_error (invocation,
+                                               XDG_DESKTOP_PORTAL_ERROR,
+                                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                               "Bad file descriptor index");
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+
+    fd = g_unix_fd_list_get (fd_list, fd_id, &error);
+    if (fd == -1)
+      {
+        g_dbus_method_invocation_return_gerror (invocation, error);
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+  }
+
+  request = dex_await_object (xdp_request_future_new (wallpaper->context,
+                                                      app_info,
+                                                      G_DBUS_INTERFACE_SKELETON (object),
+                                                      G_DBUS_PROXY (wallpaper->impl),
+                                                      arg_options),
+                              &error);
+  if (!request)
     {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR,
-                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                             "Bad file descriptor index");
+      g_dbus_method_invocation_return_gerror (g_steal_pointer (&invocation),
+                                              error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  fd = g_unix_fd_list_get (fd_list, fd_id, &error);
-  if (fd == -1)
+  xdp_dbus_wallpaper_complete_set_wallpaper_file (object,
+                                                  g_steal_pointer (&invocation),
+                                                  NULL,
+                                                  xdp_request_future_get_object_path (request));
+
+  if (!get_permission (wallpaper,
+                       request,
+                       app_info,
+                       options,
+                       arg_parent_window,
+                       &permission_granted,
+                       &error))
     {
-      g_dbus_method_invocation_return_gerror (invocation, error);
+      g_warning ("Getting permission failed: %s", error->message);
+      permission_granted = FALSE;
+    }
+
+  if (!permission_granted)
+    {
+      xdp_request_future_emit_response (request,
+                                        XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                        NULL);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (fd));
-  g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
-  g_object_set_data_full (G_OBJECT (request),
-                          "options",
-                          g_variant_ref (arg_options),
-                          (GDestroyNotify)g_variant_unref);
+  {
+    g_autofree char *path = NULL;
 
-  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
-  xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, request->id);
+    path = xdp_app_info_get_path_for_fd (app_info, fd, 0, NULL, NULL, &error);
 
-  task = g_task_new (object, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
-  g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
+    if (path == NULL)
+      {
+        g_warning ("Could not get path for fd: %s", error->message);
+
+        xdp_request_future_emit_response (request,
+                                          XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                          NULL);
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+
+    uri = g_filename_to_uri (path, NULL, NULL);
+  }
+
+  {
+    g_autoptr(XdpDbusImplWallpaperSetWallpaperURIResult) result = NULL;
+    XdgDesktopPortalResponseEnum response;
+
+    result = dex_await_boxed (xdp_dbus_impl_wallpaper_call_set_wallpaper_uri_future (
+        wallpaper->impl,
+        xdp_request_future_get_object_path (request),
+        xdp_app_info_get_id (app_info),
+        arg_parent_window,
+        uri,
+        options),
+      &error);
+
+    if (result)
+      {
+        response = result->response;
+      }
+    else
+      {
+        g_dbus_error_strip_remote_error (error);
+        g_warning ("Backend call failed: %s", error->message);
+
+        response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+      }
+
+    xdp_request_future_emit_response (request, response, NULL);
+  }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 static void
-wallpaper_iface_init (XdpDbusWallpaperIface *iface)
+xdp_wallpaper_iface_init (XdpDbusWallpaperIface *iface)
 {
   iface->handle_set_wallpaper_uri = handle_set_wallpaper_uri;
   iface->handle_set_wallpaper_file = handle_set_wallpaper_file;
 }
 
 static void
-wallpaper_dispose (GObject *object)
+xdp_wallpaper_dispose (GObject *object)
 {
-  Wallpaper *wallpaper = (Wallpaper *) object;
+  XdpWallpaper *wallpaper = XDP_WALLPAPER (object);
 
   g_clear_object (&wallpaper->impl);
   g_clear_object (&wallpaper->access_impl);
 
-  G_OBJECT_CLASS (wallpaper_parent_class)->dispose (object);
+  G_OBJECT_CLASS (xdp_wallpaper_parent_class)->dispose (object);
 }
 
 static void
-wallpaper_init (Wallpaper *wallpaper)
+xdp_wallpaper_init (XdpWallpaper *wallpaper)
 {
 }
 
 static void
-wallpaper_class_init (WallpaperClass *klass)
+xdp_wallpaper_class_init (XdpWallpaperClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = wallpaper_dispose;
+  object_class->dispose = xdp_wallpaper_dispose;
 }
 
-static Wallpaper *
-wallpaper_new (XdpDbusImplWallpaper *impl,
-               XdpDbusImplAccess    *access_impl)
+static XdpWallpaper *
+xdp_wallpaper_new (XdpContext           *context,
+                   XdpDbusImplWallpaper *impl,
+                   XdpDbusImplAccess    *access_impl)
 {
-  Wallpaper *wallpaper;
+  XdpWallpaper *wallpaper;
 
-  wallpaper = g_object_new (wallpaper_get_type (), NULL);
+  wallpaper = g_object_new (XDP_TYPE_WALLPAPER, NULL);
+  wallpaper->context = context; // FIXME there might be problems with the context lifetime
   wallpaper->impl = g_object_ref (impl);
   wallpaper->access_impl = g_object_ref (access_impl);
 
@@ -419,10 +464,11 @@ wallpaper_new (XdpDbusImplWallpaper *impl,
   return wallpaper;
 }
 
-void
-init_wallpaper (XdpContext *context)
+DexFuture *
+init_wallpaper (gpointer user_data)
 {
-  g_autoptr(Wallpaper) wallpaper = NULL;
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(XdpWallpaper) wallpaper = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
@@ -433,30 +479,31 @@ init_wallpaper (XdpContext *context)
 
   impl_config = xdp_portal_config_find (config, WALLPAPER_DBUS_IMPL_IFACE);
   if (impl_config == NULL)
-    return;
+    return dex_future_new_true ();
 
   access_impl = xdp_context_get_access_impl (context);
   if (access_impl == NULL)
     {
       g_warning ("The wallpaper portal requires an access impl");
-      return;
+      return dex_future_new_false ();
     }
 
-  impl = xdp_dbus_impl_wallpaper_proxy_new_sync (connection,
-                                                 G_DBUS_PROXY_FLAGS_NONE,
-                                                 impl_config->dbus_name,
-                                                 DESKTOP_DBUS_PATH,
-                                                 NULL,
-                                                 &error);
+  impl = dex_await_object (xdp_dbus_impl_wallpaper_proxy_new_future (connection,
+                                                                     G_DBUS_PROXY_FLAGS_NONE,
+                                                                     impl_config->dbus_name,
+                                                                     DESKTOP_DBUS_PATH),
+                           &error);
+
   if (impl == NULL)
     {
       g_warning ("Failed to create wallpaper proxy: %s", error->message);
-      return;
+      return dex_future_new_false ();
     }
 
-  wallpaper = wallpaper_new (impl, access_impl);
+  wallpaper = xdp_wallpaper_new (context, impl, access_impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&wallpaper)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
+  return dex_future_new_true ();
 }
