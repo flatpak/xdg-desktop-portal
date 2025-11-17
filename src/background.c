@@ -67,6 +67,9 @@
  * - Enable or disable autostart
  */
 
+#define FLATPAK_BUILTIN_KILL_N_RETRIES 5
+#define FLATPAK_BUILTIN_KILL_RETRY_SLEEP_USEC (G_USEC_PER_SEC / 10)
+
 typedef struct _Background Background;
 typedef struct _BackgroundClass BackgroundClass;
 
@@ -509,6 +512,48 @@ notify_background_done (GObject *source,
   notification_data_free (nd);
 }
 
+static gboolean
+instance_equal (FlatpakInstance *a,
+                FlatpakInstance *b)
+{
+  return g_strcmp0 (flatpak_instance_get_id (a),
+                    flatpak_instance_get_id (b)) == 0;
+}
+
+static GPtrArray *
+kill_instances (GPtrArray *kill_list)
+{
+  g_autoptr(GPtrArray) instances = flatpak_instance_get_all ();
+  g_autoptr(GPtrArray) remaining =
+    g_ptr_array_new_with_free_func (g_object_unref);
+
+  for (size_t i = 0; i < kill_list->len; i++)
+    {
+      FlatpakInstance *to_kill = g_ptr_array_index (kill_list, i);
+      pid_t pid;
+
+      if (!g_ptr_array_find_with_equal_func (instances, to_kill,
+                                             (GEqualFunc) instance_equal,
+                                             NULL))
+        {
+          g_info ("Instance %s disappeared", flatpak_instance_get_id (to_kill));
+          continue;
+        }
+
+      pid = flatpak_instance_get_child_pid (to_kill);
+      if (pid != 0)
+        {
+          kill (pid, SIGKILL);
+          g_info ("Instance %s killed", flatpak_instance_get_id (to_kill));
+          continue;
+        }
+
+      g_ptr_array_add (remaining, g_object_ref (to_kill));
+    }
+
+  return g_steal_pointer (&remaining);
+}
+
 static void
 check_background_apps (Background *background)
 {
@@ -518,6 +563,8 @@ check_background_apps (Background *background)
   int i;
   static int stamp;
   g_autoptr(GPtrArray) notifications = NULL;
+  g_autoptr(GPtrArray) kill_list =
+    g_ptr_array_new_with_free_func (g_object_unref);
 
   app_states = get_app_states (background);
   if (app_states == NULL)
@@ -590,7 +637,7 @@ check_background_apps (Background *background)
           idata->stamp = 0;
 
           g_debug ("Kill app %s (pid %d)", app_id, child_pid);
-          kill (child_pid, SIGKILL);
+          g_ptr_array_add (kill_list, g_object_ref (instance));
           break;
 
         case XDP_PERMISSION_ASK:
@@ -641,6 +688,18 @@ check_background_apps (Background *background)
                                                        NULL,
                                                        notify_background_done,
                                                        nd);
+    }
+
+  for (i = 0; i < FLATPAK_BUILTIN_KILL_N_RETRIES && kill_list->len > 0; i++)
+    {
+      g_autoptr (GPtrArray) remaining = NULL;
+
+      if (i > 0)
+        g_usleep (FLATPAK_BUILTIN_KILL_RETRY_SLEEP_USEC);
+
+      remaining = kill_instances (kill_list);
+      g_clear_pointer (&kill_list, g_ptr_array_unref);
+      kill_list = g_steal_pointer (&remaining);
     }
 
   remove_outdated_instances (background, stamp);
