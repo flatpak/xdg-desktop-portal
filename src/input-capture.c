@@ -349,6 +349,8 @@ handle_create_session2 (XdpDbusInputCapture   *object,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GVariant) results = NULL;
   g_autoptr(GError) error = NULL;
+  g_auto(GVariantBuilder) results_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
   if (input_capture->impl_version < 2)
     return G_DBUS_METHOD_INVOCATION_UNHANDLED;
@@ -396,9 +398,11 @@ handle_create_session2 (XdpDbusInputCapture   *object,
 
   xdp_session_register (session);
 
+  g_variant_builder_add (&results_builder, "{sv}",
+                         "session_handle", g_variant_new ("o", session->id));
   xdp_dbus_input_capture_complete_create_session2 (object,
                                                    invocation,
-                                                   session->id);
+                                                   g_variant_builder_end (&results_builder));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }

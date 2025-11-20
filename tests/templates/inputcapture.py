@@ -81,7 +81,7 @@ def load(mock, parameters={}):
 @dbus.service.method(
     MAIN_IFACE,
     in_signature="osa{sv}",
-    out_signature="",
+    out_signature="a{sv}",
 )
 def CreateSession2(self, session_handle, app_id, options):
     try:
@@ -90,6 +90,7 @@ def CreateSession2(self, session_handle, app_id, options):
         assert len(options) == 0
 
         self.session_handles.append(session_handle)
+        return {}
     except Exception as e:
         logger.critical(e)
         return (2, {})

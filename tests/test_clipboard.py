@@ -69,12 +69,10 @@ class TestClipboard:
         capabilities = dbus.UInt32(capabilities, variant_level=1)
         session_handle_token = dbus.String(f"session{next(counter)}", variant_level=1)
 
-        session = xdp.Session(
-            dbus_con,
-            inputcapture_intf.CreateSession2(
-                {"session_handle_token": session_handle_token}
-            ),
+        result = inputcapture_intf.CreateSession2(
+            {"session_handle_token": session_handle_token}
         )
+        session = xdp.Session(dbus_con, result["session_handle"])
 
         clipboard_intf.RequestClipboard(session.handle, {})
 
