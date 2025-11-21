@@ -52,6 +52,7 @@
 #include "registry.h"
 #include "remote-desktop.h"
 #include "xdp-request.h"
+#include "save-restore.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"
@@ -391,6 +392,7 @@ xdp_context_register (XdpContext       *context,
 #if HAVE_GUDEV
   init_usb (context);
 #endif
+  init_save_restore (context);
   init_registry (context);
 
   return TRUE;

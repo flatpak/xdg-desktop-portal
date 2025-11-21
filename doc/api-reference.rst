@@ -59,6 +59,7 @@ All apps have access to the portals below:
    doc-org.freedesktop.portal.Realtime.rst
    doc-org.freedesktop.portal.RemoteDesktop.rst
    doc-org.freedesktop.portal.Request.rst
+   doc-org.freedesktop.portal.SaveRestore.rst
    doc-org.freedesktop.portal.ScreenCast.rst
    doc-org.freedesktop.portal.Screenshot.rst
    doc-org.freedesktop.portal.Secret.rst
