@@ -18,9 +18,9 @@ body:
     label: "XDG Desktop Portal version"
     description: "What version of XDG Desktop Portal are you using?"
     options:
-    - "1.21"
+    - "main"
+    - "2"
     - "1.20"
-    - "1.18"
     - Git
     - Other
   validations:
