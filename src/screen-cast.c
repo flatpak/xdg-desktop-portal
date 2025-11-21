@@ -51,6 +51,7 @@ struct _ScreenCast
 {
   XdpDbusScreenCastSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplScreenCast *impl;
 };
 
@@ -188,6 +189,7 @@ screen_cast_session_new (ScreenCast  *screen_cast,
 
   session_token = lookup_session_token (options);
   session = g_initable_new (screen_cast_session_get_type (), NULL, error,
+                            "context", screen_cast->context,
                             "sender", request->sender,
                             "app-id", xdp_app_info_get_id (request->app_info),
                             "token", session_token,
@@ -1128,11 +1130,13 @@ screen_cast_class_init (ScreenCastClass *klass)
 }
 
 static ScreenCast *
-screen_cast_new (XdpDbusImplScreenCast *impl)
+screen_cast_new (XdpContext            *context,
+                 XdpDbusImplScreenCast *impl)
 {
   ScreenCast *screen_cast;
 
   screen_cast = g_object_new (screen_cast_get_type (), NULL);
+  screen_cast->context = context;
   screen_cast->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
@@ -1179,9 +1183,9 @@ init_screen_cast (XdpContext *context)
       return;
     }
 
-  screen_cast = screen_cast_new (impl);
+  screen_cast = screen_cast_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&screen_cast)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
