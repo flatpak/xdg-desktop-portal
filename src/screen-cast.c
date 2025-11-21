@@ -1139,14 +1139,14 @@ screen_cast_new (XdpDbusImplScreenCast *impl)
 
   xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast), 5);
 
-  g_object_bind_property (G_OBJECT (screen_cast->impl), "supported-source-types",
-                          G_OBJECT (screen_cast), "supported-source-types",
+  g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
+                          G_OBJECT (screen_cast), "available-source-types",
                           G_BINDING_SYNC_CREATE);
 
   if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 2)
     {
-      g_object_bind_property (G_OBJECT (screen_cast->impl), "supported-cursor-modes",
-                              G_OBJECT (screen_cast), "supported-cursor-modes",
+      g_object_bind_property (G_OBJECT (screen_cast->impl), "available-cursor-modes",
+                              G_OBJECT (screen_cast), "available-cursor-modes",
                               G_BINDING_SYNC_CREATE);
     }
 
