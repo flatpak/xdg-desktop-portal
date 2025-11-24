@@ -73,6 +73,28 @@ D-Bus interfaces can be found below:
 
    :doc:`Backend D-BUS Interfaces </impl-dbus-interfaces>`
 
+Permission Store Implementations
+--------------------------------
+
+The XDG Desktop Portal makes use of the
+:ref:`org.freedesktop.impl.portal.PermissionStore` for some portals.
+
+.. toctree::
+   :hidden:
+
+   permission-store-use
+
+.. cssclass:: tiled-toc
+
+*  .. image:: _static/img/tiles/Dbus-l.png
+      :target: permission-store-use.html
+      :class: only-light
+   .. image:: _static/img/tiles/Dbus-d.png
+      :target: permission-store-use.html
+      :class: only-dark
+
+   :doc:`Permission Store Use By Portals </permission-store-use>`
+
 Background Apps Monitor
 -----------------------
 
