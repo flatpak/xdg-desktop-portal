@@ -29,7 +29,7 @@ def required_templates():
 
 class TestPrint:
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "Print", 3)
+        xdp.check_version(dbus_con, "Print", 5)
 
     def test_prepare_print_basic(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id
