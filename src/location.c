@@ -480,7 +480,7 @@ handle_create_session (XdpDbusLocation *object,
   if (!xdp_session_export (session, &error))
     {
        g_warning ("Failed to export session: %s", error->message);
-       xdp_session_close (session, FALSE);
+       xdp_session_close (session, FALSE, FALSE);
     }
   else
     {
@@ -636,7 +636,7 @@ out:
   if (response != 0)
     {
        g_debug ("closing session");
-       xdp_session_close (session, FALSE);
+       xdp_session_close (session, FALSE, FALSE);
     }
 }
 
