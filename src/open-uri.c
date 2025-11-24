@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <locale.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -502,8 +503,361 @@ should_use_default_app (const char *scheme,
   return FALSE;
 }
 
+typedef struct
+{
+  GStrv   schemes;
+  GStrv   hosts;
+  GArray *ports;
+  GStrv   paths;
+  GStrv   patterns;
+} UriHandler;
+
 static void
-find_recommended_choices (const char *scheme,
+uri_handler_free (UriHandler *handler)
+{
+  g_assert (handler != NULL);
+
+  g_clear_pointer (&handler->patterns, g_strfreev);
+  g_clear_pointer (&handler->schemes, g_strfreev);
+  g_clear_pointer (&handler->hosts, g_strfreev);
+  g_clear_pointer (&handler->paths, g_strfreev);
+  g_clear_pointer (&handler->ports, g_array_unref);
+  g_free (handler);
+}
+
+/*
+ * Temporary deserialization
+ */
+#define URI_HANDLER_GROUP        "org.freedesktop.UriHandler"
+#define URI_HANDLER_PATTERNS_KEY "Patterns"
+
+static GPtrArray *
+uri_handler_deserialize_patterns (GKeyFile *keyfile)
+{
+  GPtrArray *ret = NULL;
+  g_auto (GStrv) patterns = NULL;
+
+  g_assert (keyfile != NULL);
+
+  patterns = g_key_file_get_string_list (keyfile,
+                                         URI_HANDLER_GROUP,
+                                         URI_HANDLER_PATTERNS_KEY,
+                                         NULL, NULL);
+
+  if (patterns != NULL && patterns[0] != NULL)
+    {
+      UriHandler *handler = NULL;
+
+      ret = g_ptr_array_new_with_free_func ((GDestroyNotify)uri_handler_free);
+      handler = g_new0 (UriHandler, 1);
+      handler->patterns = g_steal_pointer (&patterns);
+      g_ptr_array_add (ret, handler);
+    }
+
+  return ret;
+}
+
+static GPtrArray *
+uri_handler_deserialize_sections (GKeyFile *keyfile)
+{
+  GPtrArray *ret = NULL;
+  g_auto (GStrv) groups = NULL;
+
+  g_assert (keyfile != NULL);
+
+  ret = g_ptr_array_new_with_free_func ((GDestroyNotify)uri_handler_free);
+  groups = g_key_file_get_groups (keyfile, NULL);
+  for (size_t i = 0; groups[i] != NULL; i++)
+    {
+      const char *group = groups[i];
+      UriHandler *handler = NULL;
+      g_auto (GStrv) ports = NULL;
+
+      if (!g_str_has_prefix (group, "URI Handler"))
+        continue;
+
+      handler = g_new0 (UriHandler, 1);
+      handler->schemes = g_key_file_get_string_list (keyfile, group, "Scheme", NULL, NULL);
+      handler->hosts = g_key_file_get_string_list (keyfile, group, "Host", NULL, NULL);
+      handler->paths = g_key_file_get_string_list (keyfile, group, "Path", NULL, NULL);
+
+      ports = g_key_file_get_string_list (keyfile, group, "Port", NULL, NULL);
+      if (ports != NULL)
+        {
+          unsigned int n_ports = g_strv_length (ports);
+
+          handler->ports = g_array_new (TRUE, TRUE, sizeof (uint16_t));
+          for (unsigned int i = 0; i < n_ports; i++)
+            {
+              guint64 port = g_ascii_strtoull (ports[i], NULL, 10);
+
+              if (port > 0 && port < UINT16_MAX)
+                g_array_append_vals (handler->ports, (uint16_t *)&port, 1);
+            }
+        }
+
+      g_ptr_array_add (ret, handler);
+    }
+
+  if (ret->len == 0)
+    g_clear_pointer (&ret, g_ptr_array_unref);
+
+  return ret;
+}
+
+static GHashTable *
+uri_handler_load_keyfiles (void)
+{
+  GHashTable *ret = NULL;
+  g_autoptr (GFile) search_path = NULL;
+  g_autoptr (GFileEnumerator) search_dir = NULL;
+
+  ret = g_hash_table_new_full (g_str_hash,
+                               g_str_equal,
+                               g_free,
+                               (GDestroyNotify)g_ptr_array_unref);
+
+  search_path = g_file_new_build_filename (g_get_user_data_dir (),
+                                           "applications",
+                                           NULL);
+  search_dir = g_file_enumerate_children (search_path,
+                                          G_FILE_ATTRIBUTE_STANDARD_NAME,
+                                          G_FILE_QUERY_INFO_NOFOLLOW_SYMLINKS,
+                                          NULL,
+                                          NULL);
+
+  while (TRUE)
+    {
+      GFile *file;
+      g_autoptr (GPtrArray) handlers = NULL;
+      g_autoptr (GKeyFile) keyfile = NULL;
+      g_autofree char *filepath = NULL;
+
+      if (!g_file_enumerator_iterate (search_dir, NULL, &file, NULL, NULL))
+        break;
+
+      if (file == NULL)
+        break;
+
+      filepath = g_file_get_path (file);
+      keyfile = g_key_file_new ();
+      if (!g_key_file_load_from_file (keyfile, filepath, G_KEY_FILE_NONE, NULL))
+        continue;
+
+      if (g_key_file_has_group (keyfile, "org.freedesktop.UriHandler"))
+        {
+          handlers = uri_handler_deserialize_patterns (keyfile);
+        }
+      else
+        {
+          handlers = uri_handler_deserialize_sections (keyfile);
+        }
+
+      if (handlers != NULL && handlers->len > 0)
+        {
+          g_autofree char *basename = NULL;
+          g_autofree char *app_id = NULL;
+
+          basename = g_file_get_basename (file);
+          app_id = g_strndup (basename, strlen (basename) - strlen (".desktop"));
+
+          g_debug ("Found %u handlers for %s", handlers->len, app_id);
+          g_hash_table_replace (ret,
+                                g_steal_pointer (&app_id),
+                                g_steal_pointer (&handlers));
+        }
+    }
+
+  return ret;
+}
+
+static gboolean
+uri_handler_match (UriHandler *handler,
+                   GUri       *uri)
+{
+  const char *scheme = NULL;
+  const char *host = NULL;
+
+  /* Simple pattern matching */
+  if (handler->patterns != NULL)
+    {
+      g_autofree char *uri_str = g_uri_to_string (uri);
+
+      for (unsigned int i = 0; handler->patterns[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->patterns[i], uri_str))
+            return TRUE;
+        }
+    }
+
+  scheme = g_uri_get_scheme (uri);
+  if (scheme != NULL && handler->schemes != NULL)
+    {
+      gboolean match = FALSE;
+      for (unsigned int i = 0; handler->schemes[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->schemes[i], scheme))
+            {
+              match = TRUE;
+              break;
+            }
+        }
+
+      if (!match)
+        return FALSE;
+    }
+
+  host = g_uri_get_host (uri);
+  if (host != NULL && handler->hosts != NULL)
+    {
+      gboolean match = FALSE;
+      int port = -1;
+
+      for (unsigned int i = 0; handler->hosts[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->hosts[i], host))
+            {
+              match = TRUE;
+              break;
+            }
+
+          // Allow "*.example.com" to match "www.example.com" and "example.com"
+          if (g_str_has_prefix (handler->hosts[i], "*."))
+            {
+              const char *subpattern = handler->hosts[i] + 2;
+
+              if (g_pattern_match_simple (subpattern, host))
+                {
+                  match = TRUE;
+                  break;
+                }
+            }
+        }
+
+      if (!match)
+        return FALSE;
+
+      // Port matching is dependent on a host match
+      port = g_uri_get_port (uri);
+      if (port > -1 && handler->ports != NULL)
+        {
+          match = FALSE;
+          for (unsigned int i = 0; i < handler->ports->len; i++)
+            {
+              if (port == g_array_index (handler->ports, uint16_t, i))
+                {
+                  match = TRUE;
+                  break;
+                }
+            }
+
+          if (!match)
+            return FALSE;
+        }
+    }
+
+  // If at least one path is provided, at least one path must match
+  if (handler->paths != NULL)
+    {
+      const char *path = NULL;
+      const char *query = NULL;
+      const char *fragment = NULL;
+      g_autoptr(GString) path_ref = NULL;
+
+      // Compose an absolute-ref ("/" path [ "?" query ] [ "#" fragment ])
+      path = g_uri_get_path (uri);
+      if (*path != '\0')
+        path_ref = g_string_new (path);
+      else
+        path_ref = g_string_new ("/");
+
+      query = g_uri_get_query (uri);
+      if (query != NULL && *query != '\0')
+        g_string_append_printf (path_ref, "?%s", query);
+
+      fragment = g_uri_get_fragment (uri);
+      if (fragment != NULL && *fragment != '\0')
+        g_string_append_printf (path_ref, "#%s", fragment);
+
+      for (unsigned int i = 0; handler->paths[i] != NULL; i++)
+        {
+          if (g_pattern_match_simple (handler->paths[i], path_ref->str))
+            return TRUE;
+        }
+
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+app_uri_handler_match (GPtrArray *handlers,
+                       GUri      *uri)
+{
+  for (unsigned int i = 0; i < handlers->len; i++)
+    {
+      if (uri_handler_match (g_ptr_array_index (handlers, i), uri))
+        return TRUE;
+    }
+
+  return FALSE;
+}
+
+static void
+find_patterned_choices (XdpAppInfo *app,
+                        const char *uri,
+                        GStrv      *choices,
+                        guint      *choices_len)
+{
+  const char *source_app_id = xdp_app_info_get_id (app);
+  g_autoptr(GUri) guri = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GHashTable) candidates = NULL;
+  GHashTableIter iter;
+  const char *app_id = NULL;
+  GPtrArray *handlers = NULL;
+  g_autoptr(GStrvBuilder) builder = NULL;
+  guint n_choices = 0;
+
+  g_assert (uri != NULL);
+
+  guri = g_uri_parse (uri, G_URI_FLAGS_NONE, &error);
+  if (guri == NULL)
+    {
+      g_warning ("%s(): %s", G_STRFUNC, error->message);
+      return;
+    }
+
+  candidates = uri_handler_load_keyfiles ();
+  builder = g_strv_builder_new ();
+
+  g_hash_table_iter_init (&iter, candidates);
+  while (g_hash_table_iter_next (&iter, (void **)&app_id, (void **)&handlers))
+    {
+      if (g_strcmp0 (source_app_id, app_id) == 0)
+        {
+          g_debug ("Skipping handler for originating app %s", app_id);
+          continue;
+        }
+
+      if (app_uri_handler_match (handlers, guri))
+        {
+          g_debug ("Matching handler for %s (%s)", uri, app_id);
+          g_strv_builder_add (builder, app_id);
+          n_choices += 1;
+          break;
+        }
+    }
+
+  *choices = g_strv_builder_end (builder);
+  *choices_len = n_choices;
+}
+
+static void
+find_recommended_choices (XdpAppInfo *app,
+                          const char *uri,
+                          const char *scheme,
                           const char *content_type,
                           char **default_app,
                           GStrv *choices,
@@ -515,6 +869,21 @@ find_recommended_choices (const char *scheme,
   guint n_choices = 0;
   GStrv result = NULL;
   int i;
+
+  /* Pre-empt the default app, since there are hard-coded scheme overrides
+   */
+  find_patterned_choices (app, uri, &result, &n_choices);
+  if (n_choices > 0)
+    {
+      *choices = g_steal_pointer (&result);
+      *choices_len = n_choices;
+      return;
+    }
+  else
+    {
+      n_choices = 0;
+      g_clear_pointer (&result, g_strfreev);
+    }
 
   info = g_app_info_get_default_for_type (content_type, FALSE);
 
@@ -558,6 +927,7 @@ on_app_info_changed (GAppInfoMonitor *monitor,
   OpenURI *open_uri;
   const char *scheme;
   const char *content_type;
+  const char *uri;
   g_autofree char *default_app = NULL;
   g_auto(GStrv) choices = NULL;
   guint n_choices;
@@ -565,7 +935,8 @@ on_app_info_changed (GAppInfoMonitor *monitor,
   open_uri = (OpenURI *)g_object_get_data (G_OBJECT (request), "open-uri");
   scheme = (const char *)g_object_get_data (G_OBJECT (request), "scheme");
   content_type = (const char *)g_object_get_data (G_OBJECT (request), "content-type");
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  uri = (const char *)g_object_get_data (G_OBJECT (request), "uri");
+  find_recommended_choices (request->app_info, uri, scheme, content_type, &default_app, &choices, &n_choices);
 
   xdp_dbus_impl_app_chooser_call_update_choices (open_uri->impl,
                                                  request->id,
@@ -793,7 +1164,7 @@ handle_open_in_thread_func (GTask *task,
   g_object_set_data_full (G_OBJECT (request), "content-type", g_strdup (content_type), g_free);
 
   /* collect all the information */
-  find_recommended_choices (scheme, content_type, &default_app, &choices, &n_choices);
+  find_recommended_choices (request->app_info, uri, scheme, content_type, &default_app, &choices, &n_choices);
   /* it's never NULL, but might be empty (only contain the NULL terminator) */
   g_assert (choices != NULL);
   if (default_app != NULL && !app_exists (default_app))
