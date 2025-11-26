@@ -21,6 +21,12 @@
 
 #include <gio/gio.h>
 
+typedef enum {
+  XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS = 0,
+  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED = 1,
+  XDG_DESKTOP_PORTAL_RESPONSE_OTHER = 2,
+} XdgDesktopPortalResponseEnum;
+
 typedef struct _XdpContext XdpContext;
 typedef struct _XdpAppInfo XdpAppInfo;
 typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
