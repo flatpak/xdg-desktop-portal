@@ -29,8 +29,13 @@ def zones():
     return default_zones()
 
 
+@pytest.fixture
+def permission_store_id():
+    return "inputcapture"
+
+
 class TestInputCapture:
-    def create_session(self, dbus_con, capabilities=0xF):
+    def create_session(self, dbus_con, capabilities=0xF, check_impl_calls=True):
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -63,12 +68,13 @@ class TestInputCapture:
 
         self.current_session_handle = response.results["session_handle"]
 
-        # Check the impl portal was called with the right args
-        method_calls = mock_intf.GetMethodCalls("CreateSession")
-        assert len(method_calls) > 0
-        _, args = method_calls[-1]
-        assert args[3] == ""  # parent window
-        assert args[4]["capabilities"] == capabilities
+        if check_impl_calls:
+            # Check the impl portal was called with the right args
+            method_calls = mock_intf.GetMethodCalls("CreateSession")
+            assert len(method_calls) > 0
+            _, args = method_calls[-1]
+            assert args[3] == ""  # parent window
+            assert args[4]["capabilities"] == capabilities
 
         return response
 
@@ -672,3 +678,65 @@ class TestInputCapture:
         # Release() implies deactivated
         assert not deactivated_signal_received
         assert not disabled_signal_received
+
+    def test_permission_store_unset(self, portals, dbus_con):
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        capabilities = 0b101  # KEYBOARD + TOUCH
+        self.create_session(dbus_con, capabilities=capabilities)
+        method_calls = mock_intf.GetMethodCalls("CreateSession")
+        assert len(method_calls) == 1
+        _, args = method_calls[-1]
+        assert args[4]["capabilities"] == capabilities
+
+    @pytest.mark.parametrize("requested", range(0, 3))
+    @pytest.mark.parametrize("ask", range(0, 3))
+    @pytest.mark.parametrize("yes", range(0, 3))
+    @pytest.mark.parametrize("clamp", range(1, 3))
+    def test_permission_store_allowed_capabilities(
+        self,
+        portals,
+        dbus_con,
+        permission_store_id,
+        xdp_app_info,
+        clamp,
+        yes,
+        ask,
+        requested,
+    ):
+        """Test that apps with stored permissions skip the dialog"""
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        permission_store = xdp.get_permission_store_iface(dbus_con)
+        permission_store.SetPermission(
+            "inputcapture",
+            True,
+            permission_store_id,
+            xdp_app_info.app_id,
+            [str(clamp), str(yes), str(ask)],
+        )
+
+        expected = (requested & clamp) & (yes | ask)
+        expected_validated = ((yes & expected) == yes) and yes != 0
+
+        if expected:
+            self.create_session(
+                dbus_con, capabilities=requested, check_impl_calls=False
+            )
+            assert expected != 0
+            method_calls = mock_intf.GetMethodCalls("CreateSession")
+            assert len(method_calls) == 1
+            _, args = method_calls[-1]
+            assert args[4]["capabilities"] == expected
+            assert args[4]["permission_store_validated"] == expected_validated
+        else:
+            with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+                self.create_session(dbus_con, capabilities=requested)
+
+            e = excinfo.value
+            if requested == 0:
+                assert (
+                    e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+                )
+            else:
+                assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
