@@ -21,9 +21,9 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.impl.portal.InputCapture:
-      @short_description: Capture input portal backend interface
+      @short_description: Input Capture portal backend interface
 
-      The Capture Input portal allows clients to capture input from local
+      The Input Capture portal allows clients to capture input from local
       devices. This portal is mostly a 1:1 mapping of the
       :ref:`org.freedesktop.portal.InputCapture` portal, see that portal's
       documentation for details on methods, signals and arguments.
