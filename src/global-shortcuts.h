@@ -24,4 +24,4 @@
 
 #include "xdp-types.h"
 
-void init_global_shortcuts (XdpContext *context);
+DexFuture * init_global_shortcuts (gpointer user_data);
