@@ -75,6 +75,8 @@ struct _XdpContext
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
+  GHashTable *registered_object_paths; /* char *object_path set */
+  GMutex registered_object_paths_lock;
 
   GCancellable *cancellable;
 };
@@ -105,6 +107,12 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->app_info_registry);
   g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
+  if (context->registered_object_paths)
+    {
+      g_clear_pointer (&context->registered_object_paths, g_hash_table_unref);
+      g_mutex_clear (&context->registered_object_paths_lock);
+    }
+
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
 
@@ -133,6 +141,9 @@ xdp_context_new (gboolean opt_verbose)
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
                                                      g_object_unref);
+  context->registered_object_paths =
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  g_mutex_init (&context->registered_object_paths_lock);
 
   return context;
 }
@@ -394,4 +405,27 @@ xdp_context_register (XdpContext       *context,
   init_registry (context);
 
   return TRUE;
+}
+
+gboolean
+xdp_context_claim_object_path (XdpContext *context,
+                               const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
+
+  if (g_hash_table_contains (context->registered_object_paths, object_path))
+    return FALSE;
+
+  g_hash_table_add (context->registered_object_paths,
+                    g_strdup (object_path));
+  return TRUE;
+}
+
+void
+xdp_context_unclaim_object_path (XdpContext *context,
+                                 const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
+
+  g_hash_table_remove (context->registered_object_paths, object_path);
 }
