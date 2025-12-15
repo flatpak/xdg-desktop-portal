@@ -23,6 +23,8 @@
 #pragma once
 
 #include <gio/gio.h>
+#include <libdex.h>
+
 #include "xdp-app-info.h"
 #include "xdp-impl-dbus.h"
 
@@ -38,12 +40,25 @@ char **xdp_get_permissions_sync (XdpAppInfo *app_info,
                                  const char *table,
                                  const char *id);
 
+DexFuture * xdp_permissions_get_future (XdpAppInfo *app_info,
+                                        const char *table,
+                                        const char *id);
+
 void xdp_set_permissions_sync (XdpAppInfo         *app_info,
                                const char         *table,
                                const char         *id,
                                const char * const *permissions);
 
+DexFuture * xdp_permissions_set_future (XdpAppInfo         *app_info,
+                                        const char         *table,
+                                        const char         *id,
+                                        const char * const *permissions);
+
 XdpPermission xdp_get_permission_sync (XdpAppInfo *app_info,
+                                       const char *table,
+                                       const char *id);
+
+DexFuture * xdp_permission_get_future (XdpAppInfo *app_info,
                                        const char *table,
                                        const char *id);
 
@@ -51,6 +66,11 @@ void xdp_set_permission_sync (XdpAppInfo    *app_info,
                               const char    *table,
                               const char    *id,
                               XdpPermission  permission);
+
+DexFuture * xdp_permission_set_future (XdpAppInfo    *app_info,
+                                       const char    *table,
+                                       const char    *id,
+                                       XdpPermission  permission);
 
 char **xdp_permissions_from_tristate (XdpPermission permission);
 
