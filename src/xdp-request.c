@@ -21,12 +21,16 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-#include "xdp-request.h"
+#include "config.h"
+
+#include <string.h>
+
+#include "xdp-context.h"
 #include "xdp-utils.h"
 #include "xdp-method-info.h"
 #include "xdp-context.h"
 
-#include <string.h>
+#include "xdp-request.h"
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
