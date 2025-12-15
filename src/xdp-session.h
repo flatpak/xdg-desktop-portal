@@ -54,6 +54,7 @@ typedef struct _XdpSessionClass
 } XdpSessionClass;
 
 GType xdp_session_get_type (void);
+#define XDP_TYPE_SESSION (xdp_session_get_type ())
 
 G_GNUC_UNUSED static inline XdpSession *
 XDP_SESSION (gpointer ptr)
