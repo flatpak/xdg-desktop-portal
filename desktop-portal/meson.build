@@ -97,6 +97,7 @@ xdg_desktop_portal_sources = files(
   'xdp-request.c',
   'xdp-request-dex.c',
   'xdp-session.c',
+  'xdp-session-dex.c',
   'xdp-session-persistence.c',
 )
 
