@@ -62,6 +62,14 @@
 
 #include "xdp-context.h"
 
+enum
+{
+  PEER_DISCONNECT,
+  N_SIGNALS,
+};
+
+static guint signals[N_SIGNALS] = { 0 };
+
 struct _XdpContext
 {
   GObject parent_instance;
@@ -122,6 +130,14 @@ xdp_context_class_init (XdpContextClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_context_dispose;
+
+  signals[PEER_DISCONNECT] =
+    g_signal_new ("peer-disconnect",
+                  G_TYPE_FROM_CLASS (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0, NULL, NULL, NULL,
+                  G_TYPE_NONE, 1,
+                  G_TYPE_STRING);
 }
 
 static void
@@ -301,6 +317,9 @@ on_peer_disconnect (const char *name,
 
   xdp_usb_delete_for_sender (context, name);
   notification_delete_for_sender (context, name);
+
+  g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
+
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
