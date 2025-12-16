@@ -59,3 +59,9 @@ void xdp_context_take_and_export_portal (XdpContext             *context,
 
 GDBusInterfaceSkeleton * xdp_context_get_portal (XdpContext *context,
                                                  const char *interface);
+
+gboolean xdp_context_claim_object_path (XdpContext *context,
+                                        const char *object_path);
+
+void xdp_context_unclaim_object_path (XdpContext *context,
+                                      const char *object_path);
