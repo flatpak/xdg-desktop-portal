@@ -227,7 +227,7 @@ out:
     }
 
   if (should_close_session)
-    xdp_session_close (session, FALSE);
+    xdp_session_close (session, FALSE, FALSE);
 }
 
 static gboolean
@@ -379,7 +379,7 @@ get_zones_done (GObject      *source_object,
 
   if (should_close_session)
     {
-      xdp_session_close (session, TRUE);
+      xdp_session_close (session, TRUE, FALSE);
     }
 }
 
@@ -537,7 +537,7 @@ set_pointer_barriers_done (GObject      *source_object,
     }
 
   if (should_close_session)
-    xdp_session_close (session, TRUE);
+    xdp_session_close (session, TRUE, FALSE);
 }
 
 static XdpOptionKey input_capture_set_pointer_barriers_options[] = {
