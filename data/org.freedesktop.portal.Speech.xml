@@ -1,0 +1,173 @@
+<?xml version="1.0"?>
+<!--
+ Copyright (C) 2025 GNOME Foundation Inc.
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+
+ Author: Eitan Isaacson <eitan@monotonous.org>
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Speech:
+      @short_description: Portal for speech
+
+      This simple interface lets sandboxed applications query available speech providers and voices.
+      It then lets applications request speech synthesis from those providers
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.Speech">
+    <!--
+        CreateSession:
+        @options: Vardict with optional further information
+        @handle: Object path for the created :ref:`org.freedesktop.portal.Session` object
+
+        Create a speech session. A successfully created session can at
+        any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
+        at any time be closed by the portal implementation, which will be
+        signalled via :ref:`org.freedesktop.portal.Session::Closed`.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+              A string that will be used as the last element of the session handle. Must be a valid
+              object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+              more information about the session handle.
+
+    -->
+    <method name="CreateSession">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        GetProviders:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Get available synthesis voices
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``providers`` (``a(ss)``)
+
+           An array of providers. Each provider in the array is structure with the following members:
+             * A well known name
+             * A human readable name
+    -->
+    <method name="GetProviders">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        GetVoices:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Get available synthesis voices
+
+        Supported keys in the @options vardict include:
+
+        * ``handle_token`` (``s``)
+
+          A string that will be used as the last element of the @handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
+          more information about the @handle.
+
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+
+        * ``voices`` (``a(ssstas)``)
+
+          An array of voices. Each voice in the array is structure with the following members:
+            * A human readable name
+            * A unique identifier
+            * Synthesis output format
+            * A voice features bit field.
+              See here for full list: https://github.com/project-spiel/libspeechprovider/blob/main/interface/org.freedesktop.Speech.Provider.xml#L65
+            * A list of languages the voice support represented as BCP 47 tags
+    -->
+    <method name="GetVoices">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="provider_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        Synthesize:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+        @pipe_fd: File descriptor of pipe to write to.
+        @text: The text to be spoken.
+        @voice_id: The voice identifier for the voice that should be spoken.
+        @pitch: The voice pitch in which the text should be spoken.
+        @rate: The rate in which the text should be spoken.
+        @is_ssml: True if the text should be interpretted as an SSML snippet (https://www.w3.org/TR/speech-synthesis/).
+        @language: The language the utterance should be spoken in. Some voices support more than one language.
+
+        This is the basic synthesis method.
+        When called, the speech provider will send the synthesized output to the given file descriptor.
+        Depending on the voice's advertised format it will be raw audio or composite audio and events.
+    -->
+    <method name="Synthesize">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg direction="in"  type="o" name="session_handle"/>
+      <arg direction="in"  type="s" name="parent_window" />
+      <arg direction="in"  type="s" name="provider_id" />
+      <arg direction="in"  type="h" name="pipe_fd" />
+      <arg direction="in"  type="s" name="text" />
+      <arg direction="in"  type="s" name="voice_id" />
+      <arg direction="in"  type="d" name="pitch" />
+      <arg direction="in"  type="d" name="rate" />
+      <arg direction="in"  type="b" name="is_ssml" />
+      <arg direction="in"  type="s" name="language" />
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In10" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg direction="out" type="o" name="handle" />
+    </method>
+
+    <signal name="ProvidersChanged">
+      <arg type="o" name="session_handle" direction="in"/>
+    </signal>
+
+    <signal name="VoicesChanged">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="provider_id" direction="in"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>
