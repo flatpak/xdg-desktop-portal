@@ -3036,6 +3036,12 @@ xdp_fuse_statfs (fuse_req_t req,
 
   g_debug ("STATFS %" G_GINT64_MODIFIER "x", ino);
 
+  if(xdp_domain_is_virtual_type(inode->domain)) {
+	memset(&buf, 0, sizeof(buf));
+	fuse_reply_statfs (req, &buf);
+	return;
+  }
+
   if (!xdp_document_inode_checks (op, req, inode, 0))
     return;
 
