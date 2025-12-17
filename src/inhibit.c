@@ -27,6 +27,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
+#include "xdp-queue-future.h"
 #include "xdp-request-future.h"
 #include "xdp-session-future.h"
 #include "xdp-utils.h"
@@ -63,6 +64,28 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (XdpInhibit,
                                XDP_DBUS_TYPE_INHIBIT_SKELETON,
                                G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_INHIBIT,
                                                       xdp_inhibit_iface_init));
+
+/* Ideally, we would scope the order per session, but the Inhibit method
+ * can be called without a session, so we scope it to the peer instead. */
+static XdpQueueFuture *
+ensure_app_info_queue_future (XdpAppInfo *app_info)
+{
+  XdpQueueFuture *queue_future;
+
+  queue_future = g_object_get_data (G_OBJECT (app_info),
+                                    "-xdp-inhibit-queue-future");
+
+  if (!queue_future)
+    {
+      queue_future = xdp_queue_future_new ();
+      g_object_set_data_full (G_OBJECT (app_info),
+                              "-xdp-inhibit-queue-future",
+                              queue_future,
+                              g_object_unref);
+    }
+
+  return queue_future;
+}
 
 static gboolean
 validate_reason (const char  *key,
@@ -101,7 +124,11 @@ handle_inhibit (XdpDbusInhibit        *object,
   g_autoptr(XdpRequestFuture) request = NULL;
   g_autoptr(GVariant) options = NULL;
   uint32_t flags;
+  g_autoptr(XdpQueueFutureGuard) guard = NULL;
   g_autoptr(GError) error = NULL;
+
+  guard = dex_await_object (xdp_queue_future_next (ensure_app_info_queue_future (app_info)), NULL);
+  g_assert (guard);
 
   {
     g_auto(GVariantBuilder) options_builder =
@@ -310,7 +337,11 @@ handle_query_end_response (XdpDbusInhibit        *object,
   XdpInhibit *inhibit = XDP_INHIBIT (object);
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSessionFuture *session;
+  g_autoptr(XdpQueueFutureGuard) guard = NULL;
   g_autoptr(GError) error = NULL;
+
+  guard = dex_await_object (xdp_queue_future_next (ensure_app_info_queue_future (app_info)), NULL);
+  g_assert (guard);
 
   session = xdp_session_future_store_lookup_session (inhibit->sessions,
                                                      arg_session_handle,
