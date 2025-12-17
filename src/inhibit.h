@@ -25,4 +25,4 @@
 
 #include "xdp-types.h"
 
-void init_inhibit (XdpContext *context);
+DexFuture * init_inhibit (gpointer user_data);

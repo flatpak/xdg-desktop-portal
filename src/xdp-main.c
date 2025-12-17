@@ -29,6 +29,7 @@
 
 #include <glib-unix.h>
 #include <glib/gi18n.h>
+#include <libdex.h>
 
 #include "xdp-context.h"
 
@@ -161,6 +162,8 @@ main (int argc, char *argv[])
   bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
+
+  dex_init ();
 
   /* Note: if you add any more environment variables here, update
    * handle_launch() in dynamic-launcher.c to unset them before launching apps
