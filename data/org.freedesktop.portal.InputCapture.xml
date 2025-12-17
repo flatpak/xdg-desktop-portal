@@ -53,7 +53,7 @@
       captured. The transport of actual input events is delegated to a
       transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
 
-      This documentation describes version 1 of this interface.
+      This documentation describes version 2 of this interface.
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--
