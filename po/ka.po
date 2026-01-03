@@ -2,21 +2,22 @@
 # Copyright (C) 2023 xdg-desktop-portal's authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
+# Ekaterine Papava <papava.e@gtu.ge>, 2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-15 15:55+0200\n"
-"PO-Revision-Date: 2023-02-25 14:53+0100\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"PO-Revision-Date: 2026-01-03 04:32+0100\n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <(nothing)>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.8\n"
 
 #: src/background.c:827
 #, c-format
@@ -50,103 +51,106 @@ msgid "Allow"
 msgstr "დაშვება"
 
 #: src/camera.c:105
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
+msgstr "მივცე უფლება %s-ს, გამოიყენოს კამერა?"
 
 #: src/camera.c:106
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to access camera devices."
-msgstr "%s-ს სურს გამოიყენოს თქვენი კამერა."
+msgstr "%s-ს სურს წვდომა კამერის მოწყობილობებთან."
 
 #: src/camera.c:110
 msgid "Allow app to Use the Camera?"
-msgstr ""
+msgstr "მივცე უფლება აპს, გამოიყენოს კამერა?"
 
 #: src/camera.c:111
-#, fuzzy
 msgid "An app wants to access camera devices."
-msgstr "აპლიკაციას სურს გამოიყენოს თქვენი კამერა."
+msgstr "აპლიკაციას სურს წვდომა კამერის მოწყობილობებთან."
 
 #: src/dynamic-launcher.c:122
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის id-ის .desktop სუფიქსი აკლია: %s"
 
 #: src/dynamic-launcher.c:133
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის id არასწორია"
 
 #: src/dynamic-launcher.c:306
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() არასწორი გასაღების ფაილი "
+"გადასცა"
 
 #: src/dynamic-launcher.c:319
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() ზუსტად ერთი ჯგუფი უნდა "
+"გადასცეს"
 
 #: src/dynamic-launcher.c:356
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr ""
+msgstr "გადმოცემული ტოკენი არასწორია: %s"
 
 #: src/dynamic-launcher.c:400
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr ""
+msgstr "ფუნქციისთვის install() გადაცემული სამუშაო მაგიდის ჩანაწერი არასწორია"
 
 #: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
 #: src/dynamic-launcher.c:880
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის ზომა მაქსიმალურზე (%d) მეტია: %s"
 
 #: src/dynamic-launcher.c:563
 #, c-format
 msgid "URL given is invalid: %s"
-msgstr ""
+msgstr "გადაცემული URL არასწორია: %s"
 
 #: src/dynamic-launcher.c:586
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr ""
+msgstr "არასწორი გამშვების ტიპი: %x"
 
 #: src/dynamic-launcher.c:593
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr ""
+msgstr "მხარდაუჭერელი გამშვების ტიპი: %x"
 
 #: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
 msgid "Dynamic launcher icon failed validation"
-msgstr ""
+msgstr "დინამიკური გამშვების ხატულის გადამოწმება ჩავარდა"
 
 #: src/dynamic-launcher.c:741
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
+msgstr "RequestInstallToken() დაუშვებელია აპისთვის id-ით %s"
 
 #: src/dynamic-launcher.c:920
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის '%s' ხატულა უცნობ ბილიკზეა"
 
 #: src/dynamic-launcher.c:943
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
+msgstr "სამუშაო ფაილის '%s' სერიალიზაციის შეცდომა"
 
 #: src/dynamic-launcher.c:982
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
+msgstr "id-ით '%s' დინამიკური გამშვები არ არსებობს"
 
 #: src/dynamic-launcher.c:1001
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr ""
+msgstr "გამშვებისთვის id-ით '%s' GDesktopAppInfo-ის შექმნა ჩავარდა"
 
 #: src/location.c:544
 msgid "Deny Access"
@@ -214,12 +218,11 @@ msgstr "მოთხოვნილი პარამეტრი ვერ მ
 
 #: src/usb.c:1328
 msgid "Device not available"
-msgstr ""
+msgstr "მოწყობილობა ხელმისაწვდომი არაა"
 
 #: src/usb.c:1342
-#, fuzzy
 msgid "Not allowed"
-msgstr "არ დაშვება"
+msgstr "დაუშვებელია"
 
 #: src/wallpaper.c:207
 #, c-format
@@ -238,47 +241,3 @@ msgstr "მიეცეს აპლიკაციებს ფონის ს
 #: src/wallpaper.c:218
 msgid "An application is requesting to be able to change the background image."
 msgstr "აპლიკაცია ფონის სურათის შეცვლის უფლებას მოითხოვს."
-
-#~ msgid "Turn On Microphone?"
-#~ msgstr "ჩავრთო მიკროფონი?"
-
-#~ msgid ""
-#~ "Access to your microphone can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს მიკროფონზე წვდომა ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან "
-#~ "შეიძლება შეიცვალოს."
-
-#~ msgid "An application wants to use your microphone."
-#~ msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მიკროფონი."
-
-#, c-format
-#~ msgid "%s wants to use your microphone."
-#~ msgstr "%s-ს სურს თქვენი მიკროფონი გამოიყენოს."
-
-#~ msgid "Turn On Speakers?"
-#~ msgstr "ჩავრთო დინამიკები?"
-
-#~ msgid ""
-#~ "Access to your speakers can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს დინამიკებზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს "
-#~ "კონფიდენციალურობის პარამეტრებიდან."
-
-#~ msgid "An application wants to play sound."
-#~ msgstr "აპლიკაციას ხმის გამოცემა სურს."
-
-#, c-format
-#~ msgid "%s wants to play sound."
-#~ msgstr "%s-ს ხმის გამოცემა სურს."
-
-#~ msgid "Turn On Camera?"
-#~ msgstr "ჩავრთო კამერა?"
-
-#~ msgid ""
-#~ "Access to your camera can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს კამერაზე წვდომა ნებისმიერ დროს შეიძლება შეიცვალოს "
-#~ "კონფიდენციალურობის პარამეტრებიდან."
