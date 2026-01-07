@@ -20,18 +20,16 @@
  *       Isaiah Inuwa <isaiah.inuwa@gmail.com>
  */
 
-#include "config.h"
 
 #include <gio/gunixfdlist.h>
 #include <stdint.h>
 
+#include "gio/gio.h"
 #include "glib.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
-#include "xdp-session.h"
-#include "xdp-utils.h"
 
 #include "credentials.h"
 
@@ -80,11 +78,56 @@ handle_get_credential(XdpDbusCredentialsX *object,
     return FALSE;
 }
 
+static void
+retrieve_client_capabilities_done (GObject *source,
+		      GAsyncResult *result,
+		      gpointer data)
+{
+  g_autoptr(GDBusMethodInvocation) invocation = data;
+  g_autoptr(GVariant) capabilities = NULL;
+  g_autoptr(GError) error = NULL;
+
+  if (!xdp_dbus_impl_credentials_x_call_get_client_capabilities_finish (XDP_DBUS_IMPL_CREDENTIALS_X (source),
+                                                         &capabilities,
+                                                         result,
+                                                         &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Backend call failed: %s", error->message);
+    }
+
+  xdp_dbus_credentials_x_complete_get_client_capabilities (NULL, invocation, capabilities);
+}
+
 static gboolean
 handle_get_client_capabilities(XdpDbusCredentialsX *object,
                                GDBusMethodInvocation *invocation)
 {
-    return FALSE;
+  CredentialsX *credentials = (CredentialsX *) object;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->impl)),
+    NULL,
+    NULL, &error);
+
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_dbus_impl_credentials_x_call_get_client_capabilities (credentials->impl,
+                                             NULL,
+                                             retrieve_client_capabilities_done,
+                                             g_object_ref(invocation));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
@@ -146,10 +189,38 @@ credentials_new (XdpDbusImplCredentialsX *impl)
   return credentials;
 }
 
+static void
+proxy_created_cb (GObject      *source_object,
+                  GAsyncResult *result,
+                  gpointer      user_data)
+{
+  g_debug("finishing CredentialsX initialization");
+  XdpContext *context = (XdpContext *)user_data;
+  g_autoptr(XdpDbusImplCredentialsX) impl = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(CredentialsX) credentials = NULL;
+
+  impl = xdp_dbus_impl_credentials_x_proxy_new_finish (result, &error);
+  if (!impl)
+    {
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        g_warning ("Failed to create credentials proxy: %s", error->message);
+      return;
+    }
+
+  context = XDP_CONTEXT (user_data);
+
+  credentials = credentials_new (impl);
+  xdp_context_take_and_export_portal (context,
+                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&credentials)),
+                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+}
 
 void
-init_credentials (XdpContext *context)
+init_credentials (XdpContext *context,
+                  GCancellable *cancellable)
 {
+  g_info("Initializing Credentials Portal");
   g_autoptr(CredentialsX) credentials = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
@@ -158,24 +229,17 @@ init_credentials (XdpContext *context)
   g_autoptr(GError) error = NULL;
 
   impl_config = xdp_portal_config_find (config, CREDENTIALS_DBUS_IMPL_IFACE);
-  if (impl_config == NULL)
-    return;
 
-  impl = xdp_dbus_impl_credentials_x_proxy_new_sync (connection,
+  if (impl_config == NULL) {
+    g_debug("impl_config is NULL");
+    return;
+  }
+
+  xdp_dbus_impl_credentials_x_proxy_new (connection,
                                                  G_DBUS_PROXY_FLAGS_NONE,
                                                  impl_config->dbus_name,
                                                  DESKTOP_DBUS_PATH,
-                                                 NULL,
-                                                 &error);
-  if (impl == NULL)
-    {
-      g_warning ("Failed to create credentials: %s", error->message);
-      return;
-    }
-
-  credentials = credentials_new (impl);
-
-  xdp_context_take_and_export_portal (context,
-                                      G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&credentials)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                                 cancellable,
+                                                 proxy_created_cb,
+                                                 context);
 }

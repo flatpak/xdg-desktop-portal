@@ -401,6 +401,7 @@ xdp_context_register (XdpContext       *context,
   init_location (context);
 #endif
   init_camera (context);
+  init_credentials(context, context->cancellable);
   init_screenshot (context);
   init_background (context);
   init_wallpaper (context);
@@ -417,7 +418,6 @@ xdp_context_register (XdpContext       *context,
   init_usb (context);
 #endif
   init_registry (context);
-  init_credentials(context);
 
   return TRUE;
 }
