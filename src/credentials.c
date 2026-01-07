@@ -26,10 +26,13 @@
 
 #include "gio/gio.h"
 #include "glib.h"
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-utils.h"
 
 #include "credentials.h"
 
@@ -48,7 +51,6 @@ struct _CredentialsXClass
   XdpDbusCredentialsXSkeletonClass parent_class;
 };
 
-
 GType credentials_x_get_type (void) G_GNUC_CONST;
 static void credentials_x_iface_init (XdpDbusCredentialsXIface *iface);
 
@@ -61,27 +63,242 @@ G_DEFINE_TYPE_WITH_CODE (CredentialsX,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (CredentialsX, g_object_unref)
 
+static void
+send_response_in_thread_func (GTask *task,
+                              gpointer source_object,
+                              gpointer task_data,
+                              GCancellable *cancellable)
+{
+  XdpRequest *request = task_data;
+  XdgDesktopPortalResponseEnum response;
+  GVariant *results = NULL;
+
+  REQUEST_AUTOLOCK (request);
+
+  response = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (request), "response"));
+  if (response == XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS)
+  {
+    results = (GVariant *)g_object_get_data (G_OBJECT (request), "results");
+  }
+  if (!results) {
+    g_auto(GVariantBuilder) tmp =
+      G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+    results = g_variant_builder_end(&tmp);
+  }
+
+  if (request->exported)
+    {
+      g_debug ("sending response: %d", response);
+      xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
+                                      response,
+                                      results);
+      xdp_request_unexport (request);
+    }
+}
+
+static void
+create_credential_done (GObject *source,
+          GAsyncResult *result,
+          gpointer data)
+{
+  g_autoptr(XdpRequest) request = data;
+  XdgDesktopPortalResponseEnum response;
+  g_autoptr(GVariant) results = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+
+  if (!xdp_dbus_impl_credentials_x_call_create_credential_finish (XDP_DBUS_IMPL_CREDENTIALS_X (source),
+                                                         &response,
+                                                         &results,
+                                                         result,
+                                                         &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Backend call failed: %s (%d)", error->message, error->code);
+    }
+
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (results)
+    g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
+}
+
 static gboolean
 handle_create_credential(XdpDbusCredentialsX *object,
                         GDBusMethodInvocation *invocation,
-                        GVariant *arg_request
+                        const char *arg_parent_window,
+                        const char* arg_origin,
+                        const char* arg_top_origin,
+                        GVariant *arg_request,
+                        GVariant *arg_options
 )
 {
-    return FALSE;
+  CredentialsX *credentials = (CredentialsX *) object;
+  XdpRequest *request = xdp_request_from_invocation (invocation);
+  const char *app_id = xdp_app_info_get_id (request->app_info);
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  g_auto(GVariantBuilder) caller_info =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  const char *app_display_name = xdp_app_info_get_app_display_name(request->app_info);
+  if (!app_display_name)
+    app_display_name = "";
+  g_variant_builder_add(&caller_info, "{sv}", "app_display_name", g_variant_new_string(app_display_name));
+
+  REQUEST_AUTOLOCK (request);
+
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->impl)),
+    request->id,
+    NULL, &error);
+
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_filter_options (arg_options, &options,
+                           NULL, 0,
+                           NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_dbus_credentials_x_complete_create_credential (object, invocation, request->id);
+
+  xdp_dbus_impl_credentials_x_call_create_credential (credentials->impl,
+                                             request->id,
+                                             app_id,
+                                             app_display_name,
+                                             arg_parent_window,
+                                             arg_origin,
+                                             arg_top_origin,
+                                             arg_request,
+                                             g_variant_builder_end (&options),
+                                             NULL,
+                                             create_credential_done,
+                                             g_object_ref (request));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
+
+static void
+get_credential_done (GObject *source,
+          GAsyncResult *result,
+          gpointer data)
+{
+  g_autoptr(XdpRequest) request = data;
+  XdgDesktopPortalResponseEnum response;
+  g_autoptr(GVariant) results = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autoptr(GTask) task = NULL;
+
+  if (!xdp_dbus_impl_credentials_x_call_get_credential_finish (XDP_DBUS_IMPL_CREDENTIALS_X (source),
+                                                         &response,
+                                                         &results,
+                                                         result,
+                                                         &error))
+    {
+      g_dbus_error_strip_remote_error (error);
+      g_warning ("Backend call failed: %s (%d)", error->message, error->code);
+    }
+
+  g_object_set_data (G_OBJECT (request), "response", GINT_TO_POINTER (response));
+  if (results)
+    g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
+
+  task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_task_data (task, g_object_ref (request), g_object_unref);
+  g_task_run_in_thread (task, send_response_in_thread_func);
+}
+
 
 static gboolean
 handle_get_credential(XdpDbusCredentialsX *object,
                       GDBusMethodInvocation *invocation,
-                      GVariant *arg_request)
+                      const char *arg_parent_window,
+                      const char* arg_origin,
+                      const char* arg_top_origin,
+                      GVariant *arg_request,
+                      GVariant *arg_options)
 {
-    return FALSE;
+  CredentialsX *credentials = (CredentialsX *) object;
+  XdpRequest *request = xdp_request_from_invocation (invocation);
+  const char *app_id = xdp_app_info_get_id (request->app_info);
+  g_autoptr(GError) error = NULL;
+  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_auto(GVariantBuilder) options =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  g_auto(GVariantBuilder) caller_info =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  const char *app_display_name = xdp_app_info_get_app_display_name(request->app_info);
+  if (!app_display_name)
+    app_display_name = "";
+  g_variant_builder_add(&caller_info, "{sv}", "app_display_name", g_variant_new_string(app_display_name));
+
+  REQUEST_AUTOLOCK (request);
+
+  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->impl)),
+    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->impl)),
+    request->id,
+    NULL, &error);
+
+  if (!impl_request)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!xdp_filter_options (arg_options, &options,
+                           NULL, 0,
+                           NULL, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+
+  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
+
+  xdp_dbus_credentials_x_complete_get_credential (object, invocation, request->id);
+
+  xdp_dbus_impl_credentials_x_call_get_credential (credentials->impl,
+                                             request->id,
+                                             app_id,
+                                             app_display_name,
+                                             arg_parent_window,
+                                             arg_origin,
+                                             arg_top_origin,
+                                             arg_request,
+                                             g_variant_builder_end (&options),
+                                             NULL,
+                                             get_credential_done,
+                                             g_object_ref (request));
+
+  return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
 static void
 retrieve_client_capabilities_done (GObject *source,
-		      GAsyncResult *result,
-		      gpointer data)
+          GAsyncResult *result,
+          gpointer data)
 {
   g_autoptr(GDBusMethodInvocation) invocation = data;
   g_autoptr(GVariant) capabilities = NULL;
@@ -134,7 +351,6 @@ static void
 credentials_x_iface_init (XdpDbusCredentialsXIface *iface)
 {
   iface->handle_create_credential = handle_create_credential;
-
   iface->handle_get_credential = handle_get_credential;
   iface->handle_get_client_capabilities = handle_get_client_capabilities;
 }
