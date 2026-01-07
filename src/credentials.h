@@ -23,7 +23,8 @@
 
 #pragma once
 
+#include "gio/gio.h"
 #include "xdp-types.h"
 
-void init_credentials (XdpContext *context);
+void init_credentials (XdpContext *context, GCancellable *cancellable);
 
