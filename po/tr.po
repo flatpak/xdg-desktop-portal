@@ -10,8 +10,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-11-02 03:59+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-11-02 08:00+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Türkçe <takim@gnome.org.tr>\n"
@@ -22,33 +22,33 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:872
+#: src/background.c:931
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "%s, Arka Planda Çalışsın Mı?"
 
-#: src/background.c:876
+#: src/background.c:935
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s kendiliğinden başlatılmayı ve arka planda çalışmayı istiyor"
 
-#: src/background.c:878
+#: src/background.c:937
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s arka planda çalışmak istiyor"
 
-#: src/background.c:879
+#: src/background.c:938
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
 "‘Arka planda çalış’ izni, uygulama ayarlarından dilediğince değiştirilebilir"
 
-#: src/background.c:883
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "İzin Verme"
 
-#: src/background.c:884 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "İzin Ver"
 

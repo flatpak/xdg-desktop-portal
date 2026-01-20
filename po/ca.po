@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-10-03 19:00+0100\n"
 "Last-Translator: Jordi Mas i Hernàndez <jmas@softcatala.org>\n"
 "Language-Team: Catalan <gnome@llistes.softcatala.org>\n"
@@ -18,226 +18,269 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0\n"
 
-#: src/background.c:827
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "Voleu que %s s'executi en segon pla?"
 
-#: src/background.c:831
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr ""
 "%s sol·licituds que s'inicien automàticament i s'executen en segon pla."
 
-#: src/background.c:833
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "%s sol·licituds per a executar-se en segon pla."
 
-#: src/background.c:834
+#: src/background.c:938
+#, fuzzy
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr ""
 "El permís «executa en segon pla» es pot canviar en qualsevol moment des de "
 "configuració de l'aplicació."
 
-#: src/background.c:838
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "No ho permetis"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Permet"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Voleu permetre que %s utilitzi la càmera?"
 
-#: src/camera.c:106
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "%s vol accedir als dispositius de la càmera."
 
-#: src/camera.c:110
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "Voleu permetre que l'aplicació utilitzi la càmera?"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "Una aplicació vol accedir a la càmera."
 
-#: src/dynamic-launcher.c:122
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"Aquest permís es pot canviar en qualsevol moment des de la configuració de "
+"la privacitat."
+
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Manca l'ID del fitxer d'escriptori .desktop sufix: %s"
 
-#: src/dynamic-launcher.c:133
+#: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "L'ID del fitxer d'escriptori no és vàlid"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "L'entrada d'escriptori donada a Install() no és un fitxer de clau vàlid"
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:324
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "L'entrada d'escriptori donada a Install() ha de tenir exactament un grup"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "El testimoni indicat no és vàlid: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "L'entrada d'escriptori donada a Install() no és vàlida"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "El fitxer d'escriptori supera la mida màxima (%d): %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "L'URL indicat no és vàlid: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipus de llançador no vàlid: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipus de llançador no admès: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "Ha fallat la validació llançador d'icones dinàmic"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() no està permès per a l'ID d'aplicació %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "La icona del fitxer d'escriptori «%s» al camí no reconegut"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "La icona del fitxer d'escriptori «%s» no s'ha pogut serialitzar"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "No hi ha cap llançador dinàmic amb l'ID «%s»"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "No s'ha pogut crear el GDesktopAppInfo per al llançador amb l'identificador "
 "«%s»"
 
-#: src/location.c:544
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "Denega l'accés"
 
-#: src/location.c:546
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "Permet l'accés"
 
-#: src/location.c:566
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "Permeteu que %s tingui accés a la vostra ubicació?"
 
-#: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "%s vol saber la teva ubicació."
 
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "Permeteu l'accés a la vostra ubicació?"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "Permeteu que %s tingui accés a la vostra ubicació?"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "Una aplicació vol utilitzar la teva ubicació."
 
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Podeu canviar la configuració de l'accés a la ubicació sempre que vulgueu "
 "des de la configuració de la privacitat."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "Denega"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Voleu permetre que %s faci captures de pantalla?"
 
-#: src/screenshot.c:268
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr "%s vol poder fer captures de pantalla en qualsevol moment."
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
-msgstr "Voleu permetre que les aplicacions facin captures de pantalla?"
+#: src/screenshot.c:251
+#, fuzzy, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Voleu permetre que %s faci captures de pantalla?"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s vol poder fer captures de pantalla en qualsevol moment."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+#, fuzzy
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Voleu permetre que %s faci captures de pantalla?"
+
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr "Una aplicació vol poder fer captures de pantalla en qualsevol moment."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Aquest permís es pot canviar en qualsevol moment des de la configuració de "
-"la privacitat."
+#: src/screenshot.c:268
+#, fuzzy
+msgid "Allow to Take a Screenshot?"
+msgstr "Voleu permetre que %s faci captures de pantalla?"
 
-#: src/settings.c:187 src/settings.c:223
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
+msgstr "Una aplicació vol accedir a la càmera."
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "No s'ha trobat la configuració sol·licitada"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr "El dispositiu no està disponible"
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 msgid "Not allowed"
 msgstr "No permès"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Voleu permetre que %s defineixi els fons?"
 
-#: src/wallpaper.c:208
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "%s demana poder canviar la imatge de fons."
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Voleu permetre que les aplicacions estableixin el fons?"
+#: src/wallpaper.c:203
+#, fuzzy
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Voleu permetre que %s defineixi els fons?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "Una aplicació sol·licita poder canviar la imatge de fons."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Permeteu l'accés a la vostra ubicació?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Voleu permetre que les aplicacions facin captures de pantalla?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Voleu permetre que les aplicacions estableixin el fons?"

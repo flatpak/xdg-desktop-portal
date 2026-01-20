@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-10-25 09:44+0200\n"
 "Last-Translator: Quentin PAGÈS\n"
 "Language-Team: Occitan\n"
@@ -17,225 +17,268 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:827
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "Permetre a %s de s’executar en rèireplan ?"
 
-#: src/background.c:831
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr ""
 "%s demanda de poder s’aviar automaticament e de s’executar en rèireplan."
 
-#: src/background.c:833
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "%s demanda de s’executar en rèireplan."
 
-#: src/background.c:834
+#: src/background.c:938
+#, fuzzy
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr ""
 "La permission d’execucion en rèireplan se pòt modificar a tot moment als "
 "paramètres d’aplicacion."
 
-#: src/background.c:838
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "Permetre pas"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Permetre"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Permetre a %s d’utilizar la camèra ?"
 
-#: src/camera.c:106
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "%s vòl utilizar als periferics de camèra."
 
-#: src/camera.c:110
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "Permetre a l’aplicacion d’utilizar la camèra ?"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "Una aplicacion vòl accedir als periferics de camèra."
 
-#: src/dynamic-launcher.c:122
-#, c-format
-msgid "Desktop file id missing .desktop suffix: %s"
-msgstr "Identificant de fichièr burèu sens sufix .desktop : %s"
-
-#: src/dynamic-launcher.c:133
-#, c-format
-msgid "Desktop file id is not valid"
-msgstr "Fichièr desktop non valid"
-
-#: src/dynamic-launcher.c:306
-#, c-format
-msgid "Desktop entry given to Install() not a valid key file"
-msgstr "Entrada Desktop donada per Install() pas un fichièr clau valid"
-
-#: src/dynamic-launcher.c:319
-#, c-format
-msgid "Desktop entry given to Install() must have exactly one group"
-msgstr "Entrada Desktop donada per Install() deu aver exactament un grop"
-
-#: src/dynamic-launcher.c:356
-#, c-format
-msgid "Token given is invalid: %s"
-msgstr "Lo geton donat es invalid : %s"
-
-#: src/dynamic-launcher.c:400
-#, c-format
-msgid "Desktop entry given to Install() not valid"
-msgstr "Entrada Desktop donada per Install() pas valida"
-
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
-#, c-format
-msgid "Desktop file exceeds max size (%d): %s"
-msgstr "Lo fichièr desktop subrepassa la talha maximala (%d) : %s"
-
-#: src/dynamic-launcher.c:563
-#, c-format
-msgid "URL given is invalid: %s"
-msgstr "L’URL donada es invalida : %s"
-
-#: src/dynamic-launcher.c:586
-#, c-format
-msgid "Invalid launcher type: %x"
-msgstr "Tipe d’aviador invalid : %x"
-
-#: src/dynamic-launcher.c:593
-#, c-format
-msgid "Unsupported launcher type: %x"
-msgstr "Tipe d’aviador pas pres en carga : %x"
-
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
-msgid "Dynamic launcher icon failed validation"
-msgstr "L’icòna de l’aviador dinamic a pas capitat la validacion"
-
-#: src/dynamic-launcher.c:741
-#, c-format
-msgid "RequestInstallToken() not allowed for app id %s"
-msgstr "RequestInstallToken() non permés per l’id d’aplicacion %s"
-
-#: src/dynamic-launcher.c:920
-#, c-format
-msgid "Desktop file '%s' icon at unrecognized path"
-msgstr "Icòna de fichièr Desktop « %s » a un emplaçament non reconegut"
-
-#: src/dynamic-launcher.c:943
-#, c-format
-msgid "Desktop file '%s' icon failed to serialize"
-msgstr "Icòna de fichièr Desktop « %s » a pas capitat de serializar"
-
-#: src/dynamic-launcher.c:982
-#, c-format
-msgid "No dynamic launcher exists with id '%s'"
-msgstr "Cap d’aviador dinamic existís pas amb l’id « %s »"
-
-#: src/dynamic-launcher.c:1001
-#, c-format
-msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr "Fracàs de la creacion de GDesktopAppInfo per l’aviador amb id « %s »"
-
-#: src/location.c:544
-msgid "Deny Access"
-msgstr "Refusar l’accès"
-
-#: src/location.c:546
-msgid "Grant Access"
-msgstr "Acordar l’accès"
-
-#: src/location.c:566
-#, c-format
-msgid "Give %s Access to Your Location?"
-msgstr "Donar accès a %s a vòstra localizacion ?"
-
-#: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
-msgstr "%s vòl utilizar vòstra localizacion."
-
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "Donar accès a vòstre localizacion ?"
-
-#: src/location.c:581
-msgid "An application wants to use your location."
-msgstr "Una aplicacion vòl utilizar vòstra localizacion."
-
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
-msgstr ""
-"Las règlas d’accès a la localizacion se pòdon a tot moment modificar als "
-"paramètres de confidencialitat."
-
-#: src/screenshot.c:245 src/wallpaper.c:185
-msgid "Deny"
-msgstr "Refusar"
-
-#: src/screenshot.c:267
-#, c-format
-msgid "Allow %s to Take Screenshots?"
-msgstr "Permetre a %s de prendre de capturas d’ecran ?"
-
-#: src/screenshot.c:268
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
-msgstr "%s vòl poder prendre de capturas d’ecran en tot temps."
-
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
-msgstr "Permetre a las aplicacions de prendre de capturas d’ecran ?"
-
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
-msgstr "Una aplicacion vòl poder prendre de capturas d’ecran en tot temps."
-
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
 msgstr ""
 "Las permissions se pòdon modificar a tot moment als paramètres de "
 "confidencialitat."
 
-#: src/settings.c:187 src/settings.c:223
+#: src/dynamic-launcher.c:128
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "Identificant de fichièr burèu sens sufix .desktop : %s"
+
+#: src/dynamic-launcher.c:139
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "Fichièr desktop non valid"
+
+#: src/dynamic-launcher.c:311
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr "Entrada Desktop donada per Install() pas un fichièr clau valid"
+
+#: src/dynamic-launcher.c:324
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr "Entrada Desktop donada per Install() deu aver exactament un grop"
+
+#: src/dynamic-launcher.c:362
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Lo geton donat es invalid : %s"
+
+#: src/dynamic-launcher.c:405
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Entrada Desktop donada per Install() pas valida"
+
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Lo fichièr desktop subrepassa la talha maximala (%d) : %s"
+
+#: src/dynamic-launcher.c:598
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr "L’URL donada es invalida : %s"
+
+#: src/dynamic-launcher.c:620
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Tipe d’aviador invalid : %x"
+
+#: src/dynamic-launcher.c:627
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Tipe d’aviador pas pres en carga : %x"
+
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
+msgid "Dynamic launcher icon failed validation"
+msgstr "L’icòna de l’aviador dinamic a pas capitat la validacion"
+
+#: src/dynamic-launcher.c:784
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr "RequestInstallToken() non permés per l’id d’aplicacion %s"
+
+#: src/dynamic-launcher.c:963
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "Icòna de fichièr Desktop « %s » a un emplaçament non reconegut"
+
+#: src/dynamic-launcher.c:986
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "Icòna de fichièr Desktop « %s » a pas capitat de serializar"
+
+#: src/dynamic-launcher.c:1025
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "Cap d’aviador dinamic existís pas amb l’id « %s »"
+
+#: src/dynamic-launcher.c:1044
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr "Fracàs de la creacion de GDesktopAppInfo per l’aviador amb id « %s »"
+
+#: src/location.c:547
+msgid "Deny Access"
+msgstr "Refusar l’accès"
+
+#: src/location.c:549
+msgid "Grant Access"
+msgstr "Acordar l’accès"
+
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr "Donar accès a %s a vòstra localizacion ?"
+
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
+msgstr "%s vòl utilizar vòstra localizacion."
+
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "Donar accès a %s a vòstra localizacion ?"
+
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
+msgstr "Una aplicacion vòl utilizar vòstra localizacion."
+
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"Las règlas d’accès a la localizacion se pòdon a tot moment modificar als "
+"paramètres de confidencialitat."
+
+#: src/screenshot.c:220 src/wallpaper.c:189
+msgid "Deny"
+msgstr "Refusar"
+
+#: src/screenshot.c:246
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "Permetre a %s de prendre de capturas d’ecran ?"
+
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s vòl poder prendre de capturas d’ecran en tot temps."
+
+#: src/screenshot.c:251
+#, fuzzy, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Permetre a %s de prendre de capturas d’ecran ?"
+
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s vòl poder prendre de capturas d’ecran en tot temps."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+#, fuzzy
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Permetre a %s de prendre de capturas d’ecran ?"
+
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
+msgstr "Una aplicacion vòl poder prendre de capturas d’ecran en tot temps."
+
+#: src/screenshot.c:268
+#, fuzzy
+msgid "Allow to Take a Screenshot?"
+msgstr "Permetre a %s de prendre de capturas d’ecran ?"
+
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
+msgstr "Una aplicacion vòl accedir als periferics de camèra."
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "Paramètre demandat pas trobat"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr "Periferic indisponible"
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 msgid "Not allowed"
 msgstr "Non autorizat"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Permetre a %s de definir de fonzes d’ecran ?"
 
-#: src/wallpaper.c:208
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "%s demanda de poder modificar l’imatge de rèireplan."
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Permetre a las aplicacions de definir los fonzes d’ecran ?"
+#: src/wallpaper.c:203
+#, fuzzy
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Permetre a %s de definir de fonzes d’ecran ?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "Una aplicacion demanda de poder modificar l’imatge de rèireplan."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Donar accès a vòstre localizacion ?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Permetre a las aplicacions de prendre de capturas d’ecran ?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Permetre a las aplicacions de definir los fonzes d’ecran ?"
 
 #~ msgid "Turn On Microphone?"
 #~ msgstr "Alucar lo microfòn ?"

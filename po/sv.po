@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-09-03 15:58+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-09-03 22:14+0200\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -19,242 +19,255 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.7\n"
 
-#: src/background.c:833
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
-#: src/background.c:837
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr "%s begär att startas automatiskt och köras i bakgrunden."
 
-#: src/background.c:839
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "%s begär att köras i bakgrunden."
 
-#: src/background.c:840
+#: src/background.c:938
+#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
-"settings."
+"settings"
 msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
 "programinställningarna."
 
-#: src/background.c:844
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Tillåt"
 
-#: src/camera.c:99
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Tillåt %s att använda kameran?"
 
-#: src/camera.c:100
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "%s vill komma åt kameraenheter."
 
-#: src/camera.c:104
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "Tillåt program att använda kameran?"
 
-#: src/camera.c:105
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "Ett program vill komma åt kameraenheter."
 
-#: src/dynamic-launcher.c:122
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"Denna rättighet kan ändras när som helst från sekretessinställningarna."
+
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Desktop-filens ID saknar .desktop-ändelse: %s"
 
-#: src/dynamic-launcher.c:133
+#: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "Desktop-filens ID är ogiltigt"
 
-#: src/dynamic-launcher.c:305
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Desktop-post som ges till Install() är inte en giltig nyckelfil"
 
-#: src/dynamic-launcher.c:318
+#: src/dynamic-launcher.c:324
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Desktop-post som ges till Install() måste ha exakt en grupp"
 
-#: src/dynamic-launcher.c:354
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Angiven token är ogiltig: %s"
 
-#: src/dynamic-launcher.c:397
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop-post som ges till Install() är ogiltig"
 
-#: src/dynamic-launcher.c:406 src/dynamic-launcher.c:828
-#: src/dynamic-launcher.c:877
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-filen överskrider maximal storlek (%d): %s"
 
-#: src/dynamic-launcher.c:560
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "Angiven URL är ogiltig: %s"
 
-#: src/dynamic-launcher.c:583
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Ogiltig startartyp: %x"
 
-#: src/dynamic-launcher.c:590
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Startartyp som inte stöds: %x"
 
-#: src/dynamic-launcher.c:652 src/dynamic-launcher.c:722
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "Dynamisk startarikon kunde inte valideras"
 
-#: src/dynamic-launcher.c:738
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() inte tillåtet för program-ID %s"
 
-#: src/dynamic-launcher.c:917
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop-filen ”%s” har ikon på okänd sökväg"
 
-#: src/dynamic-launcher.c:940
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop-filen ”%s” har ikon som inte kunde serialiseras"
 
-#: src/dynamic-launcher.c:979
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Ingen dynamisk startare finns med ID ”%s”"
 
-#: src/dynamic-launcher.c:998
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Misslyckades med att skapa GDesktopAppInfo för startare med ID ”%s”"
 
-#: src/location.c:541
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "Neka åtkomst"
 
-#: src/location.c:543
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "Bevilja åtkomst"
 
-#: src/location.c:563
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "Ge %s åtkomst till din plats?"
 
-#: src/location.c:568
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "%s vill använda din plats."
 
-#: src/location.c:577
-msgid "Grant Access to Your Location?"
-msgstr "Bevilja åtkomst till din plats?"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "Ge %s åtkomst till din plats?"
 
-#: src/location.c:578
-msgid "An app wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "Ett program vill använda din plats."
 
-#: src/location.c:581
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
 
-#: src/screenshot.c:217 src/wallpaper.c:184
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "Neka"
 
-#: src/screenshot.c:243
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Tillåt %s att ta skärmbilder?"
 
-#: src/screenshot.c:244
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr "%s vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:248
+#: src/screenshot.c:251
 #, c-format
 msgid "Allow %s to Take a Screenshot?"
 msgstr "Tillåt %s att ta en skärmbild?"
 
-#: src/screenshot.c:249
-#, c-format
-msgid "%s wants to take a screenshot."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
 msgstr "%s vill ta en skärmbild."
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
-#: src/screenshot.c:260
+#: src/screenshot.c:263
 msgid "Allow Apps to Take Screenshots?"
 msgstr "Tillåt program att ta skärmbilder?"
 
-#: src/screenshot.c:261
-msgid "An app wants to be able to take screenshots at any time."
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr "Ett program vill kunna ta skärmbilder när som helst."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:268
 msgid "Allow to Take a Screenshot?"
 msgstr "Tillåt att ta en skärmbild?"
 
-#: src/screenshot.c:266
-msgid "An app wants to take a screenshot."
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
 msgstr "Ett program vill ta en skärmbild."
 
-#: src/screenshot.c:271 src/wallpaper.c:219
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"Denna rättighet kan ändras när som helst från sekretessinställningarna."
-
-#: src/settings.c:187 src/settings.c:223
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "Begärd inställning hittades inte"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr "Enhet inte tillgänglig"
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 msgid "Not allowed"
 msgstr "Inte tillåtet"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Tillåt %s att ställa in bakgrunder?"
 
-#: src/wallpaper.c:207
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "%s begär att kunna ändra bakgrundsbilden."
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:203
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Tillåt program att ställa in bakgrunder?"
 
-#: src/wallpaper.c:217
-msgid "An app is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "Ett program begär att kunna ändra bakgrundsbilden."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Bevilja åtkomst till din plats?"
 
 #~ msgid "Allow Applications to Take Screenshots?"
 #~ msgstr "Tillåt program att ta skärmbilder?"

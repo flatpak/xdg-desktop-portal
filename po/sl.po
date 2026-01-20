@@ -7,12 +7,11 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-10-26 04:13+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-10-26 09:08+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
-"Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups."
-"com>\n"
+"Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
 "Language: sl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -22,22 +21,22 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/background.c:872
+#: src/background.c:931
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Dovolite, da %s deluje v ozadju?"
 
-#: src/background.c:876
+#: src/background.c:935
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s zahteve samodejni zagon in izvajanje v ozadju."
 
-#: src/background.c:878
+#: src/background.c:937
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s zahteve izvajanje v ozadju."
 
-#: src/background.c:879
+#: src/background.c:938
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -45,11 +44,11 @@ msgstr ""
 "Dovoljenje »zaženi v ozadju« lahko kadar koli spremenite v nastavitvah "
 "programa."
 
-#: src/background.c:883
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "Ne dovoli"
 
-#: src/background.c:884 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Dovoli"
 

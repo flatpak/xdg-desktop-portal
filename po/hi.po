@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2024-05-18 09:47+0530\n"
 "Last-Translator: Scrambled777 <weblate.scrambled777@simplelogin.com>\n"
 "Language-Team: Hindi <indlinux-hindi@lists.sourceforge.net>\n"
@@ -19,219 +19,262 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 46.1\n"
 
-#: src/background.c:827
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "%s को पृष्ठभूमि में चलने की अनुमति दें?"
 
-#: src/background.c:831
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr "%s स्वचालित रूप से प्रारंभ करने और पृष्ठभूमि में चलाने का अनुरोध कर रहा है।"
 
-#: src/background.c:833
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "%s पृष्ठभूमि में चलने का अनुरोध कर रहा है।"
 
-#: src/background.c:834
+#: src/background.c:938
+#, fuzzy
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr "‘पृष्ठभूमि में चलाएं’ अनुमति को अनुप्रयोग सेटिंग्स से किसी भी समय बदला जा सकता है।"
 
-#: src/background.c:838
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "अनुमति न दें"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "अनुमति दें"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "%s को कैमरा उपयोग करने की अनुमति दें?"
 
-#: src/camera.c:106
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "%s कैमरा उपकरणों तक पहुंचना चाहता है।"
 
-#: src/camera.c:110
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "ऐप को कैमरे का उपयोग करने की अनुमति दें?"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "ऐप कैमरा उपकरण तक पहुंचना चाहता है।"
 
-#: src/dynamic-launcher.c:122
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
+
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "डेस्कटॉप फाइल ID में .desktop प्रत्यय मौजूद नहीं है: %s"
 
-#: src/dynamic-launcher.c:133
+#: src/dynamic-launcher.c:139
 #, fuzzy, c-format
 msgid "Desktop file id is not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य कुंजी फाइल नहीं है"
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:324
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि में केवल एक समूह होना चाहिए"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "दिया गया टोकन अमान्य है: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "डेस्कटॉप फाइल अधिकतम आकार (%d) से अधिक है: %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "दिया गया URL अमान्य है: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "अमान्य लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "असमर्थित लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "डायनैमिक लॉन्चर आइकन का सत्यापन विफल रहा"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "ऐप ID %s के लिए RequestInstallToken() की अनुमति नहीं है"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "अज्ञात पथ पर डेस्कटॉप फाइल '%s' आइकन"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "डेस्कटॉप फाइल '%s' आइकन क्रमबद्ध करने में विफल रहा"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "ID '%s' के साथ कोई डायनैमिक लॉन्चर मौजूद नहीं है"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "'%s' ID वाले लॉन्चर के लिए GDesktopAppInfo बनाने में विफल"
 
-#: src/location.c:544
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "पहुंच अस्वीकारें"
 
-#: src/location.c:546
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "पहुंच स्वीकारें"
 
-#: src/location.c:566
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "%s को अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "%s आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "अपने स्थान तक पहुंच प्रदान करें?"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "%s को अपने स्थान तक पहुंच प्रदान करें?"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "एक अनुप्रयोग आपके स्थान का उपयोग करना चाहता है।"
 
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr "गोपनीयता सेटिंग्स से किसी भी समय स्थान तक पहुंच को बदला जा सकता है।"
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "अस्वीकारें"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "%s को स्क्रीनशॉट लेने की अनुमति दें?"
 
-#: src/screenshot.c:268
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr "%s किसी भी समय स्क्रीनशॉट लेने में सक्षम होना चाहता है।"
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
-msgstr "अनुप्रयोग को स्क्रीनशॉट लेने की अनुमति दें?"
+#: src/screenshot.c:251
+#, fuzzy, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "%s को स्क्रीनशॉट लेने की अनुमति दें?"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s किसी भी समय स्क्रीनशॉट लेने में सक्षम होना चाहता है।"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+#, fuzzy
+msgid "Allow Apps to Take Screenshots?"
+msgstr "%s को स्क्रीनशॉट लेने की अनुमति दें?"
+
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr "एक अनुप्रयोग किसी भी समय स्क्रीनशॉट लेने में सक्षम होना चाहता है।"
 
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "इस अनुमति को गोपनीयता सेटिंग्स से किसी भी समय बदला जा सकता है।"
+#: src/screenshot.c:268
+#, fuzzy
+msgid "Allow to Take a Screenshot?"
+msgstr "%s को स्क्रीनशॉट लेने की अनुमति दें?"
 
-#: src/settings.c:187 src/settings.c:223
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
+msgstr "ऐप कैमरा उपकरण तक पहुंचना चाहता है।"
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "अनुरोधित सेटिंग नहीं मिली"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 #, fuzzy
 msgid "Not allowed"
 msgstr "अनुमति न दें"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "%s को पृष्ठभूमि निर्धारित करने की अनुमति दें?"
 
-#: src/wallpaper.c:208
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "%s पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "अनुप्रयोग को पृष्ठभूमि निर्धारित करने की अनुमति दें?"
+#: src/wallpaper.c:203
+#, fuzzy
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "%s को पृष्ठभूमि निर्धारित करने की अनुमति दें?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "एक अनुप्रयोग पृष्ठभूमि छवि को बदलने में सक्षम होने का अनुरोध कर रहा है।"
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "अपने स्थान तक पहुंच प्रदान करें?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "अनुप्रयोग को स्क्रीनशॉट लेने की अनुमति दें?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "अनुप्रयोग को पृष्ठभूमि निर्धारित करने की अनुमति दें?"
 
 #, c-format
 #~ msgid "Desktop file id missing app id prefix '%s.': %s"
