@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2024-10-31 20:42+0700\n"
 "Last-Translator: Andika Triwidada <andika@gmail.com>\n"
 "Language-Team: Indonesian <gnome-l10n-id@googlegroups.com>\n"
@@ -18,221 +18,264 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
 
-#: src/background.c:827
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "Izinkan %s berjalan di latar belakang?"
 
-#: src/background.c:831
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr ""
 "%s meminta untuk dimulai secara otomatis dan dijalankan di latar belakang."
 
-#: src/background.c:833
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "%s meminta untuk berjalan di latar belakang."
 
-#: src/background.c:834
+#: src/background.c:938
+#, fuzzy
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the "
-"application settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr ""
 "Izin 'berjalan di latar belakang' dapat diubah kapan saja dari pengaturan "
 "aplikasi."
 
-#: src/background.c:838
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "Jangan izinkan"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Izinkan"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Izinkan %s Menggunakan Kamera?"
 
-#: src/camera.c:106
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "%s ingin mengakses perangkat kamera."
 
-#: src/camera.c:110
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "Izinkan aplikasi Menggunakan Kamera?"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "Sebuah aplikasi ingin mengakses perangkat kamera."
 
-#: src/dynamic-launcher.c:122
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
+
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "Id berkas desktop kurang akhiran .desktop: %s"
 
-#: src/dynamic-launcher.c:133
+#: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "Id berkas desktop tidak valid"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Entri desktop yang diberikan ke Install() bukan berkas kunci yang valid"
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:324
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Entri desktop yang diberikan ke Install() hanya boleh memiliki satu grup"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Token yang diberikan tidak valid: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Entri desktop yang diberikan ke Install() tidak valid"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831
-#: src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Berkas desktop melebihi ukuran maks. (%d): %s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "URL yang diberikan tidak valid: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Jenis peluncur tidak valid: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Jenis peluncur yang tidak didukung: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "Ikon peluncur dinamis gagal divalidasi"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() tidak diizinkan untuk id aplikasi %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Ikon \"%s\" berkas desktop di path yang tidak dikenali"
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Ikon \"%s\" berkas desktop gagal diserialisasi"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Tidak ada peluncur dinamis dengan id '%s'"
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Gagal membuat GDesktopAppInfo untuk peluncur dengan id '%s'"
 
-#: src/location.c:544
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "Tolak Akses"
 
-#: src/location.c:546
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "Beri Akses"
 
-#: src/location.c:566
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "Beri Akses %s ke Lokasi Anda?"
 
-#: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "%s ingin menggunakan lokasi Anda."
 
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "Beri Akses ke Lokasi Anda?"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "Beri Akses %s ke Lokasi Anda?"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "Sebuah aplikasi ingin menggunakan lokasi Anda."
 
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr "Akses lokasi dapat diubah setiap saat dari pengaturan privasi."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "Tolak"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Izinkan %s Mengambil Cuplikan Layar?"
 
-#: src/screenshot.c:268
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr "%s ingin dapat mengambil cuplikan layar kapan saja."
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
-msgstr "Izinkan Aplikasi Mengambil Cuplikan Layar?"
+#: src/screenshot.c:251
+#, fuzzy, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "Izinkan %s Mengambil Cuplikan Layar?"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s ingin dapat mengambil cuplikan layar kapan saja."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+#, fuzzy
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Izinkan %s Mengambil Cuplikan Layar?"
+
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr "Sebuah aplikasi ingin dapat mengambil cuplikan layar kapan saja."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "Izin ini dapat diubah kapan saja dari pengaturan privasi."
+#: src/screenshot.c:268
+#, fuzzy
+msgid "Allow to Take a Screenshot?"
+msgstr "Izinkan %s Mengambil Cuplikan Layar?"
 
-#: src/settings.c:187 src/settings.c:223
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
+msgstr "Sebuah aplikasi ingin mengakses perangkat kamera."
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "Pengaturan yang diminta tidak ditemukan"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 #, fuzzy
 msgid "Not allowed"
 msgstr "Jangan izinkan"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 
-#: src/wallpaper.c:208
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "%s meminta untuk dapat mengubah gambar latar belakang."
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"
+#: src/wallpaper.c:203
+#, fuzzy
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Izinkan %s untuk Mengatur Latar Belakang?"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "Aplikasi meminta untuk dapat mengubah gambar latar belakang."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Beri Akses ke Lokasi Anda?"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "Izinkan Aplikasi Mengambil Cuplikan Layar?"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "Izinkan Aplikasi untuk Mengatur Latar Belakang?"

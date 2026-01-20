@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-09-13 03:58+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-09-13 11:54+0200\n"
 "Last-Translator: Piotr Drąg <piotrdrag@gmail.com>\n"
 "Language-Team: Polish <community-poland@mozilla.org>\n"
@@ -19,164 +19,257 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2);\n"
 
-#: src/background.c:833
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "Pozwolić programowi „%s” na działanie w tle?"
 
-#: src/background.c:837
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr "Program „%s” potrzebuje być automatycznie uruchamiany i działać w tle."
 
-#: src/background.c:839
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "Program „%s” potrzebuje działać w tle."
 
-#: src/background.c:840
+#: src/background.c:938
+#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
-"settings."
+"settings"
 msgstr ""
 "Uprawnienie do działania w tle można zmienić w każdej chwili w ustawieniach "
 "programów."
 
-#: src/background.c:844
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "Nie zezwalaj"
 
-#: src/background.c:845 src/screenshot.c:219 src/wallpaper.c:186
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Zezwól"
 
-#: src/camera.c:99
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Pozwolić programowi „%s” na używanie kamery?"
 
-#: src/camera.c:100
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "Program „%s” potrzebuje dostępu do kamer."
 
-#: src/camera.c:104
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "Pozwolić programowi na używanie kamery?"
 
-#: src/camera.c:105
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "Program potrzebuje dostępu do kamer."
 
-#: src/location.c:541
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
+
+#: src/dynamic-launcher.c:128
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:139
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:311
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+
+#: src/dynamic-launcher.c:324
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+
+#: src/dynamic-launcher.c:362
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:405
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr ""
+
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:598
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:620
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:627
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr ""
+
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
+msgid "Dynamic launcher icon failed validation"
+msgstr ""
+
+#: src/dynamic-launcher.c:784
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+
+#: src/dynamic-launcher.c:963
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr ""
+
+#: src/dynamic-launcher.c:986
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr ""
+
+#: src/dynamic-launcher.c:1025
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr ""
+
+#: src/dynamic-launcher.c:1044
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "Odmów dostępu"
 
-#: src/location.c:543
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "Udziel dostępu"
 
-#: src/location.c:563
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "Udzielić dostęp do położenia programowi „%s”?"
 
-#: src/location.c:568
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "Program „%s” potrzebuje dostępu do położenia."
 
-#: src/location.c:577
-msgid "Grant Access to Your Location?"
-msgstr "Udzielić dostęp do położenia?"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "Udzielić dostęp do położenia programowi „%s”?"
 
-#: src/location.c:578
-msgid "An app wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "Program potrzebuje dostępu do położenia."
 
-#: src/location.c:581
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Dostęp do położenia można zmienić w każdej chwili w ustawieniach prywatności."
 
-#: src/screenshot.c:217 src/wallpaper.c:184
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "Odmów"
 
-#: src/screenshot.c:243
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Pozwolić programowi „%s” na wykonywanie zrzutów ekranu?"
 
-#: src/screenshot.c:244
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr ""
 "Program „%s” potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:248
+#: src/screenshot.c:251
 #, c-format
 msgid "Allow %s to Take a Screenshot?"
 msgstr "Pozwolić programowi „%s” na wykonanie zrzutu ekranu?"
 
-#: src/screenshot.c:249
-#, c-format
-msgid "%s wants to take a screenshot."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
 msgstr "Program „%s” potrzebuje wykonać zrzut ekranu."
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
-#: src/screenshot.c:260
+#: src/screenshot.c:263
 msgid "Allow Apps to Take Screenshots?"
 msgstr "Pozwolić programowi na wykonywanie zrzutów ekranu?"
 
-#: src/screenshot.c:261
-msgid "An app wants to be able to take screenshots at any time."
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr ""
 "Program potrzebuje mieć możliwość wykonywania zrzutów ekranu w dowolnym "
 "czasie."
 
-#: src/screenshot.c:265
+#: src/screenshot.c:268
 msgid "Allow to Take a Screenshot?"
 msgstr "Pozwolić programowi na wykonanie zrzutu ekranu?"
 
-#: src/screenshot.c:266
-msgid "An app wants to take a screenshot."
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
 msgstr "Program potrzebuje wykonać zrzut ekranu."
 
-#: src/screenshot.c:271 src/wallpaper.c:219
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr ""
-"To uprawnienie można zmienić w każdej chwili w ustawieniach prywatności."
-
-#: src/settings.c:187 src/settings.c:223
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "Nie odnaleziono żądanego ustawienia"
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr "Urządzenie jest niedostępne"
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 msgid "Not allowed"
 msgstr "Niedozwolone"
 
-#: src/wallpaper.c:206
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Pozwolić programowi „%s” na ustawianie tła?"
 
-#: src/wallpaper.c:207
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "Program „%s” potrzebuje mieć możliwość zmiany obrazu tła."
 
-#: src/wallpaper.c:216
+#: src/wallpaper.c:203
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Pozwolić programowi na ustawianie tła?"
 
-#: src/wallpaper.c:217
-msgid "An app is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "Program potrzebuje mieć możliwość zmiany obrazu tła."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "Udzielić dostęp do położenia?"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-05-15 15:55+0200\n"
+"POT-Creation-Date: 2025-11-18 17:36+0100\n"
 "PO-Revision-Date: 2025-06-08 21:59+0300\n"
 "Last-Translator: Ahmed Najmawi <iramosu@protonmail.com>\n"
 "Language-Team: \n"
@@ -18,214 +18,259 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.5\n"
 
-#: src/background.c:827
-#, c-format
-msgid "Allow %s to run in the background?"
+#: src/background.c:931
+#, fuzzy, c-format
+msgid "Allow %s to Run in the Background?"
 msgstr "أأسمح لـ %s بالعمل في الخلفية؟"
 
-#: src/background.c:831
-#, c-format
-msgid "%s requests to be started automatically and run in the background."
+#: src/background.c:935
+#, fuzzy, c-format
+msgid "%s wants to be started automatically and run in the background"
 msgstr "يطلب %s أن يبدأ آليًا ويعمل في الخلفية."
 
-#: src/background.c:833
-#, c-format
-msgid "%s requests to run in the background."
+#: src/background.c:937
+#, fuzzy, c-format
+msgid "%s wants to run in the background"
 msgstr "يطلب %s العمل في الخلفية."
 
-#: src/background.c:834
+#: src/background.c:938
+#, fuzzy
 msgid ""
-"The ‘run in background’ permission can be changed at any time from the application "
-"settings."
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
 msgstr "يمكن تغيير صلاحية «العمل في الخلفية» في أي وقت من إعدادات التطبيق."
 
-#: src/background.c:838
+#: src/background.c:942
 msgid "Don't allow"
 msgstr "لا تسمح"
 
-#: src/background.c:839 src/screenshot.c:247 src/wallpaper.c:187
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "اسمح"
 
-#: src/camera.c:105
+#: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "أأسمح لـ %s باستخدام المصوِّرة؟"
 
-#: src/camera.c:106
-#, c-format
-msgid "%s wants to access camera devices."
+#: src/camera.c:105
+#, fuzzy, c-format
+msgid "%s wants to access the camera"
 msgstr "يود %s الوصول إلى أجهزة التصوير."
 
-#: src/camera.c:110
-msgid "Allow app to Use the Camera?"
+#: src/camera.c:109
+#, fuzzy
+msgid "Allow Apps to Use the Camera?"
 msgstr "أأسمح للتطبيق باستخدام المصوِّرة؟"
 
-#: src/camera.c:111
-msgid "An app wants to access camera devices."
+#: src/camera.c:110
+#, fuzzy
+msgid "An app wants to access the camera"
 msgstr "يود أحد التطبيقات الوصول إلى أجهزة التصوير."
 
-#: src/dynamic-launcher.c:122
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#, fuzzy
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr "يمكن تغيير هذه الصلاحية في أي وقت من إعدادات الخصوصية."
+
+#: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "معرِّف ملف سطح المكتب يفتقد اللاحقة ‏‎.desktop‏: %s"
 
-#: src/dynamic-launcher.c:133
+#: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "معرِّف ملف سطح المكتب غير صالح"
 
-#: src/dynamic-launcher.c:306
+#: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ ليست ملف مفاتيح صالح"
 
-#: src/dynamic-launcher.c:319
+#: src/dynamic-launcher.c:324
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
-msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ يجب أن تحتوي على مجموعة واحدة بالضبط"
+msgstr ""
+"مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ يجب أن تحتوي على مجموعة واحدة بالضبط"
 
-#: src/dynamic-launcher.c:356
+#: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "الأمارة المعطاة غير صالحة: %s"
 
-#: src/dynamic-launcher.c:400
+#: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ غير صالحة"
 
-#: src/dynamic-launcher.c:409 src/dynamic-launcher.c:831 src/dynamic-launcher.c:880
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "ملف سطح المكتب يتجاوز الحجم الأقصى (%d): ‏%s"
 
-#: src/dynamic-launcher.c:563
+#: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
 msgstr "المسار المُعطى غير صالح: %s"
 
-#: src/dynamic-launcher.c:586
+#: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "نوع المُطلِق غير صالح: %x"
 
-#: src/dynamic-launcher.c:593
+#: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "نوع المُطلِق غير مدعوم: %x"
 
-#: src/dynamic-launcher.c:655 src/dynamic-launcher.c:725
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
 msgstr "تعذَّر التحقق من أيقونة المشغِّل الحركية"
 
-#: src/dynamic-launcher.c:741
+#: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "الدالة ‏‎RequestInstallToken()‎‏ غير مسموح بها لمعرِّف التطبيق %s"
 
-#: src/dynamic-launcher.c:920
+#: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "أيقونة ملف سطح المكتب ’%s‘ موجودة في مسار مجهول."
 
-#: src/dynamic-launcher.c:943
+#: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "تعذَّرت سلسلة أيقونة ملف سطح المكتب ’%s‘"
 
-#: src/dynamic-launcher.c:982
+#: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "لا يوجد مشغِّل حركي بالمعرِّف ’%s‘."
 
-#: src/dynamic-launcher.c:1001
+#: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "تعذَّر إنشاء ‏‎GDesktopAppInfo‎‏ للمشغِّل بالمعرِّف ’%s‘."
 
-#: src/location.c:544
+#: src/location.c:547
 msgid "Deny Access"
 msgstr "ارفض الوصول"
 
-#: src/location.c:546
+#: src/location.c:549
 msgid "Grant Access"
 msgstr "امنح الوصول"
 
-#: src/location.c:566
-#, c-format
-msgid "Give %s Access to Your Location?"
+#: src/location.c:555
+#, fuzzy, c-format
+msgid "Allow %s to Access Your Location?"
 msgstr "أأسمح لـ %s بالوصول إلى موقعك؟"
 
-#: src/location.c:571
-#, c-format
-msgid "%s wants to use your location."
+#: src/location.c:565
+#, fuzzy, c-format
+msgid "%s wants to use your location"
 msgstr "يود %s استخدام موقعك."
 
-#: src/location.c:580
-msgid "Grant Access to Your Location?"
-msgstr "أأسمح بالوصول إلى موقعك؟"
+#: src/location.c:571
+#, fuzzy
+msgid "Allow Apps to Access Your Location?"
+msgstr "أأسمح لـ %s بالوصول إلى موقعك؟"
 
-#: src/location.c:581
-msgid "An application wants to use your location."
+#: src/location.c:572
+#, fuzzy
+msgid "An app wants to use your location"
 msgstr "يود أحد التطبيقات استخدام موقعك."
 
-#: src/location.c:584
-msgid "Location access can be changed at any time from the privacy settings."
+#: src/location.c:575
+#, fuzzy
+msgid "Location access can be changed at any time from the privacy settings"
 msgstr "يمكن تغيير صلاحية الوصول إلى الموقع في أي وقت من إعدادات الخصوصية."
 
-#: src/screenshot.c:245 src/wallpaper.c:185
+#: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
 msgstr "ارفض"
 
-#: src/screenshot.c:267
+#: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "أأسمح لـ %s بالتقاط لقطات شاشة؟"
 
-#: src/screenshot.c:268
-#, c-format
-msgid "%s wants to be able to take screenshots at any time."
+#: src/screenshot.c:247
+#, fuzzy, c-format
+msgid "%s wants to take screenshots at any time"
 msgstr "يود %s التمكن من التقاط لقطات شاشة في أي وقت."
 
-#: src/screenshot.c:276
-msgid "Allow Applications to Take Screenshots?"
-msgstr "أأسمح للتطبيقات بالتقاط لقطات شاشة؟"
+#: src/screenshot.c:251
+#, fuzzy, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "أأسمح لـ %s بالتقاط لقطات شاشة؟"
 
-#: src/screenshot.c:277
-msgid "An application wants to be able to take screenshots at any time."
+#: src/screenshot.c:252
+#, fuzzy, c-format
+msgid "%s wants to take a screenshot"
+msgstr "يود %s التمكن من التقاط لقطات شاشة في أي وقت."
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#.
+#: src/screenshot.c:263
+#, fuzzy
+msgid "Allow Apps to Take Screenshots?"
+msgstr "أأسمح لـ %s بالتقاط لقطات شاشة؟"
+
+#: src/screenshot.c:264
+#, fuzzy
+msgid "An app wants to take screenshots at any time"
 msgstr "يود أحد التطبيقات التمكُّن من التقاط لقطات شاشة في أي وقت."
 
-#: src/screenshot.c:280 src/wallpaper.c:220
-msgid "This permission can be changed at any time from the privacy settings."
-msgstr "يمكن تغيير هذه الصلاحية في أي وقت من إعدادات الخصوصية."
+#: src/screenshot.c:268
+#, fuzzy
+msgid "Allow to Take a Screenshot?"
+msgstr "أأسمح لـ %s بالتقاط لقطات شاشة؟"
 
-#: src/settings.c:187 src/settings.c:223
+#: src/screenshot.c:269
+#, fuzzy
+msgid "An app wants to take a screenshot"
+msgstr "يود أحد التطبيقات الوصول إلى أجهزة التصوير."
+
+#: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
 msgstr "الإعداد المطلوب غير موجود."
 
-#: src/usb.c:1328
+#: src/usb.c:1339
 msgid "Device not available"
 msgstr "الجهاز غير متاح"
 
-#: src/usb.c:1342
+#: src/usb.c:1353
 msgid "Not allowed"
 msgstr "غير مسموح"
 
-#: src/wallpaper.c:207
+#: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "أأسمح لـ %s بتعيين صور الخلفية؟"
 
-#: src/wallpaper.c:208
-#, c-format
-msgid "%s is requesting to be able to change the background image."
+#: src/wallpaper.c:198
+#, fuzzy, c-format
+msgid "%s wants to change the background image"
 msgstr "يطلب %s التمكُّن من تغيير صورة الخلفية."
 
-#: src/wallpaper.c:217
-msgid "Allow Applications to Set Backgrounds?"
-msgstr "أأسمح للتطبيقات بتعيين خلفية الشاشة؟"
+#: src/wallpaper.c:203
+#, fuzzy
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "أأسمح لـ %s بتعيين صور الخلفية؟"
 
-#: src/wallpaper.c:218
-msgid "An application is requesting to be able to change the background image."
+#: src/wallpaper.c:204
+#, fuzzy
+msgid "An app wants to change the background image"
 msgstr "يطلب أحد التطبيقات التمكُّن من تغيير صورة الخلفية."
+
+#~ msgid "Grant Access to Your Location?"
+#~ msgstr "أأسمح بالوصول إلى موقعك؟"
+
+#~ msgid "Allow Applications to Take Screenshots?"
+#~ msgstr "أأسمح للتطبيقات بالتقاط لقطات شاشة؟"
+
+#~ msgid "Allow Applications to Set Backgrounds?"
+#~ msgstr "أأسمح للتطبيقات بتعيين خلفية الشاشة؟"
