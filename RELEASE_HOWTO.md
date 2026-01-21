@@ -18,6 +18,12 @@ $ git commit -m "Update translations"
   old stable branch as currently maintained.
 - Add your changelog to the `NEWS.md` file
 ```sh
+$ # Find PRs for the release
+$ gh pr list \
+    --search "$(echo $(git log "${prev_version}..origin/main" --format=%H) | tr ' ' ',')" \
+    --state merged --limit 999 \
+    --json number,mergedAt,title,url
+$ # Adjust NEWS.md
 $ git add NEWS.md
 $ git commit -m ${version}
 ```
