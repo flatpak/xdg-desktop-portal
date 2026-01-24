@@ -595,6 +595,11 @@ def xdg_document_portal(
     """
     Fixture which starts and eventually stops xdg-document-portal
     """
+    try:
+        xdp.ensure_fuse_supported()
+    except xdp.FuseNotSupportedException as e:
+        pytest.skip(f"No fuse support: {e}")
+
     if not xdg_document_portal_path.exists():
         raise FileNotFoundError(f"{xdg_document_portal_path} does not exist")
 
