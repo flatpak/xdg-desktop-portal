@@ -140,11 +140,25 @@
           object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
           more information about the @handle.
 
+        * ``persist_mode`` (``u``)
+
+          How this session should persist. Default is 0. Accepted values are:
+
+          - ``0``: Do not persist (default)
+          - ``1``: Permissions persist as long as the application is running
+          - ``2``: Permissions persist until explicitly revoked
+
+          If the session should persist, ``restore_data`` must be returned in the @results
+          vardict.
+
+          This option was added in version 2 of this interface.
+
         The following results get returned in the @results vardict:
 
         * ``devices`` (``u``)
 
-          A bitmask of the devices selected by the user.
+          The device types that can be used for remote control. See the
+          AvailableDeviceTypes property.
 
         * ``clipboard_enabled`` (``b``)
 
@@ -158,10 +172,13 @@
           Equivalent to the streams entry documented in
           :ref:`org.freedesktop.impl.portal.ScreenCast.Start`.
 
-        * ``devices`` (``u``)
+        * ``restore_data`` (``(suv)``)
 
-          The device types that can be used for remote control. See the
-          AvailableDeviceTypes property.
+          The data to restore for a future session with a `persist_mode` other than 0.
+          See the #org.freedesktop.impl.portal.RemoteDesktop.SelectDevices method for
+          more details.
+
+          This option was added in version 2 of this interface.
     -->
     <method name="Start">
       <arg type="o" name="handle" direction="in"/>
