@@ -516,7 +516,7 @@ static XdpOptionKey remote_desktop_select_devices_options[] = {
   { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
 };
 
-static gboolean
+static void
 replace_remote_desktop_restore_token_with_data (XdpSession *session,
                                                 GVariant **in_out_options,
                                                 GError **error)
@@ -535,8 +535,6 @@ replace_remote_desktop_restore_token_with_data (XdpSession *session,
                                                            REMOTE_DESKTOP_PERMISSION_TABLE,
                                                            in_out_options,
                                                            &remote_desktop_session->restore_token);
-
-  return TRUE;
 }
 
 static gboolean
@@ -611,11 +609,7 @@ handle_select_devices (XdpDbusRemoteDesktop *object,
    * permission store and / or the GHashTable with transient permissions.
    * Portal implementations do not have access to the restore token.
    */
-  if (!replace_remote_desktop_restore_token_with_data (session, &options, &error))
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
+  replace_remote_desktop_restore_token_with_data (session, &options, &error);
 
   g_object_set_qdata_full (G_OBJECT (request),
                            quark_request_session,
