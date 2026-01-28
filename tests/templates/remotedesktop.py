@@ -29,7 +29,7 @@ class RemotedesktopParameters:
     response: int
     expect_close: bool
     force_close: int
-    force_clipoboard_enabled: bool
+    force_clipboard_enabled: bool
     fail_connect_to_eis: bool
 
 
@@ -42,7 +42,7 @@ def load(mock, parameters={}):
         response=parameters.get("response", 0),
         expect_close=parameters.get("expect-close", False),
         force_close=parameters.get("force-close", 0),
-        force_clipoboard_enabled=parameters.get("force-clipboard-enabled", False),
+        force_clipboard_enabled=parameters.get("force-clipboard-enabled", False),
         fail_connect_to_eis=parameters.get("fail-connect-to-eis", False),
     )
 
@@ -143,7 +143,7 @@ def Start(
     )
 
     response = Response(params.response, {})
-    if params.force_clipoboard_enabled:
+    if params.force_clipboard_enabled:
         response.results["clipboard_enabled"] = True
 
     if params.expect_close:
