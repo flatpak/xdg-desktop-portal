@@ -173,6 +173,12 @@
           See the :ref:`org.freedesktop.portal.Clipboard` documentation for more information.
           Since version 2.
 
+        * ``streams`` (``a(ua{sv})``)
+
+          An array of PipeWire streams. Each stream consists of a PipeWire
+          node ID (the first element in the tuple, and a Vardict of
+          properties. See :ref:`org.freedesktop.portal.ScreenCast.Start` for details.
+
         * ``restore_token`` (``s``)
 
           The restore token. This token is a single use token that can later
