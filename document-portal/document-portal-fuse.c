@@ -140,7 +140,6 @@ static GThread *fuse_thread = NULL;
 static struct fuse_session *session = NULL;
 G_LOCK_DEFINE (session);
 static char *mount_path = NULL;
-static pthread_t fuse_pthread = 0;
 static uid_t my_uid;
 static gid_t my_gid;
 
@@ -3533,7 +3532,6 @@ xdp_fuse_thread (gpointer data)
   const char *path;
 
   locker = g_mutex_locker_new (&thread_data->lock);
-  fuse_pthread = pthread_self ();
 
   g_cond_signal (&thread_data->cond);
 
@@ -3584,7 +3582,7 @@ xdp_fuse_thread (gpointer data)
   xdp_fuse_mainloop (session, &loop_config);
 
   session_locker = g_mutex_locker_new (&G_LOCK_NAME (session));
-  fuse_session_unmount (se);
+  /* unmount is called from xdp_fuse_exit() to wake up this thread */
   fuse_session_destroy (se);
   session = NULL;
 
@@ -3685,10 +3683,13 @@ xdp_fuse_exit (void)
     XDP_AUTOLOCK (session);
 
     if (session)
-      fuse_session_exit (session);
-
-    if (fuse_pthread)
-      pthread_kill (fuse_pthread, SIGHUP);
+      {
+        fuse_session_exit (session);
+        /* Unmount to force the FUSE kernel interface to disconnect,
+         * which will cause blocking read() in fuse_session_loop_mt()
+         * to fail and the loop to exit. */
+        fuse_session_unmount (session);
+      }
   }
 
   g_clear_pointer (&fuse_thread, g_thread_join);
