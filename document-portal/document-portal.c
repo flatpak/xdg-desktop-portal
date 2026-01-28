@@ -36,6 +36,7 @@
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include <glib-unix.h>
 #include "document-portal-dbus.h"
 #include "document-store.h"
 #include "src/xdp-app-info.h"
@@ -1636,13 +1637,12 @@ on_fuse_unmount (void *unused)
   return G_SOURCE_REMOVE;
 }
 
-static void
-exit_handler (int sig)
+static gboolean
+exit_handler (gpointer user_data)
 {
-  /* We cannot set exit_error here, because malloc() in a signal handler
-   * is undefined behaviour. Rely on main() coping gracefully with
-   * that. */
   g_main_loop_quit (loop);
+
+  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -1654,35 +1654,6 @@ session_bus_closed (GDBusConnection *connection,
     g_set_error (&exit_error, G_IO_ERROR, G_IO_ERROR_BROKEN_PIPE, "Disconnected from session bus");
 
   g_main_loop_quit (loop);
-}
-
-static int
-set_one_signal_handler (int    sig,
-                        void (*handler)(int),
-                        int    remove)
-{
-  struct sigaction sa;
-  struct sigaction old_sa;
-
-  memset (&sa, 0, sizeof (struct sigaction));
-  sa.sa_handler = remove ? SIG_DFL : handler;
-  sigemptyset (&(sa.sa_mask));
-  sa.sa_flags = 0;
-
-  if (sigaction (sig, NULL, &old_sa) == -1)
-    {
-      g_warning ("cannot get old signal handler");
-      return -1;
-    }
-
-  if (old_sa.sa_handler == (remove ? handler : SIG_DFL) &&
-      sigaction (sig, &sa, NULL) == -1)
-    {
-      g_warning ("cannot set signal handler");
-      return -1;
-    }
-
-  return 0;
 }
 
 static gboolean opt_verbose;
@@ -1810,10 +1781,10 @@ main (int    argc,
 
   g_signal_connect (session_bus, "closed", G_CALLBACK (session_bus_closed), NULL);
 
-  if (set_one_signal_handler (SIGHUP, exit_handler, 0) == -1 ||
-      set_one_signal_handler (SIGINT, exit_handler, 0) == -1 ||
-      set_one_signal_handler (SIGTERM, exit_handler, 0) == -1 ||
-      set_one_signal_handler (SIGPIPE, SIG_IGN, 0) == -1)
+  if (g_unix_signal_add (SIGHUP, exit_handler, NULL) == 0 ||
+      g_unix_signal_add (SIGINT, exit_handler, NULL) == 0 ||
+      g_unix_signal_add (SIGTERM, exit_handler, NULL) == 0 ||
+      signal (SIGPIPE, SIG_IGN) == SIG_ERR)
     exit (5);
 
   owner_id = g_bus_own_name (G_BUS_TYPE_SESSION,
