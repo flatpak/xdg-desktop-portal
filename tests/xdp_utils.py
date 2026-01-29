@@ -7,7 +7,7 @@ from gi.repository import GLib, Gio
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
 from pathlib import Path
-from enum import Enum
+from enum import Enum, IntEnum
 from dataclasses import dataclass, field
 from urllib.parse import unquote, urlparse
 
@@ -896,3 +896,9 @@ class GDBusIface:
 
         signal_id = self._proxy.connect("g-signal", internal_cb)
         return GDBusIfaceSignal(signal_id, self._proxy)
+
+
+class SessionPersistenceMode(IntEnum):
+    NONE = 0
+    TRANSIENT = 1
+    PERSISTENT = 2
