@@ -126,6 +126,35 @@
           Bitmask of requested capabilities, see the SupportedCapabilities property.
           This value is required and must not be zero.
 
+        * ``restore_data`` (``(suv)``)
+
+          The data to restore from a previous session.
+
+          If the stored session cannot be restored, this value is ignored
+          and the user will be prompted normally. This may happen when, for
+          example, the session contains capabilities that are not available
+          anymore, or when the stored permissions are withdrawn.
+
+          The restore data is composed of the vendor name (e.g. "GNOME" or
+          "KDE"), the version of the implementation-specific private data,
+          and the implementation-specific private data itself.
+
+          This option was added in version 2 of this interface.
+
+        * ``persist_mode`` (``u``)
+
+          How this session should persist. Default is 0. Accepted values are:
+
+          - ``0``: Do not persist (default)
+          - ``1``: Permissions persist as long as the application is running
+          - ``2``: Permissions persist until explicitly revoked
+
+          If the permission for the session to persist is granted, ``restore_data``
+          will be returned in the @results vardict of the
+          :ref:`org.freedesktop.impl.portal.InputCapture.Start` method.
+
+          This option was added in version 2 of this interface.
+
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``capabilities`` (``u``)
@@ -146,6 +175,15 @@
           A boolean for whether the clipboard was enabled ('true') or not ('false').
           See the :ref:`org.freedesktop.portal.Clipboard` documentation for more
           information.
+
+        * ``restore_data`` (``(suv)``)
+
+          The data for this session to store in the XDG Portal, for a session
+          with a ``persist_mode``  other than zero. If this session
+          is restored in the future, this data is used as the ``restore_data``
+          argument in the @options vardict.
+
+          This option was added in version 2 of this interface.
 
         This method was added in version 2 of this interface.
     -->

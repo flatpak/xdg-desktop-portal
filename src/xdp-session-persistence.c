@@ -366,8 +366,11 @@ xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
                                                                *in_out_persist_mode,
                                                                in_out_restore_token,
                                                                in_out_restore_data);
-      g_variant_builder_add (&results_builder, "{sv}", "restore_token",
-                             g_variant_new_string (*in_out_restore_token));
+      if (*in_out_restore_token)
+        {
+          g_variant_builder_add (&results_builder, "{sv}", "restore_token",
+                                 g_variant_new_string (*in_out_restore_token));
+        }
     }
   else
     {

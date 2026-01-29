@@ -13,6 +13,8 @@ import dbus
 import dbus.service
 import socket
 
+from tests.xdp_utils import SessionPersistenceMode
+
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -30,6 +32,14 @@ serials = count()
 Barrier = namedtuple("Barrier", ["id", "position"])
 
 
+def make_restore_data(data: str):
+    RESTORE_DATA_VERSION = dbus.UInt32(7)  # Random-generator generated number, trust me
+    return dbus.Struct(
+        ("GNOME", RESTORE_DATA_VERSION, dbus.String(data, variant_level=1)),
+        signature="suv",
+    )
+
+
 @dataclass
 class InputcaptureParameters:
     delay: int
@@ -41,6 +51,7 @@ class InputcaptureParameters:
     deactivated_delay: int
     zones_changed_delay: int
     force_clipboard_enabled: bool
+    allow_persistence: bool
 
 
 def load(mock, parameters={}):
@@ -57,6 +68,7 @@ def load(mock, parameters={}):
         deactivated_delay=parameters.get("deactivated-delay", 0),
         zones_changed_delay=parameters.get("zones-changed-delay", 0),
         force_clipboard_enabled=parameters.get("force-clipboard-enabled", False),
+        allow_persistence=parameters.get("allow-persistence", True),
     )
 
     mock.current_zones = mock.inputcapture_params.default_zone
@@ -76,6 +88,7 @@ def load(mock, parameters={}):
 
     mock.session_handles = []
     mock.active_session_handles = []
+    mock.restore_datas = []
 
 
 @dbus.service.method(
@@ -118,6 +131,36 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
 
         capabilities &= params.supported_capabilities
         response = Response(0, {})
+
+        persist_mode = options.get("persist_mode")
+        restore_data = options.get("restore_data")
+
+        if restore_data:
+            try:
+                restore_data = next(
+                    rd for rd in self.restore_datas if rd == restore_data
+                )
+            except StopIteration:
+                raise Exception(f"Invalid restore_data tuple {restore_data}")
+
+        if persist_mode == SessionPersistenceMode.NONE:
+            pass
+        elif persist_mode == SessionPersistenceMode.TRANSIENT:
+            if restore_data is None:
+                restore_data = make_restore_data("restore-transient")
+        elif persist_mode == SessionPersistenceMode.PERSISTENT:
+            if restore_data is None:
+                restore_data = make_restore_data("restore-persistent")
+        elif persist_mode is not None:
+            raise Exception(f"Invalid session persistence mode: {persist_mode}")
+
+        if restore_data and persist_mode in [
+            SessionPersistenceMode.TRANSIENT,
+            SessionPersistenceMode.PERSISTENT,
+        ]:
+            # In this test interface we allow for multiple restore data
+            self.restore_datas.append(restore_data)
+            response.results["restore_data"] = restore_data
 
         if params.force_clipboard_enabled:
             response.results["clipboard_enabled"] = True
