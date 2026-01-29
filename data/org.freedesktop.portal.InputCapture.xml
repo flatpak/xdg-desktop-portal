@@ -190,6 +190,35 @@
           Bitmask of requested capabilities, see the SupportedCapabilities property.
           This value is required and must not be zero.
 
+        * ``restore_token`` (``s``)
+
+          The token to restore a previous session.
+
+          If the stored session cannot be restored, this value is ignored
+          and the user will be prompted normally. This may happen when, for
+          example, the session contains capabilities that are not available
+          anymore, or when the stored permissions are withdrawn.
+
+          The restore token is invalidated after using it once. To restore
+          the same session again, use the new restore token sent in response
+          to starting this session.
+
+          This option was added in version 2 of this interface.
+
+        * ``persist_mode`` (``u``)
+
+          How this session should persist. Default is 0. Accepted values are:
+
+          - ``0``: Do not persist (default)
+          - ``1``: Permissions persist as long as the application is running
+          - ``2``: Permissions persist until explicitly revoked
+
+          If the permission for the session to persist is granted, a restore token will
+          be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
+          start method used to start the session.
+
+          This option was added in version 2 of this interface.
+
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``capabilities`` (``u``)
@@ -210,6 +239,14 @@
           A boolean for whether the clipboard was enabled ('true') or not ('false').
           See the :ref:`org.freedesktop.portal.Clipboard` documentation for more
           information.
+
+        * ``restore_token`` (``s``)
+
+          The restore token. This token is a single use token that can later
+          be used to restore a session. See
+          :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices` for details.
+
+          This response option was added in version 2 of this interface.
 
         This method was added in version 2 of this interface.
     -->
