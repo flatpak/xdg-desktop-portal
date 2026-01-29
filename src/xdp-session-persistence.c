@@ -372,6 +372,7 @@ xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
   else
     {
       *in_out_persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
+      g_clear_pointer (in_out_restore_token, g_free);
     }
 
   *in_out_results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
