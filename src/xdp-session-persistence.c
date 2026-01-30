@@ -157,7 +157,7 @@ xdp_session_persistence_get_persistent_permissions (XdpSession *session,
   g_autoptr(GVariant) perms = NULL;
   g_autoptr(GVariant) data = NULL;
   g_autoptr(GError) error = NULL;
-  const char **permissions;
+  g_autofree const char **permissions = NULL;
 
   if (!xdp_dbus_impl_permission_store_call_lookup_sync (xdp_get_permission_store (),
                                                         table,
