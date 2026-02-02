@@ -109,7 +109,7 @@ input_capture_session_close (XdpSession *session)
 
   input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_CLOSED;
 
-  g_debug ("screen cast session owned by '%s' closed", session->sender);
+  g_debug ("input capture session owned by '%s' closed", session->sender);
 }
 
 static void
