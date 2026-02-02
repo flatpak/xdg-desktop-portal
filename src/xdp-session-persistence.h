@@ -71,3 +71,9 @@ void xdp_session_persistence_generate_and_save_restore_token (XdpSession *sessio
                                                               XdpSessionPersistenceMode persist_mode,
                                                               char **in_out_restore_token,
                                                               GVariant **in_out_restore_data);
+
+gboolean xdp_session_persistence_validate_restore_token (const char  *restore_token,
+                                                         GError     **error);
+
+gboolean xdp_session_persistence_validate_persist_mode (XdpSessionPersistenceMode   persist_mode,
+                                                        GError                    **error);

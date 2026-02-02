@@ -376,3 +376,36 @@ xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
 
   *in_out_results = g_variant_ref_sink (g_variant_builder_end (&results_builder));
 }
+
+
+gboolean
+xdp_session_persistence_validate_restore_token (const char  *restore_token,
+                                                GError     **error)
+{
+  if (!g_uuid_string_is_valid (restore_token))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Restore token is not a valid UUID string");
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+gboolean
+xdp_session_persistence_validate_persist_mode (XdpSessionPersistenceMode   mode,
+                                               GError                    **error)
+{
+  if (mode > XDP_SESSION_PERSISTENCE_MODE_PERSISTENT)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid persist mode %x", mode);
+      return FALSE;
+    }
+
+  return TRUE;
+}
