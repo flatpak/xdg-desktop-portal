@@ -45,7 +45,7 @@
         be called by the frontend if the implementation indicates support for
         version 2. See CreateSession2 instead.
 
-        Create a capture input session.
+        Create an input capture session.
 
         Supported keys in the @options vardict include:
 
@@ -58,7 +58,7 @@
 
         * ``session_id`` (``s``)
 
-          The session id. A string representing the created capture input session.
+          The session id. A string representing the created input capture session.
 
         * ``capabilities`` (``u``)
 
@@ -84,7 +84,7 @@
         @options: Vardict with optional further information
         @results: Vardict with the results of the call
 
-        Create a capture input session. In contrast with CreateSession, the
+        Create an input capture session. In contrast with CreateSession, the
         created session is not in the started state.
 
         There are currently no supported keys in the @options vardict.

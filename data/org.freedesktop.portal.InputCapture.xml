@@ -25,7 +25,7 @@
       org.freedesktop.portal.InputCapture:
       @short_description: Portal for permitting input capture
 
-      The InputCapture portal allows capture input events from connected
+      The InputCapture portal allows capturing input events from connected
       physical or logical devices. Capturing input has two distinct states:
       "enabled" where an application has requested that input should be captured
       once certain conditions are met (but no input events are being delivered
@@ -65,7 +65,7 @@
         This method was deprecated in version 2 of this interface, see
         CreateSession2 instead.
 
-        Create a capture input session. A successfully created session can at
+        Create an input capture session. A successfully created session can at
         any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
         at any time be closed by the portal implementation, which will be
         signalled via :ref:`org.freedesktop.portal.Session::Closed`.
@@ -122,7 +122,7 @@
         @options: Vardict with optional further information
         @session_handle: Object path for the session.
 
-        Create a capture input session. A successfully created session can at
+        Create an input capture session. A successfully created session can at
         any time be closed using :ref:`org.freedesktop.portal.Session.Close`, or may
         at any time be closed by the portal implementation, which will be
         signalled via :ref:`org.freedesktop.portal.Session::Closed`.

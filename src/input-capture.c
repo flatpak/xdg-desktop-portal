@@ -172,7 +172,7 @@ input_capture_session_new (InputCapture     *input_capture,
   input_capture_session = (InputCaptureSession*) session;
   input_capture_session->impl_version = input_capture->impl_version;
 
-  g_debug ("capture input session owned by '%s' created",
+  g_debug ("input capture session owned by '%s' created",
            xdp_app_info_get_sender (app_info));
 
   return input_capture_session;
@@ -1692,7 +1692,7 @@ init_input_capture (XdpContext *context)
                                                      &error);
   if (impl == NULL)
     {
-      g_warning ("Failed to create capture input proxy: %s", error->message);
+      g_warning ("Failed to create input capture proxy: %s", error->message);
       return;
     }
 
