@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
-from tests.templates.xdp_utils import Response, init_logger
+from tests.templates.xdp_utils import Response, ImplSession, init_logger
 
 from collections import namedtuple
 from itertools import count
@@ -89,6 +89,7 @@ def load(mock, parameters={}):
     mock.session_handles = []
     mock.active_session_handles = []
     mock.restore_datas = []
+    mock.sessions = {}
 
 
 @dbus.service.method(
@@ -102,6 +103,8 @@ def CreateSession2(self, session_handle, app_id, options):
 
         assert len(options) == 0
 
+        session = ImplSession(self, BUS_NAME, session_handle, app_id).export()
+        self.sessions[session_handle] = session
         self.session_handles.append(session_handle)
 
         return {"session_handle": session_handle}
