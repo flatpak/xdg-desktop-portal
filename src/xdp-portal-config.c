@@ -736,20 +736,21 @@ xdp_portal_config_find_impl_config_by_name (XdpPortalConfig *portal_config,
 }
 
 static XdpImplConfig *
-xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_config,
-                                             const PortalInterface *iface)
+_get_impl_config_iface (XdpPortalConfig       *portal_config,
+                        const PortalInterface *iface,
+                        const char            *interface)
 {
   for (size_t i = 0; iface->portals && iface->portals[i]; i++)
     {
       XdpImplConfig *impl_config;
       const char *portal = iface->portals[i];
 
-      g_debug ("Found '%s' in configuration for %s", portal, iface->dbus_name);
+      g_debug ("Found '%s' in configuration for %s", portal, interface);
 
       if (g_str_equal (portal, "*"))
         {
           return xdp_portal_config_find_any_impl_config (portal_config,
-                                                         iface->dbus_name);
+                                                         interface);
         }
 
       impl_config = xdp_portal_config_find_impl_config_by_name (portal_config,
@@ -761,11 +762,11 @@ xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_confi
           continue;
         }
 
-      if (!xdp_impl_config_supports_iface (impl_config, iface->dbus_name))
+      if (!xdp_impl_config_supports_iface (impl_config, interface))
         {
           g_info ("Requested backend %s.portal does not support %s. Skipping...",
                   impl_config->source,
-                  iface->dbus_name);
+                  interface);
           continue;
         }
 
@@ -773,6 +774,29 @@ xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_confi
     }
 
   return NULL;
+}
+
+static XdpImplConfig *
+xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_config,
+                                             const PortalInterface *iface)
+{
+  return _get_impl_config_iface (portal_config,
+                                 iface,
+                                 iface->dbus_name);
+}
+
+static XdpImplConfig *
+xdp_portal_config_find_default_impl_config_by_iface (XdpPortalConfig *portal_config,
+                                                     const char      *interface)
+{
+  PortalConfig *config = portal_config->config;
+
+  if (config == NULL || config->default_portal == NULL)
+    return NULL;
+
+  return _get_impl_config_iface (portal_config,
+                                 config->default_portal,
+                                 interface);
 }
 
 static void
@@ -826,40 +850,6 @@ xdp_portal_config_find_impl_configs_by_iface (XdpPortalConfig       *portal_conf
                                iface,
                                iface->dbus_name,
                                impl_configs_out);
-}
-
-static XdpImplConfig *
-xdp_portal_config_find_default_impl_config_by_iface (XdpPortalConfig *portal_config,
-                                                     const char      *interface)
-{
-  PortalConfig *config = portal_config->config;
-  PortalInterface *iface;
-
-  if (config == NULL || config->default_portal == NULL)
-    return NULL;
-
-  iface = config->default_portal;
-
-  for (size_t i = 0; iface->portals && iface->portals[i]; i++)
-    {
-      XdpImplConfig *impl_config;
-      const char *portal = iface->portals[i];
-
-      g_debug ("Found '%s' in configuration for default", portal);
-
-      if (g_str_equal (portal, "*"))
-        {
-          return xdp_portal_config_find_any_impl_config (portal_config,
-                                                         iface->dbus_name);
-        }
-
-      impl_config = xdp_portal_config_find_impl_config_by_name (portal_config,
-                                                                portal);
-
-      if (impl_config && xdp_impl_config_supports_iface (impl_config, interface))
-        return impl_config;
-    }
-  return NULL;
 }
 
 static void
