@@ -729,9 +729,9 @@ xdp_portal_config_find_impl_config_by_name (XdpPortalConfig *portal_config,
 }
 
 static XdpImplConfig *
-_get_impl_config_iface (XdpPortalConfig       *portal_config,
-                        const PortalInterface *iface,
-                        const char            *interface)
+xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_config,
+                                             const PortalInterface *iface,
+                                             const char            *interface)
 {
   if (iface == NULL)
     return NULL;
@@ -772,30 +772,11 @@ _get_impl_config_iface (XdpPortalConfig       *portal_config,
   return NULL;
 }
 
-static XdpImplConfig *
-xdp_portal_config_find_impl_config_by_iface (XdpPortalConfig       *portal_config,
-                                             const PortalInterface *iface)
-{
-  return _get_impl_config_iface (portal_config,
-                                 iface,
-                                 iface->dbus_name);
-}
-
-static XdpImplConfig *
-xdp_portal_config_find_default_impl_config_by_iface (XdpPortalConfig *portal_config,
-                                                     PortalConfig    *config,
-                                                     const char      *interface)
-{
-  return _get_impl_config_iface (portal_config,
-                                 config->default_portal,
-                                 interface);
-}
-
 static void
-_add_all_impl_configs_iface (XdpPortalConfig       *portal_config,
-                             const PortalInterface *iface,
-                             const char            *interface,
-                             GPtrArray             *impl_configs_out)
+xdp_portal_config_find_impl_configs_by_iface (XdpPortalConfig       *portal_config,
+                                              const PortalInterface *iface,
+                                              const char            *interface,
+                                              GPtrArray             *impl_configs_out)
 {
   GPtrArray *impl_configs = portal_config->impl_configs;
   g_autofree char *portals = NULL;
@@ -834,29 +815,6 @@ _add_all_impl_configs_iface (XdpPortalConfig       *portal_config,
           g_ptr_array_add (impl_configs_out, candidate);
         }
     }
-}
-
-static void
-xdp_portal_config_find_impl_configs_by_iface (XdpPortalConfig       *portal_config,
-                                              const PortalInterface *iface,
-                                              GPtrArray             *impl_configs_out)
-{
-  _add_all_impl_configs_iface (portal_config,
-                               iface,
-                               iface->dbus_name,
-                               impl_configs_out);
-}
-
-static void
-xdp_portal_config_find_default_impl_configs_by_iface (XdpPortalConfig *portal_config,
-                                                      PortalConfig    *config,
-                                                      const char      *interface,
-                                                      GPtrArray       *impls_out)
-{
-  _add_all_impl_configs_iface (portal_config,
-                               config->default_portal,
-                               interface,
-                               impls_out);
 }
 
 static XdpImplConfig *
@@ -909,19 +867,24 @@ xdp_portal_config_find (XdpPortalConfig *portal_config,
 
       iface = portal_config_find_iface_config (config, interface);
       impl_config = xdp_portal_config_find_impl_config_by_iface (portal_config,
-                                                                 iface);
-
-      if (!impl_config)
-        {
-          impl_config =
-            xdp_portal_config_find_default_impl_config_by_iface (portal_config,
-                                                                 config,
+                                                                 iface,
                                                                  interface);
-        }
 
       if (impl_config != NULL)
         {
-          g_debug ("Using %s.portal for %s (config)",
+          g_debug ("Using %s.portal for %s (interface specific config)",
+                   impl_config->source, interface);
+          return impl_config;
+        }
+
+      iface = config->default_portal;
+      impl_config = xdp_portal_config_find_impl_config_by_iface (portal_config,
+                                                                 iface,
+                                                                 interface);
+
+      if (impl_config != NULL)
+        {
+          g_debug ("Using %s.portal for %s (default config)",
                    impl_config->source, interface);
           return impl_config;
         }
@@ -977,15 +940,19 @@ xdp_portal_config_find_all (XdpPortalConfig *portal_config,
         return g_steal_pointer (&impls_out);
 
       iface = portal_config_find_iface_config (config, interface);
-      xdp_portal_config_find_impl_configs_by_iface (portal_config, iface, impls_out);
+      xdp_portal_config_find_impl_configs_by_iface (portal_config,
+                                                    iface,
+                                                    interface,
+                                                    impls_out);
 
       if (impls_out->len > 0)
         return g_steal_pointer (&impls_out);
 
-      xdp_portal_config_find_default_impl_configs_by_iface (portal_config,
-                                                            config,
-                                                            interface,
-                                                            impls_out);
+      iface = config->default_portal;
+      xdp_portal_config_find_impl_configs_by_iface (portal_config,
+                                                    iface,
+                                                    interface,
+                                                    impls_out);
       if (impls_out->len > 0)
         return g_steal_pointer (&impls_out);
     }
