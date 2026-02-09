@@ -342,6 +342,8 @@ main (int argc, char *argv[])
   g_autoptr(GError) error = NULL;
   g_autofd int fd_path = -1;
 
+  g_log_writer_default_set_use_stderr (TRUE);
+
   context = g_option_context_new (NULL);
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))

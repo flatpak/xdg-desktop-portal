@@ -328,6 +328,8 @@ main (int argc, char *argv[])
   g_autoptr(GOptionContext) context = NULL;
   g_autoptr(GError) error = NULL;
 
+  g_log_writer_default_set_use_stderr (TRUE);
+
   context = g_option_context_new (NULL);
   g_option_context_add_main_entries (context, entries, NULL);
   if (!g_option_context_parse (context, &argc, &argv, &error))
