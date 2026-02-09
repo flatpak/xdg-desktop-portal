@@ -77,12 +77,6 @@ then xdg-desktop-portal will look for
 ``xdg-desktop-portal/gnome-portals.conf`` and
 ``xdg-desktop-portal/portals.conf`` in that order.
 
-Only the first configuration file found is read, and lower-precedence
-configuration files are ignored. All possible configuration files within
-one directory are tried before moving on to the next directory, so for
-example ``~/.config/xdg-desktop-portal/portals.conf`` is higher-precedence
-than ``/usr/share/xdg-desktop-portal/kde-portals.conf``.
-
 FILE FORMAT
 -----------
 
