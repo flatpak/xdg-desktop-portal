@@ -733,6 +733,9 @@ _get_impl_config_iface (XdpPortalConfig       *portal_config,
                         const PortalInterface *iface,
                         const char            *interface)
 {
+  if (iface == NULL)
+    return NULL;
+
   for (size_t i = 0; iface->portals && iface->portals[i]; i++)
     {
       XdpImplConfig *impl_config;
@@ -783,9 +786,6 @@ xdp_portal_config_find_default_impl_config_by_iface (XdpPortalConfig *portal_con
                                                      PortalConfig    *config,
                                                      const char      *interface)
 {
-  if (config->default_portal == NULL)
-    return NULL;
-
   return _get_impl_config_iface (portal_config,
                                  config->default_portal,
                                  interface);
@@ -799,6 +799,9 @@ _add_all_impl_configs_iface (XdpPortalConfig       *portal_config,
 {
   GPtrArray *impl_configs = portal_config->impl_configs;
   g_autofree char *portals = NULL;
+
+  if (iface == NULL)
+    return;
 
   portals = g_strjoinv (";", iface->portals);
   g_debug ("Found '%s' in configuration for %s", portals, iface->dbus_name);
@@ -850,9 +853,6 @@ xdp_portal_config_find_default_impl_configs_by_iface (XdpPortalConfig *portal_co
                                                       const char      *interface,
                                                       GPtrArray       *impls_out)
 {
-  if (config->default_portal == NULL)
-    return;
-
   _add_all_impl_configs_iface (portal_config,
                                config->default_portal,
                                interface,
@@ -908,11 +908,8 @@ xdp_portal_config_find (XdpPortalConfig *portal_config,
         return NULL;
 
       iface = portal_config_find_iface_config (config, interface);
-      if (iface)
-        {
-          impl_config = xdp_portal_config_find_impl_config_by_iface (portal_config,
-                                                                     iface);
-        }
+      impl_config = xdp_portal_config_find_impl_config_by_iface (portal_config,
+                                                                 iface);
 
       if (!impl_config)
         {
@@ -980,8 +977,8 @@ xdp_portal_config_find_all (XdpPortalConfig *portal_config,
         return g_steal_pointer (&impls_out);
 
       iface = portal_config_find_iface_config (config, interface);
-      if (iface)
-        xdp_portal_config_find_impl_configs_by_iface (portal_config, iface, impls_out);
+      xdp_portal_config_find_impl_configs_by_iface (portal_config, iface, impls_out);
+
       if (impls_out->len > 0)
         return g_steal_pointer (&impls_out);
 
