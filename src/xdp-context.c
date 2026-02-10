@@ -32,6 +32,7 @@
 #include "background.h"
 #include "camera.h"
 #include "clipboard.h"
+#include "credentials.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"
@@ -376,6 +377,7 @@ xdp_context_register (XdpContext       *context,
   init_location (context);
 #endif
   init_camera (context);
+  init_credentials(context, context->cancellable);
   init_screenshot (context);
   init_background (context);
   init_wallpaper (context);
