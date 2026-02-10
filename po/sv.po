@@ -1,15 +1,15 @@
 # Swedish translation for xdg-desktop-portal.
-# Copyright © 2016, 2020, 2022-2025 xdg-desktop-portal's COPYRIGHT HOLDER
+# Copyright © 2016, 2020, 2022-2026 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Sebastian Rasmussen <sebras@gmail.com>, 2016.
-# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022, 2023, 2024, 2025.
+# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022, 2023, 2024, 2025, 2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
-"PO-Revision-Date: 2025-09-03 22:14+0200\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-11-18 16:36+0000\n"
+"PO-Revision-Date: 2026-01-24 22:26+0100\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
 "Language: sv\n"
@@ -17,31 +17,30 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.7\n"
+"X-Generator: Poedit 3.8\n"
 
 #: src/background.c:931
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
 #: src/background.c:935
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to be started automatically and run in the background"
-msgstr "%s begär att startas automatiskt och köras i bakgrunden."
+msgstr "%s vill startas automatiskt och köras i bakgrunden."
 
 #: src/background.c:937
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to run in the background"
-msgstr "%s begär att köras i bakgrunden."
+msgstr "%s vill köra i bakgrunden."
 
 #: src/background.c:938
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
-"programinställningarna."
+"programinställningarna"
 
 #: src/background.c:942
 msgid "Don't allow"
@@ -57,25 +56,21 @@ msgid "Allow %s to Use the Camera?"
 msgstr "Tillåt %s att använda kameran?"
 
 #: src/camera.c:105
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to access the camera"
-msgstr "%s vill komma åt kameraenheter."
+msgstr "%s vill komma åt kameran"
 
 #: src/camera.c:109
-#, fuzzy
 msgid "Allow Apps to Use the Camera?"
 msgstr "Tillåt program att använda kameran?"
 
 #: src/camera.c:110
-#, fuzzy
 msgid "An app wants to access the camera"
-msgstr "Ett program vill komma åt kameraenheter."
+msgstr "Ett program vill komma åt kameran"
 
 #: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings"
-msgstr ""
-"Denna rättighet kan ändras när som helst från sekretessinställningarna."
+msgstr "Denna rättighet kan ändras när som helst från sekretessinställningarna"
 
 #: src/dynamic-launcher.c:128
 #, c-format
@@ -166,29 +161,26 @@ msgid "Grant Access"
 msgstr "Bevilja åtkomst"
 
 #: src/location.c:555
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Access Your Location?"
-msgstr "Ge %s åtkomst till din plats?"
+msgstr "Tillåt %s att komma åt din plats?"
 
 #: src/location.c:565
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location"
-msgstr "%s vill använda din plats."
+msgstr "%s vill använda din plats"
 
 #: src/location.c:571
-#, fuzzy
 msgid "Allow Apps to Access Your Location?"
-msgstr "Ge %s åtkomst till din plats?"
+msgstr "Ge program åtkomst till din plats?"
 
 #: src/location.c:572
-#, fuzzy
 msgid "An app wants to use your location"
-msgstr "Ett program vill använda din plats."
+msgstr "Ett program vill använda din plats"
 
 #: src/location.c:575
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
-msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna."
+msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna"
 
 #: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
@@ -200,9 +192,9 @@ msgid "Allow %s to Take Screenshots?"
 msgstr "Tillåt %s att ta skärmbilder?"
 
 #: src/screenshot.c:247
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to take screenshots at any time"
-msgstr "%s vill kunna ta skärmbilder när som helst."
+msgstr "%s vill ta skärmbilder när som helst"
 
 #: src/screenshot.c:251
 #, c-format
@@ -210,9 +202,9 @@ msgid "Allow %s to Take a Screenshot?"
 msgstr "Tillåt %s att ta en skärmbild?"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to take a screenshot"
-msgstr "%s vill ta en skärmbild."
+msgstr "%s vill ta en skärmbild"
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
@@ -222,18 +214,16 @@ msgid "Allow Apps to Take Screenshots?"
 msgstr "Tillåt program att ta skärmbilder?"
 
 #: src/screenshot.c:264
-#, fuzzy
 msgid "An app wants to take screenshots at any time"
-msgstr "Ett program vill kunna ta skärmbilder när som helst."
+msgstr "Ett program vill kunna ta skärmbilder när som helst"
 
 #: src/screenshot.c:268
 msgid "Allow to Take a Screenshot?"
 msgstr "Tillåt att ta en skärmbild?"
 
 #: src/screenshot.c:269
-#, fuzzy
 msgid "An app wants to take a screenshot"
-msgstr "Ett program vill ta en skärmbild."
+msgstr "Ett program vill ta en skärmbild"
 
 #: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
@@ -253,18 +243,17 @@ msgid "Allow %s to Set Backgrounds?"
 msgstr "Tillåt %s att ställa in bakgrunder?"
 
 #: src/wallpaper.c:198
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to change the background image"
-msgstr "%s begär att kunna ändra bakgrundsbilden."
+msgstr "%s vill ändra bakgrundsbilden"
 
 #: src/wallpaper.c:203
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Tillåt program att ställa in bakgrunder?"
 
 #: src/wallpaper.c:204
-#, fuzzy
 msgid "An app wants to change the background image"
-msgstr "Ett program begär att kunna ändra bakgrundsbilden."
+msgstr "Ett program vill ändra bakgrundsbilden"
 
 #~ msgid "Grant Access to Your Location?"
 #~ msgstr "Bevilja åtkomst till din plats?"
