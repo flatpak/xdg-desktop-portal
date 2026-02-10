@@ -18,7 +18,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.InputCapture"
-VERSION = 1
+VERSION = 2
 
 
 logger = init_logger(__name__)
@@ -40,6 +40,7 @@ class InputcaptureParameters:
     activated_delay: int
     deactivated_delay: int
     zones_changed_delay: int
+    force_clipboard_enabled: bool
 
 
 def load(mock, parameters={}):
@@ -55,6 +56,7 @@ def load(mock, parameters={}):
         activated_delay=parameters.get("activated-delay", 0),
         deactivated_delay=parameters.get("deactivated-delay", 0),
         zones_changed_delay=parameters.get("zones-changed-delay", 0),
+        force_clipboard_enabled=parameters.get("force-clipboard-enabled", False),
     )
 
     mock.current_zones = mock.inputcapture_params.default_zone
@@ -72,7 +74,27 @@ def load(mock, parameters={}):
         ),
     )
 
+    mock.session_handles = []
     mock.active_session_handles = []
+
+
+@dbus.service.method(
+    MAIN_IFACE,
+    in_signature="osa{sv}",
+    out_signature="a{sv}",
+)
+def CreateSession2(self, session_handle, app_id, options):
+    try:
+        logger.debug(f"CreateSession2({session_handle}, {app_id}, {options})")
+
+        assert len(options) == 0
+
+        self.session_handles.append(session_handle)
+
+        return {"session_handle": session_handle}
+    except Exception as e:
+        logger.critical(e)
+        return (2, {})
 
 
 @dbus.service.method(
@@ -80,11 +102,12 @@ def load(mock, parameters={}):
     in_signature="oossa{sv}",
     out_signature="ua{sv}",
 )
-def CreateSession(self, handle, session_handle, app_id, parent_window, options):
+def Start(self, handle, session_handle, app_id, parent_window, options):
     try:
-        logger.debug(f"CreateSession({parent_window}, {options})")
+        logger.debug(f"Start({session_handle}, {app_id}, {parent_window}, {options})")
         params = self.inputcapture_params
 
+        assert session_handle in self.session_handles
         assert "capabilities" in options
 
         # Filter to the subset of supported capabilities
@@ -96,10 +119,13 @@ def CreateSession(self, handle, session_handle, app_id, parent_window, options):
         capabilities &= params.supported_capabilities
         response = Response(0, {})
 
+        if params.force_clipboard_enabled:
+            response.results["clipboard_enabled"] = True
+
         response.results["capabilities"] = dbus.UInt32(capabilities)
         self.active_session_handles.append(session_handle)
 
-        logger.debug(f"CreateSession with response {response}")
+        logger.debug(f"Start with response {response}")
 
         return response.response, response.results
     except Exception as e:
