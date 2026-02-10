@@ -18,15 +18,20 @@
  *
  */
 
-#include "xdp-session.h"
-#include "xdp-request.h"
+#include "config.h"
 
 #include <string.h>
+
+#include "xdp-context.h"
+#include "xdp-request.h"
+
+#include "xdp-session.h"
 
 enum
 {
   PROP_0,
 
+  PROP_CONTEXT,
   PROP_SENDER,
   PROP_APP_ID,
   PROP_TOKEN,
@@ -193,6 +198,7 @@ xdp_session_close (XdpSession *session,
     xdp_session_unexport (session);
 
   xdp_session_unregister (session);
+  xdp_context_unclaim_object_path (session->context, session->id);
 
   if (session->impl_session)
     {
@@ -346,6 +352,16 @@ xdp_session_initable_init (GInitable     *initable,
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s",
                         sender_escaped, session->token);
 
+  while (!xdp_context_claim_object_path (session->context, id))
+    {
+      uint32_t r = g_random_int ();
+      g_free (id);
+      id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s/%u",
+                            sender_escaped,
+                            session->token,
+                            r);
+    }
+
   if (session->impl_dbus_name)
     {
       impl_session =
@@ -392,6 +408,10 @@ xdp_session_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      session->context = g_value_get_object (value);
+      break;
+
     case PROP_SENDER:
       session->sender = g_strdup (g_value_get_string (value));
       break;
@@ -431,6 +451,10 @@ xdp_session_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      g_value_set_object (value, session->context);
+      break;
+
     case PROP_SENDER:
       g_value_set_string (value, session->sender);
       break;
@@ -501,6 +525,13 @@ xdp_session_class_init (XdpSessionClass *klass)
   gobject_class->finalize = xdp_session_finalize;
   gobject_class->set_property = xdp_session_set_property;
   gobject_class->get_property = xdp_session_get_property;
+
+  obj_props[PROP_CONTEXT] =
+    g_param_spec_object ("context", "Context", "Context",
+                         XDP_TYPE_CONTEXT,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_SENDER] =
     g_param_spec_string ("sender", "Sender", "Sender",

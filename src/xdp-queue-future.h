@@ -1,5 +1,5 @@
 /*
- * Copyright © 2022 Aleix Pol Gonzalez <aleixpol@kde.org>
+ * Copyright © 2025 Red Hat, Inc
  *
  * SPDX-License-Identifier: LGPL-2.1-or-later
  *
@@ -15,13 +15,25 @@
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library. If not, see <http://www.gnu.org/licenses/>.
- *
- * Authors:
- *       Aleix Pol Gonzalez <aleixpol@kde.org>
  */
 
 #pragma once
 
-#include "xdp-types.h"
+#include <glib-object.h>
+#include <libdex.h>
 
-DexFuture * init_global_shortcuts (gpointer user_data);
+#define XDP_TYPE_QUEUE_FUTURE (xdp_queue_future_get_type ())
+G_DECLARE_FINAL_TYPE (XdpQueueFuture,
+                      xdp_queue_future,
+                      XDP, QUEUE_FUTURE,
+                      GObject)
+
+#define XDP_TYPE_QUEUE_FUTURE_GUARD (xdp_queue_future_guard_get_type ())
+G_DECLARE_FINAL_TYPE (XdpQueueFutureGuard,
+                      xdp_queue_future_guard,
+                      XDP, QUEUE_FUTURE_GUARD,
+                      GObject)
+
+XdpQueueFuture * xdp_queue_future_new (void);
+
+DexFuture * xdp_queue_future_next (XdpQueueFuture *queue_future);

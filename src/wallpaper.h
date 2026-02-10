@@ -24,4 +24,4 @@
 
 #include "xdp-types.h"
 
-void init_wallpaper (XdpContext *context);
+DexFuture * init_wallpaper (gpointer user_data);

@@ -1,4 +1,5 @@
 ###### xdg-desktop-portal
+libdex_codegen_ext = libdex_dep.get_pkgconfig_variable('gdbus_codegen_extension')
 
 portal_built_sources = gnome.gdbus_codegen(
   'xdp-dbus',
@@ -6,6 +7,7 @@ portal_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.portal',
   namespace: 'XdpDbus',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 host_built_sources = gnome.gdbus_codegen(
   'xdp-host-dbus',
@@ -13,6 +15,7 @@ host_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.host.portal',
   namespace: 'XdpDbusHost',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 impl_built_sources = gnome.gdbus_codegen(
   'xdp-impl-dbus',
@@ -20,6 +23,7 @@ impl_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal',
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
@@ -27,6 +31,7 @@ background_monitor_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.background',
   namespace: 'XdpDbusBackground',
   docbook: 'portal',
+  extra_args: [f'--extension-path=@libdex_codegen_ext@'],
 )
 if have_geoclue
   geoclue_built_sources = gnome.gdbus_codegen(
@@ -34,6 +39,7 @@ if have_geoclue
     sources: 'org.freedesktop.GeoClue2.Client.xml',
     interface_prefix: 'org.freedesktop.GeoClue2',
     namespace: 'Geoclue',
+    extra_args: [f'--extension-path=@libdex_codegen_ext@'],
   )
 else
   geoclue_built_sources = []
@@ -119,8 +125,11 @@ xdg_desktop_portal_sources = files(
   'xdp-main.c',
   'xdp-permissions.c',
   'xdp-portal-config.c',
+  'xdp-queue-future.c',
   'xdp-request.c',
+  'xdp-request-future.c',
   'xdp-session.c',
+  'xdp-session-future.c',
   'xdp-session-persistence.c',
 )
 
@@ -152,6 +161,7 @@ common_deps = [
   gio_dep,
   gio_unix_dep,
   json_glib_dep,
+  libdex_dep,
 ]
 
 if gudev_dep.found()

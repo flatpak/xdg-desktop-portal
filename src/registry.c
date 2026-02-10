@@ -68,8 +68,12 @@ register_host_app_info_sync (Registry               *registry,
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
   g_autoptr(XdpAppInfo) detected_app_info = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(XdpAppInfoRegistryLocker) locker = NULL;
 
-  if (xdp_app_info_registry_has_sender (app_info_registry, sender))
+  locker = xdp_app_info_registry_lock (app_info_registry, sender);
+
+  app_info = xdp_app_info_registry_lookup_unlocked (app_info_registry, sender);
+  if (app_info)
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
                    "Connection already associated with an application ID");
@@ -99,7 +103,7 @@ register_host_app_info_sync (Registry               *registry,
 
   g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));
 
-  xdp_app_info_registry_insert (app_info_registry, app_info);
+  xdp_app_info_registry_insert_unlocked (app_info_registry, app_info);
 
   return g_steal_pointer (&app_info);
 }
@@ -126,15 +130,6 @@ handle_register (XdpDbusHostRegistry   *object,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
                                              "Could not register app ID: %s",
                                              error->message);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
-
-  if (g_strcmp0 (xdp_app_info_get_id (app_info), arg_app_id) != 0)
-    {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR,
-                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                             "Registered too late");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 

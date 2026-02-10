@@ -62,6 +62,14 @@
 
 #include "xdp-context.h"
 
+enum
+{
+  PEER_DISCONNECT,
+  N_SIGNALS,
+};
+
+static guint signals[N_SIGNALS] = { 0 };
+
 struct _XdpContext
 {
   GObject parent_instance;
@@ -75,6 +83,8 @@ struct _XdpContext
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
+  GHashTable *registerd_object_paths; /* char *object_path set */
+  GMutex registerd_object_paths_lock;
 
   GCancellable *cancellable;
 };
@@ -105,6 +115,12 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->app_info_registry);
   g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
+  if (context->registerd_object_paths)
+    {
+      g_clear_pointer (&context->registerd_object_paths, g_hash_table_unref);
+      g_mutex_clear (&context->registerd_object_paths_lock);
+    }
+
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
 
@@ -114,12 +130,19 @@ xdp_context_class_init (XdpContextClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_context_dispose;
+
+  signals[PEER_DISCONNECT] =
+    g_signal_new ("peer-disconnect",
+                  G_TYPE_FROM_CLASS (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0, NULL, NULL, NULL,
+                  G_TYPE_NONE, 1,
+                  G_TYPE_STRING);
 }
 
 static void
 xdp_context_init (XdpContext *context)
 {
-  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -128,11 +151,15 @@ xdp_context_new (gboolean opt_verbose)
   XdpContext *context = g_object_new (XDP_TYPE_CONTEXT, NULL);
 
   context->verbose = opt_verbose;
+  context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
   context->app_info_registry = xdp_app_info_registry_new ();
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
                                                      g_object_unref);
+  context->registerd_object_paths =
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  g_mutex_init (&context->registerd_object_paths_lock);
 
   return context;
 }
@@ -193,6 +220,37 @@ method_needs_request (GDBusMethodInvocation *invocation)
 }
 
 static gboolean
+authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
+                          GDBusMethodInvocation  *invocation,
+                          gpointer                user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) error = NULL;
+
+  // FIXME: this is awful if this is running in a fiber
+  // because it will block the main thread.
+  // We would need some kind of async variant of ensure_for_invocation_sync.
+  // Which would require some sort of async mutex
+  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
+                                                               invocation,
+                                                               NULL,
+                                                               &error);
+  if (app_info == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Portal operation not allowed: %s", error->message);
+      return FALSE;
+    }
+
+  g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
+
+  return TRUE;
+}
+
+static gboolean
 authorize_callback (GDBusInterfaceSkeleton *interface,
                     GDBusMethodInvocation  *invocation,
                     gpointer                user_data)
@@ -218,7 +276,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 
   if (method_needs_request (invocation))
     {
-      if (!xdp_request_init_invocation (invocation, app_info, &error))
+      if (!xdp_request_init_invocation (invocation, context, app_info, &error))
         {
           g_dbus_method_invocation_return_gerror (invocation, error);
           return FALSE;
@@ -242,6 +300,20 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD)
+    {
+      g_dbus_interface_skeleton_set_flags (
+        skeleton,
+        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+    }
+
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER)
+    {
+      dex_dbus_interface_skeleton_set_flags (
+        DEX_DBUS_INTERFACE_SKELETON (skeleton),
+        DEX_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_FIBER);
+    }
+
   if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
     {
       /* Host portal dbus method invocations run in the main thread without yielding
@@ -252,14 +324,20 @@ xdp_context_take_and_export_portal (XdpContext             *context,
        * method calls must see the modified value.
        */
 
-      g_dbus_interface_skeleton_set_flags (
-        skeleton,
-        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
-
-      g_signal_connect_object (skeleton, "g-authorize-method",
-                               G_CALLBACK (authorize_callback),
-                               context,
-                               G_CONNECT_DEFAULT);
+      if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER)
+        {
+          g_signal_connect_object (skeleton, "g-authorize-method",
+                                   G_CALLBACK (authorize_callback_fiber),
+                                   context,
+                                   G_CONNECT_DEFAULT);
+        }
+      else
+        {
+          g_signal_connect_object (skeleton, "g-authorize-method",
+                                   G_CALLBACK (authorize_callback),
+                                   context,
+                                   G_CONNECT_DEFAULT);
+        }
     }
 
   if (g_dbus_interface_skeleton_export (skeleton,
@@ -290,10 +368,28 @@ on_peer_disconnect (const char *name,
 
   xdp_usb_delete_for_sender (context, name);
   notification_delete_for_sender (context, name);
+
+  g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
+
   close_requests_for_sender (name);
   close_sessions_for_sender (name);
   xdp_session_persistence_delete_transient_permissions_for_sender (name);
   xdp_app_info_registry_delete (context->app_info_registry, name);
+}
+
+static void
+init_portal_in_fiber (XdpContext   *context,
+                      DexFiberFunc  portal_init_func)
+{
+  g_autoptr(DexFuture) f = NULL;
+  GCancellable *cancellable = context->cancellable;
+
+  f = dex_future_first (dex_scheduler_spawn (NULL, 0,
+                                             portal_init_func,
+                                             context, NULL),
+                        dex_cancellable_new_from_cancellable (cancellable),
+                        NULL);
+  dex_future_disown (g_steal_pointer (&f));
 }
 
 gboolean
@@ -359,6 +455,10 @@ xdp_context_register (XdpContext       *context,
                                           G_MAXINT);
     }
 
+  init_portal_in_fiber (context, init_email);
+  init_portal_in_fiber (context, init_global_shortcuts);
+  init_portal_in_fiber (context, init_inhibit);
+  init_portal_in_fiber (context, init_wallpaper);
   init_memory_monitor (context);
   init_power_profile_monitor (context);
   init_network_monitor (context);
@@ -371,18 +471,14 @@ xdp_context_register (XdpContext       *context,
   init_open_uri (context);
   init_print (context);
   init_notification (context);
-  init_inhibit (context);
 #if HAVE_GEOCLUE
   init_location (context);
 #endif
   init_camera (context);
   init_screenshot (context);
   init_background (context);
-  init_wallpaper (context);
   init_account (context);
-  init_email (context);
   init_secret (context, context->cancellable);
-  init_global_shortcuts (context);
   init_dynamic_launcher (context);
   init_screen_cast (context);
   init_remote_desktop (context);
@@ -394,4 +490,27 @@ xdp_context_register (XdpContext       *context,
   init_registry (context);
 
   return TRUE;
+}
+
+gboolean
+xdp_context_claim_object_path (XdpContext *context,
+                               const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registerd_object_paths_lock, locker);
+
+  if (g_hash_table_contains (context->registerd_object_paths, object_path))
+    return FALSE;
+
+  g_hash_table_add (context->registerd_object_paths,
+                    g_strdup (object_path));
+  return TRUE;
+}
+
+void
+xdp_context_unclaim_object_path (XdpContext *context,
+                                 const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registerd_object_paths_lock, locker);
+
+  g_hash_table_remove (context->registerd_object_paths, object_path);
 }

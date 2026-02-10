@@ -49,6 +49,32 @@ static const char *       gclue_accuracy_level_to_string   (GClueAccuracyLevel l
 
 static GQuark quark_request_session;
 
+/*** Location boilerplace ***/
+
+typedef struct
+{
+  XdpDbusLocationSkeleton parent_instance;
+
+  XdpContext *context;
+  XdpDbusImplAccess *access_impl;
+  XdpDbusImplLockdown *lockdown_impl;
+} Location;
+
+typedef struct
+{
+  XdpDbusLocationSkeletonClass parent_class;
+} LocationClass;
+
+GType location_get_type (void) G_GNUC_CONST;
+static void location_iface_init (XdpDbusLocationIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Location, g_object_unref)
+
+/*** Location session boilerplace ***/
+
 typedef enum {
   LOCATION_SESSION_STATE_INIT,
   LOCATION_SESSION_STATE_STARTING,
@@ -133,9 +159,10 @@ location_session_class_init (LocationSessionClass *klass)
 }
 
 static LocationSession *
-location_session_new (GVariant *options,
-                      GDBusMethodInvocation *invocation,
-                      GError **error)
+location_session_new (Location               *location,
+                      GVariant               *options,
+                      GDBusMethodInvocation  *invocation,
+                      GError                **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
@@ -143,6 +170,7 @@ location_session_new (GVariant *options,
   XdpSession *session;
 
   session = g_initable_new (location_session_get_type (), NULL, error,
+                            "context", location->context,
                             "sender", sender,
                             "app-id", xdp_app_info_get_id (app_info),
                             "token", lookup_session_token (options),
@@ -393,29 +421,6 @@ set_location_permissions (XdpAppInfo *app_info,
                             permissions);
 }
 
-/*** Location boilerplace ***/
-
-typedef struct
-{
-  XdpDbusLocationSkeleton parent_instance;
-
-  XdpDbusImplAccess *access_impl;
-  XdpDbusImplLockdown *lockdown_impl;
-} Location;
-
-typedef struct 
-{
-  XdpDbusLocationSkeletonClass parent_class;
-} LocationClass;
-
-GType location_get_type (void) G_GNUC_CONST;
-static void location_iface_init (XdpDbusLocationIface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Location, g_object_unref)
-
 /*** CreateSession ***/
 
 static gboolean
@@ -440,7 +445,7 @@ handle_create_session (XdpDbusLocation *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  loc_session = location_session_new (arg_options, invocation, &error);
+  loc_session = location_session_new (location, arg_options, invocation, &error);
   if (!loc_session)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -753,12 +758,14 @@ location_class_init (LocationClass *klass)
 }
 
 static Location *
-location_new (XdpDbusImplAccess   *access_impl,
+location_new (XdpContext          *context,
+              XdpDbusImplAccess   *access_impl,
               XdpDbusImplLockdown *lockdown_impl)
 {
   Location *location;
 
   location = g_object_new (location_get_type (), NULL);
+  location->context = context;
   location->access_impl = g_object_ref (access_impl);
   location->lockdown_impl = g_object_ref (lockdown_impl);
 
@@ -783,9 +790,9 @@ init_location (XdpContext *context)
 
   lockdown_impl = xdp_context_get_lockdown_impl (context);
 
-  location = location_new (access_impl, lockdown_impl);
+  location = location_new (context, access_impl, lockdown_impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&location)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
