@@ -60,6 +60,14 @@ G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTUR
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCapture, g_object_unref)
 
+typedef enum _InputCaptureCapabilities
+{
+  INPUT_CAPTURE_CAPABILITIES_KEYBOARD =    (1 << 0),
+  INPUT_CAPTURE_CAPABILITIES_POINTER =     (1 << 1),
+  INPUT_CAPTURE_CAPABILITIES_TOUCHSCREEN = (1 << 2),
+  INPUT_CAPTURE_CAPABILITIES_ALL =         (1 << 3) - 1,
+} InputCaptureCapabilities;
+
 typedef enum _InputCaptureSessionState
 {
   INPUT_CAPTURE_SESSION_STATE_INIT,
@@ -239,10 +247,10 @@ validate_capabilities (const char  *key,
 {
   uint32_t types = g_variant_get_uint32 (value);
 
-  if (types == 0 || (types & ~(1 | 2 | 4 | 8)) != 0)
+  if (types == 0 || (types & ~INPUT_CAPTURE_CAPABILITIES_ALL) != 0)
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Unsupported capability: %x", types & ~(1 | 2 | 4 | 8));
+                   "Unsupported capability: %x", types & ~INPUT_CAPTURE_CAPABILITIES_ALL);
       return FALSE;
     }
 
