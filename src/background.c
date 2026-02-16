@@ -957,31 +957,56 @@ handle_request_background_in_thread_func (GTask *task,
         {
           g_warning ("AccessDialog call failed: %s", error->message);
           g_clear_error (&error);
+          allowed = FALSE;
+          autostart_enabled = FALSE;
+          portal_response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
         }
-
-      allowed = response == 0;
+      else
+        {
+          allowed = response == 0;
+          if (!allowed)
+            {
+              autostart_enabled = FALSE;
+              portal_response =  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
+            }
+        }
     }
   else
     {
       allowed = permission != XDP_PERMISSION_NO;
       if (permission == XDP_PERMISSION_UNSET)
         set_permission (id, XDP_PERMISSION_YES);
+      if (!allowed)
+        {
+          autostart_enabled = FALSE;
+          portal_response =  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
+        }
     }
 
-  g_debug ("Setting autostart for %s to %s", id,
-           allowed && autostart_requested ? "enabled" : "disabled");
-
-  autostart_enabled = FALSE;
-
-  if (!enable_autostart_sync (request->app_info,
-                              allowed && autostart_requested,
-                              autostart_exec,
-                              activatable,
-                              &autostart_enabled,
-                              &error))
+  if (allowed)
     {
-      g_warning ("EnableAutostart call failed: %s", error->message);
-      g_clear_error (&error);
+      g_debug ("Setting autostart for %s to %s", id,
+               autostart_requested ? "enabled" : "disabled");
+
+      autostart_enabled = FALSE;
+
+      if (!enable_autostart_sync (request->app_info,
+                                  autostart_requested,
+                                  autostart_exec,
+                                  activatable,
+                                  &autostart_enabled,
+                                  &error))
+        {
+          g_warning ("EnableAutostart call failed: %s", error->message);
+          g_clear_error (&error);
+          allowed = FALSE;
+          autostart_enabled = FALSE;
+          portal_response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
+        }
+      else
+        {
+          portal_response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
+        }
     }
 
   if (request->exported)
@@ -991,11 +1016,6 @@ handle_request_background_in_thread_func (GTask *task,
 
       g_variant_builder_add (&results, "{sv}", "background", g_variant_new_boolean (allowed));
       g_variant_builder_add (&results, "{sv}", "autostart", g_variant_new_boolean (autostart_enabled));
-
-      if (allowed)
-        portal_response = XDG_DESKTOP_PORTAL_RESPONSE_SUCCESS;
-      else
-        portal_response =  XDG_DESKTOP_PORTAL_RESPONSE_CANCELLED;
 
       xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                       portal_response,
