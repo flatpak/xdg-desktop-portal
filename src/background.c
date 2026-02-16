@@ -821,8 +821,12 @@ enable_autostart_sync (XdpAppInfo          *app_info,
 
   if (!enable)
     {
-      unlink (path);
-
+      if (unlink (path) != 0 && errno != ENOENT)
+        {
+          g_set_error (error, G_FILE_ERROR, g_file_error_from_errno (errno),
+                       "Could not remove Autostart file %s", path);
+          return FALSE;
+        }
       *out_enabled = FALSE;
       return TRUE;
     }
