@@ -891,6 +891,7 @@ handle_request_background_in_thread_func (GTask *task,
   gboolean autostart_requested = FALSE;
   gboolean autostart_enabled;
   gboolean allowed;
+  XdgDesktopPortalResponseEnum portal_response;
   g_autoptr(GError) error = NULL;
   g_autofree const char **autostart_exec = { NULL };
   gboolean activatable = FALSE;
@@ -985,7 +986,6 @@ handle_request_background_in_thread_func (GTask *task,
 
   if (request->exported)
     {
-      XdgDesktopPortalResponseEnum portal_response;
       g_auto(GVariantBuilder) results =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
