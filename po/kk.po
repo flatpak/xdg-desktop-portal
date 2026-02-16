@@ -1,0 +1,266 @@
+# Kazakh translation for xdg-desktop-portal.
+# Copyright (C) 2026 xdg-desktop-portal's COPYRIGHT HOLDER
+# This file is distributed under the same license as the xdg-desktop-portal package.
+# Baurzhan Muftakhidinov <baurthefirst@gmail.com>,  2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xdg-desktop-portal main\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2025-11-18 16:36+0000\n"
+"PO-Revision-Date: 2026-02-16 06:40+0500\n"
+"Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
+"Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Poedit 3.8\n"
+
+#: src/background.c:931
+#, c-format
+msgid "Allow %s to Run in the Background?"
+msgstr "%s үшін фондық режимде жұмыс істеуіне рұқсат беру керек пе?"
+
+#: src/background.c:935
+#, c-format
+msgid "%s wants to be started automatically and run in the background"
+msgstr "%s автоматты түрде іске қосылып, фондық режимде жұмыс істегісі келеді"
+
+#: src/background.c:937
+#, c-format
+msgid "%s wants to run in the background"
+msgstr "%s фондық режимде жұмыс істегісі келеді"
+
+#: src/background.c:938
+msgid ""
+"The ‘run in background’ permission can be changed at any time from the app "
+"settings"
+msgstr ""
+"‘фондық режимде жұмыс істеу’ рұқсатын кез келген уақытта қолданба "
+"баптауларынан өзгертуге болады"
+
+#: src/background.c:942
+msgid "Don't allow"
+msgstr "Рұқсат етпеу"
+
+#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+msgid "Allow"
+msgstr "Рұқсат ету"
+
+#: src/camera.c:104
+#, c-format
+msgid "Allow %s to Use the Camera?"
+msgstr "%s камераны пайдалануға рұқсат беру керек пе?"
+
+#: src/camera.c:105
+#, c-format
+msgid "%s wants to access the camera"
+msgstr "%s камераға қол жеткізгісі келеді"
+
+#: src/camera.c:109
+msgid "Allow Apps to Use the Camera?"
+msgstr "Қолданбалардың камераны пайдалануға рұқсат беру керек пе?"
+
+#: src/camera.c:110
+msgid "An app wants to access the camera"
+msgstr "Қолданба камераға қол жеткізгісі келеді"
+
+#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+msgid "This permission can be changed at any time from the privacy settings"
+msgstr ""
+"Бұл рұқсатты кез келген уақытта жекелік баптауларынан өзгертуге болады"
+
+#: src/dynamic-launcher.c:128
+#, c-format
+msgid "Desktop file id missing .desktop suffix: %s"
+msgstr "Жұмыс үстелі файлының идентификаторында .desktop суффиксі жоқ: %s"
+
+#: src/dynamic-launcher.c:139
+#, c-format
+msgid "Desktop file id is not valid"
+msgstr "Жұмыс үстелі файлының идентификаторы жарамсыз"
+
+#: src/dynamic-launcher.c:311
+#, c-format
+msgid "Desktop entry given to Install() not a valid key file"
+msgstr ""
+"Install() функциясына берілген жұмыс үстелі элементі жарамды кілт файлы емес"
+
+#: src/dynamic-launcher.c:324
+#, c-format
+msgid "Desktop entry given to Install() must have exactly one group"
+msgstr ""
+"Install() функциясына берілген жұмыс үстелі элементінде тек бір топ болуы "
+"тиіс"
+
+#: src/dynamic-launcher.c:362
+#, c-format
+msgid "Token given is invalid: %s"
+msgstr "Берілген токен жарамсыз: %s"
+
+#: src/dynamic-launcher.c:405
+#, c-format
+msgid "Desktop entry given to Install() not valid"
+msgstr "Install() функциясына берілген жұмыс үстелі элементі жарамсыз"
+
+#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
+#: src/dynamic-launcher.c:923
+#, c-format
+msgid "Desktop file exceeds max size (%d): %s"
+msgstr "Жұмыс үстелі файлы максималды өлшемнен (%d) асады: %s"
+
+#: src/dynamic-launcher.c:598
+#, c-format
+msgid "URL given is invalid: %s"
+msgstr "Берілген URL жарамсыз: %s"
+
+#: src/dynamic-launcher.c:620
+#, c-format
+msgid "Invalid launcher type: %x"
+msgstr "Жөнелткіш түрі жарамсыз: %x"
+
+#: src/dynamic-launcher.c:627
+#, c-format
+msgid "Unsupported launcher type: %x"
+msgstr "Жөнелткіш түріне қолдау көрсетілмейді: %x"
+
+#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
+msgid "Dynamic launcher icon failed validation"
+msgstr "Динамикалық жөнелткіш таңбашасын тексеру сәтсіз аяқталды"
+
+#: src/dynamic-launcher.c:784
+#, c-format
+msgid "RequestInstallToken() not allowed for app id %s"
+msgstr ""
+"%s қолданба идентификаторы үшін RequestInstallToken() рұқсат етілмеген"
+
+#: src/dynamic-launcher.c:963
+#, c-format
+msgid "Desktop file '%s' icon at unrecognized path"
+msgstr "'%s' жұмыс үстелі файлының таңбашасы танылмаған жолда орналасқан"
+
+#: src/dynamic-launcher.c:986
+#, c-format
+msgid "Desktop file '%s' icon failed to serialize"
+msgstr "'%s' жұмыс үстелі файлының таңбашасын сериялау сәтсіз аяқталды"
+
+#: src/dynamic-launcher.c:1025
+#, c-format
+msgid "No dynamic launcher exists with id '%s'"
+msgstr "'%s' идентификаторы бар динамикалық жөнелткіш табылмады"
+
+#: src/dynamic-launcher.c:1044
+#, c-format
+msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
+msgstr ""
+"'%s' идентификаторы бар іске қосқыш үшін GDesktopAppInfo жасау сәтсіз "
+"аяқталды"
+
+#: src/location.c:547
+msgid "Deny Access"
+msgstr "Қол жеткізуге рұқсат бермеу"
+
+#: src/location.c:549
+msgid "Grant Access"
+msgstr "Қол жеткізуге рұқсат беру"
+
+#: src/location.c:555
+#, c-format
+msgid "Allow %s to Access Your Location?"
+msgstr ""
+"%s үшін сіздің орналасқан жеріңізге қол жеткізуге рұқсат беру керек пе?"
+
+#: src/location.c:565
+#, c-format
+msgid "%s wants to use your location"
+msgstr "%s сіздің орналасқан жеріңізді пайдаланғысы келеді"
+
+#: src/location.c:571
+msgid "Allow Apps to Access Your Location?"
+msgstr ""
+"Қолданбаларға сіздің орналасқан жеріңізге қол жеткізуге рұқсат беру керек "
+"пе?"
+
+#: src/location.c:572
+msgid "An app wants to use your location"
+msgstr "Қолданба сіздің орналасқан жеріңізді пайдаланғысы келеді"
+
+#: src/location.c:575
+msgid "Location access can be changed at any time from the privacy settings"
+msgstr ""
+"Орналасқан жерге қол жеткізуді кез келген уақытта жекелік баптауларынан "
+"өзгертуге болады"
+
+#: src/screenshot.c:220 src/wallpaper.c:189
+msgid "Deny"
+msgstr "Рұқсат бермеу"
+
+#: src/screenshot.c:246
+#, c-format
+msgid "Allow %s to Take Screenshots?"
+msgstr "%s үшін скриншоттар түсіруге рұқсат беру керек пе?"
+
+#: src/screenshot.c:247
+#, c-format
+msgid "%s wants to take screenshots at any time"
+msgstr "%s кез келген уақытта скриншоттар түсіргісі келеді"
+
+#: src/screenshot.c:251
+#, c-format
+msgid "Allow %s to Take a Screenshot?"
+msgstr "%s скриншот түсіруге рұқсат беру керек пе?"
+
+#: src/screenshot.c:252
+#, c-format
+msgid "%s wants to take a screenshot"
+msgstr "%s скриншот түсіргісі келеді"
+
+#. Note: this will set the screenshot permission for all unsandboxed
+#. * apps for which an app ID can't be determined.
+#: src/screenshot.c:263
+msgid "Allow Apps to Take Screenshots?"
+msgstr "Қолданбаларға скриншоттар түсіруге рұқсат беру керек пе?"
+
+#: src/screenshot.c:264
+msgid "An app wants to take screenshots at any time"
+msgstr "Қолданба кез келген уақытта скриншоттар түсіргісі келеді"
+
+#: src/screenshot.c:268
+msgid "Allow to Take a Screenshot?"
+msgstr "Скриншот түсіруге рұқсат беру керек пе?"
+
+#: src/screenshot.c:269
+msgid "An app wants to take a screenshot"
+msgstr "Қолданба скриншот түсіргісі келеді"
+
+#: src/settings.c:195 src/settings.c:234
+msgid "Requested setting not found"
+msgstr "Сұралған баптау табылмады"
+
+#: src/usb.c:1339
+msgid "Device not available"
+msgstr "Құрылғы қолжетімді емес"
+
+#: src/usb.c:1353
+msgid "Not allowed"
+msgstr "Рұқсат етілмеген"
+
+#: src/wallpaper.c:197
+#, c-format
+msgid "Allow %s to Set Backgrounds?"
+msgstr "%s үшін фондарды орнатуға рұқсат беру керек пе?"
+
+#: src/wallpaper.c:198
+#, c-format
+msgid "%s wants to change the background image"
+msgstr "%s фон суретін өзгерткісі келеді"
+
+#: src/wallpaper.c:203
+msgid "Allow Apps to Set Backgrounds?"
+msgstr "Қолданбалардың фондарды орнатуға рұқсат беру керек пе?"
+
+#: src/wallpaper.c:204
+msgid "An app wants to change the background image"
+msgstr "Қолданба фон суретін өзгерткісі келеді"
