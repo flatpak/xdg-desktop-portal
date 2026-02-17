@@ -85,13 +85,15 @@ class TestBackground:
         )
 
         assert response
-        assert response.response == 0
-        assert response.results["background"]
 
         # Unsupported on snap and linyaps
         if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
+            assert response.response == 2
             assert not response.results["autostart"]
             return
+
+        assert response.response == 0
+        assert response.results["background"]
 
         gapp_info = xdp_app_info.gapp_info()
         autostart_name = gapp_info.get_name() if gapp_info else app_id
@@ -129,14 +131,15 @@ class TestBackground:
         )
 
         assert response
-        assert response.response == 0
-        assert response.results["background"]
 
         # Unsupported on snap and linyaps
         if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
+            assert response.response == 2
             assert not response.results["autostart"]
             return
 
+        assert response.response == 0
+        assert response.results["background"]
         assert response.results["autostart"]
 
         assert desktop_file.exists()
