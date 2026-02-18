@@ -457,15 +457,7 @@ validate_restore_token (const char  *key,
                         GError     **error)
 {
   const char *restore_token = g_variant_get_string (value, NULL);
-
-  if (!g_uuid_string_is_valid (restore_token))
-    {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Restore token is not a valid UUID string");
-      return FALSE;
-    }
-
-  return TRUE;
+  return xdp_session_persistence_validate_restore_token (restore_token, error);
 }
 
 static gboolean
@@ -475,17 +467,10 @@ validate_persist_mode (const char  *key,
                        gpointer     user_data,
                        GError     **error)
 {
-  uint32_t mode = g_variant_get_uint32 (value);
-
-  if (mode > XDP_SESSION_PERSISTENCE_MODE_PERSISTENT)
-    {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Invalid persist mode %x", mode);
-      return FALSE;
-    }
-
-  return TRUE;
+  return xdp_session_persistence_validate_persist_mode (g_variant_get_uint32 (value),
+                                                        error);
 }
+
 
 static XdpOptionKey screen_cast_select_sources_options[] = {
   { "types", G_VARIANT_TYPE_UINT32, validate_source_types },
