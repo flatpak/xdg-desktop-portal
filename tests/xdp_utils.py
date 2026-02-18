@@ -3,7 +3,7 @@
 # This file is formatted with Python Black
 
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import GLib, Gio
+from gi.repository import GLib, Gio, GioUnix
 from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
 from pathlib import Path
@@ -275,12 +275,12 @@ class AppInfo:
         for key, val in self.env.items():
             env[key] = val
 
-    def gapp_info(self) -> Gio.DesktopAppInfo:
+    def gapp_info(self) -> GioUnix.DesktopAppInfo:
         desktop_file_path = desktop_files_path() / self.desktop_file
         if not os.path.exists(desktop_file_path):
             return None
 
-        return Gio.DesktopAppInfo.new_from_filename(str(desktop_file_path))
+        return GioUnix.DesktopAppInfo.new_from_filename(str(desktop_file_path))
 
     @classmethod
     def new_host(
