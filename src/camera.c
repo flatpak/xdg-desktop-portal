@@ -266,7 +266,7 @@ handle_open_pipewire_remote (XdpDbusCamera *object,
                              GVariant *arg_options)
 {
   Camera *camera = (Camera *) object;
-  g_autoptr(XdpAppInfo) app_info = NULL;
+  XdpAppInfo *app_info;
   XdpPermission permission;
   g_autoptr(GUnixFDList) out_fd_list = NULL;
   int fd;
