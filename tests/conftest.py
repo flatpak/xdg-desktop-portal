@@ -16,6 +16,8 @@ import tempfile
 import subprocess
 import time
 import signal
+import shutil
+
 from pathlib import Path
 from contextlib import chdir
 
@@ -97,6 +99,7 @@ def create_test_dirs(umockdev: Optional[UMockdev.Testbed]) -> Iterator[None]:
         "XDG_DATA_HOME",
         "XDG_RUNTIME_DIR",
         "XDG_DESKTOP_PORTAL_DIR",
+        "XDP_BIN",
     ]
 
     test_root = tempfile.TemporaryDirectory(
@@ -111,6 +114,45 @@ def create_test_dirs(umockdev: Optional[UMockdev.Testbed]) -> Iterator[None]:
     yield
 
     test_root.cleanup()
+
+
+@pytest.fixture
+def xdp_mocked_executables(xdp_app_info: xdp.AppInfo) -> list[xdp.ExecutableMock]:
+    exe = None
+    if xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
+        exe = "flatpak"
+    elif xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+        exe = "snap"
+    else:
+        return []
+
+    return [xdp.ExecutableMock(executable=exe)]
+
+
+@pytest.fixture
+def xdp_available_executables() -> list[str]:
+    return [
+        "true",
+        "bwrap",
+    ]
+
+
+@pytest.fixture
+def xdp_bin_path(create_test_dirs) -> Path:
+    return Path(os.environ["XDP_BIN"])
+
+
+@pytest.fixture(autouse=True)
+def create_xdp_executables(
+    xdp_bin_path, xdp_mocked_executables, xdp_available_executables
+):
+    for mock in xdp_mocked_executables:
+        mock.create(xdp_bin_path)
+
+    for exe_name in xdp_available_executables:
+        exe_path = shutil.which(exe_name)
+        assert exe_path, f"{exe_name} is not installed or not in PATH"
+        (xdp_bin_path / exe_name).symlink_to(exe_path)
 
 
 @pytest.fixture
@@ -448,11 +490,13 @@ def ensure_xdp_app_info_files(create_test_dirs, xdp_app_info) -> None:
 def xdp_env(
     xdp_overwrite_env: dict[str, str],
     xdp_app_info: xdp.AppInfo,
+    xdp_bin_path: Path,
     umockdev: Optional[UMockdev.Testbed],
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
+    env["PATH"] = xdp_bin_path.as_posix()
 
     if xdp_app_info:
         xdp_app_info.extend_env(env)
@@ -502,11 +546,14 @@ def xdp_valgrind_args() -> list[str]:
     if not xdp.is_valgrind():
         return []
 
+    valgrind = shutil.which("valgrind")
+    assert valgrind, "Valgrind is not installed or not in PATH"
+
     xdp_suppression = test_dir() / "valgrind.suppression"
     glib_suppression = _valgrind_glib_suppressions()
 
     return [
-        "valgrind",
+        valgrind,
         "--tool=memcheck",
         "--error-exitcode=1",
         "--track-origins=yes",
