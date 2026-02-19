@@ -31,6 +31,7 @@
 
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
 #define SNAP_METADATA_KEY_INSTANCE_NAME "InstanceName"
+#define SNAP_METADATA_KEY_APP_NAME "AppName"
 #define SNAP_METADATA_KEY_DESKTOP_FILE "DesktopFile"
 #define SNAP_METADATA_KEY_NETWORK "HasNetworkStatus"
 
@@ -242,6 +243,7 @@ parse_snap_metadata (GKeyFile         *metadata,
                      GError          **error)
 {
   g_autofree char *snap_name = NULL;
+  g_autofree char *snap_app_name = NULL;
   g_autofree char *app_id = NULL;
   g_autofree char *permissions_id = NULL;
   g_autofree char *desktop_id = NULL;
@@ -255,7 +257,19 @@ parse_snap_metadata (GKeyFile         *metadata,
   if (snap_name == NULL)
     return FALSE;
 
-  permissions_id = g_strconcat ("snap.", snap_name, NULL);
+  snap_app_name = g_key_file_get_string (metadata,
+                                         SNAP_METADATA_GROUP_INFO,
+                                         SNAP_METADATA_KEY_APP_NAME,
+                                         NULL);
+
+  if (snap_app_name == NULL || g_str_equal (snap_app_name, snap_name))
+    {
+      permissions_id = g_strconcat ("snap.", snap_name, NULL);
+    }
+  else
+    {
+      permissions_id = g_strconcat ("snap.", snap_name, "_", snap_app_name, NULL);
+    }
 
   desktop_id = g_key_file_get_string (metadata,
                                       SNAP_METADATA_GROUP_INFO,

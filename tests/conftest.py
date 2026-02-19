@@ -408,6 +408,7 @@ def xdp_overwrite_env() -> dict[str, str]:
         xdp.AppInfoKind.HOST,
         xdp.AppInfoKind.FLATPAK,
         xdp.AppInfoKind.SNAP,
+        xdp.AppInfoKind.SNAP_SUB_APP,
         xdp.AppInfoKind.LINYAPS,
     ]
 )
@@ -433,6 +434,13 @@ def xdp_app_info(request) -> xdp.AppInfo:
         )
 
     if app_info_kind == xdp.AppInfoKind.SNAP:
+        return xdp.AppInfo.new_snap(
+            common_id=app_id,
+            snap_name="test",
+            app_name="test",
+        )
+
+    if app_info_kind == xdp.AppInfoKind.SNAP_SUB_APP:
         return xdp.AppInfo.new_snap(
             common_id=app_id,
             snap_name="example",
@@ -680,7 +688,10 @@ def create_file_access_wrapper_scripts(
     Creates wrapper scripts for the file access check which just returns
     the given mode. This is used to simulate different file access modes.
     """
-    if xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+    if (
+        xdp_app_info.kind == xdp.AppInfoKind.SNAP
+        or xdp_app_info.kind == xdp.AppInfoKind.SNAP_SUB_APP
+    ):
         create_file_access_wrapper_script(path, "snap", mode)
     elif xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
         create_file_access_wrapper_script(path, "flatpak", mode)
