@@ -92,6 +92,8 @@ PermissionDbEntry  *permission_db_entry_set_app_permissions (PermissionDbEntry *
 PermissionDbEntry  *permission_db_entry_remove_app_permissions (PermissionDbEntry *entry,
                                                                 const char        *app_permissions_id);
 
+char *permissions_id_for_app_id (const char *app_id);
+
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDb, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDbEntry, permission_db_entry_unref)
 

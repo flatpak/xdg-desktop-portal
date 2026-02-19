@@ -25,6 +25,7 @@
 
 #include <string.h>
 #include <fcntl.h>
+#include <gio/gdesktopappinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_SYS_STATFS_H
@@ -1252,4 +1253,41 @@ permission_db_entry_print_string (PermissionDbEntry *entry,
                                   GString        *string)
 {
   return g_variant_print_string ((GVariant *) entry, string, FALSE);
+}
+
+char *
+permissions_id_for_app_id (const char *app_id)
+{
+  g_autoptr (GDesktopAppInfo) app_info = NULL;
+  g_autofree char *desktop_id = NULL;
+
+  if (app_id == NULL || *app_id == '\0' || g_str_has_prefix (app_id, "snap."))
+    return g_strdup (app_id);
+
+  /* We could optimize the case for flatpak's, by something like
+   *   !g_str_has_prefix (app_id, "snap.") && strchr (app_id, '.')
+   * but snaps are going to support normal desktop IDs, and so it's better
+   * not to optimize something that we need to drop soon.
+   */
+
+  g_debug ("Looking for app ID for %s", app_id);
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  app_info = g_desktop_app_info_new (desktop_id);
+
+  if (!app_info)
+    return g_strdup (app_id);
+
+  if (g_desktop_app_info_has_key (app_info, "X-SnapInstanceName"))
+    {
+      g_autofree char *snap_instance_name = NULL;
+
+      g_debug ("App ID for %s is provided by snap desktop ID", desktop_id);
+
+      snap_instance_name = g_desktop_app_info_get_string (app_info,
+                                                          "X-SnapInstanceName");
+      g_return_val_if_fail (snap_instance_name != NULL, g_strdup (app_id));
+      return g_strconcat ("snap.", snap_instance_name, NULL);
+    }
+
+  return g_strdup (app_id);
 }

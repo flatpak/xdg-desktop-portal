@@ -300,7 +300,7 @@ handle_delete_permission (XdgPermissionStore     *object,
                           const char             *app)
 {
   Table *table;
-  const char *permissions_id = NULL;
+  g_autofree char *permissions_id = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
@@ -317,7 +317,7 @@ handle_delete_permission (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  permissions_id = app;
+  permissions_id = permissions_id_for_app_id (app);
   new_entry = permission_db_entry_remove_app_permissions (entry, permissions_id);
   permission_db_set_entry (table->db, id, new_entry);
   emit_changed (object, table_name, id, new_entry);
@@ -338,7 +338,7 @@ handle_get_permission (XdgPermissionStore     *object,
 
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree const char **permission = NULL;
-  const char *permissions_id;
+  g_autofree char *permissions_id = NULL;
 
   table = lookup_table (table_name, invocation);
   if (table == NULL)
@@ -353,7 +353,7 @@ handle_get_permission (XdgPermissionStore     *object,
       return TRUE;
     }
 
-  permissions_id = app;
+  permissions_id = permissions_id_for_app_id (app);
   permission = permission_db_entry_list_permissions (entry, permissions_id);
 
   xdg_permission_store_complete_get_permission (object, invocation, permission);
@@ -433,7 +433,7 @@ handle_set_permission (XdgPermissionStore     *object,
                        const gchar *const     *permissions)
 {
   Table *table;
-  const char *permissions_id;
+  g_autofree char *permissions_id = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autoptr(PermissionDbEntry) new_entry = NULL;
 
@@ -457,7 +457,7 @@ handle_set_permission (XdgPermissionStore     *object,
         }
     }
 
-  permissions_id = app;
+  permissions_id = permissions_id_for_app_id (app);
   new_entry = permission_db_entry_set_app_permissions (entry, permissions_id,
                                                        (const char **) permissions);
   permission_db_set_entry (table->db, id, new_entry);
