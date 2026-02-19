@@ -137,7 +137,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
                           XdpAppInfo            *app_info)
 {
   const char *target_app_id;
-  const char *target_permissions_id;
+  g_autofree char *target_permissions_id = NULL;
   const char *id;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags perms;
@@ -159,7 +159,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    target_permissions_id = target_app_id;
+    target_permissions_id = permissions_id_for_app_id (target_app_id);
     if (!xdp_is_valid_permissions_id (target_permissions_id))
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -202,7 +202,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
 {
   const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
   const char *target_app_id;
-  const char *target_permissions_id;
+  g_autofree char *target_permissions_id = NULL;
   const char *id;
   g_autofree const char **permissions = NULL;
   GError *error = NULL;
@@ -224,7 +224,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
         return;
       }
 
-    target_permissions_id = target_app_id;
+    target_permissions_id = permissions_id_for_app_id (target_app_id);
     if (!xdp_is_valid_permissions_id (target_permissions_id))
       {
         g_dbus_method_invocation_return_error (invocation,
@@ -699,7 +699,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autoptr(GVariant) array = NULL;
   guint32 flags;
   const char *target_app_id;
-  const char *target_permissions_id;
+  g_autofree char *target_permissions_id = NULL;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags target_perms;
   gsize n_args;
@@ -759,7 +759,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
         fd[i] = -1;
     }
 
-  target_permissions_id = target_app_id;
+  target_permissions_id = permissions_id_for_app_id (target_app_id);
   ids = document_add_full (fd, NULL, NULL, documents_flags, n_args, app_info,
                            target_permissions_id, target_perms, &error);
 
@@ -978,7 +978,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   guint32 flags = 0;
   const char *filename;
   const char *target_app_id;
-  const char *target_permissions_id;
+  g_autofree char *target_permissions_id = NULL;
   g_autofree const char **permissions = NULL;
   g_autofree char *id = NULL;
   g_autofree char *path = NULL;
@@ -1072,7 +1072,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
 
     XDP_AUTOLOCK (db);
 
-    target_permissions_id = target_app_id;
+    target_permissions_id = permissions_id_for_app_id (target_app_id);
 
     if (as_needed_by_app &&
         app_has_file_access (target_permissions_id, target_perms, path))
