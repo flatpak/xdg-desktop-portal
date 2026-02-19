@@ -896,3 +896,16 @@ class GDBusIface:
 
         signal_id = self._proxy.connect("g-signal", internal_cb)
         return GDBusIfaceSignal(signal_id, self._proxy)
+
+
+class ExecutableMock(object):
+    def __init__(self, executable: str):
+        self.executable = executable
+
+    def create(self, path: Path):
+        self.path = path / self.executable
+        self.path.write_bytes(self.get_executable())
+        self.path.chmod(0o755)
+
+    def get_executable(self):
+        return f"#!/usr/bin/env sh".encode("utf8")
