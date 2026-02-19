@@ -53,4 +53,7 @@ void remote_desktop_session_sources_selected (RemoteDesktopSession *session);
 
 void remote_desktop_session_clipboard_requested (RemoteDesktopSession *session);
 
+gboolean
+remote_desktop_session_can_access_clipboard (RemoteDesktopSession *session);
+
 void init_remote_desktop (XdpContext *context);
