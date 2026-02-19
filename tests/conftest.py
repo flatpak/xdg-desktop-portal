@@ -126,7 +126,12 @@ def xdp_mocked_executables(xdp_app_info: xdp.AppInfo) -> list[xdp.ExecutableMock
     else:
         return []
 
-    return [xdp.ExecutableMock(executable=exe)]
+    return [
+        xdp.ExecutableMock(
+            executable=exe,
+            access_mode=xdp.FileAccessMode.HIDDEN,
+        )
+    ]
 
 
 @pytest.fixture
