@@ -136,6 +136,13 @@ foreach pytest_file : pytest_files
     'integration/@0@'.format(testname),
     run_test,
     args: [meson.current_source_dir() / pytest_file] + pytest_args,
+    depends: [
+      xdg_desktop_portal,
+      xdp_validate_icon,
+      xdp_validate_sound,
+      xdg_permission_store,
+      xdg_document_portal,
+    ],
     env: pytest_env,
     suite: ['integration'],
     timeout: 120,
