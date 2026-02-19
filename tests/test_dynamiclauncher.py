@@ -42,7 +42,7 @@ class TestDynamicLauncher:
 
         xdp.check_version(dbus_con, "DynamicLauncher", 1)
 
-    def test_basic(self, portals, dbus_con, xdp_app_info):
+    def test_basic(self, portals, dbus_con, xdp_app_info, flatpak_dummy_binary):
         app_id = xdp_app_info.app_id
         """test that the backend receives the expected data"""
 

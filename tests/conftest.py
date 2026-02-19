@@ -16,6 +16,8 @@ import tempfile
 import subprocess
 import time
 import signal
+import shutil
+
 from pathlib import Path
 from contextlib import chdir
 
@@ -83,6 +85,17 @@ def xdg_permission_store_path() -> Path:
 @pytest.fixture
 def xdg_document_portal_path() -> Path:
     return Path(os.environ["XDG_DOCUMENT_PORTAL_PATH"])
+
+
+@pytest.fixture
+def xdp_bin_path(tmp_path: Path) -> Path:
+    (tmp_path / "true").touch(mode=0o755)
+
+    bwrap = shutil.which("bwrap")
+    if bwrap:
+        (tmp_path / "bwrap").symlink_to(bwrap)
+
+    return tmp_path
 
 
 @pytest.fixture(autouse=True)
@@ -449,10 +462,12 @@ def xdp_env(
     xdp_overwrite_env: dict[str, str],
     xdp_app_info: xdp.AppInfo,
     umockdev: Optional[UMockdev.Testbed],
+    xdp_bin_path: Path,
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
+    env["PATH"] = xdp_bin_path.as_posix()
 
     if xdp_app_info:
         xdp_app_info.extend_env(env)
@@ -502,11 +517,14 @@ def xdp_valgrind_args() -> list[str]:
     if not xdp.is_valgrind():
         return []
 
+    valgrind = shutil.which("valgrind")
+    assert valgrind, "Valgrind is not installed or not in PATH"
+
     xdp_suppression = test_dir() / "valgrind.suppression"
     glib_suppression = _valgrind_glib_suppressions()
 
     return [
-        "valgrind",
+        valgrind,
         "--tool=memcheck",
         "--error-exitcode=1",
         "--track-origins=yes",
@@ -640,6 +658,17 @@ def xdg_document_portal(
         return False
 
     xdp.wait_for(unmounted)
+
+
+@pytest.fixture
+def flatpak_dummy_binary(xdp_bin_path: Path) -> None:
+    """
+    Creates a dummy executable script in bin path.
+    """
+    if not xdp_bin_path.exists():
+        raise FileNotFoundError(f"{xdp_bin_path} does not exist")
+
+    (xdp_bin_path / "flatpak").touch(mode=0o755)
 
 
 @pytest.fixture
