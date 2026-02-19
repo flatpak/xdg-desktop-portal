@@ -647,8 +647,13 @@ app_has_file_access (const char *target_permissions_id,
 
   if (g_str_has_prefix (target_permissions_id, "snap."))
     {
+      g_auto (GStrv) parts = NULL;
+
+      parts = g_strsplit (target_permissions_id + strlen ("snap."), "_", -1);
+
+      /* Snap does not support permission check for sub-applications */
       res = xdp_spawn (&error, "snap", "routine", "file-access",
-                        target_permissions_id + strlen ("snap."), path, NULL);
+                       parts[0], path, NULL);
 
       if (!res)
         {
