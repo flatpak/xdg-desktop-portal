@@ -189,6 +189,12 @@ remote_desktop_session_is_clipboard_enabled (RemoteDesktopSession *session)
   return session->clipboard_enabled;
 }
 
+gboolean
+remote_desktop_session_can_access_clipboard (RemoteDesktopSession *session)
+{
+  return session->clipboard_enabled;
+}
+
 void
 remote_desktop_session_clipboard_requested (RemoteDesktopSession *session)
 {

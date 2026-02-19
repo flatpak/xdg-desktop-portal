@@ -91,6 +91,15 @@ session_is_clipboard_enabled (XdpSession *session)
     g_assert_not_reached ();
 }
 
+static gboolean
+session_can_access_clipboard (XdpSession *session)
+{
+  if (IS_REMOTE_DESKTOP_SESSION (session))
+    return remote_desktop_session_can_access_clipboard (REMOTE_DESKTOP_SESSION (session));
+  else
+    g_assert_not_reached();
+}
+
 static XdpOptionKey clipboard_set_selection_options[] = {
   { "mime_types", G_VARIANT_TYPE_STRING_ARRAY, NULL },
 };
@@ -185,6 +194,15 @@ handle_set_selection (XdpDbusClipboard *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Clipboard not enabled");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!session_can_access_clipboard (session))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Session cannot access clipboard at the moment");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
@@ -469,6 +487,15 @@ handle_selection_read (XdpDbusClipboard *object,
                                              G_DBUS_ERROR,
                                              G_DBUS_ERROR_ACCESS_DENIED,
                                              "Clipboard not enabled");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  if (!session_can_access_clipboard (session))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Session cannot access clipboard at the moment");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 

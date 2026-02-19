@@ -33,11 +33,16 @@
         @options: Vardict with optional further information
 
         Requests clipboard access for the given portal session. This request
-        must be made before the session starts.
+        must be made before the session starts. The session must be started,
+        before using any other method in this interface which take a session.
+        Note that other interfaces might place restriction on when it's possible
+        to interact with the clipboard.
 
         This portal does NOT create it's own session. Instead, it offers existing sessions
-        created from other portals the option to integrate with the clipboard. For whether
-        this interface is supported for a given session, refer to that portal's documentation.
+        created from other portals the option to integrate with the clipboard.
+
+        For whether this interface is supported for a given session, refer to that portal's
+        documentation.
         See :ref:`org.freedesktop.portal.RemoteDesktop` to integrate clipboard with the
         remote desktop session.
     -->
