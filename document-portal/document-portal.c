@@ -649,6 +649,12 @@ app_has_file_access (const char *target_permissions_id,
     {
       res = xdp_spawn (&error, "snap", "routine", "file-access",
                         target_permissions_id + strlen ("snap."), path, NULL);
+
+      if (!res)
+        {
+          /* Fallback access method has no support for snaps. */
+          return FALSE;
+        }
     }
   else
     {
