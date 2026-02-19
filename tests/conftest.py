@@ -121,7 +121,10 @@ def xdp_mocked_executables(xdp_app_info: xdp.AppInfo) -> list[xdp.ExecutableMock
     exe = None
     if xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
         exe = "flatpak"
-    elif xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+    elif (
+        xdp_app_info.kind == xdp.AppInfoKind.SNAP
+        or xdp_app_info.kind == xdp.AppInfoKind.SNAP_SUB_APP
+    ):
         exe = "snap"
     else:
         return []
@@ -447,6 +450,7 @@ def xdp_overwrite_env() -> dict[str, str]:
         xdp.AppInfoKind.HOST,
         xdp.AppInfoKind.FLATPAK,
         xdp.AppInfoKind.SNAP,
+        xdp.AppInfoKind.SNAP_SUB_APP,
         xdp.AppInfoKind.LINYAPS,
     ]
 )
@@ -472,6 +476,13 @@ def xdp_app_info(request) -> xdp.AppInfo:
         )
 
     if app_info_kind == xdp.AppInfoKind.SNAP:
+        return xdp.AppInfo.new_snap(
+            common_id=app_id,
+            snap_name="test",
+            app_name="test",
+        )
+
+    if app_info_kind == xdp.AppInfoKind.SNAP_SUB_APP:
         return xdp.AppInfo.new_snap(
             common_id=app_id,
             snap_name="example",
