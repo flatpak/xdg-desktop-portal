@@ -247,7 +247,8 @@ class AppInfoKind(Enum):
     HOST = 1
     FLATPAK = 2
     SNAP = 3
-    LINYAPS = 4
+    SNAP_SUB_APP = 4
+    LINYAPS = 5
 
 
 @dataclass
@@ -392,7 +393,9 @@ enumerable-devices={usb_queries}
         kind = AppInfoKind.SNAP
         app_id = f"{snap_name}_{app_name}"
         desktop_file = f"{app_id}.desktop"
-        permissions_id = f"snap.{snap_name}"
+        permissions_id = f"snap.{snap_name}" + (
+            f"_{app_name}" if app_name != snap_name else ""
+        )
         env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "snap",
         }
@@ -402,7 +405,7 @@ enumerable-devices={usb_queries}
             desktop_entry_str = f"""
 [Desktop Entry]
 Version=1.0
-Name=Example Snap App
+Name=Example Snap App ({app_name})
 Exec=true %u
 Type=Application
 X-SnapInstanceName={snap_name}

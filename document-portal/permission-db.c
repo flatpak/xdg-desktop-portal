@@ -1280,13 +1280,22 @@ permissions_id_for_app_id (const char *app_id)
   if (g_desktop_app_info_has_key (app_info, "X-SnapInstanceName"))
     {
       g_autofree char *snap_instance_name = NULL;
+      g_autofree char *snap_app_name = NULL;
 
       g_debug ("App ID for %s is provided by snap desktop ID", desktop_id);
 
       snap_instance_name = g_desktop_app_info_get_string (app_info,
                                                           "X-SnapInstanceName");
       g_return_val_if_fail (snap_instance_name != NULL, g_strdup (app_id));
-      return g_strconcat ("snap.", snap_instance_name, NULL);
+
+      snap_app_name = g_desktop_app_info_get_string (app_info, "X-SnapAppName");
+      if (snap_app_name && g_str_equal (snap_instance_name, snap_app_name))
+        {
+          /* We optimize the main case so that the old permissions are preserved. */
+          return g_strconcat ("snap.", snap_instance_name, NULL);
+        }
+
+      return g_strconcat ("snap.", snap_instance_name, "_", snap_app_name, NULL);
     }
 
   return g_strdup (app_id);
