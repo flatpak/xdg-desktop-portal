@@ -85,8 +85,10 @@ document_entry_has_permissions_by_app_id (PermissionDbEntry       *entry,
                                           DocumentPermissionFlags  perms)
 {
   DocumentPermissionFlags current_perms;
+  g_autofree char *permissions_id = NULL;
 
-  current_perms = document_entry_get_permissions_by_app_permissions_id (entry, app_id);
+  permissions_id = permissions_id_for_app_id (app_id);
+  current_perms = document_entry_get_permissions_by_app_permissions_id (entry, permissions_id);
 
   return (current_perms & perms) == perms;
 }
