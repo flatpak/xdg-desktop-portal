@@ -70,6 +70,7 @@ pytest_args = ['--verbose', '--log-level=DEBUG']
 
 pytest_env = environment()
 pytest_env.set('BUILDDIR', meson.project_build_root())
+pytest_env.set('UNDER_MESON', '1')
 
 # pytest xdist is nice because it significantly speeds up our
 # test process, but it's not required
