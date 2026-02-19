@@ -7,8 +7,14 @@ import tests.xdp_doc_utils as xdp_doc
 
 import pytest
 import dbus
+from enum import Enum
 from pathlib import Path
 import os
+
+
+class PermissionsIDType(Enum):
+    PERMISSIONS_ID = 1
+    APP_ID = 2
 
 
 class TestDocuments:
@@ -32,20 +38,25 @@ class TestDocuments:
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         xdp_doc.get_mountpoint(documents_intf)
 
-    def test_create_doc(self, xdg_document_portal, dbus_con, xdp_app_info):
+    @pytest.mark.parametrize("permission_id_type", [*PermissionsIDType])
+    def test_create_doc(
+        self, xdg_document_portal, dbus_con, xdp_app_info, permission_id_type
+    ):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "a-file"
         permissions_id = xdp_app_info.permissions_id
+        if permission_id_type == PermissionsIDType.APP_ID:
+            permissions_id = xdp_app_info.app_id
 
         file_path = Path(os.environ["TMPDIR"]) / file_name
         xdp_doc.write_bytes_atomic(file_path, content)
         doc_id = xdp_doc.export_file(documents_intf, file_path)
 
         doc_path = mountpoint / doc_id
-        doc_app1_path = mountpoint / "by-app" / permissions_id / doc_id
+        doc_app1_path = mountpoint / "by-app" / xdp_app_info.permissions_id / doc_id
         doc_app2_path = mountpoint / "by-app" / "com.test.App2" / doc_id
 
         # Make sure it got exported
@@ -124,20 +135,25 @@ class TestDocuments:
         doc_id5 = xdp_doc.export_file(documents_intf, file_path, unique=True)
         assert doc_id5 != doc_id
 
-    def test_recursive_doc(self, xdg_document_portal, dbus_con, xdp_app_info):
+    @pytest.mark.parametrize("permission_id_type", [*PermissionsIDType])
+    def test_recursive_doc(
+        self, xdg_document_portal, dbus_con, xdp_app_info, permission_id_type
+    ):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "recursive-file"
         permissions_id = xdp_app_info.permissions_id
+        if permission_id_type == PermissionsIDType.APP_ID:
+            permissions_id = xdp_app_info.app_id
 
         file_path = Path(os.environ["TMPDIR"]) / file_name
         xdp_doc.write_bytes_atomic(file_path, content)
         doc_id = xdp_doc.export_file(documents_intf, file_path)
 
         doc_path = mountpoint / doc_id
-        doc_app1_path = mountpoint / "by-app" / permissions_id / doc_id
+        doc_app1_path = mountpoint / "by-app" / xdp_app_info.permissions_id / doc_id
 
         assert (doc_path / file_name).read_bytes() == content
 
@@ -149,11 +165,16 @@ class TestDocuments:
         doc_id3 = xdp_doc.export_file(documents_intf, doc_app1_path / file_name)
         assert doc_id3 == doc_id
 
-    def test_create_docs(self, xdg_document_portal, dbus_con, xdp_app_info):
+    @pytest.mark.parametrize("permission_id_type", [*PermissionsIDType])
+    def test_create_docs(
+        self, xdg_document_portal, dbus_con, xdp_app_info, permission_id_type
+    ):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
         permissions_id = xdp_app_info.permissions_id
+        if permission_id_type == PermissionsIDType.APP_ID:
+            permissions_id = xdp_app_info.app_id
         files = {
             "doc1": b"doc1-content",
             "doc2": b"doc2-content",
@@ -179,8 +200,12 @@ class TestDocuments:
             assert (Path(os.environ["TMPDIR"]) / file_name).read_bytes() == file_content
             app1_path = mountpoint / "by-app" / permissions_id / doc_id / file_name
             app2_path = mountpoint / "by-app" / "com.test.App2" / doc_id / file_name
+            app1_other_path = (
+                mountpoint / "by-app" / xdp_app_info.permissions_id / doc_id / file_name
+            )
             assert not app1_path.exists()
             assert not app2_path.exists()
+            assert not app1_other_path.exists()
             assert not (mountpoint / doc_id / "another-file").exists()
             assert not (mountpoint / "anotherid" / file_name).exists()
 
@@ -191,20 +216,25 @@ class TestDocuments:
             with pytest.raises(PermissionError):
                 other_app_path.write_bytes(b"new-content")
 
-    def test_add_named(self, xdg_document_portal, dbus_con, xdp_app_info):
+    @pytest.mark.parametrize("permission_id_type", [*PermissionsIDType])
+    def test_add_named(
+        self, xdg_document_portal, dbus_con, xdp_app_info, permission_id_type
+    ):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
         mountpoint = xdp_doc.get_mountpoint(documents_intf)
 
         content = b"content"
         file_name = "add-named-1"
         permissions_id = xdp_app_info.permissions_id
+        if permission_id_type == PermissionsIDType.APP_ID:
+            permissions_id = xdp_app_info.app_id
 
         folder_path = Path(os.environ["TMPDIR"])
         doc_id = xdp_doc.export_file_named(documents_intf, folder_path, file_name)
         assert doc_id
 
         doc_path = mountpoint / doc_id
-        doc_app1_path = mountpoint / "by-app" / permissions_id / doc_id
+        doc_app1_path = mountpoint / "by-app" / xdp_app_info.permissions_id / doc_id
         doc_app2_path = mountpoint / "by-app" / "com.test.App2" / doc_id
 
         assert doc_path.exists()
@@ -288,7 +318,8 @@ class TestDocuments:
         assert (doc_app1_path / file_name).read_bytes() == content
         assert not (doc_app2_path / file_name).exists()
 
-    def test_get_host_paths(self, xdg_document_portal, dbus_con):
+    @pytest.mark.parametrize("permission_id_type", [*PermissionsIDType])
+    def test_get_host_paths(self, xdg_document_portal, dbus_con, permission_id_type):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
 
         content = b"content"
