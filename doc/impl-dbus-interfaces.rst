@@ -25,6 +25,7 @@ accessible to sandboxed applications.
    doc-org.freedesktop.impl.portal.Print.rst
    doc-org.freedesktop.impl.portal.RemoteDesktop.rst
    doc-org.freedesktop.impl.portal.Request.rst
+   doc-org.freedesktop.impl.portal.SaveRestore.rst
    doc-org.freedesktop.impl.portal.ScreenCast.rst
    doc-org.freedesktop.impl.portal.Screenshot.rst
    doc-org.freedesktop.impl.portal.Secret.rst

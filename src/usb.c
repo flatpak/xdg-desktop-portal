@@ -842,7 +842,7 @@ handle_create_session (XdpDbusUsb            *object,
   if (!xdp_session_export (session, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
-      xdp_session_close (session, FALSE);
+      xdp_session_close (session, FALSE, FALSE);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 

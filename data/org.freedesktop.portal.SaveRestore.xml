@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<!--
+ Copyright Red Hat
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.SaveRestore:
+      @short_description: Portal for coordinating app state save and restore
+
+      The SaveRestore interface allows the session to coordinate with applications
+      to implement a session-wide state save/restore feature. Apps that can save
+      their state to disk should register with this portal. In exchange, the system
+      may restore session state after the session ends (i.e. after a reboot).
+      It is not a portal in the strict sense, since it does not involve user
+      interaction. Applications are expected to use this interface indirectly,
+      via integration with their UI toolkit.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.SaveRestore">
+    <!--
+        Register:
+        @options: Vardict with optional further information
+        @session_handle: Object path for the created :ref:`org.freedesktop.portal.Session` object
+        @registration: Vardict directing the app how to restore its state
+
+        Registers this app with the save/restore API. If the user logs out while
+        the app is registered, the system will remember that this app was running
+        and can relaunch it on next log-in. The app can then register itself again
+        on next startup to be notified of what state (if any) it should restore.
+
+        During a clean shutdown, the app should close the created session using
+        :ref:`org.freedesktop.portal.Session.Close`. If the app disconnects from
+        the bus without closing the session first, the system will consider the
+        shutdown unclean and will report this to the app on its next startup.
+
+        Supported keys in the @options vardict include:
+
+        * ``session_handle_token`` (``s``)
+
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
+
+        Supported keys in the @registration vardict include:
+
+        * ``instance-id`` (``s``)
+
+          A short alphanumeric string that identifies different instances of a
+          multi-instance app. This allows multi-instance apps to keep the state
+          of each instance separated. Single-instance apps should use this as
+          well, because the system will return different identifiers when running
+          different graphical sessions. For instance: if a user switches between
+          GNOME and KDE regularly, even single-instance apps will need to save
+          and load their state under different instance IDs.
+
+        * ``restore-reason`` (``u``)
+
+          Tells the app which state it needs to restore. Supported values:
+
+          - ``PRISTINE``: 0. The app should not attempt to restore any state.
+
+          - ``LAUNCH``: 1. This is a normal launch, so the app should restore
+            some state (i.e. previous window size and position, default view on
+            the home page) but it shouldn't attempt a full state restore. The
+            exception is apps that have a preference that allows the user to
+            decide if the app should always save and restore its state: if the
+            user opts into this behavior, then it's permissible for the app to
+            treat ``LAUNCH`` as equivalent to ``RESTORE``.
+
+          - ``RECOVER``: 2. This is the first launch after the app unexpectedly
+            disconnected from the bus. The app should try to restore as much
+            state as it can, but it should be careful to avoid crash loops. Apps
+            can handle this by prompting users before attempting to restore state,
+            or by strategically throwing away some state. For instance: a web
+            browser may choose to restore open tabs but not restore the web
+            content inside of each tab, instead showing a placeholder page and
+            prompting the user to reload the tab. To support this feature
+            properly, apps should periodically save their state while taking care
+            to avoid unnecessary I/O. For instance: apps can flush their state
+            to disk every 15 seconds, but only while the app is focused.
+
+          - ``RESTORE``: 3. The app should attempt to restore as much state as
+            possible.
+
+        * ``discard-instance-ids`` (``as``)
+
+          A list of instance IDs (as above) that the system is done with and will
+          no longer return to the app. The app should clean up any state it has
+          associated with these IDs, and then report completion via
+          :ref:`org.freedesktop.portal.SaveRestore.DiscardInstanceIdsResponse`.
+    -->
+    <method name="Register">
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="session_handle" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="registration" direction="out"/>
+    </method>
+
+    <!--
+        DiscardedInstanceIds:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @instance_ids: List of instance IDs the application discarded
+
+        Confirms that the caller has discarded the instance IDs, as requested by
+        the ``discard-instance-ids`` value returned by
+        :ref:`org.freedesktop.portal.SaveRestore.Register`. The system will finish
+        discarding its internal tracking of the instance IDs once this is called.
+    -->
+    <method name="DiscardedInstanceIds">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="as" name="instance_ids" direction="in"/>
+    </method>
+
+    <!--
+        SaveHint:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        The SaveHint signal is sent to an app whenever the system thinks it
+        would be a good moment for the app to save its state. In response, apps
+        should immediately save their state and then respond with
+        :ref:`org.freedesktop.portal.SaveRestore.SaveHintResponse`.
+
+        Note that apps should not be using this signal as the only reason to
+        save their state. This signal will be emitted relatively rarely. Each
+        app should periodically save its own state at moments where it makes
+        sense for the app.
+    -->
+    <signal name="SaveHint">
+      <arg type="o" name="session_handle" direction="out"/>
+    </signal>
+
+    <!--
+        SaveHintResponse:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        Acknowledges that the caller received the :ref:`org.freedesktop.portal.SaveRestore::SaveHint`
+        signal. This method should be called within 3 seconds of receiving the signal.
+    -->
+    <method name="SaveHintResponse">
+      <arg type="o" name="session_handle" direction="in"/>
+    </method>
+
+    <!--
+        Quit:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        The Quit signal is sent to an app whenever the system decides to
+        terminate the app to free up system resources (i.e. memory). The app
+        should immediately save its state to disk and then exit cleanly, within
+        3 seconds of receiving this signal. The app may be transparently restarted
+        by the system at a later date.
+    -->
+    <signal name="Quit">
+      <arg type="o" name="session_handle" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

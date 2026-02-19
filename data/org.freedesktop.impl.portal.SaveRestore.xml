@@ -1,0 +1,124 @@
+<?xml version="1.0"?>
+<!--
+ Copyright Red Hat
+
+ SPDX-License-Identifier: LGPL-2.1-or-later
+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.SaveRestore:
+      @short_description: Save/restore portal backend interface
+
+      The save/restore portal allows the session to coordinate with apps to
+      implement a session-wide state save/restore feature.
+
+      Portal backends that implement this interface must implement at least
+      version 2 of the :ref:`org.freedesktop.impl.portal.Session` interface.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.impl.portal.SaveRestore">
+    <!--
+        Register:
+        @session_handle: Object path for the ref:`org.freedesktop.impl.portal.Session` object representing the session being created
+        @app_id: App id of the application
+        @options: Vardict with optional further information
+        @registration: Vardict directing the app how to restore its state. See :ref:`org.freedesktop.portal.SaveRestore.Register`
+
+        Registers an app with the save/restore API.
+
+        There are currently no supported keys in the @options vardict.
+
+        A note about instance IDs: the backend should make sure to incorporate
+        information about the session (i.e. the name of the session manager and/or
+        desktop environment) into the process that generates instance IDs. This
+        allows apps that use instance IDs correctly to automatically support
+        use-cases where people switch between different session types.
+    -->
+    <method name="Register">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
+      <arg type="a{sv}" name="registration" direction="out"/>
+    </method>
+
+    <!--
+        DiscardedInstanceIds:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @instance_ids: List of instance IDs the application discarded
+
+        Confirms that the caller has discarded the instance IDs, as requested by
+        the ``discard-instance-ids`` value returned by
+        :ref:`org.freedesktop.portal.impl.SaveRestore.Register`. The backend should
+        finish discarding its internal tracking of the instance IDs once this is
+        called.
+    -->
+    <method name="DiscardedInstanceIds">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="as" name="instance_ids" direction="in"/>
+    </method>
+
+    <!--
+        SaveHint:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        The SaveHint signal is sent to an app whenever the system thinks it
+        would be a good moment for the app to save its state. The system should
+        not be sending this regularly, but only in situations that might otherwise
+        lead to data loss. For instance: this signal might be emitted before the
+        whole system suspends, or before an individual app will be frozen and
+        removed from the run queue to preserve resources, or before imminent
+        system power loss.
+
+        Apps are expected to respond to this signal by calling
+        :ref:`org.freedesktop.portal.impl.SaveRestore.SaveHintResponse` within
+        3 seconds.
+    -->
+    <signal name="SaveHint">
+      <arg type="o" name="session_handle" direction="out"/>
+    </signal>
+
+    <!--
+        SaveHintResponse:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        Acknowledges that the caller received the :ref:`org.freedesktop.impl.portal.SaveRestore::SaveHint`
+        signal. This method should be called within 3 seconds of receiving the signal.
+    -->
+    <method name="SaveHintResponse">
+      <arg type="o" name="session_handle" direction="in"/>
+    </method>
+
+    <!--
+        Quit:
+        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+
+        The Quit signal is sent to an app whenever the system decides to
+        terminate the app to free up system resources (i.e. memory). The app
+        should immediately save its state to disk and then exit cleanly, within
+        3 seconds of receiving this signal. The app may be transparently restarted
+        by the system at a later date.
+    -->
+    <signal name="Quit">
+      <arg type="o" name="session_handle" direction="out"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

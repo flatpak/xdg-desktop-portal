@@ -106,6 +106,7 @@ xdg_desktop_portal_sources = files(
   'realtime.c',
   'registry.c',
   'remote-desktop.c',
+  'save-restore.c',
   'screen-cast.c',
   'screenshot.c',
   'secret.c',
