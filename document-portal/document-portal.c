@@ -657,6 +657,7 @@ app_has_file_access (const char *target_permissions_id,
 
       if (!res)
         {
+          g_debug ("snap file-access check failed: %s", error->message);
           /* Fallback access method has no support for snaps. */
           return FALSE;
         }
@@ -666,6 +667,9 @@ app_has_file_access (const char *target_permissions_id,
       /* First we try flatpak info --file-access=PATH APPID, which is supported on new versions */
       arg = g_strdup_printf ("--file-access=%s", path);
       res = xdp_spawn (&error, "flatpak", "info", arg, target_permissions_id, NULL);
+
+      if (!res)
+        g_debug ("flatpak file-access check failed: %s", error->message);
     }
 
   if (res)
