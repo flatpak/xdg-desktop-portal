@@ -54,3 +54,7 @@ option('sandboxed-sound-validation',
        type: 'feature',
        value: 'enabled',
        description: 'Use Bubblewrap to sandbox sound validation. Disabling this option may lead to security vulnerabilities.')
+option('speech',
+       type: 'feature',
+       value: 'enabled',
+       description: 'Enable speech portal.')
