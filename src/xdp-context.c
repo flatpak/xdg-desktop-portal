@@ -153,7 +153,7 @@ xdp_context_new (gboolean opt_verbose)
   context->verbose = opt_verbose;
   context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
-  context->app_info_registry = xdp_app_info_registry_new ();
+  context->app_info_registry = xdp_app_info_registry_new (context);
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
                                                      g_object_unref);
@@ -318,8 +318,6 @@ on_peer_disconnect (const char *name,
   xdp_usb_delete_for_sender (context, name);
 
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
-
-  xdp_app_info_registry_delete (context->app_info_registry, name);
 }
 
 gboolean

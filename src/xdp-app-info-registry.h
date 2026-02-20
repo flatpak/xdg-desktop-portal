@@ -30,7 +30,7 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoRegistry,
                       XDP, APP_INFO_REGISTRY,
                       GObject)
 
-XdpAppInfoRegistry * xdp_app_info_registry_new (void);
+XdpAppInfoRegistry * xdp_app_info_registry_new (XdpContext *context);
 
 XdpAppInfo * xdp_app_info_registry_lookup_sender (XdpAppInfoRegistry *registry,
                                                   const char         *sender);

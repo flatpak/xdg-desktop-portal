@@ -1506,6 +1506,7 @@ on_peer_disconnect (const char *name,
                     gpointer    user_data)
 {
   stop_file_transfers_for_sender (name);
+  xdp_app_info_registry_delete (app_info_registry, name);
 }
 
 static void
@@ -1518,7 +1519,7 @@ on_bus_acquired (GDBusConnection *connection,
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
 
-  app_info_registry = xdp_app_info_registry_new ();
+  app_info_registry = xdp_app_info_registry_new (NULL);
 
   xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 5);
 
