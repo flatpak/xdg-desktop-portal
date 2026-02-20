@@ -36,8 +36,6 @@ void xdp_session_persistence_set_transient_permissions (XdpSession *session,
 void xdp_session_persistence_delete_transient_permissions (XdpSession *session,
                                                            const char *restore_token);
 
-void xdp_session_persistence_delete_transient_permissions_for_sender (const char *sender_name);
-
 GVariant * xdp_session_persistence_get_transient_permissions (XdpSession *session,
                                                               const char *restore_token);
 
