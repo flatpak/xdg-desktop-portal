@@ -240,52 +240,6 @@ xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface)
 }
 
 static void
-close_sessions_in_thread_func (GTask *task,
-                               gpointer source_object,
-                               gpointer task_data,
-                               GCancellable *cancellable)
-{
-  const char *sender = (const char *)task_data;
-  GSList *list = NULL;
-  GSList *l;
-  GHashTableIter iter;
-  XdpSession *session;
-
-  G_LOCK (sessions);
-  if (sessions)
-    {
-      g_hash_table_iter_init (&iter, sessions);
-      while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&session))
-        {
-          if (strcmp (sender, session->sender) == 0)
-            list = g_slist_prepend (list, g_object_ref (session));
-        }
-    }
-  G_UNLOCK (sessions);
-
-  for (l = list; l; l = l->next)
-    {
-      XdpSession *session = l->data;
-
-      SESSION_AUTOLOCK (session);
-      xdp_session_close (session, FALSE);
-    }
-
-  g_slist_free_full (list, g_object_unref);
-  g_task_return_boolean (task, TRUE);
-}
-
-void
-close_sessions_for_sender (const char *sender)
-{
-  g_autoptr(GTask) task = NULL;
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_strdup (sender), g_free);
-  g_task_run_in_thread (task, close_sessions_in_thread_func);
-}
-
-static void
 on_closed (XdpDbusImplSession *object, GObject *data)
 {
   XdpSession *session = XDP_SESSION (data);
@@ -314,6 +268,18 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   return TRUE;
+}
+
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  XdpSession *session = XDP_SESSION (user_data);
+
+  REQUEST_AUTOLOCK (session);
+
+  xdp_session_close (session, FALSE);
 }
 
 static gboolean
@@ -392,6 +358,11 @@ xdp_session_initable_init (GInitable     *initable,
   g_signal_connect (session, "g-authorize-method",
                     G_CALLBACK (xdp_session_authorize_callback),
                     session->sender);
+
+  g_signal_connect_object (session->context, "peer-disconnect",
+                           G_CALLBACK (on_peer_disconnect),
+                           session,
+                           G_CONNECT_DEFAULT);
 
   return TRUE;
 }
