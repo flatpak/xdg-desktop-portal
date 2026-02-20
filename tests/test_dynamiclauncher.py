@@ -42,7 +42,7 @@ class TestDynamicLauncher:
 
         xdp.check_version(dbus_con, "DynamicLauncher", 1)
 
-    def test_basic(self, portals, dbus_con, xdp_app_info):
+    def test_basic(self, portals, dbus_con, xdp_app_info, flatpak_dummy_binary):
         app_id = xdp_app_info.app_id
         """test that the backend receives the expected data"""
 
@@ -94,9 +94,17 @@ class TestDynamicLauncher:
         except dbus.exceptions.DBusException as e:
             # Unsupported on snap and linyaps
             assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
-            assert xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+            assert xdp_app_info.kind in {
+                xdp.AppInfoKind.SNAP,
+                xdp.AppInfoKind.SNAP_SUB_APP,
+                xdp.AppInfoKind.LINYAPS,
+            }
             return
-        assert xdp_app_info.kind not in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+        assert xdp_app_info.kind not in {
+            xdp.AppInfoKind.SNAP,
+            xdp.AppInfoKind.SNAP_SUB_APP,
+            xdp.AppInfoKind.LINYAPS,
+        }
 
         file = Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file_name
         assert file.exists()

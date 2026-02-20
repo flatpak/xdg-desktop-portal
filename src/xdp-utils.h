@@ -42,6 +42,7 @@ gint xdp_mkstempat (int    dir_fd,
                     int    mode);
 
 gboolean xdp_is_valid_app_id (const char *string);
+gboolean xdp_is_valid_permissions_id (const char *string);
 gboolean xdp_is_valid_token (const char *string);
 
 char *xdp_get_app_id_from_desktop_id (const char *desktop_id);

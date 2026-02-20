@@ -16,6 +16,7 @@ import tempfile
 import subprocess
 import time
 import signal
+import shutil
 from pathlib import Path
 from contextlib import chdir
 
@@ -83,6 +84,13 @@ def xdg_permission_store_path() -> Path:
 @pytest.fixture
 def xdg_document_portal_path() -> Path:
     return Path(os.environ["XDG_DOCUMENT_PORTAL_PATH"])
+
+
+@pytest.fixture
+def xdp_bin_path(tmp_path: Path) -> Path:
+    true = tmp_path / "true"
+    true.touch(mode=0o755)
+    return tmp_path
 
 
 @pytest.fixture(autouse=True)
@@ -400,6 +408,7 @@ def xdp_overwrite_env() -> dict[str, str]:
         xdp.AppInfoKind.HOST,
         xdp.AppInfoKind.FLATPAK,
         xdp.AppInfoKind.SNAP,
+        xdp.AppInfoKind.SNAP_SUB_APP,
         xdp.AppInfoKind.LINYAPS,
     ]
 )
@@ -431,6 +440,13 @@ def xdp_app_info(request) -> xdp.AppInfo:
             app_name="test",
         )
 
+    if app_info_kind == xdp.AppInfoKind.SNAP_SUB_APP:
+        return xdp.AppInfo.new_snap(
+            common_id=app_id,
+            snap_name="example",
+            app_name="test",
+        )
+
     if app_info_kind == xdp.AppInfoKind.LINYAPS:
         return xdp.AppInfo.new_linyaps(
             app_id=app_id,
@@ -449,10 +465,12 @@ def xdp_env(
     xdp_overwrite_env: dict[str, str],
     xdp_app_info: xdp.AppInfo,
     umockdev: Optional[UMockdev.Testbed],
+    xdp_bin_path: Path,
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
+    env["PATH"] = xdp_bin_path.as_posix()
 
     if xdp_app_info:
         xdp_app_info.extend_env(env)
@@ -502,11 +520,14 @@ def xdp_valgrind_args() -> list[str]:
     if not xdp.is_valgrind():
         return []
 
+    valgrind = shutil.which("valgrind")
+    assert valgrind, "Valgrind is not installed or not in PATH"
+
     xdp_suppression = test_dir() / "valgrind.suppression"
     glib_suppression = _valgrind_glib_suppressions()
 
     return [
-        "valgrind",
+        valgrind,
         "--tool=memcheck",
         "--error-exitcode=1",
         "--track-origins=yes",
@@ -590,7 +611,10 @@ def xdg_permission_store(
 
 @pytest.fixture
 def xdg_document_portal(
-    dbus_con: dbus.Bus, xdg_document_portal_path: Path, xdp_env: dict[str, str]
+    dbus_con: dbus.Bus,
+    xdg_document_portal_path: Path,
+    xdp_env: dict[str, str],
+    file_access_hidden: None,
 ) -> Iterator[subprocess.Popen]:
     """
     Fixture which starts and eventually stops xdg-document-portal
@@ -640,6 +664,82 @@ def xdg_document_portal(
         return False
 
     xdp.wait_for(unmounted)
+
+
+def create_file_access_wrapper_script(path: Path, name: str, mode: str) -> None:
+    """
+    Creates a wrapper script for the file access check which just returns
+    the given mode. This is used to simulate different file access modes.
+    """
+    if not path.exists():
+        raise FileNotFoundError(f"{path} does not exist")
+
+    script = path / name
+    script.write_text(f"""
+#!/usr/bin/env sh
+echo {mode}""")
+    script.chmod(0o755)
+
+
+def create_file_access_wrapper_scripts(
+    path: Path, xdp_app_info: xdp.AppInfo, mode: str
+) -> None:
+    """
+    Creates wrapper scripts for the file access check which just returns
+    the given mode. This is used to simulate different file access modes.
+    """
+    if (
+        xdp_app_info.kind == xdp.AppInfoKind.SNAP
+        or xdp_app_info.kind == xdp.AppInfoKind.SNAP_SUB_APP
+    ):
+        create_file_access_wrapper_script(path, "snap", mode)
+    elif xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
+        create_file_access_wrapper_script(path, "flatpak", mode)
+
+
+@pytest.fixture
+def file_access_read_write(
+    request, xdp_bin_path: Path, xdp_app_info: xdp.AppInfo
+) -> None:
+    """
+    Fixture which creates wrapper scripts for the file access check which
+    just returns "read-write". This is used to simulate read-write access for
+    the document portal tests.
+    """
+    create_file_access_wrapper_scripts(xdp_bin_path, xdp_app_info, "read-write")
+
+
+@pytest.fixture
+def file_access_read_only(
+    request, xdp_bin_path: Path, xdp_app_info: xdp.AppInfo
+) -> None:
+    """
+    Fixture which creates wrapper scripts for the file access check which
+    just returns "read-only". This is used to simulate read-only access for
+    the document portal tests.
+    """
+    create_file_access_wrapper_scripts(xdp_bin_path, xdp_app_info, "read-only")
+
+
+@pytest.fixture
+def file_access_hidden(request, xdp_bin_path: Path, xdp_app_info: xdp.AppInfo) -> None:
+    """
+    Fixture which creates wrapper scripts for the file access check which
+    just returns "hidden". This is used to simulate hidden access for
+    the document portal tests.
+    """
+    create_file_access_wrapper_scripts(xdp_bin_path, xdp_app_info, "hidden")
+
+
+@pytest.fixture
+def flatpak_dummy_binary(xdp_bin_path: Path) -> None:
+    """
+    Creates a dummy executable script in bin path.
+    """
+    if not xdp_bin_path.exists():
+        raise FileNotFoundError(f"{xdp_bin_path} does not exist")
+
+    (xdp_bin_path / "flatpak").touch(mode=0o755)
 
 
 @pytest.fixture

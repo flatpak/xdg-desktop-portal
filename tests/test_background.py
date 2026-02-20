@@ -89,7 +89,11 @@ class TestBackground:
         assert response.results["background"]
 
         # Unsupported on snap and linyaps
-        if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
+        if xdp_app_info.kind in {
+            xdp.AppInfoKind.SNAP,
+            xdp.AppInfoKind.SNAP_SUB_APP,
+            xdp.AppInfoKind.LINYAPS,
+        }:
             assert not response.results["autostart"]
             return
 

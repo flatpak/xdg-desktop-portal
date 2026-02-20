@@ -25,6 +25,7 @@
 
 #include <string.h>
 #include <fcntl.h>
+#include <gio/gdesktopappinfo.h>
 #include <stdio.h>
 #include <stdlib.h>
 #if HAVE_SYS_STATFS_H
@@ -49,11 +50,11 @@ struct PermissionDb
 
   gboolean   dirty;
 
-  /* Map id => GVariant (data, sorted-dict[appid->perms]) */
+  /* Map id => GVariant (data, sorted-dict[app_permissions_id->perms]) */
   GvdbTable  *main_table;
   GHashTable *main_updates;
 
-  /* (reverse) Map app id => [ id ]*/
+  /* (reverse) Map app permissions id => [ id ]*/
   GvdbTable  *app_table;
   GHashTable *app_additions;
   GHashTable *app_removals;
@@ -1075,37 +1076,6 @@ permission_db_entry_list_permissions (PermissionDbEntry *entry,
     return g_new0 (const char *, 1);
 }
 
-gboolean
-permission_db_entry_has_permission (PermissionDbEntry *entry,
-                                    const char     *app,
-                                    const char     *permission)
-{
-  g_autofree const char **app_permissions = NULL;
-
-  app_permissions = permission_db_entry_list_permissions (entry, app);
-
-  return g_strv_contains (app_permissions, permission);
-}
-
-gboolean
-permission_db_entry_has_permissions (PermissionDbEntry *entry,
-                                     const char     *app,
-                                     const char    **permissions)
-{
-  g_autofree const char **app_permissions = NULL;
-  int i;
-
-  app_permissions = permission_db_entry_list_permissions (entry, app);
-
-  for (i = 0; permissions[i] != NULL; i++)
-    {
-      if (!g_strv_contains (app_permissions, permissions[i]))
-        return FALSE;
-    }
-
-  return TRUE;
-}
-
 static GVariant *
 make_entry (GVariant *data,
             GVariant *app_permissions)
@@ -1283,4 +1253,50 @@ permission_db_entry_print_string (PermissionDbEntry *entry,
                                   GString        *string)
 {
   return g_variant_print_string ((GVariant *) entry, string, FALSE);
+}
+
+char *
+permissions_id_for_app_id (const char *app_id)
+{
+  g_autoptr (GDesktopAppInfo) app_info = NULL;
+  g_autofree char *desktop_id = NULL;
+
+  if (app_id == NULL || *app_id == '\0' || g_str_has_prefix (app_id, "snap."))
+    return g_strdup (app_id);
+
+  /* We could optimize the case for flatpak's, by something like
+   *   !g_str_has_prefix (app_id, "snap.") && strchr (app_id, '.')
+   * but snaps are going to support normal desktop IDs, and so it's better
+   * not to optimize something that we need to drop soon.
+   */
+
+  g_debug ("Looking for app ID for %s", app_id);
+  desktop_id = g_strconcat (app_id, ".desktop", NULL);
+  app_info = g_desktop_app_info_new (desktop_id);
+
+  if (!app_info)
+    return g_strdup (app_id);
+
+  if (g_desktop_app_info_has_key (app_info, "X-SnapInstanceName"))
+    {
+      g_autofree char *snap_instance_name = NULL;
+      g_autofree char *snap_app_name = NULL;
+
+      g_debug ("App ID for %s is provided by snap desktop ID", desktop_id);
+
+      snap_instance_name = g_desktop_app_info_get_string (app_info,
+                                                          "X-SnapInstanceName");
+      g_return_val_if_fail (snap_instance_name != NULL, g_strdup (app_id));
+
+      snap_app_name = g_desktop_app_info_get_string (app_info, "X-SnapAppName");
+      if (snap_app_name && g_str_equal (snap_instance_name, snap_app_name))
+        {
+          /* We optimize the main case so that the old permissions are preserved. */
+          return g_strconcat ("snap.", snap_instance_name, NULL);
+        }
+
+      return g_strconcat ("snap.", snap_instance_name, "_", snap_app_name, NULL);
+    }
+
+  return g_strdup (app_id);
 }

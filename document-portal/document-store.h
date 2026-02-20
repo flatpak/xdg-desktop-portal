@@ -16,8 +16,8 @@ const char **      xdg_unparse_permissions (DocumentPermissionFlags permissions)
 DocumentPermissionFlags xdp_parse_permissions (const char **permissions,
                                                GError     **error);
 
-DocumentPermissionFlags document_entry_get_permissions_by_app_id (PermissionDbEntry *entry,
-                                                                  const char        *app_id);
+DocumentPermissionFlags document_entry_get_permissions_by_app_permissions_id (PermissionDbEntry *entry,
+                                                                              const char        *permissions_id);
 DocumentPermissionFlags document_entry_get_permissions (PermissionDbEntry *entry,
                                                         XdpAppInfo        *app_info);
 gboolean           document_entry_has_permissions (PermissionDbEntry       *entry,
