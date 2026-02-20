@@ -2,45 +2,44 @@
 # Copyright (C) 2023 xdg-desktop-portal's authors.
 # This file is distributed under the same license as the xdg-desktop-portal package.
 # Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
+# Ekaterine Papava <papava.e@gtu.ge>, 2026.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: xdg-desktop-portal master\n"
+"Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
-"PO-Revision-Date: 2023-02-25 14:53+0100\n"
-"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"POT-Creation-Date: 2026-02-18 21:30+0100\n"
+"PO-Revision-Date: 2026-02-20 06:01+0100\n"
+"Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <(nothing)>\n"
 "Language: ka\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.2.2\n"
+"X-Generator: Poedit 3.8\n"
 
 #: src/background.c:931
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
 
 #: src/background.c:935
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to be started automatically and run in the background"
-msgstr "%s ავტომატურად გაშვებას და ფონურ რეჟიმს ითხოვს."
+msgstr "%s ითხოვს ავტომატურად და ფონურ რეჟიმში გაშვებას"
 
 #: src/background.c:937
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to run in the background"
-msgstr "%s ითხოვს გაშვებას ფონზე."
+msgstr "%s ითხოვს ფონურ რეჟიმში გაშვებას"
 
 #: src/background.c:938
-#, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
-"„ფონში გაშვების“ ნებართვა ნებისმიერ დროს აპლიკაციის პარამეტრებიდან შეიძლება "
-"შეიცვალოს."
+"ნებართვა „ფონში გაშვება“ ნებისმიერ დროს, აპლიკაციის პარამეტრებიდან "
+"შეიძლება შეიცვალოს"
 
 #: src/background.c:942
 msgid "Don't allow"
@@ -51,110 +50,111 @@ msgid "Allow"
 msgstr "დაშვება"
 
 #: src/camera.c:104
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
+msgstr "მივცე უფლება %s-ს, გამოიყენოს კამერა?"
 
 #: src/camera.c:105
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to access the camera"
-msgstr "%s-ს სურს გამოიყენოს თქვენი კამერა."
+msgstr "%s-ს სურს წვდომა კამერასთან"
 
 #: src/camera.c:109
-#, fuzzy
 msgid "Allow Apps to Use the Camera?"
-msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
+msgstr "მივცე აპებს კამერის გამოყენების უფლება?"
 
 #: src/camera.c:110
-#, fuzzy
 msgid "An app wants to access the camera"
-msgstr "აპლიკაციას სურს გამოიყენოს თქვენი კამერა."
+msgstr "აპლიკაციას სურს წვდომა კამერასთან"
 
 #: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
-#, fuzzy
 msgid "This permission can be changed at any time from the privacy settings"
 msgstr ""
-"წვდომის შეცვლა შესაძლებელია ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან."
+"წვდომის შეცვლა ნებისმიერ დროსაა შესაძლებელი კონფიდენციალობის პარამეტრებიდან"
 
 #: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის id-ის .desktop სუფიქსი აკლია: %s"
 
 #: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის id არასწორია"
 
 #: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() არასწორი გასაღების "
+"ფაილი გადასცა"
 
 #: src/dynamic-launcher.c:324
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() ზუსტად ერთი ჯგუფი უნდა "
+"გადასცეს"
 
 #: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr ""
+msgstr "გადმოცემული ტოკენი არასწორია: %s"
 
 #: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr ""
+msgstr "ფუნქციისთვის install() გადაცემული სამუშაო მაგიდის ჩანაწერი არასწორია"
 
 #: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
 #: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის ზომა მაქსიმალურზე (%d) მეტია: %s"
 
 #: src/dynamic-launcher.c:598
 #, c-format
 msgid "URL given is invalid: %s"
-msgstr ""
+msgstr "გადაცემული URL არასწორია: %s"
 
 #: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr ""
+msgstr "არასწორი გამშვების ტიპი: %x"
 
 #: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr ""
+msgstr "მხარდაუჭერელი გამშვების ტიპი: %x"
 
 #: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
-msgstr ""
+msgstr "დინამიკური გამშვების ხატულის გადამოწმება ჩავარდა"
 
 #: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr ""
+msgstr "RequestInstallToken() დაუშვებელია აპისთვის id-ით %s"
 
 #: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr ""
+msgstr "სამუშაო მაგიდის ფაილის '%s' ხატულა უცნობ ბილიკზეა"
 
 #: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr ""
+msgstr "სამუშაო ფაილის '%s' სერიალიზაციის შეცდომა"
 
 #: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr ""
+msgstr "id-ით '%s' დინამიკური გამშვები არ არსებობს"
 
 #: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr ""
+msgstr "გამშვებისთვის id-ით '%s' GDesktopAppInfo-ის შექმნა ჩავარდა"
 
 #: src/location.c:547
 msgid "Deny Access"
@@ -165,31 +165,28 @@ msgid "Grant Access"
 msgstr "წვდომის მინიჭება"
 
 #: src/location.c:555
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Access Your Location?"
-msgstr "მივანიჭოთ %s-ს თქვენს მდებარეობაზე წვდომა?"
+msgstr "მივცეთ უფლება %s-ს, მიიღოს ინფორმაცია თქვენი მდებარეობის შესახებ?"
 
 #: src/location.c:565
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to use your location"
-msgstr "%s-ს სურს გამოიყენოს თქვენი მდებარეობა."
+msgstr "%s სურს, გამოიყენოს თქვენი მდებარეობა"
 
 #: src/location.c:571
-#, fuzzy
 msgid "Allow Apps to Access Your Location?"
-msgstr "მივანიჭოთ %s-ს თქვენს მდებარეობაზე წვდომა?"
+msgstr "მიეცეთ აპებს წვდომა თქვენს მდებარეობასთან?"
 
 #: src/location.c:572
-#, fuzzy
 msgid "An app wants to use your location"
-msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მდებარეობა."
+msgstr "აპს სურს, თქვენი მდებარეობა გამოიყენოს"
 
 #: src/location.c:575
-#, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
-"მდებარეობაზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს კონფიდენციალურობის "
-"პარამეტრებიდან."
+"მდებარეობაზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს კონფიდენციალობის "
+"პარამეტრებიდან"
 
 #: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
@@ -201,43 +198,38 @@ msgid "Allow %s to Take Screenshots?"
 msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
 
 #: src/screenshot.c:247
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to take screenshots at any time"
-msgstr "%s-ს სურს ეკრანის ანაბეჭდის სურვილისამებრ გადაღების უფლება მიიღოს."
+msgstr "%s სურს, ეკრანის ანაბეჭდი ნებისმიერ დროს გადაიღოს"
 
 #: src/screenshot.c:251
-#, fuzzy, c-format
+#, c-format
 msgid "Allow %s to Take a Screenshot?"
-msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
+msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდის გადაღების უფლება?"
 
 #: src/screenshot.c:252
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to take a screenshot"
-msgstr "%s-ს სურს ეკრანის ანაბეჭდის სურვილისამებრ გადაღების უფლება მიიღოს."
+msgstr "%s სურს, ეკრანის ანაბეჭდი გადაიღოს"
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:263
-#, fuzzy
 msgid "Allow Apps to Take Screenshots?"
-msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
+msgstr "მიეცეს აპლიკაციებს ეკრანის ანაბეჭდის გადაღების უფლება?"
 
 #: src/screenshot.c:264
-#, fuzzy
 msgid "An app wants to take screenshots at any time"
-msgstr ""
-"აპლიკაციას სურს ეკრანის ანაბეჭდის სურვილისამებრ გადაღების უფლება მიიღოს."
+msgstr "აპს სურს, ეკრანის ანაბეჭდი ნებისმიერ დროს გადაიღოს"
 
 #: src/screenshot.c:268
-#, fuzzy
 msgid "Allow to Take a Screenshot?"
-msgstr "მიეცეს %s-ს ეკრანის ანაბეჭდების გადაღების უფლება?"
+msgstr "მიეცეს ეკრანის ანაბეჭდის გადაღების უფლება?"
 
 #: src/screenshot.c:269
-#, fuzzy
 msgid "An app wants to take a screenshot"
-msgstr "აპლიკაციას სურს გამოიყენოს თქვენი კამერა."
+msgstr "აპს სურს, ეკრანის ანაბეჭდი გადაიღოს"
 
 #: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
@@ -245,12 +237,11 @@ msgstr "მოთხოვნილი პარამეტრი ვერ მ
 
 #: src/usb.c:1339
 msgid "Device not available"
-msgstr ""
+msgstr "მოწყობილობა ხელმისაწვდომი არაა"
 
 #: src/usb.c:1353
-#, fuzzy
 msgid "Not allowed"
-msgstr "არ დაშვება"
+msgstr "დაუშვებელია"
 
 #: src/wallpaper.c:197
 #, c-format
@@ -258,69 +249,14 @@ msgid "Allow %s to Set Backgrounds?"
 msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
 
 #: src/wallpaper.c:198
-#, fuzzy, c-format
+#, c-format
 msgid "%s wants to change the background image"
-msgstr "%s ფონის სურათის შეცვლის უფლებას მოითხოვს."
+msgstr "%s სურს, ფონის სურათი შეცვალოს"
 
 #: src/wallpaper.c:203
-#, fuzzy
 msgid "Allow Apps to Set Backgrounds?"
-msgstr "მიეცეს %s-ს ფონის სურათის შეცვლის უფლება?"
+msgstr "მიეცეს აპებს უფლება, ფონის სურათი დააყენონ?"
 
 #: src/wallpaper.c:204
-#, fuzzy
 msgid "An app wants to change the background image"
-msgstr "აპლიკაცია ფონის სურათის შეცვლის უფლებას მოითხოვს."
-
-#~ msgid "Grant Access to Your Location?"
-#~ msgstr "მივანიჭოთ თქვენს მდებარეობაზე წვდომა?"
-
-#~ msgid "Allow Applications to Take Screenshots?"
-#~ msgstr "მიეცეს აპლიკაციას ეკრანის ანაბეჭდების გადაღების უფლება?"
-
-#~ msgid "Allow Applications to Set Backgrounds?"
-#~ msgstr "მიეცეს აპლიკაციებს ფონის სურათის შეცვლის უფლება?"
-
-#~ msgid "Turn On Microphone?"
-#~ msgstr "ჩავრთო მიკროფონი?"
-
-#~ msgid ""
-#~ "Access to your microphone can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს მიკროფონზე წვდომა ნებისმიერ დროს კონფიდენციალურობის პარამეტრებიდან "
-#~ "შეიძლება შეიცვალოს."
-
-#~ msgid "An application wants to use your microphone."
-#~ msgstr "აპლიკაციას სურს გამოიყენოს თქვენი მიკროფონი."
-
-#, c-format
-#~ msgid "%s wants to use your microphone."
-#~ msgstr "%s-ს სურს თქვენი მიკროფონი გამოიყენოს."
-
-#~ msgid "Turn On Speakers?"
-#~ msgstr "ჩავრთო დინამიკები?"
-
-#~ msgid ""
-#~ "Access to your speakers can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს დინამიკებზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს "
-#~ "კონფიდენციალურობის პარამეტრებიდან."
-
-#~ msgid "An application wants to play sound."
-#~ msgstr "აპლიკაციას ხმის გამოცემა სურს."
-
-#, c-format
-#~ msgid "%s wants to play sound."
-#~ msgstr "%s-ს ხმის გამოცემა სურს."
-
-#~ msgid "Turn On Camera?"
-#~ msgstr "ჩავრთო კამერა?"
-
-#~ msgid ""
-#~ "Access to your camera can be changed at any time from the privacy "
-#~ "settings."
-#~ msgstr ""
-#~ "თქვენს კამერაზე წვდომა ნებისმიერ დროს შეიძლება შეიცვალოს "
-#~ "კონფიდენციალურობის პარამეტრებიდან."
+msgstr "აპს სურს, ფონის სურათი შეცვალოს"
