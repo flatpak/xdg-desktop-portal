@@ -1216,21 +1216,16 @@ action_invoked_cb (XdpDbusImplNotification *impl,
                                              arg_parameter);
 }
 
-void
-notification_delete_for_sender (XdpContext *context,
-                                const char *sender)
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *sender,
+                    gpointer    user_data)
 {
-  GDBusInterfaceSkeleton *notification_skeleton =
-    xdp_context_get_portal (context, NOTIFICATION_DBUS_IFACE);
-  Notification *notification;
+  Notification *notification = user_data;
   XdpAppInfoRegistry *registry;
   g_autoptr(XdpAppInfo) sender_app_info = NULL;
   const char *sender_app_id;
 
-  if (!notification_skeleton)
-    return;
-
-  notification = (Notification *) notification_skeleton;
   registry = xdp_context_get_app_info_registry (context);
   sender_app_info = xdp_app_info_registry_lookup_sender (registry, sender);
   if (!sender_app_info)
@@ -1290,7 +1285,8 @@ notification_class_init (NotificationClass *klass)
 }
 
 static Notification *
-notification_new (XdpDbusImplNotification *impl)
+notification_new (XdpContext              *context,
+                  XdpDbusImplNotification *impl)
 {
   Notification *notification = NULL;
 
@@ -1316,6 +1312,11 @@ notification_new (XdpDbusImplNotification *impl)
 
   g_signal_connect_object (notification->impl, "action-invoked",
                            G_CALLBACK (action_invoked_cb),
+                           notification,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (context, "peer-disconnect",
+                           G_CALLBACK (on_peer_disconnect),
                            notification,
                            G_CONNECT_DEFAULT);
 
@@ -1347,7 +1348,7 @@ init_notification (XdpContext *context)
       return;
     }
 
-  notification = notification_new (impl);
+  notification = notification_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&notification)),

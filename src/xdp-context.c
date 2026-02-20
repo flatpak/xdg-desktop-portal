@@ -316,7 +316,6 @@ on_peer_disconnect (const char *name,
   XdpContext *context = XDP_CONTEXT (user_data);
 
   xdp_usb_delete_for_sender (context, name);
-  notification_delete_for_sender (context, name);
 
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 
