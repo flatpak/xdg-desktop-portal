@@ -34,7 +34,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes version 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -85,6 +85,19 @@
           Whether it makes sense to return "selection" for the ``print-pages`` setting.
 
           This option was added in version 4.
+
+        * ``has_n_copies`` (``b``)
+
+          Whether the app is able to manually implement the ``n-copies`` and ``collate`` settings.
+
+          This option was added in version 5.
+
+        * ``has_number_up`` (``b``)
+
+          Whether the app is able to manually implement the ``number-up`` and ``number-up-layout`` setting.
+
+          This option was added in version 5.
+
 
         The @settings and @page_setup vardict contain hints for the initial state of the print dialog.
 
@@ -255,6 +268,23 @@
           Print settings as set up by the user in the print dialog. The same keys as in @settings
           are supported (see above).
 
+        * ``printer-info`` (``a{sv}``)
+
+          Printer information with the following keys:
+
+          * ``has-n-copies`` (``b``)
+
+            Whether the printer has the n-copies capability. In this case, the app should not provide
+            a document with multiple copies, even if it has set has_n_copies to true in @options since it
+            is going to be handled directly by the printer.
+           
+          * ``has-number-up`` (``b``)
+
+            Whether the printer has the n-up capability. In this case, the app should not provide
+            a document with pages per side if it has set has_n_up to true in @options.
+            
+          This option was added in version 5.
+           
         * ``page-setup`` (``a{sv}``)
 
           Page setup as set up by the user in the print dialog. The same keys as in @page_setup
