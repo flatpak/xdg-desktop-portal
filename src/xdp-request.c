@@ -208,6 +208,28 @@ get_token (GDBusMethodInvocation *invocation)
   return token ? token : "t";
 }
 
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  XdpRequest *request = XDP_REQUEST (user_data);
+
+  REQUEST_AUTOLOCK (request);
+
+  if (g_strcmp0 (request->sender, peer) != 0)
+    return;
+
+  if (!request->exported)
+    return;
+
+  if (request->impl_request)
+    xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL);
+
+  xdp_request_unexport (request);
+  xdp_context_unclaim_object_path (request->context, request->id);
+}
+
 gboolean
 xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
                              XdpContext             *context,
@@ -265,6 +287,11 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
                     G_CALLBACK (request_authorize_callback),
                     request->sender);
 
+  g_signal_connect_object (context, "peer-disconnect",
+                           G_CALLBACK (on_peer_disconnect),
+                           request,
+                           G_CONNECT_DEFAULT);
+
   g_object_set_data_full (G_OBJECT (invocation), "request", request, g_object_unref);
   return TRUE;
 }
@@ -320,59 +347,3 @@ xdp_request_set_impl_request (XdpRequest         *request,
 {
   g_set_object (&request->impl_request, impl_request);
 }
-
-static void
-xdp_close_requests_in_thread_func (GTask        *task,
-                                   gpointer      source_object,
-                                   gpointer      task_data,
-                                   GCancellable *cancellable)
-{
-  const char *sender = (const char *)task_data;
-  GSList *list = NULL;
-  GSList *l;
-  GHashTableIter iter;
-  XdpRequest *request;
-
-  G_LOCK (requests);
-  if (requests)
-    {
-      g_hash_table_iter_init (&iter, requests);
-      while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&request))
-        {
-          if (strcmp (sender, request->sender) == 0)
-            list = g_slist_prepend (list, g_object_ref (request));
-        }
-    }
-  G_UNLOCK (requests);
-
-  for (l = list; l; l = l->next)
-    {
-      XdpRequest *request = l->data;
-
-      REQUEST_AUTOLOCK (request);
-
-      if (request->exported)
-        {
-          if (request->impl_request)
-            xdp_dbus_impl_request_call_close_sync (request->impl_request, NULL, NULL);
-
-          xdp_request_unexport (request);
-          xdp_context_unclaim_object_path (request->context, request->id);
-        }
-    }
-
-  g_slist_free_full (list, g_object_unref);
-  g_task_return_boolean (task, TRUE);
-}
-
-void
-close_requests_for_sender (const char *sender)
-{
-  GTask *task;
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_strdup (sender), g_free);
-  g_task_run_in_thread (task, xdp_close_requests_in_thread_func);
-  g_object_unref (task);
-}
-
