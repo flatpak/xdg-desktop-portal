@@ -118,8 +118,6 @@ typedef struct _UsbOwnedDevice
 
 typedef struct _UsbSenderInfo
 {
-  gatomicrefcount ref_count;
-
   char *sender_name;
   XdpAppInfo *app_info;
 
@@ -133,9 +131,6 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbDeviceAcquireData, usb_device_acquire_data_fre
 
 static void usb_owned_device_unref (UsbOwnedDevice *owned_device);
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbOwnedDevice, usb_owned_device_unref)
-
-static void usb_sender_info_unref (UsbSenderInfo *sender_info);
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (UsbSenderInfo, usb_sender_info_unref)
 
 static gboolean
 is_gudev_device_suitable (GUdevDevice *device)
@@ -212,28 +207,24 @@ usb_owned_device_unref (UsbOwnedDevice *owned_device)
 }
 
 static void
-usb_sender_info_unref (UsbSenderInfo *sender_info)
+usb_sender_info_free (UsbSenderInfo *sender_info)
 {
   g_return_if_fail (sender_info != NULL);
 
-  if (g_atomic_ref_count_dec (&sender_info->ref_count))
-    {
-      g_clear_object (&sender_info->app_info);
-      g_clear_pointer (&sender_info->sender_name, g_free);
-      g_clear_pointer (&sender_info->owned_devices, g_hash_table_destroy);
-      g_clear_pointer (&sender_info->pending_devices, g_hash_table_destroy);
-      g_clear_pointer (&sender_info, g_free);
-    }
+  g_clear_object (&sender_info->app_info);
+  g_clear_pointer (&sender_info->sender_name, g_free);
+  g_clear_pointer (&sender_info->owned_devices, g_hash_table_destroy);
+  g_clear_pointer (&sender_info->pending_devices, g_hash_table_destroy);
+  g_clear_pointer (&sender_info, g_free);
 }
 
 static UsbSenderInfo *
 usb_sender_info_new (const char *sender_name,
                      XdpAppInfo *app_info)
 {
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
 
   sender_info = g_new0 (UsbSenderInfo, 1);
-  g_atomic_ref_count_init (&sender_info->ref_count);
   sender_info->sender_name = g_strdup (sender_name);
   sender_info->app_info = g_object_ref (app_info);
   sender_info->owned_devices =
@@ -243,7 +234,7 @@ usb_sender_info_new (const char *sender_name,
     g_hash_table_new_full (g_str_hash, g_str_equal,
                            g_free, (GDestroyNotify) g_ptr_array_unref);
 
-  return g_steal_pointer (&sender_info);
+  return sender_info;
 }
 
 static UsbSenderInfo *
@@ -251,7 +242,7 @@ usb_sender_info_from_app_info (XdpUsb     *self,
                                XdpAppInfo *app_info)
 {
   const char *sender = xdp_app_info_get_sender (app_info);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
 
   sender_info = g_hash_table_lookup (self->sender_infos, sender);
 
@@ -262,9 +253,8 @@ usb_sender_info_from_app_info (XdpUsb     *self,
     }
 
   g_assert (sender_info != NULL);
-  g_atomic_ref_count_inc (&sender_info->ref_count);
 
-  return g_steal_pointer (&sender_info);
+  return sender_info;
 }
 
 static UsbSenderInfo *
@@ -728,7 +718,7 @@ send_initial_device_list (XdpUsb        *self,
                           XdpAppInfo    *app_info)
 {
   /* Send initial list of devices the app has permission to see */
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   XdpSession *session = XDP_SESSION (usb_session);
   GVariantBuilder devices_builder;
   g_autoptr(GVariant) events = NULL;
@@ -864,7 +854,7 @@ static GVariant *
 list_permitted_devices (XdpUsb     *self,
                         XdpAppInfo *app_info)
 {
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   GVariantBuilder builder;
   GHashTableIter iter;
   GUdevDevice *device;
@@ -950,7 +940,7 @@ usb_acquire_devices_cb (GObject      *source_object,
 {
   XdpUsb *usb;
   XdgDesktopPortalResponseEnum response;
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariantIter) devices_iter = NULL;
   g_auto(GVariantBuilder) results_builder;
   g_autoptr (GVariant) results = NULL;
@@ -1163,7 +1153,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                         GVariant              *arg_options)
 {
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariant) filtered_devices = NULL;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -1259,7 +1249,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
                                GVariant              *arg_options)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GUnixFDList) fds = NULL;
   GVariantBuilder results_builder;
   XdpPermission permission;
@@ -1433,7 +1423,7 @@ handle_release_devices (XdpDbusUsb            *object,
                         GVariant              *arg_options)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
@@ -1536,7 +1526,7 @@ usb_new (XdpContext     *context,
   usb->sessions = g_hash_table_new (g_direct_hash, g_direct_equal);
   usb->sender_infos =
     g_hash_table_new_full (g_str_hash, g_str_equal,
-                           g_free, (GDestroyNotify) usb_sender_info_unref);
+                           g_free, (GDestroyNotify) usb_sender_info_free);
 
   usb->gudev_client = g_udev_client_new (subsystems);
   g_signal_connect_object (usb->gudev_client, "uevent",
