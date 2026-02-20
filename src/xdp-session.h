@@ -94,7 +94,5 @@ void xdp_session_register (XdpSession *session);
 gboolean xdp_session_export (XdpSession  *session,
                              GError     **error);
 
-void close_sessions_for_sender (const char *sender);
-
 void xdp_session_close (XdpSession *session,
                         gboolean    notify_close);
