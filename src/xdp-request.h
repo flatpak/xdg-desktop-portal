@@ -37,6 +37,7 @@ typedef struct _XdpRequest
   char *sender;
   GMutex mutex;
   XdpAppInfo *app_info;
+  XdpContext *context;
 
   XdpDbusImplRequest *impl_request;
 } XdpRequest;
@@ -56,6 +57,7 @@ G_DECLARE_FINAL_TYPE (XdpRequest,
   G_MUTEX_AUTO_LOCK (&request->mutex, G_PASTE (request_auto_locker, __LINE__));
 
 gboolean xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
+                                      XdpContext             *context,
                                       XdpAppInfo             *app_info,
                                       GError                **error);
 

@@ -41,6 +41,7 @@ struct _InputCapture
 {
   XdpDbusInputCaptureSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplInputCapture *impl;
   int impl_version;
 };
@@ -138,6 +139,7 @@ input_capture_session_new (InputCapture     *input_capture,
 
   session_token = lookup_session_token (options);
   session = g_initable_new (input_capture_session_get_type (), NULL, error,
+                            "context", input_capture->context,
                             "sender", xdp_app_info_get_sender (app_info),
                             "app-id", xdp_app_info_get_id (app_info),
                             "token", session_token,
@@ -1542,11 +1544,13 @@ input_capture_class_init (InputCaptureClass *klass)
 }
 
 static InputCapture *
-input_capture_new (XdpDbusImplInputCapture *impl)
+input_capture_new (XdpContext              *context,
+                   XdpDbusImplInputCapture *impl)
 {
   InputCapture *input_capture;
 
   input_capture = g_object_new (input_capture_get_type (), NULL);
+  input_capture->context = context;
   input_capture->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (input_capture->impl), G_MAXINT);
@@ -1606,7 +1610,7 @@ init_input_capture (XdpContext *context)
       return;
     }
 
-  input_capture = input_capture_new (impl);
+  input_capture = input_capture_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&input_capture)),
