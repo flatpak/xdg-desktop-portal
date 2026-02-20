@@ -31,6 +31,8 @@ typedef struct _XdpSession
 
   GMutex mutex;
 
+  XdpContext *context;
+
   gboolean exported;
   gboolean closed;
 
