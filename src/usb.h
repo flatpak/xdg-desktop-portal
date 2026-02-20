@@ -24,7 +24,4 @@
 
 #include "xdp-types.h"
 
-void xdp_usb_delete_for_sender (XdpContext *context,
-                                const char *sender);
-
 void init_usb (XdpContext *context);
