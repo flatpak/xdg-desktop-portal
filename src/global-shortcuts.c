@@ -45,6 +45,7 @@ struct _GlobalShortcuts
 {
   XdpDbusGlobalShortcutsSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplGlobalShortcuts *impl;
 };
 
@@ -141,6 +142,7 @@ global_shortcuts_session_new (GlobalShortcuts  *global_shortcuts,
 
   session_token = lookup_session_token (options);
   session = g_initable_new (global_shortcuts_session_get_type (), NULL, error,
+                            "context", global_shortcuts->context,
                             "sender", request->sender,
                             "app-id", xdp_app_info_get_id (request->app_info),
                             "token", session_token,
@@ -785,11 +787,13 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
 }
 
 static GlobalShortcuts *
-global_shortcuts_new (XdpDbusImplGlobalShortcuts *impl)
+global_shortcuts_new (XdpContext                 *context,
+                      XdpDbusImplGlobalShortcuts *impl)
 {
   GlobalShortcuts *global_shortcuts;
 
   global_shortcuts = g_object_new (global_shortcuts_get_type (), NULL);
+  global_shortcuts->context = context;
   global_shortcuts->impl = g_object_ref (impl);
 
   g_signal_connect_object (global_shortcuts->impl, "activated",
@@ -838,7 +842,7 @@ init_global_shortcuts (XdpContext *context)
       return;
     }
 
-  global_shortcuts = global_shortcuts_new (impl);
+  global_shortcuts = global_shortcuts_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&global_shortcuts)),
