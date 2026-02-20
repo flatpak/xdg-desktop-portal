@@ -43,6 +43,7 @@ struct _RemoteDesktop
 {
   XdpDbusRemoteDesktopSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplRemoteDesktop *impl;
 };
 
@@ -265,6 +266,7 @@ remote_desktop_session_new (RemoteDesktop  *remote_desktop,
 
   session_token = lookup_session_token (options);
   session = g_initable_new (remote_desktop_session_get_type (), NULL, error,
+                            "context", remote_desktop->context,
                             "sender", request->sender,
                             "app-id", xdp_app_info_get_id (request->app_info),
                             "token", session_token,
@@ -1684,11 +1686,13 @@ remote_desktop_class_init (RemoteDesktopClass *klass)
 }
 
 static RemoteDesktop *
-remote_desktop_new (XdpDbusImplRemoteDesktop *impl)
+remote_desktop_new (XdpContext               *context,
+                    XdpDbusImplRemoteDesktop *impl)
 {
   RemoteDesktop *remote_desktop;
 
   remote_desktop = g_object_new (remote_desktop_get_type (), NULL);
+  remote_desktop->context = context;
   remote_desktop->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (remote_desktop->impl), G_MAXINT);
@@ -1728,7 +1732,7 @@ init_remote_desktop (XdpContext *context)
       return;
     }
 
-  remote_desktop = remote_desktop_new (impl);
+  remote_desktop = remote_desktop_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&remote_desktop)),

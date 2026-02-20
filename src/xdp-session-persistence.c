@@ -29,40 +29,7 @@ static GHashTable *transient_permissions;
 
 #define RESTORE_DATA_TYPE "(suv)"
 
-void
-xdp_session_persistence_set_transient_permissions (XdpSession *session,
-                                                   const char *restore_token,
-                                                   GVariant *restore_data)
-{
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
-
-  if (!transient_permissions)
-    {
-      transient_permissions =
-        g_hash_table_new_full (g_str_hash, g_str_equal,
-                               g_free, (GDestroyNotify) g_variant_unref);
-    }
-
-  g_hash_table_insert (transient_permissions,
-                       g_strdup_printf ("%s/%s", session->sender, restore_token),
-                       g_variant_ref (restore_data));
-}
-
-void
-xdp_session_persistence_delete_transient_permissions (XdpSession *session,
-                                                      const char *restore_token)
-{
-  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
-  g_autofree char *id = NULL;
-
-  if (!transient_permissions)
-    return;
-
-  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
-  g_hash_table_remove (transient_permissions, id);
-}
-
-void
+static void
 xdp_session_persistence_delete_transient_permissions_for_sender (const char *sender_name)
 {
 
@@ -83,6 +50,51 @@ xdp_session_persistence_delete_transient_permissions_for_sender (const char *sen
       if (split && split[0] && g_strcmp0 (split[0], sender_name) == 0)
         g_hash_table_iter_remove (&iter);
     }
+}
+
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  xdp_session_persistence_delete_transient_permissions_for_sender (peer);
+}
+
+void
+xdp_session_persistence_set_transient_permissions (XdpSession *session,
+                                                   const char *restore_token,
+                                                   GVariant *restore_data)
+{
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+
+  if (!transient_permissions)
+    {
+      transient_permissions =
+        g_hash_table_new_full (g_str_hash, g_str_equal,
+                               g_free, (GDestroyNotify) g_variant_unref);
+
+      g_signal_connect (session->context, "peer-disconnect",
+                        G_CALLBACK (on_peer_disconnect),
+                        NULL);
+    }
+
+  g_hash_table_insert (transient_permissions,
+                       g_strdup_printf ("%s/%s", session->sender, restore_token),
+                       g_variant_ref (restore_data));
+}
+
+void
+xdp_session_persistence_delete_transient_permissions (XdpSession *session,
+                                                      const char *restore_token)
+{
+  g_autoptr(GMutexLocker) locker = g_mutex_locker_new (&transient_permissions_lock);
+  g_autofree char *id = NULL;
+
+  if (!transient_permissions)
+    return;
+
+  id = g_strdup_printf ("%s/%s", session->sender, restore_token);
+  g_hash_table_remove (transient_permissions, id);
 }
 
 GVariant *

@@ -31,6 +31,8 @@ typedef struct _XdpSession
 
   GMutex mutex;
 
+  XdpContext *context;
+
   gboolean exported;
   gboolean closed;
 
@@ -54,6 +56,7 @@ typedef struct _XdpSessionClass
 } XdpSessionClass;
 
 GType xdp_session_get_type (void);
+#define XDP_TYPE_SESSION (xdp_session_get_type ())
 
 G_GNUC_UNUSED static inline XdpSession *
 XDP_SESSION (gpointer ptr)
@@ -90,8 +93,6 @@ void xdp_session_register (XdpSession *session);
 
 gboolean xdp_session_export (XdpSession  *session,
                              GError     **error);
-
-void close_sessions_for_sender (const char *sender);
 
 void xdp_session_close (XdpSession *session,
                         gboolean    notify_close);

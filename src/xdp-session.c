@@ -18,15 +18,20 @@
  *
  */
 
-#include "xdp-session.h"
-#include "xdp-request.h"
+#include "config.h"
 
 #include <string.h>
+
+#include "xdp-context.h"
+#include "xdp-request.h"
+
+#include "xdp-session.h"
 
 enum
 {
   PROP_0,
 
+  PROP_CONTEXT,
   PROP_SENDER,
   PROP_APP_ID,
   PROP_TOKEN,
@@ -193,6 +198,7 @@ xdp_session_close (XdpSession *session,
     xdp_session_unexport (session);
 
   xdp_session_unregister (session);
+  xdp_context_unclaim_object_path (session->context, session->id);
 
   if (session->impl_session)
     {
@@ -234,52 +240,6 @@ xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface)
 }
 
 static void
-close_sessions_in_thread_func (GTask *task,
-                               gpointer source_object,
-                               gpointer task_data,
-                               GCancellable *cancellable)
-{
-  const char *sender = (const char *)task_data;
-  GSList *list = NULL;
-  GSList *l;
-  GHashTableIter iter;
-  XdpSession *session;
-
-  G_LOCK (sessions);
-  if (sessions)
-    {
-      g_hash_table_iter_init (&iter, sessions);
-      while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&session))
-        {
-          if (strcmp (sender, session->sender) == 0)
-            list = g_slist_prepend (list, g_object_ref (session));
-        }
-    }
-  G_UNLOCK (sessions);
-
-  for (l = list; l; l = l->next)
-    {
-      XdpSession *session = l->data;
-
-      SESSION_AUTOLOCK (session);
-      xdp_session_close (session, FALSE);
-    }
-
-  g_slist_free_full (list, g_object_unref);
-  g_task_return_boolean (task, TRUE);
-}
-
-void
-close_sessions_for_sender (const char *sender)
-{
-  g_autoptr(GTask) task = NULL;
-
-  task = g_task_new (NULL, NULL, NULL, NULL);
-  g_task_set_task_data (task, g_strdup (sender), g_free);
-  g_task_run_in_thread (task, close_sessions_in_thread_func);
-}
-
-static void
 on_closed (XdpDbusImplSession *object, GObject *data)
 {
   XdpSession *session = XDP_SESSION (data);
@@ -310,6 +270,18 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
   return TRUE;
 }
 
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  XdpSession *session = XDP_SESSION (user_data);
+
+  REQUEST_AUTOLOCK (session);
+
+  xdp_session_close (session, FALSE);
+}
+
 static gboolean
 xdp_session_initable_init (GInitable     *initable,
                            GCancellable  *cancellable,
@@ -320,6 +292,10 @@ xdp_session_initable_init (GInitable     *initable,
   g_autofree char *id = NULL;
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
   int i;
+
+  g_assert (session->sender != NULL);
+  g_assert (session->token != NULL);
+  g_assert (session->context != NULL);
 
   sender_escaped = g_strdup (session->sender + 1);
   for (i = 0; sender_escaped[i]; i++)
@@ -345,6 +321,16 @@ xdp_session_initable_init (GInitable     *initable,
 
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s",
                         sender_escaped, session->token);
+
+  while (!xdp_context_claim_object_path (session->context, id))
+    {
+      uint32_t r = g_random_int ();
+      g_free (id);
+      id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s/%u",
+                            sender_escaped,
+                            session->token,
+                            r);
+    }
 
   if (session->impl_dbus_name)
     {
@@ -373,6 +359,11 @@ xdp_session_initable_init (GInitable     *initable,
                     G_CALLBACK (xdp_session_authorize_callback),
                     session->sender);
 
+  g_signal_connect_object (session->context, "peer-disconnect",
+                           G_CALLBACK (on_peer_disconnect),
+                           session,
+                           G_CONNECT_DEFAULT);
+
   return TRUE;
 }
 
@@ -392,6 +383,10 @@ xdp_session_set_property (GObject      *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      session->context = g_value_get_object (value);
+      break;
+
     case PROP_SENDER:
       session->sender = g_strdup (g_value_get_string (value));
       break;
@@ -431,6 +426,10 @@ xdp_session_get_property (GObject    *object,
 
   switch (prop_id)
     {
+    case PROP_CONTEXT:
+      g_value_set_object (value, session->context);
+      break;
+
     case PROP_SENDER:
       g_value_set_string (value, session->sender);
       break;
@@ -501,6 +500,13 @@ xdp_session_class_init (XdpSessionClass *klass)
   gobject_class->finalize = xdp_session_finalize;
   gobject_class->set_property = xdp_session_set_property;
   gobject_class->get_property = xdp_session_get_property;
+
+  obj_props[PROP_CONTEXT] =
+    g_param_spec_object ("context", "Context", "Context",
+                         XDP_TYPE_CONTEXT,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_SENDER] =
     g_param_spec_string ("sender", "Sender", "Sender",

@@ -36,6 +36,16 @@ G_DEFINE_FINAL_TYPE (XdpAppInfoRegistry,
                      G_TYPE_OBJECT)
 
 static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  XdpAppInfoRegistry *registry = XDP_APP_INFO_REGISTRY (user_data);
+
+  xdp_app_info_registry_delete (registry, peer);
+}
+
+static void
 xdp_app_info_registry_dispose (GObject *object)
 {
   XdpAppInfoRegistry *registry = XDP_APP_INFO_REGISTRY (object);
@@ -63,7 +73,7 @@ xdp_app_info_registry_init (XdpAppInfoRegistry *registry)
 }
 
 XdpAppInfoRegistry *
-xdp_app_info_registry_new (void)
+xdp_app_info_registry_new (XdpContext *context)
 {
   XdpAppInfoRegistry *registry = g_object_new (XDP_TYPE_APP_INFO_REGISTRY, NULL);
 
@@ -71,6 +81,14 @@ xdp_app_info_registry_new (void)
                                                g_free,
                                                g_object_unref);
   g_mutex_init (&registry->app_infos_mutex);
+
+  if (context)
+    {
+      g_signal_connect_object (context, "peer-disconnect",
+                               G_CALLBACK (on_peer_disconnect),
+                               registry,
+                               G_CONNECT_DEFAULT);
+    }
 
   return registry;
 }
