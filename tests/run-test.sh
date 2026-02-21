@@ -41,4 +41,8 @@ export XDG_DESKTOP_PORTAL_PATH="$BUILDDIR/src/xdg-desktop-portal"
 export XDG_DOCUMENT_PORTAL_PATH="$BUILDDIR/document-portal/xdg-document-portal"
 export XDG_PERMISSION_STORE_PATH="$BUILDDIR/document-portal/xdg-permission-store"
 
+if [ ! -v UNDER_MESON ]; then
+  meson compile -C "${BUILDDIR}"
+fi
+
 exec "$PYTEST" "$@"

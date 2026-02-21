@@ -70,6 +70,7 @@ pytest_args = ['--verbose', '--log-level=DEBUG']
 
 pytest_env = environment()
 pytest_env.set('BUILDDIR', meson.project_build_root())
+pytest_env.set('UNDER_MESON', '1')
 
 # pytest xdist is nice because it significantly speeds up our
 # test process, but it's not required
@@ -136,6 +137,13 @@ foreach pytest_file : pytest_files
     'integration/@0@'.format(testname),
     run_test,
     args: [meson.current_source_dir() / pytest_file] + pytest_args,
+    depends: [
+      xdg_desktop_portal,
+      xdp_validate_icon,
+      xdp_validate_sound,
+      xdg_permission_store,
+      xdg_document_portal,
+    ],
     env: pytest_env,
     suite: ['integration'],
     timeout: 120,
