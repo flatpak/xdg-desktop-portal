@@ -399,9 +399,15 @@ def xdp_overwrite_env() -> dict[str, str]:
     params=[
         xdp.AppInfoKind.HOST,
         xdp.AppInfoKind.FLATPAK,
-        xdp.AppInfoKind.SNAP,
-        xdp.AppInfoKind.LINYAPS,
     ]
+    + (
+        [
+            xdp.AppInfoKind.SNAP,
+            xdp.AppInfoKind.LINYAPS,
+        ]
+        if xdp.run_long_tests()
+        else []
+    )
 )
 def xdp_app_info(request) -> xdp.AppInfo:
     """
