@@ -68,3 +68,15 @@ Linyaps representative:
 - He YuMing
 - Iceyer
 - reddevillg
+
+Specialists
+-----------
+
+Portals cover a lot of different specialized topics. Committers might not be
+familiar with all of them, so it can make sense to defer to specialists in those
+topics, or in general get feedback from them. The list here should help you to
+find and contact those specialists:
+
+Printing:
+
+- Till Kamppeter (OpenPrinting, GNOME, @tillkamppeter)
