@@ -1,0 +1,4 @@
+[wrap-git]
+directory=libspeechprovider
+url=https://github.com/project-spiel/libspeechprovider.git
+revision=main
