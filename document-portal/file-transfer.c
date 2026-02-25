@@ -160,6 +160,19 @@ lookup_transfer (const char *key)
   return g_object_ref (transfer);
 }
 
+static char *
+generate_key (void)
+{
+  uint64_t p1, p2;
+
+  p1 = g_random_int ();
+  p1 = (p1 << 32) | g_random_int ();
+  p2 = g_random_int ();
+  p2 = (p2 << 32) | g_random_int ();
+
+  return g_strdup_printf ("%" G_GUINT64_FORMAT "%" G_GUINT64_FORMAT, p1, p2);
+}
+
 static FileTransfer *
 file_transfer_start (XdpAppInfo *app_info,
                      const char *sender,
@@ -179,11 +192,8 @@ file_transfer_start (XdpAppInfo *app_info,
   G_LOCK (transfers);
   do
     {
-      uint64_t key;
-      g_free (transfer->key);
-      key = g_random_int ();
-      key = (key << 32) | g_random_int ();
-      transfer->key = g_strdup_printf ("%" G_GUINT64_FORMAT, key);
+      g_clear_pointer (&transfer->key, g_free);
+      transfer->key = generate_key ();
     }
   while (g_hash_table_contains (transfers, transfer->key));
   g_hash_table_insert (transfers, transfer->key, g_object_ref (transfer));
