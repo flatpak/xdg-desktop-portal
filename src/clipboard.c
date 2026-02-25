@@ -509,6 +509,15 @@ handle_selection_read (XdpDbusClipboard *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
+  if (strlen (arg_mime_type) >= 1024 * 4)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Mime type exceeds 4kb");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   xdp_dbus_impl_clipboard_call_selection_read (clipboard->impl,
                                                arg_session_handle,
                                                arg_mime_type,
