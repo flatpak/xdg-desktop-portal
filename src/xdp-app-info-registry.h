@@ -30,16 +30,26 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoRegistry,
                       XDP, APP_INFO_REGISTRY,
                       GObject)
 
+typedef struct _XdpAppInfoRegistryLocker XdpAppInfoRegistryLocker;
+
+void xdp_app_info_registry_locker_free (XdpAppInfoRegistryLocker *locker);
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (XdpAppInfoRegistryLocker,
+                               xdp_app_info_registry_locker_free)
+
 XdpAppInfoRegistry * xdp_app_info_registry_new (void);
 
 XdpAppInfo * xdp_app_info_registry_lookup_sender (XdpAppInfoRegistry *registry,
                                                   const char         *sender);
 
-gboolean xdp_app_info_registry_has_sender (XdpAppInfoRegistry *registry,
-                                           const char         *sender);
+XdpAppInfoRegistryLocker * xdp_app_info_registry_lock (XdpAppInfoRegistry *registry,
+                                                       const char         *sender);
 
-void xdp_app_info_registry_insert (XdpAppInfoRegistry *registry,
-                                   XdpAppInfo         *app_info);
+void xdp_app_info_registry_insert_unlocked (XdpAppInfoRegistry *registry,
+                                            XdpAppInfo         *app_info);
+
+XdpAppInfo * xdp_app_info_registry_lookup_unlocked (XdpAppInfoRegistry *registry,
+                                                    const char         *sender);
 
 void xdp_app_info_registry_delete (XdpAppInfoRegistry *registry,
                                    const char         *sender);
