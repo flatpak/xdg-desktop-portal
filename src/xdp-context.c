@@ -62,6 +62,14 @@
 
 #include "xdp-context.h"
 
+enum
+{
+  PEER_DISCONNECT,
+  N_SIGNALS,
+};
+
+static guint signals[N_SIGNALS] = { 0 };
+
 struct _XdpContext
 {
   GObject parent_instance;
@@ -75,6 +83,8 @@ struct _XdpContext
   guint peer_disconnect_handle_id;
   XdpAppInfoRegistry *app_info_registry;
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
+  GHashTable *registered_object_paths; /* char *object_path set */
+  GMutex registered_object_paths_lock;
 
   GCancellable *cancellable;
 };
@@ -105,6 +115,12 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->app_info_registry);
   g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
+  if (context->registered_object_paths)
+    {
+      g_clear_pointer (&context->registered_object_paths, g_hash_table_unref);
+      g_mutex_clear (&context->registered_object_paths_lock);
+    }
+
   G_OBJECT_CLASS (xdp_context_parent_class)->dispose (object);
 }
 
@@ -114,12 +130,19 @@ xdp_context_class_init (XdpContextClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
   object_class->dispose = xdp_context_dispose;
+
+  signals[PEER_DISCONNECT] =
+    g_signal_new ("peer-disconnect",
+                  G_TYPE_FROM_CLASS (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0, NULL, NULL, NULL,
+                  G_TYPE_NONE, 1,
+                  G_TYPE_STRING);
 }
 
 static void
 xdp_context_init (XdpContext *context)
 {
-  context->cancellable = g_cancellable_new ();
 }
 
 XdpContext *
@@ -128,11 +151,15 @@ xdp_context_new (gboolean opt_verbose)
   XdpContext *context = g_object_new (XDP_TYPE_CONTEXT, NULL);
 
   context->verbose = opt_verbose;
+  context->cancellable = g_cancellable_new ();
   context->portal_config = xdp_portal_config_new (context);
-  context->app_info_registry = xdp_app_info_registry_new ();
+  context->app_info_registry = xdp_app_info_registry_new (context);
   context->exported_portals = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                      g_free,
                                                      g_object_unref);
+  context->registered_object_paths =
+    g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
+  g_mutex_init (&context->registered_object_paths_lock);
 
   return context;
 }
@@ -218,7 +245,7 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 
   if (method_needs_request (invocation))
     {
-      if (!xdp_request_init_invocation (invocation, app_info, &error))
+      if (!xdp_request_init_invocation (invocation, context, app_info, &error))
         {
           g_dbus_method_invocation_return_gerror (invocation, error);
           return FALSE;
@@ -288,12 +315,7 @@ on_peer_disconnect (const char *name,
 {
   XdpContext *context = XDP_CONTEXT (user_data);
 
-  xdp_usb_delete_for_sender (context, name);
-  notification_delete_for_sender (context, name);
-  close_requests_for_sender (name);
-  close_sessions_for_sender (name);
-  xdp_session_persistence_delete_transient_permissions_for_sender (name);
-  xdp_app_info_registry_delete (context->app_info_registry, name);
+  g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 }
 
 gboolean
@@ -394,4 +416,27 @@ xdp_context_register (XdpContext       *context,
   init_registry (context);
 
   return TRUE;
+}
+
+gboolean
+xdp_context_claim_object_path (XdpContext *context,
+                               const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
+
+  if (g_hash_table_contains (context->registered_object_paths, object_path))
+    return FALSE;
+
+  g_hash_table_add (context->registered_object_paths,
+                    g_strdup (object_path));
+  return TRUE;
+}
+
+void
+xdp_context_unclaim_object_path (XdpContext *context,
+                                 const char *object_path)
+{
+  G_MUTEX_AUTO_LOCK (&context->registered_object_paths_lock, locker);
+
+  g_hash_table_remove (context->registered_object_paths, object_path);
 }

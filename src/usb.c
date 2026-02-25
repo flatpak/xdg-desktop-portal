@@ -39,6 +39,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <gudev/gudev.h>
 
+#include "xdp-app-info-registry.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -65,13 +66,13 @@ struct _XdpUsb
 {
   XdpDbusUsbSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplUsb *impl;
 
   GHashTable *ids_to_devices;
   GHashTable *syspaths_to_ids;
 
   GHashTable *sessions;
-  GHashTable *sender_infos;
 
   GUdevClient *gudev_client;
 };
@@ -110,7 +111,6 @@ typedef struct _UsbOwnedDevice
 {
   gatomicrefcount ref_count;
 
-  char *sender_name;
   char *device_id;
   int fd;
 } UsbOwnedDevice;
@@ -119,11 +119,8 @@ typedef struct _UsbSenderInfo
 {
   gatomicrefcount ref_count;
 
-  char *sender_name;
   XdpAppInfo *app_info;
-
   GHashTable *pending_devices; /* object_path → GPtrArray */
-
   GHashTable *owned_devices; /* device id → UsbOwnedDevices */
 } UsbSenderInfo;
 
@@ -217,8 +214,6 @@ usb_sender_info_unref (UsbSenderInfo *sender_info)
 
   if (g_atomic_ref_count_dec (&sender_info->ref_count))
     {
-      g_clear_object (&sender_info->app_info);
-      g_clear_pointer (&sender_info->sender_name, g_free);
       g_clear_pointer (&sender_info->owned_devices, g_hash_table_destroy);
       g_clear_pointer (&sender_info->pending_devices, g_hash_table_destroy);
       g_clear_pointer (&sender_info, g_free);
@@ -226,15 +221,13 @@ usb_sender_info_unref (UsbSenderInfo *sender_info)
 }
 
 static UsbSenderInfo *
-usb_sender_info_new (const char *sender_name,
-                     XdpAppInfo *app_info)
+usb_sender_info_new (XdpAppInfo *app_info)
 {
   g_autoptr(UsbSenderInfo) sender_info = NULL;
 
   sender_info = g_new0 (UsbSenderInfo, 1);
   g_atomic_ref_count_init (&sender_info->ref_count);
-  sender_info->sender_name = g_strdup (sender_name);
-  sender_info->app_info = g_object_ref (app_info);
+  sender_info->app_info = app_info;
   sender_info->owned_devices =
     g_hash_table_new_full (g_str_hash, g_str_equal,
                            g_free, (GDestroyNotify) usb_owned_device_unref);
@@ -246,33 +239,29 @@ usb_sender_info_new (const char *sender_name,
 }
 
 static UsbSenderInfo *
-usb_sender_info_from_app_info (XdpUsb     *self,
-                               XdpAppInfo *app_info)
+usb_sender_info_from_app_info (XdpAppInfo *app_info)
 {
-  const char *sender = xdp_app_info_get_sender (app_info);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  g_autoptr(UsbSenderInfo) sender_info_owned = NULL;
+  UsbSenderInfo *sender_info = NULL;
 
-  sender_info = g_hash_table_lookup (self->sender_infos, sender);
+  sender_info = g_object_get_data (G_OBJECT (app_info), "-xdp-usb-sender-info");
+  if (sender_info)
+    return sender_info;
 
-  if (!sender_info)
-    {
-      sender_info = usb_sender_info_new (sender, app_info);
-      g_hash_table_insert (self->sender_infos, g_strdup (sender), sender_info);
-    }
+  sender_info = sender_info_owned = usb_sender_info_new (app_info);
+  g_object_set_data_full (G_OBJECT (app_info), "-xdp-usb-sender-info",
+                          g_steal_pointer (&sender_info_owned),
+                          (GDestroyNotify) usb_sender_info_unref);
 
-  g_assert (sender_info != NULL);
-  g_atomic_ref_count_inc (&sender_info->ref_count);
-
-  return g_steal_pointer (&sender_info);
+  return sender_info;
 }
 
 static UsbSenderInfo *
-usb_sender_info_from_request (XdpUsb     *self,
-                              XdpRequest *request)
+usb_sender_info_from_request (XdpRequest *request)
 {
   g_return_val_if_fail (request != NULL, NULL);
 
-  return usb_sender_info_from_app_info (self, request->app_info);
+  return usb_sender_info_from_app_info (request->app_info);
 }
 
 static void
@@ -302,7 +291,7 @@ usb_sender_info_release_device (UsbSenderInfo *sender_info,
   g_assert (sender_info != NULL);
 
   if (!g_hash_table_remove (sender_info->owned_devices, device_id))
-    g_warning ("Device %s not owned by %s", device_id, sender_info->sender_name);
+    g_warning ("Device %s not owned by sender", device_id);
 
 }
 
@@ -488,6 +477,7 @@ xdp_usb_session_new (XdpUsb           *usb,
 
   session = g_initable_new (XDP_TYPE_USB_SESSION,
                             NULL, error,
+                            "context", usb->context,
                             "connection", connection,
                             "sender", xdp_app_info_get_sender (app_info),
                             "app-id", xdp_app_info_get_id (app_info),
@@ -617,16 +607,20 @@ handle_session_event (XdpUsb        *self,
                       const char    *action,
                       gboolean       removing)
 {
+  XdpAppInfoRegistry *registry;
+  g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GVariant) device_variant = NULL;
   GVariantBuilder devices_builder;
   UsbSenderInfo *sender_info;
-  XdpSession *session;
+  XdpSession *session = XDP_SESSION (usb_session);
 
   g_assert (G_UDEV_IS_DEVICE (device));
   g_assert (g_strcmp0 (g_udev_device_get_subsystem (device), "usb") == 0);
 
-  session = XDP_SESSION (usb_session);
-  sender_info = g_hash_table_lookup (self->sender_infos, session->sender);
+  registry = xdp_context_get_app_info_registry (self->context);
+  app_info = xdp_app_info_registry_lookup_sender (registry, session->sender);
+  g_assert (app_info != NULL);
+  sender_info = usb_sender_info_from_app_info (app_info);
   g_assert (sender_info != NULL);
 
   /* We can't use usb_sender_info_match_device() when a device is being removed because,
@@ -726,7 +720,7 @@ send_initial_device_list (XdpUsb        *self,
                           XdpAppInfo    *app_info)
 {
   /* Send initial list of devices the app has permission to see */
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   XdpSession *session = XDP_SESSION (usb_session);
   GVariantBuilder devices_builder;
   g_autoptr(GVariant) events = NULL;
@@ -743,7 +737,7 @@ send_initial_device_list (XdpUsb        *self,
 
   g_assert (self != NULL);
 
-  sender_info = usb_sender_info_from_app_info (self, app_info);
+  sender_info = usb_sender_info_from_app_info (app_info);
 
   g_hash_table_iter_init (&iter, self->ids_to_devices);
   while (g_hash_table_iter_next (&iter, (gpointer *) &id, (gpointer *) &device))
@@ -862,13 +856,13 @@ static GVariant *
 list_permitted_devices (XdpUsb     *self,
                         XdpAppInfo *app_info)
 {
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   GVariantBuilder builder;
   GHashTableIter iter;
   GUdevDevice *device;
   const char *id;
 
-  sender_info = usb_sender_info_from_app_info (self, app_info);
+  sender_info = usb_sender_info_from_app_info (app_info);
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(sa{sv})"));
 
@@ -948,7 +942,7 @@ usb_acquire_devices_cb (GObject      *source_object,
 {
   XdpUsb *usb;
   XdgDesktopPortalResponseEnum response;
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariantIter) devices_iter = NULL;
   g_auto(GVariantBuilder) results_builder;
   g_autoptr (GVariant) results = NULL;
@@ -961,7 +955,7 @@ usb_acquire_devices_cb (GObject      *source_object,
 
   response = XDG_DESKTOP_PORTAL_RESPONSE_OTHER;
   usb = g_object_get_data (G_OBJECT (request), "usb");
-  sender_info = usb_sender_info_from_request (usb, request);
+  sender_info = usb_sender_info_from_request (request);
 
   g_assert (sender_info != NULL);
 
@@ -1161,7 +1155,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
                         GVariant              *arg_options)
 {
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariant) filtered_devices = NULL;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
@@ -1218,7 +1212,7 @@ handle_acquire_devices (XdpDbusUsb            *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  sender_info = usb_sender_info_from_request (self, request);
+  sender_info = usb_sender_info_from_request (request);
   g_assert (sender_info != NULL);
 
   /* Validate devices */
@@ -1257,7 +1251,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
                                GVariant              *arg_options)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info  (invocation);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GUnixFDList) fds = NULL;
   GVariantBuilder results_builder;
   XdpPermission permission;
@@ -1270,7 +1264,7 @@ handle_finish_acquire_devices (XdpDbusUsb            *object,
 
   g_debug ("[usb] Handling FinishAccessDevices");
 
-  sender_info = usb_sender_info_from_app_info (self, app_info);
+  sender_info = usb_sender_info_from_app_info (app_info);
 
   pending_devices = g_hash_table_lookup (sender_info->pending_devices, object_path);
   if (pending_devices == NULL)
@@ -1431,16 +1425,13 @@ handle_release_devices (XdpDbusUsb            *object,
                         GVariant              *arg_options)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
-  g_autoptr(UsbSenderInfo) sender_info = NULL;
+  UsbSenderInfo *sender_info = NULL;
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
   GVariantBuilder options_builder;
-  XdpUsb *self;
 
   static const XdpOptionKey usb_release_devices_options[] = {
   };
-
-  self = XDP_USB (object);
 
   g_debug ("[usb] Handling ReleaseDevices");
 
@@ -1456,7 +1447,7 @@ handle_release_devices (XdpDbusUsb            *object,
     }
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 
-  sender_info = usb_sender_info_from_app_info (self, app_info);
+  sender_info = usb_sender_info_from_app_info (app_info);
   g_assert (sender_info != NULL);
 
   for (size_t i = 0; arg_devices && arg_devices[i]; i++)
@@ -1488,7 +1479,6 @@ xdp_usb_dispose (GObject *object)
   g_clear_pointer (&self->ids_to_devices, g_hash_table_unref);
   g_clear_pointer (&self->syspaths_to_ids, g_hash_table_unref);
   g_clear_pointer (&self->sessions, g_hash_table_unref);
-  g_clear_pointer (&self->sender_infos, g_hash_table_unref);
 
   G_OBJECT_CLASS (xdp_usb_parent_class)->dispose (object);
 }
@@ -1507,7 +1497,8 @@ xdp_usb_init (XdpUsb *self)
 }
 
 static XdpUsb *
-usb_new (XdpDbusImplUsb *impl)
+usb_new (XdpContext     *context,
+         XdpDbusImplUsb *impl)
 {
   XdpUsb *usb;
   g_autolist(GUdevDevice) devices = NULL;
@@ -1519,6 +1510,7 @@ usb_new (XdpDbusImplUsb *impl)
   g_debug ("[usb] Initializing USB portal");
 
   usb = g_object_new (xdp_usb_get_type (), NULL);
+  usb->context = context;
   usb->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (usb->impl), G_MAXINT);
@@ -1530,9 +1522,6 @@ usb_new (XdpDbusImplUsb *impl)
   usb->syspaths_to_ids = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                 g_free, g_free);
   usb->sessions = g_hash_table_new (g_direct_hash, g_direct_equal);
-  usb->sender_infos =
-    g_hash_table_new_full (g_str_hash, g_str_equal,
-                           g_free, (GDestroyNotify) usb_sender_info_unref);
 
   usb->gudev_client = g_udev_client_new (subsystems);
   g_signal_connect_object (usb->gudev_client, "uevent",
@@ -1554,23 +1543,6 @@ usb_new (XdpDbusImplUsb *impl)
     }
 
   return usb;
-}
-
-void
-xdp_usb_delete_for_sender (XdpContext *context,
-                           const char *sender)
-{
-  GDBusInterfaceSkeleton *usb_skeleton =
-    xdp_context_get_portal (context, USB_DBUS_IFACE);
-  XdpUsb *usb;
-
-  if (!usb_skeleton)
-    return;
-
-  usb = XDP_USB (usb_skeleton);
-
-  if (g_hash_table_remove (usb->sender_infos, sender))
-    g_debug ("Removed sender %s", sender);
 }
 
 void
@@ -1599,7 +1571,7 @@ init_usb (XdpContext *context)
       return;
     }
 
-  usb = usb_new (impl);
+  usb = usb_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&usb)),

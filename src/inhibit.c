@@ -52,6 +52,7 @@ struct _Inhibit
 {
   XdpDbusInhibitSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplInhibit *impl;
 };
 
@@ -333,6 +334,7 @@ inhibit_session_new (Inhibit     *inhibit,
 
   session_token = lookup_session_token (options);
   session = g_initable_new (inhibit_session_get_type (), NULL, error,
+                            "context", inhibit->context,
                             "sender", request->sender,
                             "app-id", xdp_app_info_get_id (request->app_info),
                             "token", session_token,
@@ -545,11 +547,13 @@ on_state_changed (XdpDbusImplInhibit *impl,
 }
 
 static Inhibit *
-inhibit_new (XdpDbusImplInhibit *impl)
+inhibit_new (XdpContext         *context,
+             XdpDbusImplInhibit *impl)
 {
   Inhibit *inhibit;
 
   inhibit = g_object_new (inhibit_get_type (), NULL);
+  inhibit->context = context;
   inhibit->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (inhibit->impl), G_MAXINT);
@@ -588,7 +592,7 @@ init_inhibit (XdpContext *context)
       return;
     }
 
-  inhibit = inhibit_new (impl);
+  inhibit = inhibit_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&inhibit)),
