@@ -239,7 +239,7 @@ xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
   g_autoptr(GVariant) process_fd = NULL;
   g_autoptr(GVariant) process_id = NULL;
   uint32_t pid;
-  int fd_index;
+  int fd_id;
   g_autoptr(GUnixFDList) fd_list = NULL;
   g_autofd int pidfd = -1;
 
@@ -296,7 +296,7 @@ xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
       return TRUE;
     }
 
-  fd_index = g_variant_get_handle (process_fd);
+  fd_id = g_variant_get_handle (process_fd);
 
   if (fd_list == NULL)
     {
@@ -304,13 +304,13 @@ xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
       return FALSE;
     }
 
-  if (fd_index >= g_unix_fd_list_get_length (fd_list))
+  if (!(fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list)))
     {
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Pidfd index is out of bounds");
       return FALSE;
     }
 
-  pidfd = g_unix_fd_list_get (fd_list, fd_index, error);
+  pidfd = g_unix_fd_list_get (fd_list, fd_id, error);
   if (pidfd < 0)
     return FALSE;
 

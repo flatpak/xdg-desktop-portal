@@ -386,7 +386,7 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
   g_autoptr(GTask) task = NULL;
   CallData *call_data;
 
-  if (fdlist == NULL || g_unix_fd_list_get_length (fdlist) != 2)
+  if (g_unix_fd_list_get_length (fdlist) != 2)
     {
       g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_INVALID_ARGS,
                                              "File descriptor number is incorrect");
