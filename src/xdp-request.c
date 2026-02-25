@@ -21,11 +21,16 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-#include "xdp-request.h"
-#include "xdp-utils.h"
-#include "xdp-method-info.h"
+#include "config.h"
 
 #include <string.h>
+
+#include "xdp-context.h"
+#include "xdp-utils.h"
+#include "xdp-method-info.h"
+#include "xdp-context.h"
+
+#include "xdp-request.h"
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
@@ -118,6 +123,7 @@ xdp_request_finalize (GObject *object)
 
   G_LOCK (requests);
   g_hash_table_remove (requests, request->id);
+  xdp_context_unclaim_object_path (request->context, request->id);
   G_UNLOCK (requests);
 
   g_clear_object (&request->impl_request);
@@ -203,9 +209,10 @@ get_token (GDBusMethodInvocation *invocation)
 }
 
 gboolean
-xdp_request_init_invocation (GDBusMethodInvocation *invocation,
-                             XdpAppInfo            *app_info,
-                             GError               **error)
+xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
+                             XdpContext             *context,
+                             XdpAppInfo             *app_info,
+                             GError                **error)
 {
   XdpRequest *request;
   guint32 r;
@@ -227,6 +234,7 @@ xdp_request_init_invocation (GDBusMethodInvocation *invocation,
   request = g_object_new (XDP_TYPE_REQUEST, NULL);
   request->sender = g_strdup (g_dbus_method_invocation_get_sender (invocation));
   request->app_info = g_object_ref (app_info);
+  request->context = context;
 
   g_object_set_data (G_OBJECT (request), "fd", GINT_TO_POINTER (-1));
 
@@ -239,7 +247,7 @@ xdp_request_init_invocation (GDBusMethodInvocation *invocation,
 
   G_LOCK (requests);
 
-  while (g_hash_table_lookup (requests, id) != NULL)
+  while (!xdp_context_claim_object_path (context, id))
     {
       r = g_random_int ();
       g_free (id);
@@ -349,6 +357,7 @@ xdp_close_requests_in_thread_func (GTask        *task,
             xdp_dbus_impl_request_call_close_sync (request->impl_request, NULL, NULL);
 
           xdp_request_unexport (request);
+          xdp_context_unclaim_object_path (request->context, request->id);
         }
     }
 

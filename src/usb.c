@@ -65,6 +65,7 @@ struct _XdpUsb
 {
   XdpDbusUsbSkeleton parent_instance;
 
+  XdpContext *context;
   XdpDbusImplUsb *impl;
 
   GHashTable *ids_to_devices;
@@ -488,6 +489,7 @@ xdp_usb_session_new (XdpUsb           *usb,
 
   session = g_initable_new (XDP_TYPE_USB_SESSION,
                             NULL, error,
+                            "context", usb->context,
                             "connection", connection,
                             "sender", xdp_app_info_get_sender (app_info),
                             "app-id", xdp_app_info_get_id (app_info),
@@ -1507,7 +1509,8 @@ xdp_usb_init (XdpUsb *self)
 }
 
 static XdpUsb *
-usb_new (XdpDbusImplUsb *impl)
+usb_new (XdpContext     *context,
+         XdpDbusImplUsb *impl)
 {
   XdpUsb *usb;
   g_autolist(GUdevDevice) devices = NULL;
@@ -1519,6 +1522,7 @@ usb_new (XdpDbusImplUsb *impl)
   g_debug ("[usb] Initializing USB portal");
 
   usb = g_object_new (xdp_usb_get_type (), NULL);
+  usb->context = context;
   usb->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (usb->impl), G_MAXINT);
@@ -1599,7 +1603,7 @@ init_usb (XdpContext *context)
       return;
     }
 
-  usb = usb_new (impl);
+  usb = usb_new (context, impl);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&usb)),
