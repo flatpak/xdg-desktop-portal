@@ -220,7 +220,7 @@ xdp_sealed_fd_new_from_handle (GVariant     *handle,
     }
 
   fd_id = g_variant_get_handle (handle);
-  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+  if (!(fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list)))
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
                            "Invalid file descriptor: index not found");

@@ -1034,7 +1034,7 @@ handle_open_file (XdpDbusOpenURI *object,
     ask = FALSE;
 
   g_variant_get (arg_fd, "h", &fd_id);
-  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+  if (!(fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -1096,7 +1096,7 @@ handle_open_directory (XdpDbusOpenURI *object,
     }
 
   g_variant_get (arg_fd, "h", &fd_id);
-  if (fd_id >= g_unix_fd_list_get_length (fd_list))
+  if (!(fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
