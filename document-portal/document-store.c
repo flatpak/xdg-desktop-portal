@@ -55,15 +55,15 @@ xdp_parse_permissions (const char **permissions,
 }
 
 DocumentPermissionFlags
-document_entry_get_permissions_by_app_id (PermissionDbEntry *entry,
-                                          const char        *app_id)
+document_entry_get_permissions_by_app_permissions_id (PermissionDbEntry *entry,
+                                                      const char        *permissions_id)
 {
   g_autofree const char **permissions = NULL;
 
-  if (strcmp (app_id, "") == 0)
+  if (strcmp (permissions_id, "") == 0)
     return DOCUMENT_PERMISSION_FLAGS_ALL;
 
-  permissions = permission_db_entry_list_permissions (entry, app_id);
+  permissions = permission_db_entry_list_permissions (entry, permissions_id);
   return xdp_parse_permissions (permissions, NULL);
 }
 
@@ -71,12 +71,12 @@ DocumentPermissionFlags
 document_entry_get_permissions (PermissionDbEntry *entry,
                                 XdpAppInfo        *app_info)
 {
-  const char *app_id = xdp_app_info_get_id (app_info);
+  const char *permissions_id = xdp_app_info_get_permissions_id (app_info);
 
   if (xdp_app_info_is_host (app_info))
     return DOCUMENT_PERMISSION_FLAGS_ALL;
 
-  return document_entry_get_permissions_by_app_id (entry, app_id);
+  return document_entry_get_permissions_by_app_permissions_id (entry, permissions_id);
 }
 
 gboolean
@@ -85,8 +85,10 @@ document_entry_has_permissions_by_app_id (PermissionDbEntry       *entry,
                                           DocumentPermissionFlags  perms)
 {
   DocumentPermissionFlags current_perms;
+  g_autofree char *permissions_id = NULL;
 
-  current_perms = document_entry_get_permissions_by_app_id (entry, app_id);
+  permissions_id = permissions_id_for_app_id (app_id);
+  current_perms = document_entry_get_permissions_by_app_permissions_id (entry, permissions_id);
 
   return (current_perms & perms) == perms;
 }

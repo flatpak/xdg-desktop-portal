@@ -511,6 +511,15 @@ xdp_is_valid_app_id (const char *string)
 }
 
 gboolean
+xdp_is_valid_permissions_id (const char *string)
+{
+  if (g_str_has_prefix (string, "snap."))
+    return TRUE;
+
+  return xdp_is_valid_app_id (string);
+}
+
+gboolean
 xdp_is_valid_token (const char *string)
 {
   g_autofree char *path = NULL;

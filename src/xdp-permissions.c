@@ -40,7 +40,7 @@ xdp_get_permissions_sync (XdpAppInfo *app_info,
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
   g_autofree char **permissions = NULL;
-  const char *app_id;
+  const char *permissions_id;
 
   if (!xdp_dbus_impl_permission_store_call_lookup_sync (permission_store,
                                                         table,
@@ -55,10 +55,10 @@ xdp_get_permissions_sync (XdpAppInfo *app_info,
       return NULL;
     }
 
-  app_id = xdp_app_info_get_id (app_info);
-  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
+  permissions_id = xdp_app_info_get_permissions_id (app_info);
+  if (!g_variant_lookup (out_perms, permissions_id, "^a&s", &permissions))
     {
-      g_debug ("No permissions stored for: %s %s, app %s", table, id, app_id);
+      g_debug ("No permissions stored for: %s %s, app %s", table, id, permissions_id);
 
       return NULL;
     }
@@ -133,7 +133,7 @@ xdp_set_permissions_sync (XdpAppInfo         *app_info,
                                                                 table,
                                                                 TRUE,
                                                                 id,
-                                                                xdp_app_info_get_id (app_info),
+                                                                xdp_app_info_get_permissions_id (app_info),
                                                                 permissions,
                                                                 NULL,
                                                                 &error))
