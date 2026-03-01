@@ -531,7 +531,6 @@ handle_start_in_thread_func (GTask *task,
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
-      const char *body;
       g_autoptr(GError) error = NULL;
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (
@@ -572,15 +571,13 @@ handle_start_in_thread_func (GTask *task,
           subtitle = g_strdup (_("An app wants to use your location"));
         }
 
-      body = _("Location access can be changed at any time from the privacy settings");
-
       if (!xdp_dbus_impl_access_call_access_dialog_sync (location->access_impl,
                                                          request->id,
                                                          app_id,
                                                          parent_window,
                                                          title,
                                                          subtitle,
-                                                         body,
+                                                         "",
                                                          g_variant_builder_end (&access_opt_builder),
                                                          &access_response,
                                                          &access_results,
