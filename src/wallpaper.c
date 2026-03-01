@@ -183,7 +183,6 @@ handle_set_wallpaper_in_thread_func (GTask *task,
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree gchar *title = NULL;
       g_autofree gchar *subtitle = NULL;
-      const gchar *body;
 
       g_variant_builder_add (&access_opt_builder, "{sv}",
                              "deny_label", g_variant_new_string (_("Deny")));
@@ -204,15 +203,13 @@ handle_set_wallpaper_in_thread_func (GTask *task,
           subtitle = g_strdup (_("An app wants to change the background image"));
         }
 
-      body = _("This permission can be changed at any time from the privacy settings");
-
       if (!xdp_dbus_impl_access_call_access_dialog_sync (wallpaper->access_impl,
                                                          request->id,
                                                          app_id,
                                                          parent_window,
                                                          title,
                                                          subtitle,
-                                                         body,
+                                                         "",
                                                          g_variant_builder_end (&access_opt_builder),
                                                          &access_response,
                                                          &access_results,
