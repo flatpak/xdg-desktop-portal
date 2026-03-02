@@ -45,6 +45,7 @@
 #include "notification.h"
 #include "open-uri.h"
 #include "xdp-permissions.h"
+#include "parental-controls.h"
 #include "power-profile-monitor.h"
 #include "print.h"
 #include "proxy-resolver.h"
@@ -380,6 +381,7 @@ xdp_context_register (XdpContext       *context,
   init_background (context);
   init_wallpaper (context);
   init_account (context);
+  init_parental_controls (context);
   init_email (context);
   init_secret (context, context->cancellable);
   init_global_shortcuts (context);

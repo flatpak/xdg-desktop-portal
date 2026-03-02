@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<!--
+ SPDX-License-Identifier: LGPL-2.1-or-later
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.impl.portal.ParentalControls:
+      @short_description: Backend for the ParentalControls portal
+  -->
+  <interface name="org.freedesktop.impl.portal.ParentalControls">
+    <property name="version" type="u" access="read"/>
+    <!--
+        GetParentalControls:
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+        @app_id: App id of the application
+        @window: Identifier for the application window, see :doc:`window-identifiers`
+        @gates: An array of age backets to query
+        @options: Vardict with optional further information
+        @response: Numeric response
+        @results: Vardict with the results of the call
+
+        Gets parental control related age information about the user.
+
+        The following results get returned via the @results vardict:
+
+        * ``low`` (``i``) and ``high`` (``i``)
+
+          The lower and upper bound of the user's age range relative to the
+          provided gates. Each will be either ``-1`` or equal to one of the
+          provided gate values. ``low`` is the lowest gate the user meets or
+          exceeds, and ``high`` is the highest gate the user is below.
+    -->
+    <method name="QueryAgeBracket">
+      <arg type="o" name="handle" direction="in"/>
+      <arg type="s" name="app_id" direction="in"/>
+      <arg type="s" name="window" direction="in"/>
+      <arg type="au" name="gates" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In5" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="u" name="response" direction="out"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
+      <arg type="a{sv}" name="results" direction="out"/>
+    </method>
+  </interface>
+</node>
