@@ -107,9 +107,6 @@ xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface)
   iface->response = xdp_request_on_signal_response;
 }
 
-G_LOCK_DEFINE (requests);
-static GHashTable *requests;
-
 static void
 xdp_request_init (XdpRequest *request)
 {
@@ -121,10 +118,7 @@ xdp_request_finalize (GObject *object)
 {
   XdpRequest *request = XDP_REQUEST (object);
 
-  G_LOCK (requests);
-  g_hash_table_remove (requests, request->id);
   xdp_context_unclaim_object_path (request->context, request->id);
-  G_UNLOCK (requests);
 
   g_clear_object (&request->impl_request);
   g_clear_pointer (&request->sender, g_free);
@@ -139,9 +133,6 @@ static void
 xdp_request_class_init (XdpRequestClass *klass)
 {
   GObjectClass *gobject_class;
-
-  requests = g_hash_table_new_full (g_str_hash, g_str_equal,
-                                    NULL, NULL);
 
   gobject_class = G_OBJECT_CLASS (klass);
   gobject_class->finalize  = xdp_request_finalize;
@@ -267,8 +258,6 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
 
   id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s", sender, token);
 
-  G_LOCK (requests);
-
   while (!xdp_context_claim_object_path (context, id))
     {
       r = g_random_int ();
@@ -277,9 +266,6 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
     }
 
   request->id = id;
-  g_hash_table_insert (requests, id, request);
-
-  G_UNLOCK (requests);
 
   g_dbus_interface_skeleton_set_flags (G_DBUS_INTERFACE_SKELETON (request),
                                        G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
