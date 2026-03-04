@@ -137,10 +137,6 @@
 
           Whether to make the dialog modal. Default is yes.
 
-        * ``multiple`` (``b``)
-
-          Whether to allow selection of multiple files. Default is no.
-
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
