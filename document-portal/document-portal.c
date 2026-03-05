@@ -1506,6 +1506,7 @@ on_peer_disconnect (const char *name,
                     gpointer    user_data)
 {
   stop_file_transfers_for_sender (name);
+  xdp_app_info_registry_delete (app_info_registry, name);
 }
 
 static void

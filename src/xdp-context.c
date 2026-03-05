@@ -315,14 +315,8 @@ on_peer_disconnect (const char *name,
 {
   XdpContext *context = XDP_CONTEXT (user_data);
 
-  xdp_usb_delete_for_sender (context, name);
-  notification_delete_for_sender (context, name);
-
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 
-  close_requests_for_sender (name);
-  close_sessions_for_sender (name);
-  xdp_session_persistence_delete_transient_permissions_for_sender (name);
   xdp_app_info_registry_delete (context->app_info_registry, name);
 }
 
