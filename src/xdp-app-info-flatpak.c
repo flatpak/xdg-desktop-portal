@@ -54,6 +54,8 @@ struct _XdpAppInfoFlatpak
 
   GKeyFile *flatpak_info;
   GPtrArray *queries;
+  GHashTable *entitlements;
+  gboolean enforce_strict_entitlements;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
@@ -483,12 +485,62 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
 }
 
 static void
+ensure_entitlements (XdpAppInfoFlatpak *app_info)
+{
+  g_auto(GStrv) enforce = NULL;
+  g_auto(GStrv) entitlements = NULL;
+
+  if (app_info->entitlements)
+    return;
+
+  app_info->entitlements =
+    g_hash_table_new_full (g_str_hash, g_str_equal,
+                           g_free,
+                           NULL);
+
+  entitlements = g_key_file_get_string_list (app_info->flatpak_info,
+                                             "Policy entitlement",
+                                             "grant",
+                                             NULL,
+                                             NULL);
+
+  for (size_t i = 0; entitlements && entitlements[i]; i++)
+    g_hash_table_add (app_info->entitlements, g_strdup (entitlements[i]));
+
+  enforce = g_key_file_get_string_list (app_info->flatpak_info,
+                                        "Policy entitlement",
+                                        "enforce",
+                                        NULL,
+                                        NULL);
+
+  if (enforce && g_strv_contains ((const char * const *) enforce, "strict"))
+    app_info->enforce_strict_entitlements = TRUE;
+}
+
+static gboolean
+xdp_app_info_flatpak_has_entitlement (XdpAppInfo         *app_info,
+                                      const char         *entitlement,
+                                      XdpEntitlementKind  kind)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
+
+  ensure_entitlements (app_info_flatpak);
+
+  if (kind == XDP_ENTITLEMENT_KIND_LEGACY &&
+      !app_info_flatpak->enforce_strict_entitlements)
+    return TRUE;
+
+  return g_hash_table_contains (app_info_flatpak->entitlements, entitlement);
+}
+
+static void
 xdp_app_info_flatpak_dispose (GObject *object)
 {
   XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
 
   g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
   g_clear_pointer (&app_info->queries, g_ptr_array_unref);
+  g_clear_pointer (&app_info->entitlements, g_hash_table_unref);
 
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
@@ -511,6 +563,8 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
+  app_info_class->has_entitlement =
+    xdp_app_info_flatpak_has_entitlement;
 }
 
 static void
