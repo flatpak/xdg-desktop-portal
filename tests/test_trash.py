@@ -7,13 +7,20 @@ import tests.xdp_utils as xdp
 import os
 import pytest
 import tempfile
+import dbus
 from pathlib import Path
+
+
+@pytest.fixture
+def xdp_app_info_entitlements():
+    return ["org.freedesktop.portal.Trash.Foo"]
 
 
 class TestTrash:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "Trash", 1)
 
+    @pytest.fixture(params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK])
     def test_trash_file_fails(self, portals, dbus_con):
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
         try:
@@ -24,11 +31,20 @@ class TestTrash:
 
         assert result == 0
 
-    def test_trash_file(self, portals, dbus_con):
+    def test_trash_file(self, portals, dbus_con, xdp_app_info):
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
 
         fd, name = tempfile.mkstemp(prefix="trash_portal_mock_", dir=Path.home())
-        result = trash_intf.TrashFile(fd)
+
+        try:
+            result = trash_intf.TrashFile(fd)
+        except dbus.exceptions.DBusException as e:
+            # Unsupported on snap and linyaps
+            assert e.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
+            assert xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+            return
+        assert xdp_app_info.kind not in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+
         if result != 1:
             os.unlink(name)
         assert result == 1

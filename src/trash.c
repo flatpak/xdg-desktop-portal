@@ -109,6 +109,17 @@ handle_trash_file (XdpDbusTrash *object,
 
   g_debug ("Handling TrashFile");
 
+  if (!xdp_app_info_has_entitlement (app_info,
+                                     "org.freedesktop.portal.Trash.Foo"))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                             "Missing entitlement "
+                                             "org.freedesktop.portal.Trash.Foo");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
   g_variant_get (arg_fd, "h", &idx);
   if (idx >= g_unix_fd_list_get_length (fd_list))
     {
