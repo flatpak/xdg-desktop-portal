@@ -450,7 +450,9 @@ def xdp_overwrite_env() -> dict[str, str]:
         xdp.AppInfoKind.LINYAPS,
     ]
 )
-def xdp_app_info(request) -> xdp.AppInfo:
+def xdp_app_info(
+    request,
+) -> xdp.AppInfo:
     """
     Default fixture which can be used to override the XdpAppInfo the portal
     frontend will discover.
@@ -459,29 +461,18 @@ def xdp_app_info(request) -> xdp.AppInfo:
     """
 
     app_info_kind = request.param
-    app_id = "org.example.Test"
 
     if app_info_kind == xdp.AppInfoKind.HOST:
-        return xdp.AppInfo.new_host(
-            app_id=app_id,
-        )
+        return xdp.AppInfo.new_host()
 
     if app_info_kind == xdp.AppInfoKind.FLATPAK:
-        return xdp.AppInfo.new_flatpak(
-            app_id=app_id,
-        )
+        return xdp.AppInfo.new_flatpak()
 
     if app_info_kind == xdp.AppInfoKind.SNAP:
-        return xdp.AppInfo.new_snap(
-            common_id=app_id,
-            snap_name="test",
-            app_name="test",
-        )
+        return xdp.AppInfo.new_snap()
 
     if app_info_kind == xdp.AppInfoKind.LINYAPS:
-        return xdp.AppInfo.new_linyaps(
-            app_id=app_id,
-        )
+        return xdp.AppInfo.new_linyaps()
 
     assert_never(app_info_kind)
 
