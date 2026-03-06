@@ -87,7 +87,7 @@ class TestBackground:
         assert response
 
         # Unsupported on snap and linyaps
-        if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
+        if isinstance(xdp_app_info, (xdp.AppInfoSnap, xdp.AppInfoLinyaps)):
             assert response.response == 2
             assert not response.results["autostart"]
             return
@@ -106,7 +106,7 @@ class TestBackground:
         assert keyfile.get_boolean("Desktop Entry", "DBusActivatable")
 
         exec = keyfile.get_string("Desktop Entry", "Exec")
-        if xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
+        if isinstance(xdp_app_info, xdp.AppInfoFlatpak):
             assert exec == f"flatpak run --command=/bin/true {app_id} test"
         else:
             assert exec == "/bin/true test"
@@ -133,7 +133,7 @@ class TestBackground:
         assert response
 
         # Unsupported on snap and linyaps
-        if xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}:
+        if isinstance(xdp_app_info, (xdp.AppInfoSnap, xdp.AppInfoLinyaps)):
             assert response.response == 2
             assert not response.results["autostart"]
             return
