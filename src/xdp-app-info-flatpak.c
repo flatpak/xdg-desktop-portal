@@ -482,6 +482,22 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static gboolean
+xdp_app_info_flatpak_has_entitlement (XdpAppInfo *app_info,
+                                      const char *entitlement)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
+  g_auto(GStrv) values = NULL;
+  size_t len = 0;
+
+  values = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
+                                       "Policy entitlement",
+                                       entitlement,
+                                       &len,
+                                       NULL);
+  return values && len > 0;
+}
+
 static void
 xdp_app_info_flatpak_dispose (GObject *object)
 {
@@ -511,6 +527,8 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
+  app_info_class->has_entitlement =
+    xdp_app_info_flatpak_has_entitlement;
 }
 
 static void

@@ -96,3 +96,6 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                  GError     **error);
 
 const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
+
+gboolean xdp_app_info_has_entitlement (XdpAppInfo *app_info,
+                                       const char *entitlement);

@@ -69,6 +69,13 @@ xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static gboolean
+xdp_app_info_host_has_entitlement (XdpAppInfo *app_info,
+                                   const char *entitlement)
+{
+  return TRUE;
+}
+
 static void
 xdp_app_info_host_dispose (GObject *object)
 {
@@ -95,6 +102,8 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
     xdp_app_info_host_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_host_is_valid_sub_app_id;
+  app_info_class->has_entitlement =
+    xdp_app_info_host_has_entitlement;
 }
 
 static void

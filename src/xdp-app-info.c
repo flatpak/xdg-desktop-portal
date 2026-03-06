@@ -903,3 +903,17 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
 
   return XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries (app_info);
 }
+
+gboolean
+xdp_app_info_has_entitlement (XdpAppInfo *app_info,
+                              const char *entitlement)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (!priv->id ||
+      !XDP_APP_INFO_GET_CLASS (app_info)->has_entitlement)
+    return FALSE;
+
+  return XDP_APP_INFO_GET_CLASS (app_info)->has_entitlement (app_info,
+                                                             entitlement);
+}
