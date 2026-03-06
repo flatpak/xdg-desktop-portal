@@ -442,6 +442,11 @@ def xdp_overwrite_env() -> dict[str, str]:
     return {}
 
 
+@pytest.fixture
+def xdp_app_info_entitlements() -> list[str]:
+    return []
+
+
 @pytest.fixture(
     params=[
         xdp.AppInfoKind.HOST,
@@ -450,7 +455,7 @@ def xdp_overwrite_env() -> dict[str, str]:
         xdp.AppInfoKind.LINYAPS,
     ]
 )
-def xdp_app_info(request) -> xdp.AppInfo:
+def xdp_app_info(request, xdp_app_info_entitlements) -> xdp.AppInfo:
     """
     Default fixture which can be used to override the XdpAppInfo the portal
     frontend will discover.
@@ -469,6 +474,7 @@ def xdp_app_info(request) -> xdp.AppInfo:
     if app_info_kind == xdp.AppInfoKind.FLATPAK:
         return xdp.AppInfo.new_flatpak(
             app_id=app_id,
+            entitlements=xdp_app_info_entitlements,
         )
 
     if app_info_kind == xdp.AppInfoKind.SNAP:
