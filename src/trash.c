@@ -103,14 +103,14 @@ handle_trash_file (XdpDbusTrash *object,
                    GVariant *arg_fd)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
-  int idx;
+  int fd_id;
   g_autofd int fd = -1;
   guint result;
 
   g_debug ("Handling TrashFile");
 
-  g_variant_get (arg_fd, "h", &idx);
-  if (idx >= g_unix_fd_list_get_length (fd_list))
+  g_variant_get (arg_fd, "h", &fd_id);
+  if (!(fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list)))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -119,7 +119,7 @@ handle_trash_file (XdpDbusTrash *object,
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  fd = g_unix_fd_list_get (fd_list, idx, NULL);
+  fd = g_unix_fd_list_get (fd_list, fd_id, NULL);
 
   result = trash_file (app_info, fd);
 

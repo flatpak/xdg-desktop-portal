@@ -263,7 +263,7 @@ selection_write_done (GObject *source_object,
     {
       int fd_id = g_variant_get_handle (fd_handle);
 
-      if (fd_id < g_unix_fd_list_get_length (fd_list))
+      if (fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list))
         {
           g_autofd int fd = -1;
 
@@ -428,7 +428,7 @@ selection_read_done (GObject *source_object,
     {
       int fd_id = g_variant_get_handle (fd_handle);
 
-      if (fd_id < g_unix_fd_list_get_length (fd_list))
+      if (fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list))
         {
           g_autofd int fd = -1;
 
