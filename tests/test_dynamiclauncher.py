@@ -94,9 +94,9 @@ class TestDynamicLauncher:
         except dbus.exceptions.DBusException as e:
             # Unsupported on snap and linyaps
             assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
-            assert xdp_app_info.kind in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+            assert type(xdp_app_info) in {xdp.AppInfoSnap, xdp.AppInfoLinyaps}
             return
-        assert xdp_app_info.kind not in {xdp.AppInfoKind.SNAP, xdp.AppInfoKind.LINYAPS}
+        assert type(xdp_app_info) not in {xdp.AppInfoSnap, xdp.AppInfoLinyaps}
 
         file = Path(os.environ["XDG_DATA_HOME"]) / "applications" / desktop_file_name
         assert file.exists()
