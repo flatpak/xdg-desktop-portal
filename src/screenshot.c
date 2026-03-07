@@ -202,7 +202,6 @@ check_non_interactive_permission_in_thread (Screenshot *screenshot,
   XdpPermission permission;
   g_autofree char *subtitle = NULL;
   g_autofree char *title = NULL;
-  const char *body = "";
   uint access_response = 2;
   const char *app_id;
 
@@ -270,16 +269,13 @@ check_non_interactive_permission_in_thread (Screenshot *screenshot,
         }
     }
 
-  if (permission == XDP_PERMISSION_UNSET)
-    body = _("This permission can be changed at any time from the privacy settings");
-
   if (!xdp_dbus_impl_access_call_access_dialog_sync (screenshot->access_impl,
                                                      request->id,
                                                      app_id,
                                                      parent_window,
                                                      title,
                                                      subtitle,
-                                                     body,
+                                                     "",
                                                      g_variant_builder_end (&access_opt_builder),
                                                      &access_response,
                                                      &access_results,
