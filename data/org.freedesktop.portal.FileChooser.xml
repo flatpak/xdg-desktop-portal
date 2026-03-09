@@ -229,8 +229,8 @@
 
       * ``uris`` (``as``)
 
-        An array of strings containing the uri of the selected file. All URIs
-        have the ``file://`` scheme.
+        An array of strings containing the uri of the selected file. It has
+        exactly one element. All URIs have the ``file://`` scheme.
 
       * ``choices`` (``a(ss)``)
 
