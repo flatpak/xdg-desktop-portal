@@ -103,23 +103,18 @@ handle_trash_file (XdpDbusTrash *object,
                    GVariant *arg_fd)
 {
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
-  int idx;
   g_autofd int fd = -1;
   guint result;
+  g_autoptr(GError) error = NULL;
 
   g_debug ("Handling TrashFile");
 
-  g_variant_get (arg_fd, "h", &idx);
-  if (idx >= g_unix_fd_list_get_length (fd_list))
+  fd = xdp_get_portal_call_fd (fd_list, g_variant_get_handle (arg_fd), &error);
+  if (fd < 0)
     {
-      g_dbus_method_invocation_return_error (invocation,
-                                             XDG_DESKTOP_PORTAL_ERROR,
-                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                             "Bad file descriptor index");
+      g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
-
-  fd = g_unix_fd_list_get (fd_list, idx, NULL);
 
   result = trash_file (app_info, fd);
 
