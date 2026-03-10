@@ -1444,3 +1444,34 @@ xdp_map_tids (ino_t    pidns,
 
   return map_pids_proc (pidns, tids, n_tids, proc_dir, error);
 }
+
+int
+xdp_get_portal_call_fd (GUnixFDList  *fd_list,
+                        int           fd_id,
+                        GError      **error)
+{
+  g_autofd int fd = -1;
+  g_autoptr(GError) local_error = NULL;
+
+  if (!xdp_is_fd_list_index_valid (fd_list, fd_id))
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "File descriptor index %d is out of bounds (provided %d fds)",
+                   fd_id, g_unix_fd_list_get_length (fd_list));
+      return -1;
+    }
+
+  fd = g_unix_fd_list_get (fd_list, fd_id, &local_error);
+  if (fd < 0)
+    {
+      g_set_error (error,
+                   XDG_DESKTOP_PORTAL_ERROR,
+                   XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                   "Failed to get file descriptor: %s",
+                   local_error->message);
+    }
+
+  return g_steal_fd (&fd);
+}

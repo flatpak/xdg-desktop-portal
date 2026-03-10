@@ -185,5 +185,9 @@ xdp_is_fd_list_index_valid (GUnixFDList *fd_list,
   return (fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list));
 }
 
+int xdp_get_portal_call_fd (GUnixFDList  *fd_list,
+                            int           fd_id,
+                            GError      **error);
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
