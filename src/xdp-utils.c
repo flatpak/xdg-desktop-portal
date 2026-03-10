@@ -1475,3 +1475,35 @@ xdp_get_portal_call_fd (GUnixFDList  *fd_list,
 
   return g_steal_fd (&fd);
 }
+
+gboolean
+xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
+                      GUnixFDList  *fd_list_dst,
+                      int           fd_id,
+                      int          *fd_id_out,
+                      GError      **error)
+{
+  g_autofd int fd = -1;
+  int new_fd_id;
+
+  if (!xdp_is_fd_list_index_valid (fd_list_src, fd_id))
+    {
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_INVALID_DATA,
+                   "File descriptor index %d is out of bounds (provided %d fds)",
+                   fd_id, g_unix_fd_list_get_length (fd_list_src));
+      return FALSE;
+    }
+
+  fd = g_unix_fd_list_get (fd_list_src, fd_id, error);
+  if (fd < 0)
+    return FALSE;
+
+  new_fd_id = g_unix_fd_list_append (fd_list_dst, fd, error);
+  if (new_fd_id < 0)
+    return FALSE;
+
+  if (fd_id_out)
+    *fd_id_out = new_fd_id;
+
+  return TRUE;
+}
