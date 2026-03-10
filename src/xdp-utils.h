@@ -189,5 +189,11 @@ int xdp_get_portal_call_fd (GUnixFDList  *fd_list,
                             int           fd_id,
                             GError      **error);
 
+gboolean xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
+                               GUnixFDList  *fd_list_dst,
+                               int           fd_id,
+                               int          *fd_id_out,
+                               GError      **error);
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
