@@ -1387,7 +1387,7 @@ background_new (XdpDbusImplBackground *background_impl,
   g_signal_connect_object (background->impl, "running-applications-changed",
                            G_CALLBACK (on_running_apps_changed),
                            background,
-                           G_CONNECT_DEFAULT);
+                           G_CONNECT_SWAPPED);
 
   /* FIXME: it would be better if libflatpak had a monitor api for this */
   instance_path = g_build_filename (g_get_user_runtime_dir (), ".flatpak", NULL);
@@ -1406,7 +1406,7 @@ background_new (XdpDbusImplBackground *background_impl,
       g_signal_connect_object (background->instance_monitor, "changed",
                                G_CALLBACK (on_instances_changed),
                                background,
-                               G_CONNECT_DEFAULT);
+                               G_CONNECT_SWAPPED);
     }
 
   return g_steal_pointer (&background);
