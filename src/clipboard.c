@@ -255,39 +255,27 @@ selection_write_done (GObject *source_object,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
+
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Internal error");
+      return;
     }
 
   out_fd_list = g_unix_fd_list_new ();
-
-  if (fd_handle)
+  if (!xdp_copy_fd_to_lists (fd_list, out_fd_list,
+                             g_variant_get_handle (fd_handle),
+                             &out_fd_id,
+                             &error))
     {
-      int fd_id = g_variant_get_handle (fd_handle);
+      g_warning ("Passing a fd from impl to frontend failed: %s",
+                 error->message);
 
-      if (fd_id < g_unix_fd_list_get_length (fd_list))
-        {
-          g_autofd int fd = -1;
-
-          fd = g_unix_fd_list_get (fd_list, fd_id, &error);
-
-          if (fd >= 0)
-            out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
-        }
-      else
-        {
-          g_set_error_literal (&error, XDG_DESKTOP_PORTAL_ERROR,
-                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                               "Bad file descriptor index");
-        }
-    }
-
-  if (out_fd_id == -1)
-    {
-      g_dbus_method_invocation_return_error (
-        invocation,
-        XDG_DESKTOP_PORTAL_ERROR,
-        XDG_DESKTOP_PORTAL_ERROR_FAILED,
-        "Failed to append fd: %s",
-        error->message);
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Internal error");
       return;
     }
 
@@ -420,38 +408,27 @@ selection_read_done (GObject *source_object,
     {
       g_dbus_error_strip_remote_error (error);
       g_warning ("A backend call failed: %s", error->message);
-    }
 
-  out_fd_list = g_unix_fd_list_new ();
-
-  if (fd_handle)
-    {
-      int fd_id = g_variant_get_handle (fd_handle);
-
-      if (fd_id < g_unix_fd_list_get_length (fd_list))
-        {
-          g_autofd int fd = -1;
-
-          fd = g_unix_fd_list_get (fd_list, fd_id, &error);
-
-          if (fd >= 0)
-            out_fd_id = g_unix_fd_list_append (out_fd_list, fd, &error);
-        }
-      else
-        {
-          g_set_error_literal (&error, XDG_DESKTOP_PORTAL_ERROR,
-                               XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                               "Bad file descriptor index");
-        }
-    }
-
-  if (out_fd_id == -1)
-    {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                             "Failed to append fd: %s",
-                                             error->message);
+                                             "Internal error");
+      return;
+    }
+
+  out_fd_list = g_unix_fd_list_new ();
+  if (!xdp_copy_fd_to_lists (fd_list, out_fd_list,
+                             g_variant_get_handle (fd_handle),
+                             &out_fd_id,
+                             &error))
+    {
+      g_warning ("Passing a fd from impl to frontend failed: %s",
+                 error->message);
+
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Internal error");
       return;
     }
 
