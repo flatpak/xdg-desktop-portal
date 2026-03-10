@@ -178,5 +178,12 @@ gboolean xdp_map_tids (ino_t    pidns,
                        guint    n_tids,
                        GError **error);
 
+static inline gboolean
+xdp_is_fd_list_index_valid (GUnixFDList *fd_list,
+                            int          fd_id)
+{
+  return (fd_id >= 0 && fd_id < g_unix_fd_list_get_length (fd_list));
+}
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
