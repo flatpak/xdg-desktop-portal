@@ -960,16 +960,27 @@ xdp_inode_kernel_unref (XdpInode *inode, unsigned long count)
 }
 
 static int
-verify_doc_dir_devino (int dirfd, XdpDomain *doc_domain)
+xdp_domain_get_doc_dir (XdpDomain   *doc_domain,
+                        int         *dirfd_out,
+                        struct stat *buf_out)
 {
-  struct stat buf;
+  g_autofd int dirfd = -1;
+  struct stat local_buf;
+  struct stat *buf = buf_out ? buf_out : &local_buf;
 
-  if (fstat (dirfd, &buf) != 0)
+  dirfd = open (doc_domain->doc_path, O_PATH | O_DIRECTORY);
+  if (dirfd < 0)
     return -errno;
 
-  if (buf.st_ino != doc_domain->doc_dir_inode ||
-      buf.st_dev != doc_domain->doc_dir_device)
+  if (fstat (dirfd, buf) != 0)
+    return -errno;
+
+  if (buf->st_ino != doc_domain->doc_dir_inode ||
+      buf->st_dev != doc_domain->doc_dir_device)
     return -ENOENT;
+
+  if (dirfd_out)
+    *dirfd_out = g_steal_fd (&dirfd);
 
   return 0;
 }
@@ -987,11 +998,7 @@ xdp_nonphysical_document_inode_opendir (XdpInode *inode)
   g_assert (domain->type == XDP_DOMAIN_DOCUMENT);
   g_assert (inode->physical == NULL);
 
-  dirfd = open (domain->doc_path, O_PATH | O_DIRECTORY);
-  if (dirfd < 0)
-    return -errno;
-
-  res = verify_doc_dir_devino (dirfd, domain);
+  res = xdp_domain_get_doc_dir (domain, &dirfd, NULL);
   if (res != 0)
     return res;
 
@@ -2385,12 +2392,8 @@ xdp_fuse_opendir (fuse_req_t             req,
 
               d = xdp_dir_new_buffered (req);
 
-              if (stat (domain->doc_path, &buf) == 0 &&
-                  buf.st_ino == domain->doc_dir_inode &&
-                  buf.st_dev == domain->doc_dir_device)
-                {
-                  xdp_dir_add (d, req, domain->doc_file, buf.st_mode);
-                }
+              if (xdp_domain_get_doc_dir (domain, NULL, &buf) == 0)
+                xdp_dir_add (d, req, domain->doc_file, buf.st_mode);
             }
         }
       else
@@ -3845,11 +3848,14 @@ xdp_fuse_lookup_id_for_inode (ino_t      ino,
     }
   else
     {
+      struct stat buf;
+
       /* directory document */
 
       /* Only return entire doc for main dir */
-      if (file_devino.dev == domain->doc_dir_device &&
-          file_devino.ino == domain->doc_dir_inode)
+      if (xdp_domain_get_doc_dir (domain, NULL, &buf) == 0 &&
+          buf.st_dev == file_devino.dev &&
+          buf.st_ino == file_devino.ino)
         return g_strdup (domain->doc_id);
 
       /* But maybe its a subfile of the document */
