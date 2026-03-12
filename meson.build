@@ -107,6 +107,14 @@ foreach h : [
   config_h.set10(h[1], cc.has_header(h[0]))
 endforeach
 
+libglnx = subproject(
+  'libglnx',
+  default_options : [
+    'warning_level=1',
+    'tests=false',
+  ],
+)
+
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
@@ -123,6 +131,7 @@ pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
+libglnx_dep = libglnx.get_variable('libglnx_dep')
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()

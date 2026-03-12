@@ -36,7 +36,7 @@ jobs:
       - name: Build xdg-desktop-portal
         run: |
           meson setup . _build
-          meson dist -C _build
+          meson dist -C _build --include-subprojects
 
       - name: Extract release information
         run: |

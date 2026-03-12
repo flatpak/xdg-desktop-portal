@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/libglnx.git
+revision = ccea836b799256420788c463a638ded0636b1632
+depth = 1
