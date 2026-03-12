@@ -413,6 +413,11 @@ def xdp_env(
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
 
+    # Workaround for the backport branch. The portal uses this as a signal
+    # to know that it's running in the tests. Specifically the trash portal
+    # needs this to get tested correctly.
+    env["XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND"] = "foobar"
+
     if app_id:
         env["XDG_DESKTOP_PORTAL_TEST_APP_ID"] = app_id
 
