@@ -35,7 +35,7 @@
     <!--
         OpenURI:
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @uri: The uri to open
+        @uri: A URI, as described in RFC 3986, to open
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
