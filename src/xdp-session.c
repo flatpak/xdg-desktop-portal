@@ -279,6 +279,9 @@ on_peer_disconnect (XdpContext *context,
 
   SESSION_AUTOLOCK (session);
 
+  if (g_strcmp0 (session->sender, peer) != 0)
+    return;
+
   xdp_session_close (session, FALSE);
 }
 
