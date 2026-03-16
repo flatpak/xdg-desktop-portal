@@ -127,9 +127,9 @@
 
         * ``target`` (``s``)
 
-          For a launcher of type "Webapp", this is the URL of the web app
-          being installed. This is displayed in the user-facing dialog.
-          For other launcher types, this is not needed.
+          For a launcher of type "Webapp", this is the URI, as described in RFC
+          3986, of the web app being installed. This is displayed in the
+          user-facing dialog. For other launcher types, this is not needed.
 
         * ``editable_name`` (``b``)
 
