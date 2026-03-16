@@ -34,7 +34,7 @@
     <!--
         SetWallpaperURI:
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @uri: The picture file uri
+        @uri: The picture file URI according to RFC 3986
         @options: Options that influence the behavior of the portal
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 

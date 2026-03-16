@@ -34,7 +34,7 @@
         @handle: Object path to export the Request object at
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @uri: The picture file URI
+        @uri: The picture file URI according to RFC 3986
         @options: Options that influence the behavior of the portal
         @response: Numberic response
 

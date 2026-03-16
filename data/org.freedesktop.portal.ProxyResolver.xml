@@ -34,7 +34,7 @@
   <interface name="org.freedesktop.portal.ProxyResolver">
     <!--
         Lookup:
-        @uri: Destination to connect to
+        @uri: A URI, as described in RFC 3986, of the destination to connect to
         @proxies: List of proxy uris
 
         Looks up which proxy to use to connect to @uri. The returned
