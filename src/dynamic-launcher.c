@@ -580,22 +580,22 @@ out:
 }
 
 static gboolean
-validate_url (const char  *key,
+validate_uri (const char  *key,
               GVariant    *value,
               GVariant    *options,
               gpointer     user_data,
               GError     **error)
 {
-  const char *url = g_variant_get_string (value, NULL);
+  const char *uri = g_variant_get_string (value, NULL);
   g_autoptr(GError) local_error = NULL;
   guint32 launcher_type;
 
   g_variant_lookup (options, "launcher_type", "u", &launcher_type);
   if (launcher_type == DYNAMIC_LAUNCHER_TYPE_WEBAPP &&
-      !g_uri_is_valid (url, G_URI_FLAGS_NONE, &local_error))
+      !g_uri_is_valid (uri, G_URI_FLAGS_NONE, &local_error))
     {
       g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   _("URL given is invalid: %s"), local_error->message);
+                   _("Given URI is invalid: %s"), local_error->message);
       return FALSE;
     }
 
@@ -634,7 +634,7 @@ validate_launcher_type (const char  *key,
 static XdpOptionKey prepare_install_options[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN },
   { "launcher_type", G_VARIANT_TYPE_UINT32, validate_launcher_type },
-  { "target", G_VARIANT_TYPE_STRING, validate_url },
+  { "target", G_VARIANT_TYPE_STRING, validate_uri },
   { "editable_name", G_VARIANT_TYPE_BOOLEAN },
   { "editable_icon", G_VARIANT_TYPE_BOOLEAN }
 };
