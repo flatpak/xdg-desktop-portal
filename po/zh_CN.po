@@ -4,14 +4,14 @@
 # Mingye Wang <arthur2e5@aosc.xyz>, 2016.
 # 王滋涵 Zephyr Waitzman <i@wi24rd.ml>, 2019.
 # Dingzhong Chen <wsxy162@gmail.com>, 2020.
-# lumingzh <lumingzh@qq.com>, 2020-2025.
+# lumingzh <lumingzh@qq.com>, 2020-2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
-"PO-Revision-Date: 2025-10-17 08:32+0800\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2026-03-17 18:32+0000\n"
+"PO-Revision-Date: 2026-03-18 16:33+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -110,8 +110,8 @@ msgstr "桌面文件超出最大尺寸（%d）：%s"
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
-msgstr "提供的 URL 无效：%s"
+msgid "Given URI is invalid: %s"
+msgstr "提供的 URI 无效：%s"
 
 #: src/dynamic-launcher.c:620
 #, c-format
@@ -152,33 +152,33 @@ msgstr "带有标识“%s”的动态启动器不存在"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "为带有标识“%s”的启动器创建 GDesktopAppInfo 失败"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "拒绝访问"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "授权访问"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "允许 %s 访问您的位置信息吗？"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s 请求使用您的位置信息"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "允许应用访问您的位置信息吗？"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "有应用请求使用您的位置信息"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr "您可随时在隐私设置中修改位置信息的访问权限"
 
@@ -229,11 +229,11 @@ msgstr "有应用请求获取截屏"
 msgid "Requested setting not found"
 msgstr "未找到请求的设置"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "设备不可用"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "被禁止"
 
