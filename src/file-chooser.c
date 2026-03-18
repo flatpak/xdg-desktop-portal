@@ -514,7 +514,21 @@ handle_open_file (XdpDbusFileChooser *object,
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
         g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
-        g_autofree char *real_path = g_path_get_dirname (host_path);
+        g_autofree char *real_path = NULL;
+
+        if (g_file_test (host_path, G_FILE_TEST_IS_REGULAR))
+          {
+            /* xdp_resolve_document_portal_path may return a file path when the
+             * document portal stores an individual file, or a directory path when
+             * it stores an entire folder. Since current_folder expects a directory,
+             * extract the directory if a file path was returned.
+             */
+            real_path = g_path_get_dirname (host_path);
+          }
+        else
+          {
+            real_path = g_strdup (host_path);
+          }
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
                               g_variant_new_bytestring (real_path));
@@ -658,7 +672,19 @@ handle_save_file (XdpDbusFileChooser *object,
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
         g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
-        g_autofree char *real_path = g_path_get_dirname (host_path);
+        g_autofree char *real_path = NULL;
+
+        if (g_file_test (host_path, G_FILE_TEST_IS_REGULAR))
+          {
+            /* current_folder expects a directory path;
+             * extract the file directory if a path to file file was returned.
+             */
+            real_path = g_path_get_dirname (host_path);
+          }
+        else
+          {
+            real_path = g_strdup (host_path);
+          }
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
                               g_variant_new_bytestring (real_path));
