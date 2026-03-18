@@ -1227,7 +1227,7 @@ on_peer_disconnect (XdpContext *context,
   const char *sender_app_id;
 
   registry = xdp_context_get_app_info_registry (context);
-  sender_app_info = xdp_app_info_registry_lookup_sender (registry, sender);
+  sender_app_info = xdp_app_info_registry_lookup (registry, sender);
   if (!sender_app_info)
     return;
 
