@@ -15,5 +15,9 @@ the development of apps:
 * `portal <https://github.com/rymdport/portal>`_: a **Go** module that provides
   native APIs for interacting with portals from idiomatic Go code.
   It aims to be both toolkit agnostic and easy to use.
+* `Stargate <https://github.com/zugaldia/stargate>`_: a **Kotlin** JVM library
+  that provides idiomatic Kotlin access to all XDG portals. It is compatible
+  with all desktop environments, and a GTK4 example application built with
+  Java-GI is included.
 * `xdg_desktop_portal <https://pub.dev/packages/xdg_desktop_portal>`_: a native
   **Dart** package to interact with portals in **Dart** and **Flutter**.
