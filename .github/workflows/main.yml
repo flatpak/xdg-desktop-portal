@@ -12,7 +12,7 @@ jobs:
     permissions:
       packages: write
     with:
-      image: xdg-desktop-portal:2026-06-08.0
+      image: xdg-desktop-portal:2026-06-08.1
       containerfile: containerfiles/build.containerfile
 
   check-container:
