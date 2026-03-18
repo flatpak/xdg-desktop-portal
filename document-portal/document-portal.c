@@ -1173,22 +1173,40 @@ typedef void (*PortalMethod) (GDBusMethodInvocation *invocation,
                               GVariant              *parameters,
                               XdpAppInfo            *app_info);
 
-static gboolean
-handle_method (GCallback              method_callback,
-               GDBusMethodInvocation *invocation)
-{
-  g_autoptr(GError) error = NULL;
-  g_autoptr(XdpAppInfo) app_info = NULL;
-  PortalMethod portal_method = (PortalMethod)method_callback;
 
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+static DexFuture *
+handle_method_with_app_info (DexFuture *completed,
+                             gpointer   user_data)
+{
+  GDBusMethodInvocation *invocation = G_DBUS_METHOD_INVOCATION (user_data);
+  PortalMethod portal_method = g_object_steal_data (G_OBJECT (invocation),
+                                                    "-xdp-portal-method");
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) error = NULL;
+
+  app_info = dex_await_object (dex_ref (completed), &error);
   if (app_info == NULL)
     g_dbus_method_invocation_return_gerror (invocation, error);
   else
     portal_method (invocation, g_dbus_method_invocation_get_parameters (invocation), app_info);
+
+  return dex_future_new_true ();
+}
+
+static gboolean
+handle_method (GCallback              method_callback,
+               GDBusMethodInvocation *invocation)
+{
+  g_autoptr(DexFuture) future = NULL;
+
+  g_object_set_data (G_OBJECT (invocation), "-xdp-portal-method", method_callback);
+
+  future = xdp_app_info_registry_ensure_future (app_info_registry, invocation);
+  future = dex_future_finally (future,
+                               handle_method_with_app_info,
+                               invocation,
+                               NULL);
+  dex_future_disown (g_steal_pointer (&future));
 
   return TRUE;
 }
@@ -1506,7 +1524,9 @@ on_peer_disconnect (const char *name,
                     gpointer    user_data)
 {
   stop_file_transfers_for_sender (name);
-  xdp_app_info_registry_delete (app_info_registry, name);
+
+  dex_future_disown (xdp_app_info_registry_delete_future (app_info_registry,
+                                                          name));
 }
 
 static void
@@ -1725,6 +1745,8 @@ main (int    argc,
   g_log_writer_default_set_use_stderr (TRUE);
 
   setlocale (LC_ALL, "");
+
+  dex_init ();
 
   /* Avoid even loading gvfs to avoid accidental confusion */
   g_setenv ("GIO_USE_VFS", "local", TRUE);

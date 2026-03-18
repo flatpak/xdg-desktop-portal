@@ -39,7 +39,6 @@
 #include <gio/gdesktopappinfo.h>
 #include <gudev/gudev.h>
 
-#include "xdp-app-info-registry.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
@@ -606,8 +605,6 @@ handle_session_event (XdpUsb        *self,
                       const char    *action,
                       gboolean       removing)
 {
-  XdpAppInfoRegistry *registry;
-  g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GVariant) device_variant = NULL;
   GVariantBuilder devices_builder;
   UsbSenderInfo *sender_info;
@@ -616,10 +613,8 @@ handle_session_event (XdpUsb        *self,
   g_assert (G_UDEV_IS_DEVICE (device));
   g_assert (g_strcmp0 (g_udev_device_get_subsystem (device), "usb") == 0);
 
-  registry = xdp_context_get_app_info_registry (self->context);
-  app_info = xdp_app_info_registry_lookup_sender (registry, session->sender);
-  g_assert (app_info != NULL);
-  sender_info = usb_sender_info_from_app_info (app_info);
+  g_assert (session->app_info != NULL);
+  sender_info = usb_sender_info_from_app_info (session->app_info);
   g_assert (sender_info != NULL);
 
   /* We can't use usb_sender_info_match_device() when a device is being removed because,

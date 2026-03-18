@@ -187,6 +187,27 @@ G_DEFINE_TYPE_WITH_CODE (Notification, notification,
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Notification, g_object_unref)
 
 static void
+on_app_info_destroyed (XdpAppInfo *app_info,
+                       gpointer    user_data)
+{
+  Notification *notification = user_data;
+  const char *sender_app_id;
+  GHashTableIter iter;
+  Pair *p;
+
+  G_MUTEX_AUTO_LOCK (&notification->active_mutex, locker);
+
+  sender_app_id = xdp_app_info_get_id (app_info);
+
+  g_hash_table_iter_init (&iter, notification->active);
+  while (g_hash_table_iter_next (&iter, (gpointer *)&p, NULL))
+    {
+      if (g_strcmp0 (p->app_id, sender_app_id) == 0)
+        g_hash_table_iter_remove (&iter);
+    }
+}
+
+static void
 add_done (GObject *source,
           GAsyncResult *result,
           gpointer data)
@@ -213,6 +234,14 @@ add_done (GObject *source,
       g_hash_table_insert (notification->active,
                            pair_copy (&p),
                            g_strdup (call_data->sender));
+
+      g_signal_handlers_disconnect_by_data (call_data->app_info,
+                                            notification);
+      g_signal_connect_object (call_data->app_info,
+                               "destroyed",
+                               G_CALLBACK (on_app_info_destroyed),
+                               notification,
+                               G_CONNECT_DEFAULT);
     }
 }
 
@@ -1217,38 +1246,6 @@ action_invoked_cb (XdpDbusImplNotification *impl,
 }
 
 static void
-on_peer_disconnect (XdpContext *context,
-                    const char *sender,
-                    gpointer    user_data)
-{
-  Notification *notification = user_data;
-  XdpAppInfoRegistry *registry;
-  g_autoptr(XdpAppInfo) sender_app_info = NULL;
-  const char *sender_app_id;
-
-  registry = xdp_context_get_app_info_registry (context);
-  sender_app_info = xdp_app_info_registry_lookup_sender (registry, sender);
-  if (!sender_app_info)
-    return;
-
-  sender_app_id = xdp_app_info_get_id (sender_app_info);
-
-  {
-    GHashTableIter iter;
-    Pair *p;
-
-    G_MUTEX_AUTO_LOCK (&notification->active_mutex, locker);
-
-    g_hash_table_iter_init (&iter, notification->active);
-    while (g_hash_table_iter_next (&iter, (gpointer *)&p, NULL))
-      {
-        if (g_strcmp0 (p->app_id, sender_app_id) == 0)
-          g_hash_table_iter_remove (&iter);
-      }
-  }
-}
-
-static void
 notification_iface_init (XdpDbusNotificationIface *iface)
 {
   iface->handle_add_notification = notification_handle_add_notification;
@@ -1312,11 +1309,6 @@ notification_new (XdpContext              *context,
 
   g_signal_connect_object (notification->impl, "action-invoked",
                            G_CALLBACK (action_invoked_cb),
-                           notification,
-                           G_CONNECT_DEFAULT);
-
-  g_signal_connect_object (context, "peer-disconnect",
-                           G_CALLBACK (on_peer_disconnect),
                            notification,
                            G_CONNECT_DEFAULT);
 

@@ -228,14 +228,11 @@ authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  // FIXME: this is awful if this is running in a fiber
-  // because it will block the main thread.
-  // We would need some kind of async variant of ensure_for_invocation_sync.
-  // Which would require some sort of async mutex
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  app_info = dex_await_object (xdp_app_info_registry_ensure_future (
+      context->app_info_registry,
+      invocation),
+    &error);
+
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -256,13 +253,15 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(DexFuture) future = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  future = xdp_app_info_registry_ensure_future (context->app_info_registry,
+                                                invocation);
+  dex_thread_wait_for (dex_ref (future), NULL);
+
+  app_info = dex_await_object (g_steal_pointer (&future), &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -314,16 +313,8 @@ xdp_context_take_and_export_portal (XdpContext             *context,
         DEX_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_FIBER);
     }
 
-  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
+  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH))
     {
-      /* Host portal dbus method invocations run in the main thread without yielding
-       * to the main loop. This means that any later method call of any portal will
-       * see the effects of the host portal method call.
-       *
-       * This is important because the Registry modifies the XdpAppInfo and later
-       * method calls must see the modified value.
-       */
-
       if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER)
         {
           g_signal_connect_object (skeleton, "g-authorize-method",
@@ -368,7 +359,8 @@ on_peer_disconnect (const char *name,
 
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 
-  xdp_app_info_registry_delete (context->app_info_registry, name);
+  dex_future_disown (xdp_app_info_registry_delete_future (context->app_info_registry,
+                                                          name));
 }
 
 gboolean

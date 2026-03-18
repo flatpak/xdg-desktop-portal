@@ -21,6 +21,7 @@
 
 #include <glib-object.h>
 #include <gio/gio.h>
+#include <libdex.h>
 
 #include "xdp-types.h"
 
@@ -32,19 +33,13 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoRegistry,
 
 XdpAppInfoRegistry * xdp_app_info_registry_new (void);
 
-XdpAppInfo * xdp_app_info_registry_lookup_sender (XdpAppInfoRegistry *registry,
-                                                  const char         *sender);
+DexFuture * xdp_app_info_registry_ensure_future (XdpAppInfoRegistry    *registry,
+                                                 GDBusMethodInvocation *invocation);
 
-gboolean xdp_app_info_registry_has_sender (XdpAppInfoRegistry *registry,
-                                           const char         *sender);
+DexFuture * xdp_app_info_registry_insert_future (XdpAppInfoRegistry    *registry,
+                                                 GDBusMethodInvocation *invocation,
+                                                 DexFuture             *app_info_future);
 
-void xdp_app_info_registry_insert (XdpAppInfoRegistry *registry,
-                                   XdpAppInfo         *app_info);
+DexFuture * xdp_app_info_registry_delete_future (XdpAppInfoRegistry *registry,
+                                                 const char         *sender);
 
-void xdp_app_info_registry_delete (XdpAppInfoRegistry *registry,
-                                   const char         *sender);
-
-XdpAppInfo * xdp_app_info_registry_ensure_for_invocation_sync (XdpAppInfoRegistry     *registry,
-                                                               GDBusMethodInvocation  *invocation,
-                                                               GCancellable           *cancellable,
-                                                               GError                **error);
