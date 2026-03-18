@@ -153,12 +153,22 @@ handle_print (XdpDbusPrint *object,
               GVariant *arg_options)
 {
   Print *print = (Print *) object;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  if (!xdp_app_info_check_entitlements (app_info, &error,
+                                        "org.freedesktop.portal.Print",
+                                        XDP_ENTITLEMENT_KIND_LEGACY,
+                                        NULL))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   if (xdp_dbus_impl_lockdown_get_disable_printing (print->lockdown_impl))
     {
@@ -271,12 +281,22 @@ handle_prepare_print (XdpDbusPrint *object,
                       GVariant *arg_options)
 {
   Print *print = (Print *) object;
+  XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpRequest *request = xdp_request_from_invocation (invocation);
-  const char *app_id = xdp_app_info_get_id (request->app_info);
+  const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GError) error = NULL;
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+
+  if (!xdp_app_info_check_entitlements (app_info, &error,
+                                        "org.freedesktop.portal.Print",
+                                        XDP_ENTITLEMENT_KIND_LEGACY,
+                                        NULL))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   if (xdp_dbus_impl_lockdown_get_disable_printing (print->lockdown_impl))
     {

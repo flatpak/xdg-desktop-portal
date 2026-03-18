@@ -285,7 +285,7 @@ class AppInfo:
     @classmethod
     def new_host(
         cls,
-        app_id: str,
+        app_id: str = "org.example.Test",
         desktop_entry: bytes | None = None,
     ):
         kind = AppInfoKind.HOST
@@ -310,11 +310,13 @@ class AppInfo:
     @classmethod
     def new_flatpak(
         cls,
-        app_id: str,
+        app_id: str = "org.example.Test",
         instance_id: str | None = None,
         usb_queries: str | None = None,
         desktop_entry: bytes | None = None,
         metadata: bytes | None = None,
+        entitlements: List[str] | None = None,
+        strict_entitlements: bool = False,
     ):
         kind = AppInfoKind.FLATPAK
         desktop_file = f"{app_id}.desktop"
@@ -362,6 +364,14 @@ enumerable-devices={usb_queries}
 """
             metadata += metadata_usb_str.encode("utf8")
 
+        metadata_entitlements_str = "\n[Policy entitlement]\n"
+        if strict_entitlements:
+            metadata_entitlements_str += "enforce=strict\n"
+        metadata_entitlements_str += "grant="
+        for e in entitlements or []:
+            metadata_entitlements_str += f"{e};"
+        metadata += metadata_entitlements_str.encode("utf8")
+
         metadata_path = Path(os.environ["TMPDIR"]) / "flatpak-metadata"
 
         files[metadata_path] = metadata
@@ -380,9 +390,9 @@ enumerable-devices={usb_queries}
     @classmethod
     def new_snap(
         cls,
-        common_id: str,
-        snap_name: str,
-        app_name: str,
+        common_id: str = "org.example.Test",
+        snap_name: str = "test",
+        app_name: str = "test",
         desktop_entry: bytes | None = None,
         metadata: bytes | None = None,
     ):
@@ -436,7 +446,7 @@ DesktopFile={desktop_file}
     @classmethod
     def new_linyaps(
         cls,
-        app_id: str,
+        app_id: str = "org.example.Test",
         instance_id: str | None = None,
         desktop_entry: bytes | None = None,
         metadata: bytes | None = None,

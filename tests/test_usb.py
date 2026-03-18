@@ -30,18 +30,12 @@ def usb_queries() -> str | None:
 @pytest.fixture(params=[xdp.AppInfoKind.HOST, xdp.AppInfoKind.FLATPAK])
 def xdp_app_info(request, usb_queries) -> xdp.AppInfo:
     app_info_kind = request.param
-    app_id = "org.example.Test"
 
     if app_info_kind == xdp.AppInfoKind.HOST:
-        return xdp.AppInfo.new_host(
-            app_id=app_id,
-        )
+        return xdp.AppInfo.new_host()
 
     if app_info_kind == xdp.AppInfoKind.FLATPAK:
-        return xdp.AppInfo.new_flatpak(
-            app_id=app_id,
-            usb_queries=usb_queries,
-        )
+        return xdp.AppInfo.new_flatpak(usb_queries=usb_queries)
 
     assert_never(app_info_kind)
 
