@@ -197,6 +197,7 @@ def xdg_desktop_portal_dir_default_files() -> Dict[str, bytes]:
     portals = [
         "org.freedesktop.impl.portal.Access",
         "org.freedesktop.impl.portal.Account",
+        "org.freedesktop.impl.portal.ParentalControls",
         "org.freedesktop.impl.portal.AppChooser",
         "org.freedesktop.impl.portal.Background",
         "org.freedesktop.impl.portal.Clipboard",
