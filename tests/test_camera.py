@@ -79,7 +79,7 @@ class TestCamera:
 
         request = xdp.Request(dbus_con, camera_intf)
         # technically racy, and valgrind is really slow
-        request.schedule_close(3000 if xdp.is_valgrind() else 500)
+        request.schedule_close(3000 if xdp.is_valgrind() else 1000)
         request.call(
             "AccessCamera",
             options={},
