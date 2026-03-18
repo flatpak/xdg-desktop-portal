@@ -89,7 +89,6 @@ query_permission_sync (Camera     *camera,
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
-      const char *body;
       guint32 response = 2;
       g_autoptr(GVariant) results = NULL;
       g_autoptr(GError) error = NULL;
@@ -109,8 +108,6 @@ query_permission_sync (Camera     *camera,
           title = g_strdup (_("Allow Apps to Use the Camera?"));
           subtitle = g_strdup (_("An app wants to access the camera"));
         }
-
-      body = _("This permission can be changed at any time from the privacy settings");
 
       impl_request = xdp_dbus_impl_request_proxy_new_sync (
         g_dbus_proxy_get_connection (G_DBUS_PROXY (camera->access_impl)),
@@ -132,7 +129,7 @@ query_permission_sync (Camera     *camera,
                                                          "",
                                                          title,
                                                          subtitle,
-                                                         body,
+                                                         "",
                                                          g_variant_builder_end (&opt_builder),
                                                          &response,
                                                          &results,
