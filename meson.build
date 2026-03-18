@@ -190,7 +190,6 @@ base_config.set('libexecdir', libexecdir)
 base_config.set('VERSION', meson.project_version())
 base_config.set('extraargs', '')
 
-pkgconfig = import('pkgconfig')
 pkgconfig.generate(
   name: 'xdg-desktop-portal',
   description: 'Desktop integration portal',
