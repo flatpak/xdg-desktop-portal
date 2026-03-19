@@ -59,6 +59,7 @@
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
+#include "speech.h"
 
 #include "xdp-context.h"
 
@@ -414,6 +415,9 @@ xdp_context_register (XdpContext       *context,
   init_input_capture (context);
 #if HAVE_GUDEV
   init_usb (context);
+#endif
+#if HAVE_SPEECH
+  init_speech (context);
 #endif
   init_registry (context);
 

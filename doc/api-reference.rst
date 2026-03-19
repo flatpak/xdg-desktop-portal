@@ -64,6 +64,7 @@ All apps have access to the portals below:
    doc-org.freedesktop.portal.Secret.rst
    doc-org.freedesktop.portal.Session.rst
    doc-org.freedesktop.portal.Settings.rst
+   doc-org.freedesktop.portal.Speech.rst
    doc-org.freedesktop.portal.Trash.rst
    doc-org.freedesktop.portal.Usb.rst
    doc-org.freedesktop.portal.Wallpaper.rst
