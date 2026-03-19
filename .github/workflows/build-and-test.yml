@@ -56,7 +56,7 @@ jobs:
             -Db_lundef=false
 
       - name: Run xdg-desktop-portal tests
-        run: timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build
+        run: XDP_TEST_RUN_LONG=1 timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build
 
       - name: Install xdg-desktop-portal
         run: meson install -C _build
