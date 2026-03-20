@@ -1,7 +1,7 @@
 [Unit]
 Description=Portal service
 PartOf=graphical-session.target
-Requisite=graphical-session.target
+Wants=graphical-session.target
 After=graphical-session.target
 
 [Service]
