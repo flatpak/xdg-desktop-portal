@@ -80,6 +80,11 @@
 
           Whether it makes sense to return "selection" for the ``print-pages`` setting.
 
+        * ``has_automatic_scale`` (``b``)
+
+          Whether the app can deal with automatic scale settings, i.e. ``fit`` or ``shrink``
+          to printable area, as specified in the auto-scale parameter.
+
         The :ref:`org.freedesktop.portal.Print.PreparePrint` documentation has details about
         the supported keys in settings and page-setup.
     -->
