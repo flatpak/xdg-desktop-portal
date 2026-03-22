@@ -70,6 +70,8 @@ struct _ScreenCastStream
   uint32_t id;
   int32_t width;
   int32_t height;
+  uint64_t pipewire_serial;
+  gboolean has_pipewire_serial;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
@@ -675,6 +677,19 @@ screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
   return stream->id;
 }
 
+gboolean
+screen_cast_stream_get_pipewire_serial (ScreenCastStream *stream,
+                                        uint64_t *out_serial)
+{
+  if (stream->has_pipewire_serial)
+    {
+      if (out_serial)
+        *out_serial = stream->pipewire_serial;
+      return TRUE;
+    }
+  return FALSE;
+}
+
 static void
 append_stream_permissions (PipeWireRemote *remote,
                            GArray *permission_items,
@@ -775,6 +790,9 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
       stream->id = stream_id;
       g_variant_lookup (stream_options, "size", "(ii)",
                         &stream->width, &stream->height);
+      stream->has_pipewire_serial =
+        g_variant_lookup (stream_options, "pipewire-serial", "t",
+                          &stream->pipewire_serial);
 
       streams = g_list_prepend (streams, stream);
     }
@@ -1126,7 +1144,7 @@ screen_cast_new (XdpContext            *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
 
-  xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast), 5);
+  xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast), 6);
 
   g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
                           G_OBJECT (screen_cast), "available-source-types",
