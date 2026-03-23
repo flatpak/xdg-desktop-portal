@@ -20,6 +20,7 @@ typedef struct _XdpSession
   gboolean exported;
   gboolean closed;
 
+  XdpAppInfo *app_info;
   char *app_id;
   char *id;
   char *token;
