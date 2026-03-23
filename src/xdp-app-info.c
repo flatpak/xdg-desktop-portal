@@ -74,6 +74,8 @@ typedef struct _XdpAppInfoPrivate
 
   /* misc */
   XdpAppInfoFlags flags;
+
+  gboolean disposed;
 } XdpAppInfoPrivate;
 
 static void g_initable_init_iface (GInitableIface *iface);
@@ -96,6 +98,14 @@ enum
 };
 
 static GParamSpec *properties [N_PROPS];
+
+enum
+{
+  DESTROYED,
+  N_SIGNALS,
+};
+
+static guint signals[N_SIGNALS] = { 0 };
 
 static gboolean
 xdp_app_info_initable_init (GInitable     *initable,
@@ -143,6 +153,12 @@ xdp_app_info_dispose (GObject *object)
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
   g_autoptr(GError) error = NULL;
+
+  if (!priv->disposed)
+    {
+      g_signal_emit (object, signals[DESTROYED], 0);
+      priv->disposed = TRUE;
+    }
 
   g_clear_pointer (&priv->engine, g_free);
   g_clear_pointer (&priv->id, g_free);
@@ -309,6 +325,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, N_PROPS, properties);
+
+  signals[DESTROYED] = g_signal_new ("destroyed",
+                                     G_TYPE_FROM_CLASS (klass),
+                                     G_SIGNAL_RUN_LAST,
+                                     0,
+                                     NULL, NULL, NULL,
+                                     G_TYPE_NONE, 0);
 }
 
 static void
