@@ -242,7 +242,7 @@
             identifier that is never reused. Consumers should prefer the serial
             for stream targeting via ``PW_KEY_TARGET_OBJECT`` when available.
 
-            This property was added in version 6 of this interface. Optional.
+            This property was added in version 6 of this interface.
 
         * ``restore_token`` (``s``)
 
