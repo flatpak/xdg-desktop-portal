@@ -1144,7 +1144,8 @@ screen_cast_new (XdpContext            *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
 
-  xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast), 6);
+  xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast),
+                                    MIN (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl), 6));
 
   g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
                           G_OBJECT (screen_cast), "available-source-types",

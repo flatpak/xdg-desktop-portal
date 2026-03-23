@@ -25,7 +25,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 5 of this interface.
+      This documentation describes version 6 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.ScreenCast">
     <!--
@@ -188,6 +188,16 @@
             device.
 
             This property was added in version 5 of this interface.
+
+          * ``pipewire-serial`` (``t``)
+
+            The PipeWire ``object.serial`` for this stream's node. Unlike the
+            node ID in the stream tuple (which can be reused after node
+            destruction), the serial is a monotonically increasing 64-bit
+            identifier that is never reused. Consumers should prefer the serial
+            for stream targeting via ``PW_KEY_TARGET_OBJECT`` when available.
+
+            This property was added in version 6 of this interface.
 
         * ``persist_mode`` (``u``)
 
