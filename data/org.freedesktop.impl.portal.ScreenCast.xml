@@ -148,6 +148,12 @@
           node ID (the first element in the tuple, and a Vardict of
           properties.
 
+          Since version 6 of this interface, the node ID in the stream
+          tuple is deprecated for stream targeting. PipeWire node IDs can
+          be reused after node destruction; consumers should prefer the
+          ``pipewire-serial`` property from the stream properties dict
+          and ``PW_KEY_TARGET_OBJECT`` for connecting to streams.
+
           The array will contain a single stream if 'multiple' (see
           SelectSources) was set to 'false', or at least one stream if
           'multiple' was set to 'true' as part of the SelectSources method.
