@@ -478,9 +478,8 @@ xdp_usb_session_new (XdpUsb           *usb,
   session = g_initable_new (XDP_TYPE_USB_SESSION,
                             NULL, error,
                             "context", usb->context,
+                            "app-info", app_info,
                             "connection", connection,
-                            "sender", xdp_app_info_get_sender (app_info),
-                            "app-id", xdp_app_info_get_id (app_info),
                             "token", lookup_session_token (options),
                             NULL);
   if (!session)
