@@ -514,10 +514,9 @@ handle_open_file (XdpDbusFileChooser *object,
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
         g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
-        g_autofree char *real_path = g_path_get_dirname (host_path);
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (real_path));
+                              g_variant_new_bytestring (host_path));
       }
   }
 
@@ -658,10 +657,9 @@ handle_save_file (XdpDbusFileChooser *object,
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
         g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
-        g_autofree char *real_path = g_path_get_dirname (host_path);
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
-                              g_variant_new_bytestring (real_path));
+                              g_variant_new_bytestring (host_path));
       }
   }
 
