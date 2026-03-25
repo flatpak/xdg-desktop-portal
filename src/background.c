@@ -750,7 +750,10 @@ on_monitor_background_done (GObject      *object,
     return;
 
   if (background->check_queued)
-    monitor_background (background);
+    {
+      background->check_queued = FALSE;
+      monitor_background (background);
+    }
 }
 
 static void
