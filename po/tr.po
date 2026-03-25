@@ -5,14 +5,14 @@
 # Muhammet Kara <muhammetk@gmail.com>, 2017.
 # Serdar Sağlam <teknomobil@yandex.com>, 2019.
 # Sabri Ünal <yakushabb@gmail.com>, 2020, 2023, 2025.
-# Emin Tufan Çetin <etcetin@gmail.com>, 2019-2020, 2025.
+# Emin Tufan Çetin <etcetin@gmail.com>, 2019-2020, 2025-2026.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
-"PO-Revision-Date: 2025-11-02 08:00+0300\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2026-03-17 18:32+0000\n"
+"PO-Revision-Date: 2026-03-25 08:00+0300\n"
 "Last-Translator: Emin Tufan Çetin <etcetin@gmail.com>\n"
 "Language-Team: Türkçe <takim@gnome.org.tr>\n"
 "Language: tr\n"
@@ -114,8 +114,8 @@ msgstr "Desktop dosyası en çok boyutu (%d) aşıyor : %s"
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
-msgstr "Verilen URL geçersiz: %s"
+msgid "Given URI is invalid: %s"
+msgstr "Verilen URI geçersiz: %s"
 
 #: src/dynamic-launcher.c:620
 #, c-format
@@ -157,33 +157,33 @@ msgstr "'%s' kimliğine sahip dinamik başlatıcı yok"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "'%s' kimliğine sahip başlatıcı için GDesktopAppInfo oluşturulamadı"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Erişimi Reddet"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Erişim İzni Ver"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "%s, Konumunuza Erişsin Mi?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s konumunuzu kullanmak istiyor"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Uygulamalar Konumunuza Erişsin Mi?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Bir uygulama konumunuzu kullanmak istiyor"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr "Konum erişimi, gizlilik ayarlarından dilediğince değiştirilebilir"
 
@@ -234,11 +234,11 @@ msgstr "Bir uygulama ekran görüntüsü almak istiyor"
 msgid "Requested setting not found"
 msgstr "İstenen ayar bulunamadı"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Aygıt kullanılır değil"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "İzin verilmedi"
 
