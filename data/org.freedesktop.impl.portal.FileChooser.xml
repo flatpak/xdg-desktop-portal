@@ -63,6 +63,11 @@
 
           Whether to select for folders instead of files. Default is to select files.
 
+        * ``file_directory`` (``b``)
+
+          Whether to select for both files and folders. Default is to select files.
+          If this option is ``true``, the ``directory`` option is ignored.
+
         * ``filters`` (``a(sa(us))``)
 
           A list of serialized file filters.
