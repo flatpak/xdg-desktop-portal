@@ -92,11 +92,14 @@
         Send to the application when a non-exported action is
         activated.
 
-        The @parameter contains the following values in order:
+        The @parameter is an array of variants that contains
+        the following values in order:
 
-        #. The `target` for the action, if one was specified.
+        #. The `target` for the action (``v``) (the value may
+           be unset, but the variant must be always present).
 
-        #. The `platform-data` as vardict containing an ``activation-token`` (``s``) for
+        #. The `platform-data` as vardict (``a{sv}``) containing
+           an ``activation-token`` (``s``) for
            `XDG Activation
            <https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/xdg-activation/xdg-activation-v1.xml>`_
     -->
