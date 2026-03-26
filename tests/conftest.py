@@ -512,7 +512,7 @@ def xdp_env(
     asan_suppression = test_dir() / "asan.suppression"
     if not asan_suppression.exists():
         raise FileNotFoundError(f"{asan_suppression} does not exist")
-    env["LSAN_OPTIONS"] = f"suppressions={asan_suppression}"
+    env["LSAN_OPTIONS"] = f"suppressions={asan_suppression},fast_unwind_on_malloc=0"
 
     for key, val in xdp_overwrite_env.items():
         env[key] = val
