@@ -108,7 +108,9 @@
 
         * ``n-copies`` (``s``)
 
-          The number of copies to print.
+          The number of copies to print. This setting is sent to the printing backend,
+          therefore applications should not do copies themselves,
+          unless print-to-file is selected.
 
         * ``default-source`` (``s``)
 
@@ -173,7 +175,9 @@
 
         * ``number-up`` (``s``)
 
-          The number of pages per sheet.
+          The number of pages per sheet. This setting is sent to the printing backend,
+          therefore applications should not apply this setting themselves,
+          unless print-to-file is selected.
 
         * ``number-up-layout`` (``s``)
 
@@ -253,7 +257,8 @@
         * ``settings`` (``a{sv}``)
 
           Print settings as set up by the user in the print dialog. The same keys as in @settings
-          are supported (see above).
+          are supported (see above). Key ``output-uri`` is only present if print-to-file is
+          selected.
 
         * ``page-setup`` (``a{sv}``)
 
