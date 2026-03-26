@@ -82,6 +82,7 @@ endif
 
 pytest_files = [
   'test_account.py',
+  'test_parental_controls.py',
   'test_background.py',
   'test_camera.py',
   'test_clipboard.py',
@@ -110,6 +111,7 @@ pytest_files = [
 template_files = [
   'templates/access.py',
   'templates/account.py',
+  'templates/parental_controls.py',
   'templates/appchooser.py',
   'templates/background.py',
   'templates/clipboard.py',
