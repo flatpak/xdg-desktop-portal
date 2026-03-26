@@ -259,6 +259,7 @@ static XdpOptionKey prepare_print_options[] = {
   { "supported_output_file_formats", G_VARIANT_TYPE_STRING_ARRAY, validate_supported_output_file_formats },
   { "has_current_page", G_VARIANT_TYPE_BOOLEAN },
   { "has_selected_pages", G_VARIANT_TYPE_BOOLEAN },
+  { "has_automatic_scale", G_VARIANT_TYPE_BOOLEAN },
 };
 
 static gboolean
@@ -364,7 +365,7 @@ print_new (XdpDbusImplPrint    *impl,
   print->impl = g_object_ref (impl);
   print->lockdown_impl = g_object_ref (lockdown_impl);
 
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 5);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (print->impl), G_MAXINT);
 
