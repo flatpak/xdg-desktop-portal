@@ -1,0 +1,4 @@
+shutdown:
+- cancel fibers of skeletons
+- make sure context outlives everything, and has no internals refs
+inhibit might be wrong! The request represents the inhibition! have to finish invocation after backend call.

@@ -57,53 +57,6 @@ G_DEFINE_TYPE_WITH_CODE (Registry, registry,
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Registry, g_object_unref)
 
-static XdpAppInfo *
-register_host_app_info_sync (Registry               *registry,
-                             GDBusMethodInvocation  *invocation,
-                             const char             *app_id,
-                             GCancellable           *cancellable,
-                             GError                **error)
-{
-  XdpAppInfoRegistry *app_info_registry = registry->app_info_registry;
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autoptr(XdpAppInfo) detected_app_info = NULL;
-  g_autoptr(XdpAppInfo) app_info = NULL;
-
-  if (xdp_app_info_registry_has_sender (app_info_registry, sender))
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Connection already associated with an application ID");
-      return NULL;
-    }
-
-  detected_app_info = xdp_app_info_new_for_invocation_sync (invocation,
-                                                            cancellable,
-                                                            error);
-  if (!detected_app_info)
-    return NULL;
-
-  if (!xdp_app_info_is_host (detected_app_info))
-    {
-      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
-                   "Can't manually register a %s application",
-                   xdp_app_info_get_engine_display_name (detected_app_info));
-      return NULL;
-    }
-
-  app_info = xdp_app_info_new_for_registered_sync (invocation,
-                                                   app_id,
-                                                   cancellable,
-                                                   error);
-  if (!app_info)
-    return NULL;
-
-  g_debug ("Adding registered host app '%s'", xdp_app_info_get_id (app_info));
-
-  xdp_app_info_registry_insert (app_info_registry, app_info);
-
-  return g_steal_pointer (&app_info);
-}
-
 static gboolean
 handle_register (XdpDbusHostRegistry   *object,
                  GDBusMethodInvocation *invocation,
@@ -111,34 +64,103 @@ handle_register (XdpDbusHostRegistry   *object,
                  GVariant              *arg_options)
 {
   Registry *registry = (Registry *) object;
-  g_autoptr(XdpAppInfo) app_info = NULL;
+  const char *sender = g_dbus_method_invocation_get_sender (invocation);
+  g_autoptr(XdpAppInfo) new_app_info = NULL;
+  g_autoptr(DexFuture) insert_future = NULL;
+  g_autoptr(DexPromise) app_info_promise = NULL;
+  gboolean success;
   g_autoptr(GError) error = NULL;
 
-  app_info = register_host_app_info_sync (registry,
-                                          invocation,
-                                          arg_app_id,
-                                          NULL,
-                                          &error);
-  if (!app_info)
+  /* First, let's add an insert operation, that way we block any further
+   * app info activity on the connection, until the promise is resolved. */
+  app_info_promise = dex_promise_new ();
+  insert_future =
+    xdp_app_info_registry_insert_future (registry->app_info_registry,
+                                         invocation,
+                                         DEX_FUTURE (dex_ref (app_info_promise)));
+
+  /* Then we check if we actually should allow the caller to update the
+   * app id */
+  {
+    g_autoptr(XdpAppInfo) detected_app_info = NULL;
+
+    detected_app_info = xdp_app_info_new_for_invocation_sync (invocation,
+                                                              NULL,
+                                                              &error);
+    if (!detected_app_info)
+      {
+        g_debug ("Failed to detect app info for %s: %s",
+                 sender, error->message);
+        dex_promise_reject (app_info_promise, g_steal_pointer (&error));
+        g_dbus_method_invocation_return_error (g_steal_pointer (&invocation),
+                                               XDG_DESKTOP_PORTAL_ERROR,
+                                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                               "Can't manually register unknown application");
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+
+    if (!xdp_app_info_is_host (detected_app_info))
+      {
+        const char *engine = xdp_app_info_get_engine_display_name (detected_app_info);
+
+        g_debug ("Non-host (%s) sender %s tried to register a new app id",
+                 engine, sender);
+        dex_promise_reject (app_info_promise,
+                            g_error_new_literal (G_IO_ERROR,
+                                                 G_IO_ERROR_PERMISSION_DENIED,
+                                                 "Not a host app"));
+        g_dbus_method_invocation_return_error (g_steal_pointer (&invocation),
+                                               XDG_DESKTOP_PORTAL_ERROR,
+                                               XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                                               "Can't manually register a %s application",
+                                               engine);
+        return G_DBUS_METHOD_INVOCATION_HANDLED;
+      }
+  }
+
+  new_app_info = xdp_app_info_new_for_registered_sync (invocation,
+                                                       arg_app_id,
+                                                       NULL,
+                                                       &error);
+  if (!new_app_info)
     {
+      g_debug ("Can't create registered app for %s: %s",
+               sender, error->message);
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
-                                             "Could not register app ID: %s",
-                                             error->message);
+                                             "Can't create registered app");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  if (g_strcmp0 (xdp_app_info_get_id (app_info), arg_app_id) != 0)
+  /* And finally we can resolve the promise and wait for it to get applied */
+  dex_promise_resolve_object (app_info_promise, g_object_ref (new_app_info));
+  success = dex_await_boolean (g_steal_pointer (&insert_future), &error);
+
+  if (!success && error)
     {
-      g_dbus_method_invocation_return_error (invocation,
+      g_debug ("Can't create registered app for %s: %s",
+               sender, error->message);
+      g_dbus_method_invocation_return_error (g_steal_pointer (&invocation),
                                              XDG_DESKTOP_PORTAL_ERROR,
-                                             XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                                             "Registered too late");
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Can't register app");
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_dbus_host_registry_complete_register (object, invocation);
+  if (!success)
+    {
+      g_debug ("Connection %s already associated with an application ID", sender);
+      g_dbus_method_invocation_return_error (g_steal_pointer (&invocation),
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Connection already associated with an application ID");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+
+  g_debug ("Added registered host app %s", xdp_app_info_get_id (new_app_info));
+
+  xdp_dbus_host_registry_complete_register (object, g_steal_pointer (&invocation));
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
@@ -196,5 +218,6 @@ init_registry (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&registry)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER |
+                                      XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH);
 }

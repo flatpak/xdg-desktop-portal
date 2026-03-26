@@ -165,14 +165,12 @@ location_session_new (Location               *location,
                       GError                **error)
 {
   GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
   XdpAppInfo *app_info = xdp_invocation_get_app_info (invocation);
   XdpSession *session;
 
   session = g_initable_new (location_session_get_type (), NULL, error,
                             "context", location->context,
-                            "sender", sender,
-                            "app-id", xdp_app_info_get_id (app_info),
+                            "app-info", app_info,
                             "token", lookup_session_token (options),
                             "connection", connection,
                             NULL);
@@ -794,5 +792,5 @@ init_location (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&location)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }

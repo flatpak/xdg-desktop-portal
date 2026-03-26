@@ -540,13 +540,14 @@ handle_method (GCallback              method_callback,
                GDBusMethodInvocation *invocation)
 {
   g_autoptr(GError) error = NULL;
+  g_autoptr(DexFuture) future = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   PortalMethod portal_method = (PortalMethod)method_callback;
 
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  future = xdp_app_info_registry_ensure_future (app_info_registry, invocation);
+  dex_thread_wait_for (dex_ref (future), NULL);
+
+  app_info = dex_await_object (g_steal_pointer (&future), &error);
   if (app_info == NULL)
     g_dbus_method_invocation_return_gerror (invocation, error);
   else

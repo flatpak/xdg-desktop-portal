@@ -160,8 +160,7 @@ input_capture_session_new (InputCapture     *input_capture,
   session_token = lookup_session_token (options);
   session = g_initable_new (input_capture_session_get_type (), NULL, error,
                             "context", input_capture->context,
-                            "sender", xdp_app_info_get_sender (app_info),
-                            "app-id", xdp_app_info_get_id (app_info),
+                            "app-info", app_info,
                             "token", session_token,
                             "connection", connection,
                             "impl-connection", impl_connection,
@@ -1704,5 +1703,5 @@ init_input_capture (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&input_capture)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
