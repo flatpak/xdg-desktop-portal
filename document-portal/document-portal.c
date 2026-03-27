@@ -37,6 +37,7 @@
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <glib-unix.h>
+#include <libglnx.h>
 #include "document-portal-dbus.h"
 #include "document-store.h"
 #include "src/xdp-app-info.h"
@@ -308,6 +309,30 @@ portal_delete (GDBusMethodInvocation *invocation,
 
   /* Now fuse view is up-to-date, so we can return the call */
   g_dbus_method_invocation_return_value (invocation, g_variant_new ("()"));
+}
+
+GBytes *
+xdp_file_handle_for_fd (int fd)
+{
+  g_autofree struct file_handle *handle = NULL;
+  g_autofd int path_fd = -1;
+
+  if (!(fcntl (fd, F_GETFL) & O_PATH))
+    {
+      path_fd = glnx_fd_reopen (fd, O_PATH, NULL);
+      if (path_fd < 0)
+        return g_bytes_new (NULL, 0);
+      fd = path_fd;
+    }
+
+  if (!glnx_name_to_handle_at (fd, "",
+                               AT_EMPTY_PATH | AT_HANDLE_FID,
+                               &handle,
+                               NULL,
+                               NULL))
+    return g_bytes_new (NULL, 0);
+
+  return g_bytes_new (handle->f_handle, handle->handle_bytes);
 }
 
 static char *
