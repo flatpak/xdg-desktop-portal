@@ -32,6 +32,7 @@ char *             document_entry_dup_dirname (PermissionDbEntry *entry);
 guint64            document_entry_get_device (PermissionDbEntry *entry);
 guint64            document_entry_get_inode (PermissionDbEntry *entry);
 guint32            document_entry_get_flags (PermissionDbEntry *entry);
+GBytes *           document_entry_dup_handle (PermissionDbEntry *entry);
 
 char *  xdp_name_from_id (guint32 doc_id);
 
