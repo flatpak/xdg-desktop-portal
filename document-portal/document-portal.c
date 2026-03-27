@@ -331,13 +331,108 @@ xdp_file_handle_for_fd (int fd)
   return g_bytes_new (handle->f_handle, handle->handle_bytes);
 }
 
+typedef struct _FindIdData {
+  const char *path;
+  dev_t       st_dev;
+  ino_t       st_ino;
+  GBytes     *handle;
+  uint32_t    flags;
+  gboolean    ignore_transient;
+} FindIdData;
+
+static gboolean
+find_id_matches (PermissionDbEntry *entry,
+                 gpointer           user_data)
+{
+  FindIdData *match = user_data;
+
+  if (g_strcmp0 (document_entry_get_path (entry), match->path) != 0)
+    return FALSE;
+
+  {
+    uint32_t flags = document_entry_get_flags (entry);
+
+    if (match->ignore_transient)
+      flags &= ~DOCUMENT_ENTRY_FLAG_TRANSIENT;
+
+    if (match->flags != flags)
+      return FALSE;
+  }
+
+  if (match->handle)
+    {
+      g_autoptr(GBytes) handle = NULL;
+
+      handle = document_entry_dup_handle (entry);
+      if (!handle || !g_bytes_equal (handle, match->handle))
+        return FALSE;
+    }
+  else
+    {
+      if (match->st_dev != document_entry_get_device (entry) ||
+          match->st_ino == document_entry_get_inode (entry))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
 static char *
-do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_existing, gboolean persistent, gboolean directory)
+find_id (const char *path,
+         dev_t       st_dev,
+         ino_t       st_ino,
+         GBytes     *handle,
+         uint32_t    flags,
+         gboolean    ignore_transient)
+{
+  FindIdData find_data;
+
+  find_data = (FindIdData) {
+    .path = path,
+    .st_dev = st_dev,
+    .st_ino = st_ino,
+    .handle = handle,
+    .flags = flags,
+    .ignore_transient = ignore_transient,
+  };
+
+  {
+    g_auto(GStrv) ids = NULL;
+
+    ids = permission_db_filter_ids (db, find_id_matches, &find_data);
+    if (ids[0] != NULL)
+      return g_strdup (ids[0]);
+  }
+
+  /* We didn't have a handle, so we already checked by dev+ino */
+  if (find_data.handle == NULL)
+    return NULL;
+
+  /* We didn't find a match via handle, so fall back to checking by dev+ino */
+  {
+    g_auto(GStrv) ids = NULL;
+
+    find_data.handle = NULL;
+
+    ids = permission_db_filter_ids (db, find_id_matches, &find_data);
+    if (ids[0] != NULL)
+      return g_strdup (ids[0]);
+  }
+
+  return NULL;
+}
+
+static char *
+do_create_doc (struct stat *parent_st_buf,
+               GBytes      *handle,
+               const char  *path,
+               gboolean     reuse_existing,
+               gboolean     persistent,
+               gboolean     directory)
 {
   g_autoptr(GVariant) data = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
-  g_auto(GStrv) ids = NULL;
-  char *id = NULL;
+  g_autofree char *id = NULL;
   guint32 flags = 0;
 
   g_debug ("Creating document at path '%s', reuse_existing: %d, persistent: %d, directory: %d", path, reuse_existing, persistent, directory);
@@ -357,10 +452,15 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
 
   if (reuse_existing)
     {
-      ids = permission_db_list_ids_by_value (db, data);
+      id = find_id (path,
+                    parent_st_buf->st_dev,
+                    parent_st_buf->st_ino,
+                    handle,
+                    flags,
+                    FALSE /* ignore_transient */);
 
-      if (ids[0] != NULL)
-        return g_strdup (ids[0]);  /* Reuse pre-existing entry with same path */
+      /* Reuse pre-existing entry with same path */
+      return g_steal_pointer (&id);
     }
 
   while (TRUE)
@@ -390,7 +490,7 @@ do_create_doc (struct stat *parent_st_buf, const char *path, gboolean reuse_exis
                                      NULL, NULL, NULL);
     }
 
-  return id;
+  return g_steal_pointer (&id);
 }
 
 gboolean
@@ -917,7 +1017,7 @@ document_add_full (int                      *fd,
 
         if (g_ptr_array_index(ids,i) == NULL)
           {
-            char *id = do_create_doc (&real_dir_st_bufs[i], path, reuse_existing, persistent, is_dir);
+            char *id = do_create_doc (&real_dir_st_bufs[i], NULL, path, reuse_existing, persistent, is_dir);
             g_ptr_array_index(ids,i) = id;
 
             if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
@@ -1077,7 +1177,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       }
     else
       {
-        id = do_create_doc (&parent_st_buf, path, reuse_existing, persistent, FALSE);
+        id = do_create_doc (&parent_st_buf, NULL, path, reuse_existing, persistent, FALSE);
 
         if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
           {
@@ -1184,7 +1284,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
 
   XDP_AUTOLOCK (db);
 
-  id = do_create_doc (&parent_st_buf, path, reuse_existing, persistent, FALSE);
+  id = do_create_doc (&parent_st_buf, NULL, path, reuse_existing, persistent, FALSE);
 
   g_dbus_method_invocation_return_value (invocation,
                                          g_variant_new ("(s)", id));
@@ -1278,35 +1378,12 @@ portal_lookup (GDBusMethodInvocation *invocation,
     }
   else
     {
-      g_autoptr(GVariant) data = NULL;
-      g_autoptr(GVariant) data_transient = NULL;
-      g_auto(GStrv) ids = NULL;
-      guint32 flags = 0;
-
-      if (is_dir)
-        flags |= DOCUMENT_ENTRY_FLAG_DIRECTORY;
-
-      data = g_variant_ref_sink (g_variant_new ("(^ayttu)",
-                                                path,
-                                                (guint64)real_dir_st_buf.st_dev,
-                                                (guint64)real_dir_st_buf.st_ino,
-                                                flags));
-      ids = permission_db_list_ids_by_value (db, data);
-      if (ids[0] != NULL)
-        id = g_strdup (ids[0]);
-
-      if (id == NULL)
-        {
-          g_auto(GStrv) transient_ids = NULL;
-          data_transient = g_variant_ref_sink (g_variant_new ("(^ayttu)",
-                                                              path,
-                                                              (guint64)real_dir_st_buf.st_dev,
-                                                              (guint64)real_dir_st_buf.st_ino,
-                                                              flags|DOCUMENT_ENTRY_FLAG_TRANSIENT));
-          transient_ids = permission_db_list_ids_by_value (db, data_transient);
-          if (transient_ids[0] != NULL)
-            id = g_strdup (transient_ids[0]);
-        }
+      id = find_id (path,
+                    real_dir_st_buf.st_dev,
+                    real_dir_st_buf.st_ino,
+                    NULL,
+                    is_dir ? DOCUMENT_ENTRY_FLAG_DIRECTORY : 0,
+                    TRUE /* ignore_transient */);
     }
 
   g_dbus_method_invocation_return_value (invocation,
