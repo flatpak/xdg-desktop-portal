@@ -1342,10 +1342,8 @@ get_app_permissions (PermissionDbEntry *entry)
 static GVariant *
 get_path (PermissionDbEntry *entry)
 {
-  g_autoptr (GVariant) data = permission_db_entry_get_data (entry);
-  const char *path;
+  const char *path = document_entry_get_path (entry);
 
-  g_variant_get (data, "(^&ayttu)", &path, NULL, NULL, NULL);
   return g_variant_new_bytestring (path);
 }
 
