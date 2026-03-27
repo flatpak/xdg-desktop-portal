@@ -39,6 +39,9 @@ typedef struct _PermissionDbEntry PermissionDbEntry;
 
 GType permission_db_get_type (void);
 
+typedef gboolean (*PermissionDbLookupFunc) (GVariant *data,
+                                            gpointer  user_data);
+
 PermissionDb *     permission_db_new (const char *path,
                                       gboolean    fail_if_not_found,
                                       GError    **error);
@@ -48,6 +51,9 @@ char **        permission_db_list_ids_by_app (PermissionDb  *self,
                                               const char *app);
 char **        permission_db_list_ids_by_value (PermissionDb *self,
                                                 GVariant  *data);
+char **        permission_db_filter_ids (PermissionDb           *self,
+                                         PermissionDbLookupFunc  func,
+                                         gpointer                user_data);
 PermissionDbEntry *permission_db_lookup (PermissionDb  *self,
                                    const char *id);
 GString *      permission_db_print_string (PermissionDb *self,
