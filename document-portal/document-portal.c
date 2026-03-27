@@ -583,6 +583,7 @@ validate_fd (int fd,
              ValidateFdType ensure_type,
              struct stat *st_buf,
              struct stat *real_dir_st_buf,
+             GBytes **real_dir_handle_out,
              char **path_out,
              gboolean *writable_out,
              GError **error)
@@ -622,6 +623,9 @@ validate_fd (int fd,
   dir_fd = open (dirname, O_CLOEXEC | O_PATH);
   if (dir_fd < 0 || fstat (dir_fd, real_dir_st_buf) != 0)
     goto errout;
+
+  if (real_dir_handle_out)
+    *real_dir_handle_out = xdp_file_handle_for_fd (dir_fd);
 
   if (name != NULL)
     {
@@ -981,6 +985,7 @@ document_add_full (int                      *fd,
   const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
   g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
+  g_autoptr(GPtrArray) handles = g_ptr_array_new_with_free_func ((GDestroyNotify) g_bytes_unref);
   g_autofree struct stat *real_dir_st_bufs = NULL;
   struct stat st_buf;
   g_autofree gboolean *writable = NULL;
@@ -988,6 +993,7 @@ document_add_full (int                      *fd,
 
   g_ptr_array_set_size (paths, n_args + 1);
   g_ptr_array_set_size (ids, n_args + 1);
+  g_ptr_array_set_size (handles, n_args + 1);
   real_dir_st_bufs = g_new0 (struct stat, n_args);
   writable = g_new0 (gboolean, n_args);
 
@@ -1002,7 +1008,11 @@ document_add_full (int                      *fd,
       is_dir = (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0;
       allow_write = (target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) != 0;
 
-      if (!validate_fd (fd[i], app_info, is_dir ? VALIDATE_FD_FILE_TYPE_DIR : VALIDATE_FD_FILE_TYPE_REGULAR, &st_buf, &real_dir_st_bufs[i], &path, &writable[i], error))
+      if (!validate_fd (fd[i], app_info,
+                        is_dir ? VALIDATE_FD_FILE_TYPE_DIR : VALIDATE_FD_FILE_TYPE_REGULAR,
+                        &st_buf, &real_dir_st_bufs[i],
+                        (GBytes **)&g_ptr_array_index (handles, i),
+                        &path, &writable[i], error))
         return NULL;
 
       if (parent_dev != NULL && parent_ino != NULL)
@@ -1044,6 +1054,7 @@ document_add_full (int                      *fd,
           if (real_path)
             {
               g_autofree char *dirname = NULL;
+              g_autofd int dir_fd = -1;
 
               g_free (path);
               path = g_steal_pointer (&real_path);
@@ -1052,13 +1063,18 @@ document_add_full (int                      *fd,
                 dirname = g_strdup (path);
               else
                 dirname = g_path_get_dirname (path);
-              if (lstat (dirname, &real_dir_st_bufs[i]) != 0)
+
+              dir_fd = open (dirname, O_CLOEXEC | O_PATH);
+              if (dir_fd < 0 || fstat (dir_fd, &real_dir_st_bufs[i]) != 0)
                 {
                   g_set_error (error,
                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                "Invalid fd passed");
                   return NULL;
                 }
+
+              g_bytes_unref (g_ptr_array_index (handles, i));
+              g_ptr_array_index (handles, i) = xdp_file_handle_for_fd (dir_fd);
             }
           else
             g_ptr_array_index(ids,i) = g_steal_pointer (&id);
@@ -1101,7 +1117,7 @@ document_add_full (int                      *fd,
 
         if (g_ptr_array_index(ids,i) == NULL)
           {
-            char *id = do_create_doc (&real_dir_st_bufs[i], NULL, path, reuse_existing, persistent, is_dir);
+            char *id = do_create_doc (&real_dir_st_bufs[i], g_ptr_array_index (handles, i), path, reuse_existing, persistent, is_dir);
             g_ptr_array_index(ids,i) = id;
 
             if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
@@ -1157,6 +1173,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   g_autofree char *parent_path = NULL;
   const int *fds = NULL;
   struct stat parent_st_buf;
+  g_autoptr(GBytes) handle = NULL;
   gboolean reuse_existing, persistent, as_needed_by_app;
   guint32 flags = 0;
   const char *filename;
@@ -1237,6 +1254,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       return;
     }
 
+  handle = xdp_file_handle_for_fd (parent_fd);
   path = g_build_filename (parent_path, filename, NULL);
 
   g_debug ("portal_add_named_full %s", path);
@@ -1261,7 +1279,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       }
     else
       {
-        id = do_create_doc (&parent_st_buf, NULL, path, reuse_existing, persistent, FALSE);
+        id = do_create_doc (&parent_st_buf, handle, path, reuse_existing, persistent, FALSE);
 
         if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
           {
@@ -1312,6 +1330,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
   g_autofree char *parent_path = NULL;
   g_autofree char *path = NULL;
   struct stat parent_st_buf;
+  g_autoptr(GBytes) handle = NULL;
   const char *filename;
   gboolean reuse_existing, persistent;
   g_autoptr(GError) local_error = NULL;
@@ -1364,11 +1383,12 @@ portal_add_named (GDBusMethodInvocation *invocation,
       return;
     }
 
+  handle = xdp_file_handle_for_fd (parent_fd);
   path = g_build_filename (parent_path, filename, NULL);
 
   XDP_AUTOLOCK (db);
 
-  id = do_create_doc (&parent_st_buf, NULL, path, reuse_existing, persistent, FALSE);
+  id = do_create_doc (&parent_st_buf, handle, path, reuse_existing, persistent, FALSE);
 
   g_dbus_method_invocation_return_value (invocation,
                                          g_variant_new ("(s)", id));
@@ -1422,6 +1442,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
   g_autofree char *path = NULL;
   g_autofd int fd = -1;
   struct stat st_buf, real_dir_st_buf;
+  g_autoptr(GBytes) handle = NULL;
   g_autofree char *id = NULL;
   GError *error = NULL;
   gboolean is_dir;
@@ -1446,7 +1467,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
       return TRUE;
     }
 
-  if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &real_dir_st_buf, &path, NULL, &error))
+  if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &real_dir_st_buf, &handle, &path, NULL, &error))
     {
       g_dbus_method_invocation_take_error (invocation, error);
       return TRUE;

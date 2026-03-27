@@ -36,6 +36,7 @@ gboolean validate_fd (int           fd,
                       ValidateFdType ensure_type,
                       struct stat  *st_buf,
                       struct stat  *real_parent_st_buf,
+                      GBytes      **real_dir_handle_out,
                       char        **path_out,
                       gboolean     *writable_out,
                       GError      **error);
