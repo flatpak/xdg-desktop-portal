@@ -151,7 +151,12 @@ ignore_trash_mount_fd (XdpAppInfo *app_info,
       return TRUE;
     }
 
+#if GLIB_CHECK_VERSION(2,84,0)
   mount = g_unix_mount_entry_at (mnt_path, NULL);
+#else
+  mount = g_unix_mount_at (mnt_path, NULL);
+#endif
+
   if (!mount)
     {
       g_debug ("Ignoring the trash dir, because not mount entry for the mount "
@@ -159,7 +164,11 @@ ignore_trash_mount_fd (XdpAppInfo *app_info,
       return TRUE;
     }
 
+#if GLIB_CHECK_VERSION(2,84,0)
   mount_options = g_unix_mount_entry_get_options (mount);
+#else
+  mount_options = g_unix_mount_get_options (mount);
+#endif
 
   if (mount_options == NULL)
     {
@@ -179,7 +188,11 @@ ignore_trash_mount_fd (XdpAppInfo *app_info,
         return TRUE;
     }
 
+#if GLIB_CHECK_VERSION(2,84,0)
   return g_unix_mount_entry_is_system_internal (mount);
+#else
+  return g_unix_mount_is_system_internal (mount);
+#endif
 }
 
 
@@ -247,39 +260,52 @@ get_mnt (int        fd,
          uint64_t  *mnt_id_out,
          GError   **error)
 {
-  struct glnx_statx stx;
+  struct glnx_statx target_stx;
   g_autofd int mnt = -1;
+  struct glnx_statx stx = {0};
+  g_autofd int next_mnt = -1;
+  struct glnx_statx next_stx;
 
-  if (!stat_mnt (fd, &stx, error))
+  if (!stat_mnt (fd, &target_stx, error))
+    return FALSE;
+
+  next_mnt = glnx_chaseat (parent_fd, ".", GLNX_CHASE_DEFAULT, error);
+  if (next_mnt < 0)
+    return FALSE;
+
+  if (!stat_mnt (next_mnt, &next_stx, error))
     return FALSE;
 
   while (TRUE)
     {
-      struct glnx_statx next_stx;
+      /* If the dir up is on a different mount, we found the mount point */
+      if (target_stx.stx_mnt_id != next_stx.stx_mnt_id)
+        break;
 
-      if (mnt < 0)
-        {
-          mnt = glnx_chaseat (parent_fd, ".", GLNX_CHASE_DEFAULT, error);
-          if (mnt < 0)
-            return FALSE;
-        }
-      else
-        {
-          g_autofd int next_fd = -1;
+      /* If we hit root, we end up at the same ino+stx_mnt_id, and / is our
+       * mount point */
+      if (stx.stx_mask != 0 &&
+          stx.stx_ino == next_stx.stx_ino &&
+          stx.stx_mnt_id == next_stx.stx_mnt_id)
+        break;
 
-          next_fd = glnx_chaseat (mnt, "..", GLNX_CHASE_DEFAULT, error);
-          if (next_fd < 0)
-            return FALSE;
+      g_clear_fd (&mnt, NULL);
+      mnt = g_steal_fd (&next_mnt);
+      stx = next_stx;
 
-          g_clear_fd (&mnt, NULL);
-          mnt = g_steal_fd (&next_fd);
-        }
-
-      if (!stat_mnt (mnt, &next_stx, error))
+      next_mnt = glnx_chaseat (mnt, "..", GLNX_CHASE_DEFAULT, error);
+      if (next_mnt < 0)
         return FALSE;
 
-      if (stx.stx_mnt_id != next_stx.stx_mnt_id)
-        break;
+      if (!stat_mnt (next_mnt, &next_stx, error))
+        return FALSE;
+    }
+
+  if (mnt < 0)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVAL,
+                           "No parent mount point");
+      return FALSE;
     }
 
   if (mnt_fd_out)
@@ -562,6 +588,8 @@ trash_file (int          target_fd,
     /* Only the homedir doesn't have a topdir */
     if (topdir_fd >= 0)
       {
+        const char *path;
+
         topdir_path = xdp_app_info_get_path_for_fd (app_info, topdir_fd, 0, NULL, NULL, error);
         if (!topdir_path)
           return FALSE;
@@ -573,11 +601,11 @@ trash_file (int          target_fd,
             return FALSE;
           }
 
-        target_path += strlen (topdir_path);
-        while (target_path[0] == '/')
-          target_path++;
+        path = target_path + strlen (topdir_path);
+        while (path[0] == '/')
+          path++;
 
-        restore_path = g_strdup (target_path);
+        restore_path = g_strdup (path);
       }
     else
       {
@@ -633,10 +661,11 @@ trash_file (int          target_fd,
     g_autofd int info_fd = -1;
     g_autofd int files_fd = -1;
     g_autofree char *basename = NULL;
+    char *basename_candidate = NULL;
     g_autofree char *trashname = NULL;
     g_autofd int info_file_fd = -1;
     struct glnx_statx stx;
-    size_t i;
+    size_t i = 0;
 
     info_fd = get_child_mkdir_p_0700 (trash_fd, "info", &stx, error);
     if (info_fd < 0)
@@ -647,6 +676,7 @@ trash_file (int          target_fd,
       return FALSE;
 
     basename = g_path_get_basename (restore_path);
+    basename_candidate = basename;
 
     while (TRUE)
       {
@@ -654,7 +684,7 @@ trash_file (int          target_fd,
         g_autofree char *infoname = NULL;
         g_autofd int local_info_file_fd = -1;
 
-        local_trashname = get_unique_trash_name (basename, i++);
+        local_trashname = get_unique_trash_name (basename_candidate, i++);
         infoname = g_strconcat (local_trashname, ".trashinfo", NULL);
 
         local_info_file_fd = openat (info_fd, infoname,
@@ -676,14 +706,16 @@ trash_file (int          target_fd,
 
         if (errno == ENAMETOOLONG)
           {
-            size_t basename_len = strlen (basename);
+            size_t len = strlen (basename_candidate);
 
-            if (basename_len <= strlen (".trashinfo"))
+            if (len <= strlen (".trashinfo"))
               return glnx_throw_errno (error); /* fail with ENAMETOOLONG */
 
-            basename_len -= strlen (".trashinfo");
-            memmove (basename, basename + strlen (".trashinfo"), basename_len);
-            basename[basename_len] = '\0';
+            len -= strlen (".trashinfo");
+            memmove (basename_candidate,
+                     basename_candidate + strlen (".trashinfo"),
+                     len);
+            basename_candidate[len] = '\0';
             i = 1;
             continue;
           }
@@ -692,6 +724,7 @@ trash_file (int          target_fd,
           return glnx_throw_errno (error);
       }
 
+    g_clear_pointer (&basename, g_free);
     basename = g_path_get_basename (restore_path);
 
     /* This is inherently racy. We can do our best and
