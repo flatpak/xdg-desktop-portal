@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2024-09-26 13:18+0300\n"
 "Last-Translator: Yosef Or Boczko <yoseforb@gmail.com>\n"
 "Language-Team: Hebrew <yoseforb@gmail.com>\n"
@@ -18,33 +18,33 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 46.1\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, fuzzy, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "לאפשר הרצה של %s ברקע?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, fuzzy, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "‏%s מבקש להיפתח באופן אוטומטי ולרוץ ברקע."
 
-#: src/background.c:937
+#: src/background.c:940
 #, fuzzy, c-format
 msgid "%s wants to run in the background"
 msgstr "‏%s מבקש לרוץ ברקע."
 
-#: src/background.c:938
+#: src/background.c:941
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr "ניתן לשנות בכל עת את ההרשאה „לפעול ברקע” בהגדרות היישום."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "לא לאפשר"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "לאפשר"
 
@@ -111,7 +111,7 @@ msgstr ""
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
+msgid "Given URI is invalid: %s"
 msgstr ""
 
 #: src/dynamic-launcher.c:620
@@ -153,35 +153,35 @@ msgstr ""
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "מניעת גישה"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "הענקת גישה"
 
-#: src/location.c:555
+#: src/location.c:560
 #, fuzzy, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "לתת ליישום %s גישה למיקום שלך?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, fuzzy, c-format
 msgid "%s wants to use your location"
 msgstr "‏%s מבקש להשתמש במיקום שלך."
 
-#: src/location.c:571
+#: src/location.c:576
 #, fuzzy
 msgid "Allow Apps to Access Your Location?"
 msgstr "לתת ליישום %s גישה למיקום שלך?"
 
-#: src/location.c:572
+#: src/location.c:577
 #, fuzzy
 msgid "An app wants to use your location"
 msgstr "יישום מבקש להשתמש במיקום שלך."
 
-#: src/location.c:575
+#: src/location.c:580
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr "ניתן לשנות בכל עת את הרשאות הגישה למיקום שלך מהגדרות הפרטיות."
@@ -237,11 +237,11 @@ msgstr "יישום מבקש להשתמש בהתקני מצלמה."
 msgid "Requested setting not found"
 msgstr "ההגדרה המבוקשת לא נמצאה"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 #, fuzzy
 msgid "Not allowed"
 msgstr "לא לאפשר"

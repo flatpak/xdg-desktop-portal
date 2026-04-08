@@ -7,8 +7,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
-"POT-Creation-Date: 2025-11-18 16:36+0000\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2026-01-24 22:26+0100\n"
 "Last-Translator: Anders Jonsson <anders.jonsson@norsjovallen.se>\n"
 "Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Tillåt %s att köra i bakgrunden?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s vill startas automatiskt och köras i bakgrunden."
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s vill köra i bakgrunden."
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -42,11 +42,11 @@ msgstr ""
 "Rättigheten ”kör i bakgrund” kan ändras när som helst från "
 "programinställningarna"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Tillåt inte"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Tillåt"
 
@@ -109,8 +109,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-filen överskrider maximal storlek (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "Angiven URL är ogiltig: %s"
 
 #: src/dynamic-launcher.c:620
@@ -152,33 +152,33 @@ msgstr "Ingen dynamisk startare finns med ID ”%s”"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Misslyckades med att skapa GDesktopAppInfo för startare med ID ”%s”"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Neka åtkomst"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Bevilja åtkomst"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Tillåt %s att komma åt din plats?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s vill använda din plats"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Ge program åtkomst till din plats?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Ett program vill använda din plats"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr "Platsåtkomst kan ändras när som helst från sekretessinställningarna"
 
@@ -229,11 +229,11 @@ msgstr "Ett program vill ta en skärmbild"
 msgid "Requested setting not found"
 msgstr "Begärd inställning hittades inte"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Enhet inte tillgänglig"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Inte tillåtet"
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2025-11-23 14:26+0100\n"
 "Last-Translator: Daniel Rusek <mail@asciiwolf.com>\n"
 "Language-Team: Czech <gnome-cs-list@gnome.org>\n"
@@ -20,33 +20,33 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Povolit aplikaci %s běh na pozadí?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "Aplikace %s chce být automaticky spouštěna a běžet na pozadí"
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "Aplikace %s chce běžet na pozadí"
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
 "Oprávnění pro „běh na pozadí“ můžete kdykoliv změnit v nastavení aplikace"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Nepovolit"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Povolit"
 
@@ -110,7 +110,7 @@ msgstr ""
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
+msgid "Given URI is invalid: %s"
 msgstr ""
 
 #: src/dynamic-launcher.c:620
@@ -152,33 +152,33 @@ msgstr ""
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Zamítnout přístup"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Schválit přístup"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Povolit aplikaci %s přístup k vaší poloze?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "Aplikace %s chce použít vaši polohu"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Povolit aplikacím přístup k vaší poloze?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Nějaká aplikace chce použít vaši polohu"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Přístup ke službám pro určování polohy můžete kdykoliv změnit v nastavení "
@@ -231,11 +231,11 @@ msgstr "Nějaká aplikace chce pořídit snímek obrazovky"
 msgid "Requested setting not found"
 msgstr "Požadované nastavení nebylo nalezeno"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Zařízení není dostupné"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Není povoleno"
 

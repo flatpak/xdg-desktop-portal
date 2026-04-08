@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2022-07-03 04:00+0800\n"
 "Last-Translator: Freddy Cheng <freddy4212@gmail.com>\n"
 "Language-Team: Chinese (Taiwan) <chinese-l10n@googlegroups.com>\n"
@@ -17,33 +17,33 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.0.1\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, fuzzy, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "允許《%s》於背景執行嗎？"
 
-#: src/background.c:935
+#: src/background.c:938
 #, fuzzy, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "《%s》請求自動啟動並於背景執行。"
 
-#: src/background.c:937
+#: src/background.c:940
 #, fuzzy, c-format
 msgid "%s wants to run in the background"
 msgstr "《%s》請求於背景執行。"
 
-#: src/background.c:938
+#: src/background.c:941
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr "背景執行許可權可隨時從應用程式設定中更改。"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "不允許"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "允許"
 
@@ -110,7 +110,7 @@ msgstr ""
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
+msgid "Given URI is invalid: %s"
 msgstr ""
 
 #: src/dynamic-launcher.c:620
@@ -152,35 +152,35 @@ msgstr ""
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "不允許"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "允許"
 
-#: src/location.c:555
+#: src/location.c:560
 #, fuzzy, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "允許《%s》取用您的位置資訊嗎？"
 
-#: src/location.c:565
+#: src/location.c:570
 #, fuzzy, c-format
 msgid "%s wants to use your location"
 msgstr "《%s》想使用您的位置資訊。"
 
-#: src/location.c:571
+#: src/location.c:576
 #, fuzzy
 msgid "Allow Apps to Access Your Location?"
 msgstr "允許《%s》取用您的位置資訊嗎？"
 
-#: src/location.c:572
+#: src/location.c:577
 #, fuzzy
 msgid "An app wants to use your location"
 msgstr "應用程式想要使用您的位置資訊。"
 
-#: src/location.c:575
+#: src/location.c:580
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr "位置資訊取用權可隨時從隱私設定中更改。"
@@ -236,11 +236,11 @@ msgstr "應用程式想要使用您的相機。"
 msgid "Requested setting not found"
 msgstr "找不到請求的設定"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 #, fuzzy
 msgid "Not allowed"
 msgstr "不允許"

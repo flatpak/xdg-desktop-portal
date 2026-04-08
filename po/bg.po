@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2025-08-03 09:48+0200\n"
 "Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
 "Language-Team: Bulgarian <dict-notifications@fsa-bg.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 47.1\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, fuzzy, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Позволявате ли на „%s“ да работи във фонов режим?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, fuzzy, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "Заявка от „%s“ да се стартира автоматично и да работи във фонов режим."
 
-#: src/background.c:937
+#: src/background.c:940
 #, fuzzy, c-format
 msgid "%s wants to run in the background"
 msgstr "„%s“ иска да се изпълнява във фонов режим."
 
-#: src/background.c:938
+#: src/background.c:941
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
@@ -42,11 +42,11 @@ msgstr ""
 "Правото за „работа във фонов режим“ може да бъде променено по всяко време от "
 "настройките на програмата."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Забраняване"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Позволяване"
 
@@ -115,8 +115,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Файлът за работния плот надвишава максималния размер (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "Даденият адрес е неправилен: %s"
 
 #: src/dynamic-launcher.c:620
@@ -161,35 +161,35 @@ msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Неуспешно създаване на GDesktopAppInfo за стартера с идентификатор „%s“"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Отказване на достъп"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Позволяване на достъп"
 
-#: src/location.c:555
+#: src/location.c:560
 #, fuzzy, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Позволявате ли на „%s“ достъп до местоположение ви?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, fuzzy, c-format
 msgid "%s wants to use your location"
 msgstr "Заявка от „%s“ за местоположението ви."
 
-#: src/location.c:571
+#: src/location.c:576
 #, fuzzy
 msgid "Allow Apps to Access Your Location?"
 msgstr "Позволявате ли на „%s“ достъп до местоположение ви?"
 
-#: src/location.c:572
+#: src/location.c:577
 #, fuzzy
 msgid "An app wants to use your location"
 msgstr "Програма иска достъп до местоположението ви."
 
-#: src/location.c:575
+#: src/location.c:580
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
@@ -247,11 +247,11 @@ msgstr "Програма иска достъп до камерите."
 msgid "Requested setting not found"
 msgstr "Поисканата настройка липсва"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Устройството не е налично"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Забранено"
 

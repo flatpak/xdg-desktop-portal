@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2025-03-15 10:27-0300\n"
 "Last-Translator: Álvaro Burns <>\n"
 "Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao/>\n"
@@ -19,22 +19,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Gtranslator 47.1\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Permitir que %s execute em segundo plano?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s deseja ser iniciado automaticamente e executado em segundo plano."
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s deseja ser executado em segundo plano."
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -42,11 +42,11 @@ msgstr ""
 "A permissão “executar em segundo plano” pode ser alterada a qualquer tempo a "
 "partir das configurações do aplicativo"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Não permitir"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Permitir"
 
@@ -113,8 +113,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O arquivo desktop excede o tamanho máximo (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "URL fornecida é inválida: %s"
 
 #: src/dynamic-launcher.c:620
@@ -156,33 +156,33 @@ msgstr "Nenhum lançador dinâmico existe com o id “%s”"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id “%s”"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Negar acesso"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Conceder acesso"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Permitir que %s acesse sua localização?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s deseja usar sua localização"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Permitir que aplicativos acessem sua localização?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Um aplicativo deseja usar sua localização"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Acesso à localização pode ser alterado a qualquer tempo a partir das "
@@ -235,11 +235,11 @@ msgstr "Um aplicativo deseja fazer uma captura de tela"
 msgid "Requested setting not found"
 msgstr "A configuração requisitada não foi encontrada"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Dispositivo não disponível"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Não permitido"
 
