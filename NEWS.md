@@ -1,8 +1,8 @@
 Changes in 1.20.4
 =================
-Released: Not yet
+Released: 2026-04-08
 
-...
+- Prevent trashing of arbitrary host files (GHSA-rqr9-jwwf-wxgj)
 
 Changes in 1.20.3
 =================
