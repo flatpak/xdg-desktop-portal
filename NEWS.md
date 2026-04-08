@@ -1,8 +1,49 @@
 Changes in 1.21.1
 =================
-Released: Not yet
+Released: 2026-04-08
 
-...
+New Features:
+
+- Add Clipboard support to the Input Capture Portal (#1803)
+- Add session persistence support to the Input Capture Portal (#1898, #1914,
+  #1913)
+
+Security fixes:
+
+- Prevent trashing of arbitrary host files (GHSA-rqr9-jwwf-wxgj)
+- Ensure that the clipboard mime type string does not exceed 4kb (#1918)
+- Increase the file transfer token key size (#1916)
+- Properly validate all D-Bus file descriptor indexes (#1917)
+
+Enhancements:
+
+- Improve loading portal configuration (#1867)
+- Drop unused `multiple` option in the File Chooser `SaveFile` request (#1923)
+- Clarify the `uris` option in the File Chooser `SaveFile` request (#1927)
+- Preparations for libdex support (#1879)
+- Improve documentation on the release procedure (#1887)
+- Specify that URIs follow RFC3986 (#1931)
+- Clarify `BindShortcuts` behavior in the Global Shortcuts portal (#1848)
+- Add a list of specialists for different portal topics (#1915)
+- Clarify that mime type filters in the File Chooser support wildcard subtypes
+  (#1850)
+- Continue removing global state and direct dependencies (#1911, #1934)
+- Add Stargate Kotlin library to list of convenience libraries (#1936)
+- Use the default FUSE implementation for statfs in the Document Portal (#1807)
+- Guard renameat2() flags usage behind ifdefs in the Document Portal (#1929)
+- Various testing improvements (#1909, #1891, #1890, #1907)
+- New and updated translations (#1904, #1912, #1892, #1910, #1935, #1949)
+
+Bug Fixes:
+
+- Fix the File Chooser Portal opening the parent of requested `current_folder`
+  (#1945)
+- Prevent a deadlock on Document Portal shutdown (#1896)
+- Various small fixes in the Remote Desktop, Camera, and Background Portals
+  (#1913, #1908, #1948, #1928, #1945)
+- Fix checking for Input Capture capabilities (#1895)
+- Print debug logs to stderr only, in the validate-icon and validate-sound utils
+  (#1901)
 
 Changes in 1.21.0
 =================
