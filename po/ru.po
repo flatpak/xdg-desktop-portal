@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2025-11-01 14:12+0300\n"
 "Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
 "Language-Team: RU\n"
@@ -20,22 +20,22 @@ msgstr ""
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Разрешить приложению \"%s\" работать в фоне?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "Приложение \"%s\" хочет запускаться автоматически и работать в фоне"
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "Приложение \"%s\" хочет работать в фоне"
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -43,11 +43,11 @@ msgstr ""
 "Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
 "приложения"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Запретить"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Разрешить"
 
@@ -113,8 +113,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-файл превышает максимальный размер (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "Указанный URL недействителен: %s"
 
 #: src/dynamic-launcher.c:620
@@ -158,33 +158,33 @@ msgstr ""
 "Не удалось создать GDesktopAppInfo для программы запуска с идентификатором "
 "'%s'"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Отказать в доступе"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Предоставить доступ"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Разрешить приложению \"%s\" доступ к вашему местоположению?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "Приложение \"%s\" хочет использовать ваше местоположение"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Разрешить приложениям доступ к вашему местоположению?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Приложение хочет использовать ваше местоположение"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Доступ к местоположению можно изменить в любой момент в настройках "
@@ -237,11 +237,11 @@ msgstr "Приложение хочет сделать снимок экрана
 msgid "Requested setting not found"
 msgstr "Запрашиваемая настройка не найдена"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Устройство недоступно"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Запрещено"
 

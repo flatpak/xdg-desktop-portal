@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2020-02-10 16:11+0100\n"
 "Last-Translator: Milo Casagrande <milo@milo.name>\n"
 "Language-Team: Italian <gnome-it-list@gnome.org>\n"
@@ -18,24 +18,24 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 2.2.4\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, fuzzy, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Consentire a %s di andare in esecuzione sullo sfondo?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, fuzzy, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr ""
 "L'applicazione %s richiede di essere avviata automaticamente e di essere "
 "eseguita sullo sfondo."
 
-#: src/background.c:937
+#: src/background.c:940
 #, fuzzy, c-format
 msgid "%s wants to run in the background"
 msgstr "L'applicazione %s richiede di essere eseguita sullo sfondo."
 
-#: src/background.c:938
+#: src/background.c:941
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
@@ -44,11 +44,11 @@ msgstr ""
 "Il permesso «esegui sullo sfondo» può essere modificato in qualsiasi momento "
 "attraverso le impostazioni dell'applicazione."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Non consentire"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Consenti"
 
@@ -117,7 +117,7 @@ msgstr ""
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
+msgid "Given URI is invalid: %s"
 msgstr ""
 
 #: src/dynamic-launcher.c:620
@@ -159,35 +159,35 @@ msgstr ""
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Nega accesso"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Consenti accesso"
 
-#: src/location.c:555
+#: src/location.c:560
 #, fuzzy, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Consentire a %s di accedere alla propria posizione?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, fuzzy, c-format
 msgid "%s wants to use your location"
 msgstr "%s vuole utilizzare la propria posizione."
 
-#: src/location.c:571
+#: src/location.c:576
 #, fuzzy
 msgid "Allow Apps to Access Your Location?"
 msgstr "Consentire a %s di accedere alla propria posizione?"
 
-#: src/location.c:572
+#: src/location.c:577
 #, fuzzy
 msgid "An app wants to use your location"
 msgstr "Un'applicazione vuole utilizzare la propria posizione."
 
-#: src/location.c:575
+#: src/location.c:580
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
@@ -245,11 +245,11 @@ msgstr "Un'applicazione vuole utilizzare la videocamera."
 msgid "Requested setting not found"
 msgstr "La risorsa richiesta non è stata trovata"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 #, fuzzy
 msgid "Not allowed"
 msgstr "Non consentire"

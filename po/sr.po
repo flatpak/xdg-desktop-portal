@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2016-09-14 12:54+0200\n"
 "Last-Translator: Мирослав Николић <miroslavnikolic@rocketmail.com>\n"
 "Language-Team: српски <gnome-sr@googlegroups.org>\n"
@@ -18,22 +18,22 @@ msgstr ""
 "Plural-Forms: nplurals=4; plural=n==1? 3 : n%10==1 && n%100!=11 ? 0 : "
 "n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, fuzzy, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Један програм жели да пусти звук."
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr ""
 
-#: src/background.c:937
+#: src/background.c:940
 #, fuzzy, c-format
 msgid "%s wants to run in the background"
 msgstr "„%s“ жели да пусти звук."
 
-#: src/background.c:938
+#: src/background.c:941
 #, fuzzy
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
@@ -42,11 +42,11 @@ msgstr ""
 "Приступ вашим звучницима се може изменити у било које време из подешавања "
 "приватности."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr ""
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr ""
 
@@ -114,7 +114,7 @@ msgstr ""
 
 #: src/dynamic-launcher.c:598
 #, c-format
-msgid "URL given is invalid: %s"
+msgid "Given URI is invalid: %s"
 msgstr ""
 
 #: src/dynamic-launcher.c:620
@@ -156,34 +156,34 @@ msgstr ""
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr ""
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr ""
 
-#: src/location.c:555
+#: src/location.c:560
 #, fuzzy, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "„%s“ жели да користи вашу камерицу."
 
-#: src/location.c:565
+#: src/location.c:570
 #, fuzzy, c-format
 msgid "%s wants to use your location"
 msgstr "„%s“ жели да користи вашу камерицу."
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr ""
 
-#: src/location.c:572
+#: src/location.c:577
 #, fuzzy
 msgid "An app wants to use your location"
 msgstr "Један програм жели да користи вашу камерицу."
 
-#: src/location.c:575
+#: src/location.c:580
 #, fuzzy
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
@@ -241,11 +241,11 @@ msgstr "Један програм жели да користи вашу каме
 msgid "Requested setting not found"
 msgstr ""
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr ""
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr ""
 

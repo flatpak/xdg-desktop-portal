@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2025-10-26 09:08+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
@@ -21,22 +21,22 @@ msgstr ""
 "X-Generator: Poedit 2.2.1\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Dovolite, da %s deluje v ozadju?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s zahteve samodejni zagon in izvajanje v ozadju."
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s zahteve izvajanje v ozadju."
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -44,11 +44,11 @@ msgstr ""
 "Dovoljenje »zaženi v ozadju« lahko kadar koli spremenite v nastavitvah "
 "programa."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Ne dovoli"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Dovoli"
 
@@ -113,8 +113,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Namizna datoteka presega največjo velikost (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "Navedeni URL je neveljaven: %s"
 
 #: src/dynamic-launcher.c:620
@@ -156,33 +156,33 @@ msgstr "Noben dinamični zaganjalnik ne obstaja z ID-jem »%s«"
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Za zaganjalnik z ID-jem »%s« ni uspelo ustvariti GDesktopAppInfo"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Zavrni dostop"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Dovoli dostop"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Ali dovolite %s dostop do svoje lokacije?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s želi uporabiti vašo lokacijo."
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Dovolite programom dostop do vaše lokacije?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Program želi uporabiti vašo lokacijo."
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Dostop do trenutne lokacije je mogoče spremeniti kadarkoli med nastavitvami "
@@ -235,11 +235,11 @@ msgstr "Program želi narediti posnetek zaslona."
 msgid "Requested setting not found"
 msgstr "Zahtevane nastavitve ni bilo mogoče najti"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Naprava ni na voljo"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Ni dovoljeno"
 

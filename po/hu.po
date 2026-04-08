@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 17:36+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2026-02-21 17:21+0100\n"
 "Last-Translator: GRX005 <hunorjani17 at gmail dot com>\n"
 "Language-Team: Hungarian\n"
@@ -20,22 +20,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 49.0\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Engedélyezi a(z) %s számára, hogy a háttérben fusson?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "A(z) %s azt kéri, hogy automatikusan elinduljon és a háttérben fusson."
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "A(z) %s azt kéri, hogy a háttérben fusson."
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -43,11 +43,11 @@ msgstr ""
 "A „háttérben való futás” engedély bármikor megváltoztatható az alkalmazás "
 "beállításaiban."
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "Ne engedélyezze"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "Engedélyezés"
 
@@ -114,8 +114,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "A desktop fájl túllépi a maximális méretet (%d): %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "A megadott URL érvénytelen: %s"
 
 #: src/dynamic-launcher.c:620
@@ -160,33 +160,33 @@ msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Nem sikerült létrehozni a GDesktopAppInfo-t a(z) „%s” azonosítójú indítónak"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "Hozzáférést ad az alkalmazásoknak a tartózkodási helyéhez?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
@@ -240,11 +240,11 @@ msgstr "Egy alkalmazás egy képernyőképet szeretne csinálni"
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "Az eszköz nem elérhető"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "Nem engedélyezett"
 

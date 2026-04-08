@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-18 21:30+0100\n"
+"POT-Creation-Date: 2026-03-25 14:26+0100\n"
 "PO-Revision-Date: 2026-02-20 06:01+0100\n"
 "Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <(nothing)>\n"
@@ -18,34 +18,34 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 3.8\n"
 
-#: src/background.c:931
+#: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "დავუშვა %s-ის ფონურ რეჟიმში გაშვება?"
 
-#: src/background.c:935
+#: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "%s ითხოვს ავტომატურად და ფონურ რეჟიმში გაშვებას"
 
-#: src/background.c:937
+#: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "%s ითხოვს ფონურ რეჟიმში გაშვებას"
 
-#: src/background.c:938
+#: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
-"ნებართვა „ფონში გაშვება“ ნებისმიერ დროს, აპლიკაციის პარამეტრებიდან "
-"შეიძლება შეიცვალოს"
+"ნებართვა „ფონში გაშვება“ ნებისმიერ დროს, აპლიკაციის პარამეტრებიდან შეიძლება "
+"შეიცვალოს"
 
-#: src/background.c:942
+#: src/background.c:945
 msgid "Don't allow"
 msgstr "არ დაშვება"
 
-#: src/background.c:943 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
 msgstr "დაშვება"
 
@@ -86,8 +86,8 @@ msgstr "სამუშაო მაგიდის ფაილის id არ
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
-"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() არასწორი გასაღების "
-"ფაილი გადასცა"
+"სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() არასწორი გასაღების ფაილი "
+"გადასცა"
 
 #: src/dynamic-launcher.c:324
 #, c-format
@@ -113,8 +113,8 @@ msgid "Desktop file exceeds max size (%d): %s"
 msgstr "სამუშაო მაგიდის ფაილის ზომა მაქსიმალურზე (%d) მეტია: %s"
 
 #: src/dynamic-launcher.c:598
-#, c-format
-msgid "URL given is invalid: %s"
+#, fuzzy, c-format
+msgid "Given URI is invalid: %s"
 msgstr "გადაცემული URL არასწორია: %s"
 
 #: src/dynamic-launcher.c:620
@@ -156,33 +156,33 @@ msgstr "id-ით '%s' დინამიკური გამშვები �
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "გამშვებისთვის id-ით '%s' GDesktopAppInfo-ის შექმნა ჩავარდა"
 
-#: src/location.c:547
+#: src/location.c:552
 msgid "Deny Access"
 msgstr "წვდომის უარყოფა"
 
-#: src/location.c:549
+#: src/location.c:554
 msgid "Grant Access"
 msgstr "წვდომის მინიჭება"
 
-#: src/location.c:555
+#: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "მივცეთ უფლება %s-ს, მიიღოს ინფორმაცია თქვენი მდებარეობის შესახებ?"
 
-#: src/location.c:565
+#: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
 msgstr "%s სურს, გამოიყენოს თქვენი მდებარეობა"
 
-#: src/location.c:571
+#: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
 msgstr "მიეცეთ აპებს წვდომა თქვენს მდებარეობასთან?"
 
-#: src/location.c:572
+#: src/location.c:577
 msgid "An app wants to use your location"
 msgstr "აპს სურს, თქვენი მდებარეობა გამოიყენოს"
 
-#: src/location.c:575
+#: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "მდებარეობაზე წვდომა შეიძლება შეიცვალოს ნებისმიერ დროს კონფიდენციალობის "
@@ -235,11 +235,11 @@ msgstr "აპს სურს, ეკრანის ანაბეჭდი �
 msgid "Requested setting not found"
 msgstr "მოთხოვნილი პარამეტრი ვერ მოიძებნა"
 
-#: src/usb.c:1339
+#: src/usb.c:1333
 msgid "Device not available"
 msgstr "მოწყობილობა ხელმისაწვდომი არაა"
 
-#: src/usb.c:1353
+#: src/usb.c:1347
 msgid "Not allowed"
 msgstr "დაუშვებელია"
 
