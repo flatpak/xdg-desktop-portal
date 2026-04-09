@@ -81,7 +81,7 @@ xdp_register_document (const char        *uri,
   g_autofree char *path = NULL;
   g_autofree char *basename = NULL;
   g_autofree char *dirname = NULL;
-  GUnixFDList *fd_list = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
   int fd, fd_in;
   g_autoptr(GFile) file = NULL;
   gboolean ret = FALSE;
@@ -195,8 +195,6 @@ xdp_register_document (const char        *uri,
                                                 NULL,
                                                 error);
     }
-
-  g_object_unref (fd_list);
 
   if (!ret)
     return NULL;
