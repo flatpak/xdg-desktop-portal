@@ -29,9 +29,6 @@ typedef struct _ScreenCastStream ScreenCastStream;
 
 uint32_t screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream);
 
-gboolean screen_cast_stream_get_pipewire_serial (ScreenCastStream *stream,
-                                                  uint64_t *out_serial);
-
 void screen_cast_stream_get_size (ScreenCastStream *stream,
                                   int32_t *width,
                                   int32_t *height);

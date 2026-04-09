@@ -677,19 +677,6 @@ screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
   return stream->id;
 }
 
-gboolean
-screen_cast_stream_get_pipewire_serial (ScreenCastStream *stream,
-                                        uint64_t *out_serial)
-{
-  if (stream->has_pipewire_serial)
-    {
-      if (out_serial)
-        *out_serial = stream->pipewire_serial;
-      return TRUE;
-    }
-  return FALSE;
-}
-
 static void
 append_stream_permissions (PipeWireRemote *remote,
                            GArray *permission_items,
