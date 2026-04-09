@@ -274,13 +274,10 @@ initable_init (GInitable    *initable,
   if (is_on_nfs (self->path))
     {
       g_autoptr(GFile) file = g_file_new_for_path (self->path);
-      char *contents;
-      gsize length;
 
       /* We avoid using mmap on NFS, because its prone to give us SIGBUS at semi-random
          times (nfs down, file removed, etc). Instead we just load the file */
-      if (g_file_load_contents (file, cancellable, &contents, &length, NULL, &my_error))
-        self->gvdb_contents = g_bytes_new_take (contents, length);
+      self->gvdb_contents = g_file_load_bytes (file, cancellable, NULL, &my_error);
     }
   else
     {
