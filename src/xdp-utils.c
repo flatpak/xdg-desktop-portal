@@ -568,7 +568,7 @@ xdp_maybe_quote_argv (const char *argv[],
         g_string_append (res, argv[i]);
     }
 
-  return g_string_free (res, FALSE);
+  return g_string_free_and_steal (res);
 }
 
 typedef struct

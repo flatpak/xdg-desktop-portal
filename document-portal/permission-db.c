@@ -942,7 +942,7 @@ permission_db_print_string (PermissionDb *self,
 char *
 permission_db_print (PermissionDb *self)
 {
-  return g_string_free (permission_db_print_string (self, NULL), FALSE);
+  return g_string_free_and_steal (permission_db_print_string (self, NULL));
 }
 
 PermissionDbEntry  *
