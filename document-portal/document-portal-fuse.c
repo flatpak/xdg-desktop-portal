@@ -382,7 +382,7 @@ open_flags_to_string (int flags)
     g_string_append (s, ",TMPFILE");
 #endif
 
-  return g_string_free (s, FALSE);
+  return g_string_free_and_steal (s);
 }
 
 
@@ -419,7 +419,7 @@ setattr_flags_to_string (int flags)
   if (s->len > 0)
     g_string_truncate (s, s->len - 1);
 
-  return g_string_free (s, FALSE);
+  return g_string_free_and_steal (s);
 }
 
 static char *
@@ -445,7 +445,7 @@ renameat2_flags_to_string (int flags)
   if (s->len > 0)
     g_string_truncate (s, s->len - 1);
 
-  return g_string_free (s, FALSE);
+  return g_string_free_and_steal (s);
 #else
   return g_strdup_printf ("%#x", flags);
 #endif

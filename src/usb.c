@@ -172,7 +172,7 @@ unique_permission_id_for_device (GUdevDevice *device)
   property = g_udev_device_get_property (device, "ID_SERIAL");
   g_string_append_printf (permission_id, "%s%s", "/", property ? property : "");
 
-  return g_string_free (g_steal_pointer (&permission_id), FALSE);
+  return g_string_free_and_steal (g_steal_pointer (&permission_id));
 }
 
 static void

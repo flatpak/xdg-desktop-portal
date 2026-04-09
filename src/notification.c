@@ -375,7 +375,7 @@ strip_multiple_spaces (const gchar *text,
         }
     }
 
-  return g_string_free (composed, FALSE);
+  return g_string_free_and_steal (composed);
 }
 
 
