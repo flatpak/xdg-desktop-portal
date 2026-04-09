@@ -505,52 +505,56 @@ xdp_session_class_init (XdpSessionClass *klass)
   gobject_class->get_property = xdp_session_get_property;
 
   obj_props[PROP_CONTEXT] =
-    g_param_spec_object ("context", "Context", "Context",
+    g_param_spec_object ("context",
+                         NULL, NULL,
                          XDP_TYPE_CONTEXT,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_SENDER] =
-    g_param_spec_string ("sender", "Sender", "Sender",
+    g_param_spec_string ("sender",
+                         NULL, NULL,
                          NULL,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_APP_ID] =
-    g_param_spec_string ("app-id", "app-id", "App ID",
+    g_param_spec_string ("app-id",
+                         NULL, NULL,
                          NULL,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_TOKEN] =
-    g_param_spec_string ("token", "token", "Token",
+    g_param_spec_string ("token",
+                         NULL, NULL,
                          NULL,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_CONNECTION] =
-    g_param_spec_object ("connection", "connection",
-                         "DBus connection",
+    g_param_spec_object ("connection",
+                         NULL, NULL,
                          G_TYPE_DBUS_CONNECTION,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_IMPL_CONNECTION] =
-    g_param_spec_object ("impl-connection", "impl-connection",
-                         "impl DBus connection",
+    g_param_spec_object ("impl-connection",
+                         NULL, NULL,
                          G_TYPE_DBUS_CONNECTION,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
   obj_props[PROP_IMPL_DBUS_NAME] =
-    g_param_spec_string ("impl-dbus-name", "impl-dbus-name",
-                         "impl DBus name",
+    g_param_spec_string ("impl-dbus-name",
+                         NULL, NULL,
                          NULL,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
