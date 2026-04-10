@@ -133,6 +133,9 @@ gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 libglnx_dep = libglnx.get_variable('libglnx_dep')
 
+libglnx_proj = subproject('libglnx', default_options: 'tests=false')
+libglnx_dep = libglnx_proj.get_variable('libglnx_dep')
+
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()
   have_wav_parse = run_command(
