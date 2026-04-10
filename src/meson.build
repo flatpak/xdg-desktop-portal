@@ -84,6 +84,7 @@ endif
 
 xdg_desktop_portal_sources = files(
   'account.c',
+  'parental-controls.c',
   'background.c',
   'camera.c',
   'clipboard.c',
