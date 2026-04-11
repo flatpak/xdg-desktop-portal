@@ -356,6 +356,9 @@ email_new (XdpDbusImplEmail *impl)
   if (impl_revision >= 1)
     active_revision = 4;
 
+  g_assert (active_revision != 0);
+
+  // NOTE: Active revision and version are identical
   email_dbus_set_active_revision (XDP_DBUS_EMAIL (email), active_revision);
 
   return email;
