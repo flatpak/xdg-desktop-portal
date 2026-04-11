@@ -111,6 +111,7 @@
           this application may not capture events of that capability.
     -->
     <method name="CreateSession">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
       <arg type="s" name="parent_window" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
       <arg type="a{sv}" name="options" direction="in"/>
