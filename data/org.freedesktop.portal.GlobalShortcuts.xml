@@ -41,7 +41,7 @@
       #org.freedesktop.portal.GlobalShortcuts::Deactivated signals are emitted,
       respectively, whenever a shortcut is activated and deactivated.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.GlobalShortcuts">
     <!--
@@ -200,7 +200,7 @@
 
           A token that can be used to activate the configuration window.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="ConfigureShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
@@ -274,6 +274,20 @@
       <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.GlobalShortcuts:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
