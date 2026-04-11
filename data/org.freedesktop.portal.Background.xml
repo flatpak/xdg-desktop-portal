@@ -29,7 +29,7 @@
       the application is allowed to run in the background or started
       automatically when the user logs in.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Background">
     <!--
@@ -88,7 +88,7 @@
       SetStatus:
       @options: Vardict with optional further information
 
-      This method was added in version 2 of this interface.
+      This method was added in revision 2 of this interface.
 
       Sets the status of the application running in background.
 
@@ -106,6 +106,20 @@
       <arg type="a{sv}" name="options" direction="in"/>
     </method>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Background:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
