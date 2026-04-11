@@ -528,7 +528,6 @@ screenshot_new (XdpDbusImplScreenshot *impl,
                 XdpDbusImplAccess     *access_impl)
 {
   Screenshot *screenshot;
-  g_autoptr(GVariant) version = NULL;
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
   screenshot->access_impl = g_object_ref (access_impl);
@@ -539,10 +538,8 @@ screenshot_new (XdpDbusImplScreenshot *impl,
 
   /* Before there was a version property, the version was hardcoded to 2, so
    * make sure we retain that behaviour */
-  version = g_dbus_proxy_get_cached_property (G_DBUS_PROXY (screenshot->impl),
-                                              "version");
   screenshot->impl_version =
-    (version != NULL) ? g_variant_get_uint32 (version) : 2;
+    MAX (xdp_dbus_impl_screenshot_get_version (screenshot->impl), 2);
 
   xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
                                    screenshot->impl_version);

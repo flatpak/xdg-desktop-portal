@@ -1648,9 +1648,9 @@ input_capture_new (XdpContext              *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (input_capture->impl), G_MAXINT);
 
   input_capture->impl_version =
-    MIN (xdp_dbus_impl_input_capture_get_version (impl), 2);
+    MAX (xdp_dbus_impl_input_capture_get_version (impl), 1);
   xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture),
-                                      input_capture->impl_version);
+                                      MIN (input_capture->impl_version, 2));
 
   g_object_bind_property (G_OBJECT (input_capture->impl), "supported-capabilities",
                           G_OBJECT (input_capture), "supported-capabilities",
