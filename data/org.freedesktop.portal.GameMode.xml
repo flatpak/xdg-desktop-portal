@@ -47,7 +47,7 @@
       automatically un-register the client. This might happen with a (small)
       delay.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes revision 4 of this interface.
     -->
     <interface name="org.freedesktop.portal.GameMode">
       <!--
@@ -131,6 +131,8 @@
 
           Like org.freedesktop.portal.GameMode.QueryStatus() but @requester
           acting on behalf of @target.
+
+          This property was added in revision 2 of this interface.
       -->
       <method name="QueryStatusByPid">
         <arg type="i" name="target" direction="in"/>
@@ -148,6 +150,8 @@
 
           Like org.freedesktop.portal.GameMode.RegisterGame() but @requester
           acting on behalf of @target.
+
+          This property was added in revision 2 of this interface.
       -->
       <method name="RegisterGameByPid">
         <arg type="i" name="target" direction="in"/>
@@ -165,6 +169,8 @@
 
           Like org.freedesktop.portal.GameMode.UnregisterGame() but @requester
           acting on behalf of @target.
+
+          This property was added in revision 2 of this interface.
       -->
       <method name="UnregisterGameByPid">
         <arg type="i" name="target" direction="in"/>
@@ -183,6 +189,8 @@
 
           Like org.freedesktop.portal.GameMode.QueryStatusByPid() but @requester
           and @target are pidfds representing the processes.
+
+          This property was added in revision 3 of this interface.
       -->
       <method name="QueryStatusByPIDFd">
         <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -201,6 +209,8 @@
 
           Like org.freedesktop.portal.GameMode.RegisterGameByPid() but @requester
           and @target are pidfds representing the processes.
+
+          This property was added in revision 3 of this interface.
       -->
       <method name="RegisterGameByPIDFd">
         <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -219,6 +229,8 @@
 
           Like org.freedesktop.portal.GameMode.UnregisterGameByPid() but @requester
           and @target are pidfds representing the processes.
+
+          This property was added in revision 3 of this interface.
       -->
       <method name="UnregisterGameByPIDFd">
         <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -231,9 +243,25 @@
           Active:
 
           Whether any pid on the system has enabled Game Mode.
+
+          This property was added in revision 4 of this interface.
       -->
       <property name="Active" type="b" access="read"/>
 
-      <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 4 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.GameMode:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
     </interface>
 </node>
