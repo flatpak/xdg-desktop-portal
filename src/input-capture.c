@@ -355,7 +355,9 @@ handle_create_session (XdpDbusInputCapture   *object,
                                               g_object_ref (request));
     }
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdp_dbus_input_capture_complete_create_session (object, invocation, request->id);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
