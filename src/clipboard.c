@@ -607,17 +607,27 @@ selection_owner_changed_cb (XdpDbusImplClipboard *impl,
     }
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusClipboard, clipboard)
+
 static Clipboard *
 clipboard_new (XdpDbusImplClipboard *impl)
 {
   Clipboard *clipboard;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   clipboard = g_object_new (clipboard_get_type (), NULL);
   clipboard->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (clipboard->impl), G_MAXINT);
 
-  xdp_dbus_clipboard_set_version (XDP_DBUS_CLIPBOARD (clipboard), 1);
+  impl_revision =
+    MAX (xdp_dbus_impl_clipboard_get_active_revision (clipboard->impl), 1);
+  if (impl_revision >= 1)
+    active_revision = 1;
+
+  /* Active revision and version (deprecated) are identical */
+  clipboard_dbus_set_active_revision (XDP_DBUS_CLIPBOARD (clipboard), active_revision);
 
   g_signal_connect_object (clipboard->impl, "selection-transfer",
                            G_CALLBACK (selection_transfer_cb),
