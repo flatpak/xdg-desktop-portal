@@ -197,3 +197,13 @@ gboolean xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
 
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
+
+#define XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION(XdpDbusType, portal) \
+  static void \
+  portal ## _dbus_set_active_revision (XdpDbusType *object, guint value)\
+  {\
+    xdp_dbus_ ## portal ## _set_active_revision (object, value); \
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS \
+    xdp_dbus_ ## portal ## _set_version (object, value); \
+    G_GNUC_END_IGNORE_DEPRECATIONS \
+  }
