@@ -1298,7 +1298,7 @@ notification_new (XdpContext              *context,
   notification->impl_version =
     MAX (xdp_dbus_impl_notification_get_version (notification->impl), 1);
   xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification),
-                                     notification->impl_version);
+                                     MIN (notification->impl_version, 2));
 
   g_object_bind_property (G_OBJECT (notification->impl), "supported-options",
                           G_OBJECT (notification), "supported-options",

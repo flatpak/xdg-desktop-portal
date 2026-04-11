@@ -542,7 +542,7 @@ screenshot_new (XdpDbusImplScreenshot *impl,
     MAX (xdp_dbus_impl_screenshot_get_version (screenshot->impl), 2);
 
   xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
-                                   screenshot->impl_version);
+                                   MIN (screenshot->impl_version, 2));
 
   return screenshot;
 }
