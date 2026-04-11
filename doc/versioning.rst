@@ -26,7 +26,8 @@ the deprecated ``version`` property in interfaces documentation).
 Interfaces have a minor version documented as "revision" (previously
 "version" but renamed to avoid confusion), assume 1 if not documented.
 
-Each of those interfaces can have a ``active-revision`` property which does not match the documented "revision" but the revision matching the feature-set enabled, assume 1 if missing or not set (returns 0).
+Each of those interfaces must have a ``active-revision`` property which is not meant to match the documented "revision" but the revision matching the
+feature-set enabled, assume 1 if missing or not set (returns 0).
 
 The ``version`` property has been deprecated and is not guaranted to be identical
 to the new ``active-revision``.
