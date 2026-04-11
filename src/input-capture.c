@@ -44,7 +44,7 @@ struct _InputCapture
 
   XdpContext *context;
   XdpDbusImplInputCapture *impl;
-  int impl_version;
+  uint32_t impl_revision;
 };
 
 struct _InputCaptureClass
@@ -85,7 +85,7 @@ typedef struct _InputCaptureSession
 {
   XdpSession parent;
 
-  int impl_version;
+  uint32_t impl_revision;
 
   InputCaptureSessionState state;
   gboolean clipboard_requested;
@@ -172,7 +172,7 @@ input_capture_session_new (InputCapture     *input_capture,
     return NULL;
 
   input_capture_session = (InputCaptureSession*) session;
-  input_capture_session->impl_version = input_capture->impl_version;
+  input_capture_session->impl_revision = input_capture->impl_revision;
 
   g_debug ("input capture session owned by '%s' created",
            xdp_app_info_get_sender (app_info));
@@ -186,7 +186,7 @@ input_capture_session_can_request_clipboard (InputCaptureSession *session)
   if (session->clipboard_requested)
     return FALSE;
 
-  if (session->impl_version < 2)
+  if (session->impl_revision < 2)
     return FALSE;
 
   switch (session->state)
@@ -313,7 +313,7 @@ handle_create_session (XdpDbusInputCapture   *object,
 
   g_object_set_data (G_OBJECT (request), "-xdp-input-capture", input_capture);
 
-  if (input_capture->impl_version < 2)
+  if (input_capture->impl_revision < 2)
     {
       xdp_dbus_impl_input_capture_call_create_session (input_capture->impl,
                                                        request->id,
@@ -383,7 +383,7 @@ handle_create_session2 (XdpDbusInputCapture   *object,
   g_auto(GVariantBuilder) results_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-  if (input_capture->impl_version < 2)
+  if (input_capture->impl_revision < 2)
     return G_DBUS_METHOD_INVOCATION_UNHANDLED;
 
   if (!xdp_filter_options (arg_options, &options_builder,
@@ -462,7 +462,7 @@ start_done (GObject      *source_object,
 
   input_capture = g_object_get_data (G_OBJECT (request), "-xdp-input-capture");
 
-  if (input_capture->impl_version < 2)
+  if (input_capture->impl_revision < 2)
     {
       if (!xdp_dbus_impl_input_capture_call_create_session_finish (impl,
                                                                    &response,
@@ -631,7 +631,7 @@ handle_start (XdpDbusInputCapture   *object,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GError) error = NULL;
 
-  if (input_capture->impl_version < 2)
+  if (input_capture->impl_revision < 2)
     return G_DBUS_METHOD_INVOCATION_UNHANDLED;
 
   REQUEST_AUTOLOCK (request);
@@ -1635,11 +1635,16 @@ input_capture_class_init (InputCaptureClass *klass)
     g_quark_from_static_string ("-xdp-request-capture-input-session");
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplInputCapture, input_capture)
+
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusInputCapture, input_capture)
+
 static InputCapture *
 input_capture_new (XdpContext              *context,
                    XdpDbusImplInputCapture *impl)
 {
   InputCapture *input_capture;
+  uint32_t active_revision = 0;
 
   input_capture = g_object_new (input_capture_get_type (), NULL);
   input_capture->context = context;
@@ -1647,10 +1652,16 @@ input_capture_new (XdpContext              *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (input_capture->impl), G_MAXINT);
 
-  input_capture->impl_version =
-    MAX (xdp_dbus_impl_input_capture_get_version (impl), 1);
-  xdp_dbus_input_capture_set_version (XDP_DBUS_INPUT_CAPTURE (input_capture),
-                                      MIN (input_capture->impl_version, 2));
+  input_capture->impl_revision =
+    MAX (input_capture_dbus_impl_get_active_revision (input_capture->impl), 1);
+  if (input_capture->impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
+
+  /* Active revision and version (deprecated) are identical */
+  input_capture_dbus_set_active_revision (XDP_DBUS_INPUT_CAPTURE (input_capture),
+                                          active_revision);
 
   g_object_bind_property (G_OBJECT (input_capture->impl), "supported-capabilities",
                           G_OBJECT (input_capture), "supported-capabilities",
