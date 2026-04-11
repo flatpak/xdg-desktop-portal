@@ -25,6 +25,8 @@
       @short_description: Clipboard portal backend interface
 
       The Clipboard portal allows sessions to access the clipboard.
+
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Clipboard">
     <!-- 
@@ -177,6 +179,18 @@
       <arg type="u" name="serial" direction="out"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and does not cause a revision bump of this interface.
+
+        Consequently, 1 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
