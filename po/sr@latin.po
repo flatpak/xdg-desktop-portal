@@ -1,8 +1,8 @@
 # Serbian translation for xdg-desktop-portal.
 # Copyright (C) 2016 xdg-desktop-portal's COPYRIGHT HOLDER
 # This file is distributed under the same license as the xdg-desktop-portal package.
-# Мирослав Николић <miroslavnikolic@rocketmail.com>, 2016.
-# Марко Костић <marko.m.kostic@gmail.com>, 2026
+# Miroslav Nikolić <miroslavnikolic@rocketmail.com>, 2016.
+# Marko Kostić <marko.m.kostic@gmail.com>, 2026
 #
 msgid ""
 msgstr ""
@@ -10,8 +10,8 @@ msgstr ""
 "Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
 "POT-Creation-Date: 2026-03-25 13:26+0000\n"
 "PO-Revision-Date: 2026-04-11 11:24+0200\n"
-"Last-Translator: Марко Костић <marko.m.kostic@gmail.com>\n"
-"Language-Team: српски <gnome-sr@googlegroups.org>\n"
+"Last-Translator: Marko Kostić <marko.m.kostic@gmail.com>\n"
+"Language-Team: srpski <gnome-sr@googlegroups.org>\n"
 "Language: sr\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -23,240 +23,241 @@ msgstr ""
 #: src/background.c:934
 #, c-format
 msgid "Allow %s to Run in the Background?"
-msgstr "Дозволити програму „%s“ да ради у позадини?"
+msgstr "Dozvoliti programu „%s“ da radi u pozadini?"
 
 #: src/background.c:938
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
-msgstr "„%s“ жели да се покреће самостално и да ради у позадини"
+msgstr "„%s“ želi da se pokreće samostalno i da radi u pozadini"
 
 #: src/background.c:940
 #, c-format
 msgid "%s wants to run in the background"
-msgstr "„%s“ жели да ради у позадини"
+msgstr "„%s“ želi da radi u pozadini"
 
 #: src/background.c:941
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
 msgstr ""
-"Овлашћење за „рад у позадини“ може бити промењено у било ком тренутку у "
-"подешавањима програма"
+"Ovlašćenje za „rad u pozadini“ može biti promenjeno u bilo kom trenutku u "
+"podešavanjima programa"
 
 #: src/background.c:945
 msgid "Don't allow"
-msgstr "Немој"
+msgstr "Nemoj"
 
 #: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
 msgid "Allow"
-msgstr "Дозволи"
+msgstr "Dozvoli"
 
 #: src/camera.c:104
 #, c-format
 msgid "Allow %s to Use the Camera?"
-msgstr "Дозволити програму „%s“ да користи камеру?"
+msgstr "Dozvoliti programu „%s“ da koristi kameru?"
 
 #: src/camera.c:105
 #, c-format
 msgid "%s wants to access the camera"
-msgstr "„%s“ жели да приступи камери"
+msgstr "„%s“ želi da pristupi kameri"
 
 #: src/camera.c:109
 msgid "Allow Apps to Use the Camera?"
-msgstr "Дозволити програмима да користе камеру?"
+msgstr "Dozvoliti programima da koriste kameru?"
 
 #: src/camera.c:110
 msgid "An app wants to access the camera"
-msgstr "Програм жели да приступи камери"
+msgstr "Program želi da pristupi kameri"
 
 #: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
 msgid "This permission can be changed at any time from the privacy settings"
 msgstr ""
-"Ово овлашћење се може променити у било ком тренутку у подешавањима "
-"приватности"
+"Ovo ovlašćenje se može promeniti u bilo kom trenutku u podešavanjima "
+"privatnosti"
 
 #: src/dynamic-launcher.c:128
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
-msgstr "ИД датотеке радне површине нема суфикс .desktop: %s"
+msgstr "ID datoteke radne površine nema sufiks .desktop: %s"
 
 #: src/dynamic-launcher.c:139
 #, c-format
 msgid "Desktop file id is not valid"
-msgstr "ИД датотеке радне површине није исправан"
+msgstr "ID datoteke radne površine nije ispravan"
 
 #: src/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
-"Ставка радне површине дата функцији Install() није исправна датотека кључа"
+"Stavka radne površine data funkciji Install() nije ispravna datoteka ključa"
 
 #: src/dynamic-launcher.c:324
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
-"Ставка радне површине дата функцији Install() мора имати тачно једну групу"
+"Stavka radne površine data funkciji Install() mora imati tačno jednu grupu"
 
 #: src/dynamic-launcher.c:362
 #, c-format
 msgid "Token given is invalid: %s"
-msgstr "Дати жетон је неисправан: %s"
+msgstr "Dati žeton je neispravan: %s"
 
 #: src/dynamic-launcher.c:405
 #, c-format
 msgid "Desktop entry given to Install() not valid"
-msgstr "Ставка радне површине дата функцији Install() није исправна"
+msgstr "Stavka radne površine data funkciji Install() nije ispravna"
 
 #: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
 #: src/dynamic-launcher.c:923
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
-msgstr "Датотека радне површине премашује највећу величину (%d): %s"
+msgstr "Datoteka radne površine premašuje najveću veličinu (%d): %s"
 
 #: src/dynamic-launcher.c:598
 #, c-format
 msgid "Given URI is invalid: %s"
-msgstr "Дати УРИ је неисправан: %s"
+msgstr "Dati URI je neispravan: %s"
 
 #: src/dynamic-launcher.c:620
 #, c-format
 msgid "Invalid launcher type: %x"
-msgstr "Неисправна врста покретача: %x"
+msgstr "Neispravna vrsta pokretača: %x"
 
 #: src/dynamic-launcher.c:627
 #, c-format
 msgid "Unsupported launcher type: %x"
-msgstr "Неподржана врста покретача: %x"
+msgstr "Nepodržana vrsta pokretača: %x"
 
 #: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
 msgid "Dynamic launcher icon failed validation"
-msgstr "Иконица динамичког покретача није прошла потврђивање"
+msgstr "Ikonica dinamičkog pokretača nije prošla potvrđivanje"
 
 #: src/dynamic-launcher.c:784
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
-msgstr "RequestInstallToken() није дозвољен за ИД програма %s"
+msgstr "RequestInstallToken() nije dozvoljen za ID programa %s"
 
 #: src/dynamic-launcher.c:963
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
-msgstr "Иконица датотеке радне површине „%s“ је у непрепознатој путањи"
+msgstr "Ikonica datoteke radne površine „%s“ je u neprepoznatoj putanji"
 
 #: src/dynamic-launcher.c:986
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
-msgstr "Није успело серијализовање иконице датотеке радне површине „%s“"
+msgstr "Nije uspelo serijalizovanje ikonice datoteke radne površine „%s“"
 
 #: src/dynamic-launcher.c:1025
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
-msgstr "Не постоји динамички покретач са ИД-ом „%s“"
+msgstr "Ne postoji dinamički pokretač sa ID-om „%s“"
 
 #: src/dynamic-launcher.c:1044
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
-msgstr "Нисам успео да направим „GDesktopAppInfo“ за покретач са ИД-ом „%s“"
+msgstr "Nisam uspeo da napravim „GDesktopAppInfo“ za pokretač sa ID-om „%s“"
 
 #: src/location.c:552
 msgid "Deny Access"
-msgstr "Забрани приступ"
+msgstr "Zabrani pristup"
 
 #: src/location.c:554
 msgid "Grant Access"
-msgstr "Дозволи приступ"
+msgstr "Dozvoli pristup"
 
 #: src/location.c:560
 #, c-format
 msgid "Allow %s to Access Your Location?"
-msgstr "Дозволити програму „%s“ да приступи вашој локацији?"
+msgstr "Dozvoliti programu „%s“ da pristupi vašoj lokaciji?"
 
 #: src/location.c:570
 #, c-format
 msgid "%s wants to use your location"
-msgstr "„%s“ жели да користи вашу локацију"
+msgstr "„%s“ želi da koristi vašu lokaciju"
 
 #: src/location.c:576
 msgid "Allow Apps to Access Your Location?"
-msgstr "Дозволити програмима да приступе вашој локацији?"
+msgstr "Dozvoliti programima da pristupe vašoj lokaciji?"
 
 #: src/location.c:577
 msgid "An app wants to use your location"
-msgstr "Програм жели да користи вашу локацију"
+msgstr "Program želi da koristi vašu lokaciju"
 
 #: src/location.c:580
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
-"Приступ месту можете да измените у било које време у подешавањима приватности"
+"Pristup mestu možete da izmenite u bilo koje vreme u podešavanjima "
+"privatnosti"
 
 #: src/screenshot.c:220 src/wallpaper.c:189
 msgid "Deny"
-msgstr "Забрани"
+msgstr "Zabrani"
 
 #: src/screenshot.c:246
 #, c-format
 msgid "Allow %s to Take Screenshots?"
-msgstr "Дозволити програму „%s“ да прави снимке екрана?"
+msgstr "Dozvoliti programu „%s“ da pravi snimke ekrana?"
 
 #: src/screenshot.c:247
 #, c-format
 msgid "%s wants to take screenshots at any time"
-msgstr "„%s“ жели да прави снимке екрана у било ком тренутку"
+msgstr "„%s“ želi da pravi snimke ekrana u bilo kom trenutku"
 
 #: src/screenshot.c:251
 #, c-format
 msgid "Allow %s to Take a Screenshot?"
-msgstr "Дозволити програму „%s“ да направи снимак екрана?"
+msgstr "Dozvoliti programu „%s“ da napravi snimak ekrana?"
 
 #: src/screenshot.c:252
 #, c-format
 msgid "%s wants to take a screenshot"
-msgstr "„%s“ жели да направи снимак екрана"
+msgstr "„%s“ želi da napravi snimak ekrana"
 
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
 #: src/screenshot.c:263
 msgid "Allow Apps to Take Screenshots?"
-msgstr "Дозволити програмима да праве снимке екрана?"
+msgstr "Dozvoliti programima da prave snimke ekrana?"
 
 #: src/screenshot.c:264
 msgid "An app wants to take screenshots at any time"
-msgstr "Програм жели да прави снимке екрана у било ком тренутку"
+msgstr "Program želi da pravi snimke ekrana u bilo kom trenutku"
 
 #: src/screenshot.c:268
 msgid "Allow to Take a Screenshot?"
-msgstr "Дозволити прављење снимка екрана?"
+msgstr "Dozvoliti pravljenje snimka ekrana?"
 
 #: src/screenshot.c:269
 msgid "An app wants to take a screenshot"
-msgstr "Програм жели да направи снимак екрана"
+msgstr "Program želi da napravi snimak ekrana"
 
 #: src/settings.c:195 src/settings.c:234
 msgid "Requested setting not found"
-msgstr "Затражено подешавање није нађено"
+msgstr "Zatraženo podešavanje nije nađeno"
 
 #: src/usb.c:1333
 msgid "Device not available"
-msgstr "Уређај није доступан"
+msgstr "Uređaj nije dostupan"
 
 #: src/usb.c:1347
 msgid "Not allowed"
-msgstr "Није дозвољено"
+msgstr "Nije dozvoljeno"
 
 #: src/wallpaper.c:197
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
-msgstr "Дозволити програму „%s“ да постави позадину?"
+msgstr "Dozvoliti programu „%s“ da postavi pozadinu?"
 
 #: src/wallpaper.c:198
 #, c-format
 msgid "%s wants to change the background image"
-msgstr "%s жели да промени позадинску слику"
+msgstr "%s želi da promeni pozadinsku sliku"
 
 #: src/wallpaper.c:203
 msgid "Allow Apps to Set Backgrounds?"
-msgstr "Дозволити програмима да поставе позадине?"
+msgstr "Dozvoliti programima da postave pozadine?"
 
 #: src/wallpaper.c:204
 msgid "An app wants to change the background image"
-msgstr "Програм жели да промени позадинску слику"
+msgstr "Program želi da promeni pozadinsku sliku"
