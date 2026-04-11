@@ -28,7 +28,7 @@
       This portal lets applications register global shortcuts so they can
       act regardless of the system state upon an input event.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.GlobalShortcuts">
     <!--
@@ -126,7 +126,7 @@
 
           A token that can be used to activate the configuration window.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="ConfigureShortcuts">
       <arg type="o" name="session_handle" direction="in"/>
@@ -199,6 +199,19 @@
       <arg type="a(sa{sv})" name="shortcuts" direction="out"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and does not cause a revision bump of this interface.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.impl.portal.GlobalShortcuts:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
