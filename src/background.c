@@ -1363,6 +1363,8 @@ background_class_init (BackgroundClass *klass)
   object_class->dispose = background_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusBackground, background)
+
 static Background *
 background_new (XdpDbusImplBackground *background_impl,
                 XdpDbusImplAccess     *access_impl,
@@ -1371,6 +1373,8 @@ background_new (XdpDbusImplBackground *background_impl,
   g_autoptr(Background) background = NULL;
   g_autofree char *instance_path = NULL;
   g_autoptr(GFile) instance_dir = NULL;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
   g_autoptr(GError) error = NULL;
 
   background = g_object_new (background_get_type (), NULL);
@@ -1378,7 +1382,17 @@ background_new (XdpDbusImplBackground *background_impl,
   background->access_impl = g_object_ref (access_impl);
   background->monitor = g_object_ref (background_monitor);
 
-  xdp_dbus_background_set_version (XDP_DBUS_BACKGROUND (background), 2);
+  impl_revision =
+    MAX (xdp_dbus_impl_background_get_active_revision (background->impl), 1);
+  // NOTE: Revision 2 requires at least impl revision 1
+  if (impl_revision >= 1)
+    active_revision = 2;
+
+  g_assert (active_revision != 0);
+
+  // NOTE: Active revision and version are identical
+  background_dbus_set_active_revision (XDP_DBUS_BACKGROUND (background),
+                                       active_revision);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (background->impl),
                                     G_MAXINT);

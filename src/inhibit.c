@@ -546,11 +546,15 @@ on_state_changed (XdpDbusImplInhibit *impl,
                                    NULL);
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusInhibit, inhibit)
+
 static Inhibit *
 inhibit_new (XdpContext         *context,
              XdpDbusImplInhibit *impl)
 {
   Inhibit *inhibit;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   inhibit = g_object_new (inhibit_get_type (), NULL);
   inhibit->context = context;
@@ -562,7 +566,16 @@ inhibit_new (XdpContext         *context,
                            G_CALLBACK (on_state_changed),
                            inhibit, G_CONNECT_DEFAULT);
 
-  xdp_dbus_inhibit_set_version (XDP_DBUS_INHIBIT (inhibit), 3);
+  impl_revision =
+    MAX (xdp_dbus_impl_inhibit_get_active_revision (inhibit->impl), 1);
+  // NOTE: Revision 3 requires at least impl revision 1
+  if (impl_revision >= 1)
+    active_revision = 3;
+
+  g_assert (active_revision != 0);
+
+  // NOTE: Active revision and version are identical
+  inhibit_dbus_set_active_revision (XDP_DBUS_INHIBIT (inhibit), active_revision);
 
   return inhibit;
 }

@@ -98,6 +98,7 @@ if build_documentation
     'sessions.rst',
     'system-integration.rst',
     'terminology.rst',
+    'versioning.rst',
     'window-identifiers.rst',
     'writing-a-new-backend.rst',
   ]

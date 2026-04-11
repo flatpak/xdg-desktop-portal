@@ -501,6 +501,8 @@ camera_class_init (CameraClass *klass)
   object_class->finalize = camera_finalize;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusCamera, camera)
+
 static Camera *
 camera_new (XdpDbusImplAccess   *access_impl,
             XdpDbusImplLockdown *lockdown_impl)
@@ -514,7 +516,8 @@ camera_new (XdpDbusImplAccess   *access_impl,
   camera->access_impl = g_object_ref (access_impl);
   camera->lockdown_impl = g_object_ref (lockdown_impl);
 
-  xdp_dbus_camera_set_version (XDP_DBUS_CAMERA (camera), 1);
+  // NOTE: Active revision and version are identical
+  camera_dbus_set_active_revision (XDP_DBUS_CAMERA (camera), 1);
 
   pipewire_socket_path = g_strdup_printf ("%s/pipewire-0",
                                           g_get_user_runtime_dir ());

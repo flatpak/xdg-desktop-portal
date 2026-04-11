@@ -26,6 +26,8 @@
       @short_description: Email portal backend interface
 
       This Email portal lets sandboxed applications request sending an email.
+
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Email">
     <!--
@@ -83,5 +85,15 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and does not cause a revision bump of this interface.
+
+        Consequently, 1 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

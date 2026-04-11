@@ -580,6 +580,8 @@ on_client_properties_changed (GDBusProxy  *proxy,
   update_active_state_from_cache (gamemode, proxy);
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusGameMode, game_mode)
+
 static GameMode *
 game_mode_new (GDBusProxy *client)
 {
@@ -588,7 +590,8 @@ game_mode_new (GDBusProxy *client)
   gamemode = g_object_new (game_mode_get_type (), NULL);
   gamemode->client = g_object_ref (client);
 
-  xdp_dbus_game_mode_set_version (XDP_DBUS_GAME_MODE (gamemode), 4);
+  // NOTE: Active revision and version are identical
+  game_mode_dbus_set_active_revision (XDP_DBUS_GAME_MODE (gamemode), 4);
 
   g_signal_connect_object (gamemode->client, "g-properties-changed",
                            G_CALLBACK (on_client_properties_changed),

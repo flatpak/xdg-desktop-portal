@@ -1099,10 +1099,14 @@ dynamic_launcher_class_init (DynamicLauncherClass *klass)
   object_class->dispose = dynamic_launcher_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusDynamicLauncher, dynamic_launcher)
+
 static DynamicLauncher*
 dynamic_launcher_new (XdpDbusImplDynamicLauncher *impl)
 {
   DynamicLauncher *dynamic_launcher;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   dynamic_launcher = g_object_new (dynamic_launcher_get_type (), NULL);
   dynamic_launcher->impl = g_object_ref (impl);
@@ -1110,7 +1114,16 @@ dynamic_launcher_new (XdpDbusImplDynamicLauncher *impl)
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (dynamic_launcher->impl),
                                     G_MAXINT);
 
-  xdp_dbus_dynamic_launcher_set_version (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher), 1);
+  impl_revision =
+    MAX (xdp_dbus_impl_dynamic_launcher_get_active_revision (dynamic_launcher->impl), 1);
+  if (impl_revision >= 1)
+    active_revision = 1;
+
+  g_assert (active_revision != 0);
+
+  // NOTE: Active revision and version are identical
+  dynamic_launcher_dbus_set_active_revision (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher),
+                                             active_revision);
 
   g_object_bind_property (G_OBJECT (dynamic_launcher->impl), "supported-launcher-types",
                           G_OBJECT (dynamic_launcher), "supported-launcher-types",

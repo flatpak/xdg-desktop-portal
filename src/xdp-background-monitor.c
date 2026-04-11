@@ -150,10 +150,13 @@ xdp_background_monitor_class_init (XdpBackgroundMonitorClass *klass)
   object_class->finalize = xdp_background_monitor_finalize;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusBackgroundMonitor, background_monitor)
+
 static void
 xdp_background_monitor_init (XdpBackgroundMonitor *self)
 {
-  xdp_dbus_background_monitor_set_version (XDP_DBUS_BACKGROUND_MONITOR (self), 1);
+  background_monitor_dbus_set_active_revision (XDP_DBUS_BACKGROUND_MONITOR (self),
+                                               1);
 }
 
 XdpBackgroundMonitor *

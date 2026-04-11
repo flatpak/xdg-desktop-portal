@@ -791,6 +791,8 @@ global_shortcuts_new (XdpContext                 *context,
                       XdpDbusImplGlobalShortcuts *impl)
 {
   GlobalShortcuts *global_shortcuts;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   global_shortcuts = g_object_new (global_shortcuts_get_type (), NULL);
   global_shortcuts->context = context;
@@ -812,7 +814,21 @@ global_shortcuts_new (XdpContext                 *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (global_shortcuts->impl),
                                     G_MAXINT);
 
+  impl_revision =
+    MAX (xdp_dbus_impl_global_shortcuts_get_active_revision (global_shortcuts->impl), 1);
+  if (impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
+
+  g_assert (active_revision != 0);
+
+  // NOTE: Version does not reflect active revision/feature-set
+  xdp_dbus_global_shortcuts_set_active_revision (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts),
+                                                 active_revision);
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts), 2);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   return global_shortcuts;
 }

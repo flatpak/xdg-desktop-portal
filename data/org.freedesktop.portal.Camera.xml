@@ -25,6 +25,8 @@
 
       The camera portal enables applications to access camera devices, such as
       web cams.
+
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Camera">
     <!--
@@ -77,6 +79,20 @@
         A boolean stating whether there is any cameras available.
     -->
     <property name="IsCameraPresent" type="b" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and no revision bump of this
+        interface was made for this specific addition.
+
+        Consequently, assume 1 if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

@@ -13,6 +13,7 @@ documented in the pages below:
    sessions
    window-identifiers
    icons
+   versioning
 
 .. cssclass:: tiled-toc
 
@@ -56,3 +57,5 @@ documented in the pages below:
       :class: only-dark
 
    :doc:`Icons </icons>`
+
+   :doc:`Versioning </versioning>`
