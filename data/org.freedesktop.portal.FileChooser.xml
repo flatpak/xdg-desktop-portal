@@ -37,7 +37,7 @@
       portal<org.freedesktop.portal.Documents>` by this portal stay
       accessible across sessions.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes revision 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.FileChooser">
     <!--
@@ -73,7 +73,7 @@
 
         Whether to select for folders instead of files. Default is to select files.
 
-        This option was added in version 3.
+        This option was added in revision 3.
 
       * ``filters`` (``a(sa(us))``)
 
@@ -330,6 +330,21 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 4 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.FileChooser:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
