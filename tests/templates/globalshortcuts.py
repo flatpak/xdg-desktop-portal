@@ -17,7 +17,7 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.GlobalShortcuts"
-VERSION = 1
+VERSION = 2
 
 
 logger = init_logger(__name__)
