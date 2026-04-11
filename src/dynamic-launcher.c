@@ -1119,6 +1119,8 @@ dynamic_launcher_new (XdpDbusImplDynamicLauncher *impl)
   if (impl_revision >= 1)
     active_revision = 1;
 
+  g_assert (active_revision != 0);
+
   // NOTE: Active revision and version are identical
   dynamic_launcher_dbus_set_active_revision (XDP_DBUS_DYNAMIC_LAUNCHER (dynamic_launcher),
                                              active_revision);
