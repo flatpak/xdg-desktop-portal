@@ -203,10 +203,9 @@
         active-revision:
         Represents implemented revision/feature-set of the interface.
 
-        This property was added post-introduction of revision 2 and does not cause a revision bump of this interface.
+        This property was added post-introduction of revision 1 and does not cause a revision bump of this interface.
 
-        If missing or unset (e.g. returns 0), fallback to read
-        :ref:`org.freedesktop.impl.portal.GlobalShortcuts:version`.
+        Consequently, 1 is assume if missing or unset (e.g. returns 0).
     -->
     <property name="active-revision" type="u" access="read"/>
 

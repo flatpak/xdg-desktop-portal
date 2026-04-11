@@ -786,8 +786,6 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
                                    NULL);
 }
 
-XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplGlobalShortcuts, global_shortcuts)
-
 static GlobalShortcuts *
 global_shortcuts_new (XdpContext                 *context,
                       XdpDbusImplGlobalShortcuts *impl)
@@ -817,7 +815,7 @@ global_shortcuts_new (XdpContext                 *context,
                                     G_MAXINT);
 
   impl_revision =
-    MAX (global_shortcuts_dbus_impl_get_active_revision (global_shortcuts->impl), 1);
+    MAX (xdp_dbus_impl_global_shortcuts_get_active_revision (global_shortcuts->impl), 1);
   if (impl_revision >= 2)
     active_revision = 2;
   else
