@@ -16,7 +16,8 @@ def required_templates():
 
 class TestGlobalShortcuts:
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "GlobalShortcuts", 2)
+        # Template has implementation version 1
+        xdp.check_version(dbus_con, "GlobalShortcuts", 1)
 
     def test_create_close_session(self, portals, dbus_con, xdp_app_info):
         app_id = xdp_app_info.app_id

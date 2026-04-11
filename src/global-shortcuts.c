@@ -47,6 +47,7 @@ struct _GlobalShortcuts
 
   XdpContext *context;
   XdpDbusImplGlobalShortcuts *impl;
+  uint32_t impl_version;
 };
 
 struct _GlobalShortcutsClass
@@ -639,6 +640,14 @@ handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
+  if (global_shortcuts->impl_version < 2)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR,
+                                             XDG_DESKTOP_PORTAL_ERROR_FAILED,
+                                             "Method not availlable");
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
 
   if (!xdp_filter_options (arg_options, &options_builder,
                            global_shortcuts_configure_shortcuts_options,
@@ -812,7 +821,10 @@ global_shortcuts_new (XdpContext                 *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (global_shortcuts->impl),
                                     G_MAXINT);
 
-  xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts), 2);
+  global_shortcuts->impl_version =
+    MAX (xdp_dbus_impl_global_shortcuts_get_version (global_shortcuts->impl), 1);
+  xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts),
+                                         MIN (global_shortcuts->impl_version, 2));
 
   return global_shortcuts;
 }
