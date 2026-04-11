@@ -262,15 +262,26 @@ account_class_init (AccountClass *klass)
   object_class->dispose = account_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusAccount, account)
+
 static Account *
 account_new (XdpDbusImplAccount *impl)
 {
   Account *account;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   account = g_object_new (account_get_type (), NULL);
   account->impl = g_object_ref (impl);
 
-  xdp_dbus_account_set_version (XDP_DBUS_ACCOUNT (account), 1);
+  impl_revision =
+    MAX (xdp_dbus_impl_account_get_active_revision (account->impl), 1);
+  if (impl_revision >= 1)
+    active_revision = 1;
+
+  /* Active revision and version (deprecated) are identical */
+  account_dbus_set_active_revision (XDP_DBUS_ACCOUNT (account),
+                                    active_revision);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (account->impl), G_MAXINT);
 
