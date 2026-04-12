@@ -396,7 +396,7 @@ create_monitor_done (GObject *source_object,
     }
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new ("s", session->id));
+                         "session_handle", g_variant_new_string (session->id));
 
 out:
   if (request->exported)
