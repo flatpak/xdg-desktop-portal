@@ -364,7 +364,7 @@ print_new (XdpDbusImplPrint    *impl,
   print->impl = g_object_ref (impl);
   print->lockdown_impl = g_object_ref (lockdown_impl);
 
-  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 3);
+  xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 4);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (print->impl), G_MAXINT);
 
