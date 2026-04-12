@@ -460,7 +460,7 @@ get_content_type_for_file (const char  *path,
   g_autoptr(GFile) file = g_file_new_for_path (path);
   g_autoptr(GFileInfo) info = g_file_query_info (file,
                                                  G_FILE_ATTRIBUTE_STANDARD_CONTENT_TYPE,
-                                                 0,
+                                                 G_FILE_QUERY_INFO_NONE,
                                                  NULL,
                                                  &error);
 
