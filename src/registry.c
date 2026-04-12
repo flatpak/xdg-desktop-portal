@@ -172,6 +172,8 @@ registry_class_init (RegistryClass *klass)
   object_class->dispose = registry_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusHostRegistry, host_registry)
+
 static Registry *
 registry_new (XdpAppInfoRegistry *app_info_registry)
 {
@@ -180,7 +182,8 @@ registry_new (XdpAppInfoRegistry *app_info_registry)
   registry = g_object_new (registry_get_type (), NULL);
   registry->app_info_registry = g_object_ref (app_info_registry);
 
-  xdp_dbus_host_registry_set_version (XDP_DBUS_HOST_REGISTRY (registry), 1);
+  /* Active revision and version (deprecated) are identical */
+  host_registry_dbus_set_active_revision (XDP_DBUS_HOST_REGISTRY (registry), 1);
 
   return registry;
 }
