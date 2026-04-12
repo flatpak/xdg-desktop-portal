@@ -15,7 +15,9 @@ def required_templates():
 
 
 class TestLocation:
-    def test_version(self, portals, dbus_con):
+    def test_active_revision(self, portals, dbus_con):
+        xdp.check_active_revision(dbus_con, "Location", 1)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "Location", 1)
 
     def get_geoclue_mock(self, dbus_con_sys):
