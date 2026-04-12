@@ -130,6 +130,11 @@
         * ``token`` (``u``)
 
           Token that was returned by a previous org.freedesktop.impl.portal.Print.PreparePrint() call.
+
+        * ``supported_output_file_formats`` (``as``)
+
+          File formats supported by the app to use for print-to-file. If not set, all formats
+          are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
     -->
     <method name="Print">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
