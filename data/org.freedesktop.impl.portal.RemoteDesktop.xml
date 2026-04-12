@@ -25,7 +25,7 @@
 
       The Remote desktop portal allows to create remote desktop sessions.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.RemoteDesktop">
     <!--
@@ -90,7 +90,7 @@
           "KDE"), the version of the implementation-specific private data,
           and the implementation-specific private data itself.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         * ``persist_mode`` (``u``)
 
@@ -104,7 +104,7 @@
           will be returned in the results of the
           #org.freedesktop.impl.portal.RemoteDesktop.Start method.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         For available device types, see the AvailableDeviceTypes property.
     -->
@@ -151,7 +151,7 @@
           If the session should persist, ``restore_data`` must be returned in the @results
           vardict.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         The following results get returned in the @results vardict:
 
@@ -165,7 +165,7 @@
           A boolean for whether the clipboard was enabled ('true') or not ('false').
           See the :ref:`org.freedesktop.portal.Clipboard` documentation for more information.
 
-          Since version 2.
+          Since revision 2.
 
         * ``streams`` (``a(ua{sv})``)
 
@@ -178,7 +178,7 @@
           See the #org.freedesktop.impl.portal.RemoteDesktop.SelectDevices method for
           more details.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
     -->
     <method name="Start">
       <arg type="o" name="handle" direction="in"/>
@@ -428,7 +428,7 @@
 
         Request a connection to an EIS implementation.
 
-        This method is available in version 2 of this interface.
+        This method is available in revision 2 of this interface.
     -->
     <method name="ConnectToEIS">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -448,6 +448,21 @@
         - ``4``: TOUCHSCREEN
     -->
     <property name="AvailableDeviceTypes" type="u" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and does not cause a revision bump
+        of this interface.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.impl.portal.RemoteDesktop:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>
