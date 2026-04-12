@@ -430,7 +430,7 @@ handle_create_session2 (XdpDbusInputCapture   *object,
   xdp_session_register (session);
 
   g_variant_builder_add (&results_builder, "{sv}",
-                         "session_handle", g_variant_new ("o", session->id));
+                         "session_handle", g_variant_new_object_path (session->id));
   xdp_dbus_input_capture_complete_create_session2 (object,
                                                    invocation,
                                                    g_variant_builder_end (&results_builder));
@@ -510,7 +510,7 @@ start_done (GObject      *source_object,
       input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_STARTED;
 
       g_variant_builder_add (&results_builder, "{sv}",
-                             "session_handle", g_variant_new ("o", session->id));
+                             "session_handle", g_variant_new_object_path (session->id));
 
       if (!g_variant_lookup (results, "capabilities", "u", &capabilities))
         {
@@ -529,7 +529,7 @@ start_done (GObject      *source_object,
 
           g_variant_builder_add (&results_builder, "{sv}",
                                  "clipboard_enabled",
-                                 g_variant_new ("b", clipboard_enabled));
+                                 g_variant_new_boolean (clipboard_enabled));
         }
 
       xdp_session_persistence_replace_restore_data_with_token (XDP_SESSION (input_capture_session),
@@ -542,7 +542,7 @@ start_done (GObject      *source_object,
         {
           g_variant_builder_add (&results_builder, "{sv}",
                                  "restore_token",
-                                 g_variant_new ("s", input_capture_session->restore_token));
+                                 g_variant_new_string (input_capture_session->restore_token));
         }
     }
   else
