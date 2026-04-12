@@ -34,7 +34,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes version 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -85,6 +85,13 @@
           Whether it makes sense to return "selection" for the ``print-pages`` setting.
 
           This option was added in version 4.
+
+        * ``has_automatic_scale`` (``b``)
+
+          Whether the app can deal with automatic scale settings, i.e. ``fit`` or ``shrink``
+          to printable area, as specified in the auto-scale parameter.
+
+          This option was added in version 5.
 
         The @settings and @page_setup vardict contain hints for the initial state of the print dialog.
 
@@ -150,6 +157,10 @@
         * ``scale`` (``s``)
 
           The scale in percent.
+
+        * ``auto-scale`` (``s``)
+        
+          If ``has_automatic_scale`` is true, this can be equal to ``fit`` or ``shrink``.
 
         * ``print-pages`` (``s``)
 
