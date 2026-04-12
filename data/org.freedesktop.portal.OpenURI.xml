@@ -29,7 +29,7 @@
        URIs (e.g. a http: link to the applications homepage)
        under the control of the user.
 
-       This documentation describes version 5 of this interface.
+       This documentation describes revision 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.OpenURI">
     <!--
@@ -65,13 +65,13 @@
           Whether to ask the user to choose an app. If this is not passed, or false,
           the portal may use a default or pick the last choice.
 
-          The ask option was introduced in version 3 of the interface.
+          The ask option was introduced in revision 3 of the interface.
 
         * ``activation_token`` (``s``)
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The activation_token option was introduced in revision 4 of the interface.
     -->
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
@@ -111,15 +111,15 @@
           Whether to ask the user to choose an app. If this is not passed, or false,
           the portal may use a default or pick the last choice.
 
-          The ask option was introduced in version 3 of the interface.
+          The ask option was introduced in revision 3 of the interface.
 
         * ``activation_token`` (``s``)
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The activation_token option was introduced in revision 4 of the interface.
 
-        The OpenFile method was introduced in version 2 of the OpenURI portal API.
+        The OpenFile method was introduced in revision 2 of the OpenURI portal API.
     -->
     <method name="OpenFile">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -154,9 +154,9 @@
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The activation_token option was introduced in revision 4 of the interface.
 
-        The OpenDirectory method was introduced in version 3 of the OpenURI portal API.
+        The OpenDirectory method was introduced in revision 3 of the OpenURI portal API.
     -->
     <method name="OpenDirectory">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -177,7 +177,7 @@
 
         The @options vardict currently has no supported entries.
 
-        The SchemeSupported method was introduced in version 5 of the OpenURI portal API.
+        The SchemeSupported method was introduced in revision 5 of the OpenURI portal API.
     -->
     <method name="SchemeSupported">
       <arg type="s" name="scheme" direction="in"/>
@@ -186,6 +186,20 @@
       <arg type="b" name="supported" direction="out"/>
     </method>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 5 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.OpenURI:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

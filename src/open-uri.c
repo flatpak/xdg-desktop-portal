@@ -1147,6 +1147,8 @@ open_uri_class_init (OpenURIClass *klass)
   object_class->dispose = open_uri_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusOpenURI, open_uri)
+
 static OpenURI *
 open_uri_new (XdpDbusImplAppChooser *app_chooser_impl,
               XdpDbusImplLockdown   *lockdown_impl)
@@ -1161,7 +1163,11 @@ open_uri_new (XdpDbusImplAppChooser *app_chooser_impl,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (open_uri->impl),
                                     G_MAXINT);
 
-  xdp_dbus_open_uri_set_version (XDP_DBUS_OPEN_URI (open_uri), 5);
+  /* TODO: Next AppChooser impl revision bump, add impl revision check to bump
+   * active revision only if impl revision is greater or equal to the new one. */
+
+  /* Active revision and version (deprecated) are identical */
+  open_uri_dbus_set_active_revision (XDP_DBUS_OPEN_URI (open_uri), 5);
 
   return open_uri;
 }
