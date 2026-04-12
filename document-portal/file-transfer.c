@@ -206,14 +206,12 @@ file_transfer_start (XdpAppInfo *app_info,
   return transfer;
 }
 
-static gboolean
+static void
 stop (gpointer data)
 {
   FileTransfer *transfer = data;
 
   g_object_unref (transfer);
-
-  return G_SOURCE_REMOVE;
 }
 
 static void
@@ -238,7 +236,7 @@ file_transfer_stop (FileTransfer *transfer)
   g_hash_table_steal (transfers, transfer->key);
   G_UNLOCK (transfers);
 
-  g_idle_add (stop, transfer);
+  g_idle_add_once (stop, transfer);
 }
 
 static void
