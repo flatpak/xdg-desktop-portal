@@ -178,3 +178,27 @@ document_entry_dup_handle (PermissionDbEntry *entry)
 
   return g_steal_pointer (&handle);
 }
+
+PermissionDbEntry *
+document_entry_new (const char *path,
+                    uint32_t    flags,
+                    dev_t       st_dev,
+                    ino_t       st_ino,
+                    GBytes     *handle)
+{
+  g_autoptr(GVariant) data = NULL;
+  g_autoptr(GBytes) h = NULL;
+
+  h = handle ? g_bytes_ref (handle) : g_bytes_new (NULL, 0);
+
+  data = g_variant_ref_sink (g_variant_new ("(^ayttu@ay)",
+                                            path,
+                                            (uint64_t) st_dev,
+                                            (uint64_t) st_ino,
+                                            flags,
+                                            g_variant_new_from_bytes (G_VARIANT_TYPE ("ay"),
+                                                                      h,
+                                                                      TRUE)));
+
+  return permission_db_entry_new (data);
+}
