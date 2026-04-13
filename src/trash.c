@@ -796,13 +796,17 @@ trash_class_init (TrashClass *klass)
 {
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusTrash, trash)
+
 void
 init_trash (XdpContext *context)
 {
   g_autoptr(Trash) trash = NULL;
 
   trash = g_object_new (trash_get_type (), NULL);
-  xdp_dbus_trash_set_version (XDP_DBUS_TRASH (trash), 1);
+
+  /* Active revision and version (deprecated) are identical */
+  trash_dbus_set_active_revision (XDP_DBUS_TRASH (trash), 1);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&trash)),
