@@ -1496,6 +1496,8 @@ xdp_usb_init (XdpUsb *self)
 {
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusUsb, usb)
+
 static XdpUsb *
 usb_new (XdpContext     *context,
          XdpDbusImplUsb *impl)
@@ -1515,7 +1517,8 @@ usb_new (XdpContext     *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (usb->impl), G_MAXINT);
 
-  xdp_dbus_usb_set_version (XDP_DBUS_USB (usb), 1);
+  /* Active revision and version (deprecated) are identical */
+  usb_dbus_set_active_revision (XDP_DBUS_USB (usb), 1);
 
   usb->ids_to_devices = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                g_free, g_object_unref);
