@@ -421,7 +421,6 @@ do_create_doc (struct stat *parent_st_buf,
                gboolean     persistent,
                gboolean     directory)
 {
-  g_autoptr(GVariant) data = NULL;
   g_autoptr(PermissionDbEntry) entry = NULL;
   g_autofree char *id = NULL;
   guint32 flags = 0;
@@ -434,12 +433,8 @@ do_create_doc (struct stat *parent_st_buf,
     flags |= DOCUMENT_ENTRY_FLAG_TRANSIENT;
   if (directory)
     flags |= DOCUMENT_ENTRY_FLAG_DIRECTORY;
-  data =
-    g_variant_ref_sink (g_variant_new ("(^ayttu)",
-                                       path,
-                                       (guint64) parent_st_buf->st_dev,
-                                       (guint64) parent_st_buf->st_ino,
-                                       flags));
+
+  entry = document_entry_new (path, flags, parent_st_buf->st_dev, parent_st_buf->st_ino, handle);
 
   if (reuse_existing)
     {
@@ -449,30 +444,33 @@ do_create_doc (struct stat *parent_st_buf,
                     handle,
                     flags,
                     FALSE /* ignore_transient */);
-
-      /* Reuse pre-existing entry with same path */
-      if (id)
-        return g_steal_pointer (&id);
     }
 
-  while (TRUE)
+  if (id)
     {
-      g_autoptr(PermissionDbEntry) existing = NULL;
+      g_debug ("reuse_doc %s", id);
+    }
+  else
+    {
+      while (id == NULL)
+        {
+          g_autoptr(PermissionDbEntry) existing = NULL;
 
-      g_clear_pointer (&id, g_free);
-      id = xdp_name_from_id ((guint32) g_random_int ());
-      existing = permission_db_lookup (db, id);
-      if (existing == NULL)
-        break;
+          id = xdp_name_from_id ((guint32) g_random_int ());
+          existing = permission_db_lookup (db, id);
+          if (existing)
+            g_clear_pointer (&id, g_free);
+        }
+
+      g_debug ("create_doc %s", id);
     }
 
-  g_debug ("create_doc %s", id);
-
-  entry = permission_db_entry_new (data);
   permission_db_set_entry (db, id, entry);
 
   if (persistent)
     {
+      g_autoptr(GVariant) data = permission_db_entry_get_data (entry);
+
       xdg_permission_store_call_set (permission_store,
                                      TABLE_NAME,
                                      TRUE,
