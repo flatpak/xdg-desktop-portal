@@ -392,6 +392,8 @@ wallpaper_class_init (WallpaperClass *klass)
   object_class->dispose = wallpaper_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusWallpaper, wallpaper)
+
 static Wallpaper *
 wallpaper_new (XdpDbusImplWallpaper *impl,
                XdpDbusImplAccess    *access_impl)
@@ -404,7 +406,8 @@ wallpaper_new (XdpDbusImplWallpaper *impl,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (wallpaper->impl), G_MAXINT);
 
-  xdp_dbus_wallpaper_set_version (XDP_DBUS_WALLPAPER (wallpaper), 1);
+  /* Active revision and version (deprecated) are identical */
+  wallpaper_dbus_set_active_revision (XDP_DBUS_WALLPAPER (wallpaper), 1);
 
   return wallpaper;
 }
