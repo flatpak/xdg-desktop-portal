@@ -510,12 +510,16 @@ do_create_doc (struct stat *parent_st_buf,
     flags |= DOCUMENT_ENTRY_FLAG_TRANSIENT;
   if (directory)
     flags |= DOCUMENT_ENTRY_FLAG_DIRECTORY;
+
   data =
-    g_variant_ref_sink (g_variant_new ("(^ayttu)",
+    g_variant_ref_sink (g_variant_new ("(^ayttu@ay)",
                                        path,
-                                       (guint64) parent_st_buf->st_dev,
-                                       (guint64) parent_st_buf->st_ino,
-                                       flags));
+                                       (uint64_t) parent_st_buf->st_dev,
+                                       (uint64_t) parent_st_buf->st_ino,
+                                       flags,
+                                       g_variant_new_from_bytes (G_VARIANT_TYPE ("ay"),
+                                                                 handle,
+                                                                 TRUE)));
 
   if (reuse_existing)
     {
@@ -525,8 +529,22 @@ do_create_doc (struct stat *parent_st_buf,
                     handle,
                     flags);
 
-      /* Reuse pre-existing entry with same path */
-      return g_steal_pointer (&id);
+      if (id)
+        {
+          g_autoptr(PermissionDbEntry) entry_old = permission_db_lookup (db, id);
+          g_autoptr(GBytes) old_handle = document_entry_dup_handle (entry_old);
+
+          /* If the old entry does not contain a handle, we update it */
+          if (g_bytes_get_size (handle) > 0 && g_bytes_get_size (old_handle) == 0)
+            {
+              g_debug ("Updating existing entry with a file handle");
+              entry = permission_db_entry_new (data);
+              permission_db_set_entry (db, id, entry);
+            }
+
+          /* Reuse pre-existing entry with same path */
+          return g_steal_pointer (&id);
+        }
     }
 
   while (TRUE)
