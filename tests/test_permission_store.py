@@ -85,6 +85,14 @@ class TestPermissionStore:
             permission_store,
             "org.freedesktop.DBus.Properties",
         )
+
+        portal_revision = properties_intf.Get(
+            "org.freedesktop.impl.portal.PermissionStore",
+            "active-revision",
+        )
+        assert int(portal_revision) == 2
+
+        # Check deprecated version to keep it consistent with active revision
         portal_version = properties_intf.Get(
             "org.freedesktop.impl.portal.PermissionStore",
             "version",

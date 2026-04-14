@@ -519,7 +519,11 @@ xdg_permission_store_start (GDBusConnection *connection)
 
   store = xdg_permission_store_skeleton_new ();
 
+  /* Active revision and version (deprecated) are identical */
+  xdg_permission_store_set_active_revision (XDG_PERMISSION_STORE (store), 2);
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdg_permission_store_set_version (XDG_PERMISSION_STORE (store), 2);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   g_signal_connect (store, "handle-list", G_CALLBACK (handle_list), NULL);
   g_signal_connect (store, "handle-lookup", G_CALLBACK (handle_lookup), NULL);
