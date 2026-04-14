@@ -50,10 +50,24 @@
       bus name org.freedesktop.portal.Documents and the object path
       /org/freedesktop/portal/documents.
 
-      This documentation describes version 5 of this interface.
+      This documentation describes revision 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.Documents">
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 5 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Documents:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
 
     <!--
         GetMountPoint:
@@ -130,9 +144,9 @@
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
 
-        Support for exporting directories was added in version 4 of this interface.
+        Support for exporting directories was added in revision 4 of this interface.
     -->
     <method name="AddFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -170,7 +184,7 @@
         multiple roundtrips. For now it only contains as "mountpoint", the
         fuse mountpoint of the document portal.
 
-        This method was added in version 3 of this interface.
+        This method was added in revision 3 of this interface.
     -->
     <method name="AddNamedFull">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -293,7 +307,7 @@
 
         This call is available inside the sandbox, if the application has the ``read`` permission for the documents.
 
-        This method was added in version 5 of this interface.
+        This method was added in revision 5 of this interface.
     -->
     <method name="GetHostPaths">
       <arg type="as" name="doc_ids" direction="in"/>
