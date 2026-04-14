@@ -45,6 +45,7 @@ struct _RemoteDesktop
 
   XdpContext *context;
   XdpDbusImplRemoteDesktop *impl;
+  uint32_t impl_revision;
 };
 
 struct _RemoteDesktopClass
@@ -157,7 +158,7 @@ remote_desktop_session_can_request_clipboard (RemoteDesktopSession *session)
   if (session->clipboard_requested)
     return FALSE;
 
-  if (xdp_dbus_impl_remote_desktop_get_version (remote_desktop->impl) < 2)
+  if (remote_desktop->impl_revision < 2)
     return FALSE;
 
   switch (session->state)
@@ -1659,11 +1660,14 @@ remote_desktop_class_init (RemoteDesktopClass *klass)
   object_class->dispose = remote_desktop_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplRemoteDesktop, remote_desktop)
+
 static RemoteDesktop *
 remote_desktop_new (XdpContext               *context,
                     XdpDbusImplRemoteDesktop *impl)
 {
   RemoteDesktop *remote_desktop;
+  uint32_t active_revision = 0;
 
   remote_desktop = g_object_new (remote_desktop_get_type (), NULL);
   remote_desktop->context = context;
@@ -1671,7 +1675,19 @@ remote_desktop_new (XdpContext               *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (remote_desktop->impl), G_MAXINT);
 
+  remote_desktop->impl_revision =
+    MAX (remote_desktop_dbus_impl_get_active_revision (remote_desktop->impl), 1);
+  if (remote_desktop->impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
+
+  /* Version (deprecated) does not reflect active revision/feature-set */
+  xdp_dbus_remote_desktop_set_active_revision (XDP_DBUS_REMOTE_DESKTOP (remote_desktop),
+                                               active_revision);
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdp_dbus_remote_desktop_set_version (XDP_DBUS_REMOTE_DESKTOP (remote_desktop), 2);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   g_object_bind_property (G_OBJECT (remote_desktop->impl), "available-device-types",
                           G_OBJECT (remote_desktop), "available-device-types",

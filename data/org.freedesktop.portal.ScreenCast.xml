@@ -25,7 +25,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 5 of this interface.
+      This documentation describes revision 5 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
@@ -106,7 +106,7 @@
           not advertised will cause the screen cast session to be closed. The default
           cursor mode is 'Hidden'.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         * ``restore_token`` (``s``)
 
@@ -125,7 +125,7 @@
           Persistent remote desktop screen cast sessions can only be handled
           via the :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
-          This option was added in version 4 of this interface.
+          This option was added in revision 4 of this interface.
 
         * ``persist_mode`` (``u``)
 
@@ -143,7 +143,7 @@
           be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
           :ref:`org.freedesktop.portal.ScreenCast.Start` method.
 
-          This option was added in version 4 of this interface.
+          This option was added in revision 4 of this interface.
 
         For available source types, see the AvailableSourceTypes property.
     -->
@@ -197,7 +197,7 @@
 
             Opaque identifier. Will be unique for this stream and local to this
             session. Will persist with future sessions, if they are restored
-            using a restore token. This property was added in version 4 of this
+            using a restore token. This property was added in revision 4 of this
             interface. Optional.
 
           * ``position`` (``(ii)``)
@@ -219,7 +219,7 @@
 
             The type of the content which is being screen casted.
             For available source types, see the AvailableSourceTypes property.
-            This property was added in version 3 of this interface.
+            This property was added in revision 3 of this interface.
 
           * ``mapping_id`` (``s``)
 
@@ -232,7 +232,7 @@
             regions, but a mapping_id will only match one of these regions per
             device.
 
-            This property was added in version 5 of this interface.
+            This property was added in revision 5 of this interface.
 
         * ``restore_token`` (``s``)
 
@@ -240,7 +240,7 @@
           be used to restore a session. See
           org.freedesktop.portal.ScreenCast.SelectSources() for details.
 
-          This response option was added in version 4 of this interface.
+          This response option was added in revision 4 of this interface.
     -->
     <method name="Start">
       <arg type="o" name="session_handle" direction="in"/>
@@ -290,9 +290,24 @@
         - ``2``: Embedded: The cursor is embedded as part of the stream buffers.
         - ``4``: Metadata: The cursor is not part of the screen cast stream, but sent as PipeWire stream metadata.
 
-        This property was added in version 2 of this interface.
+        This property was added in revision 2 of this interface.
     -->
     <property name="AvailableCursorModes" type="u" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 5 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.ScreenCast:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

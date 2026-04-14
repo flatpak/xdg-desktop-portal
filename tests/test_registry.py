@@ -35,7 +35,7 @@ def required_templates():
 
 
 class TestRegistry:
-    def test_version(self, portals, dbus_con):
+    def test_active_revision(self, portals, dbus_con):
         documents = dbus_con.get_object(
             "org.freedesktop.portal.Desktop",
             "/org/freedesktop/portal/desktop",
@@ -45,6 +45,14 @@ class TestRegistry:
             documents,
             "org.freedesktop.DBus.Properties",
         )
+
+        portal_active_revision = properties_intf.Get(
+            "org.freedesktop.host.portal.Registry",
+            "active-revision",
+        )
+        assert int(portal_active_revision) == 1
+
+        # Check deprecated version to keep it consistent with active revision
         portal_version = properties_intf.Get(
             "org.freedesktop.host.portal.Registry",
             "version",

@@ -34,7 +34,7 @@
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes revision 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.Print">
     <!--
@@ -65,26 +65,26 @@
 
           Label for the accept button. Mnemonic underlines are allowed.
 
-          This option was added in version 2.
+          This option was added in revision 2.
 
         * ``supported_output_file_formats`` (``as``)
 
           File formats supported by the app to use for print-to-file. If not set, all formats
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
 
-          This option was added in version 3.
+          This option was added in revision 3.
 
         * ``has_current_page`` (``b``)
 
           Whether it makes sense to return "current" for the ``print-pages`` setting.
 
-          This option was added in version 4.
+          This option was added in revision 4.
 
         * ``has_selected_pages`` (``b``)
 
           Whether it makes sense to return "selection" for the ``print-pages`` setting.
 
-          This option was added in version 4.
+          This option was added in revision 4.
 
         The @settings and @page_setup vardict contain hints for the initial state of the print dialog.
 
@@ -319,7 +319,7 @@
           File formats supported by the app to use for print-to-file. If not set, all formats
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
 
-          This option was added in version 3.
+          This option was added in revision 3.
     -->
     <method name="Print">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -331,6 +331,20 @@
       <arg type="o" name="handle" direction="out"/>
     </method>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 4 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Print:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

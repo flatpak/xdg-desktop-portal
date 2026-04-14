@@ -72,7 +72,7 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
-    This documentation describes version 2 of this interface.
+    This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Settings">
 
@@ -119,7 +119,7 @@
 
       Reads a single value which may be any valid DBus type. Returns an error on any unknown namespace or key.
 
-      This method was added in version 2.
+      This method was added in revision 2.
     -->
     <method name="ReadOne">
       <arg type="s" name="namespace" direction="in"/>
@@ -141,6 +141,20 @@
       <arg type="v" name="value" direction="out"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Settings:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

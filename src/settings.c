@@ -285,6 +285,8 @@ settings_class_init (SettingsClass *klass)
   object_class->finalize = settings_finalize;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusSettings, settings)
+
 static Settings *
 settings_new (GPtrArray *impls)
 {
@@ -294,7 +296,8 @@ settings_new (GPtrArray *impls)
   settings->n_impls = impls->len;
   settings->impls = (XdpDbusImplSettings **) g_ptr_array_steal (impls, NULL);
 
-  xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (settings), 2);
+  /* Active revision and version (deprecated) are identical */
+  settings_dbus_set_active_revision (XDP_DBUS_SETTINGS (settings), 2);
 
   for (size_t i = 0; i < settings->n_impls; i++)
     {

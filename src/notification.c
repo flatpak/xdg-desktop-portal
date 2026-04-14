@@ -47,7 +47,7 @@ struct _Notification
   XdpDbusNotificationSkeleton parent_instance;
 
   XdpDbusImplNotification *impl;
-  guint32 impl_version;
+  guint32 impl_revision;
 
   GHashTable *active; /* Pair *notification -> char *sender */
   GMutex active_mutex;
@@ -479,7 +479,7 @@ check_button_purpose (GVariant  *value,
 
 static gboolean
 parse_button (GVariantBuilder  *builder,
-              guint32           impl_version,
+              guint32           impl_revision,
               GVariant         *button,
               GError          **error)
 {
@@ -518,7 +518,7 @@ parse_button (GVariantBuilder  *builder,
           if (!target)
             target = g_steal_pointer (&value);
         }
-      else if (strcmp (key, "purpose") == 0 && impl_version > 1)
+      else if (strcmp (key, "purpose") == 0 && impl_revision > 1)
         {
           if (!check_button_purpose (value, error))
             return FALSE;
@@ -566,7 +566,7 @@ parse_button (GVariantBuilder  *builder,
 
 static gboolean
 parse_buttons (GVariantBuilder  *builder,
-               guint32           impl_version,
+               guint32           impl_revision,
                GVariant         *value,
                GError          **error)
 {
@@ -585,7 +585,7 @@ parse_buttons (GVariantBuilder  *builder,
     {
       g_autoptr(GVariant) button = g_variant_get_child_value (value, i);
 
-      if (!parse_button (builder, impl_version, button, error))
+      if (!parse_button (builder, impl_revision, button, error))
         {
           g_prefix_error (error, "invalid button: ");
           result = FALSE;
@@ -602,7 +602,7 @@ parse_buttons (GVariantBuilder  *builder,
 
 static gboolean
 parse_serialized_icon (GVariantBuilder  *builder,
-                       guint32           impl_version,
+                       guint32           impl_revision,
                        GVariant         *icon,
                        GUnixFDList      *in_fd_list,
                        GUnixFDList      *out_fd_list,
@@ -668,8 +668,8 @@ parse_serialized_icon (GVariantBuilder  *builder,
         }
       else if (xdp_validate_icon (sealed_icon, XDP_ICON_TYPE_NOTIFICATION, NULL, NULL))
         {
-          /* Since version 2 we only use file-descriptor icon */
-          if (impl_version > 1)
+          /* Since revision 2 we only use file-descriptor icon */
+          if (impl_revision > 1)
             {
               g_autoptr(GVariant) fd_icon = NULL;
 
@@ -716,7 +716,7 @@ parse_serialized_icon (GVariantBuilder  *builder,
       if (xdp_validate_icon (sealed_icon, XDP_ICON_TYPE_NOTIFICATION, NULL, NULL))
         {
           /* Convert file descriptor icons to byte icons for backwards compatibility */
-          if (impl_version < 2)
+          if (impl_revision < 2)
             {
                 g_autoptr(GBytes) bytes = NULL;
                 GVariant *bytes_icon;
@@ -944,7 +944,7 @@ parse_category (GVariantBuilder  *builder,
 
 static gboolean
 parse_notification (GVariantBuilder  *builder,
-                    guint32           impl_version,
+                    guint32           impl_revision,
                     GVariant         *notification,
                     GUnixFDList      *in_fd_list,
                     GUnixFDList      *out_fd_list,
@@ -969,7 +969,7 @@ parse_notification (GVariantBuilder  *builder,
 
           g_variant_builder_add (builder, "{sv}", key, value);
         }
-      else if (strcmp (key, "markup-body") == 0 && impl_version > 1)
+      else if (strcmp (key, "markup-body") == 0 && impl_revision > 1)
         {
           if (!parse_markup_body (builder, value, error))
             return FALSE;
@@ -977,7 +977,7 @@ parse_notification (GVariantBuilder  *builder,
       else if (strcmp (key, "icon") == 0)
         {
           if (!parse_serialized_icon (builder,
-                                      impl_version,
+                                      impl_revision,
                                       value,
                                       in_fd_list,
                                       out_fd_list,
@@ -987,7 +987,7 @@ parse_notification (GVariantBuilder  *builder,
               return FALSE;
             }
         }
-      else if (strcmp (key, "sound") == 0 && impl_version > 1)
+      else if (strcmp (key, "sound") == 0 && impl_revision > 1)
         {
           if (!parse_serialized_sound (builder,
                                        value,
@@ -1017,15 +1017,15 @@ parse_notification (GVariantBuilder  *builder,
         }
       else if (strcmp (key, "buttons") == 0)
         {
-          if (!parse_buttons (builder, impl_version, value, error))
+          if (!parse_buttons (builder, impl_revision, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "display-hint") == 0 && impl_version > 1)
+      else if (strcmp (key, "display-hint") == 0 && impl_revision > 1)
         {
           if (!parse_display_hint (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "category") == 0 && impl_version > 1)
+      else if (strcmp (key, "category") == 0 && impl_revision > 1)
         {
           if (!parse_category (builder, value, error))
             return FALSE;
@@ -1086,7 +1086,7 @@ handle_add_in_thread_func (GTask        *task,
     }
 
   if (!parse_notification (&builder,
-                           call_data->notification->impl_version,
+                           call_data->notification->impl_revision,
                            call_data->notification_data,
                            call_data->in_fd_list,
                            call_data->out_fd_list,
@@ -1284,21 +1284,32 @@ notification_class_init (NotificationClass *klass)
   object_class->dispose = notification_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplNotification, notification)
+
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusNotification, notification)
+
 static Notification *
 notification_new (XdpContext              *context,
                   XdpDbusImplNotification *impl)
 {
   Notification *notification = NULL;
+  uint32_t active_revision = 0;
 
   notification = g_object_new (notification_get_type (), NULL);
   notification->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (notification->impl), G_MAXINT);
 
-  notification->impl_version =
-    MAX (xdp_dbus_impl_notification_get_version (notification->impl), 1);
-  xdp_dbus_notification_set_version (XDP_DBUS_NOTIFICATION (notification),
-                                     MIN (notification->impl_version, 2));
+  notification->impl_revision =
+    MAX (notification_dbus_impl_get_active_revision (notification->impl), 1);
+  if (notification->impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
+
+  /* Active revision and version (deprecated) are identical */
+  notification_dbus_set_active_revision (XDP_DBUS_NOTIFICATION (notification),
+                                         active_revision);
 
   g_object_bind_property (G_OBJECT (notification->impl), "supported-options",
                           G_OBJECT (notification), "supported-options",

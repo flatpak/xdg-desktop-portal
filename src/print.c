@@ -359,12 +359,26 @@ print_new (XdpDbusImplPrint    *impl,
            XdpDbusImplLockdown *lockdown_impl)
 {
   Print *print;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   print = g_object_new (print_get_type (), NULL);
   print->impl = g_object_ref (impl);
   print->lockdown_impl = g_object_ref (lockdown_impl);
 
+  /* Impl revision was added when Print was revision 3/4 */
+  impl_revision =
+    MAX (xdp_dbus_impl_print_get_active_revision (print->impl), 3);
+  if (impl_revision >= 4)
+    active_revision = 4;
+  else
+    active_revision = 3;
+
+  /* Version (deprecated) does not reflect active revision/feature-set */
+  xdp_dbus_print_set_active_revision (XDP_DBUS_PRINT (print), active_revision);
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdp_dbus_print_set_version (XDP_DBUS_PRINT (print), 4);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (print->impl), G_MAXINT);
 

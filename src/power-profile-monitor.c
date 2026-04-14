@@ -103,6 +103,9 @@ power_profile_monitor_class_init (PowerProfileMonitorClass *klass)
   object_class->finalize = power_profile_monitor_finalize;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusPowerProfileMonitor,
+                                            power_profile_monitor)
+
 static PowerProfileMonitor *
 power_profile_monitor_new (void)
 {
@@ -119,7 +122,8 @@ power_profile_monitor_new (void)
                            G_CONNECT_DEFAULT);
 #endif /* HAS_POWER_PROFILE_MONITOR */
 
-  xdp_dbus_power_profile_monitor_set_version (
+  /* Active revision and version (deprecated) are identical */
+  power_profile_monitor_dbus_set_active_revision (
     XDP_DBUS_POWER_PROFILE_MONITOR (power_profile_monitor),
     1);
 

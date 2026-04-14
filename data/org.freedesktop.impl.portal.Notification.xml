@@ -28,7 +28,7 @@
       This notification interface lets sandboxed applications
       send and withdraw notifications.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Notification">
     <!--
@@ -48,7 +48,7 @@
         The format of the @notification is the same as for
         :ref:`org.freedesktop.portal.Notification.AddNotification`.
 
-        Since version 2, the icon property never uses the ``bytes`` option.
+        Since revision 2, the icon property never uses the ``bytes`` option.
     -->
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -107,6 +107,20 @@
       <arg type="av" name="parameter"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and does not cause a revision bump
+        of this interface.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.impl.portal.Notification:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

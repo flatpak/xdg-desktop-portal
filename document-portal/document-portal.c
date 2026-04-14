@@ -1509,6 +1509,8 @@ on_peer_disconnect (const char *name,
   xdp_app_info_registry_delete (app_info_registry, name);
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusDocuments, documents)
+
 static void
 on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
@@ -1521,7 +1523,8 @@ on_bus_acquired (GDBusConnection *connection,
 
   app_info_registry = xdp_app_info_registry_new ();
 
-  xdp_dbus_documents_set_version (XDP_DBUS_DOCUMENTS (dbus_api), 5);
+  /* Active revision and version (deprecated) are identical */
+  documents_dbus_set_active_revision (XDP_DBUS_DOCUMENTS (dbus_api), 5);
 
   g_signal_connect_swapped (dbus_api, "handle-get-mount-point", G_CALLBACK (handle_get_mount_point), NULL);
   g_signal_connect_swapped (dbus_api, "handle-add", G_CALLBACK (handle_method), portal_add);

@@ -53,7 +53,7 @@ struct _Screenshot
 
   XdpDbusImplScreenshot *impl;
   XdpDbusImplAccess *access_impl;
-  guint32 impl_version;
+  guint32 impl_revision;
 };
 
 struct _ScreenshotClass
@@ -333,7 +333,7 @@ handle_screenshot_in_thread_func (GTask *task,
   if (!g_variant_lookup (options, "modal", "b", &modal))
     modal = TRUE;
 
-  if (xdp_dbus_impl_screenshot_get_version (screenshot->impl) >= 2)
+  if (screenshot->impl_revision >= 2)
     {
       if (!interactive &&
           !check_non_interactive_permission_in_thread (screenshot,
@@ -523,11 +523,16 @@ screenshot_class_init (ScreenshotClass *klass)
   object_class->dispose = screenshot_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplScreenshot, screenshot)
+
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusScreenshot, screenshot)
+
 static Screenshot *
 screenshot_new (XdpDbusImplScreenshot *impl,
                 XdpDbusImplAccess     *access_impl)
 {
   Screenshot *screenshot;
+  uint32_t active_revision = 0;
 
   screenshot = g_object_new (screenshot_get_type (), NULL);
   screenshot->access_impl = g_object_ref (access_impl);
@@ -536,13 +541,18 @@ screenshot_new (XdpDbusImplScreenshot *impl,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screenshot->impl), G_MAXINT);
 
 
-  /* Before there was a version property, the version was hardcoded to 2, so
-   * make sure we retain that behaviour */
-  screenshot->impl_version =
-    MAX (xdp_dbus_impl_screenshot_get_version (screenshot->impl), 2);
+  /* Before there was a version property, it was hardcoded to 2, so make sure we
+   * retain that behaviour */
+  screenshot->impl_revision =
+    MAX (screenshot_dbus_impl_get_active_revision (screenshot->impl), 2);
+  if (screenshot->impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
 
-  xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
-                                   MIN (screenshot->impl_version, 2));
+  /* Active revision and version (deprecated) are identical */
+  screenshot_dbus_set_active_revision (XDP_DBUS_SCREENSHOT (screenshot),
+                                       active_revision);
 
   return screenshot;
 }

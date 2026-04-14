@@ -27,6 +27,8 @@
 
       This simple interface lets sandboxed applications set the user's
       desktop background picture.
+
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Wallpaper">
     <!--
@@ -61,5 +63,16 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="u" name="response" direction="out"/>
     </method>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and does not cause a revision bump
+        of this interface.
+
+        Consequently, 1 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

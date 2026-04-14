@@ -28,7 +28,7 @@
       This simple portal lets sandboxed applications request to send an email,
       optionally providing an address, subject, body and attachments.
 
-      This documentation describes version 4 of this interface.
+      This documentation describes revision 4 of this interface.
   -->
   <interface name="org.freedesktop.portal.Email">
     <!--
@@ -75,19 +75,19 @@
           Email addresses to send to. This will be used in addition to address and must
           pass the same validation.
 
-          This option was introduced in version 3 of the interface.
+          This option was introduced in revision 3 of the interface.
 
         * ``cc`` (``as``)
 
           Email addresses to cc.
 
-          This option was introduced in version 3 of the interface.
+          This option was introduced in revision 3 of the interface.
 
         * ``bcc`` (``as``)
 
           Email addresses to bcc.
 
-          This option was introduced in version 3 of the interface.
+          This option was introduced in revision 3 of the interface.
 
         * ``subject`` (``s``)
 
@@ -105,7 +105,7 @@
 
           A token that can be used to activate the chosen application.
 
-          This option was introduced in version 4 of the interface.
+          This option was introduced in revision 4 of the interface.
 
 
         All the keys in the @options vardict are optional.
@@ -117,6 +117,21 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 4 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Email:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

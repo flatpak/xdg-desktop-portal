@@ -249,6 +249,8 @@ network_monitor_class_init (NetworkMonitorClass *klass)
   object_class->dispose = network_monitor_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusNetworkMonitor, network_monitor)
+
 static NetworkMonitor *
 network_monitor_new (void)
 {
@@ -263,7 +265,8 @@ network_monitor_new (void)
                            network_monitor,
                            G_CONNECT_DEFAULT);
 
-  xdp_dbus_network_monitor_set_version (XDP_DBUS_NETWORK_MONITOR (network_monitor), 3);
+  /* Active revision and version (deprecated) are identical */
+  network_monitor_dbus_set_active_revision (XDP_DBUS_NETWORK_MONITOR (network_monitor), 3);
 
   return network_monitor;
 }

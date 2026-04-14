@@ -1114,11 +1114,15 @@ screen_cast_class_init (ScreenCastClass *klass)
     g_quark_from_static_string ("-xdp-request-screen-cast-session");
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplScreenCast, screen_cast)
+
 static ScreenCast *
 screen_cast_new (XdpContext            *context,
                  XdpDbusImplScreenCast *impl)
 {
   ScreenCast *screen_cast;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   screen_cast = g_object_new (screen_cast_get_type (), NULL);
   screen_cast->context = context;
@@ -1126,13 +1130,25 @@ screen_cast_new (XdpContext            *context,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
 
+  impl_revision =
+    MAX (screen_cast_dbus_impl_get_active_revision (screen_cast->impl), 1);
+  if (impl_revision >= 5)
+    active_revision = 5;
+  else /* Until now both interfaces were bumped simultaneously */
+    active_revision = impl_revision;
+
+  /* Version (deprecated) does not reflect active revision/feature-set */
+  xdp_dbus_screen_cast_set_active_revision (XDP_DBUS_SCREEN_CAST (screen_cast),
+                                            active_revision);
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast), 5);
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
                           G_OBJECT (screen_cast), "available-source-types",
                           G_BINDING_SYNC_CREATE);
 
-  if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 2)
+  if (impl_revision >= 2)
     {
       g_object_bind_property (G_OBJECT (screen_cast->impl), "available-cursor-modes",
                               G_OBJECT (screen_cast), "available-cursor-modes",

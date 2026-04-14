@@ -238,6 +238,23 @@ def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
         assert e is None, str(e)
 
 
+def check_active_revision(bus: dbus.Bus, portal_name: str, expected_revision: int):
+    """
+    Checks that the portal_name portal action revision is equal to
+    expected_revision.
+    """
+    properties_intf = dbus.Interface(
+        get_xdp_dbus_object(bus), "org.freedesktop.DBus.Properties"
+    )
+    portal_iface_name = portal_interface_name(portal_name)
+    try:
+        portal_revision = properties_intf.Get(portal_iface_name, "active-revision")
+        assert int(portal_revision) == expected_revision
+    except dbus.exceptions.DBusException as e:
+        logger.critical(e)
+        assert e is None, str(e)
+
+
 def desktop_files_path() -> Path:
     """Returns the default path for desktop files"""
     return Path(os.environ["XDG_DATA_HOME"]) / "applications"

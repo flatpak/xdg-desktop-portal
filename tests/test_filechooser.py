@@ -37,7 +37,9 @@ def required_templates():
 
 
 class TestFilechooser:
-    def test_version(self, portals, dbus_con):
+    def test_active_revision(self, portals, dbus_con):
+        xdp.check_active_revision(dbus_con, "FileChooser", 4)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "FileChooser", 4)
 
     def test_open_file_basic(self, portals, dbus_con, xdp_app_info):

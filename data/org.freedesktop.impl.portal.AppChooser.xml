@@ -27,7 +27,7 @@
       This backend can be used by portal implementations that
       need to choose an application from a list of applications.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.AppChooser">
     <!--
@@ -70,7 +70,7 @@
 
           A token that can be used to activate the application chooser.
 
-          The activation_token option was introduced in version 2 of the interface.
+          The activation_token option was introduced in revision 2 of the interface.
 
         The following results get returned via the @results vardict:
 
@@ -86,7 +86,7 @@
           Otherwise, this token may be the same as the one passed in
           @options.
 
-          The activation_token option was introduced in version 2 of the interface.
+          The activation_token option was introduced in revision 2 of the interface.
     -->
     <method name="ChooseApplication">
       <arg type="o" name="handle" direction="in"/>
@@ -113,5 +113,16 @@
       <arg type="o" name="handle" direction="in"/>
       <arg type="as" name="choices" direction="in"/>
     </method>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and does not cause a revision bump
+        of this interface.
+
+        Consequently, 2 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

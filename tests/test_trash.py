@@ -12,7 +12,9 @@ from gi.repository import GLib
 
 
 class TestTrash:
-    def test_version(self, portals, dbus_con):
+    def test_active_revision(self, portals, dbus_con):
+        xdp.check_active_revision(dbus_con, "Trash", 1)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "Trash", 1)
 
     def test_trash_file_fails(self, portals, dbus_con):

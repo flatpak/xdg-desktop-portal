@@ -53,7 +53,7 @@
       captured. The transport of actual input events is delegated to a
       transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--
@@ -62,7 +62,7 @@
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        This method was deprecated in version 2 of this interface, see
+        This method was deprecated in revision 2 of this interface, see
         CreateSession2 instead.
 
         Create an input capture session. A successfully created session can at
@@ -155,7 +155,7 @@
           :ref:`org.freedesktop.portal.Session` object representing the created
           session. Required.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="CreateSession2">
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
@@ -204,8 +204,6 @@
           the same session again, use the new restore token sent in response
           to starting this session.
 
-          This option was added in version 2 of this interface.
-
         * ``persist_mode`` (``u``)
 
           How this session should persist. Default is 0. Accepted values are:
@@ -217,8 +215,6 @@
           If the permission for the session to persist is granted, a restore token will
           be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
           start method used to start the session.
-
-          This option was added in version 2 of this interface.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
@@ -247,9 +243,7 @@
           be used to restore a session. See
           :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices` for details.
 
-          This response option was added in version 2 of this interface.
-
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="Start">
       <arg type="o" name="session_handle" direction="in"/>
@@ -672,6 +666,21 @@
         - ``4``: TOUCHSCREEN
     -->
     <property name="SupportedCapabilities" type="u" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.InputCapture:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

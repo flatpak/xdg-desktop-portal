@@ -47,7 +47,7 @@ struct _GlobalShortcuts
 
   XdpContext *context;
   XdpDbusImplGlobalShortcuts *impl;
-  uint32_t impl_version;
+  uint32_t impl_revision;
 };
 
 struct _GlobalShortcutsClass
@@ -640,7 +640,7 @@ handle_configure_shortcuts (XdpDbusGlobalShortcuts *object,
   g_auto(GVariantBuilder) options_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
-  if (global_shortcuts->impl_version < 2)
+  if (global_shortcuts->impl_revision < 2)
     return G_DBUS_METHOD_INVOCATION_UNHANDLED;
 
   if (!xdp_filter_options (arg_options, &options_builder,
@@ -789,11 +789,16 @@ shortcuts_changed_cb (XdpDbusImplGlobalShortcuts *impl,
                                    NULL);
 }
 
+XDP_DEFINE_COMPAT_DBUS_IMPL_GET_ACTIVE_REVISION (XdpDbusImplGlobalShortcuts, global_shortcuts)
+
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusGlobalShortcuts, global_shortcuts)
+
 static GlobalShortcuts *
 global_shortcuts_new (XdpContext                 *context,
                       XdpDbusImplGlobalShortcuts *impl)
 {
   GlobalShortcuts *global_shortcuts;
+  uint32_t active_revision = 0;
 
   global_shortcuts = g_object_new (global_shortcuts_get_type (), NULL);
   global_shortcuts->context = context;
@@ -815,10 +820,16 @@ global_shortcuts_new (XdpContext                 *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (global_shortcuts->impl),
                                     G_MAXINT);
 
-  global_shortcuts->impl_version =
-    MAX (xdp_dbus_impl_global_shortcuts_get_version (global_shortcuts->impl), 1);
-  xdp_dbus_global_shortcuts_set_version (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts),
-                                         MIN (global_shortcuts->impl_version, 2));
+  global_shortcuts->impl_revision =
+    MAX (global_shortcuts_dbus_impl_get_active_revision (global_shortcuts->impl), 1);
+  if (global_shortcuts->impl_revision >= 2)
+    active_revision = 2;
+  else
+    active_revision = 1;
+
+  /* Active revision and version (deprecated) are identical */
+  global_shortcuts_dbus_set_active_revision (XDP_DBUS_GLOBAL_SHORTCUTS (global_shortcuts),
+                                             active_revision);
 
   return global_shortcuts;
 }

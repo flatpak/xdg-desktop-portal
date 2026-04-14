@@ -27,7 +27,9 @@ class TestCamera:
             permissions,
         )
 
-    def test_version(self, portals, dbus_con):
+    def test_check_active_revision(self, portals, dbus_con):
+        xdp.check_active_revision(dbus_con, "Camera", 1)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "Camera", 1)
 
     def test_access(self, portals, dbus_con, xdp_app_info):
