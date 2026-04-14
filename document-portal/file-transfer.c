@@ -553,6 +553,8 @@ handle_method (GCallback              method_callback,
   return TRUE;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusFileTransfer, file_transfer)
+
 GDBusInterfaceSkeleton *
 file_transfer_create (void)
 {
@@ -563,7 +565,8 @@ file_transfer_create (void)
   g_signal_connect_swapped (file_transfer, "handle-retrieve-files", G_CALLBACK (handle_method), retrieve_files);
   g_signal_connect_swapped (file_transfer, "handle-stop-transfer", G_CALLBACK (handle_method), stop_transfer);
 
-  xdp_dbus_file_transfer_set_version (XDP_DBUS_FILE_TRANSFER (file_transfer), 1);
+  /* Active revision and version (deprecated) are identical */
+  file_transfer_dbus_set_active_revision (XDP_DBUS_FILE_TRANSFER (file_transfer), 1);
 
   transfers = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
 
