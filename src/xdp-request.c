@@ -111,6 +111,8 @@ static void
 xdp_request_init (XdpRequest *request)
 {
   g_mutex_init (&request->mutex);
+
+  xdp_dbus_request_set_active_revision (XDP_DBUS_REQUEST (request), 1);
 }
 
 static void

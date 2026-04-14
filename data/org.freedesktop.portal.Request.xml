@@ -57,6 +57,8 @@
       The token that the caller provides should be unique and not guessable. To avoid clashes
       with calls made from unrelated libraries, it is a good idea to use a per-library prefix
       combined with a random number.
+
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Request">
 
@@ -89,5 +91,16 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results"/>
     </signal>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and no revision bump of this
+        interface was made for this specific addition.
+
+        Consequently, assume 1 if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

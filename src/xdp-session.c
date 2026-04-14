@@ -367,6 +367,8 @@ xdp_session_initable_init (GInitable     *initable,
                            session,
                            G_CONNECT_DEFAULT);
 
+  xdp_dbus_session_set_active_revision (XDP_DBUS_SESSION (session), 1);
+
   return TRUE;
 }
 
