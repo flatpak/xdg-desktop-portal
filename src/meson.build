@@ -21,6 +21,13 @@ impl_built_sources = gnome.gdbus_codegen(
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
 )
+handler_experimental_built_sources = gnome.gdbus_codegen(
+  'xdp-handler-dbus',
+  sources: portal_handler_experimental_sources,
+  interface_prefix: 'org.freedesktop.handler.portal.experimental',
+  namespace: 'XdpDbusHandlerExperimental',
+  docbook: 'portal',
+)
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
   sources: background_monitor_sources,
@@ -131,6 +138,7 @@ xdg_desktop_portal_sources += [
   portal_built_sources,
   host_built_sources,
   impl_built_sources,
+  handler_experimental_built_sources,
   background_monitor_built_sources,
   geoclue_built_sources,
   built_resources,

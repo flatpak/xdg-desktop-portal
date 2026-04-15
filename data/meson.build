@@ -50,7 +50,6 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.AppChooser.xml',
   'org.freedesktop.impl.portal.Background.xml',
   'org.freedesktop.impl.portal.Clipboard.xml',
-  'org.freedesktop.impl.portal.CredentialsX.xml',
   'org.freedesktop.impl.portal.DynamicLauncher.xml',
   'org.freedesktop.impl.portal.Email.xml',
   'org.freedesktop.impl.portal.FileChooser.xml',
@@ -70,6 +69,9 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.Settings.xml',
   'org.freedesktop.impl.portal.Usb.xml',
   'org.freedesktop.impl.portal.Wallpaper.xml',
+)
+portal_handler_experimental_sources = files(
+  'org.freedesktop.handler.portal.experimental.Credential.xml',
 )
 
 background_monitor_sources = files(
