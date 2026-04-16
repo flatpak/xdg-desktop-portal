@@ -93,6 +93,8 @@ G_DEFINE_FINAL_TYPE (XdpContext,
                      xdp_context,
                      G_TYPE_OBJECT)
 
+static GQuark quark_skeleton_export_flags;
+
 static void
 xdp_context_dispose (GObject *object)
 {
@@ -138,6 +140,9 @@ xdp_context_class_init (XdpContextClass *klass)
                   0, NULL, NULL, NULL,
                   G_TYPE_NONE, 1,
                   G_TYPE_STRING);
+
+  quark_skeleton_export_flags =
+    g_quark_from_static_string ("-xdp-skeleton-export-flags");
 }
 
 static void
@@ -226,7 +231,11 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
 {
   XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(XdpAppInfo) app_info = NULL;
+  XdpContextExportFlags flags;
   g_autoptr(GError) error = NULL;
+
+  flags = GPOINTER_TO_UINT (g_object_get_qdata (G_OBJECT (interface),
+                                                quark_skeleton_export_flags));
 
   app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
                                                                invocation,
@@ -242,6 +251,16 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
     }
 
   g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
+
+  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_NO_ENTITLEMENT) &&
+      !xdp_app_info_check_entitlements (app_info, &error,
+                                        g_dbus_interface_skeleton_get_info (interface)->name,
+                                        XDP_ENTITLEMENT_KIND_LEGACY,
+                                        NULL))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return FALSE;
+    }
 
   if (method_needs_request (invocation))
     {
@@ -266,6 +285,11 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   g_return_if_fail (XDP_IS_CONTEXT (context));
   g_return_if_fail (G_IS_DBUS_INTERFACE_SKELETON (skeleton));
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL)
+    g_return_if_fail (flags & XDP_CONTEXT_EXPORT_FLAGS_NO_ENTITLEMENT);
+
+  g_object_set_qdata (G_OBJECT (skeleton), quark_skeleton_export_flags,
+                      GUINT_TO_POINTER (flags));
 
   name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 
