@@ -27,6 +27,7 @@ typedef enum _XdpContextExportFlags
 {
   XDP_CONTEXT_EXPORT_FLAGS_NONE = 0,
   XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL = (1 << 0),
+  XDP_CONTEXT_EXPORT_FLAGS_NO_ENTITLEMENT = (1 << 1),
 } XdpContextExportFlags;
 
 #define XDP_TYPE_CONTEXT (xdp_context_get_type())
