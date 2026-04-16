@@ -53,5 +53,9 @@ struct _XdpAppInfoClass
                                          GError     **error);
 
   GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
+
+  gboolean (*has_entitlement) (XdpAppInfo         *app_info,
+                               const char         *entitlement,
+                               XdpEntitlementKind  kind);
 };
 

@@ -54,6 +54,8 @@ struct _XdpAppInfoFlatpak
 
   GKeyFile *flatpak_info;
   GPtrArray *queries;
+  GHashTable *entitlements;
+  gboolean enforce_strict_entitlements;
 };
 
 static GInitableIface *initable_parent_iface;
@@ -454,6 +456,20 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static gboolean
+xdp_app_info_flatpak_has_entitlement (XdpAppInfo         *app_info,
+                                      const char         *entitlement,
+                                      XdpEntitlementKind  kind)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
+
+  if (kind == XDP_ENTITLEMENT_KIND_LEGACY &&
+      !app_info_flatpak->enforce_strict_entitlements)
+    return TRUE;
+
+  return g_hash_table_contains (app_info_flatpak->entitlements, entitlement);
+}
+
 static GPtrArray *
 get_usb_queries (GKeyFile *flatpak_info)
 {
@@ -494,6 +510,42 @@ get_usb_queries (GKeyFile *flatpak_info)
   return g_steal_pointer (&usb_queries);
 }
 
+static GHashTable *
+get_entitlements (GKeyFile *flatpak_info)
+{
+  g_autoptr(GHashTable) result = NULL;
+  g_auto(GStrv) entitlements = NULL;
+
+  result = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                  g_free,
+                                  NULL);
+
+  entitlements = g_key_file_get_string_list (flatpak_info,
+                                             "Policy entitlement",
+                                             "grant",
+                                             NULL,
+                                             NULL);
+
+  for (size_t i = 0; entitlements && entitlements[i]; i++)
+    g_hash_table_add (result, g_strdup (entitlements[i]));
+
+  return g_steal_pointer (&result);
+}
+
+static gboolean
+get_enforce_strict_entitlements (GKeyFile *flatpak_info)
+{
+  g_auto(GStrv) enforce = NULL;
+
+  enforce = g_key_file_get_string_list (flatpak_info,
+                                        "Policy entitlement",
+                                        "enforce",
+                                        NULL,
+                                        NULL);
+
+  return enforce && g_strv_contains ((const char * const *) enforce, "strict");
+}
+
 static gboolean
 xdp_app_info_flatpak_initable_init (GInitable     *initable,
                                     GCancellable  *cancellable,
@@ -502,6 +554,9 @@ xdp_app_info_flatpak_initable_init (GInitable     *initable,
   XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (initable);
 
   app_info->queries = get_usb_queries (app_info->flatpak_info);
+  app_info->entitlements = get_entitlements (app_info->flatpak_info);
+  app_info->enforce_strict_entitlements =
+    get_enforce_strict_entitlements (app_info->flatpak_info);
 
   return initable_parent_iface->init (initable, cancellable, error);
 }
@@ -552,6 +607,7 @@ xdp_app_info_flatpak_dispose (GObject *object)
 
   g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
   g_clear_pointer (&app_info->queries, g_ptr_array_unref);
+  g_clear_pointer (&app_info->entitlements, g_hash_table_unref);
 
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
@@ -576,6 +632,8 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
+  app_info_class->has_entitlement =
+    xdp_app_info_flatpak_has_entitlement;
 
   properties[PROP_FLATPAK_INFO] =
     g_param_spec_pointer ("flatpak-info", NULL, NULL,
