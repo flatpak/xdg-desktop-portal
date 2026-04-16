@@ -903,3 +903,62 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
 
   return XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries (app_info);
 }
+
+gboolean
+xdp_app_info_has_entitlement (XdpAppInfo         *app_info,
+                              const char         *entitlement,
+                              XdpEntitlementKind  kind)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  if (!priv->id ||
+      !XDP_APP_INFO_GET_CLASS (app_info)->has_entitlement)
+    return kind == XDP_ENTITLEMENT_KIND_LEGACY;
+
+  return XDP_APP_INFO_GET_CLASS (app_info)->has_entitlement (app_info,
+                                                             entitlement,
+                                                             kind);
+}
+
+static gboolean
+check_entitlements_valist (XdpAppInfo  *app_info,
+                           va_list     *args,
+                           GError     **error)
+{
+  while (TRUE)
+    {
+      const char *entitlement;
+      XdpEntitlementKind kind;
+
+      entitlement = va_arg (*args, char *);
+      if (entitlement == NULL)
+        return TRUE;
+
+      kind = va_arg (*args, XdpEntitlementKind);
+
+      if (!xdp_app_info_has_entitlement (app_info, entitlement, kind))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
+                       "Missing entitlement %s",
+                       entitlement);
+          return FALSE;
+        }
+    }
+}
+
+gboolean
+xdp_app_info_check_entitlements (XdpAppInfo  *app_info,
+                                 GError     **error,
+                                 ...)
+{
+  va_list args;
+  gboolean res;
+
+  va_start (args, error);
+  res = check_entitlements_valist (app_info, &args, error);
+  va_end (args);
+
+  return res;
+}
