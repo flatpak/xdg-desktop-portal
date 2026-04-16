@@ -24,9 +24,7 @@ def xdg_data_home_files():
 
 @pytest.fixture
 def xdp_app_info() -> xdp.AppInfo:
-    return xdp.AppInfo.new_host(
-        app_id="org.example.WrongAppId",
-    )
+    return xdp.AppInfoHost(app_id="org.example.WrongAppId")
 
 
 @pytest.fixture
