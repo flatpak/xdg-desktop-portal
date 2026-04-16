@@ -177,7 +177,6 @@ handle_create_credential(XdpDbusCredentialsX *object,
   xdp_dbus_credentials_x_complete_create_credential (object, invocation, request->id);
 
   xdp_dbus_handler_experimental_credential_call_create_credential (credentials->handler,
-                                             request->id,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
@@ -277,7 +276,6 @@ handle_get_credential(XdpDbusCredentialsX *object,
   xdp_dbus_credentials_x_complete_get_credential (object, invocation, request->id);
 
   xdp_dbus_handler_experimental_credential_call_get_credential (credentials->handler,
-                                             request->id,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
