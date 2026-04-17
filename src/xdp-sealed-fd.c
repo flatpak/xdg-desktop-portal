@@ -41,7 +41,7 @@ struct _XdpSealedFd
   int fd;
 };
 
-G_DEFINE_FINAL_TYPE (XdpSealedFd, xdp_sealed_fd, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (XdpSealedFd, xdp_sealed_fd, G_TYPE_OBJECT);
 
 static void
 xdp_sealed_fd_finalize (GObject *object)

@@ -38,7 +38,7 @@ G_DEFINE_TYPE_WITH_CODE (XdpRequest,
                          xdp_request,
                          XDP_DBUS_TYPE_REQUEST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
-                                                xdp_request_skeleton_iface_init))
+                                                xdp_request_skeleton_iface_init));
 
 static void
 xdp_request_on_signal_response (XdpDbusRequest *object,

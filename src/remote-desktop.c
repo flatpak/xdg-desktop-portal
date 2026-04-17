@@ -60,7 +60,7 @@ static GQuark quark_request_session;
 G_DEFINE_TYPE_WITH_CODE (RemoteDesktop, remote_desktop,
                          XDP_DBUS_TYPE_REMOTE_DESKTOP_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REMOTE_DESKTOP,
-                                                remote_desktop_iface_init))
+                                                remote_desktop_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (RemoteDesktop, g_object_unref)
 
@@ -111,7 +111,7 @@ typedef struct _RemoteDesktopSessionClass
   XdpSessionClass parent_class;
 } RemoteDesktopSessionClass;
 
-G_DEFINE_TYPE (RemoteDesktopSession, remote_desktop_session, xdp_session_get_type ())
+G_DEFINE_TYPE (RemoteDesktopSession, remote_desktop_session, xdp_session_get_type ());
 
 gboolean
 remote_desktop_session_can_select_sources (RemoteDesktopSession *session)

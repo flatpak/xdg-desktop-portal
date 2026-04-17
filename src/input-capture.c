@@ -59,7 +59,7 @@ static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_INPUT_CAPTURE,
-                                                input_capture_iface_init))
+                                                input_capture_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCapture, g_object_unref)
 
@@ -101,7 +101,7 @@ typedef struct _InputCaptureSessionClass
   XdpSessionClass parent_class;
 } InputCaptureSessionClass;
 
-G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ())
+G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ());
 
 static void
 input_capture_session_close (XdpSession *session)

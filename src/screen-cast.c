@@ -75,7 +75,7 @@ struct _ScreenCastStream
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
                          XDP_DBUS_TYPE_SCREEN_CAST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREEN_CAST,
-                                                screen_cast_iface_init))
+                                                screen_cast_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ScreenCast, g_object_unref)
 
@@ -108,7 +108,7 @@ typedef struct _ScreenCastSessionClass
 
 GType screen_cast_session_get_type (void);
 
-G_DEFINE_TYPE (ScreenCastSession, screen_cast_session, xdp_session_get_type ())
+G_DEFINE_TYPE (ScreenCastSession, screen_cast_session, xdp_session_get_type ());
 
 G_GNUC_UNUSED static inline ScreenCastSession *
 SCREEN_CAST_SESSION (gpointer ptr)

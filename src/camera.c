@@ -64,7 +64,7 @@ static void camera_iface_init (XdpDbusCameraIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_DBUS_TYPE_CAMERA_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CAMERA,
-                                                camera_iface_init))
+                                                camera_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Camera, g_object_unref)
 

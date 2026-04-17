@@ -78,7 +78,7 @@ struct _XdpUsb
 };
 
 #define XDP_TYPE_USB (xdp_usb_get_type ())
-G_DECLARE_FINAL_TYPE (XdpUsb, xdp_usb, XDP, USB, XdpDbusUsbSkeleton)
+G_DECLARE_FINAL_TYPE (XdpUsb, xdp_usb, XDP, USB, XdpDbusUsbSkeleton);
 
 static void xdp_usb_iface_init (XdpDbusUsbIface *iface);
 
@@ -97,9 +97,9 @@ struct _XdpUsbSession
 G_DECLARE_FINAL_TYPE (XdpUsbSession,
                       xdp_usb_session,
                       XDP, USB_SESSION,
-                      XdpSession)
+                      XdpSession);
 
-G_DEFINE_TYPE (XdpUsbSession, xdp_usb_session, xdp_session_get_type ())
+G_DEFINE_TYPE (XdpUsbSession, xdp_usb_session, xdp_session_get_type ());
 
 typedef struct
 {

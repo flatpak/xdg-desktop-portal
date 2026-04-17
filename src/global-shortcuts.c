@@ -77,7 +77,7 @@ typedef struct _GlobalShortcutsSessionClass
 
 GType global_shortcuts_session_get_type (void);
 
-G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, xdp_session_get_type ())
+G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, xdp_session_get_type ());
 
 G_GNUC_UNUSED static inline GlobalShortcutsSession *
 GLOBAL_SHORTCUTS_SESSION (gpointer ptr)

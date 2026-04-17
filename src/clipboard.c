@@ -55,7 +55,7 @@ G_DEFINE_TYPE_WITH_CODE (Clipboard,
                          clipboard,
                          XDP_DBUS_TYPE_CLIPBOARD_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CLIPBOARD,
-                                                clipboard_iface_init))
+                                                clipboard_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Clipboard, g_object_unref)
 

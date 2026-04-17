@@ -69,7 +69,7 @@ GType location_get_type (void) G_GNUC_CONST;
 static void location_iface_init (XdpDbusLocationIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Location, g_object_unref)
 
@@ -102,7 +102,7 @@ typedef struct
 
 GType location_session_get_type (void);
 
-G_DEFINE_TYPE (LocationSession, location_session, xdp_session_get_type ())
+G_DEFINE_TYPE (LocationSession, location_session, xdp_session_get_type ());
 
 G_GNUC_UNUSED static inline LocationSession *
 LOCATION_SESSION (gpointer ptr)
