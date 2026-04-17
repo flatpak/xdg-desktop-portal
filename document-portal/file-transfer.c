@@ -263,7 +263,7 @@ file_transfer_execute (FileTransfer  *transfer,
 {
   DocumentAddFullFlags common_flags;
   DocumentPermissionFlags perms;
-  const char *target_app_id;
+  const char *target_permissions_id;
   int n_fds;
   g_autofree int *fds = NULL;
   g_autofree int *parent_devs = NULL;
@@ -298,7 +298,7 @@ file_transfer_execute (FileTransfer  *transfer,
   if (transfer->writable)
     perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
 
-  target_app_id = xdp_app_info_get_id (target_app_info);
+  target_permissions_id = xdp_app_info_get_permissions_id (target_app_info);
 
   n_fds = transfer->files->len;
   fds = g_new (int, n_fds);
@@ -323,7 +323,8 @@ file_transfer_execute (FileTransfer  *transfer,
       parent_inos[i] = file->parent_ino;
     }
 
-  ids = document_add_full (fds, parent_devs, parent_inos, documents_flags, n_fds, transfer->app_info, target_app_id, perms, error);
+  ids = document_add_full (fds, parent_devs, parent_inos, documents_flags, n_fds,
+                           transfer->app_info, target_permissions_id, perms, error);
 
   for (i = 0; i < n_fds; i++)
     close (fds[i]);
