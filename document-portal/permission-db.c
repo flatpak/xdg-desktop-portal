@@ -74,7 +74,7 @@ enum {
   PROP_0,
   PROP_PATH,
   PROP_FAIL_IF_NOT_FOUND,
-  LAST_PROP
+  N_PROPS,
 };
 
 static int
