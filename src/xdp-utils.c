@@ -77,7 +77,7 @@ xdp_mkstempat (int    dir_fd,
   /* find the last occurrence of "XXXXXX" */
   XXXXXX = g_strrstr (tmpl, "XXXXXX");
 
-  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6) != 0)
+  if (!XXXXXX || !g_str_has_prefix (XXXXXX, "XXXXXX"))
     {
       errno = EINVAL;
       return -1;
@@ -1029,7 +1029,7 @@ pidfd_to_pid (int         fdinfo,
 
     g_strstrip (key);
 
-    if (strncmp (key, "Pid", 3) == 0)
+    if (g_str_has_prefix (key, "Pid"))
       {
         r = parse_status_field_pid (val, &pid);
         found = r > -1;
@@ -1256,12 +1256,12 @@ parse_status_file (int    pid_dirfd,
     g_strstrip (key);
     g_strstrip (val);
 
-    if (strncmp (key, "NSpid", strlen ("NSpid")) == 0)
+    if (g_str_has_prefix (key, "NSpid"))
       {
         r = parse_status_field_nspid (val, pid_out);
         have_pid = r > -1;
       }
-    else if (strncmp (key, "Uid", strlen ("Uid")) == 0)
+    else if (g_str_has_prefix (key, "Uid"))
       {
         r = parse_status_field_uid (val, uid_out);
         have_uid = r > -1;
