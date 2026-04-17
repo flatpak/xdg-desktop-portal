@@ -12,6 +12,59 @@ on:
         type: string
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bilelmoussaoui/goblint:latest
+    permissions:
+      security-events: write  # Required for uploading SARIF results
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Run goblint
+        run: goblint --format sarif > goblint.sarif
+
+      - name: Upload SARIF results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: goblint.sarif
+          category: goblint
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+
+    steps:
+      - name: Configure environment
+        run: |
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          echo XDG_DATA_DIRS=$GITHUB_WORKSPACE/tests/share:/usr/local/share:/usr/share | tee -a $GITHUB_ENV
+
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Run pre-commit hooks
+        run: |
+          export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
+          export PATH="/root/.local/bin:$PATH"
+          pre-commit run --show-diff-on-failure --color=always --all-files
+
+  potfiles:
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Check POTFILES.in
+        run: .github/workflows/check-potfiles.sh
+
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -37,15 +90,6 @@ jobs:
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
-
-      - name: Run pre-commit hooks
-        run: |
-          export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
-          export PATH="/root/.local/bin:$PATH"
-          pre-commit run --show-diff-on-failure --color=always --all-files
-
-      - name: Check POTFILES.in
-        run: .github/workflows/check-potfiles.sh
 
       - name: Build xdg-desktop-portal
         run: |
