@@ -1,0 +1,5 @@
+min_glib_version = "2.76"
+ignore = [
+  "subprojects/**",
+  "document-portal/gvdb/**",
+]
