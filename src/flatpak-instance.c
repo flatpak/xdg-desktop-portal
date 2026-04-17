@@ -20,10 +20,10 @@
 
 #include "config.h"
 
+#include "flatpak-instance.h"
+
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-
-#include "flatpak-instance.h"
 
 /**
  * SECTION:flatpak-instance

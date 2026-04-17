@@ -19,17 +19,20 @@
 
 #include "config.h"
 
+#include "trash.h"
+
+#include <errno.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+
 #include <fcntl.h>
 #include <gio/gio.h>
-#include <gio/gunixmounts.h>
 #include <gio/gunixfdlist.h>
+#include <gio/gunixmounts.h>
 #include <libglnx.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "xdp-app-info.h"
 #include "xdp-context.h"
@@ -37,8 +40,6 @@
 #include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-utils.h"
-
-#include "trash.h"
 
 typedef struct _Trash Trash;
 typedef struct _TrashClass TrashClass;

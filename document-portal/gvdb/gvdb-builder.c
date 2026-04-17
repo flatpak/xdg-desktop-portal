@@ -18,15 +18,16 @@
  */
 
 #include "gvdb-builder.h"
-#include "gvdb-format.h"
 
-#include <glib.h>
+#include <string.h>
+
 #include <fcntl.h>
+#include <glib.h>
+
+#include "gvdb-format.h"
 #if !defined(G_OS_WIN32) || !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-#include <string.h>
-
 
 struct _GvdbItem
 {

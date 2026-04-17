@@ -20,12 +20,12 @@
 
 #include "config.h"
 
+#include "xdp-session.h"
+
 #include <string.h>
 
 #include "xdp-context.h"
 #include "xdp-request.h"
-
-#include "xdp-session.h"
 
 enum
 {

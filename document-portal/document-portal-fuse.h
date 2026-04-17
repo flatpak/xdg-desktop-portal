@@ -2,6 +2,7 @@
 #define XDP_FUSE_H
 
 #include <glib.h>
+
 #include "permission-db.h"
 
 G_BEGIN_DECLS

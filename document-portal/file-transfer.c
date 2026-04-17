@@ -24,29 +24,29 @@
 
 #include "config.h"
 
+#include "file-transfer.h"
+
+#include <errno.h>
 #include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "file-transfer.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-utils.h"
-#include "document-portal-dbus.h"
 #include "document-enums.h"
-#include "document-portal.h"
+#include "document-portal-dbus.h"
 #include "document-portal-fuse.h"
+#include "document-portal.h"
+#include "src/xdp-app-info-registry.h"
+#include "src/xdp-app-info.h"
+#include "src/xdp-utils.h"
 
 static XdpDbusFileTransfer *file_transfer;
 

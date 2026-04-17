@@ -25,10 +25,11 @@
  * - https://github.com/flatpak/xdg-desktop-portal at src/validate-icon.c
  */
 
+#include <errno.h>
+
+#include <fcntl.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib/gstdio.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <unistd.h>
 
 #include "xdp-utils.h"

@@ -22,27 +22,27 @@
 
 #include "config.h"
 
+#include "screenshot.h"
+
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 
-#include <glib/gi18n.h>
-#include <gio/gio.h>
+#include <fcntl.h>
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "xdp-context.h"
-#include "xdp-documents.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "screenshot.h"
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;

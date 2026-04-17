@@ -22,27 +22,27 @@
 
 #include "config.h"
 
-#include <json-glib/json-glib.h>
+#include "xdp-utils.h"
 
 #include <errno.h>
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <fcntl.h>
+#include <gio/gio.h>
+#include <gio/gunixoutputstream.h>
+#include <json-glib/json-glib.h>
 #include <sys/ioctl.h>
+
+#include "xdp-types.h"
+
 #if HAVE_PIDFD_OPEN
 #include <sys/pidfd.h>
 #else
 #include <sys/syscall.h>
 #include <unistd.h>
 #endif
-
-#include <gio/gio.h>
-#include <gio/gunixoutputstream.h>
-
-#include "xdp-types.h"
-
-#include "xdp-utils.h"
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)

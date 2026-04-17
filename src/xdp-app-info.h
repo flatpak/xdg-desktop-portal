@@ -23,12 +23,12 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <sys/stat.h>
 #include <stdint.h>
+#include <stdio.h>
 
-#include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <sys/stat.h>
 
 typedef enum _XdpAppInfoError
 {

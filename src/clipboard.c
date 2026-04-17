@@ -19,8 +19,11 @@
  */
 #include "config.h"
 
-#include <gio/gunixfdlist.h>
+#include "clipboard.h"
+
 #include <stdint.h>
+
+#include <gio/gunixfdlist.h>
 
 #include "input-capture.h"
 #include "remote-desktop.h"
@@ -30,8 +33,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "clipboard.h"
 
 typedef struct _Clipboard Clipboard;
 typedef struct _ClipboardClass ClipboardClass;

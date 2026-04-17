@@ -20,20 +20,21 @@
 
 #include "config.h"
 
+#include "input-capture.h"
+
 #include <stdint.h>
-#include <glib.h>
+
 #include <gio/gunixfdlist.h>
+#include <glib.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
-#include "xdp-session.h"
 #include "xdp-session-persistence.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "input-capture.h"
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;

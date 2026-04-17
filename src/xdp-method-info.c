@@ -20,9 +20,9 @@
 
 #include "config.h"
 
-#include <glib.h>
-
 #include "xdp-method-info.h"
+
+#include <glib.h>
 
 const XdpMethodInfo *
 xdp_method_info_find (const char *interface,

@@ -23,10 +23,11 @@
 /* This is based on src/validate-icon.c */
 
 #include <errno.h>
+
 #include <fcntl.h>
+#include <glib/gstdio.h>
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
-#include <glib/gstdio.h>
 #include <unistd.h>
 
 #ifdef __FreeBSD__

@@ -22,8 +22,8 @@
 
 #include "config.h"
 
-#include <glib.h>
 #include <gio/gdesktopappinfo.h>
+#include <glib.h>
 
 #include "dynamic-launcher.h"
 #include "xdp-utils.h"

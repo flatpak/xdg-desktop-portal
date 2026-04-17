@@ -22,15 +22,17 @@
 
 #include "config.h"
 
+#include "xdp-sealed-fd.h"
+
 #include <errno.h>
+#include <string.h>
+
 #include <fcntl.h>
 #include <gio/gunixfdlist.h>
 #include <sys/mman.h>
-#include <string.h>
 #include <unistd.h>
 
 #include "xdp-utils.h"
-#include "xdp-sealed-fd.h"
 
 #define REQUIRED_SEALS (F_SEAL_GROW | F_SEAL_WRITE | F_SEAL_SHRINK)
 

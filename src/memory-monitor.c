@@ -23,13 +23,14 @@
 
 #include "config.h"
 
+#include "memory-monitor.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
-
-#include "memory-monitor.h"
 
 #if GLIB_CHECK_VERSION(2, 63, 3)
 #define HAS_MEMORY_MONITOR 1

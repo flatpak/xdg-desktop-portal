@@ -18,9 +18,10 @@
  */
 
 #include "gvdb-reader.h"
-#include "gvdb-format.h"
 
 #include <string.h>
+
+#include "gvdb-format.h"
 
 struct _GvdbTable {
   GBytes *bytes;

@@ -22,10 +22,12 @@
 
 #include "config.h"
 
+#include "background.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
 
 #include "flatpak-instance.h"
 #include "xdp-app-info.h"
@@ -37,8 +39,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "background.h"
 
 /* Implementation notes:
  *

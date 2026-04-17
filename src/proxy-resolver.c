@@ -22,15 +22,16 @@
 
 #include "config.h"
 
+#include "proxy-resolver.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-
-#include "proxy-resolver.h"
 
 typedef struct _ProxyResolver ProxyResolver;
 typedef struct _ProxyResolverClass ProxyResolverClass;

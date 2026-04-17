@@ -20,12 +20,13 @@
 
 #include "config.h"
 
-#include <errno.h>
-#include <glib.h>
-#include <pipewire/pipewire.h>
-#include <spa/utils/result.h>
-
 #include "pipewire.h"
+#include <pipewire/pipewire.h>
+
+#include <errno.h>
+
+#include <glib.h>
+#include <spa/utils/result.h>
 
 #define ROUNDTRIP_TIMEOUT_SECS 10
 

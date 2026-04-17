@@ -25,7 +25,6 @@
 #define PERMISSION_DB_H
 
 #include <string.h>
-
 #include <gio/gio.h>
 
 G_BEGIN_DECLS

@@ -20,13 +20,15 @@
 
 #include "config.h"
 
+#include "xdg-permission-store.h"
+
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
 #include <gio/gio.h>
-#include "permission-store-dbus.h"
-#include "xdg-permission-store.h"
+
 #include "permission-db.h"
+#include "permission-store-dbus.h"
 #include "src/xdp-utils.h"
 
 GHashTable *tables = NULL;

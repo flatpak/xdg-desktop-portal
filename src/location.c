@@ -22,11 +22,14 @@
 
 #include "config.h"
 
+#include "location.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
-#include <gio/gdesktopappinfo.h>
+
 #include <geoclue.h>
+#include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
 
 #include "geoclue-dbus.h"
 #include "xdp-context.h"
@@ -36,8 +39,6 @@
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "location.h"
 
 #define GEO_CLUE2_BUS_NAME "org.freedesktop.GeoClue2"
 #define GEO_CLUE2_MANAGER_OBJECT_PATH "/org/freedesktop/GeoClue2/Manager"

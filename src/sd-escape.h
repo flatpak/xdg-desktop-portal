@@ -1,8 +1,9 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 #pragma once
 
-#include <glib.h>
 #include <string.h>
+
+#include <glib.h>
 
 typedef enum UnescapeFlags {
         UNESCAPE_RELAX      = 1 << 0,

@@ -22,7 +22,10 @@
 
 #include "config.h"
 
+#include "global-shortcuts.h"
+
 #include <string.h>
+
 #include <glib-object.h>
 
 #include "xdp-context.h"
@@ -33,8 +36,6 @@
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "global-shortcuts.h"
 
 typedef struct _GlobalShortcuts GlobalShortcuts;
 typedef struct _GlobalShortcutsClass GlobalShortcutsClass;
