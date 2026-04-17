@@ -12,6 +12,28 @@ on:
         type: string
 
 jobs:
+  goblint:
+    name: Goblint
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bilelmoussaoui/goblint:main-a7e87d6
+    permissions:
+      # Required for uploading SARIF results
+      security-events: write
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v6
+
+      - name: Run goblint
+        run: goblint --format sarif > goblint.sarif
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: goblint.sarif
+          category: goblint
+
   checks:
     name: Checks
     runs-on: ubuntu-latest
