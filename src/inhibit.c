@@ -116,13 +116,13 @@ get_allowed_inhibit (XdpAppInfo *app_info)
 
       for (i = 0; perms[i]; i++)
         {
-          if (strcmp (perms[i], "logout") == 0)
+          if (g_strcmp0 (perms[i], "logout") == 0)
             ret |= INHIBIT_LOGOUT;
-          else if (strcmp (perms[i], "switch") == 0)
+          else if (g_strcmp0 (perms[i], "switch") == 0)
             ret |= INHIBIT_USER_SWITCH;
-          else if (strcmp (perms[i], "suspend") == 0)
+          else if (g_strcmp0 (perms[i], "suspend") == 0)
             ret |= INHIBIT_SUSPEND;
-          else if (strcmp (perms[i], "idle") == 0)
+          else if (g_strcmp0 (perms[i], "idle") == 0)
             ret |= INHIBIT_IDLE;
           else
             g_warning ("Unknown inhibit flag in permission store: %s", perms[i]);

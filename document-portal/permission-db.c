@@ -95,7 +95,7 @@ str_ptr_array_find (GPtrArray  *array,
   int i;
 
   for (i = 0; i < array->len; i++)
-    if (strcmp (g_ptr_array_index (array, i), str) == 0)
+    if (g_strcmp0 (g_ptr_array_index (array, i), str) == 0)
       return i;
 
   return -1;
@@ -1198,7 +1198,7 @@ remove_permissions (GVariant   *app_permissions,
     {
       g_variant_get (child, "{&s@as}", &child_app_id, NULL);
 
-      if (strcmp (app, child_app_id) != 0)
+      if (g_strcmp0 (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
     }
 

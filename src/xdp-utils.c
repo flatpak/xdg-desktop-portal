@@ -77,7 +77,7 @@ xdp_mkstempat (int    dir_fd,
   /* find the last occurrence of "XXXXXX" */
   XXXXXX = g_strrstr (tmpl, "XXXXXX");
 
-  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6))
+  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6) != 0)
     {
       errno = EINVAL;
       return -1;
@@ -160,8 +160,8 @@ name_owner_changed (GDBusConnection *connection,
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
   if (name[0] != ':' ||
-      strcmp (name, from) != 0 ||
-      strcmp (to, "") != 0)
+      g_strcmp0 (name, from) != 0 ||
+      g_strcmp0 (to, "") != 0)
     return;
 
   data->peer_disconnect_cb (name, data->user_data);
@@ -1029,7 +1029,7 @@ pidfd_to_pid (int         fdinfo,
 
     g_strstrip (key);
 
-    if (!strncmp (key, "Pid", 3))
+    if (strncmp (key, "Pid", 3) == 0)
       {
         r = parse_status_field_pid (val, &pid);
         found = r > -1;
@@ -1256,12 +1256,12 @@ parse_status_file (int    pid_dirfd,
     g_strstrip (key);
     g_strstrip (val);
 
-    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+    if (strncmp (key, "NSpid", strlen ("NSpid")) == 0)
       {
         r = parse_status_field_nspid (val, pid_out);
         have_pid = r > -1;
       }
-    else if (!strncmp (key, "Uid", strlen ("Uid")))
+    else if (strncmp (key, "Uid", strlen ("Uid")) == 0)
       {
         r = parse_status_field_uid (val, uid_out);
         have_uid = r > -1;

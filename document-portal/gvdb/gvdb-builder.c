@@ -151,7 +151,7 @@ gvdb_item_set_parent (GvdbItem *item,
   g_return_if_fail (!item->parent && !item->sibling);
 
   for (node = &parent->child; *node; node = &(*node)->sibling)
-    if (strcmp ((*node)->key, item->key) > 0)
+    if (g_strcmp0 ((*node)->key, item->key) > 0)
       break;
 
   item->parent = parent;

@@ -441,7 +441,7 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
               g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
             }
 
-          if (strcmp (ifaces[i], "default") == 0)
+          if (g_strcmp0 (ifaces[i], "default") == 0)
             {
               if (default_portal == NULL)
                 default_portal = g_steal_pointer (&interface);

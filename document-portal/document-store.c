@@ -34,13 +34,13 @@ xdp_parse_permissions (const char **permissions,
   perms = 0;
   for (i = 0; permissions[i]; i++)
     {
-      if (strcmp (permissions[i], "read") == 0)
+      if (g_strcmp0 (permissions[i], "read") == 0)
         perms |= DOCUMENT_PERMISSION_FLAGS_READ;
-      else if (strcmp (permissions[i], "write") == 0)
+      else if (g_strcmp0 (permissions[i], "write") == 0)
         perms |= DOCUMENT_PERMISSION_FLAGS_WRITE;
-      else if (strcmp (permissions[i], "grant-permissions") == 0)
+      else if (g_strcmp0 (permissions[i], "grant-permissions") == 0)
         perms |= DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS;
-      else if (strcmp (permissions[i], "delete") == 0)
+      else if (g_strcmp0 (permissions[i], "delete") == 0)
         perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
       else
         {
@@ -60,7 +60,7 @@ document_entry_get_permissions_by_app_id (PermissionDbEntry *entry,
 {
   g_autofree const char **permissions = NULL;
 
-  if (strcmp (app_id, "") == 0)
+  if (g_strcmp0 (app_id, "") == 0)
     return DOCUMENT_PERMISSION_FLAGS_ALL;
 
   permissions = permission_db_entry_list_permissions (entry, app_id);

@@ -404,7 +404,7 @@ add_files (GDBusMethodInvocation *invocation,
 
   TRANSFER_AUTOLOCK_UNREF (transfer);
 
-  if (strcmp (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
+  if (g_strcmp0 (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -586,7 +586,7 @@ stop_file_transfers_in_thread_func (GTask        *task,
       g_hash_table_iter_init (&iter, transfers);
       while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&transfer))
         {
-          if (strcmp (sender, transfer->sender) == 0)
+          if (g_strcmp0 (sender, transfer->sender) == 0)
             {
               g_print ("removing transfer %s for dead peer %s\n", transfer->key, transfer->sender);
               g_hash_table_iter_remove (&iter);

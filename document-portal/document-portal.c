@@ -239,7 +239,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     /* Must have grant-permissions, or be itself */
     if (!document_entry_has_permissions (entry, app_info,
                                     DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS) ||
-        strcmp (app_id, target_app_id) == 0)
+        g_strcmp0 (app_id, target_app_id) == 0)
       {
         g_dbus_method_invocation_return_error (invocation,
                                                XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
@@ -552,18 +552,18 @@ metadata_check_file_access (const char *keyfile_path,
         {
           const char *fs = fss[i];
 
-          if (strcmp (fs, "!host") == 0)
+          if (g_strcmp0 (fs, "!host") == 0)
             *allow_host_out = 0;
-          if (strcmp (fs, "host:ro") == 0)
+          if (g_strcmp0 (fs, "host:ro") == 0)
             *allow_host_out = 1;
-          if (strcmp (fs, "host") == 0)
+          if (g_strcmp0 (fs, "host") == 0)
             *allow_host_out = 2;
 
-          if (strcmp (fs, "!home") == 0)
+          if (g_strcmp0 (fs, "!home") == 0)
             *allow_home_out = 0;
-          if (strcmp (fs, "home:ro") == 0)
+          if (g_strcmp0 (fs, "home:ro") == 0)
             *allow_home_out = 1;
-          if (strcmp (fs, "home") == 0)
+          if (g_strcmp0 (fs, "home") == 0)
             *allow_home_out = 2;
         }
     }
@@ -657,10 +657,10 @@ app_has_file_access (const char *target_app_id,
     {
       g_strchomp (res);
 
-      if (strcmp (res, "read-write") == 0)
+      if (g_strcmp0 (res, "read-write") == 0)
         return TRUE;
 
-      if (strcmp (res, "read-only") == 0 &&
+      if (g_strcmp0 (res, "read-only") == 0 &&
           ((target_perms & DOCUMENT_PERMISSION_FLAGS_WRITE) == 0))
         return TRUE;
 
@@ -899,7 +899,7 @@ document_add_full (int                      *fd,
             char *id = do_create_doc (&real_dir_st_bufs[i], path, reuse_existing, persistent, is_dir);
             g_ptr_array_index(ids,i) = id;
 
-            if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
+            if (app_id[0] != '\0' && g_strcmp0 (app_id, target_app_id) != 0)
               {
                 DocumentPermissionFlags caller_perms = caller_base_perms;
 
@@ -1058,7 +1058,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       {
         id = do_create_doc (&parent_st_buf, path, reuse_existing, persistent, FALSE);
 
-        if (app_id[0] != '\0' && strcmp (app_id, target_app_id) != 0)
+        if (app_id[0] != '\0' && g_strcmp0 (app_id, target_app_id) != 0)
           {
             g_autoptr(PermissionDbEntry) entry = permission_db_lookup (db, id);;
             do_set_permissions (entry, id, app_id, caller_perms);
@@ -1384,7 +1384,7 @@ portal_list (GDBusMethodInvocation *invocation,
 
   XDP_AUTOLOCK (db);
 
-  if (strcmp (app_id, "") == 0)
+  if (g_strcmp0 (app_id, "") == 0)
     ids = permission_db_list_ids (db);
   else
     ids = permission_db_list_ids_by_app (db, app_id);
