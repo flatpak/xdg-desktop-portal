@@ -142,7 +142,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
   const char *id;
   g_autofree const char **permissions = NULL;
   DocumentPermissionFlags perms;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
 
@@ -171,7 +171,7 @@ portal_grant_permissions (GDBusMethodInvocation *invocation,
     perms = xdp_parse_permissions (permissions, &error);
     if (error)
       {
-        g_dbus_method_invocation_take_error (invocation, error);
+        g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
         return;
       }
 
@@ -204,7 +204,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
   const char *target_app_id;
   const char *id;
   g_autofree const char **permissions = NULL;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_autoptr(PermissionDbEntry) entry = NULL;
   DocumentPermissionFlags perms;
@@ -234,7 +234,7 @@ portal_revoke_permissions (GDBusMethodInvocation *invocation,
     perms = xdp_parse_permissions (permissions, &error);
     if (error)
       {
-        g_dbus_method_invocation_take_error (invocation, error);
+        g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
         return;
       }
 
@@ -495,7 +495,7 @@ portal_add (GDBusMethodInvocation *invocation,
   DocumentAddFullFlags flags = 0;
   GDBusMessage *message;
   GUnixFDList *fd_list;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
   g_auto(GStrv) ids = NULL;
 
   g_variant_get (parameters, "(hbb)", &fd_id, &reuse_existing, &persistent);
@@ -522,7 +522,7 @@ portal_add (GDBusMethodInvocation *invocation,
 
   if (ids == NULL)
     {
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       return;
     }
 
@@ -690,7 +690,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   g_autofree int *fd = NULL;
   g_autofree DocumentAddFullFlags *documents_flags = NULL;
   g_auto(GStrv) ids = NULL;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
   GVariantBuilder builder;
   int fds_len;
   int i;
@@ -710,7 +710,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
   target_perms = xdp_parse_permissions (permissions, &error);
   if (error)
     {
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       return;
     }
 
@@ -745,7 +745,7 @@ portal_add_full (GDBusMethodInvocation *invocation,
 
   if (ids == NULL)
     {
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       return;
     }
 
@@ -964,7 +964,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   DocumentPermissionFlags target_perms;
   GVariantBuilder builder;
   g_autoptr(GVariant) filename_v = NULL;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_variant_get (parameters, "(h@ayus^a&s)", &parent_fd_id, &filename_v, &flags, &target_app_id, &permissions);
   filename = g_variant_get_bytestring (filename_v);
@@ -995,7 +995,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
   target_perms = xdp_parse_permissions (permissions, &error);
   if (error)
     {
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       return;
     }
 
@@ -1027,7 +1027,6 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
         g_debug ("Invalid fd passed: \"%s\" not on FUSE device", parent_path);
 
       /* Don't leak any info about real file path existence, etc */
-      g_clear_error (&error);
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                                              "Invalid fd passed");
@@ -1220,7 +1219,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
   g_autofd int fd = -1;
   struct stat st_buf, real_dir_st_buf;
   g_autofree char *id = NULL;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
   gboolean is_dir;
 
   if (!xdp_app_info_is_host (app_info))
@@ -1245,7 +1244,7 @@ portal_lookup (GDBusMethodInvocation *invocation,
 
   if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &real_dir_st_buf, &path, NULL, &error))
     {
-      g_dbus_method_invocation_take_error (invocation, error);
+      g_dbus_method_invocation_take_error (invocation, g_steal_pointer (&error));
       return TRUE;
     }
 
@@ -1516,7 +1515,7 @@ on_bus_acquired (GDBusConnection *connection,
                  const gchar     *name,
                  gpointer         user_data)
 {
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
   GDBusInterfaceSkeleton *file_transfer;
 
   dbus_api = xdp_dbus_documents_skeleton_new ();
@@ -1550,7 +1549,7 @@ on_bus_acquired (GDBusConnection *connection,
                                          &error))
     {
       g_warning ("error: %s", error->message);
-      g_error_free (error);
+      g_clear_error (&error);
     }
 
   g_debug ("Providing portal %s", g_dbus_interface_skeleton_get_info (G_DBUS_INTERFACE_SKELETON (dbus_api))->name);
@@ -1561,7 +1560,7 @@ on_bus_acquired (GDBusConnection *connection,
                                          &error))
     {
       g_warning ("error: %s", error->message);
-      g_error_free (error);
+      g_clear_error (&error);
     }
 
   g_debug ("Providing portal %s", g_dbus_interface_skeleton_get_info (G_DBUS_INTERFACE_SKELETON (file_transfer))->name);
