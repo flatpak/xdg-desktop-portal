@@ -3499,13 +3499,13 @@ xdp_fuse_mainloop (struct fuse_session     *se,
   status = getenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS");
   if (status)
     {
-      GError *error = NULL;
+      g_autoptr(GError) error = NULL;
       g_autoptr(GString) s = g_string_new ("");
 
       g_string_append (s, "ok");
 
       g_file_set_contents (status, s->str, -1, &error);
-      g_assert_no_error (error);
+      g_assert (error == NULL);
     }
 }
 
