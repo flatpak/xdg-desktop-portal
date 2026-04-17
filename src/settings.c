@@ -22,18 +22,19 @@
 
 #include "config.h"
 
-#include <time.h>
-#include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
+#include "settings.h"
 
-#include "xdp-dbus.h"
+#include <string.h>
+#include <time.h>
+
+#include <gio/gio.h>
+#include <glib/gi18n.h>
+
 #include "xdp-context.h"
+#include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-utils.h"
-
-#include "settings.h"
 
 typedef struct _Settings Settings;
 typedef struct _SettingsClass SettingsClass;

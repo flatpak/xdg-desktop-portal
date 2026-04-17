@@ -24,29 +24,29 @@
 
 #include "config.h"
 
+#include "file-transfer.h"
+
+#include <errno.h>
 #include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 #include <fcntl.h>
-
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "file-transfer.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-utils.h"
-#include "document-portal-dbus.h"
 #include "document-enums.h"
-#include "document-portal.h"
+#include "document-portal-dbus.h"
 #include "document-portal-fuse.h"
+#include "document-portal.h"
+#include "src/xdp-app-info-registry.h"
+#include "src/xdp-app-info.h"
+#include "src/xdp-utils.h"
 
 static XdpDbusFileTransfer *file_transfer;
 
@@ -89,7 +89,7 @@ typedef struct
 
 static GType file_transfer_get_type (void);
 
-G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT)
+G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (FileTransfer, g_object_unref);
 
@@ -404,7 +404,7 @@ add_files (GDBusMethodInvocation *invocation,
 
   TRANSFER_AUTOLOCK_UNREF (transfer);
 
-  if (strcmp (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
+  if (g_strcmp0 (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -586,7 +586,7 @@ stop_file_transfers_in_thread_func (GTask        *task,
       g_hash_table_iter_init (&iter, transfers);
       while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&transfer))
         {
-          if (strcmp (sender, transfer->sender) == 0)
+          if (g_strcmp0 (sender, transfer->sender) == 0)
             {
               g_print ("removing transfer %s for dead peer %s\n", transfer->key, transfer->sender);
               g_hash_table_iter_remove (&iter);

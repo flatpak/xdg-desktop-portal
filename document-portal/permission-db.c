@@ -23,10 +23,12 @@
 
 #include "config.h"
 
-#include <string.h>
-#include <fcntl.h>
+#include "permission-db.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <fcntl.h>
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
@@ -34,9 +36,8 @@
 #include <sys/mount.h>
 #endif
 
-#include "permission-db.h"
-#include "gvdb/gvdb-reader.h"
 #include "gvdb/gvdb-builder.h"
+#include "gvdb/gvdb-reader.h"
 
 struct PermissionDb
 {
@@ -73,7 +74,7 @@ enum {
   PROP_0,
   PROP_PATH,
   PROP_FAIL_IF_NOT_FOUND,
-  LAST_PROP
+  N_PROPS,
 };
 
 static int
@@ -95,7 +96,7 @@ str_ptr_array_find (GPtrArray  *array,
   int i;
 
   for (i = 0; i < array->len; i++)
-    if (strcmp (g_ptr_array_index (array, i), str) == 0)
+    if (g_strcmp0 (g_ptr_array_index (array, i), str) == 0)
       return i;
 
   return -1;
@@ -1198,7 +1199,7 @@ remove_permissions (GVariant   *app_permissions,
     {
       g_variant_get (child, "{&s@as}", &child_app_id, NULL);
 
-      if (strcmp (app, child_app_id) != 0)
+      if (g_strcmp0 (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
     }
 

@@ -20,12 +20,12 @@
 
 #include "config.h"
 
+#include "xdp-session.h"
+
 #include <string.h>
 
 #include "xdp-context.h"
 #include "xdp-request.h"
-
-#include "xdp-session.h"
 
 enum
 {
@@ -52,7 +52,7 @@ static void xdp_session_skeleton_iface_init (XdpDbusSessionIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (XdpSession, xdp_session, XDP_DBUS_TYPE_SESSION_SKELETON,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
-                                                g_initable_iface_init)
+                                                g_initable_iface_init);
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SESSION,
                                                 xdp_session_skeleton_iface_init))
 
@@ -258,7 +258,7 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
   const gchar *session_owner = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  if (strcmp (sender, session_owner) != 0)
+  if (g_strcmp0 (sender, session_owner) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,

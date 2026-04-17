@@ -22,19 +22,21 @@
 
 #include "config.h"
 
+#include "open-uri.h"
+
+#include <errno.h>
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <fcntl.h>
 
+#include <fcntl.h>
+#include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
-#include <gio/gdesktopappinfo.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "xdp-app-launch-context.h"
 #include "xdp-context.h"
@@ -45,8 +47,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "open-uri.h"
 
 #define FILE_MANAGER_DBUS_NAME "org.freedesktop.FileManager1"
 #define FILE_MANAGER_DBUS_IFACE "org.freedesktop.FileManager1"
@@ -442,7 +442,7 @@ resolve_scheme_and_content_type (const char *uri,
   if (*scheme == NULL)
     return;
 
-  if (strcmp (*scheme, "file") == 0)
+  if (g_strcmp0 (*scheme, "file") == 0)
     {
       g_debug ("Not handling file uri %s", uri);
       return;

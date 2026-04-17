@@ -23,14 +23,14 @@
 
 #include "config.h"
 
+#include "xdp-request.h"
+
 #include <string.h>
 
 #include "xdp-context.h"
-#include "xdp-utils.h"
-#include "xdp-method-info.h"
 #include "xdp-context.h"
-
-#include "xdp-request.h"
+#include "xdp-method-info.h"
+#include "xdp-utils.h"
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
@@ -38,7 +38,7 @@ G_DEFINE_TYPE_WITH_CODE (XdpRequest,
                          xdp_request,
                          XDP_DBUS_TYPE_REQUEST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
-                                                xdp_request_skeleton_iface_init))
+                                                xdp_request_skeleton_iface_init));
 
 static void
 xdp_request_on_signal_response (XdpDbusRequest *object,
@@ -146,7 +146,7 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
   const gchar *request_sender = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  if (strcmp (sender, request_sender) != 0)
+  if (g_strcmp0 (sender, request_sender) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,

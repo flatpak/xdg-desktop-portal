@@ -23,11 +23,24 @@
 
 #include "config.h"
 
+#include "xdp-app-info-private.h"
+
 #include <errno.h>
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <fcntl.h>
+#include <gio/gunixfdlist.h>
+#include <json-glib/json-glib.h>
+
+#include "xdp-app-info-flatpak-private.h"
+#include "xdp-app-info-host-private.h"
+#include "xdp-app-info-linyaps-private.h"
+#include "xdp-app-info-snap-private.h"
+#include "xdp-enum-types.h"
+#include "xdp-utils.h"
+
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
@@ -38,17 +51,6 @@
 #include <systemd/sd-login.h>
 #include "sd-escape.h"
 #endif
-
-#include <json-glib/json-glib.h>
-#include <gio/gunixfdlist.h>
-
-#include "xdp-app-info-private.h"
-#include "xdp-app-info-flatpak-private.h"
-#include "xdp-app-info-snap-private.h"
-#include "xdp-app-info-linyaps-private.h"
-#include "xdp-app-info-host-private.h"
-#include "xdp-enum-types.h"
-#include "xdp-utils.h"
 
 G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
 
@@ -79,7 +81,7 @@ typedef struct _XdpAppInfoPrivate
 static void g_initable_init_iface (GInitableIface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
-                                  G_ADD_PRIVATE (XdpAppInfo)
+                                  G_ADD_PRIVATE (XdpAppInfo);
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
 
 enum

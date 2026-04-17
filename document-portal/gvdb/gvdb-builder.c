@@ -18,15 +18,16 @@
  */
 
 #include "gvdb-builder.h"
-#include "gvdb-format.h"
 
-#include <glib.h>
+#include <string.h>
+
 #include <fcntl.h>
+#include <glib.h>
+
+#include "gvdb-format.h"
 #if !defined(G_OS_WIN32) || !defined(_MSC_VER)
 #include <unistd.h>
 #endif
-#include <string.h>
-
 
 struct _GvdbItem
 {
@@ -151,7 +152,7 @@ gvdb_item_set_parent (GvdbItem *item,
   g_return_if_fail (!item->parent && !item->sibling);
 
   for (node = &parent->child; *node; node = &(*node)->sibling)
-    if (strcmp ((*node)->key, item->key) > 0)
+    if (g_strcmp0 ((*node)->key, item->key) > 0)
       break;
 
   item->parent = parent;

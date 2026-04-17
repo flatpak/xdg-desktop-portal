@@ -22,27 +22,27 @@
 
 #include "config.h"
 
-#include <json-glib/json-glib.h>
+#include "xdp-utils.h"
 
 #include <errno.h>
-#include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <fcntl.h>
+#include <gio/gio.h>
+#include <gio/gunixoutputstream.h>
+#include <json-glib/json-glib.h>
 #include <sys/ioctl.h>
+
+#include "xdp-types.h"
+
 #if HAVE_PIDFD_OPEN
 #include <sys/pidfd.h>
 #else
 #include <sys/syscall.h>
 #include <unistd.h>
 #endif
-
-#include <gio/gio.h>
-#include <gio/gunixoutputstream.h>
-
-#include "xdp-types.h"
-
-#include "xdp-utils.h"
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
@@ -77,7 +77,7 @@ xdp_mkstempat (int    dir_fd,
   /* find the last occurrence of "XXXXXX" */
   XXXXXX = g_strrstr (tmpl, "XXXXXX");
 
-  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6))
+  if (!XXXXXX || !g_str_has_prefix (XXXXXX, "XXXXXX"))
     {
       errno = EINVAL;
       return -1;
@@ -160,8 +160,8 @@ name_owner_changed (GDBusConnection *connection,
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
   if (name[0] != ':' ||
-      strcmp (name, from) != 0 ||
-      strcmp (to, "") != 0)
+      g_strcmp0 (name, from) != 0 ||
+      g_strcmp0 (to, "") != 0)
     return;
 
   data->peer_disconnect_cb (name, data->user_data);
@@ -1029,7 +1029,7 @@ pidfd_to_pid (int         fdinfo,
 
     g_strstrip (key);
 
-    if (!strncmp (key, "Pid", 3))
+    if (g_str_has_prefix (key, "Pid"))
       {
         r = parse_status_field_pid (val, &pid);
         found = r > -1;
@@ -1256,12 +1256,12 @@ parse_status_file (int    pid_dirfd,
     g_strstrip (key);
     g_strstrip (val);
 
-    if (!strncmp (key, "NSpid", strlen ("NSpid")))
+    if (g_str_has_prefix (key, "NSpid"))
       {
         r = parse_status_field_nspid (val, pid_out);
         have_pid = r > -1;
       }
-    else if (!strncmp (key, "Uid", strlen ("Uid")))
+    else if (g_str_has_prefix (key, "Uid"))
       {
         r = parse_status_field_uid (val, uid_out);
         have_uid = r > -1;

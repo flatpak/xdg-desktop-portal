@@ -22,7 +22,10 @@
 
 #include "config.h"
 
+#include "global-shortcuts.h"
+
 #include <string.h>
+
 #include <glib-object.h>
 
 #include "xdp-context.h"
@@ -33,8 +36,6 @@
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "global-shortcuts.h"
 
 typedef struct _GlobalShortcuts GlobalShortcuts;
 typedef struct _GlobalShortcutsClass GlobalShortcutsClass;
@@ -77,7 +78,7 @@ typedef struct _GlobalShortcutsSessionClass
 
 GType global_shortcuts_session_get_type (void);
 
-G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, xdp_session_get_type ())
+G_DEFINE_TYPE (GlobalShortcutsSession, global_shortcuts_session, xdp_session_get_type ());
 
 G_GNUC_UNUSED static inline GlobalShortcutsSession *
 GLOBAL_SHORTCUTS_SESSION (gpointer ptr)

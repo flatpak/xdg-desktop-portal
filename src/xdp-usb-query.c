@@ -19,10 +19,9 @@
  *       Hubert Figuière <hub@figuiere.net>
  */
 
-#include <stdint.h>
-#include <glib.h>
-
 #include "xdp-usb-query.h"
+
+#include <stdint.h>
 
 static void
 xdp_usb_rule_free (XdpUsbRule *rule)

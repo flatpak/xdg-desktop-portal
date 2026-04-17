@@ -22,7 +22,10 @@
 
 #include "config.h"
 
+#include "realtime.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-app-info.h"
@@ -30,8 +33,6 @@
 #include "xdp-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-utils.h"
-
-#include "realtime.h"
 
 #define RTKIT_DBUS_NAME "org.freedesktop.RealtimeKit1"
 #define RTKIT_DBUS_IFACE "org.freedesktop.RealtimeKit1"

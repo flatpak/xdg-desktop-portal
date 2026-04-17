@@ -19,9 +19,9 @@
 
 #include "config.h"
 
-#include "xdp-app-info.h"
-
 #include "xdp-app-info-registry.h"
+
+#include "xdp-app-info.h"
 
 struct _XdpAppInfoRegistry
 {
@@ -33,7 +33,7 @@ struct _XdpAppInfoRegistry
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoRegistry,
                      xdp_app_info_registry,
-                     G_TYPE_OBJECT)
+                     G_TYPE_OBJECT);
 
 static void
 xdp_app_info_registry_dispose (GObject *object)

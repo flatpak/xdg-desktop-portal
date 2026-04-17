@@ -30,7 +30,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (XdpBackgroundMonitor,
                       xdp_background_monitor,
                       XDP, BACKGROUND_MONITOR,
-                      XdpDbusBackgroundMonitorSkeleton)
+                      XdpDbusBackgroundMonitorSkeleton);
 
 XdpBackgroundMonitor *xdp_background_monitor_new (GCancellable  *cancellable,
                                                   GError       **error);

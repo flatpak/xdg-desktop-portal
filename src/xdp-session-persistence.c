@@ -21,8 +21,9 @@
 
 #include "config.h"
 
-#include "xdp-permissions.h"
 #include "xdp-session-persistence.h"
+
+#include "xdp-permissions.h"
 
 static GMutex transient_permissions_lock;
 static GHashTable *transient_permissions;

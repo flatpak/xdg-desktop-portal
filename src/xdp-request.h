@@ -24,9 +24,9 @@
 #pragma once
 
 #include "xdp-app-info.h"
-#include "xdp-utils.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
+#include "xdp-utils.h"
 
 typedef struct _XdpRequest
 {
@@ -51,7 +51,7 @@ struct _XdpRequestClass
 G_DECLARE_FINAL_TYPE (XdpRequest,
                       xdp_request,
                       XDP, REQUEST,
-                      XdpDbusRequestSkeleton)
+                      XdpDbusRequestSkeleton);
 
 #define REQUEST_AUTOLOCK(request) \
   G_MUTEX_AUTO_LOCK (&request->mutex, G_PASTE (request_auto_locker, __LINE__));

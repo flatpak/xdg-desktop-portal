@@ -19,13 +19,13 @@
 
 #include "config.h"
 
+#include "xdp-app-info-snap-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
-
-#include "xdp-app-info-snap-private.h"
 
 #define SNAP_ENGINE_ID "io.snapcraft"
 
@@ -41,7 +41,7 @@ struct _XdpAppInfoSnap
   char *desktop_file;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO);
 
 enum
 {
@@ -165,9 +165,9 @@ _xdp_app_info_snap_parse_cgroup_file (FILE     *f,
 
       /* Only consider the freezer, systemd group or unified cgroup
        * hierarchies */
-      if ((strcmp (controller, "freezer:") == 0 ||
-           strcmp (controller, "name=systemd:") == 0 ||
-           strcmp (controller, ":") == 0) &&
+      if ((g_strcmp0 (controller, "freezer:") == 0 ||
+           g_strcmp0 (controller, "name=systemd:") == 0 ||
+           g_strcmp0 (controller, ":") == 0) &&
           strstr (cgroup, "/snap.") != NULL)
         {
           *is_snap = TRUE;

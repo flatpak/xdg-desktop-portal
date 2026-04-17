@@ -22,10 +22,12 @@
 
 #include "config.h"
 
+#include "background.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
 
 #include "flatpak-instance.h"
 #include "xdp-app-info.h"
@@ -37,8 +39,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "background.h"
 
 /* Implementation notes:
  *
@@ -167,11 +167,11 @@ get_one_permission (const char *app_id,
 
   g_debug ("permission store: background, app %s -> %s", app_id, permissions[0]);
 
-  if (strcmp (permissions[0], "yes") == 0)
+  if (g_strcmp0 (permissions[0], "yes") == 0)
     return XDP_PERMISSION_YES;
-  else if (strcmp (permissions[0], "no") == 0)
+  else if (g_strcmp0 (permissions[0], "no") == 0)
     return XDP_PERMISSION_NO;
-  else if (strcmp (permissions[0], "ask") == 0)
+  else if (g_strcmp0 (permissions[0], "ask") == 0)
     return XDP_PERMISSION_ASK;
   else
     {

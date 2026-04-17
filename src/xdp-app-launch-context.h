@@ -20,8 +20,8 @@
 
 #pragma once
 
-#include <glib-object.h>
 #include <gio/gio.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
@@ -29,7 +29,7 @@ G_BEGIN_DECLS
 G_DECLARE_FINAL_TYPE (XdpAppLaunchContext,
                       xdp_app_launch_context,
                       XDP, APP_LAUNCH_CONTEXT,
-                      GAppLaunchContext)
+                      GAppLaunchContext);
 
 XdpAppLaunchContext * xdp_app_launch_context_new (void);
 

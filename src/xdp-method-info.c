@@ -20,9 +20,9 @@
 
 #include "config.h"
 
-#include <glib.h>
-
 #include "xdp-method-info.h"
+
+#include <glib.h>
 
 const XdpMethodInfo *
 xdp_method_info_find (const char *interface,
@@ -34,10 +34,10 @@ xdp_method_info_find (const char *interface,
   mi = xdp_method_info_get_all ();
   while (mi->interface != NULL)
     {
-      if (strcmp (interface, mi->interface) == 0)
+      if (g_strcmp0 (interface, mi->interface) == 0)
         {
           interface_found = TRUE;
-          if (strcmp (method, mi->method) == 0)
+          if (g_strcmp0 (method, mi->method) == 0)
             return mi;
         }
       else if (interface_found)

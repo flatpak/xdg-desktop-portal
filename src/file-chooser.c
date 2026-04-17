@@ -23,24 +23,25 @@
 
 #include "config.h"
 
+#include "file-chooser.h"
+
+#include <errno.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+
 #include <fcntl.h>
 #include <gio/gio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "xdp-context.h"
-#include "xdp-documents.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "file-chooser.h"
 
 typedef struct _FileChooser FileChooser;
 typedef struct _FileChooserClass FileChooserClass;
@@ -424,7 +425,7 @@ check_choice (GVariant *choice,
           return FALSE;
         }
 
-      if (strcmp (o_id, option) == 0)
+      if (g_strcmp0 (o_id, option) == 0)
         seen_option = TRUE;
     }
 

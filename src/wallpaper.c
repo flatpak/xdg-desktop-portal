@@ -22,11 +22,14 @@
 
 #include "config.h"
 
+#include "wallpaper.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
+
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include <glib/gi18n.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
@@ -35,8 +38,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "wallpaper.h"
 
 typedef struct _Wallpaper Wallpaper;
 typedef struct _WallpaperClass WallpaperClass;

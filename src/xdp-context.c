@@ -19,14 +19,7 @@
 
 #include "config.h"
 
-#include "xdp-app-info-registry.h"
-#include "xdp-utils.h"
-#include "xdp-dbus.h"
-#include "xdp-documents.h"
-#include "xdp-impl-dbus.h"
-#include "xdp-method-info.h"
-#include "xdp-portal-config.h"
-#include "xdp-session-persistence.h"
+#include "xdp-context.h"
 
 #include "account.h"
 #include "background.h"
@@ -44,14 +37,12 @@
 #include "network-monitor.h"
 #include "notification.h"
 #include "open-uri.h"
-#include "xdp-permissions.h"
 #include "power-profile-monitor.h"
 #include "print.h"
 #include "proxy-resolver.h"
 #include "realtime.h"
 #include "registry.h"
 #include "remote-desktop.h"
-#include "xdp-request.h"
 #include "screen-cast.h"
 #include "screenshot.h"
 #include "secret.h"
@@ -59,8 +50,16 @@
 #include "trash.h"
 #include "usb.h"
 #include "wallpaper.h"
-
-#include "xdp-context.h"
+#include "xdp-app-info-registry.h"
+#include "xdp-dbus.h"
+#include "xdp-documents.h"
+#include "xdp-impl-dbus.h"
+#include "xdp-method-info.h"
+#include "xdp-permissions.h"
+#include "xdp-portal-config.h"
+#include "xdp-request.h"
+#include "xdp-session-persistence.h"
+#include "xdp-utils.h"
 
 enum
 {
@@ -91,7 +90,7 @@ struct _XdpContext
 
 G_DEFINE_FINAL_TYPE (XdpContext,
                      xdp_context,
-                     G_TYPE_OBJECT)
+                     G_TYPE_OBJECT);
 
 static void
 xdp_context_dispose (GObject *object)

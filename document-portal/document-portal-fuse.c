@@ -24,24 +24,27 @@
 
 #include "config.h"
 
-#define FUSE_USE_VERSION 35
+#include "document-portal-fuse.h"
 
-#include <glib-unix.h>
-
-#include <fuse_lowlevel.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <stdlib.h>
 #include <assert.h>
-#include <glib/gprintf.h>
+#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <fcntl.h>
+#define FUSE_USE_VERSION 35
+#include <fuse_lowlevel.h>
 #include <gio/gio.h>
+#include <glib-unix.h>
+#include <glib/gprintf.h>
 #include <pthread.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
-#include <sys/types.h>
 #if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
@@ -51,20 +54,15 @@
 #if HAVE_SYS_EXTATTR_H
 #include <sys/extattr.h>
 #endif
-#include <sys/time.h>
-#include <sys/resource.h>
-
-#include "document-portal-fuse.h"
-#include "document-store.h"
-#include "src/xdp-utils.h"
-
 #ifndef O_FSYNC
 #define O_FSYNC O_SYNC
 #endif
-
 #ifndef ENODATA
 #define ENODATA ENOATTR
 #endif
+
+#include "document-store.h"
+#include "src/xdp-utils.h"
 
 #define XDP_XATTR_HOST_PATH "user.document-portal.host-path"
 /* man listxattr:
@@ -1205,7 +1203,7 @@ xdp_document_inode_open_child_fd (XdpInode   *inode,
 
       if (xdp_document_domain_is_dir (domain))
         {
-          if (strcmp (name, domain->doc_file) == 0)
+          if (g_strcmp0 (name, domain->doc_file) == 0)
             {
               /* Ensure toplevel dir exist and is right */
               dirfd = xdp_nonphysical_document_inode_opendir (inode);
@@ -1225,7 +1223,7 @@ xdp_document_inode_open_child_fd (XdpInode   *inode,
           if (dirfd < 0)
             return dirfd;
 
-          if (strcmp (name, domain->doc_file) == 0)
+          if (g_strcmp0 (name, domain->doc_file) == 0)
             {
               fd = openat (dirfd, name, open_flags, mode);
               if (fd == -1)
@@ -1805,7 +1803,7 @@ invalidate_dentry_cb (gpointer user_data)
 
   g_list_free (to_invalidate);
 
-  return FALSE;
+  return G_SOURCE_REMOVE;
 }
 
 /* Queue an inval_dentry, thereby freeing unused inodes in the dcache
@@ -1820,12 +1818,14 @@ queue_invalidate_dentry (XdpInode   *parent,
   for (GList *l = invalidate_list; l != NULL; l = l->next)
     {
       XdpInvalidateData *data = l->data;
-      if (data->parent_ino == parent->ino && strcmp (name, data->name) == 0)
+      if (data->parent_ino == parent->ino && g_strcmp0 (name, data->name) == 0)
         return;
     }
 
   XdpInvalidateData *data = g_malloc0 (sizeof (XdpInvalidateData) + strlen (name) + 1);
   data->parent_ino = parent->ino;
+  /* We allocated enough memory in data->name for name.
+   * goblint-ignore-next-line: use_g_strlcpy */
   strcpy (data->name, name);
 
   if (invalidate_list == NULL)
@@ -1849,7 +1849,7 @@ xdp_fuse_lookup (fuse_req_t  req,
 
   g_debug ("LOOKUP %" G_GINT64_MODIFIER "x:%s", parent_ino, name);
 
-  if (strcmp (name, ".") == 0 || strcmp (name, "..") == 0)
+  if (g_strcmp0 (name, ".") == 0 || g_strcmp0 (name, "..") == 0)
     {
       /* We don't set FUSE_CAP_EXPORT_SUPPORT, so should not get
        * here. But lets make sure we never ever resolve them as that
@@ -1862,7 +1862,7 @@ xdp_fuse_lookup (fuse_req_t  req,
       switch (parent_domain->type)
         {
         case XDP_DOMAIN_ROOT:
-          if (strcmp (name, BY_APP_NAME) == 0)
+          if (g_strcmp0 (name, BY_APP_NAME) == 0)
             inode = xdp_inode_ref (by_app_inode);
           else
             inode = ensure_doc_inode (parent, name);
@@ -2633,7 +2633,7 @@ xdp_fuse_unlink (fuse_req_t  req,
       if (dirfd < 0)
         xdp_reply_err (op, req, -dirfd);
 
-      if (strcmp (filename, parent_domain->doc_file) == 0)
+      if (g_strcmp0 (filename, parent_domain->doc_file) == 0)
         {
           res = unlinkat (dirfd, filename, 0);
           if (res != 0)
@@ -2732,7 +2732,7 @@ xdp_fuse_rename (fuse_req_t    req,
         return xdp_reply_err (op, req, EACCES);
 
       /* Early exit for same file */
-      if (strcmp (name, newname) == 0)
+      if (g_strcmp0 (name, newname) == 0)
         return xdp_reply_ok (op, req);
 
       dirfd = xdp_nonphysical_document_inode_opendir (parent);
@@ -2740,7 +2740,7 @@ xdp_fuse_rename (fuse_req_t    req,
         return xdp_reply_err (op, req, -dirfd);
       close_fd1 = dirfd;
 
-      if (strcmp (name, domain->doc_file) == 0)
+      if (g_strcmp0 (name, domain->doc_file) == 0)
         {
           /* Source is (maybe) main file, destination is tempfile */
           g_autofree char *tmpname = NULL;
@@ -2772,7 +2772,7 @@ xdp_fuse_rename (fuse_req_t    req,
 
           xdp_reply_ok (op, req);
         }
-      else if (strcmp (newname, domain->doc_file) == 0)
+      else if (g_strcmp0 (newname, domain->doc_file) == 0)
         {
           gpointer stolen_value;
 
@@ -3502,13 +3502,13 @@ xdp_fuse_mainloop (struct fuse_session     *se,
   status = getenv ("TEST_DOCUMENT_PORTAL_FUSE_STATUS");
   if (status)
     {
-      GError *error = NULL;
+      g_autoptr(GError) error = NULL;
       g_autoptr(GString) s = g_string_new ("");
 
       g_string_append (s, "ok");
 
       g_file_set_contents (status, s->str, -1, &error);
-      g_assert_no_error (error);
+      g_assert (error == NULL);
     }
 }
 

@@ -22,13 +22,15 @@
 
 #include "config.h"
 
-#define _GNU_SOURCE 1
-#include <gio/gunixfdlist.h>
+#include "gamemode.h"
+
 #include <errno.h>
 #include <locale.h>
-#include <sys/types.h>
+
+#include <gio/gunixfdlist.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
@@ -40,8 +42,7 @@
 #include "xdp-permissions.h"
 #include "xdp-utils.h"
 
-#include "gamemode.h"
-
+#define _GNU_SOURCE 1
 /* well known names*/
 #define GAMEMODE_BACKEND_DBUS_NAME "com.feralinteractive.GameMode"
 #define GAMEMODE_BACKEND_DBUS_IFACE "com.feralinteractive.GameMode"

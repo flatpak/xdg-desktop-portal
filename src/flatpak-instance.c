@@ -20,10 +20,10 @@
 
 #include "config.h"
 
+#include "flatpak-instance.h"
+
 #include <gio/gio.h>
 #include <json-glib/json-glib.h>
-
-#include "flatpak-instance.h"
 
 /**
  * SECTION:flatpak-instance
@@ -94,7 +94,7 @@ struct _FlatpakInstancePrivate
   int       child_pid;
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (FlatpakInstance, flatpak_instance, G_TYPE_OBJECT)
+G_DEFINE_TYPE_WITH_PRIVATE (FlatpakInstance, flatpak_instance, G_TYPE_OBJECT);
 
 static void
 flatpak_instance_finalize (GObject *object)

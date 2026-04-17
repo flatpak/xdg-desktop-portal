@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <glib.h>
 #include <gio/gio.h>
+#include <glib.h>
 
 #include "xdp-context.h"
 
@@ -56,7 +56,7 @@ struct _XdpPortalConfig
   GPtrArray *configs; /* PortalConfig */
 };
 
-G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT);
 
 #define XDP_SUBDIR "xdg-desktop-portal"
 
@@ -441,7 +441,7 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
               g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
             }
 
-          if (strcmp (ifaces[i], "default") == 0)
+          if (g_strcmp0 (ifaces[i], "default") == 0)
             {
               if (default_portal == NULL)
                 default_portal = g_steal_pointer (&interface);
