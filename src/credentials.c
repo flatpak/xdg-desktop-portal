@@ -291,63 +291,10 @@ handle_get_credential(XdpDbusCredentialsX *object,
 }
 
 static void
-retrieve_client_capabilities_done (GObject *source,
-          GAsyncResult *result,
-          gpointer data)
-{
-  g_autoptr(GDBusMethodInvocation) invocation = data;
-  g_autoptr(GVariant) capabilities = NULL;
-  g_autoptr(GError) error = NULL;
-
-  if (!xdp_dbus_handler_experimental_credential_call_get_client_capabilities_finish (XDP_DBUS_HANDLER_EXPERIMENTAL_CREDENTIAL (source),
-                                                         &capabilities,
-                                                         result,
-                                                         &error))
-    {
-      g_dbus_error_strip_remote_error (error);
-      g_warning ("Backend call failed: %s", error->message);
-    }
-
-  xdp_dbus_credentials_x_complete_get_client_capabilities (NULL, invocation, capabilities);
-}
-
-static gboolean
-handle_get_client_capabilities(XdpDbusCredentialsX *object,
-                               GDBusMethodInvocation *invocation)
-{
-  CredentialsX *credentials = (CredentialsX *) object;
-  g_autoptr(GError) error = NULL;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
-  g_auto(GVariantBuilder) options =
-    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->handler)),
-    G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->handler)),
-    NULL,
-    NULL, &error);
-
-  if (!impl_request)
-    {
-      g_dbus_method_invocation_return_gerror (invocation, error);
-      return G_DBUS_METHOD_INVOCATION_HANDLED;
-    }
-
-  xdp_dbus_handler_experimental_credential_call_get_client_capabilities (credentials->handler,
-                                             NULL,
-                                             retrieve_client_capabilities_done,
-                                             g_object_ref(invocation));
-
-  return G_DBUS_METHOD_INVOCATION_HANDLED;
-}
-
-static void
 credentials_x_iface_init (XdpDbusCredentialsXIface *iface)
 {
   iface->handle_create_credential = handle_create_credential;
   iface->handle_get_credential = handle_get_credential;
-  iface->handle_get_client_capabilities = handle_get_client_capabilities;
 }
 
 static void
@@ -361,7 +308,7 @@ credentials_x_dispose (GObject *object)
 }
 
 static void
-credentials_x_init (CredentialsX *clipboard)
+credentials_x_init (CredentialsX *credential)
 {
 }
 
@@ -383,19 +330,17 @@ credentials_new (XdpDbusHandlerExperimentalCredential *handler)
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (credentials->handler), G_MAXINT);
 
+  xdp_dbus_credentials_x_set_conditional_create(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_conditional_get(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_hybrid_transport(XDP_DBUS_CREDENTIALS_X (credentials), TRUE);
+  xdp_dbus_credentials_x_set_passkey_platform_authenticator(XDP_DBUS_CREDENTIALS_X (credentials), TRUE);
+  xdp_dbus_credentials_x_set_user_verifying_platform_authenticator(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_related_origins(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_signal_all_accepted_credentials(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_signal_current_user_details(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_credentials_x_set_signal_unknown_credential(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+
   xdp_dbus_credentials_x_set_version (XDP_DBUS_CREDENTIALS_X (credentials), 1);
-
-  /*
-  g_signal_connect_object (credentials->impl, "selection-transfer",
-                           G_CALLBACK (selection_transfer_cb),
-                           impl,
-                           G_CONNECT_DEFAULT);
-
-  g_signal_connect_object (credentials->impl, "selection-owner-changed",
-                           G_CALLBACK (selection_owner_changed_cb),
-                           impl,
-                           G_CONNECT_DEFAULT);
-    */
 
   return credentials;
 }
