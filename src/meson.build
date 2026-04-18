@@ -32,7 +32,7 @@ handler_experimental_built_sources = gnome.gdbus_codegen(
   'xdp-experimental-handler-dbus',
   sources: portal_handler_experimental_sources,
   interface_prefix: 'org.freedesktop.handler.portal.experimental',
-  namespace: 'XdpDbusHandlerExperimental',
+  namespace: 'XdpDbusExperimentalHandler',
   docbook: 'portal',
 )
 background_monitor_built_sources = gnome.gdbus_codegen(

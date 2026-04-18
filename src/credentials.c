@@ -45,7 +45,7 @@ struct _Credential
 {
   XdpDbusExperimentalCredentialSkeleton parent_instance;
 
-  XdpDbusHandlerExperimentalCredential *handler;
+  XdpDbusExperimentalHandlerCredential *handler;
 };
 
 struct _CredentialClass
@@ -121,7 +121,7 @@ create_credential_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_dbus_handler_experimental_credential_call_create_credential_finish (XDP_DBUS_HANDLER_EXPERIMENTAL_CREDENTIAL (source),
+  if (!xdp_dbus_experimental_handler_credential_call_create_credential_finish (XDP_DBUS_EXPERIMENTAL_HANDLER_CREDENTIAL (source),
                                                          &response,
                                                          &results,
                                                          result,
@@ -191,7 +191,7 @@ handle_create_credential(XdpDbusExperimentalCredential *object,
 
   xdp_dbus_experimental_credential_complete_create_credential (object, invocation, request->id);
 
-  xdp_dbus_handler_experimental_credential_call_create_credential (credential->handler,
+  xdp_dbus_experimental_handler_credential_call_create_credential (credential->handler,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
@@ -215,7 +215,7 @@ get_credential_done (GObject *source,
   g_autoptr(GError) error = NULL;
   g_autoptr(GTask) task = NULL;
 
-  if (!xdp_dbus_handler_experimental_credential_call_get_credential_finish (XDP_DBUS_HANDLER_EXPERIMENTAL_CREDENTIAL (source),
+  if (!xdp_dbus_experimental_handler_credential_call_get_credential_finish (XDP_DBUS_EXPERIMENTAL_HANDLER_CREDENTIAL (source),
                                                          &response,
                                                          &results,
                                                          result,
@@ -285,7 +285,7 @@ handle_get_credential(XdpDbusExperimentalCredential *object,
 
   xdp_dbus_experimental_credential_complete_get_credential (object, invocation, request->id);
 
-  xdp_dbus_handler_experimental_credential_call_get_credential (credential->handler,
+  xdp_dbus_experimental_handler_credential_call_get_credential (credential->handler,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
@@ -328,7 +328,7 @@ credential_class_init (CredentialClass *klass)
 }
 
 static Credential *
-credentials_new (XdpDbusHandlerExperimentalCredential *handler)
+credentials_new (XdpDbusExperimentalHandlerCredential *handler)
 {
   Credential *credentials;
 
@@ -359,11 +359,11 @@ proxy_created_cb (GObject      *source_object,
 {
   g_debug("finishing Credential initialization");
   XdpContext *context = (XdpContext *)user_data;
-  g_autoptr(XdpDbusHandlerExperimentalCredential) impl = NULL;
+  g_autoptr(XdpDbusExperimentalHandlerCredential) impl = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(Credential) credentials = NULL;
 
-  impl = xdp_dbus_handler_experimental_credential_proxy_new_finish (result, &error);
+  impl = xdp_dbus_experimental_handler_credential_proxy_new_finish (result, &error);
   if (!impl)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
@@ -388,7 +388,7 @@ init_credentials (XdpContext *context,
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;
-  g_autoptr(XdpDbusHandlerExperimentalCredential) impl = NULL;
+  g_autoptr(XdpDbusExperimentalHandlerCredential) impl = NULL;
   g_autoptr(GError) error = NULL;
 
   impl_config = xdp_portal_config_find (config, CREDENTIALS_DBUS_IMPL_IFACE);
@@ -398,7 +398,7 @@ init_credentials (XdpContext *context,
     return;
   }
 
-  xdp_dbus_handler_experimental_credential_proxy_new (connection,
+  xdp_dbus_experimental_handler_credential_proxy_new (connection,
                                                  G_DBUS_PROXY_FLAGS_NONE,
                                                  impl_config->dbus_name,
                                                  DESKTOP_DBUS_PATH,
