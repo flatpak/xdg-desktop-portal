@@ -19,6 +19,7 @@
 
 #include "config.h"
 
+#include "glib.h"
 #include "xdp-app-info-registry.h"
 #include "xdp-utils.h"
 #include "xdp-dbus.h"
@@ -401,7 +402,6 @@ xdp_context_register (XdpContext       *context,
   init_location (context);
 #endif
   init_camera (context);
-  init_credential(context, context->cancellable);
   init_screenshot (context);
   init_background (context);
   init_wallpaper (context);
@@ -418,6 +418,14 @@ xdp_context_register (XdpContext       *context,
   init_usb (context);
 #endif
   init_registry (context);
+
+                                  
+  // TODO: define a syntax for this var
+  char *experimental_flags = getenv("XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL");
+  if (experimental_flags != NULL && strcmp (experimental_flags, "credential") == 0) {
+    g_debug ("Enabling experimental portal credential");
+    init_credential(context, context->cancellable);
+  }
 
   return TRUE;
 }
