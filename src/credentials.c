@@ -26,6 +26,7 @@
 
 #include "gio/gio.h"
 #include "glib.h"
+#include "glibconfig.h"
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
@@ -62,6 +63,21 @@ G_DEFINE_TYPE_WITH_CODE (CredentialsX,
 
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (CredentialsX, g_object_unref)
+
+static XdpOptionKey create_credential_options[] = {
+  { "handle_token", G_VARIANT_TYPE_STRING, NULL },
+  { "origin", G_VARIANT_TYPE_STRING, NULL },
+  { "top_origin", G_VARIANT_TYPE_STRING, NULL },
+  { "type", G_VARIANT_TYPE_STRING, NULL },
+  { "public_key", G_VARIANT_TYPE_STRING, NULL },
+};
+
+static XdpOptionKey get_credential_options[] = {
+  { "handle_token", G_VARIANT_TYPE_STRING, NULL },
+  { "origin", G_VARIANT_TYPE_STRING, NULL },
+  { "top_origin", G_VARIANT_TYPE_STRING, NULL },
+  { "public_key", G_VARIANT_TYPE_STRING, NULL },
+};
 
 static void
 send_response_in_thread_func (GTask *task,
@@ -127,9 +143,7 @@ static gboolean
 handle_create_credential(XdpDbusCredentialsX *object,
                         GDBusMethodInvocation *invocation,
                         const char *arg_parent_window,
-                        const char* arg_origin,
-                        const char* arg_top_origin,
-                        GVariant *arg_request,
+                        const char *arg_type,
                         GVariant *arg_options
 )
 {
@@ -137,7 +151,7 @@ handle_create_credential(XdpDbusCredentialsX *object,
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) handler_request = NULL;
   g_auto(GVariantBuilder) options =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
@@ -150,28 +164,28 @@ handle_create_credential(XdpDbusCredentialsX *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+  handler_request = xdp_dbus_impl_request_proxy_new_sync (
     g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->handler)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->handler)),
     request->id,
     NULL, &error);
 
-  if (!impl_request)
+  if (!handler_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!xdp_filter_options (arg_options, &options,
-                           NULL, 0,
+                           create_credential_options, G_N_ELEMENTS(create_credential_options),
                            NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
-  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_set_impl_request (request, handler_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_credentials_x_complete_create_credential (object, invocation, request->id);
@@ -180,9 +194,7 @@ handle_create_credential(XdpDbusCredentialsX *object,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
-                                             arg_origin,
-                                             arg_top_origin,
-                                             arg_request,
+                                             arg_type,
                                              g_variant_builder_end (&options),
                                              NULL,
                                              create_credential_done,
@@ -226,16 +238,13 @@ static gboolean
 handle_get_credential(XdpDbusCredentialsX *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_parent_window,
-                      const char* arg_origin,
-                      const char* arg_top_origin,
-                      GVariant *arg_request,
                       GVariant *arg_options)
 {
   CredentialsX *credentials = (CredentialsX *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
-  g_autoptr(XdpDbusImplRequest) impl_request = NULL;
+  g_autoptr(XdpDbusImplRequest) handler_request = NULL;
   g_auto(GVariantBuilder) options =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
 
@@ -248,21 +257,21 @@ handle_get_credential(XdpDbusCredentialsX *object,
 
   REQUEST_AUTOLOCK (request);
 
-  impl_request = xdp_dbus_impl_request_proxy_new_sync (
+  handler_request = xdp_dbus_impl_request_proxy_new_sync (
     g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->handler)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
     g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->handler)),
     request->id,
     NULL, &error);
 
-  if (!impl_request)
+  if (!handler_request)
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
       return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   if (!xdp_filter_options (arg_options, &options,
-                           NULL, 0,
+                           get_credential_options, G_N_ELEMENTS(get_credential_options),
                            NULL, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -270,7 +279,7 @@ handle_get_credential(XdpDbusCredentialsX *object,
     }
 
 
-  xdp_request_set_impl_request (request, impl_request);
+  xdp_request_set_impl_request (request, handler_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   xdp_dbus_credentials_x_complete_get_credential (object, invocation, request->id);
@@ -279,9 +288,6 @@ handle_get_credential(XdpDbusCredentialsX *object,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
-                                             arg_origin,
-                                             arg_top_origin,
-                                             arg_request,
                                              g_variant_builder_end (&options),
                                              NULL,
                                              get_credential_done,
