@@ -30,39 +30,40 @@
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
-#include "xdp-handler-dbus.h"
+#include "xdp-experimental-dbus.h"
+#include "xdp-experimental-handler-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
 
 #include "credentials.h"
 
-typedef struct _CredentialsX CredentialsX;
-typedef struct _CredentialsXClass CredentialsXClass;
+typedef struct _Credential Credential;
+typedef struct _CredentialClass CredentialClass;
 
-struct _CredentialsX
+struct _Credential
 {
-  XdpDbusCredentialsXSkeleton parent_instance;
+  XdpDbusExperimentalCredentialSkeleton parent_instance;
 
   XdpDbusHandlerExperimentalCredential *handler;
 };
 
-struct _CredentialsXClass
+struct _CredentialClass
 {
-  XdpDbusCredentialsXSkeletonClass parent_class;
+  XdpDbusExperimentalCredentialSkeletonClass parent_class;
 };
 
-GType credentials_x_get_type (void) G_GNUC_CONST;
-static void credentials_x_iface_init (XdpDbusCredentialsXIface *iface);
+GType credential_get_type (void) G_GNUC_CONST;
+static void credential_iface_init (XdpDbusExperimentalCredentialIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (CredentialsX,
-                         credentials_x,
-                         XDP_DBUS_TYPE_CREDENTIALS_X_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CREDENTIALS_X,
-                                                credentials_x_iface_init))
+G_DEFINE_TYPE_WITH_CODE (Credential,
+                         credential,
+                         XDP_DBUS_EXPERIMENTAL_TYPE_CREDENTIAL_SKELETON,
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_EXPERIMENTAL_TYPE_CREDENTIAL,
+                                                credential_iface_init))
 
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (CredentialsX, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (Credential, g_object_unref)
 
 static XdpOptionKey create_credential_options[] = {
   { "handle_token", G_VARIANT_TYPE_STRING, NULL },
@@ -140,14 +141,14 @@ create_credential_done (GObject *source,
 }
 
 static gboolean
-handle_create_credential(XdpDbusCredentialsX *object,
+handle_create_credential(XdpDbusExperimentalCredential *object,
                         GDBusMethodInvocation *invocation,
                         const char *arg_parent_window,
                         const char *arg_type,
                         GVariant *arg_options
 )
 {
-  CredentialsX *credentials = (CredentialsX *) object;
+  Credential *credential = (Credential *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -165,9 +166,9 @@ handle_create_credential(XdpDbusCredentialsX *object,
   REQUEST_AUTOLOCK (request);
 
   handler_request = xdp_dbus_impl_request_proxy_new_sync (
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->handler)),
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (credential->handler)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->handler)),
+    g_dbus_proxy_get_name (G_DBUS_PROXY (credential->handler)),
     request->id,
     NULL, &error);
 
@@ -188,9 +189,9 @@ handle_create_credential(XdpDbusCredentialsX *object,
   xdp_request_set_impl_request (request, handler_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_credentials_x_complete_create_credential (object, invocation, request->id);
+  xdp_dbus_experimental_credential_complete_create_credential (object, invocation, request->id);
 
-  xdp_dbus_handler_experimental_credential_call_create_credential (credentials->handler,
+  xdp_dbus_handler_experimental_credential_call_create_credential (credential->handler,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
@@ -235,12 +236,12 @@ get_credential_done (GObject *source,
 
 
 static gboolean
-handle_get_credential(XdpDbusCredentialsX *object,
+handle_get_credential(XdpDbusExperimentalCredential *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_parent_window,
                       GVariant *arg_options)
 {
-  CredentialsX *credentials = (CredentialsX *) object;
+  Credential *credential = (Credential *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
   const char *app_id = xdp_app_info_get_id (request->app_info);
   g_autoptr(GError) error = NULL;
@@ -258,9 +259,9 @@ handle_get_credential(XdpDbusCredentialsX *object,
   REQUEST_AUTOLOCK (request);
 
   handler_request = xdp_dbus_impl_request_proxy_new_sync (
-    g_dbus_proxy_get_connection (G_DBUS_PROXY (credentials->handler)),
+    g_dbus_proxy_get_connection (G_DBUS_PROXY (credential->handler)),
     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-    g_dbus_proxy_get_name (G_DBUS_PROXY (credentials->handler)),
+    g_dbus_proxy_get_name (G_DBUS_PROXY (credential->handler)),
     request->id,
     NULL, &error);
 
@@ -282,9 +283,9 @@ handle_get_credential(XdpDbusCredentialsX *object,
   xdp_request_set_impl_request (request, handler_request);
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
-  xdp_dbus_credentials_x_complete_get_credential (object, invocation, request->id);
+  xdp_dbus_experimental_credential_complete_get_credential (object, invocation, request->id);
 
-  xdp_dbus_handler_experimental_credential_call_get_credential (credentials->handler,
+  xdp_dbus_handler_experimental_credential_call_get_credential (credential->handler,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
@@ -297,56 +298,56 @@ handle_get_credential(XdpDbusCredentialsX *object,
 }
 
 static void
-credentials_x_iface_init (XdpDbusCredentialsXIface *iface)
+credential_iface_init (XdpDbusExperimentalCredentialIface *iface)
 {
   iface->handle_create_credential = handle_create_credential;
   iface->handle_get_credential = handle_get_credential;
 }
 
 static void
-credentials_x_dispose (GObject *object)
+credential_dispose (GObject *object)
 {
-  CredentialsX *credentials_x = (CredentialsX *) object;
+  Credential *credential = (Credential *) object;
 
-  g_clear_object (&credentials_x->handler);
+  g_clear_object (&credential->handler);
 
-  G_OBJECT_CLASS (credentials_x_parent_class)->dispose (object);
+  G_OBJECT_CLASS (credential_parent_class)->dispose (object);
 }
 
 static void
-credentials_x_init (CredentialsX *credential)
+credential_init (Credential *credential)
 {
 }
 
 static void
-credentials_x_class_init (CredentialsXClass *klass)
+credential_class_init (CredentialClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = credentials_x_dispose;
+  object_class->dispose = credential_dispose;
 }
 
-static CredentialsX *
+static Credential *
 credentials_new (XdpDbusHandlerExperimentalCredential *handler)
 {
-  CredentialsX *credentials;
+  Credential *credentials;
 
-  credentials = g_object_new (credentials_x_get_type (), NULL);
+  credentials = g_object_new (credential_get_type (), NULL);
   credentials->handler = g_object_ref (handler);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (credentials->handler), G_MAXINT);
 
-  xdp_dbus_credentials_x_set_conditional_create(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_conditional_get(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_hybrid_transport(XDP_DBUS_CREDENTIALS_X (credentials), TRUE);
-  xdp_dbus_credentials_x_set_passkey_platform_authenticator(XDP_DBUS_CREDENTIALS_X (credentials), TRUE);
-  xdp_dbus_credentials_x_set_user_verifying_platform_authenticator(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_related_origins(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_signal_all_accepted_credentials(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_signal_current_user_details(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
-  xdp_dbus_credentials_x_set_signal_unknown_credential(XDP_DBUS_CREDENTIALS_X (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_conditional_create(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_conditional_get(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_hybrid_transport(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), TRUE);
+  xdp_dbus_experimental_credential_set_passkey_platform_authenticator(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), TRUE);
+  xdp_dbus_experimental_credential_set_user_verifying_platform_authenticator(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_related_origins(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_signal_all_accepted_credentials(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_signal_current_user_details(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
+  xdp_dbus_experimental_credential_set_signal_unknown_credential(XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), FALSE);
 
-  xdp_dbus_credentials_x_set_version (XDP_DBUS_CREDENTIALS_X (credentials), 1);
+  xdp_dbus_experimental_credential_set_version (XDP_DBUS_EXPERIMENTAL_CREDENTIAL (credentials), 1);
 
   return credentials;
 }
@@ -356,11 +357,11 @@ proxy_created_cb (GObject      *source_object,
                   GAsyncResult *result,
                   gpointer      user_data)
 {
-  g_debug("finishing CredentialsX initialization");
+  g_debug("finishing Credential initialization");
   XdpContext *context = (XdpContext *)user_data;
   g_autoptr(XdpDbusHandlerExperimentalCredential) impl = NULL;
   g_autoptr(GError) error = NULL;
-  g_autoptr(CredentialsX) credentials = NULL;
+  g_autoptr(Credential) credentials = NULL;
 
   impl = xdp_dbus_handler_experimental_credential_proxy_new_finish (result, &error);
   if (!impl)
@@ -383,7 +384,7 @@ init_credentials (XdpContext *context,
                   GCancellable *cancellable)
 {
   g_info("Initializing Credentials Portal");
-  g_autoptr(CredentialsX) credentials = NULL;
+  g_autoptr(Credential) credentials = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   XdpImplConfig *impl_config;

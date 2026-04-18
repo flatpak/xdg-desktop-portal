@@ -9,7 +9,6 @@ portal_sources = files(
   'org.freedesktop.portal.Background.xml',
   'org.freedesktop.portal.Camera.xml',
   'org.freedesktop.portal.Clipboard.xml',
-  'org.freedesktop.portal.CredentialsX.xml',
   'org.freedesktop.portal.Documents.xml',
   'org.freedesktop.portal.DynamicLauncher.xml',
   'org.freedesktop.portal.Email.xml',
@@ -38,6 +37,10 @@ portal_sources = files(
   'org.freedesktop.portal.Trash.xml',
   'org.freedesktop.portal.Usb.xml',
   'org.freedesktop.portal.Wallpaper.xml',
+)
+
+portal_experimental_sources = files(
+  'org.freedesktop.portal.experimental.Credential.xml',
 )
 
 portal_host_sources = files(

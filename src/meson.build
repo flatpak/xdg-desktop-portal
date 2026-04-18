@@ -7,6 +7,13 @@ portal_built_sources = gnome.gdbus_codegen(
   namespace: 'XdpDbus',
   docbook: 'portal',
 )
+portal_experimental_built_sources = gnome.gdbus_codegen(
+  'xdp-experimental-dbus',
+  sources: portal_experimental_sources,
+  interface_prefix: 'org.freedesktop.portal.experimental',
+  namespace: 'XdpDbusExperimental',
+  docbook: 'portal',
+)
 host_built_sources = gnome.gdbus_codegen(
   'xdp-host-dbus',
   sources: portal_host_sources,
@@ -22,7 +29,7 @@ impl_built_sources = gnome.gdbus_codegen(
   docbook: 'portal',
 )
 handler_experimental_built_sources = gnome.gdbus_codegen(
-  'xdp-handler-dbus',
+  'xdp-experimental-handler-dbus',
   sources: portal_handler_experimental_sources,
   interface_prefix: 'org.freedesktop.handler.portal.experimental',
   namespace: 'XdpDbusHandlerExperimental',
@@ -63,7 +70,7 @@ built_resources = enums_sources + gnome.compile_resources(
 sd_escape_sources = files('sd-escape.c')
 
 xdp_method_info_built_sources = configure_file(
-  command: [find_program('generate-method-info.py'), portal_sources],
+  command: [find_program('generate-method-info.py'), portal_sources, portal_experimental_sources],
   capture: true,
   output: 'xdp-method-info-generated.c',
 )
@@ -136,6 +143,7 @@ xdg_desktop_portal_sources += [
   xdp_utils_sources,
   xdp_method_info_sources,
   portal_built_sources,
+  portal_experimental_built_sources,
   host_built_sources,
   impl_built_sources,
   handler_experimental_built_sources,
