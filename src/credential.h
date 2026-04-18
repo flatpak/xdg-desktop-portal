@@ -26,5 +26,5 @@
 #include "gio/gio.h"
 #include "xdp-types.h"
 
-void init_credentials (XdpContext *context, GCancellable *cancellable);
+void init_credential (XdpContext *context, GCancellable *cancellable);
 
