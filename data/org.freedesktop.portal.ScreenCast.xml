@@ -25,7 +25,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 5 of this interface.
+      This documentation describes version 6 of this interface.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
@@ -185,6 +185,16 @@
           node ID (the first element in the tuple, and a Vardict of
           properties.
 
+          Since version 6 of this interface, the node ID in the stream
+          tuple is deprecated for stream targeting. PipeWire node IDs can
+          be reused after node destruction, so active sessions may
+          misidentify streams across monitor hotplug, resolution or
+          refresh-rate changes, or suspend/resume cycles. Consumers should
+          prefer the ``pipewire-serial`` property from the stream
+          properties dict and ``PW_KEY_TARGET_OBJECT`` for connecting to
+          streams. Backends must continue to populate the node ID for
+          compatibility with clients that do not support version 6.
+
           The array will contain a single stream if 'multiple' (see
           org.freedesktop.portal.ScreenCast.SelectSources())
           was set to 'false', or at least one stream if
@@ -233,6 +243,16 @@
             device.
 
             This property was added in version 5 of this interface.
+
+          * ``pipewire-serial`` (``t``)
+
+            The PipeWire ``object.serial`` for this stream's node. Unlike the
+            node ID in the stream tuple (which can be reused after node
+            destruction), the serial is a monotonically increasing 64-bit
+            identifier that is never reused. Consumers should prefer the serial
+            for stream targeting via ``PW_KEY_TARGET_OBJECT`` when available.
+
+            This property was added in version 6 of this interface.
 
         * ``restore_token`` (``s``)
 
