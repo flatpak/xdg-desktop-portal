@@ -144,6 +144,7 @@ static gboolean
 handle_create_credential(XdpDbusExperimentalCredential *object,
                         GDBusMethodInvocation *invocation,
                         const char *arg_parent_window,
+                        const char *arg_origin,
                         const char *arg_type,
                         GVariant *arg_options
 )
@@ -195,6 +196,7 @@ handle_create_credential(XdpDbusExperimentalCredential *object,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
+                                             arg_origin,
                                              arg_type,
                                              g_variant_builder_end (&options),
                                              NULL,
@@ -239,6 +241,7 @@ static gboolean
 handle_get_credential(XdpDbusExperimentalCredential *object,
                       GDBusMethodInvocation *invocation,
                       const char *arg_parent_window,
+                      const char *arg_origin,
                       GVariant *arg_options)
 {
   Credential *credential = (Credential *) object;
@@ -289,6 +292,7 @@ handle_get_credential(XdpDbusExperimentalCredential *object,
                                              arg_parent_window,
                                              app_id,
                                              app_display_name,
+                                             arg_origin,
                                              g_variant_builder_end (&options),
                                              NULL,
                                              get_credential_done,
