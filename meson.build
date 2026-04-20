@@ -116,6 +116,15 @@ libglnx = subproject(
   ],
 )
 
+gvdb = subproject(
+  'gvdb',
+  default_options : [
+    'default_library=static',
+    'warning_level=1',
+    'tests=false',
+  ],
+)
+
 glib_dep = dependency('glib-2.0', version: '>= 2.76')
 gio_dep = dependency('gio-2.0')
 gio_unix_dep = dependency('gio-unix-2.0')
@@ -133,6 +142,7 @@ libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 libglnx_dep = dependency('libglnx')
+gvdb_dep = dependency('gvdb')
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()

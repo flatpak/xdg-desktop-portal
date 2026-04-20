@@ -35,8 +35,8 @@
 #endif
 
 #include "permission-db.h"
-#include "gvdb/gvdb-reader.h"
-#include "gvdb/gvdb-builder.h"
+#include <gvdb/gvdb-reader.h>
+#include <gvdb/gvdb-builder.h>
 
 struct PermissionDb
 {
@@ -773,7 +773,7 @@ permission_db_update (PermissionDb *self)
       gvdb_item_set_value (item, g_variant_builder_end (&builder));
     }
 
-  new_contents = gvdb_table_get_content (root, FALSE);
+  new_contents = gvdb_table_get_contents (root, FALSE);
   new_gvdb = gvdb_table_new_from_bytes (new_contents, TRUE, NULL);
 
   /* This was just created, any failure to parse it is purely an internal error */
