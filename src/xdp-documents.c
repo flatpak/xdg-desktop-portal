@@ -280,7 +280,7 @@ xdp_looks_like_document_portal_path (const char  *path,
 {
   g_autofree char *docid = NULL;
   g_autofree char *suffix_path = NULL;
-  char *p, *q;
+  const char *p, *q;
 
   if (!g_str_has_prefix (path, g_get_user_runtime_dir ()))
     return FALSE;
