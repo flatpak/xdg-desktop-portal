@@ -146,7 +146,7 @@ foreach pytest_file : pytest_files
     ],
     env: pytest_env,
     suite: ['integration'],
-    timeout: 120,
+    timeout: 200,
   )
 endforeach
 

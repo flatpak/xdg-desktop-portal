@@ -41,9 +41,6 @@ RUN apt install -y --no-install-recommends \
     python3-gi \
     shared-mime-info
 
-# Install meson
-RUN apt install -y --no-install-recommends meson
-
 # Install pytest
 RUN apt install -y --no-install-recommends \
     python3-pytest \
@@ -56,6 +53,11 @@ RUN apt install -y --no-install-recommends \
 
 # Install pip
 RUN apt install -y --no-install-recommends python3-pip
+
+# Install meson
+# To build glib we need a version of meson which is not in the repos
+# RUN apt install -y --no-install-recommends meson
+RUN pip install --prefix=/usr --break-system-packages meson">=1.4.0" ninja">=1.9.0"
 
 # Install latest a newer python-dbusmock required for our pytest setup
 # This is installed system-wide
@@ -70,3 +72,20 @@ RUN pip install --user --break-system-packages pre-commit
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
+
+# We need glib 2.88 which is not in the ubuntu-latest repos yet
+RUN git clone --depth 1 https://gitlab.gnome.org/GNOME/glib.git -b "2.88.0" && \
+    cd glib && \
+    meson setup build --prefix=/usr --libdir="lib/$(gcc -print-multiarch)" && \
+    meson install -C build && \
+    cd - && \
+    rm -rf glib
+
+# We need libdex 1.1 which is not in the ubuntu-latest repos yet
+RUN git clone --depth 1 https://gitlab.gnome.org/GNOME/libdex.git -b "1.1.0" && \
+    cd libdex && \
+    meson setup build --prefix=/usr --libdir="lib/$(gcc -print-multiarch)" \
+      -Dgdbus=enabled -D introspection=disabled -Dvapi=false && \
+    meson install -C build && \
+    cd - && \
+    rm -rf libdex
