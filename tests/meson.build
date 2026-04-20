@@ -14,7 +14,7 @@ subdir('dbs')
 test_permission_db = executable(
   'test-permission-db',
   ['test-permission-db.c'] + db_sources,
-  dependencies: [common_deps],
+  dependencies: [common_deps] + db_deps,
   include_directories: [common_includes],
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
