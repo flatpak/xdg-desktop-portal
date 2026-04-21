@@ -30,6 +30,12 @@
 #include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
 
+typedef enum _XdpEntitlementKind
+{
+  XDP_ENTITLEMENT_KIND_LEGACY,
+  XDP_ENTITLEMENT_KIND_DEFAULT,
+} XdpEntitlementKind;
+
 typedef enum _XdpAppInfoError
 {
   XDP_APP_INFO_ERROR_WRONG_APP_KIND,
@@ -96,3 +102,11 @@ gboolean xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                  GError     **error);
 
 const GPtrArray * xdp_app_info_get_usb_queries (XdpAppInfo *app_info);
+
+gboolean xdp_app_info_has_entitlement (XdpAppInfo         *app_info,
+                                       const char         *entitlement,
+                                       XdpEntitlementKind  kind);
+
+gboolean xdp_app_info_check_entitlements (XdpAppInfo  *app_info,
+                                          GError     **error,
+                                          ...) G_GNUC_NULL_TERMINATED;

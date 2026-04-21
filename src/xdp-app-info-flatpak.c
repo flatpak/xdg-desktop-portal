@@ -54,9 +54,27 @@ struct _XdpAppInfoFlatpak
 
   GKeyFile *flatpak_info;
   GPtrArray *queries;
+  GHashTable *entitlements;
+  gboolean enforce_strict_entitlements;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
+static GInitableIface *initable_parent_iface;
+
+static void g_initable_init_iface (GInitableIface *iface);
+
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpAppInfoFlatpak,
+                               xdp_app_info_flatpak,
+                               XDP_TYPE_APP_INFO,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface));
+
+enum
+{
+  PROP_0,
+  PROP_FLATPAK_INFO,
+  N_PROPS
+};
+
+static GParamSpec *properties[N_PROPS];
 
 static gboolean
 is_valid_initial_name_character (gint c, gboolean allow_dash)
@@ -375,50 +393,6 @@ xdp_app_info_flaptak_get_usb_queries (XdpAppInfo *app_info)
 {
   XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
 
-  if (!app_info_flatpak->queries)
-    {
-      g_autoptr(GPtrArray) usb_queries = NULL;
-
-      usb_queries = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
-
-      g_auto(GStrv) enumerable_devices = NULL;
-      g_auto(GStrv) hidden_devices = NULL;
-
-      enumerable_devices = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
-                                                       "USB Devices",
-                                                       "enumerable-devices",
-                                                       NULL, NULL);
-
-      for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
-        {
-          g_autoptr(XdpUsbQuery) query =
-            xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, enumerable_devices[i]);
-
-          if (query)
-            g_ptr_array_add (usb_queries, g_steal_pointer (&query));
-        }
-
-      hidden_devices = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
-                                                   "USB Devices",
-                                                   "hidden-devices",
-                                                   NULL, NULL);
-
-      for (size_t i = 0; hidden_devices && hidden_devices[i] != NULL; i++)
-        {
-          g_autoptr(XdpUsbQuery) query =
-            xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_HIDDEN, hidden_devices[i]);
-
-          if (query)
-            g_ptr_array_add (usb_queries, g_steal_pointer (&query));
-        }
-
-      g_debug ("Found %d enumerable and %d hidden for app %s",
-               enumerable_devices ? g_strv_length (enumerable_devices) : 0,
-               hidden_devices ? g_strv_length (hidden_devices) : 0,
-               xdp_app_info_get_id (app_info));
-      app_info_flatpak->queries = g_steal_pointer (&usb_queries);
-    }
-
   return app_info_flatpak->queries;
 }
 
@@ -482,6 +456,150 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static gboolean
+xdp_app_info_flatpak_has_entitlement (XdpAppInfo         *app_info,
+                                      const char         *entitlement,
+                                      XdpEntitlementKind  kind)
+{
+  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
+
+  if (kind == XDP_ENTITLEMENT_KIND_LEGACY &&
+      !app_info_flatpak->enforce_strict_entitlements)
+    return TRUE;
+
+  return g_hash_table_contains (app_info_flatpak->entitlements, entitlement);
+}
+
+static GPtrArray *
+get_usb_queries (GKeyFile *flatpak_info)
+{
+  g_autoptr(GPtrArray) usb_queries = NULL;
+  g_auto(GStrv) enumerable_devices = NULL;
+  g_auto(GStrv) hidden_devices = NULL;
+
+  usb_queries = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  enumerable_devices = g_key_file_get_string_list (flatpak_info,
+                                                   "USB Devices",
+                                                   "enumerable-devices",
+                                                   NULL, NULL);
+
+  for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, enumerable_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  hidden_devices = g_key_file_get_string_list (flatpak_info,
+                                               "USB Devices",
+                                               "hidden-devices",
+                                               NULL, NULL);
+
+  for (size_t i = 0; hidden_devices && hidden_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_HIDDEN, hidden_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  return g_steal_pointer (&usb_queries);
+}
+
+static GHashTable *
+get_entitlements (GKeyFile *flatpak_info)
+{
+  g_autoptr(GHashTable) result = NULL;
+  g_auto(GStrv) entitlements = NULL;
+
+  result = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                  g_free,
+                                  NULL);
+
+  entitlements = g_key_file_get_string_list (flatpak_info,
+                                             "Policy entitlement",
+                                             "grant",
+                                             NULL,
+                                             NULL);
+
+  for (size_t i = 0; entitlements && entitlements[i]; i++)
+    g_hash_table_add (result, g_strdup (entitlements[i]));
+
+  return g_steal_pointer (&result);
+}
+
+static gboolean
+get_enforce_strict_entitlements (GKeyFile *flatpak_info)
+{
+  g_auto(GStrv) enforce = NULL;
+
+  enforce = g_key_file_get_string_list (flatpak_info,
+                                        "Policy entitlement",
+                                        "enforce",
+                                        NULL,
+                                        NULL);
+
+  return enforce && g_strv_contains ((const char * const *) enforce, "strict");
+}
+
+static gboolean
+xdp_app_info_flatpak_initable_init (GInitable     *initable,
+                                    GCancellable  *cancellable,
+                                    GError       **error)
+{
+  XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (initable);
+
+  app_info->queries = get_usb_queries (app_info->flatpak_info);
+  app_info->entitlements = get_entitlements (app_info->flatpak_info);
+  app_info->enforce_strict_entitlements =
+    get_enforce_strict_entitlements (app_info->flatpak_info);
+
+  return initable_parent_iface->init (initable, cancellable, error);
+}
+
+static void
+xdp_app_info_flatpak_get_property (GObject    *object,
+                                   guint       prop_id,
+                                   GValue     *value,
+                                   GParamSpec *pspec)
+{
+  XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
+
+  switch (prop_id)
+    {
+    case PROP_FLATPAK_INFO:
+      g_value_set_pointer (value, app_info->flatpak_info);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
+static void
+xdp_app_info_flatpak_set_property (GObject      *object,
+                                   guint         prop_id,
+                                   const GValue *value,
+                                   GParamSpec   *pspec)
+{
+  XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
+
+  switch (prop_id)
+    {
+    case PROP_FLATPAK_INFO:
+      g_assert (app_info->flatpak_info == NULL);
+      app_info->flatpak_info = g_value_get_pointer (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    }
+}
+
 static void
 xdp_app_info_flatpak_dispose (GObject *object)
 {
@@ -489,6 +607,7 @@ xdp_app_info_flatpak_dispose (GObject *object)
 
   g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
   g_clear_pointer (&app_info->queries, g_ptr_array_unref);
+  g_clear_pointer (&app_info->entitlements, g_hash_table_unref);
 
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
@@ -500,6 +619,8 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
   XdpAppInfoClass *app_info_class = XDP_APP_INFO_CLASS (klass);
 
   object_class->dispose = xdp_app_info_flatpak_dispose;
+  object_class->get_property = xdp_app_info_flatpak_get_property;
+  object_class->set_property = xdp_app_info_flatpak_set_property;
 
   app_info_class->remap_path =
     xdp_app_info_flatpak_remap_path;
@@ -511,6 +632,24 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
     xdp_app_info_flatpak_validate_dynamic_launcher;
   app_info_class->is_valid_sub_app_id =
     xdp_app_info_flatpak_is_valid_sub_app_id;
+  app_info_class->has_entitlement =
+    xdp_app_info_flatpak_has_entitlement;
+
+  properties[PROP_FLATPAK_INFO] =
+    g_param_spec_pointer ("flatpak-info", NULL, NULL,
+                          G_PARAM_READWRITE |
+                          G_PARAM_CONSTRUCT_ONLY |
+                          G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, N_PROPS, properties);
+}
+
+static void
+g_initable_init_iface (GInitableIface *iface)
+{
+  initable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->init = xdp_app_info_flatpak_initable_init;
 }
 
 static void
@@ -764,9 +903,8 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
                                      "id", id,
                                      "instance", instance,
                                      "sender", sender,
+                                     "flatpak-info", g_steal_pointer (&metadata),
                                      NULL);
-
-  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }
@@ -899,11 +1037,10 @@ xdp_app_info_flatpak_new (const char  *sender,
                                      "instance", instance,
                                      "pidfd", g_steal_fd (&bwrap_pidfd),
                                      "sender", sender,
+                                     "flatpak-info", g_steal_pointer (&metadata),
                                      NULL);
   if (!app_info_flatpak)
     return NULL;
-
-  app_info_flatpak->flatpak_info = g_steal_pointer (&metadata);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_flatpak));
 }

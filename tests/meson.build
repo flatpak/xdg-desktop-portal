@@ -89,6 +89,7 @@ pytest_files = [
   'test_document_fuse.py',
   'test_dynamiclauncher.py',
   'test_email.py',
+  'test_entitlements.py',
   'test_filechooser.py',
   'test_globalshortcuts.py',
   'test_inhibit.py',
