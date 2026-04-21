@@ -56,7 +56,7 @@ struct _XdpPortalConfig
   GPtrArray *configs; /* PortalConfig */
 };
 
-G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT);
 
 #define XDP_SUBDIR "xdg-desktop-portal"
 

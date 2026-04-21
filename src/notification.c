@@ -118,7 +118,7 @@ struct _CallData {
   GUnixFDList *out_fd_list;
 };
 
-G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
+G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject);
 G_DEFINE_TYPE (CallData, call_data, G_TYPE_OBJECT);
 
 static void

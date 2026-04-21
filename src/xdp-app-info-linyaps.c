@@ -48,7 +48,7 @@ struct _XdpAppInfoLinyaps
   GKeyFile *container_info;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoLinyaps, xdp_app_info_linyaps, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoLinyaps, xdp_app_info_linyaps, XDP_TYPE_APP_INFO);
 
 static XdpAppInfo *
 xdp_app_info_linyaps_new_testing (const char *sender,

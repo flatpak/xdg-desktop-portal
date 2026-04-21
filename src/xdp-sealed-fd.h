@@ -25,7 +25,7 @@
 G_DECLARE_FINAL_TYPE (XdpSealedFd,
                       xdp_sealed_fd,
                       XDP, SEALED_FD,
-                      GObject)
+                      GObject);
 
 XdpSealedFd * xdp_sealed_fd_new_take_memfd (int           memfd,
                                             GError      **error);

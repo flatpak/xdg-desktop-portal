@@ -34,7 +34,7 @@ struct _XdpAppInfoHost
   GPtrArray *usb_queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO);
 
 static const GPtrArray *
 xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)

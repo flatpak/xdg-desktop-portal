@@ -41,7 +41,7 @@ struct _XdpAppInfoSnap
   char *desktop_file;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO);
 
 enum
 {

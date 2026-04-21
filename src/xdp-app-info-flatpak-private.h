@@ -30,7 +30,7 @@ struct _XdpAppInfoFlatpakClass
 G_DECLARE_FINAL_TYPE (XdpAppInfoFlatpak,
                       xdp_app_info_flatpak,
                       XDP, APP_INFO_FLATPAK,
-                      XdpAppInfo)
+                      XdpAppInfo);
 
 XdpAppInfo * xdp_app_info_flatpak_new (const char  *sender,
                                        int          pid,

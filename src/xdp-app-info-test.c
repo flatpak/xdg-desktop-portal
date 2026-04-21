@@ -30,7 +30,7 @@ struct _XdpAppInfoTest
   GPtrArray *usb_queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoTest, xdp_app_info_test, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoTest, xdp_app_info_test, XDP_TYPE_APP_INFO);
 
 static gboolean
 xdp_app_info_test_validate_autostart (XdpAppInfo          *app_info,

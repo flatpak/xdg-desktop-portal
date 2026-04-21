@@ -42,7 +42,7 @@ GQuark xdp_app_info_error_quark (void);
 G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           xdp_app_info,
                           XDP, APP_INFO,
-                          GObject)
+                          GObject);
 
 XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
                                                    GCancellable           *cancellable,

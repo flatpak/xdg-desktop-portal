@@ -80,7 +80,7 @@ static void g_initable_init_iface (GInitableIface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
                                   G_ADD_PRIVATE (XdpAppInfo)
-                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface));
 
 enum
 {
