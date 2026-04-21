@@ -1783,7 +1783,7 @@ ensure_doc_inode (XdpInode   *parent,
   return g_steal_pointer (&inode);
 }
 
-static gboolean
+static void
 invalidate_dentry_cb (gpointer user_data)
 {
   GList *to_invalidate = NULL;
@@ -1804,8 +1804,6 @@ invalidate_dentry_cb (gpointer user_data)
     }
 
   g_list_free (to_invalidate);
-
-  return G_SOURCE_REMOVE;
 }
 
 /* Queue an inval_dentry, thereby freeing unused inodes in the dcache
@@ -1829,7 +1827,7 @@ queue_invalidate_dentry (XdpInode   *parent,
   strcpy (data->name, name);
 
   if (invalidate_list == NULL)
-    g_timeout_add (10, invalidate_dentry_cb, NULL);
+    g_timeout_add_once (10, invalidate_dentry_cb, NULL);
 
   invalidate_list = g_list_append (invalidate_list, data);
 }
