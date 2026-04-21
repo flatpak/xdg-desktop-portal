@@ -110,6 +110,7 @@ endforeach
 libglnx = subproject(
   'libglnx',
   default_options : [
+    'default_library=static',
     'warning_level=1',
     'tests=false',
   ],
