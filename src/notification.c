@@ -120,7 +120,7 @@ struct _CallData {
 };
 
 G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject);
-G_DEFINE_TYPE (CallData, call_data, G_TYPE_OBJECT);
+G_DEFINE_FINAL_TYPE (CallData, call_data, G_TYPE_OBJECT);
 
 static void
 call_data_init (CallData *call_data)
