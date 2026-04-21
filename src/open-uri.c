@@ -442,7 +442,7 @@ resolve_scheme_and_content_type (const char *uri,
   if (*scheme == NULL)
     return;
 
-  if (strcmp (*scheme, "file") == 0)
+  if (g_strcmp0 (*scheme, "file") == 0)
     {
       g_debug ("Not handling file uri %s", uri);
       return;

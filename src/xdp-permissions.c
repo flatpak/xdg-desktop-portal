@@ -76,11 +76,11 @@ xdp_permissions_to_tristate (char **permissions)
       return XDP_PERMISSION_UNSET;
     }
 
-  if (strcmp (permissions[0], "yes") == 0)
+  if (g_strcmp0 (permissions[0], "yes") == 0)
     return XDP_PERMISSION_YES;
-  else if (strcmp (permissions[0], "no") == 0)
+  else if (g_strcmp0 (permissions[0], "no") == 0)
     return XDP_PERMISSION_NO;
-  else if (strcmp (permissions[0], "ask") == 0)
+  else if (g_strcmp0 (permissions[0], "ask") == 0)
     return XDP_PERMISSION_ASK;
   else
     {

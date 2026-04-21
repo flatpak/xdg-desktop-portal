@@ -165,9 +165,9 @@ _xdp_app_info_snap_parse_cgroup_file (FILE     *f,
 
       /* Only consider the freezer, systemd group or unified cgroup
        * hierarchies */
-      if ((strcmp (controller, "freezer:") == 0 ||
-           strcmp (controller, "name=systemd:") == 0 ||
-           strcmp (controller, ":") == 0) &&
+      if ((g_strcmp0 (controller, "freezer:") == 0 ||
+           g_strcmp0 (controller, "name=systemd:") == 0 ||
+           g_strcmp0 (controller, ":") == 0) &&
           strstr (cgroup, "/snap.") != NULL)
         {
           *is_snap = TRUE;

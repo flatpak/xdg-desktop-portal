@@ -424,7 +424,7 @@ check_choice (GVariant *choice,
           return FALSE;
         }
 
-      if (strcmp (o_id, option) == 0)
+      if (g_strcmp0 (o_id, option) == 0)
         seen_option = TRUE;
     }
 
