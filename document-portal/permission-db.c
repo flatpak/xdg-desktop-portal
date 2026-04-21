@@ -78,6 +78,8 @@ enum {
   LAST_PROP
 };
 
+static GParamSpec *props[LAST_PROP] = { NULL, };
+
 static int
 cmpstringp (const void *p1, const void *p2)
 {
@@ -213,18 +215,16 @@ permission_db_class_init (PermissionDbClass *klass)
   object_class->get_property = permission_db_get_property;
   object_class->set_property = permission_db_set_property;
 
-  g_object_class_install_property (object_class,
-                                   PROP_PATH,
-                                   g_param_spec_string ("path",
+  props[PROP_PATH] = g_param_spec_string ("path",
+                                          NULL, NULL,
+                                          NULL,
+                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+  props[PROP_FAIL_IF_NOT_FOUND] = g_param_spec_boolean ("fail-if-not-found",
                                                         NULL, NULL,
-                                                        NULL,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
-  g_object_class_install_property (object_class,
-                                   PROP_FAIL_IF_NOT_FOUND,
-                                   g_param_spec_boolean ("fail-if-not-found",
-                                                         NULL, NULL,
-                                                         TRUE,
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                                                        TRUE,
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, LAST_PROP, props);
 }
 
 static void
