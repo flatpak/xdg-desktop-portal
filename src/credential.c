@@ -363,12 +363,12 @@ proxy_created_cb (GObject      *source_object,
 {
   g_debug("finishing Credential initialization");
   XdpContext *context = (XdpContext *)user_data;
-  g_autoptr(XdpDbusExperimentalHandlerCredential) impl = NULL;
+  g_autoptr(XdpDbusExperimentalHandlerCredential) handler = NULL;
   g_autoptr(GError) error = NULL;
   g_autoptr(Credential) credential = NULL;
 
-  impl = xdp_dbus_experimental_handler_credential_proxy_new_finish (result, &error);
-  if (!impl)
+  handler = xdp_dbus_experimental_handler_credential_proxy_new_finish (result, &error);
+  if (!handler)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
         g_warning ("Failed to create credential proxy: %s", error->message);
@@ -377,7 +377,7 @@ proxy_created_cb (GObject      *source_object,
 
   context = XDP_CONTEXT (user_data);
 
-  credential = credential_new (impl);
+  credential = credential_new (handler);
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&credential)),
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
