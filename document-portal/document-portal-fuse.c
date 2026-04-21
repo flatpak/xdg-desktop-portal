@@ -1822,9 +1822,10 @@ queue_invalidate_dentry (XdpInode   *parent,
         return;
     }
 
-  XdpInvalidateData *data = g_malloc0 (sizeof (XdpInvalidateData) + strlen (name) + 1);
+  size_t name_buf_size = strlen (name) + 1;
+  XdpInvalidateData *data = g_malloc0 (sizeof (XdpInvalidateData) + name_buf_size);
   data->parent_ino = parent->ino;
-  strcpy (data->name, name);
+  memcpy (data->name, name, name_buf_size);
 
   if (invalidate_list == NULL)
     g_timeout_add_once (10, invalidate_dentry_cb, NULL);
