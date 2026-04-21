@@ -207,14 +207,6 @@ file_transfer_start (XdpAppInfo *app_info,
 }
 
 static void
-stop (gpointer data)
-{
-  FileTransfer *transfer = data;
-
-  g_object_unref (transfer);
-}
-
-static void
 file_transfer_stop (FileTransfer *transfer)
 {
   GDBusConnection *bus;
@@ -236,7 +228,8 @@ file_transfer_stop (FileTransfer *transfer)
   g_hash_table_steal (transfers, transfer->key);
   G_UNLOCK (transfers);
 
-  g_idle_add_once (stop, transfer);
+  /* goblint-ignore-next-line: g_source_id_not_stored */
+  g_idle_add_once (g_object_unref, g_steal_pointer (&transfer));
 }
 
 static void
