@@ -1130,6 +1130,7 @@ notification_handle_add_notification (XdpDbusNotification   *object,
                              notification_data,
                              in_fd_list);
   task = g_task_new (notification, NULL, add_finished_cb, NULL);
+  g_task_set_source_tag (task, notification_handle_add_notification);
   g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
 

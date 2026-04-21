@@ -717,6 +717,7 @@ handle_start (XdpDbusLocation *object,
   xdp_dbus_location_complete_start (object, invocation, request->id);
 
   task = g_task_new (location, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_start);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_start_in_thread_func);
 

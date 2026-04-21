@@ -318,6 +318,7 @@ handle_set_wallpaper_uri (XdpDbusWallpaper *object,
   xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_set_wallpaper_uri);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 
@@ -357,6 +358,7 @@ handle_set_wallpaper_file (XdpDbusWallpaper *object,
   xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_set_wallpaper_file);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 

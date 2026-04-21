@@ -770,6 +770,7 @@ monitor_background (Background *background)
                                          background->cancellable,
                                          on_monitor_background_done,
                                          NULL);
+  g_task_set_source_tag (background->monitor_task, monitor_background);
   g_task_set_return_on_cancel (background->monitor_task, TRUE);
   g_task_run_in_thread (background->monitor_task, monitor_background_in_thread);
 }
@@ -1147,6 +1148,7 @@ handle_request_background (XdpDbusBackground *object,
   xdp_dbus_background_complete_request_background (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_request_background);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_request_background_in_thread_func);
 
@@ -1339,6 +1341,7 @@ handle_set_status (XdpDbusBackground     *object,
                           (GDestroyNotify) g_variant_unref);
 
   task = g_task_new (object, NULL, set_status_finished_cb, NULL);
+  g_task_set_source_tag (task, handle_set_status);
   g_task_set_task_data (task, g_object_ref (invocation), g_object_unref);
   g_task_run_in_thread (task, handle_set_status_in_thread_func);
 

@@ -603,6 +603,7 @@ stop_file_transfers_for_sender (const char *sender)
   g_autoptr(GTask) task = NULL;
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, stop_file_transfers_for_sender);
   g_task_set_task_data (task, g_strdup (sender), g_free);
   g_task_run_in_thread (task, stop_file_transfers_in_thread_func);
 }
