@@ -523,25 +523,6 @@ permission_db_lookup (PermissionDb  *self,
   return (PermissionDbEntry *) res;
 }
 
-static gboolean
-permission_entry_equal (PermissionDbEntry *entry,
-                        gpointer           user_data)
-{
-  g_autoptr(GVariant) entry_data = NULL;
-  GVariant *data = user_data;
-
-  entry_data = permission_db_entry_get_data (entry);
-  return g_variant_equal (entry_data, data);
-}
-
-/* Transfer: full */
-char **
-permission_db_list_ids_by_value (PermissionDb *self,
-                                 GVariant     *data)
-{
-  return permission_db_filter_ids (self, permission_entry_equal, data);
-}
-
 /* Transfer: full */
 char **
 permission_db_filter_ids (PermissionDb           *self,

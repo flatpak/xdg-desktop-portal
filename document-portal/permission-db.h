@@ -49,8 +49,6 @@ char **        permission_db_list_ids (PermissionDb *self);
 char **        permission_db_list_apps (PermissionDb *self);
 char **        permission_db_list_ids_by_app (PermissionDb  *self,
                                               const char *app);
-char **        permission_db_list_ids_by_value (PermissionDb *self,
-                                                GVariant  *data);
 char **        permission_db_filter_ids (PermissionDb           *self,
                                          PermissionDbLookupFunc  func,
                                          gpointer                user_data);
