@@ -614,7 +614,7 @@ xdp_spawn (GError     **error,
            const char  *argv0,
            ...)
 {
-  GPtrArray *args;
+  g_autoptr(GPtrArray) args = NULL;
   const char *arg;
   va_list ap;
   char *output;
@@ -628,8 +628,6 @@ xdp_spawn (GError     **error,
   va_end (ap);
 
   output = xdp_spawn_full ((const char * const *) args->pdata, -1, -1, error);
-
-  g_ptr_array_free (args, TRUE);
 
   return output;
 }

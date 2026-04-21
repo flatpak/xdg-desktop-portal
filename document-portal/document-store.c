@@ -10,9 +10,7 @@
 const char **
 xdg_unparse_permissions (DocumentPermissionFlags permissions)
 {
-  GPtrArray *array;
-
-  array = g_ptr_array_new ();
+  g_autoptr(GPtrArray) array = g_ptr_array_new ();
 
   if (permissions & DOCUMENT_PERMISSION_FLAGS_READ)
     g_ptr_array_add (array, "read");
@@ -24,7 +22,7 @@ xdg_unparse_permissions (DocumentPermissionFlags permissions)
     g_ptr_array_add (array, "delete");
 
   g_ptr_array_add (array, NULL);
-  return (const char **) g_ptr_array_free (array, FALSE);
+  return (const char **) g_ptr_array_steal (array, NULL);
 }
 
 DocumentPermissionFlags
