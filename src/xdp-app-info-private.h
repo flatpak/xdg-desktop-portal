@@ -19,9 +19,8 @@
 
 #pragma once
 
-#include "xdp-utils.h"
-
 #include "xdp-app-info.h"
+#include "xdp-utils.h"
 
 typedef enum _XdpAppInfoFlags
 {

@@ -20,21 +20,22 @@
 
 #include "config.h"
 
-#include <gio/gunixfdlist.h>
+#include "remote-desktop.h"
+
 #include <stdint.h>
 
-#include "screen-cast.h"
+#include <gio/gunixfdlist.h>
+
 #include "pipewire.h"
+#include "screen-cast.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
-#include "xdp-session.h"
 #include "xdp-session-persistence.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "remote-desktop.h"
 
 typedef struct _RemoteDesktop RemoteDesktop;
 typedef struct _RemoteDesktopClass RemoteDesktopClass;

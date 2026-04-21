@@ -19,13 +19,14 @@
 
 #include "config.h"
 
+#include "xdp-app-info-snap-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
+
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
-
-#include "xdp-app-info-snap-private.h"
 
 #define SNAP_ENGINE_ID "io.snapcraft"
 

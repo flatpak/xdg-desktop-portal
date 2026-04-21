@@ -22,13 +22,14 @@
 
 #include "config.h"
 
+#include "xdp-app-info-linyaps-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
+
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
-
-#include "xdp-app-info-linyaps-private.h"
 
 #define LINYAPS_ENGINE_ID "cn.org.linyaps"
 

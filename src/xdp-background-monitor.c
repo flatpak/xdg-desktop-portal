@@ -18,9 +18,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "xdp-utils.h"
-
 #include "xdp-background-monitor.h"
+
+#include "xdp-utils.h"
 
 #define BACKGROUND_MONITOR_DBUS_NAME "org.freedesktop.background.Monitor"
 #define BACKGROUND_MONITOR_DBUS_PATH "/org/freedesktop/background/monitor"

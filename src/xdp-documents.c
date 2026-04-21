@@ -23,20 +23,20 @@
 
 #include "config.h"
 
-#include <errno.h>
+#include "xdp-documents.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include "document-enums.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-#include "xdp-documents.h"
-#include "document-enums.h"
 
 #define DOCUMENT_PORTAL_DBUS_NAME "org.freedesktop.portal.Documents"
 #define DOCUMENT_PORTAL_DBUS_PATH "/org/freedesktop/portal/documents"

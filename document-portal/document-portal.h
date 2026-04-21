@@ -22,8 +22,12 @@
 
 #pragma once
 
+#include <sys/stat.h>
+
 #include <gio/gio.h>
+
 #include "document-enums.h"
+#include "xdp-types.h"
 
 typedef enum {
       VALIDATE_FD_FILE_TYPE_REGULAR,

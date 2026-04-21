@@ -22,9 +22,9 @@
 
 #include "config.h"
 
-#include <string.h>
-
 #include "xdp-permissions.h"
+
+#include <string.h>
 
 #define PERMISSION_STORE_DBUS_NAME "org.freedesktop.impl.portal.PermissionStore"
 #define PERMISSION_STORE_DBUS_PATH "/org/freedesktop/impl/portal/PermissionStore"

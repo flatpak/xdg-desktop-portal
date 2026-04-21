@@ -2,9 +2,9 @@
 
 #include <glib.h>
 
+#include "xdp-app-info-host-private.h"
 #include "xdp-app-info-private.h"
 #include "xdp-app-info-snap-private.h"
-#include "xdp-app-info-host-private.h"
 #include "xdp-utils.h"
 
 #define snap_parse_cgroup _xdp_app_info_snap_parse_cgroup_file

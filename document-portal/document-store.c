@@ -1,8 +1,11 @@
 #include "config.h"
-#include <string.h>
-#include <errno.h>
-#include <gio/gio.h>
+
 #include "document-store.h"
+
+#include <errno.h>
+#include <string.h>
+
+#include <gio/gio.h>
 
 const char **
 xdg_unparse_permissions (DocumentPermissionFlags permissions)
