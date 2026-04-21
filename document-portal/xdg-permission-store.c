@@ -509,7 +509,7 @@ void
 xdg_permission_store_start (GDBusConnection *connection)
 {
   XdgPermissionStore *store;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_debug ("Starting permission store");
 
@@ -533,8 +533,5 @@ xdg_permission_store_start (GDBusConnection *connection)
                                          connection,
                                          "/org/freedesktop/impl/portal/PermissionStore",
                                          &error))
-    {
-      g_warning ("error: %s", error->message);
-      g_error_free (error);
-    }
+    g_warning ("error: %s", error->message);
 }

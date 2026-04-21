@@ -263,7 +263,7 @@ initable_init (GInitable    *initable,
                GError      **error)
 {
   PermissionDb *self = (PermissionDb *) initable;
-  GError *my_error = NULL;
+  g_autoptr(GError) my_error = NULL;
 
   if (self->path == NULL)
     return TRUE;
@@ -288,13 +288,9 @@ initable_init (GInitable    *initable,
 
   if (self->gvdb_contents == NULL)
     {
-      if (!self->fail_if_not_found &&
-          (g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT) ||
-           g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)))
-        {
-          g_error_free (my_error);
-        }
-      else
+      if (self->fail_if_not_found ||
+          (!g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT) &&
+           !g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)))
         {
           g_propagate_error (error, g_steal_pointer (&my_error));
           return FALSE;
