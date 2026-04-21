@@ -89,7 +89,7 @@ typedef struct
 
 static GType file_transfer_get_type (void);
 
-G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT)
+G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (FileTransfer, g_object_unref);
 

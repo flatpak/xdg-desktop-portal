@@ -91,7 +91,7 @@ struct _XdpContext
 
 G_DEFINE_FINAL_TYPE (XdpContext,
                      xdp_context,
-                     G_TYPE_OBJECT)
+                     G_TYPE_OBJECT);
 
 static void
 xdp_context_dispose (GObject *object)

@@ -75,7 +75,7 @@ struct _ScreenCastStream
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
                          XDP_DBUS_TYPE_SCREEN_CAST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREEN_CAST,
-                                                screen_cast_iface_init))
+                                                screen_cast_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ScreenCast, g_object_unref)
 

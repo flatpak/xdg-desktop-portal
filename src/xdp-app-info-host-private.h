@@ -30,7 +30,7 @@ struct _XdpAppInfoHostClass
 G_DECLARE_FINAL_TYPE (XdpAppInfoHost,
                       xdp_app_info_host,
                       XDP, APP_INFO_HOST,
-                      XdpAppInfo)
+                      XdpAppInfo);
 
 XdpAppInfo * xdp_app_info_host_new (const char *sender,
                                     int         pid,

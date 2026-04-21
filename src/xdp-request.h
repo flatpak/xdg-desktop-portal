@@ -51,7 +51,7 @@ struct _XdpRequestClass
 G_DECLARE_FINAL_TYPE (XdpRequest,
                       xdp_request,
                       XDP, REQUEST,
-                      XdpDbusRequestSkeleton)
+                      XdpDbusRequestSkeleton);
 
 #define REQUEST_AUTOLOCK(request) \
   G_MUTEX_AUTO_LOCK (&request->mutex, G_PASTE (request_auto_locker, __LINE__));

@@ -33,7 +33,7 @@ struct _XdpAppInfoLinyapsClass
 G_DECLARE_FINAL_TYPE (XdpAppInfoLinyaps,
                       xdp_app_info_linyaps,
                       XDP, APP_INFO_LINYAPS,
-                      XdpAppInfo)
+                      XdpAppInfo);
 
 XdpAppInfo * xdp_app_info_linyaps_new (const char *sender,
                                        int         pid,

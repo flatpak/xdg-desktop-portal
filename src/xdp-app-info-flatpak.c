@@ -56,7 +56,7 @@ struct _XdpAppInfoFlatpak
   GPtrArray *queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO);
 
 static gboolean
 is_valid_initial_name_character (gint c, gboolean allow_dash)

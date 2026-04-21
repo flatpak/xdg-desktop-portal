@@ -30,7 +30,7 @@ struct _XdpAppInfoSnapClass
 G_DECLARE_FINAL_TYPE (XdpAppInfoSnap,
                       xdp_app_info_snap,
                       XDP, APP_INFO_SNAP,
-                      XdpAppInfo)
+                      XdpAppInfo);
 
 XdpAppInfo * xdp_app_info_snap_new (const char  *sender,
                                     int          pid,

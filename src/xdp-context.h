@@ -33,7 +33,7 @@ typedef enum _XdpContextExportFlags
 G_DECLARE_FINAL_TYPE (XdpContext,
                       xdp_context,
                       XDP, CONTEXT,
-                      GObject)
+                      GObject);
 
 XdpContext * xdp_context_new (gboolean opt_verbose);
 
