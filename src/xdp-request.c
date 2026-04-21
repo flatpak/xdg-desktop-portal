@@ -261,7 +261,7 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
   while (!xdp_context_claim_object_path (context, id))
     {
       r = g_random_int ();
-      g_free (id);
+      g_clear_pointer (&id, g_free);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%u", sender, token, r);
     }
 

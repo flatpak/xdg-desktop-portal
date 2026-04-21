@@ -324,7 +324,7 @@ xdp_session_initable_init (GInitable     *initable,
   while (!xdp_context_claim_object_path (session->context, id))
     {
       uint32_t r = g_random_int ();
-      g_free (id);
+      g_clear_pointer (&id, g_free);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s/%u",
                             sender_escaped,
                             session->token,
