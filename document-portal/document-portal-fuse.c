@@ -1937,6 +1937,7 @@ xdp_fuse_open (fuse_req_t             req,
   g_autofree char *open_flags_string = open_flags_to_string (open_flags);
   int fd;
   g_autofree char *path = NULL;
+  /* goblint-ignore-next-line: use_g_autoptr_inline_cleanup */
   XdpFile *file = NULL;
   XdpDocumentChecks checks;
   const char *op = "OPEN";
@@ -2003,6 +2004,7 @@ xdp_fuse_create (fuse_req_t             req,
   g_autofd int fd = -1;
   g_autofd int o_path_fd = -1;
   g_autofree char *fd_path = NULL;
+  /* goblint-ignore-next-line: use_g_autoptr_inline_cleanup */
   XdpFile *file = NULL;
   const char *op = "CREATE";
 
@@ -2328,6 +2330,7 @@ xdp_fuse_opendir (fuse_req_t             req,
 {
   g_autoptr(XdpInode) inode = xdp_inode_from_ino (ino);
   XdpDomain *domain = inode->domain;
+  /* goblint-ignore-next-line: use_g_autoptr_inline_cleanup */
   XdpDir *d = NULL;
   const char *op = "OPENDIR";
 
@@ -3529,6 +3532,7 @@ xdp_fuse_thread (gpointer data)
   struct fuse_loop_config loop_config = {0};
   XdpFuseThreadData *thread_data = data;
   XdpFuseOptions *fuse_opts = NULL;
+  /* goblint-ignore-next-line: use_g_autoptr_inline_cleanup */
   struct fuse_session *se;
   const char *path;
 

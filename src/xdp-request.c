@@ -47,8 +47,9 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
 {
   XdpRequest *request = XDP_REQUEST (object);
   XdpDbusRequestSkeleton *skeleton = XDP_DBUS_REQUEST_SKELETON (object);
-  GList      *connections, *l;
-  GVariant   *signal_variant;
+  GList *l;
+  g_autolist(GDBusConnection) connections = NULL;
+  g_autoptr(GVariant) signal_variant = NULL;
 
   connections = g_dbus_interface_skeleton_get_connections (G_DBUS_INTERFACE_SKELETON (skeleton));
 
@@ -66,8 +67,6 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
                                      signal_variant,
                                      NULL);
     }
-  g_variant_unref (signal_variant);
-  g_list_free_full (connections, g_object_unref);
 }
 
 static gboolean
