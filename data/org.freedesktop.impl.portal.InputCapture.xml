@@ -28,7 +28,7 @@
       :ref:`org.freedesktop.portal.InputCapture` portal, see that portal's
       documentation for details on methods, signals and arguments.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.InputCapture">
     <!--
@@ -41,9 +41,9 @@
         @response: Numeric response
         @results: Vardict with the results of the call
 
-        This method was deprecated in version 2 of this interface and will not
+        This method was deprecated in revision 2 of this interface and will not
         be called by the frontend if the implementation indicates support for
-        version 2. See CreateSession2 instead.
+        revision 2. See CreateSession2 instead.
 
         Create an input capture session.
 
@@ -91,7 +91,7 @@
 
         There are currently no supported keys in the @results vardict.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="CreateSession2">
       <arg type="o" name="session_handle" direction="in"/>
@@ -139,8 +139,6 @@
           "KDE"), the version of the implementation-specific private data,
           and the implementation-specific private data itself.
 
-          This option was added in version 2 of this interface.
-
         * ``persist_mode`` (``u``)
 
           How this session should persist. Default is 0. Accepted values are:
@@ -152,8 +150,6 @@
           If the permission for the session to persist is granted, ``restore_data``
           will be returned in the @results vardict of the
           :ref:`org.freedesktop.impl.portal.InputCapture.Start` method.
-
-          This option was added in version 2 of this interface.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
@@ -183,9 +179,7 @@
           is restored in the future, this data is used as the ``restore_data``
           argument in the @options vardict.
 
-          This option was added in version 2 of this interface.
-
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="Start">
       <arg type="o" name="handle" direction="in"/>
@@ -517,6 +511,21 @@
         - ``4``: TOUCHSCREEN
     -->
     <property name="SupportedCapabilities" type="u" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and does not cause a revision bump
+        of this interface.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.impl.portal.InputCapture:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

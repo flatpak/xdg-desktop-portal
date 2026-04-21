@@ -30,7 +30,7 @@
       expected to use this interface indirectly, via a library API
       such as the GLib GNetworkMonitor interface.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes revision 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.NetworkMonitor">
     <!--
@@ -47,7 +47,7 @@
         That is, whether the system as a default route for
         at least one of IPv4 or IPv6.
 
-        This method was added in version 2 to replace
+        This method was added in revision 2 to replace
         the available property.
     -->
     <method name="GetAvailable">
@@ -62,7 +62,7 @@
         the default connection that is subject ot limitations
         by service providers.
 
-        This method was added in version 2 to replace
+        This method was added in revision 2 to replace
         the metered property.
     -->
     <method name="GetMetered">
@@ -80,7 +80,7 @@
         - ``3``: Captive portal. The host is behind a captive portal and cannot reach the full internet.
         - ``4``: Full network. The host connected to a network, and can reach the full internet.
 
-        This method was added in version 2 to replace
+        This method was added in revision 2 to replace
         the connectivity property.
     -->
     <method name="GetConnectivity">
@@ -106,7 +106,7 @@
 
           The level of connectivity.
 
-        This method was added in version 3 to avoid multiple round-trips.
+        This method was added in revision 3 to avoid multiple round-trips.
     -->
     <method name="GetStatus">
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="QVariantMap"/>
@@ -120,7 +120,7 @@
         @reachable: Whether the hostname:port was reachable
 
         Returns whether the given hostname is believed to be reachable.
-        This method was added in version 3.
+        This method was added in revision 3.
     -->
     <method name="CanReach">
       <arg type="s" name="hostname" direction="in"/>
@@ -128,6 +128,19 @@
       <arg type="b" name="reachable" direction="out"/>
     </method>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 3 and no revision bump of this
+        interface was made for this specific addition.
+
+        Consequently, assume 2 if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

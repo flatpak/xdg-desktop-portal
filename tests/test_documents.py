@@ -17,7 +17,7 @@ def xdp_app_info() -> xdp.AppInfo:
 
 
 class TestDocuments:
-    def test_version(self, xdg_document_portal, dbus_con):
+    def test_active_revision(self, xdg_document_portal, dbus_con):
         documents = dbus_con.get_object(
             "org.freedesktop.portal.Documents",
             "/org/freedesktop/portal/documents",
@@ -27,6 +27,14 @@ class TestDocuments:
             documents,
             "org.freedesktop.DBus.Properties",
         )
+
+        portal_revision = properties_intf.Get(
+            "org.freedesktop.portal.Documents",
+            "active-revision",
+        )
+        assert int(portal_revision) == 5
+
+        # Check deprecated version to keep it consistent with active revision
         portal_version = properties_intf.Get(
             "org.freedesktop.portal.Documents",
             "version",

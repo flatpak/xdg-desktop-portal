@@ -28,6 +28,7 @@
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-utils.h"
 
 #include "memory-monitor.h"
 
@@ -103,6 +104,8 @@ memory_monitor_class_init (MemoryMonitorClass *klass)
   object_class->finalize = memory_monitor_finalize;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusMemoryMonitor, memory_monitor)
+
 static MemoryMonitor *
 memory_monitor_new (void)
 {
@@ -118,7 +121,8 @@ memory_monitor_new (void)
                            G_CONNECT_DEFAULT);
 #endif /* HAS_MEMORY_MONITOR */
 
-  xdp_dbus_memory_monitor_set_version (XDP_DBUS_MEMORY_MONITOR (memory_monitor), 1);
+  /* Active revision and version (deprecated) are identical */
+  memory_monitor_dbus_set_active_revision (XDP_DBUS_MEMORY_MONITOR (memory_monitor), 1);
 
   return memory_monitor;
 }

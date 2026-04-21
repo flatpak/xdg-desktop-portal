@@ -37,9 +37,11 @@ def required_templates():
 
 
 class TestDynamicLauncher:
-    def test_version(self, portals, dbus_con):
-        """tests the version of the interface"""
+    def test_active_revision(self, portals, dbus_con):
+        """tests the active revision of the interface"""
 
+        xdp.check_active_revision(dbus_con, "DynamicLauncher", 1)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "DynamicLauncher", 1)
 
     def test_basic(self, portals, dbus_con, xdp_app_info):

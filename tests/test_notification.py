@@ -121,7 +121,11 @@ class TestNotification:
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_version(self, portals, dbus_con, template_params):
+    def test_active_revision(self, portals, dbus_con, template_params):
+        xdp.check_active_revision(
+            dbus_con, "Notification", template_params["notification"]["version"]
+        )
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(
             dbus_con, "Notification", template_params["notification"]["version"]
         )

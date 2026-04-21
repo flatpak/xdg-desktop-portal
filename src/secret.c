@@ -207,6 +207,8 @@ secret_class_init (SecretClass *klass)
   object_class->dispose = secret_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusSecret, secret)
+
 static Secret *
 secret_new (XdpDbusImplSecret *impl)
 {
@@ -217,7 +219,8 @@ secret_new (XdpDbusImplSecret *impl)
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (secret->impl), G_MAXINT);
 
-  xdp_dbus_secret_set_version (XDP_DBUS_SECRET (secret), 1);
+  /* Active revision and version (deprecated) are identical */
+  secret_dbus_set_active_revision (XDP_DBUS_SECRET (secret), 1);
 
   return secret;
 }

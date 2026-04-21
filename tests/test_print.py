@@ -28,7 +28,9 @@ def required_templates():
 
 
 class TestPrint:
-    def test_version(self, portals, dbus_con):
+    def test_active_revision(self, portals, dbus_con):
+        xdp.check_active_revision(dbus_con, "Print", 3)
+        # Check deprecated version since it can differ from active revision
         xdp.check_version(dbus_con, "Print", 4)
 
     def test_prepare_print_basic(self, portals, dbus_con, xdp_app_info):

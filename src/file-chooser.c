@@ -834,11 +834,15 @@ file_chooser_class_init (FileChooserClass *klass)
   object_class->dispose = file_chooser_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusFileChooser, file_chooser)
+
 static FileChooser *
 file_chooser_new (XdpDbusImplFileChooser *impl,
                   XdpDbusImplLockdown    *lockdown_impl)
 {
   FileChooser *file_chooser;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   file_chooser = g_object_new (file_chooser_get_type (), NULL);
   file_chooser->impl = g_object_ref (impl);
@@ -846,7 +850,15 @@ file_chooser_new (XdpDbusImplFileChooser *impl,
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (file_chooser->impl), G_MAXINT);
 
-  xdp_dbus_file_chooser_set_version (XDP_DBUS_FILE_CHOOSER (file_chooser), 4);
+  impl_revision =
+    MAX (xdp_dbus_impl_file_chooser_get_active_revision (file_chooser->impl), 1);
+  /* Revision 4 requires at least impl revision 1 */
+  if (impl_revision >= 1)
+    active_revision = 4;
+
+  /* Active revision and version (deprecated) are identical */
+  file_chooser_dbus_set_active_revision (XDP_DBUS_FILE_CHOOSER (file_chooser),
+                                         active_revision);
 
   return file_chooser;
 }

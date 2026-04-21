@@ -49,7 +49,7 @@
       #org.freedesktop.portal.Notification::ActionInvoked signal
       to the application.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.Notification">
     <!--
@@ -94,7 +94,7 @@
           This can be a long string but if it doesn't fit the UI it may
           be wrapped or/and truncated.
 
-          Since: version 2
+          Since: revision 2
 
         * ``icon`` (``v``)
 
@@ -121,7 +121,7 @@
             `GBytesIcon <https://docs.gtk.org/gio/class.BytesIcon.html>`_ at the
             moment, but this interoperability may change in the future.
 
-            Since version 2, this is deprecated and should not be used.
+            Since revision 2, this is deprecated and should not be used.
             Please use the `themed` or `file-descriptor` option to set an icon.
 
           * ``file-descriptor`` (``h``)
@@ -131,7 +131,7 @@
             possible for file descriptors created with ``memfd_create()`` with
             the ``MFD_ALLOW_SEALING`` flag set.
 
-            Since: version 2
+            Since: revision 2
 
           For historical reasons, it is also possible to send a simple string
           for themed icons with a single icon name.
@@ -160,7 +160,7 @@
 
           There may be further restrictions on the supported kinds of sounds.
 
-          Since: version 2
+          Since: revision 2
 
         * ``priority`` (``s``)
 
@@ -230,7 +230,7 @@
               No ``label`` should be given when this purpose is used, so that
               the server can ignore the button if it doesn't understand the purpose.
 
-            Since: version 2
+            Since: revision 2
 
         * ``display-hint`` (``as``)
 
@@ -277,7 +277,7 @@
             If this hint isn't specified the notification's content is updated
             without any flickering.
 
-          Since: version 2
+          Since: revision 2
 
         * ``category`` (``s``)
 
@@ -385,7 +385,7 @@
             Intended to be used by browsers to mark notifications send by websites via
             the `Notifications API <https://developer.mozilla.org/en-US/docs/Web/API/Notifications_API>`_.
 
-          Since: version 2
+          Since: revision 2
       -->
     <method name="AddNotification">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -420,7 +420,7 @@
           Button purposes that the notification server understands and supports.
           This is the list of options that can be used as `purpose` for `buttons`.
 
-        Since: version 2
+        Since: revision 2
     -->
     <property name="SupportedOptions" type="a{sv}" access="read">
       <annotation name="org.qtproject.QtDBus.QtTypeName" value="QVariantMap"/>
@@ -443,17 +443,32 @@
            `XDG Activation
            <https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/xdg-activation/xdg-activation-v1.xml>`_
 
-           Since: version 2
+           Since: revision 2
 
         #. The user `response` for an action based on the purpose if applicable.
 
-           Since: version 2
+           Since: revision 2
     -->
     <signal name="ActionInvoked">
       <arg type="s" name="id"/>
       <arg type="s" name="action"/>
       <arg type="av" name="parameter"/>
     </signal>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Notification:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

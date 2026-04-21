@@ -28,7 +28,7 @@
       This simple interface lets sandboxed applications inhibit the user
       session from ending, suspending, idling or getting switched away.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes revision 3 of this interface.
   -->
   <interface name="org.freedesktop.portal.Inhibit">
     <!--
@@ -110,7 +110,7 @@
             The ``session_handle`` is an object path that was erroneously implemented
             as ``s``. For backwards compatibility it will remain this type.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="CreateMonitor">
       <arg type="s" name="window" direction="in"/>
@@ -141,7 +141,7 @@
 
         * ``session-state`` (``u``)
 
-          The state of the session. This member is new in version 3.
+          The state of the session. This member is new in revision 3.
 
           - ``1``: Running
           - ``2``: Query End
@@ -162,12 +162,26 @@
       signal. This method should be called within one second or receiving a StateChanged
       signal with the 'Query End' state.
 
-      Since version 3.
+      Since revision 3.
     -->
     <method name="QueryEndResponse">
       <arg type="o" name="session_handle" direction="in"/>
     </method>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 3 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.Inhibit:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

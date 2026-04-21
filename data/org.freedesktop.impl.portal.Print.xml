@@ -25,6 +25,8 @@
       @short_description: Print portal backend interface
 
       The Print portal allows sandboxed applications to print.
+
+      This documentation describes revision 4 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Print">
     <!--
@@ -52,6 +54,8 @@
 
           Label for the accept button. Mnemonic underlines are allowed.
 
+          This option was added in revision 2.
+
         The following results get returned via the @results vardict:
 
         * ``settings`` (``a{sv}``)
@@ -72,13 +76,19 @@
           File formats supported by the app to use for print-to-file. If not set, all formats
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
 
+          This option was added in revision 3.
+
         * ``has_current_page`` (``b``)
 
           Whether it makes sense to return "current" for the ``print-pages`` setting.
 
+          This option was added in revision 4.
+
         * ``has_selected_pages`` (``b``)
 
           Whether it makes sense to return "selection" for the ``print-pages`` setting.
+
+          This option was added in revision 4.
 
         The :ref:`org.freedesktop.portal.Print.PreparePrint` documentation has details about
         the supported keys in settings and page-setup.
@@ -135,6 +145,8 @@
 
           File formats supported by the app to use for print-to-file. If not set, all formats
           are assumed to be supported. The following values are allowed: "pdf", "ps", and "svg".
+
+          This option was added in revision 3.
     -->
     <method name="Print">
       <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
@@ -149,5 +161,16 @@
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 4 and does not cause a revision bump
+        of this interface.
+
+        Consequently, 3 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

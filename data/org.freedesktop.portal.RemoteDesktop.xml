@@ -25,7 +25,7 @@
 
       The Remote desktop portal allows to create remote desktop sessions.
 
-      This documentation describes version 2 of this interface.
+      This documentation describes revision 2 of this interface.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--
@@ -116,7 +116,7 @@
           the same session again, use the new restore token sent in response
           to starting this session.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         * ``persist_mode`` (``u``)
 
@@ -130,7 +130,7 @@
           be returned via the :ref:`org.freedesktop.portal.Request::Response` signal of the
           start method used to start the session.
 
-          This option was added in version 2 of this interface.
+          This option was added in revision 2 of this interface.
 
         For available device types, see the AvailableDeviceTypes property.
     -->
@@ -171,7 +171,7 @@
 
           A boolean for whether the clipboard was enabled ('true') or not ('false').
           See the :ref:`org.freedesktop.portal.Clipboard` documentation for more information.
-          Since version 2.
+          Since revision 2.
 
         * ``streams`` (``a(ua{sv})``)
 
@@ -185,7 +185,7 @@
           be used to restore a session. See
           org.freedesktop.portal.RemoteDesktop.SelectDevices() for details.
 
-          This response option was added in version 2 of this interface.
+          This response option was added in revision 2 of this interface.
 
         If a screen cast source was selected, the results of the
         :ref:`org.freedesktop.portal.ScreenCast.Start` response signal may be
@@ -451,7 +451,7 @@
         documentation for the ``mapping_id`` stream property in
         :ref:`org.freedesktop.portal.ScreenCast.Start`.
 
-        This method was added in version 2 of this interface.
+        This method was added in revision 2 of this interface.
     -->
     <method name="ConnectToEIS">
       <annotation name="org.gtk.GDBus.C.Name" value="connect_to_eis"/>
@@ -472,6 +472,21 @@
         - ``4``: TOUCHSCREEN
     -->
     <property name="AvailableDeviceTypes" type="u" access="read"/>
-    <property name="version" type="u" access="read"/>
+
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 2 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (returns 0), fallback to read
+        :ref:`org.freedesktop.portal.RemoteDesktop:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

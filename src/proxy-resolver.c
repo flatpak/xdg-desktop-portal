@@ -117,6 +117,8 @@ proxy_resolver_class_init (ProxyResolverClass *klass)
   object_class->dispose = proxy_resolver_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusProxyResolver, proxy_resolver)
+
 static ProxyResolver *
 proxy_resolver_new (void)
 {
@@ -125,7 +127,8 @@ proxy_resolver_new (void)
   proxy_resolver = g_object_new (proxy_resolver_get_type (), NULL);
   proxy_resolver->resolver = g_proxy_resolver_get_default ();
 
-  xdp_dbus_proxy_resolver_set_version (XDP_DBUS_PROXY_RESOLVER (proxy_resolver), 1);
+  /* Active revision and version (deprecated) are identical */
+  proxy_resolver_dbus_set_active_revision (XDP_DBUS_PROXY_RESOLVER (proxy_resolver), 1);
 
   return proxy_resolver;
 }

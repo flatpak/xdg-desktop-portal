@@ -32,7 +32,9 @@ class SessionType(Enum):
     "type", (SessionType.REMOTE_DESKTOP, SessionType.INPUT_CAPTURE)
 )
 class TestClipboard:
-    def test_version(self, portals, dbus_con, type):
+    def test_active_revision(self, portals, dbus_con, type):
+        xdp.check_active_revision(dbus_con, "Clipboard", 1)
+        # Check deprecated version to keep it consistent with active revision
         xdp.check_version(dbus_con, "Clipboard", 1)
 
     def start_remote_desktop_session(self, dbus_con):

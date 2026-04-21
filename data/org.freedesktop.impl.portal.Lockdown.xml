@@ -30,6 +30,8 @@
     printing or location services.
 
     This is meant to be used by different portal frontends.
+
+    This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Lockdown">
 
@@ -40,5 +42,16 @@
     <property name="disable-camera" type="b" access="readwrite"/>
     <property name="disable-microphone" type="b" access="readwrite"/>
     <property name="disable-sound-output" type="b" access="readwrite"/>
+
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and does not cause a revision bump
+        of this interface.
+
+        Consequently, 1 is assumed if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
   </interface>
 </node>

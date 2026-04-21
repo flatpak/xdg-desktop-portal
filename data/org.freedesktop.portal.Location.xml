@@ -28,7 +28,7 @@
       This simple interface lets sandboxed applications query basic
       information about the location.
 
-      This documentation describes version 1 of this interface.
+      This documentation describes revision 1 of this interface.
   -->
   <interface name="org.freedesktop.portal.Location">
     <!--
@@ -144,6 +144,19 @@
       <arg type="a{sv}" name="location" direction="out"/>
     </signal>
 
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents active revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 1 and no revision bump of this
+        interface was made for this specific addition.
+
+        Consequently, assume 1 if missing or unset (e.g. returns 0).
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
   </interface>
 </node>

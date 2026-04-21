@@ -757,6 +757,8 @@ location_class_init (LocationClass *klass)
   quark_request_session = g_quark_from_static_string ("-xdp-request-location-session");
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusLocation, location)
+
 static Location *
 location_new (XdpContext          *context,
               XdpDbusImplAccess   *access_impl,
@@ -769,7 +771,8 @@ location_new (XdpContext          *context,
   location->access_impl = g_object_ref (access_impl);
   location->lockdown_impl = g_object_ref (lockdown_impl);
 
-  xdp_dbus_location_set_version (XDP_DBUS_LOCATION (location), 1);
+  /* Active revision and version (deprecated) are identical */
+  location_dbus_set_active_revision (XDP_DBUS_LOCATION (location), 1);
 
   return location;
 }

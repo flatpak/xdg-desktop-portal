@@ -336,17 +336,28 @@ email_class_init (EmailClass *klass)
   object_class->dispose = email_dispose;
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusEmail, email)
+
 static Email *
 email_new (XdpDbusImplEmail *impl)
 {
   Email *email;
+  uint32_t impl_revision;
+  uint32_t active_revision = 0;
 
   email = g_object_new (email_get_type (), NULL);
   email->impl = g_object_ref (impl);
 
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (email->impl), G_MAXINT);
 
-  xdp_dbus_email_set_version (XDP_DBUS_EMAIL (email), 4);
+  impl_revision =
+    MAX (xdp_dbus_impl_email_get_active_revision (email->impl), 1);
+  /* Revision 4 requires at least impl revision 1 */
+  if (impl_revision >= 1)
+    active_revision = 4;
+
+  /* Active revision and version (deprecated) are identical */
+  email_dbus_set_active_revision (XDP_DBUS_EMAIL (email), active_revision);
 
   return email;
 }

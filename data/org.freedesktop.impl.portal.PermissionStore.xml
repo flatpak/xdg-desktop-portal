@@ -43,10 +43,24 @@
       In addition, the permission store allows to associate extra data
       (in the form of a GVariant) with each resource.
 
-      This document describes version 2 of the permission store interface.
+      This documentation describes revision 2 of the permission store interface.
   -->
   <interface name="org.freedesktop.impl.portal.PermissionStore">
-    <property name="version" type="u" access="read"/>
+    <!--
+        active-revision:
+        Represents implemented revision/feature-set of the interface.
+
+        This property was added post-introduction of revision 5 and no revision bump of this
+        interface was made for this specific addition.
+
+        If missing or unset (e.g. returns 0), fallback to read
+        :ref:`org.freedesktop.impl.portal.PermissionStore:version`.
+    -->
+    <property name="active-revision" type="u" access="read"/>
+
+    <property name="version" type="u" access="read">
+      <annotation name="org.freedesktop.DBus.Deprecated" value="true"/>
+    </property>
 
     <!--
         Lookup:
@@ -141,7 +155,7 @@
         Removes the entry for an application and a resource
         in the given table.
 
-        This method was added in version 2.
+        This method was added in revision 2.
     -->
     <method name="DeletePermission">
       <arg name="table" type="s" direction="in"/>

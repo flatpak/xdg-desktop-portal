@@ -88,7 +88,7 @@ xdp_register_document (const char        *uri,
   const char *permissions[5];
   g_autofree char *doc_path = NULL;
   int i;
-  int version;
+  int revision;
   gboolean handled_permissions = FALSE;
   DocumentAddFullFlags full_flags;
 
@@ -132,14 +132,14 @@ xdp_register_document (const char        *uri,
     permissions[i++] = "delete";
   permissions[i++] = NULL;
 
-  version = xdp_dbus_documents_get_version (documents);
+  revision = xdp_dbus_documents_get_active_revision (documents);
   full_flags = DOCUMENT_ADD_FLAGS_REUSE_EXISTING | DOCUMENT_ADD_FLAGS_PERSISTENT | DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP;
   if (flags & XDP_DOCUMENT_FLAG_DIRECTORY)
     full_flags |= DOCUMENT_ADD_FLAGS_DIRECTORY;
 
   if (flags & XDP_DOCUMENT_FLAG_FOR_SAVE)
     {
-      if (version >= 3)
+      if (revision >= 3)
         {
           ret = xdp_dbus_documents_call_add_named_full_sync (documents,
                                                              g_variant_new_handle (fd_in),
@@ -169,7 +169,7 @@ xdp_register_document (const char        *uri,
     }
   else
     {
-      if (version >= 2)
+      if (revision >= 2)
         {
           ret = xdp_dbus_documents_call_add_full_sync (documents,
                                                        g_variant_new_fixed_array (G_VARIANT_TYPE_HANDLE, &fd_in, 1, sizeof (gint32)),

@@ -298,6 +298,8 @@ load_all_properties (Realtime *realtime)
     }
 }
 
+XDP_DEFINE_COMPAT_DBUS_SET_ACTIVE_REVISION (XdpDbusRealtime, realtime)
+
 static Realtime *
 realtime_new (void)
 {
@@ -323,7 +325,8 @@ realtime_new (void)
   realtime = g_object_new (realtime_get_type (), NULL);
   realtime->rtkit_proxy = g_steal_pointer (&rtkit_proxy);
 
-  xdp_dbus_realtime_set_version (XDP_DBUS_REALTIME (realtime), 1);
+  /* Active revision and version (deprecated) are identical */
+  realtime_dbus_set_active_revision (XDP_DBUS_REALTIME (realtime), 1);
 
   if (realtime->rtkit_proxy)
     load_all_properties (realtime);
