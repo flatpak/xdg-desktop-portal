@@ -198,7 +198,7 @@ on_location_updated (GeoclueClient *client,
 
   g_debug ("GeoClue client ::LocationUpdated %s -> %s\n",  old_location, new_location);
 
-  if (strcmp (new_location, "/") == 0)
+  if (g_strcmp0 (new_location, "/") == 0)
     return;
 
   ret = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (client)),

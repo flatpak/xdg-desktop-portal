@@ -79,7 +79,7 @@ enum {
 static int
 cmpstringp (const void *p1, const void *p2)
 {
-  return strcmp (*(char * const *) p1, *(char * const *) p2);
+  return g_strcmp0 (*(char * const *) p1, *(char * const *) p2);
 }
 
 static void
@@ -95,7 +95,7 @@ str_ptr_array_find (GPtrArray  *array,
   int i;
 
   for (i = 0; i < array->len; i++)
-    if (strcmp (g_ptr_array_index (array, i), str) == 0)
+    if (g_strcmp0 (g_ptr_array_index (array, i), str) == 0)
       return i;
 
   return -1;
@@ -694,7 +694,7 @@ permission_db_set_entry (PermissionDb      *self,
         }
       else
         {
-          int cmp = strcmp (a[ia], b[ib]);
+          int cmp = g_strcmp0 (a[ia], b[ib]);
 
           if (cmp == 0)
             {
@@ -1025,7 +1025,7 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
       child = g_variant_get_child_value (app_array, m);
       g_variant_get_child (child, 0, "&s", &child_app_id);
 
-      cmp = strcmp (app_id, child_app_id);
+      cmp = g_strcmp0 (app_id, child_app_id);
       if (cmp == 0)
         {
           res = g_variant_get_child_value (child, 1);
@@ -1152,7 +1152,7 @@ add_permissions (GVariant *app_permissions,
 
       g_variant_get (child, "{&s@as}", &child_app_id, &old_perms_array);
 
-      cmp = strcmp (new_app_id, child_app_id);
+      cmp = g_strcmp0 (new_app_id, child_app_id);
       if (cmp == 0)
         {
           added = TRUE;
@@ -1198,7 +1198,7 @@ remove_permissions (GVariant   *app_permissions,
     {
       g_variant_get (child, "{&s@as}", &child_app_id, NULL);
 
-      if (strcmp (app, child_app_id) != 0)
+      if (g_strcmp0 (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
     }
 

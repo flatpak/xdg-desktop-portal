@@ -146,7 +146,7 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
   const gchar *request_sender = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  if (strcmp (sender, request_sender) != 0)
+  if (g_strcmp0 (sender, request_sender) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,

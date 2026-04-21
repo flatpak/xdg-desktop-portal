@@ -348,7 +348,7 @@ global_added_cb (PipeWireRemote *remote,
   const struct spa_dict_item *media_class;
   const struct spa_dict_item *media_role;
 
-  if (strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
+  if (g_strcmp0(type, PW_TYPE_INTERFACE_Node) != 0)
     return;
 
   if (!props)

@@ -160,8 +160,8 @@ name_owner_changed (GDBusConnection *connection,
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
   if (name[0] != ':' ||
-      strcmp (name, from) != 0 ||
-      strcmp (to, "") != 0)
+      g_strcmp0 (name, from) != 0 ||
+      g_strcmp0 (to, "") != 0)
     return;
 
   data->peer_disconnect_cb (name, data->user_data);
