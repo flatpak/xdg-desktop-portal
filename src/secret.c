@@ -22,13 +22,16 @@
 
 #include "config.h"
 
+#include "secret.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
+
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
@@ -38,8 +41,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "secret.h"
 
 typedef struct _Secret Secret;
 typedef struct _SecretClass SecretClass;

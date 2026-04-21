@@ -21,6 +21,8 @@
 
 #include <stdint.h>
 
+#include <glib.h>
+
 #pragma once
 
 typedef enum

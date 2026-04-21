@@ -22,22 +22,23 @@
 
 #include "config.h"
 
-#include <string.h>
+#include "notification.h"
+
 #include <stdio.h>
+#include <string.h>
+
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
-#include "xdp-app-info.h"
 #include "xdp-app-info-registry.h"
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "notification.h"
 
 typedef struct _Notification Notification;
 typedef struct _NotificationClass NotificationClass;

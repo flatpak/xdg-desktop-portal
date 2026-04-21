@@ -20,10 +20,13 @@
 
 #include "config.h"
 
+#include "camera.h"
+
 #include <stdio.h>
-#include <glib/gi18n.h>
-#include <gio/gunixfdlist.h>
+
 #include <gio/gdesktopappinfo.h>
+#include <gio/gunixfdlist.h>
+#include <glib/gi18n.h>
 
 #include "pipewire.h"
 #include "xdp-context.h"
@@ -33,8 +36,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "camera.h"
 
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;

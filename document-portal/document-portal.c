@@ -24,29 +24,31 @@
 
 #include "config.h"
 
+#include "document-portal.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <glib-unix.h>
+
 #include "document-portal-dbus.h"
+#include "document-portal-fuse.h"
 #include "document-store.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-utils.h"
+#include "file-transfer.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"
-#include "document-portal-fuse.h"
-#include "file-transfer.h"
-#include "document-portal.h"
+#include "src/xdp-app-info-registry.h"
+#include "src/xdp-app-info.h"
+#include "src/xdp-utils.h"
 
 #define TABLE_NAME "documents"
 

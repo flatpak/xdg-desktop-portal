@@ -24,10 +24,11 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <unistd.h>
+
+#include <glib/gstdio.h>
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
-#include <glib/gstdio.h>
-#include <unistd.h>
 
 #ifdef __FreeBSD__
 #define execvpe exect

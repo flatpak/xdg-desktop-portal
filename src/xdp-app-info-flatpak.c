@@ -23,16 +23,18 @@
 
 #include "config.h"
 
+#include "xdp-app-info-flatpak-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
-#if HAVE_SYS_VFS_H
-#include <sys/vfs.h>
-#endif
 
 #include <json-glib/json-glib.h>
 
-#include "xdp-app-info-flatpak-private.h"
 #include "xdp-usb-query.h"
+
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 
 #define FLATPAK_ENGINE_ID "org.flatpak"
 

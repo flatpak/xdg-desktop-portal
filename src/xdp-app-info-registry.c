@@ -19,9 +19,9 @@
 
 #include "config.h"
 
-#include "xdp-app-info.h"
-
 #include "xdp-app-info-registry.h"
+
+#include "xdp-app-info.h"
 
 struct _XdpAppInfoRegistry
 {

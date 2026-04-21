@@ -22,16 +22,19 @@
 
 #include "config.h"
 
+#include "gamemode.h"
+
 #define _GNU_SOURCE 1
-#include <gio/gunixfdlist.h>
 #include <errno.h>
 #include <locale.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <gio/gunixfdlist.h>
 
 #include "xdp-app-info.h"
 #include "xdp-context.h"
@@ -39,8 +42,6 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-utils.h"
-
-#include "gamemode.h"
 
 /* well known names*/
 #define GAMEMODE_BACKEND_DBUS_NAME "com.feralinteractive.GameMode"

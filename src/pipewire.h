@@ -20,9 +20,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <gio/gio.h>
 #include <pipewire/pipewire.h>
-#include <stdint.h>
 
 typedef struct _PipeWireRemote PipeWireRemote;
 

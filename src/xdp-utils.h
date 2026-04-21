@@ -23,18 +23,18 @@
 
 #pragma once
 
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdint.h>
-
-#include <glib/gstdio.h>
-#include <gio/gio.h>
 #include <errno.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-#include "xdp-types.h"
+#include <gio/gio.h>
+#include <glib/gstdio.h>
+
 #include "xdp-sealed-fd.h"
+#include "xdp-types.h"
 
 gint xdp_mkstempat (int    dir_fd,
                     gchar *tmpl,

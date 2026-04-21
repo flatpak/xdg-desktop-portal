@@ -24,24 +24,31 @@
 
 #include "config.h"
 
-#define FUSE_USE_VERSION 35
+#include "document-portal-fuse.h"
 
-#include <glib-unix.h>
-
-#include <fuse_lowlevel.h>
-#include <stdio.h>
-#include <string.h>
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <glib/gprintf.h>
-#include <gio/gio.h>
 #include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <sys/types.h>
+
+#define FUSE_USE_VERSION 35
+#include <fuse_lowlevel.h>
+#include <gio/gio.h>
+#include <glib-unix.h>
+#include <glib/gprintf.h>
+
+#include "document-store.h"
+#include "src/xdp-utils.h"
+
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
-#include <sys/types.h>
 #if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
@@ -51,13 +58,6 @@
 #if HAVE_SYS_EXTATTR_H
 #include <sys/extattr.h>
 #endif
-#include <sys/time.h>
-#include <sys/resource.h>
-
-#include "document-portal-fuse.h"
-#include "document-store.h"
-#include "src/xdp-utils.h"
-
 #ifndef O_FSYNC
 #define O_FSYNC O_SYNC
 #endif

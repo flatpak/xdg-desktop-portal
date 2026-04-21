@@ -23,20 +23,22 @@
 
 #include "config.h"
 
-#include <string.h>
+#include "permission-db.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <gvdb/gvdb-builder.h>
+#include <gvdb/gvdb-reader.h>
+
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
 #if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
-
-#include "permission-db.h"
-#include <gvdb/gvdb-reader.h>
-#include <gvdb/gvdb-builder.h>
 
 struct PermissionDb
 {

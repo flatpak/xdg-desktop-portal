@@ -1,7 +1,7 @@
 #include "config.h"
 
-#include <glib.h>
 #include <document-portal/permission-db.h>
+#include <glib.h>
 
 /*
 static void

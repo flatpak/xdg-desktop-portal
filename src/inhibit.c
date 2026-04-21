@@ -22,7 +22,10 @@
 
 #include "config.h"
 
+#include "inhibit.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-context.h"
@@ -33,8 +36,6 @@
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "inhibit.h"
 
 enum {
   INHIBIT_LOGOUT       = 1,

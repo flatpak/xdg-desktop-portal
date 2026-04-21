@@ -1,8 +1,9 @@
 #pragma once
 
 #include <gio/gio.h>
-#include "permission-db.h"
+
 #include "document-enums.h"
+#include "permission-db.h"
 #include "src/xdp-app-info.h"
 #include "src/xdp-utils.h"
 
