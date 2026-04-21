@@ -71,14 +71,12 @@ static void initable_iface_init (GInitableIface *initable_iface);
 G_DEFINE_TYPE_WITH_CODE (PermissionDb, permission_db, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, initable_iface_init));
 
-enum {
-  PROP_0,
-  PROP_PATH,
+typedef enum {
+  PROP_PATH = 1,
   PROP_FAIL_IF_NOT_FOUND,
-  LAST_PROP
-};
+} PermissionDbProps;
 
-static GParamSpec *props[LAST_PROP] = { NULL, };
+static GParamSpec *props[PROP_FAIL_IF_NOT_FOUND + 1] = { NULL, };
 
 static int
 cmpstringp (const void *p1, const void *p2)
@@ -167,7 +165,7 @@ permission_db_get_property (GObject    *object,
 {
   PermissionDb *self = PERMISSION_DB (object);
 
-  switch (prop_id)
+  switch ((PermissionDbProps) prop_id)
     {
     case PROP_PATH:
       g_value_set_string (value, self->path);
@@ -190,7 +188,7 @@ permission_db_set_property (GObject      *object,
 {
   PermissionDb *self = PERMISSION_DB (object);
 
-  switch (prop_id)
+  switch ((PermissionDbProps) prop_id)
     {
     case PROP_PATH:
       g_clear_pointer (&self->path, g_free);
@@ -224,7 +222,7 @@ permission_db_class_init (PermissionDbClass *klass)
                                                         TRUE,
                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, LAST_PROP, props);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (props), props);
 }
 
 static void
