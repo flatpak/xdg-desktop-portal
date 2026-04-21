@@ -398,6 +398,7 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
   call_data->fdlist = g_object_ref (fdlist);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_call_in_thread_fds);
 
   g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);
@@ -427,6 +428,7 @@ handle_call_in_thread (XdpDbusGameMode       *object,
     }
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_call_in_thread);
 
   g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);

@@ -851,6 +851,7 @@ permission_db_save_content_async (PermissionDb          *self,
   g_autoptr(GFile) file = NULL;
 
   task = g_task_new (self, cancellable, callback, user_data);
+  g_task_set_source_tag (task, permission_db_save_content_async);
 
   if (self->gvdb_contents == NULL)
     {

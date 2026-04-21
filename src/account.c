@@ -152,6 +152,7 @@ get_user_information_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "results", g_variant_ref (results), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, get_user_information_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, send_response_in_thread_func);
 }

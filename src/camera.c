@@ -219,6 +219,7 @@ handle_access_camera (XdpDbusCamera *object,
   xdp_dbus_camera_complete_access_camera (object, invocation, request->id);
 
   task = g_task_new (camera, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_access_camera);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_access_camera_in_thread_func);
 

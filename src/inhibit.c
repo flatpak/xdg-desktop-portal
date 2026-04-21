@@ -250,6 +250,7 @@ handle_inhibit (XdpDbusInhibit *object,
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
 
   task = g_task_new (inhibit, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_inhibit);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_inhibit_in_thread_func);
 
