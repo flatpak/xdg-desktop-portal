@@ -114,8 +114,7 @@ writeout_done (GObject      *source_object,
                                                "Unable to write db: %s", error->message);
     }
 
-  g_list_free (table->current_writes);
-  table->current_writes = NULL;
+  g_clear_list (&table->current_writes, NULL);
   table->writing = FALSE;
 
   if (table->outstanding_writes != NULL)
