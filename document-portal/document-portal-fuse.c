@@ -1805,7 +1805,7 @@ invalidate_dentry_cb (gpointer user_data)
 
   g_list_free (to_invalidate);
 
-  return FALSE;
+  return G_SOURCE_REMOVE;
 }
 
 /* Queue an inval_dentry, thereby freeing unused inodes in the dcache
