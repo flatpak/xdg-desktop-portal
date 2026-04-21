@@ -27,22 +27,18 @@
 #include "xdp-context.h"
 #include "xdp-request.h"
 
-enum
+typedef enum
 {
-  PROP_0,
-
-  PROP_CONTEXT,
+  PROP_CONTEXT = 1,
   PROP_SENDER,
   PROP_APP_ID,
   PROP_TOKEN,
   PROP_CONNECTION,
   PROP_IMPL_CONNECTION,
   PROP_IMPL_DBUS_NAME,
+} XdpSessionProps;
 
-  PROP_LAST
-};
-
-static GParamSpec *obj_props[PROP_LAST];
+static GParamSpec *obj_props[PROP_IMPL_DBUS_NAME + 1];
 
 G_LOCK_DEFINE (sessions);
 static GHashTable *sessions;
@@ -384,7 +380,7 @@ xdp_session_set_property (GObject      *object,
 {
   XdpSession *session = XDP_SESSION (object);
 
-  switch (prop_id)
+  switch ((XdpSessionProps) prop_id)
     {
     case PROP_CONTEXT:
       session->context = g_value_get_object (value);
@@ -427,7 +423,7 @@ xdp_session_get_property (GObject    *object,
 {
   XdpSession *session = XDP_SESSION (object);
 
-  switch (prop_id)
+  switch ((XdpSessionProps) prop_id)
     {
     case PROP_CONTEXT:
       g_value_set_object (value, session->context);
@@ -560,5 +556,5 @@ xdp_session_class_init (XdpSessionClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (gobject_class, PROP_LAST, obj_props);
+  g_object_class_install_properties (gobject_class, G_N_ELEMENTS (obj_props), obj_props);
 }

@@ -84,20 +84,18 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
                                   G_ADD_PRIVATE (XdpAppInfo)
                                   G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface));
 
-enum
+typedef enum
 {
-  PROP_0,
-  PROP_ENGINE,
+  PROP_ENGINE = 1,
   PROP_FLAGS,
   PROP_G_APP_INFO,
   PROP_ID,
   PROP_INSTANCE,
   PROP_PIDFD,
   PROP_SENDER,
-  N_PROPS
-};
+} XdpAppInfoProps;
 
-static GParamSpec *properties [N_PROPS];
+static GParamSpec *properties [PROP_SENDER + 1];
 
 static gboolean
 xdp_app_info_initable_init (GInitable     *initable,
@@ -167,7 +165,7 @@ xdp_app_info_get_property (GObject    *object,
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
-  switch (prop_id)
+  switch ((XdpAppInfoProps) prop_id)
     {
     case PROP_ENGINE:
       g_value_set_string (value, priv->engine);
@@ -211,7 +209,7 @@ xdp_app_info_set_property (GObject      *object,
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
-  switch (prop_id)
+  switch ((XdpAppInfoProps) prop_id)
     {
     case PROP_ENGINE:
       g_assert (priv->engine == NULL);
@@ -310,7 +308,7 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, N_PROPS, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

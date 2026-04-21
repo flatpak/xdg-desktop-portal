@@ -44,14 +44,12 @@ struct _XdpAppInfoSnap
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO);
 
-enum
+typedef enum
 {
-  PROP_0,
-  PROP_DESKTOP_FILE,
-  N_PROPS,
-};
+  PROP_DESKTOP_FILE = 1,
+} XdpAppInfoSnapProps;
 
-static GParamSpec *properties [N_PROPS];
+static GParamSpec *properties [PROP_DESKTOP_FILE + 1];
 
 static GAppInfo *
 xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
@@ -83,7 +81,7 @@ xdp_app_info_snap_get_property (GObject    *object,
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
 
-  switch (prop_id)
+  switch ((XdpAppInfoSnapProps) prop_id)
     {
     case PROP_DESKTOP_FILE:
       g_value_set_string (value, app_info_snap->desktop_file);
@@ -102,7 +100,7 @@ xdp_app_info_snap_set_property (GObject      *object,
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
 
-  switch (prop_id)
+  switch ((XdpAppInfoSnapProps) prop_id)
     {
     case PROP_DESKTOP_FILE:
       g_assert (app_info_snap->desktop_file == NULL);
@@ -133,7 +131,7 @@ xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, N_PROPS, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
