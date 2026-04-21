@@ -214,7 +214,7 @@ xdp_register_document (const char        *uri,
         return NULL;
     }
 
-  if (!g_strcmp0 (doc_id, ""))
+  if (g_strcmp0 (doc_id, "") == 0)
     {
       doc_path = g_build_filename (path, NULL);
       return g_filename_to_uri (doc_path, NULL, error);
@@ -242,7 +242,7 @@ xdp_get_real_path_for_doc_path (const char *path,
       return g_strdup (path);
     }
 
-  if (!g_strcmp0 (doc_id, ""))
+  if (g_strcmp0 (doc_id, "") == 0)
     {
       g_debug ("document portal returned empty doc id for path '%s'", path);
       return g_strdup (path);
