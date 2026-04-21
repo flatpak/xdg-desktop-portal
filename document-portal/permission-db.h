@@ -21,8 +21,7 @@
  *       Alexander Larsson <alexl@redhat.com>
  */
 
-#ifndef PERMISSION_DB_H
-#define PERMISSION_DB_H
+#pragma once
 
 #include <string.h>
 
@@ -102,5 +101,3 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDb, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (PermissionDbEntry, permission_db_entry_unref)
 
 G_END_DECLS
-
-#endif /* PERMISSION_DB_H */

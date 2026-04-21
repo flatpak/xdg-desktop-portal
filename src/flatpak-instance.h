@@ -18,8 +18,7 @@
  *       Matthias Clasen <mclasen@redhat.com>
  */
 
-#ifndef __FLATPAK_INSTANCE_H__
-#define __FLATPAK_INSTANCE_H__
+#pragma once
 
 typedef struct _FlatpakInstance FlatpakInstance;
 
@@ -60,5 +59,3 @@ int          flatpak_instance_get_child_pid (FlatpakInstance *self);
 GKeyFile *   flatpak_instance_get_info (FlatpakInstance *self);
 
 gboolean     flatpak_instance_is_running (FlatpakInstance *self);
-
-#endif /* __FLATPAK_INSTANCE_H__ */
