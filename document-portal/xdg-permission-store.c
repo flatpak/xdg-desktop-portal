@@ -125,8 +125,7 @@ static void
 start_writeout (Table *table)
 {
   g_assert (table->current_writes == NULL);
-  table->current_writes = table->outstanding_writes;
-  table->outstanding_writes = NULL;
+  table->current_writes = g_steal_pointer (&table->outstanding_writes);
   table->writing = TRUE;
 
   permission_db_update (table->db);
