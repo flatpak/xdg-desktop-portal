@@ -35,8 +35,7 @@ void
 xdp_app_launch_context_set_activation_token (XdpAppLaunchContext *self,
                                              const char          *token)
 {
-  g_clear_pointer (&self->token, g_free);
-  self->token = g_strdup (token);
+  g_set_str (&self->token, token);
 }
 
 static char *

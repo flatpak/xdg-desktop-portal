@@ -1972,8 +1972,7 @@ xdp_fuse_open (fuse_req_t             req,
       if (res < 0)
         return xdp_reply_err (op, req, errno);
 
-      g_clear_pointer (&path, g_free);
-      path = g_strdup (resolved_path);
+      g_set_str (&path, resolved_path);
     }
 
   fd = open (path, open_flags, 0);
@@ -2824,8 +2823,7 @@ xdp_fuse_rename (fuse_req_t    req,
 
               found_tempfile = TRUE;
 
-              g_free (tempfile->name);
-              tempfile->name = g_strdup (newname);
+              g_set_str (&tempfile->name, newname);
 
               /* This destroys any pre-existing tempfile with this name */
               g_hash_table_replace (domain->tempfiles, tempfile->name, tempfile);

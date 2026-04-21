@@ -122,8 +122,7 @@ permission_db_set_path (PermissionDb  *self,
 {
   g_return_if_fail (PERMISSION_IS_DB (self));
 
-  g_clear_pointer (&self->path, g_free);
-  self->path = g_strdup (path);
+  g_set_str (&self->path, path);
 }
 
 PermissionDb *

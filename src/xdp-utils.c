@@ -411,8 +411,7 @@ static char *documents_mountpoint = NULL;
 void
 xdp_set_documents_mountpoint (const char *path)
 {
-  g_clear_pointer (&documents_mountpoint, g_free);
-  documents_mountpoint = g_strdup (path);
+  g_set_str (&documents_mountpoint, path);
 }
 
 const char *
