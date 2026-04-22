@@ -27,8 +27,12 @@
 #include <unistd.h>
 
 #include <glib/gstdio.h>
+/* The gst headers currently contain a non-exhaustive switch */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch-enum"
 #include <gst/gst.h>
 #include <gst/pbutils/pbutils.h>
+#pragma GCC diagnostic pop
 
 #ifdef __FreeBSD__
 #define execvpe exect

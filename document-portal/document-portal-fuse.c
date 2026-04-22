@@ -1439,10 +1439,6 @@ stat_virtual_inode (XdpInode    *inode,
             buf->st_mode &= ~(0222);
         }
       break;
-
-    default:
-      g_assert_not_reached ();
-      break;
     }
 }
 
@@ -1872,7 +1868,7 @@ xdp_fuse_lookup (fuse_req_t  req,
         case XDP_DOMAIN_APP:
           inode = ensure_doc_inode (parent, name);
           break;
-        default:
+        case XDP_DOMAIN_DOCUMENT:
           g_assert_not_reached ();
         }
 
@@ -2351,7 +2347,7 @@ xdp_fuse_opendir (fuse_req_t             req,
         case XDP_DOMAIN_BY_APP:
           xdp_dir_add_apps (d, inode->domain, req, NULL);
           break;
-        default:
+        case XDP_DOMAIN_DOCUMENT:
           g_assert_not_reached ();
         }
     }
