@@ -37,7 +37,7 @@ endif
 if build_documentation
   # Gather the XML files under data
   all_interfaces_xml = []
-  foreach i: portal_sources
+  foreach i: portal_sources + portal_experimental_sources
     all_interfaces_xml += i
   endforeach
   foreach i: portal_host_sources
