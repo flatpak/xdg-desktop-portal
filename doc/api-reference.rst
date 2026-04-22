@@ -67,3 +67,4 @@ All apps have access to the portals below:
    doc-org.freedesktop.portal.Trash.rst
    doc-org.freedesktop.portal.Usb.rst
    doc-org.freedesktop.portal.Wallpaper.rst
+   doc-org.freedesktop.portal.experimental.Credential.rst
