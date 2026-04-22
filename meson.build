@@ -75,6 +75,7 @@ cflags = [
     '-Wno-unused-parameter',
     '-Wno-sign-compare',
     '-Wno-missing-field-initializers',
+    '-Wswitch-enum',
 ]
 add_project_arguments(cc.get_supported_arguments(cflags), language : 'c')
 
