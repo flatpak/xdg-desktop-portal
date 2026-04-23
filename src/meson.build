@@ -28,6 +28,13 @@ impl_built_sources = gnome.gdbus_codegen(
   namespace: 'XdpDbusImpl',
   docbook: 'portal',
 )
+impl_experimental_built_sources = gnome.gdbus_codegen(
+  'xdp-impl-experimental-dbus',
+  sources: portal_impl_experimental_sources,
+  interface_prefix: 'org.freedesktop.impl.portal.experimental',
+  namespace: 'XdpDbusExperimentalImpl',
+  docbook: 'portal',
+)
 handler_experimental_built_sources = gnome.gdbus_codegen(
   'xdp-experimental-handler-dbus',
   sources: portal_handler_experimental_sources,
