@@ -17,9 +17,15 @@ def adjust_title(lines):
     title = lines[3].strip()
 
     if title.startswith("org.freedesktop.portal.experimental."):
-        adjusted_title = title.replace("org.freedesktop.portal.experimental.", "") + " (Experimental)"
+        adjusted_title = (
+            title.replace("org.freedesktop.portal.experimental.", "")
+            + " (Experimental)"
+        )
     elif title.startswith("org.freedesktop.impl.portal.experimental."):
-        adjusted_title = title.replace("org.freedesktop.impl.portal.experimental.", "") + " (Experimental)"
+        adjusted_title = (
+            title.replace("org.freedesktop.impl.portal.experimental.", "")
+            + " (Experimental)"
+        )
     elif title.startswith("org.freedesktop.portal."):
         adjusted_title = title.replace("org.freedesktop.portal.", "")
     elif title.startswith("org.freedesktop.impl.portal"):
