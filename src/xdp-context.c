@@ -25,6 +25,7 @@
 #include "background.h"
 #include "camera.h"
 #include "clipboard.h"
+#include "credential.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"
@@ -415,6 +416,14 @@ xdp_context_register (XdpContext       *context,
   init_usb (context);
 #endif
   init_registry (context);
+
+                                  
+  // TODO: define a syntax for this var
+  char *experimental_flags = getenv("XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL");
+  if (experimental_flags != NULL && strcmp (experimental_flags, "credential") == 0) {
+    g_debug ("Enabling experimental portal credential");
+    init_credential(context, context->cancellable);
+  }
 
   return TRUE;
 }
