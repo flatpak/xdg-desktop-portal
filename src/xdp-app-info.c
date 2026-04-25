@@ -23,11 +23,24 @@
 
 #include "config.h"
 
+#include "xdp-app-info-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+
+#include <gio/gunixfdlist.h>
+#include <json-glib/json-glib.h>
+
+#include "xdp-app-info-flatpak-private.h"
+#include "xdp-app-info-host-private.h"
+#include "xdp-app-info-linyaps-private.h"
+#include "xdp-app-info-snap-private.h"
+#include "xdp-enum-types.h"
+#include "xdp-utils.h"
+
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
@@ -38,17 +51,6 @@
 #include <systemd/sd-login.h>
 #include "sd-escape.h"
 #endif
-
-#include <json-glib/json-glib.h>
-#include <gio/gunixfdlist.h>
-
-#include "xdp-app-info-private.h"
-#include "xdp-app-info-flatpak-private.h"
-#include "xdp-app-info-snap-private.h"
-#include "xdp-app-info-linyaps-private.h"
-#include "xdp-app-info-host-private.h"
-#include "xdp-enum-types.h"
-#include "xdp-utils.h"
 
 G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
 
@@ -80,22 +82,20 @@ static void g_initable_init_iface (GInitableIface *iface);
 
 G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
                                   G_ADD_PRIVATE (XdpAppInfo)
-                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface))
+                                  G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_init_iface));
 
-enum
+typedef enum
 {
-  PROP_0,
-  PROP_ENGINE,
+  PROP_ENGINE = 1,
   PROP_FLAGS,
   PROP_G_APP_INFO,
   PROP_ID,
   PROP_INSTANCE,
   PROP_PIDFD,
   PROP_SENDER,
-  N_PROPS
-};
+} XdpAppInfoProps;
 
-static GParamSpec *properties [N_PROPS];
+static GParamSpec *properties [PROP_SENDER + 1];
 
 static gboolean
 xdp_app_info_initable_init (GInitable     *initable,
@@ -165,7 +165,7 @@ xdp_app_info_get_property (GObject    *object,
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
-  switch (prop_id)
+  switch ((XdpAppInfoProps) prop_id)
     {
     case PROP_ENGINE:
       g_value_set_string (value, priv->engine);
@@ -209,7 +209,7 @@ xdp_app_info_set_property (GObject      *object,
   XdpAppInfoPrivate *priv =
     xdp_app_info_get_instance_private (XDP_APP_INFO (object));
 
-  switch (prop_id)
+  switch ((XdpAppInfoProps) prop_id)
     {
     case PROP_ENGINE:
       g_assert (priv->engine == NULL);
@@ -308,7 +308,7 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, N_PROPS, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void

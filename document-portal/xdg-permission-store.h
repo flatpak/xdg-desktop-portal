@@ -20,4 +20,6 @@
 
 #pragma once
 
+#include <gio/gio.h>
+
 void xdg_permission_store_start (GDBusConnection *connection);

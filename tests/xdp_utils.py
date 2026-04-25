@@ -8,7 +8,7 @@ from itertools import count
 from typing import Any, Dict, Optional, NamedTuple, Callable, List
 from pathlib import Path
 from enum import Enum, IntEnum
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from urllib.parse import unquote, urlparse
 
 import os
@@ -243,91 +243,81 @@ def desktop_files_path() -> Path:
     return Path(os.environ["XDG_DATA_HOME"]) / "applications"
 
 
-class AppInfoKind(Enum):
-    HOST = 1
-    FLATPAK = 2
-    SNAP = 3
-    LINYAPS = 4
-
-
 @dataclass
 class AppInfo:
     """
-    Interacts with conftest.py via ensure_files and extend_env to make the
-    portal frontend discover the requested XdpAppInfo for incoming connections.
-
     Testing code can use this class to construct a specific XdpAppInfo for the
     xdp_app_info fixture.
+
+    To make it possible to collect AppInfo instances in pytest, construction
+    only fills out the data. The conftest.py file calls _initialize() to
+    properly initialize everything that's needed at run time, and uses some
+    properties to modify how it creates the harness.
     """
 
-    kind: AppInfoKind
     app_id: str
-    desktop_file: str
-    env: dict[str, str] = field(default_factory=dict)
-    files: dict[Path, bytes] = field(default_factory=dict)
+    desktop_file: str | None
 
-    def ensure_files(self) -> None:
-        for path, content in self.files.items():
-            path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_bytes(content)
+    def __init__(self):
+        self._env = {}
 
-    def extend_env(self, env: dict[str, str]) -> None:
-        for key, val in self.env.items():
-            env[key] = val
+    def get_xdp_executable_env(self):
+        return self._env
 
     def gapp_info(self) -> GioUnix.DesktopAppInfo:
+        assert self.desktop_file
         desktop_file_path = desktop_files_path() / self.desktop_file
         if not os.path.exists(desktop_file_path):
             return None
 
         return GioUnix.DesktopAppInfo.new_from_filename(str(desktop_file_path))
 
-    @classmethod
-    def new_host(
-        cls,
-        app_id: str,
-        desktop_entry: bytes | None = None,
-    ):
-        kind = AppInfoKind.HOST
-        desktop_file = f"{app_id}.desktop"
-        env = {
+
+@dataclass
+class AppInfoHost(AppInfo):
+    app_id: str = "org.example.Test"
+    desktop_file: str | None = None
+    desktop_entry: bytes | None = None
+
+    def __post_init__(self):
+        if not self.desktop_file:
+            self.desktop_file = f"{self.app_id}.desktop"
+
+        self._env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "host",
-            "XDG_DESKTOP_PORTAL_TEST_HOST_APPID": app_id,
+            "XDG_DESKTOP_PORTAL_TEST_HOST_APPID": self.app_id,
         }
-        files = {}
 
-        if desktop_entry:
-            files[desktop_files_path() / desktop_file] = desktop_entry
+    def _initialize(self):
+        assert self.desktop_file
 
-        return cls(
-            kind=kind,
-            app_id=app_id,
-            desktop_file=desktop_file,
-            env=env,
-            files=files,
-        )
+        if self.desktop_entry:
+            path = desktop_files_path() / self.desktop_file
+            path.write_bytes(self.desktop_entry)
 
-    @classmethod
-    def new_flatpak(
-        cls,
-        app_id: str,
-        instance_id: str | None = None,
-        usb_queries: str | None = None,
-        desktop_entry: bytes | None = None,
-        metadata: bytes | None = None,
-    ):
-        kind = AppInfoKind.FLATPAK
-        desktop_file = f"{app_id}.desktop"
-        env = {
+
+@dataclass
+class AppInfoFlatpak(AppInfo):
+    app_id: str = "org.example.Test"
+    desktop_file: str | None = None
+    desktop_entry: bytes | None = None
+    instance_id: str | None = None
+    usb_queries: str | None = None
+    metadata: bytes | None = None
+
+    def __post_init__(self):
+        if not self.desktop_file:
+            self.desktop_file = f"{self.app_id}.desktop"
+
+        self._env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "flatpak",
         }
-        files = {}
 
-        if not instance_id:
-            instance_id = "1234567890"
+        if not self.instance_id:
+            self.instance_id = "1234567890"
 
-        if not desktop_entry:
-            desktop_entry = b"""
+        if not self.desktop_entry:
+            self.desktop_entry = b"""
 [Desktop Entry]
 Version=1.0
 Name=Example App
@@ -335,126 +325,125 @@ Exec=true %u
 Type=Application
 """
 
-        files[desktop_files_path() / desktop_file] = desktop_entry
-
-        if not metadata:
+        if not self.metadata:
             metadata_str = f"""
 [Application]
-name={app_id}
+name={self.app_id}
 runtime=org.freedesktop.Platform/x86_64/23.08
 sdk=org.freedesktop.Sdk/x86_64/23.08
-command={app_id}
+command={self.app_id}
 
 [Instance]
-instance-id={instance_id}
+instance-id={self.instance_id}
 
 [Context]
 shared=network;ipc;
 sockets=x11;wayland;pulseaudio;fallback-x11;
 devices=dri;
 """
-            metadata = metadata_str.encode("utf8")
+            self.metadata = metadata_str.encode("utf8")
 
-        if usb_queries:
+        if self.usb_queries:
             metadata_usb_str = f"""
 [USB Devices]
-enumerable-devices={usb_queries}
+enumerable-devices={self.usb_queries}
 """
-            metadata += metadata_usb_str.encode("utf8")
+            self.metadata += metadata_usb_str.encode("utf8")
+
+    def _initialize(self):
+        assert self.desktop_file
+        assert self.desktop_entry
+        assert self.metadata
+
+        path = desktop_files_path() / self.desktop_file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(self.desktop_entry)
 
         metadata_path = Path(os.environ["TMPDIR"]) / "flatpak-metadata"
+        metadata_path.write_bytes(self.metadata)
 
-        files[metadata_path] = metadata
-        env["XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA"] = (
+        self._env["XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA"] = (
             metadata_path.absolute().as_posix()
         )
 
-        return cls(
-            kind=kind,
-            app_id=app_id,
-            desktop_file=desktop_file,
-            env=env,
-            files=files,
-        )
 
-    @classmethod
-    def new_snap(
-        cls,
-        common_id: str,
-        snap_name: str,
-        app_name: str,
-        desktop_entry: bytes | None = None,
-        metadata: bytes | None = None,
-    ):
-        kind = AppInfoKind.SNAP
-        app_id = f"snap.{snap_name}"
-        desktop_file = f"{snap_name}_{app_name}.desktop"
-        env = {
+@dataclass
+class AppInfoSnap(AppInfo):
+    app_id: str = "org.example.Test"
+    desktop_file: str | None = None
+    desktop_entry: bytes | None = None
+    common_id: str = "org.example.Test"
+    snap_name: str = "test"
+    app_name: str = "test"
+    metadata: bytes | None = None
+
+    def __post_init__(self):
+        self.app_id = f"snap.{self.snap_name}"
+        self.desktop_file = f"{self.snap_name}_{self.app_name}.desktop"
+        self._env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "snap",
         }
-        files = {}
 
-        if not desktop_entry:
+        if not self.desktop_entry:
             desktop_entry_str = f"""
 [Desktop Entry]
 Version=1.0
 Name=Example App
 Exec=true %u
 Type=Application
-X-SnapInstanceName={snap_name}
-X-SnapAppName={app_name}
+X-SnapInstanceName={self.snap_name}
+X-SnapAppName={self.app_name}
 """
-            desktop_entry = desktop_entry_str.encode("UTF-8")
+            self.desktop_entry = desktop_entry_str.encode("UTF-8")
 
-        files[desktop_files_path() / desktop_file] = desktop_entry
-
-        if not metadata:
+        if not self.metadata:
             metadata_str = f"""
 [Snap Info]
-InstanceName={snap_name}
-AppName={app_name}
-CommonID={common_id}
-DesktopFile={desktop_file}
+InstanceName={self.snap_name}
+AppName={self.app_name}
+CommonID={self.common_id}
+DesktopFile={self.desktop_file}
 """
-            metadata = metadata_str.encode("UTF-8")
+            self.metadata = metadata_str.encode("UTF-8")
+
+    def _initialize(self):
+        assert self.desktop_file
+        assert self.desktop_entry
+        assert self.metadata
+
+        path = desktop_files_path() / self.desktop_file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(self.desktop_entry)
 
         metadata_path = Path(os.environ["TMPDIR"]) / "snap-metadata"
+        metadata_path.write_bytes(self.metadata)
 
-        files[metadata_path] = metadata
-        env["XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA"] = (
+        self._env["XDG_DESKTOP_PORTAL_TEST_SNAP_METADATA"] = (
             metadata_path.absolute().as_posix()
         )
 
-        return cls(
-            kind=kind,
-            app_id=app_id,
-            desktop_file=desktop_file,
-            env=env,
-            files=files,
-        )
 
-    @classmethod
-    def new_linyaps(
-        cls,
-        app_id: str,
-        instance_id: str | None = None,
-        desktop_entry: bytes | None = None,
-        metadata: bytes | None = None,
-    ):
-        kind = AppInfoKind.LINYAPS
-        desktop_file = f"{app_id}.desktop"
-        env = {
+@dataclass
+class AppInfoLinyaps(AppInfo):
+    app_id: str = "org.example.Test"
+    desktop_file: str | None = None
+    desktop_entry: bytes | None = None
+    instance_id: str | None = None
+    metadata: bytes | None = None
+
+    def __post_init__(self):
+        self.desktop_file = f"{self.app_id}.desktop"
+        self._env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "linyaps",
         }
-        files = {}
 
-        if not instance_id:
-            instance_id = (
+        if not self.instance_id:
+            self.instance_id = (
                 "278575aac695dafe08974feb55c84bba69e862216e980b7ede28c5844e93682c"
             )
 
-        if not desktop_entry:
-            desktop_entry = b"""
+        if not self.desktop_entry:
+            self.desktop_entry = b"""
 [Desktop Entry]
 Version=1.0
 Name=Example App
@@ -462,37 +451,36 @@ Exec=true %u
 Type=Application
 """
 
-        files[desktop_files_path() / desktop_file] = desktop_entry
-
-        if not metadata:
+        if not self.metadata:
             metadata_str = f"""
 [General]
 Linyaps-version=1.10.0
 
 [Application]
-Id={app_id}
+Id={self.app_id}
 
 [Instance]
-Id={instance_id}
+Id={self.instance_id}
 
 [Context]
 Network=shared
 """
-            metadata = metadata_str.encode("utf8")
+            self.metadata = metadata_str.encode("utf8")
+
+    def _initialize(self):
+        assert self.desktop_file
+        assert self.desktop_entry
+        assert self.metadata
+
+        path = desktop_files_path() / self.desktop_file
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(self.desktop_entry)
 
         metadata_path = Path(os.environ["TMPDIR"]) / "linyaps-metadata"
+        metadata_path.write_bytes(self.metadata)
 
-        files[metadata_path] = metadata
-        env["XDG_DESKTOP_PORTAL_TEST_LINYAPS_METADATA"] = (
+        self._env["XDG_DESKTOP_PORTAL_TEST_LINYAPS_METADATA"] = (
             metadata_path.absolute().as_posix()
-        )
-
-        return cls(
-            kind=kind,
-            app_id=app_id,
-            desktop_file=desktop_file,
-            env=env,
-            files=files,
         )
 
 

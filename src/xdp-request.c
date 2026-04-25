@@ -23,22 +23,22 @@
 
 #include "config.h"
 
+#include "xdp-request.h"
+
 #include <string.h>
 
 #include "xdp-context.h"
-#include "xdp-utils.h"
-#include "xdp-method-info.h"
 #include "xdp-context.h"
-
-#include "xdp-request.h"
+#include "xdp-method-info.h"
+#include "xdp-utils.h"
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (XdpRequest,
-                         xdp_request,
-                         XDP_DBUS_TYPE_REQUEST_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
-                                                xdp_request_skeleton_iface_init))
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpRequest,
+                               xdp_request,
+                               XDP_DBUS_TYPE_REQUEST_SKELETON,
+                               G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REQUEST,
+                                                      xdp_request_skeleton_iface_init));
 
 static void
 xdp_request_on_signal_response (XdpDbusRequest *object,
@@ -47,8 +47,9 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
 {
   XdpRequest *request = XDP_REQUEST (object);
   XdpDbusRequestSkeleton *skeleton = XDP_DBUS_REQUEST_SKELETON (object);
-  GList      *connections, *l;
-  GVariant   *signal_variant;
+  GList *l;
+  g_autolist(GDBusConnection) connections = NULL;
+  g_autoptr(GVariant) signal_variant = NULL;
 
   connections = g_dbus_interface_skeleton_get_connections (G_DBUS_INTERFACE_SKELETON (skeleton));
 
@@ -66,8 +67,6 @@ xdp_request_on_signal_response (XdpDbusRequest *object,
                                      signal_variant,
                                      NULL);
     }
-  g_variant_unref (signal_variant);
-  g_list_free_full (connections, g_object_unref);
 }
 
 static gboolean
@@ -146,7 +145,7 @@ request_authorize_callback (GDBusInterfaceSkeleton *interface,
   const gchar *request_sender = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  if (strcmp (sender, request_sender) != 0)
+  if (g_strcmp0 (sender, request_sender) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -261,7 +260,7 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
   while (!xdp_context_claim_object_path (context, id))
     {
       r = g_random_int ();
-      g_free (id);
+      g_clear_pointer (&id, g_free);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%u", sender, token, r);
     }
 

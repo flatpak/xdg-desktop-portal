@@ -1,5 +1,4 @@
-#ifndef XDP_FUSE_H
-#define XDP_FUSE_H
+#pragma once
 
 #include <glib.h>
 #include "permission-db.h"
@@ -21,5 +20,3 @@ char      *xdp_fuse_lookup_id_for_inode (ino_t    inode,
 
 
 G_END_DECLS
-
-#endif /* XDP_FUSE_H */

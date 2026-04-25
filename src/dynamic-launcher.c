@@ -22,20 +22,21 @@
 
 #include "config.h"
 
+#include "dynamic-launcher.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <stdint.h>
-
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
 
+#include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gunixinputstream.h>
-#include <gio/gdesktopappinfo.h>
 #include <glib/gi18n.h>
 
 #include "xdp-app-launch-context.h"
@@ -45,8 +46,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "dynamic-launcher.h"
 
 #define MAX_DESKTOP_SIZE_BYTES 1048576
 

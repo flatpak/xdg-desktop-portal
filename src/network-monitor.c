@@ -22,15 +22,16 @@
 
 #include "config.h"
 
+#include "network-monitor.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-
-#include "network-monitor.h"
 
 typedef struct _NetworkMonitor NetworkMonitor;
 typedef struct _NetworkMonitorClass NetworkMonitorClass;

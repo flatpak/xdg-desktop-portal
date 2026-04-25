@@ -23,16 +23,18 @@
 
 #include "config.h"
 
+#include "xdp-app-info-flatpak-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
-#if HAVE_SYS_VFS_H
-#include <sys/vfs.h>
-#endif
 
 #include <json-glib/json-glib.h>
 
-#include "xdp-app-info-flatpak-private.h"
 #include "xdp-usb-query.h"
+
+#if HAVE_SYS_VFS_H
+#include <sys/vfs.h>
+#endif
 
 #define FLATPAK_ENGINE_ID "org.flatpak"
 
@@ -56,7 +58,7 @@ struct _XdpAppInfoFlatpak
   GPtrArray *queries;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO);
 
 static gboolean
 is_valid_initial_name_character (gint c, gboolean allow_dash)

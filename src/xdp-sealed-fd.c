@@ -22,15 +22,17 @@
 
 #include "config.h"
 
+#include "xdp-sealed-fd.h"
+
 #include <errno.h>
 #include <fcntl.h>
-#include <gio/gunixfdlist.h>
-#include <sys/mman.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <unistd.h>
 
+#include <gio/gunixfdlist.h>
+
 #include "xdp-utils.h"
-#include "xdp-sealed-fd.h"
 
 #define REQUIRED_SEALS (F_SEAL_GROW | F_SEAL_WRITE | F_SEAL_SHRINK)
 
@@ -41,7 +43,7 @@ struct _XdpSealedFd
   int fd;
 };
 
-G_DEFINE_FINAL_TYPE (XdpSealedFd, xdp_sealed_fd, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (XdpSealedFd, xdp_sealed_fd, G_TYPE_OBJECT);
 
 static void
 xdp_sealed_fd_finalize (GObject *object)

@@ -22,27 +22,27 @@
 
 #include "config.h"
 
+#include "screenshot.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
 
-#include <glib/gi18n.h>
-#include <gio/gio.h>
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
 
 #include "xdp-context.h"
-#include "xdp-documents.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "screenshot.h"
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -179,6 +179,7 @@ screenshot_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, screenshot_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_object_set_data (G_OBJECT (task), "retval", "url");
   g_task_run_in_thread (task, send_response_in_thread_func);
@@ -404,6 +405,7 @@ handle_screenshot (XdpDbusScreenshot *object,
   xdp_dbus_screenshot_complete_screenshot (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_screenshot);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_screenshot_in_thread_func);
 
@@ -436,6 +438,7 @@ pick_color_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, pick_color_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_object_set_data (G_OBJECT (task), "retval", "color");
   g_task_run_in_thread (task, send_response_in_thread_func);

@@ -22,8 +22,8 @@
 
 #include "config.h"
 
-#include <glib.h>
 #include <gio/gdesktopappinfo.h>
+#include <glib.h>
 
 #include "dynamic-launcher.h"
 #include "xdp-utils.h"
@@ -33,10 +33,11 @@ find_renamed_app_id (const char *old_app_id)
 {
   g_autofree char *renamed_to = NULL;
   g_autofree char *desktop_id = NULL;
+  g_autolist(GDesktopAppInfo) app_infos = NULL;
 
   desktop_id = g_strconcat (old_app_id, ".desktop", NULL);
 
-  GList *app_infos = g_app_info_get_all ();
+  app_infos = g_app_info_get_all ();
   for (GList *l = app_infos; l; l = l->next)
     {
       GDesktopAppInfo *info = l->data;
@@ -51,7 +52,6 @@ find_renamed_app_id (const char *old_app_id)
       break;
     }
 
-  g_list_free_full (app_infos, g_object_unref);
   return g_steal_pointer (&renamed_to);
 }
 

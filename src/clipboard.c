@@ -19,8 +19,11 @@
  */
 #include "config.h"
 
-#include <gio/gunixfdlist.h>
+#include "clipboard.h"
+
 #include <stdint.h>
+
+#include <gio/gunixfdlist.h>
 
 #include "input-capture.h"
 #include "remote-desktop.h"
@@ -30,8 +33,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "clipboard.h"
 
 typedef struct _Clipboard Clipboard;
 typedef struct _ClipboardClass ClipboardClass;
@@ -55,7 +56,7 @@ G_DEFINE_TYPE_WITH_CODE (Clipboard,
                          clipboard,
                          XDP_DBUS_TYPE_CLIPBOARD_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CLIPBOARD,
-                                                clipboard_iface_init))
+                                                clipboard_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Clipboard, g_object_unref)
 

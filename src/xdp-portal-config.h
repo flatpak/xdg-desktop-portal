@@ -39,7 +39,7 @@ typedef struct {
 G_DECLARE_FINAL_TYPE (XdpPortalConfig,
                       xdp_portal_config,
                       XDP, PORTAL_CONFIG,
-                      GObject)
+                      GObject);
 
 XdpPortalConfig * xdp_portal_config_new (XdpContext *config);
 

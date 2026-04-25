@@ -20,10 +20,13 @@
 
 #include "config.h"
 
+#include "camera.h"
+
 #include <stdio.h>
-#include <glib/gi18n.h>
-#include <gio/gunixfdlist.h>
+
 #include <gio/gdesktopappinfo.h>
+#include <gio/gunixfdlist.h>
+#include <glib/gi18n.h>
 
 #include "pipewire.h"
 #include "xdp-context.h"
@@ -33,8 +36,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "camera.h"
 
 typedef struct _Camera Camera;
 typedef struct _CameraClass CameraClass;
@@ -64,7 +65,7 @@ static void camera_iface_init (XdpDbusCameraIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Camera, camera, XDP_DBUS_TYPE_CAMERA_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_CAMERA,
-                                                camera_iface_init))
+                                                camera_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Camera, g_object_unref)
 
@@ -218,6 +219,7 @@ handle_access_camera (XdpDbusCamera *object,
   xdp_dbus_camera_complete_access_camera (object, invocation, request->id);
 
   task = g_task_new (camera, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_access_camera);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_access_camera_in_thread_func);
 
@@ -348,7 +350,7 @@ global_added_cb (PipeWireRemote *remote,
   const struct spa_dict_item *media_class;
   const struct spa_dict_item *media_role;
 
-  if (strcmp(type, PW_TYPE_INTERFACE_Node) != 0)
+  if (g_strcmp0(type, PW_TYPE_INTERFACE_Node) != 0)
     return;
 
   if (!props)

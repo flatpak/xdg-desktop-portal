@@ -22,27 +22,28 @@
 
 #include "config.h"
 
-#include <json-glib/json-glib.h>
+#include "xdp-utils.h"
 
 #include <errno.h>
 #include <fcntl.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/ioctl.h>
-#if HAVE_PIDFD_OPEN
-#include <sys/pidfd.h>
-#else
-#include <sys/syscall.h>
-#include <unistd.h>
-#endif
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
+#include <json-glib/json-glib.h>
+#include <sys/ioctl.h>
 
 #include "xdp-types.h"
 
-#include "xdp-utils.h"
+#if HAVE_PIDFD_OPEN
+#include <sys/pidfd.h>
+#else
+#include <unistd.h>
+
+#include <sys/syscall.h>
+#endif
 
 #define PIDFS_IOCTL_MAGIC 0xFF
 #define PIDFD_GET_PID_NAMESPACE _IO(PIDFS_IOCTL_MAGIC, 5)
@@ -160,8 +161,8 @@ name_owner_changed (GDBusConnection *connection,
   g_variant_get (parameters, "(&s&s&s)", &name, &from, &to);
 
   if (name[0] != ':' ||
-      strcmp (name, from) != 0 ||
-      strcmp (to, "") != 0)
+      g_strcmp0 (name, from) != 0 ||
+      g_strcmp0 (to, "") != 0)
     return;
 
   data->peer_disconnect_cb (name, data->user_data);
@@ -411,8 +412,7 @@ static char *documents_mountpoint = NULL;
 void
 xdp_set_documents_mountpoint (const char *path)
 {
-  g_clear_pointer (&documents_mountpoint, g_free);
-  documents_mountpoint = g_strdup (path);
+  g_set_str (&documents_mountpoint, path);
 }
 
 const char *
@@ -614,7 +614,7 @@ xdp_spawn (GError     **error,
            const char  *argv0,
            ...)
 {
-  GPtrArray *args;
+  g_autoptr(GPtrArray) args = NULL;
   const char *arg;
   va_list ap;
   char *output;
@@ -628,8 +628,6 @@ xdp_spawn (GError     **error,
   va_end (ap);
 
   output = xdp_spawn_full ((const char * const *) args->pdata, -1, -1, error);
-
-  g_ptr_array_free (args, TRUE);
 
   return output;
 }

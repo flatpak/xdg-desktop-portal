@@ -21,10 +21,12 @@
 #include "config.h"
 
 #include <locale.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
 #include <gio/gio.h>
+
 #include "permission-store-dbus.h"
 #include "xdg-permission-store.h"
 

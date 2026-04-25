@@ -29,14 +29,13 @@ struct _XdpAppLaunchContext
 
 G_DEFINE_TYPE (XdpAppLaunchContext,
                xdp_app_launch_context,
-               G_TYPE_APP_LAUNCH_CONTEXT)
+               G_TYPE_APP_LAUNCH_CONTEXT);
 
 void
 xdp_app_launch_context_set_activation_token (XdpAppLaunchContext *self,
                                              const char          *token)
 {
-  g_clear_pointer (&self->token, g_free);
-  self->token = g_strdup (token);
+  g_set_str (&self->token, token);
 }
 
 static char *

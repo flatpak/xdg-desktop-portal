@@ -20,9 +20,12 @@
 
 #include "config.h"
 
+#include "screen-cast.h"
+
 #include <stdint.h>
-#include <pipewire/pipewire.h>
+
 #include <gio/gunixfdlist.h>
+#include <pipewire/pipewire.h>
 
 #include "pipewire.h"
 #include "remote-desktop.h"
@@ -32,11 +35,9 @@
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
-#include "xdp-session.h"
 #include "xdp-session-persistence.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "screen-cast.h"
 
 #define PERMISSION_ITEM(item_id, item_permissions) \
   ((struct pw_permission) { \
@@ -75,7 +76,7 @@ struct _ScreenCastStream
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
                          XDP_DBUS_TYPE_SCREEN_CAST_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SCREEN_CAST,
-                                                screen_cast_iface_init))
+                                                screen_cast_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (ScreenCast, g_object_unref)
 

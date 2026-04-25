@@ -24,29 +24,29 @@
 
 #include "config.h"
 
+#include "file-transfer.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <errno.h>
-
-#include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
-#include <fcntl.h>
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
-#include "file-transfer.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-utils.h"
-#include "document-portal-dbus.h"
 #include "document-enums.h"
-#include "document-portal.h"
+#include "document-portal-dbus.h"
 #include "document-portal-fuse.h"
+#include "document-portal.h"
+#include "src/xdp-app-info-registry.h"
+#include "src/xdp-app-info.h"
+#include "src/xdp-utils.h"
 
 static XdpDbusFileTransfer *file_transfer;
 
@@ -89,7 +89,7 @@ typedef struct
 
 static GType file_transfer_get_type (void);
 
-G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT)
+G_DEFINE_TYPE (FileTransfer, file_transfer, G_TYPE_OBJECT);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (FileTransfer, g_object_unref);
 
@@ -207,14 +207,6 @@ file_transfer_start (XdpAppInfo *app_info,
 }
 
 static void
-stop (gpointer data)
-{
-  FileTransfer *transfer = data;
-
-  g_object_unref (transfer);
-}
-
-static void
 file_transfer_stop (FileTransfer *transfer)
 {
   GDBusConnection *bus;
@@ -236,7 +228,8 @@ file_transfer_stop (FileTransfer *transfer)
   g_hash_table_steal (transfers, transfer->key);
   G_UNLOCK (transfers);
 
-  g_idle_add_once (stop, transfer);
+  /* goblint-ignore-next-line: g_source_id_not_stored */
+  g_idle_add_once (g_object_unref, g_steal_pointer (&transfer));
 }
 
 static void
@@ -404,7 +397,7 @@ add_files (GDBusMethodInvocation *invocation,
 
   TRANSFER_AUTOLOCK_UNREF (transfer);
 
-  if (strcmp (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
+  if (g_strcmp0 (transfer->sender, g_dbus_method_invocation_get_sender (invocation)) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -586,7 +579,7 @@ stop_file_transfers_in_thread_func (GTask        *task,
       g_hash_table_iter_init (&iter, transfers);
       while (g_hash_table_iter_next (&iter, NULL, (gpointer *)&transfer))
         {
-          if (strcmp (sender, transfer->sender) == 0)
+          if (g_strcmp0 (sender, transfer->sender) == 0)
             {
               g_print ("removing transfer %s for dead peer %s\n", transfer->key, transfer->sender);
               g_hash_table_iter_remove (&iter);
@@ -603,6 +596,7 @@ stop_file_transfers_for_sender (const char *sender)
   g_autoptr(GTask) task = NULL;
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, stop_file_transfers_for_sender);
   g_task_set_task_data (task, g_strdup (sender), g_free);
   g_task_run_in_thread (task, stop_file_transfers_in_thread_func);
 }

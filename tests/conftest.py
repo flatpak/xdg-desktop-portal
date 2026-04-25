@@ -4,7 +4,7 @@
 
 import tests.xdp_utils as xdp
 
-from typing import Any, Dict, Iterator, Optional, assert_never
+from typing import Any, Dict, Iterator, Optional
 from types import ModuleType
 
 import pytest
@@ -37,6 +37,12 @@ def pytest_sessionfinish(session, exitstatus):
     # tests were skipped
     if exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
         session.exitstatus = 77
+
+
+def pytest_make_parametrize_id(config, val):
+    if isinstance(val, xdp.AppInfo):
+        return val.__class__.__name__
+    return None
 
 
 def ensure_environment_set() -> None:
@@ -117,11 +123,11 @@ def create_test_dirs(umockdev: Optional[UMockdev.Testbed]) -> Iterator[None]:
 
 
 @pytest.fixture
-def xdp_mocked_executables(xdp_app_info: xdp.AppInfo) -> list[xdp.ExecutableMock]:
+def xdp_mocked_executables(xdp_app_info_init: xdp.AppInfo) -> list[xdp.ExecutableMock]:
     exe = None
-    if xdp_app_info.kind == xdp.AppInfoKind.FLATPAK:
+    if isinstance(xdp_app_info_init, xdp.AppInfoFlatpak):
         exe = "flatpak"
-    elif xdp_app_info.kind == xdp.AppInfoKind.SNAP:
+    elif isinstance(xdp_app_info_init, xdp.AppInfoSnap):
         exe = "snap"
     else:
         return []
@@ -444,19 +450,21 @@ def xdp_overwrite_env() -> dict[str, str]:
 
 @pytest.fixture(
     params=[
-        xdp.AppInfoKind.HOST,
-        xdp.AppInfoKind.FLATPAK,
+        xdp.AppInfoHost(),
+        xdp.AppInfoFlatpak(),
     ]
     + (
         [
-            xdp.AppInfoKind.SNAP,
-            xdp.AppInfoKind.LINYAPS,
+            xdp.AppInfoSnap(),
+            xdp.AppInfoLinyaps(),
         ]
         if xdp.run_long_tests()
         else []
     )
 )
-def xdp_app_info(request) -> xdp.AppInfo:
+def xdp_app_info(
+    request,
+) -> xdp.AppInfo:
     """
     Default fixture which can be used to override the XdpAppInfo the portal
     frontend will discover.
@@ -464,43 +472,19 @@ def xdp_app_info(request) -> xdp.AppInfo:
     app info kinds.
     """
 
-    app_info_kind = request.param
-    app_id = "org.example.Test"
-
-    if app_info_kind == xdp.AppInfoKind.HOST:
-        return xdp.AppInfo.new_host(
-            app_id=app_id,
-        )
-
-    if app_info_kind == xdp.AppInfoKind.FLATPAK:
-        return xdp.AppInfo.new_flatpak(
-            app_id=app_id,
-        )
-
-    if app_info_kind == xdp.AppInfoKind.SNAP:
-        return xdp.AppInfo.new_snap(
-            common_id=app_id,
-            snap_name="test",
-            app_name="test",
-        )
-
-    if app_info_kind == xdp.AppInfoKind.LINYAPS:
-        return xdp.AppInfo.new_linyaps(
-            app_id=app_id,
-        )
-
-    assert_never(app_info_kind)
+    return request.param
 
 
 @pytest.fixture(autouse=True)
-def ensure_xdp_app_info_files(create_test_dirs, xdp_app_info) -> None:
-    xdp_app_info.ensure_files()
+def xdp_app_info_init(create_test_dirs, xdp_app_info) -> None:
+    xdp_app_info._initialize()
+    return xdp_app_info
 
 
 @pytest.fixture
 def xdp_env(
     xdp_overwrite_env: dict[str, str],
-    xdp_app_info: xdp.AppInfo,
+    xdp_app_info_init: xdp.AppInfo,
     xdp_bin_path: Path,
     umockdev: Optional[UMockdev.Testbed],
 ) -> dict[str, str]:
@@ -509,8 +493,8 @@ def xdp_env(
     env["XDG_CURRENT_DESKTOP"] = "test"
     env["PATH"] = xdp_bin_path.as_posix()
 
-    if xdp_app_info:
-        xdp_app_info.extend_env(env)
+    for key, val in xdp_app_info_init.get_xdp_executable_env().items():
+        env[key] = val
 
     if umockdev:
         env["UMOCKDEV_DIR"] = umockdev.get_root_dir()

@@ -22,11 +22,14 @@
 
 #include "config.h"
 
+#include "wallpaper.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
+
 #include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
 #include <gio/gunixfdlist.h>
+#include <glib/gi18n.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
@@ -35,8 +38,6 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "wallpaper.h"
 
 typedef struct _Wallpaper Wallpaper;
 typedef struct _WallpaperClass WallpaperClass;
@@ -317,6 +318,7 @@ handle_set_wallpaper_uri (XdpDbusWallpaper *object,
   xdp_dbus_wallpaper_complete_set_wallpaper_uri (object, invocation, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_set_wallpaper_uri);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 
@@ -356,6 +358,7 @@ handle_set_wallpaper_file (XdpDbusWallpaper *object,
   xdp_dbus_wallpaper_complete_set_wallpaper_file (object, invocation, NULL, request->id);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_set_wallpaper_file);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_set_wallpaper_in_thread_func);
 

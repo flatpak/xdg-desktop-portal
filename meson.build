@@ -75,6 +75,7 @@ cflags = [
     '-Wno-unused-parameter',
     '-Wno-sign-compare',
     '-Wno-missing-field-initializers',
+    '-Wswitch-enum',
 ]
 add_project_arguments(cc.get_supported_arguments(cflags), language : 'c')
 
@@ -110,6 +111,16 @@ endforeach
 libglnx = subproject(
   'libglnx',
   default_options : [
+    'default_library=static',
+    'warning_level=1',
+    'tests=false',
+  ],
+)
+
+gvdb = subproject(
+  'gvdb',
+  default_options : [
+    'default_library=static',
     'warning_level=1',
     'tests=false',
   ],
@@ -131,7 +142,8 @@ pipewire_dep = dependency('libpipewire-0.3', version: '>= 0.2.90')
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
-libglnx_dep = libglnx.get_variable('libglnx_dep')
+libglnx_dep = dependency('libglnx')
+gvdb_dep = dependency('gvdb')
 
 gst_inspect = find_program('gst-inspect-1.0', required: false)
 if gst_inspect.found()

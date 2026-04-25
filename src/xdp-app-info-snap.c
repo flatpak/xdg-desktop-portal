@@ -19,13 +19,14 @@
 
 #include "config.h"
 
+#include "xdp-app-info-snap-private.h"
+
 #include <errno.h>
 #include <fcntl.h>
+
 #if HAVE_SYS_VFS_H
 #include <sys/vfs.h>
 #endif
-
-#include "xdp-app-info-snap-private.h"
 
 #define SNAP_ENGINE_ID "io.snapcraft"
 
@@ -41,16 +42,14 @@ struct _XdpAppInfoSnap
   char *desktop_file;
 };
 
-G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO)
+G_DEFINE_FINAL_TYPE (XdpAppInfoSnap, xdp_app_info_snap, XDP_TYPE_APP_INFO);
 
-enum
+typedef enum
 {
-  PROP_0,
-  PROP_DESKTOP_FILE,
-  N_PROPS,
-};
+  PROP_DESKTOP_FILE = 1,
+} XdpAppInfoSnapProps;
 
-static GParamSpec *properties [N_PROPS];
+static GParamSpec *properties [PROP_DESKTOP_FILE + 1];
 
 static GAppInfo *
 xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
@@ -82,7 +81,7 @@ xdp_app_info_snap_get_property (GObject    *object,
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
 
-  switch (prop_id)
+  switch ((XdpAppInfoSnapProps) prop_id)
     {
     case PROP_DESKTOP_FILE:
       g_value_set_string (value, app_info_snap->desktop_file);
@@ -101,7 +100,7 @@ xdp_app_info_snap_set_property (GObject      *object,
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (object);
 
-  switch (prop_id)
+  switch ((XdpAppInfoSnapProps) prop_id)
     {
     case PROP_DESKTOP_FILE:
       g_assert (app_info_snap->desktop_file == NULL);
@@ -132,7 +131,7 @@ xdp_app_info_snap_class_init (XdpAppInfoSnapClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, N_PROPS, properties);
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (properties), properties);
 }
 
 static void
@@ -165,9 +164,9 @@ _xdp_app_info_snap_parse_cgroup_file (FILE     *f,
 
       /* Only consider the freezer, systemd group or unified cgroup
        * hierarchies */
-      if ((strcmp (controller, "freezer:") == 0 ||
-           strcmp (controller, "name=systemd:") == 0 ||
-           strcmp (controller, ":") == 0) &&
+      if ((g_strcmp0 (controller, "freezer:") == 0 ||
+           g_strcmp0 (controller, "name=systemd:") == 0 ||
+           g_strcmp0 (controller, ":") == 0) &&
           strstr (cgroup, "/snap.") != NULL)
         {
           *is_snap = TRUE;

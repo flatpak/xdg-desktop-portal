@@ -23,20 +23,20 @@
 
 #include "config.h"
 
-#include <errno.h>
+#include "xdp-documents.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
+#include <errno.h>
 #include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 
+#include "document-enums.h"
 #include "xdp-app-info.h"
 #include "xdp-dbus.h"
 #include "xdp-utils.h"
-#include "xdp-documents.h"
-#include "document-enums.h"
 
 #define DOCUMENT_PORTAL_DBUS_NAME "org.freedesktop.portal.Documents"
 #define DOCUMENT_PORTAL_DBUS_PATH "/org/freedesktop/portal/documents"
@@ -214,7 +214,7 @@ xdp_register_document (const char        *uri,
         return NULL;
     }
 
-  if (!g_strcmp0 (doc_id, ""))
+  if (g_strcmp0 (doc_id, "") == 0)
     {
       doc_path = g_build_filename (path, NULL);
       return g_filename_to_uri (doc_path, NULL, error);
@@ -242,7 +242,7 @@ xdp_get_real_path_for_doc_path (const char *path,
       return g_strdup (path);
     }
 
-  if (!g_strcmp0 (doc_id, ""))
+  if (g_strcmp0 (doc_id, "") == 0)
     {
       g_debug ("document portal returned empty doc id for path '%s'", path);
       return g_strdup (path);

@@ -20,13 +20,14 @@
 
 #include "config.h"
 
+#include "xdg-permission-store.h"
+
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
-#include <gio/gio.h>
-#include "permission-store-dbus.h"
-#include "xdg-permission-store.h"
+
 #include "permission-db.h"
+#include "permission-store-dbus.h"
 #include "src/xdp-utils.h"
 
 GHashTable *tables = NULL;
@@ -113,8 +114,7 @@ writeout_done (GObject      *source_object,
                                                "Unable to write db: %s", error->message);
     }
 
-  g_list_free (table->current_writes);
-  table->current_writes = NULL;
+  g_clear_list (&table->current_writes, NULL);
   table->writing = FALSE;
 
   if (table->outstanding_writes != NULL)
@@ -125,8 +125,7 @@ static void
 start_writeout (Table *table)
 {
   g_assert (table->current_writes == NULL);
-  table->current_writes = table->outstanding_writes;
-  table->outstanding_writes = NULL;
+  table->current_writes = g_steal_pointer (&table->outstanding_writes);
   table->writing = TRUE;
 
   permission_db_update (table->db);
@@ -510,7 +509,7 @@ void
 xdg_permission_store_start (GDBusConnection *connection)
 {
   XdgPermissionStore *store;
-  GError *error = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_debug ("Starting permission store");
 
@@ -534,8 +533,5 @@ xdg_permission_store_start (GDBusConnection *connection)
                                          connection,
                                          "/org/freedesktop/impl/portal/PermissionStore",
                                          &error))
-    {
-      g_warning ("error: %s", error->message);
-      g_error_free (error);
-    }
+    g_warning ("error: %s", error->message);
 }

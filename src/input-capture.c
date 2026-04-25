@@ -20,20 +20,21 @@
 
 #include "config.h"
 
+#include "input-capture.h"
+
 #include <stdint.h>
-#include <glib.h>
+
 #include <gio/gunixfdlist.h>
+#include <glib.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
-#include "xdp-session.h"
 #include "xdp-session-persistence.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "input-capture.h"
 
 typedef struct _InputCapture InputCapture;
 typedef struct _InputCaptureClass InputCaptureClass;
@@ -59,7 +60,7 @@ static void input_capture_iface_init (XdpDbusInputCaptureIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (InputCapture, input_capture, XDP_DBUS_TYPE_INPUT_CAPTURE_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_INPUT_CAPTURE,
-                                                input_capture_iface_init))
+                                                input_capture_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCapture, g_object_unref)
 

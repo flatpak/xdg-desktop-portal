@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <glib-object.h>
 #include <gio/gio.h>
+#include <glib-object.h>
 
 #include "xdp-types.h"
 
@@ -28,7 +28,7 @@
 G_DECLARE_FINAL_TYPE (XdpAppInfoRegistry,
                       xdp_app_info_registry,
                       XDP, APP_INFO_REGISTRY,
-                      GObject)
+                      GObject);
 
 XdpAppInfoRegistry * xdp_app_info_registry_new (void);
 

@@ -13,9 +13,7 @@ import os
 
 @pytest.fixture
 def xdp_app_info() -> xdp.AppInfo:
-    return xdp.AppInfo.new_host(
-        app_id="",
-    )
+    return xdp.AppInfoHost(app_id="")
 
 
 class TestDocuments:

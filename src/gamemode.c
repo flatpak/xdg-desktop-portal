@@ -22,16 +22,19 @@
 
 #include "config.h"
 
+#include "gamemode.h"
+
 #define _GNU_SOURCE 1
-#include <gio/gunixfdlist.h>
 #include <errno.h>
 #include <locale.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <gio/gunixfdlist.h>
 
 #include "xdp-app-info.h"
 #include "xdp-context.h"
@@ -39,8 +42,6 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-utils.h"
-
-#include "gamemode.h"
 
 /* well known names*/
 #define GAMEMODE_BACKEND_DBUS_NAME "com.feralinteractive.GameMode"
@@ -397,6 +398,7 @@ handle_call_in_thread_fds (XdpDbusGameMode       *object,
   call_data->fdlist = g_object_ref (fdlist);
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_call_in_thread_fds);
 
   g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);
@@ -426,6 +428,7 @@ handle_call_in_thread (XdpDbusGameMode       *object,
     }
 
   task = g_task_new (object, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_call_in_thread);
 
   g_task_set_task_data (task, call_data, call_data_free);
   g_task_run_in_thread (task, handle_call_thread);

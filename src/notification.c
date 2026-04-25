@@ -22,22 +22,23 @@
 
 #include "config.h"
 
-#include <string.h>
+#include "notification.h"
+
 #include <stdio.h>
+#include <string.h>
+
 #include <gio/gio.h>
 #include <gio/gunixfdlist.h>
 #include <gio/gunixoutputstream.h>
 
-#include "xdp-app-info.h"
 #include "xdp-app-info-registry.h"
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "notification.h"
 
 typedef struct _Notification Notification;
 typedef struct _NotificationClass NotificationClass;
@@ -118,8 +119,8 @@ struct _CallData {
   GUnixFDList *out_fd_list;
 };
 
-G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject)
-G_DEFINE_TYPE (CallData, call_data, G_TYPE_OBJECT);
+G_DECLARE_FINAL_TYPE (CallData, call_data, CALL, DATA, GObject);
+G_DEFINE_FINAL_TYPE (CallData, call_data, G_TYPE_OBJECT);
 
 static void
 call_data_init (CallData *call_data)
@@ -290,21 +291,21 @@ markup_parser_start_element (GMarkupParseContext  *context,
 {
   GString *composed = user_data;
 
-  if (strcmp (element_name, "b") == 0)
+  if (g_strcmp0 (element_name, "b") == 0)
     {
       g_string_append_len (composed, "<b>", -1);
     }
-  else if (strcmp (element_name, "i") == 0)
+  else if (g_strcmp0 (element_name, "i") == 0)
     {
       g_string_append_len (composed, "<i>", -1);
     }
-  else if (strcmp (element_name, "a") == 0)
+  else if (g_strcmp0 (element_name, "a") == 0)
     {
       int i;
 
       for (i = 0;  attribute_names[i]; i++)
         {
-          if (strcmp (attribute_names[i], "href") == 0)
+          if (g_strcmp0 (attribute_names[i], "href") == 0)
             {
               g_autofree char *escaped = g_markup_escape_text (attribute_values[i], -1);
 
@@ -323,11 +324,11 @@ markup_parser_end_element (GMarkupParseContext  *context,
 {
   GString *composed = user_data;
 
-  if (strcmp (element_name, "b") == 0)
+  if (g_strcmp0 (element_name, "b") == 0)
     g_string_append_len (composed, "</b>", -1);
-  else if (strcmp (element_name, "i") == 0)
+  else if (g_strcmp0 (element_name, "i") == 0)
     g_string_append_len (composed, "</i>", -1);
-  else if (strcmp (element_name, "a") == 0)
+  else if (g_strcmp0 (element_name, "a") == 0)
     g_string_append_len (composed, "</a>", -1);
 }
 
@@ -497,7 +498,7 @@ parse_button (GVariantBuilder  *builder,
 
       g_variant_get_child (button, i, "{&sv}", &key, &value);
 
-      if (strcmp (key, "label") == 0)
+      if (g_strcmp0 (key, "label") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
@@ -505,7 +506,7 @@ parse_button (GVariantBuilder  *builder,
           if (!label)
             label = g_steal_pointer (&value);
         }
-      else if (strcmp (key, "action") == 0)
+      else if (g_strcmp0 (key, "action") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
@@ -513,12 +514,12 @@ parse_button (GVariantBuilder  *builder,
           if (!action)
             action = g_steal_pointer (&value);
         }
-      else if (strcmp (key, "target") == 0)
+      else if (g_strcmp0 (key, "target") == 0)
         {
           if (!target)
             target = g_steal_pointer (&value);
         }
-      else if (strcmp (key, "purpose") == 0 && impl_version > 1)
+      else if (g_strcmp0 (key, "purpose") == 0 && impl_version > 1)
         {
           if (!check_button_purpose (value, error))
             return FALSE;
@@ -643,14 +644,14 @@ parse_serialized_icon (GVariantBuilder  *builder,
   g_variant_get (icon, "(&sv)", &key, &value);
 
   /* This are the same keys as for serialized GIcons */
-  if (strcmp (key, "themed") == 0)
+  if (g_strcmp0 (key, "themed") == 0)
     {
       if (!check_value_type (key, value, G_VARIANT_TYPE_STRING_ARRAY, error))
         return FALSE;
 
       g_variant_builder_add (builder, "{sv}", "icon", icon);
     }
-  else if (strcmp (key, "bytes") == 0)
+  else if (g_strcmp0 (key, "bytes") == 0)
     {
       g_autoptr(GBytes) icon_bytes = NULL;
       g_autoptr(GError) local_error = NULL;
@@ -693,7 +694,7 @@ parse_serialized_icon (GVariantBuilder  *builder,
             }
         }
     }
-  else if (strcmp (key, "file-descriptor") == 0)
+  else if (g_strcmp0 (key, "file-descriptor") == 0)
     {
       g_autoptr(GError) local_error = NULL;
       g_autoptr(XdpSealedFd) sealed_icon = NULL;
@@ -774,7 +775,7 @@ parse_serialized_sound (GVariantBuilder  *builder,
     {
       key = g_variant_get_string (sound, NULL);
 
-      if (strcmp (key, "silent") == 0 || strcmp (key, "default") == 0)
+      if (g_strcmp0 (key, "silent") == 0 || g_strcmp0 (key, "default") == 0)
         {
           g_variant_builder_add (builder, "{sv}", "sound", sound);
           return TRUE;
@@ -794,7 +795,7 @@ parse_serialized_sound (GVariantBuilder  *builder,
 
   g_variant_get (sound, "(&sv)", &key, &value);
 
-  if (strcmp (key, "file-descriptor") == 0)
+  if (g_strcmp0 (key, "file-descriptor") == 0)
     {
       g_autoptr(GError) local_error = NULL;
       g_autoptr(XdpSealedFd) sealed_sound = NULL;
@@ -961,20 +962,20 @@ parse_notification (GVariantBuilder  *builder,
       g_autoptr(GVariant) value = NULL;
 
       g_variant_get_child (notification, i, "{&sv}", &key, &value);
-      if (strcmp (key, "title") == 0 ||
-          strcmp (key, "body") == 0)
+      if (g_strcmp0 (key, "title") == 0 ||
+          g_strcmp0 (key, "body") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
 
           g_variant_builder_add (builder, "{sv}", key, value);
         }
-      else if (strcmp (key, "markup-body") == 0 && impl_version > 1)
+      else if (g_strcmp0 (key, "markup-body") == 0 && impl_version > 1)
         {
           if (!parse_markup_body (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "icon") == 0)
+      else if (g_strcmp0 (key, "icon") == 0)
         {
           if (!parse_serialized_icon (builder,
                                       impl_version,
@@ -987,7 +988,7 @@ parse_notification (GVariantBuilder  *builder,
               return FALSE;
             }
         }
-      else if (strcmp (key, "sound") == 0 && impl_version > 1)
+      else if (g_strcmp0 (key, "sound") == 0 && impl_version > 1)
         {
           if (!parse_serialized_sound (builder,
                                        value,
@@ -999,33 +1000,33 @@ parse_notification (GVariantBuilder  *builder,
               return FALSE;
             }
         }
-      else if (strcmp (key, "priority") == 0)
+      else if (g_strcmp0 (key, "priority") == 0)
         {
           if (!parse_priority (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "default-action") == 0)
+      else if (g_strcmp0 (key, "default-action") == 0)
         {
           if (!check_value_type (key, value, G_VARIANT_TYPE_STRING, error))
             return FALSE;
 
           g_variant_builder_add (builder, "{sv}", key, value);
         }
-      else if (strcmp (key, "default-action-target") == 0)
+      else if (g_strcmp0 (key, "default-action-target") == 0)
         {
           g_variant_builder_add (builder, "{sv}", key, value);
         }
-      else if (strcmp (key, "buttons") == 0)
+      else if (g_strcmp0 (key, "buttons") == 0)
         {
           if (!parse_buttons (builder, impl_version, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "display-hint") == 0 && impl_version > 1)
+      else if (g_strcmp0 (key, "display-hint") == 0 && impl_version > 1)
         {
           if (!parse_display_hint (builder, value, error))
             return FALSE;
         }
-      else if (strcmp (key, "category") == 0 && impl_version > 1)
+      else if (g_strcmp0 (key, "category") == 0 && impl_version > 1)
         {
           if (!parse_category (builder, value, error))
             return FALSE;
@@ -1129,6 +1130,7 @@ notification_handle_add_notification (XdpDbusNotification   *object,
                              notification_data,
                              in_fd_list);
   task = g_task_new (notification, NULL, add_finished_cb, NULL);
+  g_task_set_source_tag (task, notification_handle_add_notification);
   g_task_set_task_data (task, call_data, g_object_unref);
   g_task_run_in_thread (task, handle_add_in_thread_func);
 

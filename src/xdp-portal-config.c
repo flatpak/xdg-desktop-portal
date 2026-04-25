@@ -28,8 +28,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <glib.h>
 #include <gio/gio.h>
+#include <glib.h>
 
 #include "xdp-context.h"
 
@@ -56,7 +56,7 @@ struct _XdpPortalConfig
   GPtrArray *configs; /* PortalConfig */
 };
 
-G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT)
+G_DEFINE_FINAL_TYPE (XdpPortalConfig, xdp_portal_config, G_TYPE_OBJECT);
 
 #define XDP_SUBDIR "xdg-desktop-portal"
 
@@ -133,9 +133,9 @@ validate_xdg_desktop (const char *desktop)
 static char **
 get_valid_current_desktops (void)
 {
-  GPtrArray *valid_desktops;
+  g_autoptr(GPtrArray) valid_desktops = NULL;
   const char *value;
-  char **tmp;
+  g_autofree char **tmp = NULL;
 
   value = g_getenv ("XDG_CURRENT_DESKTOP");
   if (value == NULL)
@@ -149,16 +149,12 @@ get_valid_current_desktops (void)
       if (validate_xdg_desktop (tmp[i]))
         g_ptr_array_add (valid_desktops, tmp[i]);
       else
-        g_free (tmp[i]);
+        free (tmp[i]);
     }
 
   g_ptr_array_add (valid_desktops, NULL);
-  g_free (tmp);
 
-  tmp = (char **) g_ptr_array_steal (valid_desktops, NULL);
-  g_ptr_array_unref (valid_desktops);
-
-  return tmp;
+  return (char **) g_ptr_array_steal (valid_desktops, NULL);
 }
 
 static char **
@@ -296,7 +292,7 @@ sort_impl_by_use_in_and_name (gconstpointer a,
         continue;
     }
 
-  return strcmp (pa->source, pb->source);
+  return g_strcmp0 (pa->source, pb->source);
 }
 
 static void
@@ -441,7 +437,7 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
               g_debug ("Preferred portals for interface '%s': %s", ifaces[i], preferred);
             }
 
-          if (strcmp (ifaces[i], "default") == 0)
+          if (g_strcmp0 (ifaces[i], "default") == 0)
             {
               if (default_portal == NULL)
                 default_portal = g_steal_pointer (&interface);

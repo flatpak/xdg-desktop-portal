@@ -12,6 +12,59 @@ on:
         type: string
 
 jobs:
+  goblint:
+    name: Goblint
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bilelmoussaoui/goblint:main-a7e87d6
+    permissions:
+      # Required for uploading SARIF results
+      security-events: write
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v6
+
+      - name: Run goblint
+        run: goblint --format sarif > goblint.sarif
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: goblint.sarif
+          category: goblint
+
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+      options: ${{ inputs.image_options }}
+
+    steps:
+      - name: Configure environment
+        run: |
+          # Mark workspace as safe, to prevent git from failing
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+          # the image uses `pip install --user`, let's make sure we find it
+          echo PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH" | tee -a $GITHUB_ENV
+          echo PATH="/root/.local/bin:$PATH" | tee -a $GITHUB_ENV
+
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Check POTFILES.in
+        run: .github/workflows/check-potfiles.sh
+        if: always()
+
+      - name: Check Qt annotations
+        run: find -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
+        if: always()
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --show-diff-on-failure --color=always --all-files
+        if: always()
+
   build-and-test:
     name: Build and Test
     runs-on: ubuntu-latest
@@ -32,20 +85,11 @@ jobs:
     steps:
       - name: Configure environment
         run: |
+          # Mark workspace as safe, to prevent git from failing
           git config --global --add safe.directory $GITHUB_WORKSPACE
-          echo XDG_DATA_DIRS=$GITHUB_WORKSPACE/tests/share:/usr/local/share:/usr/share | tee -a $GITHUB_ENV
 
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
-
-      - name: Run pre-commit hooks
-        run: |
-          export PYTHONPATH="/root/.local/lib/python$(python3 -c 'import sys; print("{}.{}".format(*sys.version_info))')/site-packages:$PYTHONPATH"
-          export PATH="/root/.local/bin:$PATH"
-          pre-commit run --show-diff-on-failure --color=always --all-files
-
-      - name: Check POTFILES.in
-        run: .github/workflows/check-potfiles.sh
 
       - name: Build xdg-desktop-portal
         run: |
@@ -66,9 +110,6 @@ jobs:
           test -n "$(gnome-desktop-testing-runner -l xdg-desktop-portal)"
           gnome-desktop-testing-runner --report-directory installed-test-logs/ \
             -t $((TESTS_TIMEOUT * 60)) xdg-desktop-portal
-
-      - name: Check Qt annotations
-        run: find -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
 
       - name: Create dist tarball
         run: |

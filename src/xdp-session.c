@@ -20,29 +20,25 @@
 
 #include "config.h"
 
+#include "xdp-session.h"
+
 #include <string.h>
 
 #include "xdp-context.h"
 #include "xdp-request.h"
 
-#include "xdp-session.h"
-
-enum
+typedef enum
 {
-  PROP_0,
-
-  PROP_CONTEXT,
+  PROP_CONTEXT = 1,
   PROP_SENDER,
   PROP_APP_ID,
   PROP_TOKEN,
   PROP_CONNECTION,
   PROP_IMPL_CONNECTION,
   PROP_IMPL_DBUS_NAME,
+} XdpSessionProps;
 
-  PROP_LAST
-};
-
-static GParamSpec *obj_props[PROP_LAST];
+static GParamSpec *obj_props[PROP_IMPL_DBUS_NAME + 1];
 
 G_LOCK_DEFINE (sessions);
 static GHashTable *sessions;
@@ -54,7 +50,7 @@ G_DEFINE_TYPE_WITH_CODE (XdpSession, xdp_session, XDP_DBUS_TYPE_SESSION_SKELETON
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE,
                                                 g_initable_iface_init)
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SESSION,
-                                                xdp_session_skeleton_iface_init))
+                                                xdp_session_skeleton_iface_init));
 
 #define XDP_SESSION_GET_CLASS(o) \
   (G_TYPE_INSTANCE_GET_CLASS ((o), xdp_session_get_type (), XdpSessionClass))
@@ -258,7 +254,7 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
   const gchar *session_owner = user_data;
   const gchar *sender = g_dbus_method_invocation_get_sender (invocation);
 
-  if (strcmp (sender, session_owner) != 0)
+  if (g_strcmp0 (sender, session_owner) != 0)
     {
       g_dbus_method_invocation_return_error (invocation,
                                              G_DBUS_ERROR,
@@ -328,7 +324,7 @@ xdp_session_initable_init (GInitable     *initable,
   while (!xdp_context_claim_object_path (session->context, id))
     {
       uint32_t r = g_random_int ();
-      g_free (id);
+      g_clear_pointer (&id, g_free);
       id = g_strdup_printf (DESKTOP_DBUS_PATH "/session/%s/%s/%u",
                             sender_escaped,
                             session->token,
@@ -384,7 +380,7 @@ xdp_session_set_property (GObject      *object,
 {
   XdpSession *session = XDP_SESSION (object);
 
-  switch (prop_id)
+  switch ((XdpSessionProps) prop_id)
     {
     case PROP_CONTEXT:
       session->context = g_value_get_object (value);
@@ -427,7 +423,7 @@ xdp_session_get_property (GObject    *object,
 {
   XdpSession *session = XDP_SESSION (object);
 
-  switch (prop_id)
+  switch ((XdpSessionProps) prop_id)
     {
     case PROP_CONTEXT:
       g_value_set_object (value, session->context);
@@ -560,5 +556,5 @@ xdp_session_class_init (XdpSessionClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (gobject_class, PROP_LAST, obj_props);
+  g_object_class_install_properties (gobject_class, G_N_ELEMENTS (obj_props), obj_props);
 }

@@ -23,24 +23,25 @@
 
 #include "config.h"
 
+#include "file-chooser.h"
+
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
-#include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/types.h>
+
 #include <gio/gio.h>
 
 #include "xdp-context.h"
-#include "xdp-documents.h"
 #include "xdp-dbus.h"
+#include "xdp-documents.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
-
-#include "file-chooser.h"
 
 typedef struct _FileChooser FileChooser;
 typedef struct _FileChooserClass FileChooserClass;
@@ -183,6 +184,7 @@ open_file_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, open_file_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
@@ -424,7 +426,7 @@ check_choice (GVariant *choice,
           return FALSE;
         }
 
-      if (strcmp (o_id, option) == 0)
+      if (g_strcmp0 (o_id, option) == 0)
         seen_option = TRUE;
     }
 
@@ -594,6 +596,7 @@ save_file_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, save_file_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
@@ -730,6 +733,7 @@ save_files_done (GObject *source,
     g_object_set_data_full (G_OBJECT (request), "options", g_variant_ref (options), (GDestroyNotify)g_variant_unref);
 
   task = g_task_new (NULL, NULL, NULL, NULL);
+  g_task_set_source_tag (task, save_files_done);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, send_response_in_thread_func);
 }

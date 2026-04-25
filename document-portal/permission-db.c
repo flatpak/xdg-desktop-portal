@@ -23,20 +23,22 @@
 
 #include "config.h"
 
-#include <string.h>
+#include "permission-db.h"
+
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include <gvdb/gvdb-builder.h>
+#include <gvdb/gvdb-reader.h>
+
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
 #endif
 #if HAVE_SYS_MOUNT_H
 #include <sys/mount.h>
 #endif
-
-#include "permission-db.h"
-#include "gvdb/gvdb-reader.h"
-#include "gvdb/gvdb-builder.h"
 
 struct PermissionDb
 {
@@ -69,17 +71,17 @@ static void initable_iface_init (GInitableIface *initable_iface);
 G_DEFINE_TYPE_WITH_CODE (PermissionDb, permission_db, G_TYPE_OBJECT,
                          G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, initable_iface_init));
 
-enum {
-  PROP_0,
-  PROP_PATH,
+typedef enum {
+  PROP_PATH = 1,
   PROP_FAIL_IF_NOT_FOUND,
-  LAST_PROP
-};
+} PermissionDbProps;
+
+static GParamSpec *props[PROP_FAIL_IF_NOT_FOUND + 1] = { NULL, };
 
 static int
 cmpstringp (const void *p1, const void *p2)
 {
-  return strcmp (*(char * const *) p1, *(char * const *) p2);
+  return g_strcmp0 (*(char * const *) p1, *(char * const *) p2);
 }
 
 static void
@@ -95,7 +97,7 @@ str_ptr_array_find (GPtrArray  *array,
   int i;
 
   for (i = 0; i < array->len; i++)
-    if (strcmp (g_ptr_array_index (array, i), str) == 0)
+    if (g_strcmp0 (g_ptr_array_index (array, i), str) == 0)
       return i;
 
   return -1;
@@ -122,8 +124,7 @@ permission_db_set_path (PermissionDb  *self,
 {
   g_return_if_fail (PERMISSION_IS_DB (self));
 
-  g_clear_pointer (&self->path, g_free);
-  self->path = g_strdup (path);
+  g_set_str (&self->path, path);
 }
 
 PermissionDb *
@@ -164,7 +165,7 @@ permission_db_get_property (GObject    *object,
 {
   PermissionDb *self = PERMISSION_DB (object);
 
-  switch (prop_id)
+  switch ((PermissionDbProps) prop_id)
     {
     case PROP_PATH:
       g_value_set_string (value, self->path);
@@ -187,7 +188,7 @@ permission_db_set_property (GObject      *object,
 {
   PermissionDb *self = PERMISSION_DB (object);
 
-  switch (prop_id)
+  switch ((PermissionDbProps) prop_id)
     {
     case PROP_PATH:
       g_clear_pointer (&self->path, g_free);
@@ -212,18 +213,16 @@ permission_db_class_init (PermissionDbClass *klass)
   object_class->get_property = permission_db_get_property;
   object_class->set_property = permission_db_set_property;
 
-  g_object_class_install_property (object_class,
-                                   PROP_PATH,
-                                   g_param_spec_string ("path",
+  props[PROP_PATH] = g_param_spec_string ("path",
+                                          NULL, NULL,
+                                          NULL,
+                                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+  props[PROP_FAIL_IF_NOT_FOUND] = g_param_spec_boolean ("fail-if-not-found",
                                                         NULL, NULL,
-                                                        NULL,
-                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
-  g_object_class_install_property (object_class,
-                                   PROP_FAIL_IF_NOT_FOUND,
-                                   g_param_spec_boolean ("fail-if-not-found",
-                                                         NULL, NULL,
-                                                         TRUE,
-                                                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
+                                                        TRUE,
+                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (props), props);
 }
 
 static void
@@ -264,7 +263,7 @@ initable_init (GInitable    *initable,
                GError      **error)
 {
   PermissionDb *self = (PermissionDb *) initable;
-  GError *my_error = NULL;
+  g_autoptr(GError) my_error = NULL;
 
   if (self->path == NULL)
     return TRUE;
@@ -279,23 +278,18 @@ initable_init (GInitable    *initable,
     }
   else
     {
-      GMappedFile *mapped = g_mapped_file_new (self->path, FALSE, &my_error);
+      g_autoptr(GMappedFile) mapped = NULL;
+
+      mapped = g_mapped_file_new (self->path, FALSE, &my_error);
       if (mapped)
-        {
-          self->gvdb_contents = g_mapped_file_get_bytes (mapped);
-          g_mapped_file_unref (mapped);
-        }
+        self->gvdb_contents = g_mapped_file_get_bytes (mapped);
     }
 
   if (self->gvdb_contents == NULL)
     {
-      if (!self->fail_if_not_found &&
-          (g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT) ||
-           g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)))
-        {
-          g_error_free (my_error);
-        }
-      else
+      if (self->fail_if_not_found ||
+          (!g_error_matches (my_error, G_FILE_ERROR, G_FILE_ERROR_NOENT) &&
+           !g_error_matches (my_error, G_IO_ERROR, G_IO_ERROR_NOT_FOUND)))
         {
           g_propagate_error (error, g_steal_pointer (&my_error));
           return FALSE;
@@ -337,7 +331,7 @@ initable_iface_init (GInitableIface *initable_iface)
 char **
 permission_db_list_ids (PermissionDb *self)
 {
-  GPtrArray *res;
+  g_autoptr(GPtrArray) res = NULL;
   GHashTableIter iter;
   gpointer key, value;
   int i;
@@ -370,7 +364,7 @@ permission_db_list_ids (PermissionDb *self)
     }
 
   g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_free (res, FALSE);
+  return (char **) g_ptr_array_steal (res, NULL);
 }
 
 static gboolean
@@ -391,7 +385,7 @@ permission_db_list_apps (PermissionDb *self)
 {
   gpointer key, _value;
   GHashTableIter iter;
-  GPtrArray *res;
+  g_autoptr(GPtrArray) res = NULL;
   int i;
 
   g_return_val_if_fail (PERMISSION_IS_DB (self), NULL);
@@ -452,7 +446,7 @@ permission_db_list_apps (PermissionDb *self)
     }
 
   g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_free (res, FALSE);
+  return (char **) g_ptr_array_steal (res, NULL);
 }
 
 /* Transfer: full */
@@ -460,7 +454,7 @@ char **
 permission_db_list_ids_by_app (PermissionDb  *self,
                                const char *app)
 {
-  GPtrArray *res;
+  g_autoptr(GPtrArray) res = NULL;
   GPtrArray *additions;
   GPtrArray *removals;
   int i;
@@ -496,7 +490,7 @@ permission_db_list_ids_by_app (PermissionDb  *self,
     }
 
   g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_free (res, FALSE);
+  return (char **) g_ptr_array_steal (res, NULL);
 }
 
 /* Transfer: full */
@@ -530,7 +524,7 @@ permission_db_list_ids_by_value (PermissionDb *self,
 {
   g_autofree char **ids = permission_db_list_ids (self);
   int i;
-  GPtrArray *res;
+  g_autoptr(GPtrArray) res = NULL;
 
   g_return_val_if_fail (PERMISSION_IS_DB (self), NULL);
   g_return_val_if_fail (data != NULL, NULL);
@@ -558,7 +552,7 @@ permission_db_list_ids_by_value (PermissionDb *self,
     }
 
   g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_free (res, FALSE);
+  return (char **) g_ptr_array_steal (res, NULL);
 }
 
 static void
@@ -694,7 +688,7 @@ permission_db_set_entry (PermissionDb      *self,
         }
       else
         {
-          int cmp = strcmp (a[ia], b[ib]);
+          int cmp = g_strcmp0 (a[ia], b[ib]);
 
           if (cmp == 0)
             {
@@ -722,7 +716,8 @@ void
 permission_db_update (PermissionDb *self)
 {
   g_autoptr(GHashTable) root = NULL;
-  GHashTable *main_h, *apps_h;
+  g_autoptr(GHashTable) main_h = NULL;
+  g_autoptr(GHashTable) apps_h = NULL;
   GBytes *new_contents;
   GvdbTable *new_gvdb;
   int i;
@@ -735,8 +730,6 @@ permission_db_update (PermissionDb *self)
   root = gvdb_hash_table_new (NULL, NULL);
   main_h = gvdb_hash_table_new (root, "main");
   apps_h = gvdb_hash_table_new (root, "apps");
-  g_hash_table_unref (main_h);
-  g_hash_table_unref (apps_h);
 
   ids = permission_db_list_ids (self);
   for (i = 0; ids[i] != 0; i++)
@@ -773,7 +766,7 @@ permission_db_update (PermissionDb *self)
       gvdb_item_set_value (item, g_variant_builder_end (&builder));
     }
 
-  new_contents = gvdb_table_get_content (root, FALSE);
+  new_contents = gvdb_table_get_contents (root, FALSE);
   new_gvdb = gvdb_table_new_from_bytes (new_contents, TRUE, NULL);
 
   /* This was just created, any failure to parse it is purely an internal error */
@@ -850,6 +843,7 @@ permission_db_save_content_async (PermissionDb          *self,
   g_autoptr(GFile) file = NULL;
 
   task = g_task_new (self, cancellable, callback, user_data);
+  g_task_set_source_tag (task, permission_db_save_content_async);
 
   if (self->gvdb_contents == NULL)
     {
@@ -973,7 +967,7 @@ permission_db_entry_list_apps (PermissionDbEntry *entry)
   g_autoptr(GVariant) app_array = NULL;
   GVariantIter iter;
   GVariant *child;
-  GPtrArray *res;
+  g_autoptr(GPtrArray) res = NULL;
 
   res = g_ptr_array_new ();
 
@@ -995,7 +989,7 @@ permission_db_entry_list_apps (PermissionDbEntry *entry)
     }
 
   g_ptr_array_add (res, NULL);
-  return (const char **) g_ptr_array_free (res, FALSE);
+  return (const char **) g_ptr_array_steal (res, NULL);
 }
 
 static GVariant *
@@ -1025,7 +1019,7 @@ permission_db_entry_get_permissions_variant (PermissionDbEntry *entry,
       child = g_variant_get_child_value (app_array, m);
       g_variant_get_child (child, 0, "&s", &child_app_id);
 
-      cmp = strcmp (app_id, child_app_id);
+      cmp = g_strcmp0 (app_id, child_app_id);
       if (cmp == 0)
         {
           res = g_variant_get_child_value (child, 1);
@@ -1152,7 +1146,7 @@ add_permissions (GVariant *app_permissions,
 
       g_variant_get (child, "{&s@as}", &child_app_id, &old_perms_array);
 
-      cmp = strcmp (new_app_id, child_app_id);
+      cmp = g_strcmp0 (new_app_id, child_app_id);
       if (cmp == 0)
         {
           added = TRUE;
@@ -1198,7 +1192,7 @@ remove_permissions (GVariant   *app_permissions,
     {
       g_variant_get (child, "{&s@as}", &child_app_id, NULL);
 
-      if (strcmp (app, child_app_id) != 0)
+      if (g_strcmp0 (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
     }
 

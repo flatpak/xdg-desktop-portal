@@ -22,11 +22,14 @@
 
 #include "config.h"
 
+#include "location.h"
+
 #include <string.h>
-#include <glib/gi18n.h>
-#include <gio/gio.h>
-#include <gio/gdesktopappinfo.h>
+
 #include <geoclue.h>
+#include <gio/gdesktopappinfo.h>
+#include <gio/gio.h>
+#include <glib/gi18n.h>
 
 #include "geoclue-dbus.h"
 #include "xdp-context.h"
@@ -36,8 +39,6 @@
 #include "xdp-request.h"
 #include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "location.h"
 
 #define GEO_CLUE2_BUS_NAME "org.freedesktop.GeoClue2"
 #define GEO_CLUE2_MANAGER_OBJECT_PATH "/org/freedesktop/GeoClue2/Manager"
@@ -69,7 +70,7 @@ GType location_get_type (void) G_GNUC_CONST;
 static void location_iface_init (XdpDbusLocationIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init))
+                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_LOCATION, location_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (Location, g_object_unref)
 
@@ -198,7 +199,7 @@ on_location_updated (GeoclueClient *client,
 
   g_debug ("GeoClue client ::LocationUpdated %s -> %s\n",  old_location, new_location);
 
-  if (strcmp (new_location, "/") == 0)
+  if (g_strcmp0 (new_location, "/") == 0)
     return;
 
   ret = g_dbus_connection_call_sync (g_dbus_proxy_get_connection (G_DBUS_PROXY (client)),
@@ -716,6 +717,7 @@ handle_start (XdpDbusLocation *object,
   xdp_dbus_location_complete_start (object, invocation, request->id);
 
   task = g_task_new (location, NULL, NULL, NULL);
+  g_task_set_source_tag (task, handle_start);
   g_task_set_task_data (task, g_object_ref (request), g_object_unref);
   g_task_run_in_thread (task, handle_start_in_thread_func);
 

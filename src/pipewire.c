@@ -20,12 +20,13 @@
 
 #include "config.h"
 
-#include <errno.h>
-#include <glib.h>
-#include <pipewire/pipewire.h>
-#include <spa/utils/result.h>
-
 #include "pipewire.h"
+#include <pipewire/pipewire.h>
+
+#include <errno.h>
+
+#include <glib.h>
+#include <spa/utils/result.h>
 
 #define ROUNDTRIP_TIMEOUT_SECS 10
 
@@ -59,14 +60,14 @@ registry_event_global (void *user_data,
   if (remote->global_added_cb)
     remote->global_added_cb (remote, id, type, props, remote->user_data);
 
-  if (strcmp(type, PW_TYPE_INTERFACE_Factory) != 0)
+  if (g_strcmp0(type, PW_TYPE_INTERFACE_Factory) != 0)
     return;
 
   factory_object_type = spa_dict_lookup_item (props, "factory.type.name");
   if (!factory_object_type)
     return;
 
-  if (strcmp (factory_object_type->value, "PipeWire:Interface:ClientNode") == 0)
+  if (g_strcmp0 (factory_object_type->value, "PipeWire:Interface:ClientNode") == 0)
     {
       remote->node_factory_id = id;
       pw_main_loop_quit (remote->loop);

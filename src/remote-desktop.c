@@ -20,21 +20,22 @@
 
 #include "config.h"
 
-#include <gio/gunixfdlist.h>
+#include "remote-desktop.h"
+
 #include <stdint.h>
 
-#include "screen-cast.h"
+#include <gio/gunixfdlist.h>
+
 #include "pipewire.h"
+#include "screen-cast.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
-#include "xdp-session.h"
 #include "xdp-session-persistence.h"
+#include "xdp-session.h"
 #include "xdp-utils.h"
-
-#include "remote-desktop.h"
 
 typedef struct _RemoteDesktop RemoteDesktop;
 typedef struct _RemoteDesktopClass RemoteDesktopClass;
@@ -60,7 +61,7 @@ static GQuark quark_request_session;
 G_DEFINE_TYPE_WITH_CODE (RemoteDesktop, remote_desktop,
                          XDP_DBUS_TYPE_REMOTE_DESKTOP_SKELETON,
                          G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_REMOTE_DESKTOP,
-                                                remote_desktop_iface_init))
+                                                remote_desktop_iface_init));
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC (RemoteDesktop, g_object_unref)
 

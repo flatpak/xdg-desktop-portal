@@ -22,14 +22,15 @@
 
 #include "config.h"
 
+#include "power-profile-monitor.h"
+
 #include <string.h>
+
 #include <gio/gio.h>
 
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-request.h"
-
-#include "power-profile-monitor.h"
 
 #if GLIB_CHECK_VERSION(2, 69, 1)
 #define HAS_POWER_PROFILE_MONITOR 1

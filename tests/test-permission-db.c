@@ -1,7 +1,7 @@
 #include "config.h"
 
-#include <glib.h>
 #include <document-portal/permission-db.h>
+#include <glib.h>
 
 /*
 static void
@@ -15,7 +15,7 @@ dump_db (PermissionDb *db)
 static PermissionDb *
 create_test_db (gboolean serialized)
 {
-  PermissionDb *db;
+  g_autoptr(PermissionDb) db = NULL;
 
   g_autoptr(PermissionDbEntry) entry1 = NULL;
   g_autoptr(PermissionDbEntry) entry2 = NULL;
@@ -61,7 +61,7 @@ create_test_db (gboolean serialized)
   if (serialized)
     permission_db_update (db);
 
-  return db;
+  return g_steal_pointer (&db);
 }
 
 static void
@@ -154,7 +154,7 @@ static void
 test_db_open (void)
 {
   GError *error = NULL;
-  PermissionDb *db;
+  g_autoptr(PermissionDb) db = NULL;
 
   db = permission_db_new (g_test_get_filename (G_TEST_DIST, "dbs", "does_not_exist", NULL), TRUE, &error);
   g_assert (g_error_matches (error, G_FILE_ERROR, G_FILE_ERROR_NOENT) ||
@@ -166,7 +166,7 @@ test_db_open (void)
   g_assert_no_error (error);
   g_assert (db != NULL);
   g_clear_error (&error);
-  g_object_unref (db);
+  g_clear_object (&db);
 
   db = permission_db_new (g_test_get_filename (G_TEST_DIST, "dbs", "no_tables", NULL), TRUE, &error);
   g_assert_error (error, G_FILE_ERROR, G_FILE_ERROR_INVAL);

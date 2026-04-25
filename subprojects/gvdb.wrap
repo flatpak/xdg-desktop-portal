@@ -1,0 +1,4 @@
+[wrap-git]
+url = https://gitlab.gnome.org/GNOME/gvdb.git
+revision = c6f2359cc1d00f16e0a0e2527fa0bc1882b8b5ab
+depth = 1
