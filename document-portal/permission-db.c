@@ -325,20 +325,18 @@ initable_iface_init (GInitableIface *initable_iface)
 char **
 permission_db_list_ids (PermissionDb *self)
 {
-  g_autoptr(GPtrArray) res = NULL;
+  g_autoptr(GStrvBuilder) builder = g_strv_builder_new ();
   GHashTableIter iter;
   gpointer key, value;
   int i;
 
   g_return_val_if_fail (PERMISSION_IS_DB (self), NULL);
 
-  res = g_ptr_array_new ();
-
   g_hash_table_iter_init (&iter, self->main_updates);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
       if (value != NULL)
-        g_ptr_array_add (res, g_strdup (key));
+        g_strv_builder_add (builder, key);
     }
 
   if (self->main_table)
@@ -348,17 +346,14 @@ permission_db_list_ids (PermissionDb *self)
 
       for (i = 0; main_ids[i] != NULL; i++)
         {
-          char *id = main_ids[i];
+          g_autofree char *id = main_ids[i];
 
-          if (g_hash_table_lookup_extended (self->main_updates, id, NULL, NULL))
-            g_free (id);
-          else
-            g_ptr_array_add (res, id);
+          if (!g_hash_table_lookup_extended (self->main_updates, id, NULL, NULL))
+            g_strv_builder_take (builder, g_steal_pointer (&id));
         }
     }
 
-  g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_steal (res, NULL);
+  return g_strv_builder_end (builder);
 }
 
 static gboolean
