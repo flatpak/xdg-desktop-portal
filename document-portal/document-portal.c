@@ -1695,6 +1695,7 @@ main (int    argc,
   g_autofree char *path = NULL;
   g_autoptr(GDBusConnection) session_bus = NULL;
   g_autoptr(GOptionContext) context = NULL;
+  g_autoptr(PermissionDb) owned_db = NULL;
   GDBusMethodInvocation *invocation;
 
   if (g_getenv ("XDG_DOCUMENT_PORTAL_WAIT_FOR_DEBUGGER") != NULL)
@@ -1743,7 +1744,7 @@ main (int    argc,
   loop = g_main_loop_new (NULL, FALSE);
 
   path = g_build_filename (g_get_user_data_dir (), "flatpak/db", TABLE_NAME, NULL);
-  db = permission_db_new (path, FALSE, &error);
+  db = owned_db = permission_db_new (path, FALSE, &error);
   if (db == NULL)
     {
       g_printerr ("Failed to load db from '%s': %s", path, error->message);
