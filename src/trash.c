@@ -460,16 +460,16 @@ get_trash_dir (XdpAppInfo  *app_info,
   if (!get_mnt (target_fd, parent_fd, &mnt_fd, &mnt_id, error))
     return FALSE;
 
+  /* First choice is always the home trash. */
+  if (get_trash_dir_home (mnt_id, trash_fd_out, &local_error))
+    return TRUE;
+
   if (ignore_trash_mount_fd (app_info, mnt_fd))
     {
       g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVAL,
                            "No suitable trash directory found");
       return FALSE;
     }
-
-  /* First choice is always the home trash. */
-  if (get_trash_dir_home (mnt_id, trash_fd_out, &local_error))
-    return TRUE;
 
   g_debug ("Skipping home dir trash: %s", local_error->message);
   g_clear_error (&local_error);
