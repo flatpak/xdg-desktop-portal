@@ -567,6 +567,7 @@ trash_file (int          target_fd_in,
 {
   g_autofd int target_fd = -1;
   g_autofree char *target_path = NULL;
+  gboolean writable;
   g_autofd int parent_fd = -1;
   g_autofd int trash_fd = -1;
   g_autofree char *restore_path = NULL;
@@ -575,12 +576,19 @@ trash_file (int          target_fd_in,
   target_path = xdp_app_info_get_path_for_fd (app_info,
                                               target_fd_in,
                                               0, NULL,
-                                              NULL,
+                                              &writable,
                                               error);
   if (!target_path)
     return FALSE;
 
   g_debug ("Trying to trash file at '%s' on host", target_path);
+
+  if (!writable)
+    {
+      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                           "File descriptor is not opened for writing");
+      return FALSE;
+    }
 
   /* target_fd_in might be in the mount namespace of the caller and thus on a
    * different mount than we expect in the host mount namespace. Let's reopen
