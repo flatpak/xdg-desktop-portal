@@ -561,19 +561,59 @@ open_parent (int          fd,
 }
 
 static gboolean
-trash_file (int          target_fd,
+trash_file (int          target_fd_in,
             XdpAppInfo  *app_info,
             GError     **error)
 {
+  g_autofd int target_fd = -1;
   g_autofree char *target_path = NULL;
   g_autofd int parent_fd = -1;
   g_autofd int trash_fd = -1;
   g_autofree char *restore_path = NULL;
   g_autofree char *restore_data = NULL;
 
-  target_path = xdp_app_info_get_path_for_fd (app_info, target_fd, 0, NULL, NULL, error);
+  target_path = xdp_app_info_get_path_for_fd (app_info,
+                                              target_fd_in,
+                                              0, NULL,
+                                              NULL,
+                                              error);
   if (!target_path)
     return FALSE;
+
+  g_debug ("Trying to trash file at '%s' on host", target_path);
+
+  /* target_fd_in might be in the mount namespace of the caller and thus on a
+   * different mount than we expect in the host mount namespace. Let's reopen
+   * it and verify that we opened the right file. */
+  {
+    struct glnx_statx stx_in;
+    struct glnx_statx stx;
+
+    if (!glnx_statx (target_fd_in, "",
+                     AT_EMPTY_PATH | AT_SYMLINK_NOFOLLOW,
+                     GLNX_STATX_INO,
+                     &stx_in,
+                     error))
+      return FALSE;
+
+    target_fd = glnx_chase_and_statxat (AT_FDCWD, target_path,
+                                        GLNX_CHASE_NOFOLLOW,
+                                        GLNX_STATX_INO,
+                                        &stx,
+                                        error);
+    if (target_fd < 0)
+      return FALSE;
+
+    if (!(stx.stx_mask & GLNX_STATX_INO) || !(stx_in.stx_mask & GLNX_STATX_INO) ||
+        stx.stx_ino != stx_in.stx_ino ||
+        stx.stx_dev_major != stx_in.stx_dev_major ||
+        stx.stx_dev_minor != stx_in.stx_dev_minor)
+      {
+        g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_INVALID_ARGUMENT,
+                             "Cannot determine path on the host");
+        return FALSE;
+      }
+  }
 
   parent_fd = open_parent (target_fd, target_path, error);
   if (parent_fd < 0)
