@@ -26,6 +26,7 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
@@ -43,6 +44,14 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
+
+typedef enum
+{
+  SCREENSHOT_TARGET_SCREEN = 1u << 0,
+  SCREENSHOT_TARGET_WINDOW = 1u << 1,
+  SCREENSHOT_TARGET_AREA = 1u << 2,
+  SCREENSHOT_TARGET_ACTIVE_WINDOW = 1u << 3,
+} ScreenshotTarget;
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -185,9 +194,52 @@ screenshot_done (GObject *source,
   g_task_run_in_thread (task, send_response_in_thread_func);
 }
 
-static XdpOptionKey screenshot_options[] = {
+static gboolean
+validate_screenshot_target (Screenshot *screenshot,
+                            uint32_t    target,
+                            GError    **error)
+{
+  uint32_t available_targets;
+
+  switch (target)
+    {
+    case SCREENSHOT_TARGET_SCREEN:
+    case SCREENSHOT_TARGET_WINDOW:
+    case SCREENSHOT_TARGET_AREA:
+    case SCREENSHOT_TARGET_ACTIVE_WINDOW:
+      break;
+    default:
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid screenshot target %x", target);
+      return FALSE;
+    }
+
+  available_targets =
+    xdp_dbus_screenshot_get_available_targets (XDP_DBUS_SCREENSHOT (screenshot));
+  if (!(available_targets & target))
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Unavailable screenshot target %x", target);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+validate_screenshot_target_filter (const char  *key,
+                                   GVariant    *value,
+                                   GVariant    *options,
+                                   gpointer     user_data,
+                                   GError     **error)
+{
+  return validate_screenshot_target (user_data, g_variant_get_uint32 (value), error);
+}
+
+static XdpOptionKey screenshot_options_v3[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
-  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL }
+  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "target", G_VARIANT_TYPE_UINT32, validate_screenshot_target_filter }
 };
 
 static gboolean
@@ -315,7 +367,10 @@ handle_screenshot_in_thread_func (GTask *task,
   g_autoptr(XdpDbusImplRequest) impl_request = NULL;
   g_auto(GVariantBuilder) opt_builder =
     G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  GVariantIter options_iter;
   GVariant *options;
+  const char *key;
+  GVariant *value;
   gboolean permission_store_checked = FALSE;
   gboolean interactive;
   gboolean modal;
@@ -363,9 +418,13 @@ handle_screenshot_in_thread_func (GTask *task,
 
   xdp_request_set_impl_request (request, impl_request);
 
-  xdp_filter_options (options, &opt_builder,
-                      screenshot_options, G_N_ELEMENTS (screenshot_options),
-                      NULL, NULL);
+  g_variant_iter_init (&options_iter, options);
+  while (g_variant_iter_next (&options_iter, "{&sv}", &key, &value))
+    {
+      g_variant_builder_add (&opt_builder, "{sv}", key, value);
+      g_clear_pointer (&value, g_variant_unref);
+    }
+
   if (permission_store_checked)
     {
       g_variant_builder_add (&opt_builder, "{sv}", "permission_store_checked",
@@ -390,15 +449,29 @@ handle_screenshot (XdpDbusScreenshot *object,
                    const gchar *arg_parent_window,
                    GVariant *arg_options)
 {
+  Screenshot *screenshot = (Screenshot *) object;
   XdpRequest *request = xdp_request_from_invocation (invocation);
+  g_auto(GVariantBuilder) opt_builder =
+    G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
+  g_autoptr(GVariant) options = NULL;
   g_autoptr(GTask) task = NULL;
+  g_autoptr(GError) error = NULL;
 
   g_debug ("Handle Screenshot");
+
+  if (!xdp_filter_options (arg_options, &opt_builder,
+                           screenshot_options_v3, G_N_ELEMENTS (screenshot_options_v3),
+                           screenshot, &error))
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
+    }
+  options = g_variant_ref_sink (g_variant_builder_end (&opt_builder));
 
   g_object_set_data_full (G_OBJECT (request), "parent-window", g_strdup (arg_parent_window), g_free);
   g_object_set_data_full (G_OBJECT (request),
                           "options",
-                          g_variant_ref (arg_options),
+                          g_steal_pointer (&options),
                           (GDestroyNotify)g_variant_unref);
 
   xdp_request_export (request, g_dbus_method_invocation_get_connection (invocation));
@@ -545,7 +618,14 @@ screenshot_new (XdpDbusImplScreenshot *impl,
     MAX (xdp_dbus_impl_screenshot_get_version (screenshot->impl), 2);
 
   xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
-                                   MIN (screenshot->impl_version, 2));
+                                   MIN (screenshot->impl_version, 3));
+
+  if (screenshot->impl_version >= 3)
+    {
+      g_object_bind_property (G_OBJECT (screenshot->impl), "available-targets",
+                              G_OBJECT (screenshot), "available-targets",
+                              G_BINDING_SYNC_CREATE);
+    }
 
   return screenshot;
 }

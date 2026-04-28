@@ -31,7 +31,7 @@
       may involve adding it to the :ref:`Documents
       portal<org.freedesktop.portal.Documents>`).
 
-      This documentation describes **version 2** of this interface.
+      This documentation describes **version 3** of this interface.
   -->
   <interface name="org.freedesktop.portal.Screenshot">
     <!--
@@ -58,6 +58,21 @@
 
           Hint whether the dialog should offer customization before taking a screenshot.
           Default is no.  **Since version 2.**
+
+        * ``target`` (``u``)
+
+          The screenshot target. It is a single target value, not a bitmask, and
+          must be one of the targets advertised in
+          :ref:`org.freedesktop.portal.Screenshot:AvailableTargets`. If this
+          option is omitted, the portal preserves the previous Screenshot
+          behavior. Available targets are:
+
+          - ``1``: Screen: The entire screen.
+          - ``2``: Window: A window selected by the user.
+          - ``4``: Area: An area selected by the user.
+          - ``8``: Active Window: The currently active window.
+
+          This option was added in version 3 of this interface.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response`
         signal:
@@ -100,6 +115,19 @@
       <arg type="a{sv}" name="options" direction="in"/>
       <arg type="o" name="handle" direction="out"/>
     </method>
+    <!--
+        AvailableTargets:
+
+        A bitmask of available screenshot targets. Available targets are:
+
+        - ``1``: Screen: The entire screen.
+        - ``2``: Window: A window selected by the user.
+        - ``4``: Area: An area selected by the user.
+        - ``8``: Active Window: The currently active window.
+
+        This property was added in version 3 of this interface.
+    -->
+    <property name="AvailableTargets" type="u" access="read"/>
     <property name="version" type="u" access="read"/>
   </interface>
 </node>

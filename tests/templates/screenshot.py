@@ -13,7 +13,8 @@ BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
 SYSTEM_BUS = False
 MAIN_IFACE = "org.freedesktop.impl.portal.Screenshot"
-VERSION = 2
+VERSION = 3
+AVAILABLE_TARGETS = 1 | 2 | 4 | 8
 
 
 logger = init_logger(__name__)
@@ -43,6 +44,9 @@ def load(mock, parameters={}):
         dbus.Dictionary(
             {
                 "version": dbus.UInt32(parameters.get("version", VERSION)),
+                "AvailableTargets": dbus.UInt32(
+                    parameters.get("available-targets", AVAILABLE_TARGETS)
+                ),
             }
         ),
     )
