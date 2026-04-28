@@ -186,14 +186,26 @@ ignore_trash_mount_fd (XdpAppInfo *app_info,
         return FALSE;
 
       if (strstr (mount_options, "x-gvfs-notrash") != NULL)
-        return TRUE;
+        {
+          g_debug ("Ignoring the trash dir, because mount options include x-gvfs-notrash");
+          return TRUE;
+        }
     }
 
+  {
+    gboolean is_internal;
+
 #if GLIB_CHECK_VERSION(2,84,0)
-  return g_unix_mount_entry_is_system_internal (mount);
+    is_internal = g_unix_mount_entry_is_system_internal (mount);
 #else
-  return g_unix_mount_is_system_internal (mount);
+    is_internal = g_unix_mount_is_system_internal (mount);
 #endif
+
+    if (is_internal)
+      g_debug ("Ignoring the trash dir, because mount is internal");
+
+    return is_internal;
+  }
 }
 
 
