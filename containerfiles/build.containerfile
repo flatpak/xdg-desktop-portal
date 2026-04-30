@@ -37,6 +37,8 @@ RUN apt install -y --no-install-recommends \
     libgudev-1.0-dev \
     libjson-glib-dev \
     libpipewire-0.3-dev \
+    libdbus-1-dev \
+    libwireplumber-0.5-dev \
     libsystemd-dev \
     libtool \
     llvm \
