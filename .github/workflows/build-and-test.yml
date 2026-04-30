@@ -58,7 +58,7 @@ jobs:
         if: always()
 
       - name: Check Qt annotations
-        run: find -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
+        run: find data -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
         if: always()
 
       - name: Run pre-commit hooks

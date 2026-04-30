@@ -38,17 +38,6 @@ def adjust_title(lines):
     lines[3] = f"{adjusted_title}\n"
 
 
-# Temporary fix for '.. {title}:' strings in the generated files. Should be
-# removed after GLib 2.78.4 hits the CI images.
-#
-# See: https://gitlab.gnome.org/GNOME/glib/-/merge_requests/3751
-def fix_title_template_string(lines):
-    for index, line in enumerate(lines):
-        if line.strip() == ".. _{title}:":
-            next_title = lines[index + 2].strip()
-            lines[index] = f".. _{next_title}:\n"
-
-
 for file in inputs:
     basename = os.path.basename(file)
     fullpath = os.path.join(output_dir, f"{filename_prefix}-{basename}")
@@ -57,7 +46,6 @@ for file in inputs:
         lines = f.readlines()
 
     adjust_title(lines)
-    fix_title_template_string(lines)
 
     with open(fullpath, "w") as f:
         f.writelines(lines)

@@ -2,7 +2,7 @@
 # When this file is changed, or one needs to rebuild the image for another
 # reason, bump the `IMAGE_TAG` in the container.yml workflow.
 
-FROM ubuntu:latest
+FROM ubuntu:26.04
 
 RUN apt update
 RUN apt upgrade -y
@@ -26,8 +26,8 @@ RUN apt install -y --no-install-recommends \
     librsvg2-2 \
     librsvg2-common \
     libgstreamer-plugins-base1.0-dev \
-    gstreamer1.0-plugins-good \
-    libgstreamer-plugins-good1.0-dev \
+    gstreamer1.0-plugins-extra \
+    libgstreamer-plugins-extra1.0-dev \
     gstreamer1.0-tools \
     libgeoclue-2-dev \
     libglib2.0-dev \
@@ -37,7 +37,7 @@ RUN apt install -y --no-install-recommends \
     libsystemd-dev \
     libtool \
     llvm \
-    libclang-rt-18-dev \
+    libclang-rt-dev \
     python3-gi \
     shared-mime-info
 
@@ -49,6 +49,7 @@ RUN apt install -y --no-install-recommends \
     python3-pytest \
     python3-pytest-xdist \
     python3-dbus \
+    python3-dbusmock \
     libumockdev0 \
     libumockdev-dev \
     umockdev \
@@ -56,10 +57,6 @@ RUN apt install -y --no-install-recommends \
 
 # Install pip
 RUN apt install -y --no-install-recommends python3-pip
-
-# Install latest a newer python-dbusmock required for our pytest setup
-# This is installed system-wide
-RUN pip install --prefix=/usr --break-system-packages python-dbusmock">=0.33.0"
 
 # Install doc dependencies
 RUN pip install --user --break-system-packages furo">=2024.04.27" \
