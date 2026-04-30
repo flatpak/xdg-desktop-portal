@@ -95,6 +95,7 @@ if build_documentation
     'impl-dbus-interfaces.rst',
     'index.rst',
     'merge-requirements.rst',
+    'pipewire.rst',
     'pull-requests.rst',
     'reasons-to-use-portals.rst',
     'requests.rst',

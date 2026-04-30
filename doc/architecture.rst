@@ -12,3 +12,4 @@ of XDG Desktop Portal.
    :maxdepth: 1
 
    documents-and-fuse
+   pipewire
