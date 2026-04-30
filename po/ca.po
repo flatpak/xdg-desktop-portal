@@ -1,8 +1,6 @@
 # Catalan translation for xdg-desktop-portal.
-# Copyright (C) 2021 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-# Maite Guix <maite.guix@gmail.com>, 2021.
-# Jordi Mas i Hernàndez <jmas@softcatala.org>, 2023-2025
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

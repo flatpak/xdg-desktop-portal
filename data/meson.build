@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
 # This file is built into the GDbus sources but does not get installed by us
 flatpak_intf_sources = []
 if flatpak_intf_dir != ''

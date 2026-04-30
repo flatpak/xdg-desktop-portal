@@ -1,7 +1,7 @@
 # Copyright (C) 2022 xdg-desktop-portal
-# This file is distributed under the same license as the xdg-desktop-portal package.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
-# Sergiu Bivol <sergiu@cip.md>, 2022.
 msgid ""
 msgstr ""
 "Project-Id-Version: \n"

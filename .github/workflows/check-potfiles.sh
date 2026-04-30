@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the gnome-control-center contributors
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
-# FIXME stolen from gnome-control-center, GPLv2
-# This project is LGPLv2
+# Stolen from gnome-control-center, originally GPLv2 but re-licensed to LGPLv2
 # https://gitlab.gnome.org/GNOME/gnome-control-center/-/merge_requests/2269#note_2079291
 
 srcdirs="src document-portal"

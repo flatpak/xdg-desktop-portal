@@ -1,8 +1,6 @@
 # Polish translation for xdg-desktop-portal.
-# Copyright © 2016-2025 the xdg-desktop-portal authors.
-# This file is distributed under the same license as the xdg-desktop-portal package.
-# Piotr Drąg <piotrdrag@gmail.com>, 2016-2025.
-# Aviary.pl <community-poland@mozilla.org>, 2016-2025.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

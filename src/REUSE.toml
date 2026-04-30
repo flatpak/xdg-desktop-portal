@@ -1,0 +1,9 @@
+version = 1
+
+[[annotations]]
+precedence = "override"
+path = [
+    "org.freedesktop.GeoClue2.Client.xml",
+]
+SPDX-License-Identifier = "GPL-2.0-or-later"
+SPDX-FileCopyrightText = "Copyright © the geoclue contributors"

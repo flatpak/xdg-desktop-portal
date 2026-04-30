@@ -1,9 +1,7 @@
 # Russian translation for xdg-desktop-portal.
-# Copyright (C) 2020 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-# Артемий Судаков <finziyr@yandex.ru>, 2020.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
-# SPDX-FileCopyrightText: 2024 SPDX-FileCopyrightText :
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"

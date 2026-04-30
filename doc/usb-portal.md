@@ -1,3 +1,8 @@
+<!--
+SPDX-License-Identifier: LGPL-2.1-or-later
+SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
 # USB portal
 
 The USB portal is the middleman between sandboxed apps, and the

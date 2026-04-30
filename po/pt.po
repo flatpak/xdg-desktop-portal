@@ -1,8 +1,6 @@
 # Portuguese translation for xdg-desktop-portal.
-# Copyright (C) 2024 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-# Juliano de Souza Camargo <julianosc@protonmail.com>, 2022.
-# Hugo Carvalho <hugokarvalho@hotmail.com>, 2022, 2023, 2024, 2025.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

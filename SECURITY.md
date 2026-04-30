@@ -1,3 +1,8 @@
+<!--
+SPDX-License-Identifier: LGPL-2.1-or-later
+SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
 # Security policy for xdg-desktop-portal
 
 See the [Flatpak security policy](https://github.com/flatpak/flatpak/blob/main/SECURITY.md)

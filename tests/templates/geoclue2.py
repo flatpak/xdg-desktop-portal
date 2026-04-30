@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 # mypy: disable-error-code="misc"
 
 from tests.templates.xdp_utils import init_logger

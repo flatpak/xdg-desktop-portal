@@ -1,9 +1,6 @@
 # Czech translation for xdg-desktop-portal.
-# Copyright (C) 2016 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-#
-# Marek Černocký <marek@manet.cz>, 2016.
-# Daniel Rusek <mail@asciiwolf.com>, 2018.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

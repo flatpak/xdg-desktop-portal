@@ -1,4 +1,6 @@
 #!/bin/bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 # - Runs pytest with the required environment to run tests on an x-d-p build
 # - By default, the tests run on the first x-d-p build directory that is found
