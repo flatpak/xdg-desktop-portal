@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+ SPDX-License-Identifier: LGPL-2.1-or-later
+ SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
 <gresources>
   <gresource prefix="/org/freedesktop/portal/desktop">
     <file alias="org.freedesktop.portal.FileChooser.xml">data/org.freedesktop.portal.FileChooser.xml</file>

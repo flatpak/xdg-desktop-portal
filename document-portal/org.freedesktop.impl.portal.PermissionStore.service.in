@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
 [D-BUS Service]
 Name=org.freedesktop.impl.portal.PermissionStore
 Exec=@libexecdir@/xdg-permission-store

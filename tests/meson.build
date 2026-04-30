@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
 env_tests = environment()
 env_tests.set('XDG_DATA_DIRS', meson.current_build_dir() / 'share')
 env_tests.set('G_TEST_SRCDIR', meson.current_source_dir())

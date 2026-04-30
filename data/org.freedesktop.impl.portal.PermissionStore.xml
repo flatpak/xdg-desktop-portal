@@ -1,28 +1,7 @@
-<!DOCTYPE node PUBLIC
-"-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
-"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
-
+<?xml version="1.0"?>
 <!--
- Copyright (C) 2015 Red Hat, Inc.
-
  SPDX-License-Identifier: LGPL-2.1-or-later
-
- This library is free software; you can redistribute it and/or
- modify it under the terms of the GNU Lesser General Public
- License as published by the Free Software Foundation; either
- version 2.1 of the License, or (at your option) any later version.
-
- This library is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- Lesser General Public License for more details.
-
- You should have received a copy of the GNU Lesser General
- Public License along with this library; if not, write to the
- Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- Boston, MA 02110-1301, USA.
-
- Author: Alexander Larsson <alexl@redhat.com>
+ SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 -->
 
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">

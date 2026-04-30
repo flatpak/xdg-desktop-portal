@@ -1,3 +1,8 @@
+<!--
+SPDX-License-Identifier: LGPL-2.1-or-later
+SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
 [![Portals](doc/website/assets/readme.png)](https://flatpak.github.io/xdg-desktop-portal/)
 
 # [XDG Desktop Portal](https://flatpak.github.io/xdg-desktop-portal/)

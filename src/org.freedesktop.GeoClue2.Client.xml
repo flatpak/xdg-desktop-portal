@@ -2,9 +2,13 @@
 "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 
 <!--
-    GeoClue 2.0 Interface Specification
+ gpl-2.0-or-later
+ SPDX-License-Identifier: LGPL-2.1-or-later
+ SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
     Copyright 2013 Red Hat, Inc.
+
+    GeoClue 2.0 Interface Specification
 -->
 
 <node>

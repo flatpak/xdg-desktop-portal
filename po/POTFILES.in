@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
 # List of source files containing translatable strings.
 src/background.c
 src/camera.c

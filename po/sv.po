@@ -1,8 +1,6 @@
 # Swedish translation for xdg-desktop-portal.
-# Copyright © 2016, 2020, 2022-2026 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-# Sebastian Rasmussen <sebras@gmail.com>, 2016.
-# Anders Jonsson <anders.jonsson@norsjovallen.se>, 2020, 2022, 2023, 2024, 2025, 2026.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

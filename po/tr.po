@@ -1,11 +1,6 @@
 # Turkish translation for xdg-desktop-portal.
-# Copyright (C) 2017-2025 xdg-desktop-portal's COPYRIGHT HOLDER
-# This file is distributed under the same license as the xdg-desktop-portal package.
-#
-# Muhammet Kara <muhammetk@gmail.com>, 2017.
-# Serdar Sağlam <teknomobil@yandex.com>, 2019.
-# Sabri Ünal <yakushabb@gmail.com>, 2020, 2023, 2025.
-# Emin Tufan Çetin <etcetin@gmail.com>, 2019-2020, 2025-2026.
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 #
 msgid ""
 msgstr ""

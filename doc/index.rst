@@ -1,3 +1,7 @@
+..
+   SPDX-License-Identifier: LGPL-2.1-or-later
+   SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
 .. XDG Desktop Portals documentation master file, created by
    sphinx-quickstart on Thu Aug 24 16:58:13 2023.
    You can adapt this file completely to your liking, but it should at least
