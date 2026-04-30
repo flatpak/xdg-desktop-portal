@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 env:
-  IMAGE_TAG: 2025-07-21.3
+  IMAGE_TAG: 2026-06-08.0
 
 on:
   workflow_call:
