@@ -6,7 +6,7 @@
 # Stolen from gnome-control-center, originally GPLv2 but re-licensed to LGPLv2
 # https://gitlab.gnome.org/GNOME/gnome-control-center/-/merge_requests/2269#note_2079291
 
-srcdirs="shared src document-portal"
+srcdirs="shared desktop-portal document-portal"
 uidirs=$srcdirs
 desktopdirs=$srcdirs
 policydirs=$srcdirs

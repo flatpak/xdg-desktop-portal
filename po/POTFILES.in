@@ -2,11 +2,11 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 # List of source files containing translatable strings.
-src/background.c
-src/camera.c
-src/dynamic-launcher.c
-src/location.c
-src/screenshot.c
-src/settings.c
-src/usb.c
-src/wallpaper.c
+desktop-portal/background.c
+desktop-portal/camera.c
+desktop-portal/dynamic-launcher.c
+desktop-portal/location.c
+desktop-portal/screenshot.c
+desktop-portal/settings.c
+desktop-portal/usb.c
+desktop-portal/wallpaper.c

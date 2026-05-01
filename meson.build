@@ -230,7 +230,7 @@ pkgconfig.generate(
 
 subdir('data')
 subdir('shared')
-subdir('src')
+subdir('desktop-portal')
 subdir('document-portal')
 subdir('po')
 subdir('doc')
