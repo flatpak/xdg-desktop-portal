@@ -27,7 +27,7 @@
 
       This screenshot portal lets sandboxed applications request a screenshot.
 
-      This documentation describes version 3 of this interface.
+      This documentation describes version 4 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.Screenshot">
     <!--
@@ -65,6 +65,32 @@
           - ``8``: Active Window: The currently active window.
 
           This option was added in version 3 of this interface.
+
+        * ``include_cursor`` (``b``)
+
+          Whether the mouse cursor should be included in the screenshot. If
+          this option is omitted, the backend should preserve its default cursor
+          behavior.
+
+          This option was added in version 4 of this interface.
+
+        * ``capture_delay`` (``u``)
+
+          Delay in seconds before the screenshot is captured. The delay starts
+          after any required user input, such as selecting a window or area,
+          has completed. The value must not be greater than 3600.
+
+          This option was added in version 4 of this interface.
+
+        * ``selection_geometry`` (``(iiuu)``)
+
+          Suggested default geometry for the area selector as x, y, width,
+          height in the compositor's logical coordinate space. Width and height
+          must be greater than zero. This option is only valid when ``target``
+          is set to ``4`` (Area), and implementations may ignore or adjust the
+          geometry.
+
+          This option was added in version 4 of this interface.
 
         * ``permission_store_checked`` (``b``)
 
