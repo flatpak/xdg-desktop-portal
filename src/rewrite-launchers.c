@@ -7,8 +7,7 @@
 #include <gio/gdesktopappinfo.h>
 #include <glib.h>
 
-#include "dynamic-launcher.h"
-#include "xdp-utils.h"
+#include "shared/xdp-types.h"
 
 static char *
 find_renamed_app_id (const char *old_app_id)

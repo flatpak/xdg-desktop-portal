@@ -27,9 +27,9 @@
 #include "file-transfer.h"
 #include "permission-db.h"
 #include "permission-store-dbus.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-utils.h"
+#include "xdp-app-info-registry.h"
+#include "xdp-app-info.h"
+#include "xdp-utils.h"
 
 #define TABLE_NAME "documents"
 

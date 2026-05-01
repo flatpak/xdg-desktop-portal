@@ -24,7 +24,7 @@
 #include <glib/gprintf.h>
 
 #include "document-store.h"
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 
 #if HAVE_SYS_STATFS_H
 #include <sys/statfs.h>
