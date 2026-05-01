@@ -18,7 +18,7 @@ test_permission_db = executable(
   'test-permission-db',
   ['test-permission-db.c'] + db_sources,
   dependencies: [common_deps] + db_deps,
-  include_directories: [common_includes],
+  include_directories: incs_xdg_desktop_portal,
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
 )
@@ -36,7 +36,7 @@ test_xdp_utils = executable(
   'test-xdp-utils.c',
   xdp_utils_sources,
   dependencies: [common_deps, xdp_utils_deps],
-  include_directories: [common_includes, xdp_utils_includes],
+  include_directories: incs_xdg_desktop_portal,
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
 )
@@ -54,7 +54,7 @@ test_method_info = executable(
   'test-xdp-method-info.c',
   xdp_method_info_sources,
   dependencies: [common_deps],
-  include_directories: [common_includes, xdp_utils_includes],
+  include_directories: incs_xdg_desktop_portal,
   install: enable_installed_tests,
   install_dir: installed_tests_dir,
 )

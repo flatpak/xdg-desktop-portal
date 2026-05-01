@@ -64,7 +64,6 @@ summary({
 # makes life easier for us
 
 common_includes = include_directories('.')  # config.h
-src_includes = include_directories('src')
 
 ###### plugins, dependencies, compiler setup
 
@@ -230,6 +229,7 @@ pkgconfig.generate(
 ###### subdirs
 
 subdir('data')
+subdir('shared')
 subdir('src')
 subdir('document-portal')
 subdir('po')

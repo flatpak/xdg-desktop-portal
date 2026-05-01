@@ -40,22 +40,6 @@ else
   geoclue_built_sources = []
 endif
 
-enums_sources = gnome.mkenums_simple(
-  'xdp-enum-types',
-  sources: files(
-    'xdp-app-info-private.h',
-  ),
-)
-
-built_resources = enums_sources + gnome.compile_resources(
-  'xdg-desktop-resources',
-  'xdg-desktop-portal.gresource.xml',
-  c_name: '_xdg_desktop',
-  source_dir: ['..'],
-)
-
-sd_escape_sources = files('sd-escape.c')
-
 xdp_method_info_built_sources = configure_file(
   command: [find_program('generate-method-info.py'), portal_sources],
   capture: true,
@@ -63,25 +47,6 @@ xdp_method_info_built_sources = configure_file(
 )
 
 xdp_method_info_sources = files('xdp-method-info.c') + xdp_method_info_built_sources
-
-xdp_utils_deps = []
-xdp_utils_includes = include_directories('.')
-xdp_utils_sources = enums_sources + files(
-  'xdp-app-info.c',
-  'xdp-app-info-flatpak.c',
-  'xdp-app-info-host.c',
-  'xdp-app-info-registry.c',
-  'xdp-app-info-snap.c',
-  'xdp-app-info-linyaps.c',
-  'xdp-sealed-fd.c',
-  'xdp-usb-query.c',
-  'xdp-utils.c',
-)
-
-if have_libsystemd
-  xdp_utils_sources += sd_escape_sources
-  xdp_utils_deps += [libsystemd_dep]
-endif
 
 xdg_desktop_portal_sources = files(
   'account.c',
@@ -133,7 +98,6 @@ xdg_desktop_portal_sources += [
   impl_built_sources,
   background_monitor_built_sources,
   geoclue_built_sources,
-  built_resources,
 ]
 
 if have_geoclue
@@ -167,9 +131,10 @@ xdg_desktop_portal_deps = common_deps + [
 ]
 
 incs_xdg_desktop_portal = [
-  include_directories('../document-portal'),
-  src_includes,
   common_includes,
+  xdp_utils_includes,
+  include_directories('.'),
+  include_directories('../document-portal'),
 ]
 
 xdg_desktop_portal = executable(

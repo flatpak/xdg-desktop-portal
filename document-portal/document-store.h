@@ -8,8 +8,8 @@
 
 #include "document-enums.h"
 #include "permission-db.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-utils.h"
+#include "xdp-app-info.h"
+#include "xdp-utils.h"
 
 G_BEGIN_DECLS
 

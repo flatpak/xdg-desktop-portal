@@ -24,9 +24,9 @@
 #include "document-portal-dbus.h"
 #include "document-portal-fuse.h"
 #include "document-portal.h"
-#include "src/xdp-app-info-registry.h"
-#include "src/xdp-app-info.h"
-#include "src/xdp-utils.h"
+#include "xdp-app-info-registry.h"
+#include "xdp-app-info.h"
+#include "xdp-utils.h"
 
 static XdpDbusFileTransfer *file_transfer;
 

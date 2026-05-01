@@ -12,7 +12,7 @@
 
 #include "permission-db.h"
 #include "permission-store-dbus.h"
-#include "src/xdp-utils.h"
+#include "xdp-utils.h"
 
 GHashTable *tables = NULL;
 

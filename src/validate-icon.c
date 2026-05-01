@@ -16,8 +16,6 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glib/gstdio.h>
 
-#include "xdp-utils.h"
-
 #ifdef __FreeBSD__
 #define execvpe exect
 #endif
