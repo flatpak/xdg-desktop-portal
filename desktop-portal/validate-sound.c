@@ -3,7 +3,7 @@
  * SPDX-FileCopyrightText: Copyright © the Flatpak contributors
  */
 
-/* This is based on src/validate-icon.c */
+/* This is based on desktop-portal/validate-icon.c */
 
 #include <errno.h>
 #include <fcntl.h>

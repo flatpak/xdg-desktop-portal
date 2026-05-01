@@ -6,7 +6,7 @@
 /* The canonical copy of this file is in:
  * - https://github.com/flatpak/flatpak at icon-validator/validate-icon.c
  * Known copies of this file are in:
- * - https://github.com/flatpak/xdg-desktop-portal at src/validate-icon.c
+ * - https://github.com/flatpak/xdg-desktop-portal at desktop-portal/validate-icon.c
  */
 
 #include <errno.h>
