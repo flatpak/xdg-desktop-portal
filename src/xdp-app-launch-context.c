@@ -27,9 +27,9 @@ struct _XdpAppLaunchContext
   char *token;
 };
 
-G_DEFINE_TYPE (XdpAppLaunchContext,
-               xdp_app_launch_context,
-               G_TYPE_APP_LAUNCH_CONTEXT);
+G_DEFINE_FINAL_TYPE (XdpAppLaunchContext,
+                     xdp_app_launch_context,
+                     G_TYPE_APP_LAUNCH_CONTEXT);
 
 void
 xdp_app_launch_context_set_activation_token (XdpAppLaunchContext *self,
