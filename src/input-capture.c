@@ -104,6 +104,8 @@ typedef struct _InputCaptureSessionClass
 
 G_DEFINE_TYPE (InputCaptureSession, input_capture_session, xdp_session_get_type ())
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (InputCaptureSession, g_object_unref)
+
 static void
 input_capture_session_close (XdpSession *session)
 {
