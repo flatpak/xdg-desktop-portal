@@ -242,6 +242,7 @@ xdp_app_info_set_property (GObject      *object,
       priv->sender = g_value_dup_string (value);
       break;
 
+    case PROP_G_APP_INFO:
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
