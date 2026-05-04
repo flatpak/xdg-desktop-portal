@@ -114,6 +114,8 @@ typedef struct _RemoteDesktopSessionClass
 
 G_DEFINE_TYPE (RemoteDesktopSession, remote_desktop_session, xdp_session_get_type ())
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (RemoteDesktopSession, g_object_unref);
+
 gboolean
 remote_desktop_session_can_select_sources (RemoteDesktopSession *session)
 {
