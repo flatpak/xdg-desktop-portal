@@ -1,0 +1,6 @@
+[general]
+ignore=title-must-not-contain-word, body-min-length, body-is-missing
+extra-path=.githooks/commit-msg-rules.py
+
+[title-match-regex]
+regex=^.+\: .*$

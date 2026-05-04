@@ -14,3 +14,22 @@ repos:
     - id: mypy
       additional_dependencies:
         - pytest
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: check-shebang-scripts-are-executable
+    - id: check-executables-have-shebangs
+    - id: check-case-conflict
+    - id: check-added-large-files
+    - id: check-merge-conflict
+    - id: check-symlinks
+    - id: check-xml
+    - id: detect-private-key
+    - id: forbid-submodules
+    - id: mixed-line-ending
+      args: [ --fix=no ]
+    - id: end-of-file-fixer
+- repo: https://github.com/jorisroovers/gitlint
+  rev: v0.19.1
+  hooks:
+    - id: gitlint
