@@ -86,9 +86,6 @@ xdp_app_info_snap_get_property (GObject    *object,
     case PROP_DESKTOP_FILE:
       g_value_set_string (value, app_info_snap->desktop_file);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -106,9 +103,6 @@ xdp_app_info_snap_set_property (GObject      *object,
       g_assert (app_info_snap->desktop_file == NULL);
       app_info_snap->desktop_file = g_value_dup_string (value);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
