@@ -53,4 +53,3 @@ struct _XdpAppInfoClass
 
   GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
-

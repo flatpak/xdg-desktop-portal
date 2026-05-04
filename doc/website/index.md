@@ -109,4 +109,3 @@ inside the sandbox is problematic, since the app can just lie.
 ## Contributing
 
 XDG Desktop Portals is [Free Software](https://www.gnu.org/philosophy/free-sw.html). Contributions [welcome](https://github.com/flatpak/xdg-desktop-portal/blob/main/CONTRIBUTING.md).
-
