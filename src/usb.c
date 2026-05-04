@@ -99,7 +99,7 @@ G_DECLARE_FINAL_TYPE (XdpUsbSession,
                       XDP, USB_SESSION,
                       XdpSession);
 
-G_DEFINE_TYPE (XdpUsbSession, xdp_usb_session, xdp_session_get_type ())
+G_DEFINE_FINAL_TYPE (XdpUsbSession, xdp_usb_session, xdp_session_get_type ())
 
 typedef struct
 {
