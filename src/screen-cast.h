@@ -28,7 +28,15 @@
 
 typedef struct _ScreenCastStream ScreenCastStream;
 
+typedef enum _ScreenCastStreamType
+{
+  SCREEN_CAST_STREAM_TYPE_VIDEO,
+  SCREEN_CAST_STREAM_TYPE_AUDIO,
+} ScreenCastStreamType;
+
 uint32_t screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream);
+
+ScreenCastStreamType screen_cast_stream_get_stream_type (ScreenCastStream *stream);
 
 void screen_cast_stream_get_size (ScreenCastStream *stream,
                                   int32_t *width,

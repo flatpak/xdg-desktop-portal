@@ -73,6 +73,7 @@ struct _ScreenCastStream
   int32_t height;
   uint64_t pipewire_serial;
   gboolean has_pipewire_serial;
+  ScreenCastStreamType stream_type;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScreenCast, screen_cast,
@@ -485,7 +486,27 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
   { "cursor_mode", G_VARIANT_TYPE_UINT32, validate_cursor_mode },
   { "restore_token", G_VARIANT_TYPE_STRING, validate_restore_token },
   { "persist_mode", G_VARIANT_TYPE_UINT32, validate_persist_mode },
+  { "audio", G_VARIANT_TYPE_BOOLEAN, NULL },
 };
+
+static void
+strip_v7_options_for_older_backend (ScreenCast *screen_cast,
+                                    GVariant **in_out_options)
+{
+  GVariantDict options_dict;
+  g_autoptr(GVariant) old_options = NULL;
+
+  if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 7)
+    return;
+
+  if (!xdp_variant_contains_key (*in_out_options, "audio"))
+    return;
+
+  old_options = g_steal_pointer (in_out_options);
+  g_variant_dict_init (&options_dict, old_options);
+  g_variant_dict_remove (&options_dict, "audio");
+  *in_out_options = g_variant_ref_sink (g_variant_dict_end (&options_dict));
+}
 
 static gboolean
 replace_screen_cast_restore_token_with_data (XdpSession *session,
@@ -639,6 +660,7 @@ handle_select_sources (XdpDbusScreenCast *object,
     }
 
   options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
+  strip_v7_options_for_older_backend (screen_cast, &options);
 
   /* If 'restore_token' is passed, lookup the corresponding data in the
    * permission store and / or the GHashTable with transient permissions.
@@ -678,6 +700,12 @@ uint32_t
 screen_cast_stream_get_pipewire_node_id (ScreenCastStream *stream)
 {
   return stream->id;
+}
+
+ScreenCastStreamType
+screen_cast_stream_get_stream_type (ScreenCastStream *stream)
+{
+  return stream->stream_type;
 }
 
 static void
@@ -764,6 +792,20 @@ screen_cast_stream_free (ScreenCastStream *stream)
   g_free (stream);
 }
 
+static ScreenCastStreamType
+parse_screen_cast_stream_type (const char *media_type)
+{
+  if (media_type == NULL || g_strcmp0 (media_type, "video") == 0)
+    return SCREEN_CAST_STREAM_TYPE_VIDEO;
+
+  if (g_strcmp0 (media_type, "audio") == 0)
+    return SCREEN_CAST_STREAM_TYPE_AUDIO;
+
+  g_warning ("Unknown screen cast stream media_type '%s', assuming video",
+             media_type);
+  return SCREEN_CAST_STREAM_TYPE_VIDEO;
+}
+
 GList *
 collect_screen_cast_stream_data (GVariantIter *streams_iter)
 {
@@ -775,9 +817,12 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
                               &stream_id, &stream_options))
     {
       ScreenCastStream *stream;
+      const char *media_type = NULL;
 
       stream = g_new0 (ScreenCastStream, 1);
       stream->id = stream_id;
+      g_variant_lookup (stream_options, "media_type", "&s", &media_type);
+      stream->stream_type = parse_screen_cast_stream_type (media_type);
       g_variant_lookup (stream_options, "size", "(ii)",
                         &stream->width, &stream->height);
       stream->has_pipewire_serial =
@@ -1135,7 +1180,7 @@ screen_cast_new (XdpContext            *context,
   g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (screen_cast->impl), G_MAXINT);
 
   xdp_dbus_screen_cast_set_version (XDP_DBUS_SCREEN_CAST (screen_cast),
-                                    MIN (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl), 6));
+                                    MIN (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl), 7));
 
   g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
                           G_OBJECT (screen_cast), "available-source-types",
