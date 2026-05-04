@@ -105,6 +105,8 @@ GType location_session_get_type (void);
 
 G_DEFINE_TYPE (LocationSession, location_session, xdp_session_get_type ())
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (LocationSession, g_object_unref)
+
 G_GNUC_UNUSED static inline LocationSession *
 LOCATION_SESSION (gpointer ptr)
 {
