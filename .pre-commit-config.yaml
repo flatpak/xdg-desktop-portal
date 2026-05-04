@@ -1,4 +1,12 @@
 repos:
+- repo: local
+  hooks:
+  - id: goblint
+    name: goblint linter
+    language: unsupported
+    entry: .githooks/run-podman.sh ghcr.io/bilelmoussaoui/goblint:main-cfa718d .
+    files: \.[ch]$
+    pass_filenames: false
 - repo: https://github.com/astral-sh/ruff-pre-commit
   # Ruff version.
   rev: v0.7.0
