@@ -34,10 +34,10 @@ struct _XdpBackgroundMonitor
 
 static void g_initable_iface_init (GInitableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (XdpBackgroundMonitor,
-                         xdp_background_monitor,
-                         XDP_DBUS_BACKGROUND_TYPE_MONITOR_SKELETON,
-                         G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init));
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpBackgroundMonitor,
+                               xdp_background_monitor,
+                               XDP_DBUS_BACKGROUND_TYPE_MONITOR_SKELETON,
+                               G_IMPLEMENT_INTERFACE (G_TYPE_INITABLE, g_initable_iface_init));
 
 static gboolean
 request_freedesktop_background_name (XdpBackgroundMonitor  *self,

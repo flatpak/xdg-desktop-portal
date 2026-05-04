@@ -52,7 +52,7 @@
 #include "sd-escape.h"
 #endif
 
-G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
+G_DEFINE_QUARK (xdp-app-info-error, xdp_app_info_error);
 
 typedef struct _XdpAppInfoPrivate
 {
