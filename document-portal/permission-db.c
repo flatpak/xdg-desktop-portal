@@ -174,9 +174,6 @@ permission_db_get_property (GObject    *object,
     case PROP_FAIL_IF_NOT_FOUND:
       g_value_set_boolean (value, self->fail_if_not_found);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -198,9 +195,6 @@ permission_db_set_property (GObject      *object,
     case PROP_FAIL_IF_NOT_FOUND:
       self->fail_if_not_found = g_value_get_boolean (value);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 

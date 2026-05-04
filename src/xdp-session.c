@@ -409,9 +409,6 @@ xdp_session_set_property (GObject      *object,
     case PROP_IMPL_DBUS_NAME:
       session->impl_dbus_name = g_strdup (g_value_get_string (value));
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -452,9 +449,6 @@ xdp_session_get_property (GObject    *object,
     case PROP_IMPL_DBUS_NAME:
       g_value_set_string (value, session->impl_dbus_name);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
