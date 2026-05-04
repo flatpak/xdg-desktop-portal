@@ -54,7 +54,7 @@ jobs:
     container:
       image: ${{ inputs.image }}
       env:
-        CFLAGS: -Wp,-D_FORTIFY_SOURCE=2
+        CFLAGS: -Wp,-D_FORTIFY_SOURCE=2,-Werror
         CC: ${{ matrix.compiler }}
         XDP_TEST_IN_CI: 1
         G_MESSAGES_DEBUG: all
