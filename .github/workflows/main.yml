@@ -13,7 +13,7 @@ jobs:
       packages: write
     with:
       image: xdg-desktop-portal:2026-06-08.0
-      containerfile: .github/workflows/build.containerfile
+      containerfile: containerfiles/build.containerfile
 
   check-container:
     name: Check Container
@@ -22,7 +22,7 @@ jobs:
       packages: write
     with:
       image: xdg-desktop-portal-checks:2026-06-08.0
-      containerfile: .github/workflows/check.containerfile
+      containerfile: containerfiles/check.containerfile
 
   build-and-test:
     name: Build and Test
