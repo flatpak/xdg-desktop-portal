@@ -1,11 +1,15 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
-env:
-  IMAGE_TAG: 2026-06-08.0
-
 on:
   workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      containerfile:
+        required: true
+        type: string
     outputs:
       image:
         description: "The build image"
@@ -35,8 +39,8 @@ jobs:
         run: |
           ACTOR="${{ github.actor }}"
           OWNER="${{ github.repository_owner }}"
-          image_actor="ghcr.io/${ACTOR,,}/xdg-desktop-portal:${{ env.IMAGE_TAG }}"
-          image_owner="ghcr.io/${OWNER,,}/xdg-desktop-portal:${{ env.IMAGE_TAG }}"
+          image_actor="ghcr.io/${ACTOR,,}/${{ inputs.image }}"
+          image_owner="ghcr.io/${OWNER,,}/${{ inputs.image }}"
 
           if docker manifest inspect "${image_owner}" >/dev/null ; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
@@ -58,5 +62,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          file: .github/workflows/Containerfile
+          file: ${{ inputs.containerfile }}
           tags: ${{ steps.check.outputs.image }}
