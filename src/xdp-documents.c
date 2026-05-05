@@ -225,33 +225,6 @@ xdp_register_document (const char        *uri,
 }
 
 char *
-xdp_get_real_path_for_doc_path (const char *path,
-                                XdpAppInfo *app_info)
-{
-  g_autofree char *doc_id = NULL;
-  gboolean ret = FALSE;
-  g_autoptr(GError) error = NULL;
-
-  if (xdp_app_info_is_host (app_info))
-    return g_strdup (path);
-
-  ret = xdp_dbus_documents_call_lookup_sync (documents, path, &doc_id, NULL, &error);
-  if (!ret)
-    {
-      g_debug ("document portal error for path '%s': %s", path, error->message);
-      return g_strdup (path);
-    }
-
-  if (g_strcmp0 (doc_id, "") == 0)
-    {
-      g_debug ("document portal returned empty doc id for path '%s'", path);
-      return g_strdup (path);
-    }
-
-  return xdp_get_real_path_for_doc_id (doc_id);
-}
-
-char *
 xdp_get_real_path_for_doc_id (const char *doc_id)
 {
   gboolean ret = FALSE;

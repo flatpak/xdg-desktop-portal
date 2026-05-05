@@ -57,70 +57,6 @@ pidfd_open (pid_t        pid,
 }
 #endif
 
-/* Based on g_mkstemp from glib */
-gint
-xdp_mkstempat (int    dir_fd,
-               gchar *tmpl,
-               int    flags,
-               int    mode)
-{
-  char *XXXXXX;
-  int count, fd;
-  static const char letters[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  static const int NLETTERS = sizeof (letters) - 1;
-  gint64 value;
-  gint64 current_time;
-  static int counter = 0;
-
-  g_return_val_if_fail (tmpl != NULL, -1);
-
-  /* find the last occurrence of "XXXXXX" */
-  XXXXXX = g_strrstr (tmpl, "XXXXXX");
-
-  if (!XXXXXX || strncmp (XXXXXX, "XXXXXX", 6))
-    {
-      errno = EINVAL;
-      return -1;
-    }
-
-  /* Get some more or less random data.  */
-  current_time = g_get_real_time ();
-  value = ((current_time % G_USEC_PER_SEC) ^ (current_time / G_USEC_PER_SEC)) + counter++;
-
-  for (count = 0; count < 100; value += 7777, ++count)
-    {
-      gint64 v = value;
-
-      /* Fill in the random bits.  */
-      XXXXXX[0] = letters[v % NLETTERS];
-      v /= NLETTERS;
-      XXXXXX[1] = letters[v % NLETTERS];
-      v /= NLETTERS;
-      XXXXXX[2] = letters[v % NLETTERS];
-      v /= NLETTERS;
-      XXXXXX[3] = letters[v % NLETTERS];
-      v /= NLETTERS;
-      XXXXXX[4] = letters[v % NLETTERS];
-      v /= NLETTERS;
-      XXXXXX[5] = letters[v % NLETTERS];
-
-      fd = openat (dir_fd, tmpl, flags | O_CREAT | O_EXCL, mode);
-
-      if (fd >= 0)
-        return fd;
-      else if (errno != EEXIST)
-        /* Any other error will apply also to other names we might
-         *  try, and there are 2^32 or so of them, so give up now.
-         */
-        return -1;
-    }
-
-  /* We got out of the loop because we ran out of combinations to try.  */
-  errno = EEXIST;
-  return -1;
-}
-
 static gboolean
 needs_quoting (const char *arg)
 {
@@ -1065,25 +1001,6 @@ open_fdinfo_dir (GError **error)
                  g_strerror (errno));
 
   return fd;
-}
-
-pid_t
-xdp_pidfd_to_pid (int      pidfd,
-                  GError **error)
-{
-  int fdinfo = -1;
-  pid_t pid;
-
-  g_return_val_if_fail (pidfd >= 0, -1);
-
-  fdinfo = open_fdinfo_dir (error);
-  if (fdinfo == -1)
-    return -1;
-
-  pid = pidfd_to_pid (fdinfo, pidfd, error);
-  (void) close (fdinfo);
-
-  return pid;
 }
 
 gboolean

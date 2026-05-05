@@ -32,7 +32,6 @@ typedef struct {
   char *dbus_name;
   char **interfaces;
   char **use_in;
-  int priority;
 } XdpImplConfig;
 
 #define XDP_TYPE_PORTAL_CONFIG (xdp_portal_config_get_type())
