@@ -52,17 +52,6 @@
 
 #define TABLE_NAME "documents"
 
-typedef struct
-{
-  char                  *doc_id;
-  int                    fd;
-  char                  *owner;
-  guint                  flags;
-
-  GDBusMethodInvocation *finish_invocation;
-} XdpDocUpdate;
-
-
 static GMainLoop *loop = NULL;
 static PermissionDb *db = NULL;
 static XdgPermissionStore *permission_store;

@@ -71,9 +71,9 @@ exported_file_free (gpointer data)
 
 typedef struct
 {
-  GObject object;
-  GMutex mutex;
+  GObject parent;
 
+  GMutex mutex;
   GPtrArray *files;
   gboolean writable;
   gboolean autostop;

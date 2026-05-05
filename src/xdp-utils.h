@@ -36,11 +36,6 @@
 #include "xdp-sealed-fd.h"
 #include "xdp-types.h"
 
-gint xdp_mkstempat (int    dir_fd,
-                    gchar *tmpl,
-                    int    flags,
-                    int    mode);
-
 gboolean xdp_is_valid_app_id (const char *string);
 gboolean xdp_is_valid_token (const char *string);
 
@@ -147,9 +142,6 @@ gboolean  xdp_has_path_prefix (const char *str,
 gboolean xdp_pid_to_pidfd (pid_t    pid,
                            int     *pidfd_out,
                            GError **error);
-
-pid_t xdp_pidfd_to_pid (int      pidfd,
-                        GError **error);
 
 gboolean xdp_pidfds_to_pids (const int  *pidfds,
                              pid_t      *pids,
