@@ -36,8 +36,6 @@ jobs:
     name: Check
     uses: ./.github/workflows/check.yml
     needs: check-container
-    permissions:
-      security-events: write
     with:
       image: ${{ needs.check-container.outputs.image }}
       image_options: ${{ needs.check-container.outputs.image_options }}

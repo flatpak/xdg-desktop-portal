@@ -17,11 +17,8 @@ RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
     update-locale LANG=en_US.UTF-8
 ENV LANG=en_US.UTF-8
 
-# Install git
-RUN apt install -y git
-
-# Install pip
-RUN apt install -y --no-install-recommends python3-pip
+# Install dependencies
+RUN apt install -y git cargo python3-pip
 
 # Install pre-commit
 RUN pip install --break-system-packages pre-commit
@@ -31,6 +28,12 @@ RUN apt install -y --no-install-recommends qt6-base-dev-tools
 
 # Install our potfile check script
 COPY containerfiles/check-potfiles.sh /usr/local/bin
+
+# Install goblint
+RUN cargo install --root /usr/local \
+                  --git https://github.com/bilelmoussaoui/goblint \
+                  --rev 9c34d77 \
+                  goblint
 
 # Bake in the checkouts of the config
 ENV PRE_COMMIT_HOME=/pre-commit-home
