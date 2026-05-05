@@ -1,0 +1,63 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      image_options:
+        required: true
+        type: string
+
+jobs:
+  goblint:
+    name: Goblint
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/bilelmoussaoui/goblint:main-9c34d77
+    permissions:
+      # Required for uploading SARIF results
+      security-events: write
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v6
+
+      - name: Run goblint
+        run: goblint --format sarif > goblint.sarif
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: goblint.sarif
+          category: goblint
+
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ inputs.image }}
+      options: ${{ inputs.image_options }}
+
+    steps:
+      - name: Configure environment
+        run: |
+          # Mark workspace as safe, to prevent git from failing
+          git config --global --add safe.directory $GITHUB_WORKSPACE
+
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Check POTFILES.in
+        run: .github/workflows/check-potfiles.sh
+        if: always()
+
+      - name: Check Qt annotations
+        run: find data -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
+        if: always()
+
+      - name: Run pre-commit hooks
+        run: pre-commit run --show-diff-on-failure --color=always --all-files
+        if: always()
