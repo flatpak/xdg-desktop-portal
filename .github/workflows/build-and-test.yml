@@ -16,7 +16,7 @@ jobs:
     name: Goblint
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/bilelmoussaoui/goblint:main-a7e87d6
+      image: ghcr.io/bilelmoussaoui/goblint:main-9c34d77
     permissions:
       # Required for uploading SARIF results
       security-events: write
