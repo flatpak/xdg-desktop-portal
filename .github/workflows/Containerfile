@@ -1,9 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
-# This Containerfile builds the image that we use in all github workflows.
+# This Containerfile builds the image that we use to build the project.
 # When this file is changed, or one needs to rebuild the image for another
-# reason, bump the `IMAGE_TAG` in the container.yml workflow.
+# reason, bump the `image` tag in the main.yml workflow.
 
 FROM ubuntu:26.04
 

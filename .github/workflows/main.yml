@@ -7,10 +7,13 @@ on: [push, pull_request]
 
 jobs:
   build-container:
-    name: Container
+    name: Build Container
     uses: ./.github/workflows/container.yml
     permissions:
       packages: write
+    with:
+      image: xdg-desktop-portal:2026-06-08.0
+      containerfile: .github/workflows/Containerfile
 
   build-and-test:
     name: Build and Test
