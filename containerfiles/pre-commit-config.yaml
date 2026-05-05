@@ -4,6 +4,12 @@
 repos:
 - repo: local
   hooks:
+    - id: goblint
+      name: goblint linter
+      language: unsupported
+      entry: goblint .
+      files: \.[ch]$
+      pass_filenames: false
     - id: potfiles
       name: check POTFILES.in
       language: unsupported
