@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-25 14:26+0100\n"
+"POT-Creation-Date: 2026-05-05 21:38+0200\n"
 "PO-Revision-Date: 2026-02-21 17:21+0100\n"
 "Last-Translator: GRX005 <hunorjani17 at gmail dot com>\n"
 "Language-Team: Hungarian\n"
@@ -20,22 +20,22 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Gtranslator 49.0\n"
 
-#: src/background.c:934
+#: src/background.c:941
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Engedélyezi a(z) %s számára, hogy a háttérben fusson?"
 
-#: src/background.c:938
+#: src/background.c:945
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "A(z) %s azt kéri, hogy automatikusan elinduljon és a háttérben fusson."
 
-#: src/background.c:940
+#: src/background.c:947
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "A(z) %s azt kéri, hogy a háttérben fusson."
 
-#: src/background.c:941
+#: src/background.c:948
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -43,175 +43,175 @@ msgstr ""
 "A „háttérben való futás” engedély bármikor megváltoztatható az alkalmazás "
 "beállításaiban."
 
-#: src/background.c:945
+#: src/background.c:952
 msgid "Don't allow"
 msgstr "Ne engedélyezze"
 
-#: src/background.c:946 src/screenshot.c:222 src/wallpaper.c:191
+#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
 msgid "Allow"
 msgstr "Engedélyezés"
 
-#: src/camera.c:104
+#: src/camera.c:105
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Engedélyezi a(z) %s számára, hogy használja a kamerát?"
 
-#: src/camera.c:105
+#: src/camera.c:106
 #, c-format
 msgid "%s wants to access the camera"
 msgstr "A(z) %s használni szeretné a kameráját."
 
-#: src/camera.c:109
+#: src/camera.c:110
 msgid "Allow Apps to Use the Camera?"
 msgstr "Engedélyezi az alkalmazások számára, hogy használják a kamerát?"
 
-#: src/camera.c:110
+#: src/camera.c:111
 msgid "An app wants to access the camera"
 msgstr "Egy alkalmazás használni szeretné a kameráját."
 
-#: src/camera.c:113 src/screenshot.c:274 src/wallpaper.c:207
+#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
 msgid "This permission can be changed at any time from the privacy settings"
 msgstr ""
 "Ez az engedély bármikor megváltoztatható az adatvédelmi beállításokban."
 
-#: src/dynamic-launcher.c:128
+#: src/dynamic-launcher.c:127
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "A desktop fájl azonosítójából hiányzik a .desktop utótag: %s"
 
-#: src/dynamic-launcher.c:139
+#: src/dynamic-launcher.c:138
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "A desktop fájl azonosítója érvénytelen"
 
-#: src/dynamic-launcher.c:311
+#: src/dynamic-launcher.c:310
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Az Install() számára megadott desktop bejegyzés nem egy érvényes kulcsfájl"
 
-#: src/dynamic-launcher.c:324
+#: src/dynamic-launcher.c:323
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Az Install() számára megadott desktop bejegyzésnek pontosan egy csoportot "
 "kell tartalmaznia"
 
-#: src/dynamic-launcher.c:362
+#: src/dynamic-launcher.c:361
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "A megadott token érvénytelen: %s"
 
-#: src/dynamic-launcher.c:405
+#: src/dynamic-launcher.c:404
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Az Install() számára megadott desktop bejegyzés érvénytelen"
 
-#: src/dynamic-launcher.c:414 src/dynamic-launcher.c:874
-#: src/dynamic-launcher.c:923
+#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
+#: src/dynamic-launcher.c:922
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "A desktop fájl túllépi a maximális méretet (%d): %s"
 
-#: src/dynamic-launcher.c:598
+#: src/dynamic-launcher.c:597
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "A megadott URL érvénytelen: %s"
 
-#: src/dynamic-launcher.c:620
+#: src/dynamic-launcher.c:619
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Az indító típusa érvénytelen: %x"
 
-#: src/dynamic-launcher.c:627
+#: src/dynamic-launcher.c:626
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Az indító típusa nem támogatott: %x"
 
-#: src/dynamic-launcher.c:693 src/dynamic-launcher.c:768
+#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
 msgid "Dynamic launcher icon failed validation"
 msgstr "A dinamikus indító ikont nem sikerült érvényesíteni"
 
-#: src/dynamic-launcher.c:784
+#: src/dynamic-launcher.c:783
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 "A RequestInstallToken() nem engedélyezett ennek az alkalmazás azonosítónak: "
 "%s"
 
-#: src/dynamic-launcher.c:963
+#: src/dynamic-launcher.c:962
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "A(z) „%s” desktop fájl ikonjának nem ismerhető fel az elérési útja"
 
-#: src/dynamic-launcher.c:986
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "A(z) „%s” desktop fájl ikonját nem sikerült feldolgozni."
 
-#: src/dynamic-launcher.c:1025
+#: src/dynamic-launcher.c:1024
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Nem létezik dinamikus indító a(z) „%s” azonosítóval"
 
-#: src/dynamic-launcher.c:1044
+#: src/dynamic-launcher.c:1043
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Nem sikerült létrehozni a GDesktopAppInfo-t a(z) „%s” azonosítójú indítónak"
 
-#: src/location.c:552
+#: src/location.c:555
 msgid "Deny Access"
 msgstr "Hozzáférés megtagadása"
 
-#: src/location.c:554
+#: src/location.c:557
 msgid "Grant Access"
 msgstr "Hozzáférés megadása"
 
-#: src/location.c:560
+#: src/location.c:563
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Hozzáférést ad a(z) %s számára a tartózkodási helyéhez?"
 
-#: src/location.c:570
+#: src/location.c:573
 #, c-format
 msgid "%s wants to use your location"
 msgstr "A(z) %s használni szeretné a tartózkodási helyét."
 
-#: src/location.c:576
+#: src/location.c:579
 msgid "Allow Apps to Access Your Location?"
 msgstr "Hozzáférést ad az alkalmazásoknak a tartózkodási helyéhez?"
 
-#: src/location.c:577
+#: src/location.c:580
 msgid "An app wants to use your location"
 msgstr "Egy alkalmazás használni szeretné a tartózkodási helyét."
 
-#: src/location.c:580
+#: src/location.c:583
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "A tartózkodási helyhez való hozzáférés bármikor megváltoztatható az "
 "adatvédelmi beállításokban."
 
-#: src/screenshot.c:220 src/wallpaper.c:189
+#: src/screenshot.c:273 src/wallpaper.c:190
 msgid "Deny"
 msgstr "Elutasítás"
 
-#: src/screenshot.c:246
+#: src/screenshot.c:299
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Engedélyezi a(z) %s számára, hogy képernyőképeket készítsen?"
 
-#: src/screenshot.c:247
+#: src/screenshot.c:300
 #, c-format
 msgid "%s wants to take screenshots at any time"
 msgstr "A(z) %s azt szeretné, hogy bármikor készíthessen képernyőképeket."
 
-#: src/screenshot.c:251
+#: src/screenshot.c:304
 #, c-format
 msgid "Allow %s to Take a Screenshot?"
 msgstr "Engedélyezi a(z) %s számára, hogy egy képernyőképet készítsen?"
 
-#: src/screenshot.c:252
+#: src/screenshot.c:305
 #, c-format
 msgid "%s wants to take a screenshot"
 msgstr "A(z) %s egy képernyőképet szeretne csinálni"
@@ -219,24 +219,24 @@ msgstr "A(z) %s egy képernyőképet szeretne csinálni"
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
-#: src/screenshot.c:263
+#: src/screenshot.c:316
 msgid "Allow Apps to Take Screenshots?"
 msgstr "Engedélyezi az alkalmazásoknak, hogy képernyőképeket készítsenek?"
 
-#: src/screenshot.c:264
+#: src/screenshot.c:317
 msgid "An app wants to take screenshots at any time"
 msgstr ""
 "Egy alkalmazás azt szeretné, hogy bármikor készíthessen képernyőképeket."
 
-#: src/screenshot.c:268
+#: src/screenshot.c:321
 msgid "Allow to Take a Screenshot?"
 msgstr "Engedélyezi a képernyőkép készítést?"
 
-#: src/screenshot.c:269
+#: src/screenshot.c:322
 msgid "An app wants to take a screenshot"
 msgstr "Egy alkalmazás egy képernyőképet szeretne csinálni"
 
-#: src/settings.c:195 src/settings.c:234
+#: src/settings.c:196 src/settings.c:235
 msgid "Requested setting not found"
 msgstr "A kért beállítás nem található"
 
@@ -248,21 +248,21 @@ msgstr "Az eszköz nem elérhető"
 msgid "Not allowed"
 msgstr "Nem engedélyezett"
 
-#: src/wallpaper.c:197
+#: src/wallpaper.c:198
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Engedélyezi a(z) %s számára, hogy háttereket állítson be?"
 
-#: src/wallpaper.c:198
+#: src/wallpaper.c:199
 #, c-format
 msgid "%s wants to change the background image"
 msgstr "A(z) %s azt kéri, hogy megváltoztathassa a háttérképet."
 
-#: src/wallpaper.c:203
+#: src/wallpaper.c:204
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Engedélyezi az alkalmazások számára, hogy háttereket állítsanak be?"
 
-#: src/wallpaper.c:204
+#: src/wallpaper.c:205
 msgid "An app wants to change the background image"
 msgstr "Egy alkalmazás azt kéri, hogy megváltoztathassa a háttérképet."
 
