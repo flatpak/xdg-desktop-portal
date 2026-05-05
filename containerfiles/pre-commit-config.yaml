@@ -2,13 +2,23 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 repos:
+- repo: local
+  hooks:
+    - id: potfiles
+      name: check POTFILES.in
+      language: unsupported
+      entry: check-potfiles.sh
+      files: ^po/
+      pass_filenames: false
+    - id: qdbusannotations
+      name: check dbus XML Qt annotations
+      language: unsupported
+      entry: /usr/lib/qt6/bin/qdbusxml2cpp
+      files: data/.+\.xml$
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  # Ruff version.
   rev: v0.7.0
   hooks:
-    # Run the linter.
     - id: ruff
-    # Run the formatter.
     - id: ruff-format
       args: [ --check ]
 - repo: https://github.com/pre-commit/mirrors-mypy

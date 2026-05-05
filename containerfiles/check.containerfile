@@ -28,3 +28,21 @@ RUN pip install --break-system-packages pre-commit
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
+
+# Install our potfile check script
+COPY containerfiles/check-potfiles.sh /usr/local/bin
+
+# Bake in the checkouts of the config
+ENV PRE_COMMIT_HOME=/pre-commit-home
+COPY containerfiles/pre-commit-config.yaml /etc/pre-commit-config.yaml
+WORKDIR /pre-commit
+COPY containerfiles/pre-commit-config.yaml ./.pre-commit-config.yaml
+RUN git init . && \
+    git add --all && \
+    pre-commit install-hooks
+WORKDIR /
+RUN rm -rf /pre-commit
+
+# Set the final workdir and entrypoint
+WORKDIR /workspace
+ENTRYPOINT ["pre-commit", "run", "-c", "/etc/pre-commit-config.yaml"]
