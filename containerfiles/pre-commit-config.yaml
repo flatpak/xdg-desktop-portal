@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+default_stages: [pre-commit, pre-push]
 repos:
 - repo: local
   hooks:
@@ -37,3 +38,24 @@ repos:
   rev: v6.2.0
   hooks:
   - id: reuse
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+  hooks:
+    - id: check-shebang-scripts-are-executable
+    - id: check-executables-have-shebangs
+    - id: check-case-conflict
+    - id: check-added-large-files
+    - id: check-merge-conflict
+    - id: check-symlinks
+    - id: check-xml
+    - id: detect-private-key
+    - id: forbid-submodules
+    - id: mixed-line-ending
+      args: [ --fix=no ]
+- repo: https://github.com/jorisroovers/gitlint
+  rev: v0.19.1
+  hooks:
+    - id: gitlint
+      stages: [commit-msg]
+    - id: gitlint-ci
+      stages: [pre-commit]
