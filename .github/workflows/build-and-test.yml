@@ -39,6 +39,22 @@ jobs:
         run: find -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
         if: always()
 
+  pre-commit:
+    name: Pre-Commit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out xdg-desktop-portal
+        uses: actions/checkout@v4
+
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install pre-commit
+        run: python -m pip install --user --break-system-packages pre-commit
+
       - name: Run pre-commit hooks
         run: pre-commit run --show-diff-on-failure --color=always --all-files
         if: always()
