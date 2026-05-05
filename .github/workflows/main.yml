@@ -13,7 +13,16 @@ jobs:
       packages: write
     with:
       image: xdg-desktop-portal:2026-06-08.0
-      containerfile: .github/workflows/Containerfile
+      containerfile: .github/workflows/build.containerfile
+
+  check-container:
+    name: Check Container
+    uses: ./.github/workflows/container.yml
+    permissions:
+      packages: write
+    with:
+      image: xdg-desktop-portal-checks:2026-06-08.0
+      containerfile: .github/workflows/check.containerfile
 
   build-and-test:
     name: Build and Test
