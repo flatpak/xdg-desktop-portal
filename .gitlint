@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+
+[general]
+ignore=title-must-not-contain-word, body-min-length, body-is-missing, author-valid-email
+ignore-merge-commits=true
+extra-path=.gitlint.conf/commit-msg-rules.py
+
+[ignore-by-title]
+regex=^Merge
+
+[title-match-regex]
+regex=^.+\: .*$

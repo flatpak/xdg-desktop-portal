@@ -35,6 +35,10 @@ RUN cargo install --root /usr/local \
                   --rev 9c34d77 \
                   goblint
 
+# Make it possible to use gitlint
+RUN git config --global user.name "John Doe"
+RUN git config --global user.email "john.doe@example.org"
+
 # Bake in the checkouts of the config
 ENV PRE_COMMIT_HOME=/pre-commit-home
 COPY containerfiles/pre-commit-config.yaml /etc/pre-commit-config.yaml
