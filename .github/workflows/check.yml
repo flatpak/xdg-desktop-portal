@@ -50,14 +50,9 @@ jobs:
       - name: Check out xdg-desktop-portal
         uses: actions/checkout@v4
 
-      - name: Check POTFILES.in
-        run: .github/workflows/check-potfiles.sh
-        if: always()
-
-      - name: Check Qt annotations
-        run: find data -name "*.xml" | xargs -n1 /usr/lib/qt6/bin/qdbusxml2cpp
-        if: always()
-
       - name: Run pre-commit hooks
-        run: pre-commit run --show-diff-on-failure --color=always --all-files
+        run: |
+          pre-commit run -c /etc/pre-commit-config.yaml \
+                         --show-diff-on-failure --color=always \
+                         --all-files
         if: always()
