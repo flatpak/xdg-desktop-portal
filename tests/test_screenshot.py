@@ -43,14 +43,6 @@ SCREENSHOT_TARGETS_ALL = (
 CAPTURE_DELAY_MAX_SECONDS = 3600
 
 
-def make_selection_geometry(x, y, width, height):
-    return dbus.Struct(
-        [dbus.Int32(x), dbus.Int32(y), dbus.UInt32(width), dbus.UInt32(height)],
-        signature="iiuu",
-        variant_level=1,
-    )
-
-
 @pytest.fixture
 def required_templates():
     image = Path(os.environ["XDG_DATA_HOME"]) / "screenshot-image.png"
@@ -123,7 +115,6 @@ class TestScreenshot:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
-        selection_geometry = make_selection_geometry(10, 20, 640, 480)
 
         request = xdp.Request(dbus_con, screenshot_intf)
         response = request.call(
@@ -134,7 +125,6 @@ class TestScreenshot:
                 "target": dbus.UInt32(ScreenshotTarget.AREA.value),
                 "include_cursor": True,
                 "capture_delay": dbus.UInt32(3),
-                "selection_geometry": selection_geometry,
             },
         )
 
@@ -149,7 +139,6 @@ class TestScreenshot:
         assert args[3]["target"] == ScreenshotTarget.AREA.value
         assert args[3]["include_cursor"]
         assert args[3]["capture_delay"] == 3
-        assert tuple(args[3]["selection_geometry"]) == (10, 20, 640, 480)
 
     def test_screenshot_invalid_capture_delay(self, portals, dbus_con):
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
@@ -168,47 +157,6 @@ class TestScreenshot:
         e = excinfo.value
         assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
         assert "Invalid capture_delay" in e.get_dbus_message()
-
-    @pytest.mark.parametrize(
-        ("target", "selection_geometry", "message"),
-        (
-            (
-                ScreenshotTarget.SCREEN.value,
-                make_selection_geometry(10, 20, 640, 480),
-                "selection_geometry requires area target",
-            ),
-            (
-                ScreenshotTarget.AREA.value,
-                make_selection_geometry(10, 20, 0, 480),
-                "Invalid selection_geometry size",
-            ),
-            (
-                ScreenshotTarget.AREA.value,
-                make_selection_geometry(10, 20, 640, 0),
-                "Invalid selection_geometry size",
-            ),
-        ),
-    )
-    def test_screenshot_invalid_selection_geometry(
-        self, portals, dbus_con, target, selection_geometry, message
-    ):
-        screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
-
-        request = xdp.Request(dbus_con, screenshot_intf)
-        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
-            request.call(
-                "Screenshot",
-                parent_window="",
-                options={
-                    "interactive": True,
-                    "target": dbus.UInt32(target),
-                    "selection_geometry": selection_geometry,
-                },
-            )
-
-        e = excinfo.value
-        assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
-        assert message in e.get_dbus_message()
 
     @pytest.mark.parametrize("target", SCREENSHOT_TARGETS_BAD)
     def test_screenshot_invalid_target(self, portals, dbus_con, target):
@@ -325,7 +273,6 @@ class TestScreenshot:
                 "target": dbus.UInt32(ScreenshotTarget.AREA.value),
                 "include_cursor": True,
                 "capture_delay": dbus.UInt32(3),
-                "selection_geometry": make_selection_geometry(10, 20, 640, 480),
             },
         )
 
@@ -338,7 +285,6 @@ class TestScreenshot:
         assert args[3]["target"] == ScreenshotTarget.AREA.value
         assert "include_cursor" not in args[3]
         assert "capture_delay" not in args[3]
-        assert "selection_geometry" not in args[3]
 
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])

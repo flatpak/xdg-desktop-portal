@@ -82,16 +82,6 @@
 
           This option was added in version 4 of this interface.
 
-        * ``selection_geometry`` (``(iiuu)``)
-
-          Suggested default geometry for the area selector as x, y, width,
-          height in the compositor's logical coordinate space. Width and height
-          must be greater than zero. This option is only valid when ``target``
-          is set to ``4`` (Area), and implementations may ignore or adjust the
-          geometry.
-
-          This option was added in version 4 of this interface.
-
         * ``permission_store_checked`` (``b``)
 
           Hint whether the screenshot portal has checked the 'screenshot' permission for

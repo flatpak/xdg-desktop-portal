@@ -54,7 +54,6 @@ typedef enum
 } ScreenshotTarget;
 
 #define SCREENSHOT_CAPTURE_DELAY_MAX_SECONDS 3600
-#define SCREENSHOT_SELECTION_GEOMETRY_TYPE ((const GVariantType *) "(iiuu)")
 
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
@@ -258,38 +257,6 @@ validate_capture_delay (const char  *key,
   return TRUE;
 }
 
-static gboolean
-validate_selection_geometry (const char  *key,
-                             GVariant    *value,
-                             GVariant    *options,
-                             gpointer     user_data,
-                             GError     **error)
-{
-  uint32_t target;
-  uint32_t width;
-  uint32_t height;
-
-  if (!g_variant_lookup (options, "target", "u", &target) ||
-      target != SCREENSHOT_TARGET_AREA)
-    {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "selection_geometry requires area target");
-      return FALSE;
-    }
-
-  g_variant_get_child (value, 2, "u", &width);
-  g_variant_get_child (value, 3, "u", &height);
-
-  if (width == 0 || height == 0)
-    {
-      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Invalid selection_geometry size");
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
 static XdpOptionKey screenshot_options_v3[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
@@ -301,8 +268,7 @@ static XdpOptionKey screenshot_options_v4[] = {
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "target", G_VARIANT_TYPE_UINT32, validate_screenshot_target_filter },
   { "include_cursor", G_VARIANT_TYPE_BOOLEAN, NULL },
-  { "capture_delay", G_VARIANT_TYPE_UINT32, validate_capture_delay },
-  { "selection_geometry", SCREENSHOT_SELECTION_GEOMETRY_TYPE, validate_selection_geometry }
+  { "capture_delay", G_VARIANT_TYPE_UINT32, validate_capture_delay }
 };
 
 static gboolean
