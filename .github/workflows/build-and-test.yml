@@ -16,7 +16,7 @@ jobs:
     name: Goblint
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/bilelmoussaoui/goblint:main-a7e87d6
+      image: ghcr.io/bilelmoussaoui/goblint:main-9c34d77
     permissions:
       # Required for uploading SARIF results
       security-events: write
@@ -97,7 +97,8 @@ jobs:
             -Dinstalled-tests=true \
             -Dtests=enabled \
             -Db_sanitize=${{ matrix.sanitizer }} \
-            -Db_lundef=false
+            -Db_lundef=false \
+            -Dwerror=true
 
       - name: Run xdg-desktop-portal tests
         run: XDP_TEST_RUN_LONG=1 timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson test -C _build

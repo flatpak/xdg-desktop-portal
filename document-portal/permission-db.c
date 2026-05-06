@@ -174,9 +174,6 @@ permission_db_get_property (GObject    *object,
     case PROP_FAIL_IF_NOT_FOUND:
       g_value_set_boolean (value, self->fail_if_not_found);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -198,9 +195,6 @@ permission_db_set_property (GObject      *object,
     case PROP_FAIL_IF_NOT_FOUND:
       self->fail_if_not_found = g_value_get_boolean (value);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -331,20 +325,18 @@ initable_iface_init (GInitableIface *initable_iface)
 char **
 permission_db_list_ids (PermissionDb *self)
 {
-  g_autoptr(GPtrArray) res = NULL;
+  g_autoptr(GStrvBuilder) builder = g_strv_builder_new ();
   GHashTableIter iter;
   gpointer key, value;
   int i;
 
   g_return_val_if_fail (PERMISSION_IS_DB (self), NULL);
 
-  res = g_ptr_array_new ();
-
   g_hash_table_iter_init (&iter, self->main_updates);
   while (g_hash_table_iter_next (&iter, &key, &value))
     {
       if (value != NULL)
-        g_ptr_array_add (res, g_strdup (key));
+        g_strv_builder_add (builder, key);
     }
 
   if (self->main_table)
@@ -354,17 +346,14 @@ permission_db_list_ids (PermissionDb *self)
 
       for (i = 0; main_ids[i] != NULL; i++)
         {
-          char *id = main_ids[i];
+          g_autofree char *id = main_ids[i];
 
-          if (g_hash_table_lookup_extended (self->main_updates, id, NULL, NULL))
-            g_free (id);
-          else
-            g_ptr_array_add (res, id);
+          if (!g_hash_table_lookup_extended (self->main_updates, id, NULL, NULL))
+            g_strv_builder_take (builder, g_steal_pointer (&id));
         }
     }
 
-  g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_steal (res, NULL);
+  return g_strv_builder_end (builder);
 }
 
 static gboolean
@@ -519,40 +508,33 @@ permission_db_lookup (PermissionDb  *self,
 
 /* Transfer: full */
 char **
-permission_db_list_ids_by_value (PermissionDb *self,
-                                 GVariant  *data)
+permission_db_filter_ids (PermissionDb           *self,
+                          PermissionDbLookupFunc  func,
+                          gpointer                user_data)
 {
-  g_autofree char **ids = permission_db_list_ids (self);
-  int i;
-  g_autoptr(GPtrArray) res = NULL;
+  g_autofree char **ids = NULL;
+  g_autoptr(GStrvBuilder) builder = NULL;
 
   g_return_val_if_fail (PERMISSION_IS_DB (self), NULL);
-  g_return_val_if_fail (data != NULL, NULL);
+  g_return_val_if_fail (func != NULL, NULL);
 
-  res = g_ptr_array_new ();
+  ids = permission_db_list_ids (self);
+  builder = g_strv_builder_new ();
 
-  for (i = 0; ids[i] != NULL; i++)
+  for (size_t i = 0; ids[i] != NULL; i++)
     {
-      char *id = ids[i];
-
+      g_autofree char *id = ids[i];
       g_autoptr(PermissionDbEntry) entry = NULL;
-      g_autoptr(GVariant) entry_data = NULL;
 
       entry = permission_db_lookup (self, id);
-      if (entry)
-        {
-          entry_data = permission_db_entry_get_data (entry);
-          if (g_variant_equal (data, entry_data))
-            {
-              g_ptr_array_add (res, id);
-              id = NULL; /* Don't free, as we return this */
-            }
-        }
-      g_free (id);
+      if (!entry)
+        continue;
+
+      if (func (entry, user_data))
+        g_strv_builder_take (builder, g_steal_pointer (&id));
     }
 
-  g_ptr_array_add (res, NULL);
-  return (char **) g_ptr_array_steal (res, NULL);
+  return g_strv_builder_end (builder);
 }
 
 static void

@@ -52,7 +52,7 @@
 #include "sd-escape.h"
 #endif
 
-G_DEFINE_QUARK (XdpAppInfo, xdp_app_info_error);
+G_DEFINE_QUARK (xdp-app-info-error, xdp_app_info_error);
 
 typedef struct _XdpAppInfoPrivate
 {
@@ -194,9 +194,6 @@ xdp_app_info_get_property (GObject    *object,
     case PROP_SENDER:
       g_value_set_string (value, priv->sender);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
 }
 
@@ -241,9 +238,9 @@ xdp_app_info_set_property (GObject      *object,
       g_assert (priv->sender == NULL);
       priv->sender = g_value_dup_string (value);
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+    case PROP_G_APP_INFO:
+      g_assert_not_reached ();
+      break;
     }
 }
 

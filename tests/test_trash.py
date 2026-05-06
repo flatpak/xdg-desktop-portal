@@ -56,6 +56,7 @@ class TestTrash:
         with pytest.raises(StopIteration):
             next(trashed_files)
 
+    @pytest.mark.skip(reason="Portal requires write perm, so dirs are not supported")
     def test_trash_folder(self, portals, dbus_con):
         trash_intf = xdp.get_portal_iface(dbus_con, "Trash")
 

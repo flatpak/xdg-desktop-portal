@@ -71,9 +71,9 @@ exported_file_free (gpointer data)
 
 typedef struct
 {
-  GObject object;
-  GMutex mutex;
+  GObject parent;
 
+  GMutex mutex;
   GPtrArray *files;
   gboolean writable;
   gboolean autostop;
@@ -444,7 +444,7 @@ add_files (GDBusMethodInvocation *invocation,
           return;
         }
 
-      if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &parent_st_buf, &path, &fd_is_writable, NULL) ||
+      if (!validate_fd (fd, app_info, VALIDATE_FD_FILE_TYPE_ANY, &st_buf, &parent_st_buf, NULL, &path, &fd_is_writable, NULL) ||
           (transfer->writable && !fd_is_writable))
         {
           g_dbus_method_invocation_return_error (invocation,

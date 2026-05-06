@@ -275,6 +275,8 @@ GType inhibit_session_get_type (void);
 
 G_DEFINE_TYPE (InhibitSession, inhibit_session, xdp_session_get_type ())
 
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (InhibitSession, g_object_unref)
+
 G_GNUC_UNUSED static inline InhibitSession *
 INHIBIT_SESSION (gpointer ptr)
 {
