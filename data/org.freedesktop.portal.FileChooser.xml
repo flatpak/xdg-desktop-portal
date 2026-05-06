@@ -75,6 +75,11 @@
 
         This option was added in version 3.
 
+      * ``file_directory`` (``b``)
+
+        Whether to select for both files and folders. Default is to select files.
+        If this option is ``true``, the ``directory`` option is ignored.
+
       * ``filters`` (``a(sa(us))``)
 
         List of serialized file filters.
