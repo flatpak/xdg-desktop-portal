@@ -229,12 +229,6 @@ xdp_session_persistence_replace_restore_token_with_data (XdpSession *session,
                 xdp_session_persistence_get_persistent_permissions (session,
                                                                     table,
                                                                     restore_token);
-              if (restore_data)
-                {
-                  xdp_session_persistence_delete_persistent_permissions (session,
-                                                                         table,
-                                                                         restore_token);
-                }
             }
 
           if (restore_data &&
@@ -381,6 +375,16 @@ xdp_session_persistence_replace_restore_data_with_token (XdpSession *session,
   else
     {
       *in_out_persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
+
+      /* Clean up persistent permissions when the backend did not
+       * return restore_data. The token was kept in the store
+       * (no longer deleted early in replace_restore_token_with_data)
+       * — if the backend doesn't return restore_data, clean up here. */
+      if (*in_out_restore_token)
+        xdp_session_persistence_delete_persistent_permissions (session,
+                                                               table,
+                                                               *in_out_restore_token);
+
       g_clear_pointer (in_out_restore_token, g_free);
     }
 
