@@ -292,11 +292,13 @@ xdp_looks_like_document_portal_path (const char  *path,
 }
 
 char *
-xdp_resolve_document_portal_path (const char *path)
+xdp_resolve_document_portal_path (const char                 *path,
+                                  XdpResolveDocumentStrategy  strategy)
 {
   g_autofree char *docid = NULL;
   g_autofree char *suffix_path = NULL;
   g_autofree char *host_path = NULL;
+  g_autofree char *resolved_path = NULL;
 
   if (!xdp_looks_like_document_portal_path (path, &docid, &suffix_path))
     return g_strdup (path);
@@ -305,5 +307,14 @@ xdp_resolve_document_portal_path (const char *path)
   if (!host_path)
     return g_strdup (path);
 
-  return g_strconcat (host_path, suffix_path, NULL);
+  resolved_path = g_strconcat (host_path, suffix_path, NULL);
+
+  if (strategy == XDP_RESOLVE_DOCUMENT_TO_DIRECTORY)
+    {
+      char *last_dir_separator = strrchr (resolved_path, G_DIR_SEPARATOR);
+      if (last_dir_separator)
+        *last_dir_separator = '\0';
+    }
+
+  return g_steal_pointer (&resolved_path);
 }

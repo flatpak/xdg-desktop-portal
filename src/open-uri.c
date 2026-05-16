@@ -696,7 +696,7 @@ handle_open_in_thread_func (GTask *task,
 
       if (path != NULL)
         {
-          char *resolved_path = xdp_resolve_document_portal_path (path);
+          char *resolved_path = xdp_resolve_document_portal_path (path, XDP_RESOLVE_DOCUMENT_TO_FILE);
           g_clear_pointer (&path, g_free);
           path = g_steal_pointer (&resolved_path);
         }
@@ -737,7 +737,7 @@ handle_open_in_thread_func (GTask *task,
           g_autoptr(GDBusConnection) bus = NULL;
           g_autofree char *real_path = NULL;
 
-          real_path = xdp_resolve_document_portal_path (path);
+          real_path = xdp_resolve_document_portal_path (path, XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
           item_uri = g_filename_to_uri (real_path, NULL, NULL);
 
           bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &local_error);
