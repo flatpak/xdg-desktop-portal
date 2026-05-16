@@ -515,7 +515,8 @@ handle_open_file (XdpDbusFileChooser *object,
     if (current_folder)
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
+                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
                               g_variant_new_bytestring (host_path));
@@ -646,7 +647,8 @@ handle_save_file (XdpDbusFileChooser *object,
     if (current_file)
       {
         const char *path_from_app = g_variant_get_bytestring (current_file);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
+                                                                       XDP_RESOLVE_DOCUMENT_TO_FILE);
 
         g_variant_builder_add (&options, "{sv}", "current_file",
                               g_variant_new_bytestring (host_path));
@@ -659,7 +661,8 @@ handle_save_file (XdpDbusFileChooser *object,
     if (current_folder)
       {
         const char *path_from_app = g_variant_get_bytestring (current_folder);
-        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app);
+        g_autofree char *host_path = xdp_resolve_document_portal_path (path_from_app,
+                                                                       XDP_RESOLVE_DOCUMENT_TO_DIRECTORY);
 
         g_variant_builder_add (&options, "{sv}", "current_folder",
                               g_variant_new_bytestring (host_path));

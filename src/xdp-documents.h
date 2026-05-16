@@ -44,4 +44,10 @@ char *xdp_register_document (const char        *uri,
 
 char *xdp_get_real_path_for_doc_id (const char *doc_id);
 
-char * xdp_resolve_document_portal_path (const char *path);
+typedef enum {
+  XDP_RESOLVE_DOCUMENT_TO_FILE,
+  XDP_RESOLVE_DOCUMENT_TO_DIRECTORY
+} XdpResolveDocumentStrategy;
+
+char * xdp_resolve_document_portal_path (const char                 *path,
+                                         XdpResolveDocumentStrategy  strategy);
