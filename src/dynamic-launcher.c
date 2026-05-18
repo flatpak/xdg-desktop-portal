@@ -145,7 +145,8 @@ validate_desktop_file_id (XdpAppInfo  *app_info,
 static gboolean
 validate_serialized_icon (GVariant  *arg_icon_v,
                           char     **icon_format,
-                          char     **icon_size)
+                          char     **icon_size,
+                          GVariant **out_icon_v)
 {
   GBytes *bytes;
   g_autoptr(GIcon) icon = NULL;
@@ -166,11 +167,16 @@ validate_serialized_icon (GVariant  *arg_icon_v,
   bytes = g_bytes_icon_get_bytes (G_BYTES_ICON (icon));
   sealed_icon = xdp_sealed_fd_new_from_bytes (bytes, NULL);
 
-  return sealed_icon &&
-         xdp_validate_icon (sealed_icon,
-                            XDP_ICON_TYPE_DESKTOP,
-                            icon_format,
-                            icon_size);
+  if (sealed_icon == NULL ||
+      !xdp_validate_icon (sealed_icon,
+                          XDP_ICON_TYPE_DESKTOP,
+                          icon_format,
+                          icon_size))
+    return FALSE;
+
+  *out_icon_v = g_steal_pointer (&icon_v);
+
+  return TRUE;
 }
 
 static gboolean
@@ -684,7 +690,7 @@ handle_prepare_install (XdpDbusDynamicLauncher *object,
     }
 
   /* Do some validation on the icon before passing it along */
-  if (!validate_serialized_icon (arg_icon_v, &icon_format, &icon_size))
+  if (!validate_serialized_icon (arg_icon_v, &icon_format, &icon_size, &icon_v))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
@@ -759,7 +765,7 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
       GVariant *launcher_data;
 
       /* Do some validation on the icon before saving it */
-      if (!validate_serialized_icon (arg_icon_v, &icon_format, &icon_size))
+      if (!validate_serialized_icon (arg_icon_v, &icon_format, &icon_size, &icon_v))
         {
           g_dbus_method_invocation_return_error (invocation,
                                                  XDG_DESKTOP_PORTAL_ERROR,
