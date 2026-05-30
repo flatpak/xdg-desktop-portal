@@ -106,6 +106,14 @@
 
           This option was added in version 2 of this interface.
 
+        * ``keyboard_layout`` (``s``)
+          Optional key. What the keyboard layout is used after start a remoting task
+
+          If it is not set, the keyboard layout will follow the controlled side. For
+          example, if the controlled side is using us keyboard, the connection will also
+          use us keyboard. If the key is set, when the controlled side is using jp keyboard,
+          controlling side can still use us keyboard to control the desktop.
+
         For available device types, see the AvailableDeviceTypes property.
     -->
     <method name="SelectDevices">
