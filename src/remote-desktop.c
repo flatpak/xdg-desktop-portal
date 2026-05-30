@@ -1639,13 +1639,104 @@ remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface)
 }
 
 static void
+on_impl_g_name_owner_notified (GObject    *object,
+                                GParamSpec *pspec,
+                                gpointer    user_data);
+
+static void
+remote_desktop_reconnect_impl (RemoteDesktop *remote_desktop);
+
+static void
 remote_desktop_dispose (GObject *object)
 {
   RemoteDesktop *remote_desktop = (RemoteDesktop *) object;
 
+  /* Signal handler on impl is auto-disconnected when impl is finalized */
   g_clear_object (&remote_desktop->impl);
 
   G_OBJECT_CLASS (remote_desktop_parent_class)->dispose (object);
+}
+
+static void
+on_impl_g_name_owner_notified (GObject    *object,
+                                GParamSpec *pspec,
+                                gpointer    user_data)
+{
+  RemoteDesktop *remote_desktop = (RemoteDesktop *) user_data;
+  GDBusProxy *proxy = G_DBUS_PROXY (object);
+  const char *name_owner;
+
+  g_assert (remote_desktop != NULL);
+  g_assert (G_IS_DBUS_PROXY (proxy));
+
+  name_owner = g_dbus_proxy_get_name_owner (proxy);
+
+  if (name_owner == NULL)
+    {
+      g_debug ("RemoteDesktop backend disconnected");
+      g_object_set_data (G_OBJECT (remote_desktop), "impl-was-connected",
+                         GINT_TO_POINTER (TRUE));
+      return;
+    }
+
+  /* name_owner is non-NULL: backend has connected (or reconnected) */
+  if (g_object_get_data (G_OBJECT (remote_desktop), "impl-was-connected"))
+    {
+      g_debug ("RemoteDesktop backend reconnected, recreating proxy");
+      remote_desktop_reconnect_impl (remote_desktop);
+    }
+  else
+    {
+      g_debug ("RemoteDesktop backend connected: %s", name_owner);
+      g_object_set_data (G_OBJECT (remote_desktop), "impl-was-connected",
+                         GINT_TO_POINTER (TRUE));
+    }
+}
+
+static void
+remote_desktop_reconnect_impl (RemoteDesktop *remote_desktop)
+{
+  GDBusConnection *connection;
+  const char *dbus_name;
+  g_autoptr(XdpDbusImplRemoteDesktop) new_impl = NULL;
+  g_autoptr(XdpDbusImplRemoteDesktop) old_impl = NULL;
+  g_autoptr(GError) error = NULL;
+
+  g_assert (remote_desktop != NULL);
+  g_assert (remote_desktop->impl != NULL);
+
+  connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (remote_desktop->impl));
+  dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (remote_desktop->impl));
+
+  new_impl = xdp_dbus_impl_remote_desktop_proxy_new_sync (connection,
+                                                           G_DBUS_PROXY_FLAGS_NONE,
+                                                           dbus_name,
+                                                           DESKTOP_DBUS_PATH,
+                                                           NULL,
+                                                           &error);
+  if (new_impl == NULL)
+    {
+      g_warning ("Failed to reconnect remote desktop proxy: %s", error->message);
+      return;
+    }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (new_impl), G_MAXINT);
+
+  /* Swap the impl - old impl will be finalized when nothing else refs it.
+   * Keep a ref on the old impl during the swap so signal emission can finish. */
+  old_impl = remote_desktop->impl;
+  remote_desktop->impl = g_object_ref (new_impl);
+
+  /* Re-bind the available-device-types property on the new impl */
+  g_object_bind_property (G_OBJECT (remote_desktop->impl), "available-device-types",
+                          G_OBJECT (remote_desktop), "available-device-types",
+                          G_BINDING_SYNC_CREATE);
+
+  /* Connect the name-owner signal on the new proxy */
+  g_signal_connect (remote_desktop->impl, "notify::g-name-owner",
+                    G_CALLBACK (on_impl_g_name_owner_notified), remote_desktop);
+
+  g_debug ("RemoteDesktop backend reconnected successfully");
 }
 
 
@@ -1710,6 +1801,9 @@ init_remote_desktop (XdpContext *context)
     }
 
   remote_desktop = remote_desktop_new (context, impl);
+
+  g_signal_connect (remote_desktop->impl, "notify::g-name-owner",
+                    G_CALLBACK (on_impl_g_name_owner_notified), remote_desktop);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&remote_desktop)),

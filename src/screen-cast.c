@@ -1097,13 +1097,110 @@ screen_cast_iface_init (XdpDbusScreenCastIface *iface)
 }
 
 static void
+on_impl_g_name_owner_notified (GObject    *object,
+                                GParamSpec *pspec,
+                                gpointer    user_data);
+
+static void
+screen_cast_reconnect_impl (ScreenCast *screen_cast);
+
+static void
 screen_cast_dispose (GObject *object)
 {
   ScreenCast *screen_cast = (ScreenCast *) object;
 
+  /* Signal handler on impl is auto-disconnected when impl is finalized */
   g_clear_object (&screen_cast->impl);
 
   G_OBJECT_CLASS (screen_cast_parent_class)->dispose (object);
+}
+
+static void
+on_impl_g_name_owner_notified (GObject    *object,
+                                GParamSpec *pspec,
+                                gpointer    user_data)
+{
+  ScreenCast *screen_cast = (ScreenCast *) user_data;
+  GDBusProxy *proxy = G_DBUS_PROXY (object);
+  const char *name_owner;
+
+  g_assert (screen_cast != NULL);
+  g_assert (G_IS_DBUS_PROXY (proxy));
+
+  name_owner = g_dbus_proxy_get_name_owner (proxy);
+
+  if (name_owner == NULL)
+    {
+      g_debug ("ScreenCast backend disconnected");
+      g_object_set_data (G_OBJECT (screen_cast), "impl-was-connected",
+                         GINT_TO_POINTER (TRUE));
+      return;
+    }
+
+  /* name_owner is non-NULL: backend has connected (or reconnected) */
+  if (g_object_get_data (G_OBJECT (screen_cast), "impl-was-connected"))
+    {
+      g_debug ("ScreenCast backend reconnected, recreating proxy");
+      screen_cast_reconnect_impl (screen_cast);
+    }
+  else
+    {
+      g_debug ("ScreenCast backend connected: %s", name_owner);
+      g_object_set_data (G_OBJECT (screen_cast), "impl-was-connected",
+                         GINT_TO_POINTER (TRUE));
+    }
+}
+
+static void
+screen_cast_reconnect_impl (ScreenCast *screen_cast)
+{
+  GDBusConnection *connection;
+  const char *dbus_name;
+  g_autoptr(XdpDbusImplScreenCast) new_impl = NULL;
+  g_autoptr(XdpDbusImplScreenCast) old_impl = NULL;
+  g_autoptr(GError) error = NULL;
+
+  g_assert (screen_cast != NULL);
+  g_assert (screen_cast->impl != NULL);
+
+  connection = g_dbus_proxy_get_connection (G_DBUS_PROXY (screen_cast->impl));
+  dbus_name = g_dbus_proxy_get_name (G_DBUS_PROXY (screen_cast->impl));
+
+  new_impl = xdp_dbus_impl_screen_cast_proxy_new_sync (connection,
+                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                        dbus_name,
+                                                        DESKTOP_DBUS_PATH,
+                                                        NULL,
+                                                        &error);
+  if (new_impl == NULL)
+    {
+      g_warning ("Failed to reconnect screen cast proxy: %s", error->message);
+      return;
+    }
+
+  g_dbus_proxy_set_default_timeout (G_DBUS_PROXY (new_impl), G_MAXINT);
+
+  /* Swap the impl - old impl will be finalized when nothing else refs it */
+  old_impl = screen_cast->impl;
+  screen_cast->impl = g_object_ref (new_impl);
+
+  /* Re-bind properties on the new impl */
+  g_object_bind_property (G_OBJECT (screen_cast->impl), "available-source-types",
+                          G_OBJECT (screen_cast), "available-source-types",
+                          G_BINDING_SYNC_CREATE);
+
+  if (xdp_dbus_impl_screen_cast_get_version (screen_cast->impl) >= 2)
+    {
+      g_object_bind_property (G_OBJECT (screen_cast->impl), "available-cursor-modes",
+                              G_OBJECT (screen_cast), "available-cursor-modes",
+                              G_BINDING_SYNC_CREATE);
+    }
+
+  /* Connect the name-owner signal on the new proxy */
+  g_signal_connect (screen_cast->impl, "notify::g-name-owner",
+                    G_CALLBACK (on_impl_g_name_owner_notified), screen_cast);
+
+  g_debug ("ScreenCast backend reconnected successfully");
 }
 
 static void
@@ -1178,6 +1275,9 @@ init_screen_cast (XdpContext *context)
     }
 
   screen_cast = screen_cast_new (context, impl);
+
+  g_signal_connect (screen_cast->impl, "notify::g-name-owner",
+                    G_CALLBACK (on_impl_g_name_owner_notified), screen_cast);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&screen_cast)),
