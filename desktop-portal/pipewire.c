@@ -283,7 +283,9 @@ pipewire_remote_new_sync (struct pw_properties *pipewire_properties,
       return NULL;
     }
 
-  remote->context = pw_context_new (pw_main_loop_get_loop (remote->loop), NULL, 0);
+  /* Loading module-rt will invoke the Realtime portal, causing a potential hang */
+  remote->context = pw_context_new (pw_main_loop_get_loop (remote->loop),
+      pw_properties_new ("module.rt", "false", NULL), 0);
   if (!remote->context)
     {
       pipewire_remote_destroy (remote);
