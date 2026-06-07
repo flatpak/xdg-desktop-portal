@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:38+0200\n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
 "PO-Revision-Date: 2025-03-15 10:27-0300\n"
 "Last-Translator: Álvaro Burns <>\n"
 "Language-Team: Brazilian Portuguese <https://br.gnome.org/traducao/>\n"
@@ -84,74 +84,74 @@ msgstr "Faltando sufixo .desktop no id do arquivo desktop: %s"
 msgid "Desktop file id is not valid"
 msgstr "Identidade do arquivo desktop não é válida"
 
-#: src/dynamic-launcher.c:310
+#: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "A entrada desktop fornecida para Install() não é um arquivo de chave válido"
 
-#: src/dynamic-launcher.c:323
+#: src/dynamic-launcher.c:329
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "A entrada desktop fornecida para Install() deve ter exatamente um grupo"
 
-#: src/dynamic-launcher.c:361
+#: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "O token fornecido é inválido: %s"
 
-#: src/dynamic-launcher.c:404
+#: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "A entrada desktop fornecida para Install() não é válida"
 
-#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
-#: src/dynamic-launcher.c:922
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "O arquivo desktop excede o tamanho máximo (%d): %s"
 
-#: src/dynamic-launcher.c:597
+#: src/dynamic-launcher.c:603
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "URL fornecida é inválida: %s"
 
-#: src/dynamic-launcher.c:619
+#: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Tipo de lançador inválido: %x"
 
-#: src/dynamic-launcher.c:626
+#: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Tipo de lançador não suportado: %x"
 
-#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
 msgstr "O ícone do lançador dinâmico falhou na validação"
 
-#: src/dynamic-launcher.c:783
+#: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() não permitido para o id de aplicativo %s"
 
-#: src/dynamic-launcher.c:962
+#: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "O ícone do arquivo desktop “%s” está em um caminho irreconhecível"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "O ícone do arquivo desktop “%s” falhou na serialização"
 
-#: src/dynamic-launcher.c:1024
+#: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Nenhum lançador dinâmico existe com o id “%s”"
 
-#: src/dynamic-launcher.c:1043
+#: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Falha ao criar GDesktopAppInfo para lançador com id “%s”"
