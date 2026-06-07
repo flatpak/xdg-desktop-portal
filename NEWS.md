@@ -1,8 +1,12 @@
-Changes in 1.21.3
+Changes in 1.22.0
 =================
-Released: Not yet
+Released: 2026-06-07
 
-...
+Bug Fixes:
+
+- Correct passing icon GVariant around in the Dynamic Launcher Portal (#2006)
+- Improve Document Portal document path resolving for the File Chooser and
+  OpenURI Portals (#2004)
 
 Changes in 1.21.2
 =================
