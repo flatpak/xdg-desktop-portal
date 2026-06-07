@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:38+0200\n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
 "PO-Revision-Date: 2024-08-06 09:55+0300\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <trans-uk@lists.fedoraproject.org>\n"
@@ -88,78 +88,78 @@ msgstr "Ідентифікатор стільничного файла не мі
 msgid "Desktop file id is not valid"
 msgstr "Надано некоректний стільничний запис Install()"
 
-#: src/dynamic-launcher.c:310
+#: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Стільничний запис, який надано Install(), не є коректним ключовим файлом"
 
-#: src/dynamic-launcher.c:323
+#: src/dynamic-launcher.c:329
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Стільничний запис, який надано Install(), повинен належати лише до однієї "
 "групи"
 
-#: src/dynamic-launcher.c:361
+#: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Наданий жетон є некоректним: %s"
 
-#: src/dynamic-launcher.c:404
+#: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Надано некоректний стільничний запис Install()"
 
-#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
-#: src/dynamic-launcher.c:922
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Перевищено граничний розмір стільничного файла (%d): %s"
 
-#: src/dynamic-launcher.c:597
+#: src/dynamic-launcher.c:603
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "Надана адреса є некоректною: %s"
 
-#: src/dynamic-launcher.c:619
+#: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Некоректний тип засобу запуску: %x"
 
-#: src/dynamic-launcher.c:626
+#: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Непідтримуваний тип засобу запуску: %x"
 
-#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
 msgstr "Піктограма динамічного засобу запуску не пройшла перевірки"
 
-#: src/dynamic-launcher.c:783
+#: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 "RequestInstallToken() не можна використовувати для ідентифікатора програми %s"
 
-#: src/dynamic-launcher.c:962
+#: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Піктограма стільничного файла «%s» у невідомому каталозі"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr ""
 "Не вдалося перетворити у послідовну форму піктограму у стільничному файлі "
 "«%s»"
 
-#: src/dynamic-launcher.c:1024
+#: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Немає динамічного засобу запуску з ідентифікатором «%s»"
 
-#: src/dynamic-launcher.c:1043
+#: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""

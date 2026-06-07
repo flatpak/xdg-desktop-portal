@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:38+0200\n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
 "PO-Revision-Date: 2025-10-26 09:08+0100\n"
 "Last-Translator: Martin Srebotnjak <miles@filmsi.net>\n"
 "Language-Team: Slovenian GNOME Translation Team <gnome-si@googlegroups.com>\n"
@@ -84,74 +84,74 @@ msgstr "ID-ju namizne datoteke manjka pripona .desktop: %s"
 msgid "Desktop file id is not valid"
 msgstr "ID namizne datoteke ni veljaven"
 
-#: src/dynamic-launcher.c:310
+#: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Vnos na namizju, podan funkciji Install(), ni veljavna datoteka s ključem"
 
-#: src/dynamic-launcher.c:323
+#: src/dynamic-launcher.c:329
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "Vnos na namizju, podan funkciji Install(), mora imeti natanko eno skupino"
 
-#: src/dynamic-launcher.c:361
+#: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Podani žeton je neveljaven: %s"
 
-#: src/dynamic-launcher.c:404
+#: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Vnos na namizju, podan funkciji Install(), ni veljaven"
 
-#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
-#: src/dynamic-launcher.c:922
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Namizna datoteka presega največjo velikost (%d): %s"
 
-#: src/dynamic-launcher.c:597
+#: src/dynamic-launcher.c:603
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "Navedeni URL je neveljaven: %s"
 
-#: src/dynamic-launcher.c:619
+#: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Neveljavna vrsta zaganjalnika: %x"
 
-#: src/dynamic-launcher.c:626
+#: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Nepodprta vrsta zaganjalnika: %x"
 
-#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
 msgstr "Preverjanje veljavnosti ikone dinamičnega zaganjalnika ni uspelo"
 
-#: src/dynamic-launcher.c:783
+#: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() ni dovoljeno za ID programa %s"
 
-#: src/dynamic-launcher.c:962
+#: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Ikona namizne datoteke »%s« je na neprepoznani poti"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Ikone namizne datoteke »%s« ni bilo mogoče serializirati"
 
-#: src/dynamic-launcher.c:1024
+#: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Noben dinamični zaganjalnik ne obstaja z ID-jem »%s«"
 
-#: src/dynamic-launcher.c:1043
+#: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Za zaganjalnik z ID-jem »%s« ni uspelo ustvariti GDesktopAppInfo"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal 1.8.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:38+0200\n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
 "PO-Revision-Date: 2024-05-18 09:47+0530\n"
 "Last-Translator: Scrambled777 <weblate.scrambled777@simplelogin.com>\n"
 "Language-Team: Hindi <indlinux-hindi@lists.sourceforge.net>\n"
@@ -84,72 +84,72 @@ msgstr "डेस्कटॉप फाइल ID में .desktop प्रत
 msgid "Desktop file id is not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:310
+#: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य कुंजी फाइल नहीं है"
 
-#: src/dynamic-launcher.c:323
+#: src/dynamic-launcher.c:329
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि में केवल एक समूह होना चाहिए"
 
-#: src/dynamic-launcher.c:361
+#: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "दिया गया टोकन अमान्य है: %s"
 
-#: src/dynamic-launcher.c:404
+#: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Install() को दी गई डेस्कटॉप प्रविष्टि मान्य नहीं है"
 
-#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
-#: src/dynamic-launcher.c:922
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "डेस्कटॉप फाइल अधिकतम आकार (%d) से अधिक है: %s"
 
-#: src/dynamic-launcher.c:597
+#: src/dynamic-launcher.c:603
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "दिया गया URL अमान्य है: %s"
 
-#: src/dynamic-launcher.c:619
+#: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "अमान्य लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:626
+#: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "असमर्थित लॉन्चर प्रकार: %x"
 
-#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
 msgstr "डायनैमिक लॉन्चर आइकन का सत्यापन विफल रहा"
 
-#: src/dynamic-launcher.c:783
+#: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "ऐप ID %s के लिए RequestInstallToken() की अनुमति नहीं है"
 
-#: src/dynamic-launcher.c:962
+#: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "अज्ञात पथ पर डेस्कटॉप फाइल '%s' आइकन"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "डेस्कटॉप फाइल '%s' आइकन क्रमबद्ध करने में विफल रहा"
 
-#: src/dynamic-launcher.c:1024
+#: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "ID '%s' के साथ कोई डायनैमिक लॉन्चर मौजूद नहीं है"
 
-#: src/dynamic-launcher.c:1043
+#: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "'%s' ID वाले लॉन्चर के लिए GDesktopAppInfo बनाने में विफल"

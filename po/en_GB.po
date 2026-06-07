@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-05 21:38+0200\n"
+"POT-Creation-Date: 2026-06-07 13:57+0200\n"
 "PO-Revision-Date: 2024-04-11 13:09+0100\n"
 "Last-Translator: Andi Chandler <andi@gowling.com>\n"
 "Language-Team: English - United Kingdom <en_GB@li.org>\n"
@@ -86,72 +86,72 @@ msgstr "Desktop file id missing .desktop suffix: %s"
 msgid "Desktop file id is not valid"
 msgstr "Desktop entry given to Install() not valid"
 
-#: src/dynamic-launcher.c:310
+#: src/dynamic-launcher.c:316
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr "Desktop entry given to Install() not a valid key file"
 
-#: src/dynamic-launcher.c:323
+#: src/dynamic-launcher.c:329
 #, fuzzy, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Desktop entry given to Install() must have only one group"
 
-#: src/dynamic-launcher.c:361
+#: src/dynamic-launcher.c:367
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Token given is invalid: %s"
 
-#: src/dynamic-launcher.c:404
+#: src/dynamic-launcher.c:410
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop entry given to Install() not valid"
 
-#: src/dynamic-launcher.c:413 src/dynamic-launcher.c:873
-#: src/dynamic-launcher.c:922
+#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
+#: src/dynamic-launcher.c:928
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop file exceeds max size (%d): %s"
 
-#: src/dynamic-launcher.c:597
+#: src/dynamic-launcher.c:603
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "URL given is invalid: %s"
 
-#: src/dynamic-launcher.c:619
+#: src/dynamic-launcher.c:625
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Invalid launcher type: %x"
 
-#: src/dynamic-launcher.c:626
+#: src/dynamic-launcher.c:632
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Unsupported launcher type: %x"
 
-#: src/dynamic-launcher.c:692 src/dynamic-launcher.c:767
+#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
 msgid "Dynamic launcher icon failed validation"
 msgstr "Dynamic launcher icon failed validation"
 
-#: src/dynamic-launcher.c:783
+#: src/dynamic-launcher.c:789
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() not allowed for app id %s"
 
-#: src/dynamic-launcher.c:962
+#: src/dynamic-launcher.c:968
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Desktop file '%s' icon at unrecognised path"
 
-#: src/dynamic-launcher.c:985
+#: src/dynamic-launcher.c:991
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Desktop file '%s' icon failed to serialise"
 
-#: src/dynamic-launcher.c:1024
+#: src/dynamic-launcher.c:1030
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "No dynamic launcher exists with id '%s'"
 
-#: src/dynamic-launcher.c:1043
+#: src/dynamic-launcher.c:1049
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "Failed to create GDesktopAppInfo for launcher with id '%s'"
