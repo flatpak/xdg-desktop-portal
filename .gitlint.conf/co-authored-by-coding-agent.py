@@ -9,7 +9,7 @@ CODING_AGENTS = [
 ]
 
 
-class SignedOffBy(CommitRule):
+class CoAuthoredByCodingAgent(CommitRule):
     """Try to stop people from adding Co-Authored-By: AGENT_NAME
     and instead use the kernel convention of the Assisted-by tag.
     """
