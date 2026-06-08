@@ -40,6 +40,7 @@ SCREENSHOT_TARGETS_ALL = (
     | ScreenshotTarget.AREA
     | ScreenshotTarget.ACTIVE_WINDOW
 ).value
+CAPTURE_DELAY_MAX_SECONDS = 3600
 
 
 @pytest.fixture
@@ -68,7 +69,7 @@ class TestScreenshot:
         )
 
     def test_version(self, portals, dbus_con):
-        xdp.check_version(dbus_con, "Screenshot", 3)
+        xdp.check_version(dbus_con, "Screenshot", 4)
 
     def test_available_targets(self, portals, dbus_con):
         properties_intf = dbus.Interface(
@@ -107,6 +108,55 @@ class TestScreenshot:
         assert args[1] == app_id
         assert args[2] == ""
         assert args[3]["target"] == target
+
+    def test_screenshot_v4_options(
+        self, xdg_document_portal, portals, dbus_con, xdp_app_info
+    ):
+        app_id = xdp_app_info.app_id
+        screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, screenshot_intf)
+        response = request.call(
+            "Screenshot",
+            parent_window="",
+            options={
+                "interactive": True,
+                "target": dbus.UInt32(ScreenshotTarget.AREA.value),
+                "include_cursor": True,
+                "capture_delay": dbus.UInt32(3),
+            },
+        )
+
+        assert response
+        assert response.response == 0
+
+        method_calls = mock_intf.GetMethodCalls("Screenshot")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[1] == app_id
+        assert args[2] == ""
+        assert args[3]["target"] == ScreenshotTarget.AREA.value
+        assert args[3]["include_cursor"]
+        assert args[3]["capture_delay"] == 3
+
+    def test_screenshot_invalid_capture_delay(self, portals, dbus_con):
+        screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
+
+        request = xdp.Request(dbus_con, screenshot_intf)
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            request.call(
+                "Screenshot",
+                parent_window="",
+                options={
+                    "interactive": True,
+                    "capture_delay": dbus.UInt32(CAPTURE_DELAY_MAX_SECONDS + 1),
+                },
+            )
+
+        e = excinfo.value
+        assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert "Invalid capture_delay" in e.get_dbus_message()
 
     @pytest.mark.parametrize("target", SCREENSHOT_TARGETS_BAD)
     def test_screenshot_invalid_target(self, portals, dbus_con, target):
@@ -194,6 +244,47 @@ class TestScreenshot:
         assert not args[3]["modal"]
         assert args[3]["interactive"]
         assert "target" not in args[3]
+
+    @pytest.mark.parametrize(
+        "template_params",
+        (
+            {
+                "screenshot": {
+                    "version": 3,
+                    "results": SCREENSHOT_DATA,
+                },
+            },
+        ),
+    )
+    def test_screenshot_v4_options_not_forwarded_to_v3_backend(
+        self, xdg_document_portal, portals, dbus_con
+    ):
+        xdp.check_version(dbus_con, "Screenshot", 3)
+
+        screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
+        mock_intf = xdp.get_mock_iface(dbus_con)
+
+        request = xdp.Request(dbus_con, screenshot_intf)
+        response = request.call(
+            "Screenshot",
+            parent_window="",
+            options={
+                "interactive": True,
+                "target": dbus.UInt32(ScreenshotTarget.AREA.value),
+                "include_cursor": True,
+                "capture_delay": dbus.UInt32(3),
+            },
+        )
+
+        assert response
+        assert response.response == 0
+
+        method_calls = mock_intf.GetMethodCalls("Screenshot")
+        assert len(method_calls) > 0
+        _, args = method_calls[-1]
+        assert args[3]["target"] == ScreenshotTarget.AREA.value
+        assert "include_cursor" not in args[3]
+        assert "capture_delay" not in args[3]
 
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])

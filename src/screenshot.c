@@ -53,6 +53,8 @@ typedef enum
   SCREENSHOT_TARGET_ACTIVE_WINDOW = 1u << 3,
 } ScreenshotTarget;
 
+#define SCREENSHOT_CAPTURE_DELAY_MAX_SECONDS 3600
+
 typedef struct _Screenshot Screenshot;
 typedef struct _ScreenshotClass ScreenshotClass;
 
@@ -236,10 +238,37 @@ validate_screenshot_target_filter (const char  *key,
   return validate_screenshot_target (user_data, g_variant_get_uint32 (value), error);
 }
 
+static gboolean
+validate_capture_delay (const char  *key,
+                        GVariant    *value,
+                        GVariant    *options,
+                        gpointer     user_data,
+                        GError     **error)
+{
+  uint32_t capture_delay = g_variant_get_uint32 (value);
+
+  if (capture_delay > SCREENSHOT_CAPTURE_DELAY_MAX_SECONDS)
+    {
+      g_set_error (error, XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                   "Invalid capture_delay %u", capture_delay);
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey screenshot_options_v3[] = {
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "target", G_VARIANT_TYPE_UINT32, validate_screenshot_target_filter }
+};
+
+static XdpOptionKey screenshot_options_v4[] = {
+  { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "interactive", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "target", G_VARIANT_TYPE_UINT32, validate_screenshot_target_filter },
+  { "include_cursor", G_VARIANT_TYPE_BOOLEAN, NULL },
+  { "capture_delay", G_VARIANT_TYPE_UINT32, validate_capture_delay }
 };
 
 static gboolean
@@ -456,11 +485,19 @@ handle_screenshot (XdpDbusScreenshot *object,
   g_autoptr(GVariant) options = NULL;
   g_autoptr(GTask) task = NULL;
   g_autoptr(GError) error = NULL;
+  const XdpOptionKey *screenshot_options = screenshot_options_v3;
+  int n_screenshot_options = G_N_ELEMENTS (screenshot_options_v3);
 
   g_debug ("Handle Screenshot");
 
+  if (screenshot->impl_version >= 4)
+    {
+      screenshot_options = screenshot_options_v4;
+      n_screenshot_options = G_N_ELEMENTS (screenshot_options_v4);
+    }
+
   if (!xdp_filter_options (arg_options, &opt_builder,
-                           screenshot_options_v3, G_N_ELEMENTS (screenshot_options_v3),
+                           screenshot_options, n_screenshot_options,
                            screenshot, &error))
     {
       g_dbus_method_invocation_return_gerror (invocation, error);
@@ -618,7 +655,7 @@ screenshot_new (XdpDbusImplScreenshot *impl,
     MAX (xdp_dbus_impl_screenshot_get_version (screenshot->impl), 2);
 
   xdp_dbus_screenshot_set_version (XDP_DBUS_SCREENSHOT (screenshot),
-                                   MIN (screenshot->impl_version, 3));
+                                   MIN (screenshot->impl_version, 4));
 
   if (screenshot->impl_version >= 3)
     {
