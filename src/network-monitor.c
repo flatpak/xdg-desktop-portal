@@ -41,6 +41,8 @@ struct _NetworkMonitor
   XdpDbusNetworkMonitorSkeleton parent_instance;
 
   GNetworkMonitor *monitor;
+
+  int emit_source_id;
 };
 
 struct _NetworkMonitorClass
@@ -201,7 +203,7 @@ handle_can_reach (XdpDbusNetworkMonitor *object,
       g_autoptr(GSocketConnectable) address = NULL;
 
       address = g_network_address_new (hostname, port);
-      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation)); 
+      g_network_monitor_can_reach_async (nm->monitor, address, NULL, can_reach_done, g_object_ref (invocation));
     }
 
   return G_DBUS_METHOD_INVOCATION_HANDLED;
@@ -217,6 +219,27 @@ network_monitor_iface_init (XdpDbusNetworkMonitorIface *iface)
   iface->handle_can_reach = handle_can_reach;
 }
 
+static gboolean
+emit_changed (gpointer user_data)
+{
+  NetworkMonitor *nm = user_data;
+
+  xdp_dbus_network_monitor_emit_changed (XDP_DBUS_NETWORK_MONITOR (nm));
+
+  nm->emit_source_id = 0;
+
+  return G_SOURCE_REMOVE;
+}
+
+static void
+schedule_emit_changed (NetworkMonitor *nm)
+{
+  if (nm->emit_source_id > 0)
+    return;
+
+  nm->emit_source_id = g_idle_add_full (G_PRIORITY_DEFAULT_IDLE, emit_changed, g_object_ref (nm), g_object_unref);
+}
+
 static void
 on_network_changed (GObject  *object,
                     gboolean  network_available,
@@ -224,7 +247,17 @@ on_network_changed (GObject  *object,
 {
   NetworkMonitor *nm = user_data;
 
-  xdp_dbus_network_monitor_emit_changed (XDP_DBUS_NETWORK_MONITOR (nm));
+  schedule_emit_changed (nm);
+}
+
+static void
+on_network_property_notify (GObject  *object,
+                            GParamSpec *pspec,
+                            gpointer  user_data)
+{
+  NetworkMonitor *nm = user_data;
+
+  schedule_emit_changed (nm);
 }
 
 static void
@@ -261,6 +294,21 @@ network_monitor_new (void)
 
   g_signal_connect_object (network_monitor->monitor, "network-changed",
                            G_CALLBACK (on_network_changed),
+                           network_monitor,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::connectivity",
+                           G_CALLBACK (on_network_property_notify),
+                           network_monitor,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::network-available",
+                           G_CALLBACK (on_network_property_notify),
+                           network_monitor,
+                           G_CONNECT_DEFAULT);
+
+  g_signal_connect_object (network_monitor->monitor, "notify::network-metered",
+                           G_CALLBACK (on_network_property_notify),
                            network_monitor,
                            G_CONNECT_DEFAULT);
 
