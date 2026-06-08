@@ -25,7 +25,7 @@
 
       The Screen cast portal allows to create screen cast sessions.
 
-      This documentation describes version 6 of this interface.
+      This documentation describes version 7 of this interface.
   -->
   <interface name="org.freedesktop.impl.portal.ScreenCast">
     <!--
@@ -75,6 +75,20 @@
         * ``multiple`` (``b``)
 
           Whether to allow selecting multiple sources. Default is no.
+
+        * ``audio`` (``b``)
+
+          Whether to request audio streams associated with the selected sources.
+          Default is no.
+
+          If set to true, the application is capable of receiving audio streams
+          returned by the org.freedesktop.impl.portal.ScreenCast.Start() method.
+          The portal implementation may still return no audio streams if none are
+          available, if it cannot determine a suitable audio source, or if the
+          active portal backend implements an older interface version that does
+          not support audio.
+
+          This option was added in version 7 of this interface.
 
         * ``cursor_mode`` (``u``)
 
@@ -146,7 +160,7 @@
 
           An array of PipeWire streams. Each stream consists of a PipeWire
           node ID (the first element in the tuple, and a Vardict of
-          properties.
+          properties).
 
           Since version 6 of this interface, the node ID in the stream
           tuple is deprecated for stream targeting. PipeWire node IDs can
@@ -154,11 +168,24 @@
           ``pipewire-serial`` property from the stream properties dict
           and ``PW_KEY_TARGET_OBJECT`` for connecting to streams.
 
-          The array will contain a single stream if 'multiple' (see
-          SelectSources) was set to 'false', or at least one stream if
+          The array will contain streams for a single source if 'multiple' (see
+          SelectSources) was set to 'false', or at least one source's streams if
           'multiple' was set to 'true' as part of the SelectSources method.
 
+          Since version 7, a single selected source may be represented by
+          multiple media streams: one video stream and optionally one associated
+          audio stream.
+
           Each stream contains the following properties:
+
+          * ``media_type`` (``s``)
+
+            The type of media carried by this stream. Valid values are
+            ``video`` and ``audio``.
+
+            If this property is absent, the stream is a video stream.
+
+            This property was added in version 7 of this interface.
 
           * ``position`` (``(ii)``)
 

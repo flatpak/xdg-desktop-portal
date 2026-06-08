@@ -874,10 +874,17 @@ check_position (XdpSession *session,
 
   for (l = remote_desktop_session->streams; l; l = l->next)
     {
-      ScreenCastStream *stream = l->data;
+      ScreenCastStream *candidate = l->data;
       int32_t width, height;
 
-      screen_cast_stream_get_size (stream, &width, &height);
+      if (screen_cast_stream_get_pipewire_node_id (candidate) != stream)
+        continue;
+
+      if (screen_cast_stream_get_stream_type (candidate) !=
+          SCREEN_CAST_STREAM_TYPE_VIDEO)
+        continue;
+
+      screen_cast_stream_get_size (candidate, &width, &height);
 
       if (x >= 0.0 && x < width &&
           y >= 0.0 && y < height)
