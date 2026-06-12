@@ -205,5 +205,8 @@ gboolean xdp_desktop_app_info_is_sandboxed (GDesktopAppInfo *info);
 /* Returns the sandboxed app ID, or the desktop file basename as fallback */
 char * xdp_desktop_app_info_get_app_id (GDesktopAppInfo *info);
 
+/* Returns the document fuse mountpoint */
+char * xdp_desktop_app_info_get_doc_mountpoint (GDesktopAppInfo *info);
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern

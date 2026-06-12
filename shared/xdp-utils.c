@@ -1511,3 +1511,17 @@ xdp_desktop_app_info_is_sandboxed (GDesktopAppInfo *info)
 
   return FALSE;
 }
+
+char *
+xdp_desktop_app_info_get_doc_mountpoint (GDesktopAppInfo *info)
+{
+  {
+    g_autofree char *flatpak_id =
+      g_desktop_app_info_get_string (info, "X-Flatpak");
+
+    if (flatpak_id && *flatpak_id)
+      return g_build_filename ("/run/flatpak/doc", NULL);
+  }
+
+  return g_build_filename (g_get_user_runtime_dir (), "doc", NULL);
+}
