@@ -36,6 +36,6 @@ struct _XdpAppInfoClass
                                          GKeyFile    *key_file,
                                          GError     **error);
 
-  GAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
+  GDesktopAppInfo * (*create_gappinfo) (XdpAppInfo *app_info);
 };
 
