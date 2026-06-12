@@ -8,6 +8,7 @@ import tests.xdp_utils as xdp
 import pytest
 import os
 from pathlib import Path
+import re
 
 
 ACCOUNT_DATA = {
@@ -22,6 +23,7 @@ def required_templates():
     image = Path(os.environ["XDG_DATA_HOME"]) / "account-image.png"
     image.write_text("image contents")
     ACCOUNT_DATA["image"] = f"file://{image.absolute().as_posix()}"
+    ACCOUNT_DATA["document"] = f"file:///run/flatpak/doc/[^/]+/{image.name}"
 
     return {
         "account": {
@@ -56,7 +58,10 @@ class TestAccount:
         assert response.results["id"] == ACCOUNT_DATA["id"]
         assert response.results["name"] == ACCOUNT_DATA["name"]
         assert response.results["image"]
-        assert xdp.uri_same_file(ACCOUNT_DATA["image"], response.results["image"])
+        if isinstance(xdp_app_info, xdp.AppInfoFlatpak):
+            assert re.match(ACCOUNT_DATA["document"], response.results["image"])
+        else:
+            assert xdp.uri_same_file(ACCOUNT_DATA["image"], response.results["image"])
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("GetUserInformation")
