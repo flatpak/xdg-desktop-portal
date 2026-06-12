@@ -65,20 +65,20 @@ typedef enum {
 
 static GVariant *
 get_launcher_data_and_revoke_token (DynamicLauncher *dynamic_launcher,
+                                    const char      *sender,
                                     const char      *token)
 {
   g_autoptr(GMutexLocker) locker =
     g_mutex_locker_new (&dynamic_launcher->transient_permissions_lock);
+  g_autofree char *id = NULL;
   GVariant *launcher_data_wrapped;
 
   if (!dynamic_launcher->transient_permissions)
     return NULL;
 
-  if (!g_uuid_string_is_valid (token))
-    return NULL;
-
+  id = g_strdup_printf ("%s/%s", sender, token);
   launcher_data_wrapped =
-    g_hash_table_lookup (dynamic_launcher->transient_permissions, token);
+    g_hash_table_lookup (dynamic_launcher->transient_permissions, id);
   if (launcher_data_wrapped)
     {
       g_autoptr(GVariant) launcher_data = NULL;
@@ -87,7 +87,7 @@ get_launcher_data_and_revoke_token (DynamicLauncher *dynamic_launcher,
       g_variant_get (launcher_data_wrapped, "(vu)", &launcher_data, &timeout_id);
 
       g_source_remove (timeout_id);
-      g_hash_table_remove (dynamic_launcher->transient_permissions, token);
+      g_hash_table_remove (dynamic_launcher->transient_permissions, id);
 
       return g_steal_pointer (&launcher_data);
     }
@@ -340,6 +340,7 @@ handle_install (XdpDbusDynamicLauncher *object,
   g_autoptr(GDesktopAppInfo) desktop_app_info = NULL;
 
   launcher_data = get_launcher_data_and_revoke_token (dynamic_launcher,
+                                                      g_dbus_method_invocation_get_sender (invocation),
                                                       arg_token);
   if (launcher_data == NULL)
     {
@@ -430,16 +431,19 @@ static XdpOptionKey response_options[] = {
 typedef struct _InstallTokenTimeoutData
 {
   DynamicLauncher *dynamic_launcher;
+  char *sender;
   char *token;
 } InstallTokenTimeoutData;
 
 static InstallTokenTimeoutData *
 install_token_timeout_data_new (DynamicLauncher *dynamic_launcher,
+                                const char      *sender,
                                 const char      *token)
 {
   InstallTokenTimeoutData *data = g_new0 (InstallTokenTimeoutData, 1);
 
   data->dynamic_launcher = g_object_ref (dynamic_launcher);
+  data->sender = g_strdup (sender);
   data->token = g_strdup (token);
 
   return data;
@@ -449,6 +453,7 @@ static void
 install_token_timeout_data_free (InstallTokenTimeoutData *data)
 {
   g_object_unref (data->dynamic_launcher);
+  g_free (data->sender);
   g_free (data->token);
   g_free (data);
 }
@@ -461,20 +466,29 @@ install_token_timeout (gpointer user_data)
 
   g_debug ("Revoking install token %s", data->token);
   launcher_data = get_launcher_data_and_revoke_token (data->dynamic_launcher,
+                                                      data->sender,
                                                       data->token);
 
   return G_SOURCE_REMOVE;
 }
 
+/*
+ * Install tokens are scoped by sender: the hash key is "sender/token",
+ * so a token can only be redeemed by the peer that requested it.
+ */
 static void
 set_launcher_data_for_token (DynamicLauncher *dynamic_launcher,
+                             const char      *sender,
                              const char      *token,
                              GVariant        *launcher_data)
 {
   g_autoptr(GMutexLocker) locker =
     g_mutex_locker_new (&dynamic_launcher->transient_permissions_lock);
+  g_autofree char *id = NULL;
   guint timeout_id;
   g_autoptr(GVariant) launcher_data_wrapped = NULL;
+
+  id = g_strdup_printf ("%s/%s", sender, token);
 
   /* Revoke the token if it hasn't been used after 5 minutes, in case of
    * client bugs. This is what the GNOME print portal implementation does.
@@ -483,13 +497,14 @@ set_launcher_data_for_token (DynamicLauncher *dynamic_launcher,
     g_timeout_add_seconds_full (G_PRIORITY_DEFAULT, 300,
                                 install_token_timeout,
                                 install_token_timeout_data_new (dynamic_launcher,
+                                                                sender,
                                                                 token),
                                 (GDestroyNotify)install_token_timeout_data_free);
   launcher_data_wrapped =
     g_variant_ref_sink (g_variant_new ("(vu)", launcher_data, timeout_id));
 
   g_hash_table_insert (dynamic_launcher->transient_permissions,
-                       g_strdup (token),
+                       g_steal_pointer (&id),
                        g_steal_pointer (&launcher_data_wrapped));
 }
 
@@ -520,7 +535,7 @@ prepare_install_done (GObject      *source,
 
   if (request->exported && response == 0)
     {
-      g_autofree char *token = g_uuid_string_random ();
+      g_autofree char *token = xdp_generate_token ();
       const char *chosen_name = NULL;
       const char *icon_format = NULL;
       const char *icon_size = NULL;
@@ -550,7 +565,7 @@ prepare_install_done (GObject      *source,
 
           /* Save the token in memory and return it to the caller */
           launcher_data = g_variant_new ("(svss)", chosen_name, chosen_icon, icon_format, icon_size);
-          set_launcher_data_for_token (dynamic_launcher, token, launcher_data);
+          set_launcher_data_for_token (dynamic_launcher, request->sender, token, launcher_data);
           g_variant_builder_add (&results_builder, "{sv}", "token", g_variant_new_string (token));
         }
     }
@@ -757,10 +772,12 @@ handle_request_install_token (XdpDbusDynamicLauncher *object,
         }
 
       launcher_data = g_variant_new ("(svss)", arg_name, icon_v, icon_format, icon_size);
-      token = g_uuid_string_random ();
+      token = xdp_generate_token ();
 
       /* Save the token in memory and return it to the caller */
-      set_launcher_data_for_token (dynamic_launcher, token, launcher_data);
+      set_launcher_data_for_token (dynamic_launcher,
+                                   g_dbus_method_invocation_get_sender (invocation),
+                                   token, launcher_data);
 
       xdp_dbus_dynamic_launcher_complete_request_install_token (object, invocation, token);
     }
