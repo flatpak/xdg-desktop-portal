@@ -318,13 +318,15 @@ class AppInfoFlatpak(AppInfo):
             self.instance_id = "1234567890"
 
         if not self.desktop_entry:
-            self.desktop_entry = b"""
+            desktop_entry_str = f"""
 [Desktop Entry]
 Version=1.0
 Name=Example App
 Exec=true %u
 Type=Application
+X-Flatpak={self.app_id}
 """
+            self.desktop_entry = desktop_entry_str.encode("UTF-8")
 
         if not self.metadata:
             metadata_str = f"""
