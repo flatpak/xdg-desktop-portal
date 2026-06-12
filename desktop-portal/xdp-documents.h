@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
 
 #include "xdp-types.h"
@@ -21,6 +22,7 @@ gboolean xdp_init_document_proxy (GDBusConnection  *connection,
 
 char *xdp_register_document (const char        *uri,
                              const char        *app_id,
+                             GDesktopAppInfo   *app_info,
                              XdpDocumentFlags   flags,
                              GError           **error);
 

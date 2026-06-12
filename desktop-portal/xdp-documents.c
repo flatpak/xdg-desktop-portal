@@ -54,6 +54,7 @@ xdp_init_document_proxy (GDBusConnection  *connection,
 char *
 xdp_register_document (const char        *uri,
                        const char        *app_id,
+                       GDesktopAppInfo   *app_info,
                        XdpDocumentFlags   flags,
                        GError           **error)
 {
@@ -72,6 +73,7 @@ xdp_register_document (const char        *uri,
   int version;
   gboolean handled_permissions = FALSE;
   DocumentAddFullFlags full_flags;
+  g_autofree char *fuse_path = NULL;
 
   g_return_val_if_fail (app_id != NULL && *app_id != '\0', NULL);
 
@@ -201,7 +203,9 @@ xdp_register_document (const char        *uri,
       return g_filename_to_uri (doc_path, NULL, error);
     }
 
-  doc_path = g_build_filename (documents_mountpoint, doc_id, basename, NULL);
+  fuse_path = xdp_desktop_app_info_get_doc_mountpoint (app_info);
+  doc_path = g_build_filename (fuse_path, doc_id, basename, NULL);
+
   return g_filename_to_uri (doc_path, NULL, error);
 }
 

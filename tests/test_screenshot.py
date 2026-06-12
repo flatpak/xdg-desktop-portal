@@ -11,6 +11,7 @@ from enum import Flag
 from typing import Any
 import os
 from pathlib import Path
+import re
 
 
 SCREENSHOT_DATA = dbus.Dictionary(
@@ -48,6 +49,7 @@ def required_templates():
     image = Path(os.environ["XDG_DATA_HOME"]) / "screenshot-image.png"
     image.write_text("image contents")
     SCREENSHOT_DATA["uri"] = f"file://{image.absolute().as_posix()}"
+    SCREENSHOT_DATA["document"] = f"file:///run/flatpak/doc/[^/]+/{image.name}"
 
     return {
         "access": {},
@@ -219,7 +221,10 @@ class TestScreenshot:
         assert response
         assert response.response == 0
 
-        assert xdp.uri_same_file(SCREENSHOT_DATA["uri"], response.results["uri"])
+        if isinstance(xdp_app_info, xdp.AppInfoFlatpak):
+            assert re.match(SCREENSHOT_DATA["document"], response.results["uri"])
+        else:
+            assert xdp.uri_same_file(SCREENSHOT_DATA["uri"], response.results["uri"])
 
         # Check the impl portal was called with the right args
         method_calls = mock_intf.GetMethodCalls("Screenshot")

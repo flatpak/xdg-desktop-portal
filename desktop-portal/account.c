@@ -85,7 +85,11 @@ send_response_in_thread_func (GTask        *task,
       if (xdp_app_info_is_host (request->app_info))
         ruri = g_strdup (image);
       else
-        ruri = xdp_register_document (image, xdp_app_info_get_id (request->app_info), XDP_DOCUMENT_FLAG_NONE, &error);
+        ruri = xdp_register_document (image,
+                                      xdp_app_info_get_id (request->app_info),
+                                      xdp_app_info_get_gappinfo (request->app_info),
+                                      XDP_DOCUMENT_FLAG_NONE,
+                                      &error);
 
       if (ruri == NULL)
         {
