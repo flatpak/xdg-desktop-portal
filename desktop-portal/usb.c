@@ -568,7 +568,7 @@ register_with_unique_usb_id (XdpUsb       *self,
   do
     {
       g_clear_pointer (&id, g_free);
-      id = g_uuid_string_random ();
+      id = xdp_generate_token ();
     }
   while (g_hash_table_contains (self->ids_to_devices, id));
 

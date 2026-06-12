@@ -45,7 +45,5 @@ PermissionDbEntry *document_entry_new (const char *path,
                                        ino_t       st_ino,
                                        GBytes     *handle);
 
-char *  xdp_name_from_id (guint32 doc_id);
-
 
 G_END_DECLS
