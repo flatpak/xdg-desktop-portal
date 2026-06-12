@@ -513,7 +513,7 @@ handle_start_in_thread_func (GTask *task,
     {
       const char *app_id = xdp_app_info_get_id (request->app_info);
       const char *app_name = xdp_app_info_get_app_display_name (request->app_info);
-      GAppInfo *app_info = xdp_app_info_get_gappinfo (request->app_info);
+      GDesktopAppInfo *app_info = xdp_app_info_get_gappinfo (request->app_info);
       guint access_response = 2;
       g_autoptr(GVariant) access_results = NULL;
       g_autoptr(XdpDbusImplRequest) impl_request = NULL;

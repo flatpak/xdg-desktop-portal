@@ -36,14 +36,13 @@ typedef enum
 
 static GParamSpec *properties [PROP_DESKTOP_FILE + 1];
 
-static GAppInfo *
+static GDesktopAppInfo *
 xdp_app_info_snap_create_gappinfo (XdpAppInfo *app_info)
 {
   XdpAppInfoSnap *app_info_snap = XDP_APP_INFO_SNAP (app_info);
-  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autoptr(GDesktopAppInfo) gappinfo = NULL;
 
-  gappinfo =
-    G_APP_INFO (g_desktop_app_info_new (app_info_snap->desktop_file));
+  gappinfo = g_desktop_app_info_new (app_info_snap->desktop_file);
 
   return g_steal_pointer (&gappinfo);
 }

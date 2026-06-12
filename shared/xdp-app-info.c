@@ -43,7 +43,7 @@ typedef struct _XdpAppInfoPrivate
   char *instance;
 
   /* app info */
-  GAppInfo *gappinfo;
+  GDesktopAppInfo *gappinfo;
 
   /* calling process */
   int pidfd;
@@ -105,15 +105,15 @@ g_initable_init_iface (GInitableIface *iface)
   iface->init = xdp_app_info_initable_init;
 }
 
-static GAppInfo *
+static GDesktopAppInfo *
 xdp_app_info_real_create_gappinfo (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-  g_autoptr(GAppInfo) gappinfo = NULL;
+  g_autoptr(GDesktopAppInfo) gappinfo = NULL;
   g_autofree char *desktop_id = NULL;
 
   desktop_id = g_strconcat (priv->id, ".desktop", NULL);
-  gappinfo = G_APP_INFO (g_desktop_app_info_new (desktop_id));
+  gappinfo = g_desktop_app_info_new (desktop_id);
 
   return g_steal_pointer (&gappinfo);
 }
@@ -397,7 +397,7 @@ xdp_app_info_get_app_display_name (XdpAppInfo *app_info)
   XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
 
   if (priv->gappinfo)
-    return g_app_info_get_display_name (priv->gappinfo);
+    return g_app_info_get_display_name (G_APP_INFO (priv->gappinfo));
 
   if (g_strcmp0 (priv->id, "") != 0)
     return priv->id;
@@ -476,7 +476,7 @@ xdp_app_info_get_sender (XdpAppInfo *app_info)
   return priv->sender;
 }
 
-GAppInfo *
+GDesktopAppInfo *
 xdp_app_info_get_gappinfo (XdpAppInfo *app_info)
 {
   XdpAppInfoPrivate *priv;
