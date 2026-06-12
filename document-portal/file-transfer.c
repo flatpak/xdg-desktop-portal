@@ -140,26 +140,15 @@ lookup_transfer (const char *key)
   return g_object_ref (transfer);
 }
 
-static char *
-generate_key (void)
-{
-  uint64_t p1, p2;
-
-  p1 = g_random_int ();
-  p1 = (p1 << 32) | g_random_int ();
-  p2 = g_random_int ();
-  p2 = (p2 << 32) | g_random_int ();
-
-  return g_strdup_printf ("%" G_GUINT64_FORMAT "%" G_GUINT64_FORMAT, p1, p2);
-}
 
 static FileTransfer *
-file_transfer_start (XdpAppInfo *app_info,
-                     const char *sender,
-                     gboolean    writable,
-                     gboolean    autostop)
+file_transfer_start (XdpAppInfo  *app_info,
+                     const char  *sender,
+                     gboolean     writable,
+                     gboolean     autostop,
+                     GError     **error)
 {
-  FileTransfer *transfer;
+  g_autoptr(FileTransfer) transfer = NULL;
 
   transfer = g_object_new (file_transfer_get_type (), NULL);
 
@@ -169,13 +158,11 @@ file_transfer_start (XdpAppInfo *app_info,
   transfer->autostop = autostop;
   transfer->files = g_ptr_array_new_with_free_func (exported_file_free);
 
+  transfer->key = xdp_generate_key (error);
+  if (!transfer->key)
+    return NULL;
+
   G_LOCK (transfers);
-  do
-    {
-      g_clear_pointer (&transfer->key, g_free);
-      transfer->key = generate_key ();
-    }
-  while (g_hash_table_contains (transfers, transfer->key));
   g_hash_table_insert (transfers, transfer->key, g_object_ref (transfer));
   G_UNLOCK (transfers);
 
@@ -183,7 +170,7 @@ file_transfer_start (XdpAppInfo *app_info,
            xdp_app_info_get_id (transfer->app_info),
            transfer->sender);
 
-  return transfer;
+  return g_steal_pointer (&transfer);
 }
 
 static void
@@ -330,6 +317,7 @@ start_transfer (GDBusMethodInvocation *invocation,
 {
   g_autoptr(GVariant) options = NULL;
   g_autoptr(FileTransfer) transfer = NULL;
+  g_autoptr(GError) error = NULL;
   gboolean writable;
   gboolean autostop;
   const char *sender;
@@ -343,7 +331,12 @@ start_transfer (GDBusMethodInvocation *invocation,
 
   sender = g_dbus_method_invocation_get_sender (invocation);
 
-  transfer = file_transfer_start (app_info, sender, writable, autostop);
+  transfer = file_transfer_start (app_info, sender, writable, autostop, &error);
+  if (!transfer)
+    {
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return;
+    }
 
   g_dbus_method_invocation_return_value (invocation, g_variant_new ("(s)", transfer->key));
 }
