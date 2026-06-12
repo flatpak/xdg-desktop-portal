@@ -753,7 +753,7 @@ app_has_file_access (const char *target_app_id,
   g_autofree char *res = NULL;
   g_autofree char *arg = NULL;
 
-  if (target_app_id == NULL || target_app_id[0] == '\0')
+  if (target_app_id == NULL || !xdp_is_valid_app_id (target_app_id))
     return FALSE;
 
   if (g_str_has_prefix (target_app_id, "snap."))
@@ -811,6 +811,15 @@ portal_add_full (GDBusMethodInvocation *invocation,
 
   g_variant_get (parameters, "(@ahu&s^a&s)",
                  &array, &flags, &target_app_id, &permissions);
+
+  if (target_app_id[0] != '\0' &&
+      !xdp_is_valid_app_id (target_app_id))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "'%s' is not a valid app name", target_app_id);
+      return;
+    }
 
   if ((flags & ~DOCUMENT_ADD_FLAGS_FLAGS_ALL) != 0)
     {
@@ -1102,6 +1111,15 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_NOT_ALLOWED,
                                              "Not enough permissions");
+      return;
+    }
+
+  if (target_app_id[0] != '\0' &&
+      !xdp_is_valid_app_id (target_app_id))
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                                             "'%s' is not a valid app name", target_app_id);
       return;
     }
 
