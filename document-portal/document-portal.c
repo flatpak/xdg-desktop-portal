@@ -456,7 +456,7 @@ do_create_doc (struct stat *parent_st_buf,
         {
           g_autoptr(PermissionDbEntry) existing = NULL;
 
-          id = xdp_name_from_id ((guint32) g_random_int ());
+          id = xdp_generate_token ();
           existing = permission_db_lookup (db, id);
           if (existing)
             g_clear_pointer (&id, g_free);

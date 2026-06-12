@@ -104,11 +104,6 @@ document_entry_has_permissions (PermissionDbEntry       *entry,
   return (current_perms & perms) == perms;
 }
 
-char *
-xdp_name_from_id (guint32 doc_id)
-{
-  return g_strdup_printf ("%x", doc_id);
-}
 
 const char *
 document_entry_get_path (PermissionDbEntry *entry)

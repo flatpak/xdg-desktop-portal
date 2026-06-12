@@ -227,7 +227,6 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
                              GError                **error)
 {
   XdpRequest *request;
-  guint32 r;
   char *id = NULL;
   const char *token;
   g_autofree char *sender = NULL;
@@ -259,9 +258,9 @@ xdp_request_init_invocation (GDBusMethodInvocation  *invocation,
 
   while (!xdp_context_claim_object_path (context, id))
     {
-      r = g_random_int ();
+      g_autofree char *t = xdp_generate_token ();
       g_clear_pointer (&id, g_free);
-      id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%u", sender, token, r);
+      id = g_strdup_printf (DESKTOP_DBUS_PATH "/request/%s/%s/%s", sender, token, t);
     }
 
   request->id = id;

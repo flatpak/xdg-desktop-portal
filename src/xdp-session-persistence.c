@@ -54,6 +54,10 @@ on_peer_disconnect (XdpContext *context,
     }
 }
 
+/*
+ * Transient permissions are scoped by session->sender: the hash key is
+ * "sender/token", so a token is only valid for the peer that created it.
+ */
 void
 xdp_session_persistence_set_transient_permissions (XdpSession *session,
                                                    const char *restore_token,
@@ -107,6 +111,10 @@ xdp_session_persistence_get_transient_permissions (XdpSession *session,
   return permissions ? g_variant_ref (permissions) : NULL;
 }
 
+/*
+ * Persistent permissions are scoped by session->app_id: the permission
+ * store entry is keyed by token, but lookup checks that app_id has access.
+ */
 void
 xdp_session_persistence_set_persistent_permissions (XdpSession *session,
                                                     const char *table,
@@ -298,7 +306,7 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
 
     case XDP_SESSION_PERSISTENCE_MODE_TRANSIENT:
       if (!*in_out_restore_token)
-        *in_out_restore_token = g_uuid_string_random ();
+        *in_out_restore_token = xdp_generate_token ();
 
       xdp_session_persistence_set_transient_permissions (session,
                                                          *in_out_restore_token,
@@ -307,7 +315,7 @@ xdp_session_persistence_generate_and_save_restore_token (XdpSession *session,
 
     case XDP_SESSION_PERSISTENCE_MODE_PERSISTENT:
       if (!*in_out_restore_token)
-        *in_out_restore_token = g_uuid_string_random ();
+        *in_out_restore_token = xdp_generate_token ();
 
       xdp_session_persistence_set_persistent_permissions (session,
                                                           table,
@@ -392,12 +400,15 @@ gboolean
 xdp_session_persistence_validate_restore_token (const char  *restore_token,
                                                 GError     **error)
 {
-  if (!g_uuid_string_is_valid (restore_token))
+  /* Accept both xdp_generate_token() format and legacy UUID strings
+   * from older portal versions */
+  if (!xdp_is_valid_token (restore_token) &&
+      !g_uuid_string_is_valid (restore_token))
     {
       g_set_error (error,
                    XDG_DESKTOP_PORTAL_ERROR,
                    XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
-                   "Restore token is not a valid UUID string");
+                   "Restore token is not valid");
       return FALSE;
     }
 
