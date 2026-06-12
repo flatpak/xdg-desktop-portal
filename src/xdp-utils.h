@@ -187,5 +187,20 @@ gboolean xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
                                int          *fd_id_out,
                                GError      **error);
 
+/*
+ * Cryptographically secure 128-bit hex-encoded key.
+ * Keys are unguessable and can be used on their own to mediate access to
+ * a resource.
+ */
+char *xdp_generate_key (GError **error);
+
+/*
+ * Non-secure guessable token, suitable for D-Bus object paths.
+ * Tokens are essentially names and must be scoped to something else
+ * (e.g. a peer) for proper access control. Collisions are negligible
+ * and callers do not need to check for them.
+ */
+char *xdp_generate_token (void);
+
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern

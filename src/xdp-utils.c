@@ -29,6 +29,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/random.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
@@ -1421,4 +1422,53 @@ xdp_copy_fd_to_lists (GUnixFDList  *fd_list_src,
     *fd_id_out = new_fd_id;
 
   return TRUE;
+}
+
+/* Encode bytes as D-Bus-path-safe base64 ([A-Za-z0-9_], no padding).
+ * We alias + and / to _ but that barely affects the information encoded. */
+static char *
+encode_base64_for_dbus (const uint8_t *data,
+                        size_t         len)
+{
+  g_autofree char *encoded = g_base64_encode (data, len);
+
+  for (size_t i = 0; encoded[i]; i++)
+    {
+      if (encoded[i] == '=')
+        {
+          encoded[i] = '\0';
+          break;
+        }
+
+      if (encoded[i] == '+' || encoded[i] == '/')
+        encoded[i] = '_';
+    }
+
+  return g_steal_pointer (&encoded);
+}
+
+char *
+xdp_generate_token (void)
+{
+  uint32_t rng[4];
+
+  for (size_t i = 0; i < G_N_ELEMENTS (rng); i++)
+    rng[i] = g_random_int ();
+
+  return encode_base64_for_dbus ((const uint8_t *) rng, sizeof (rng));
+}
+
+char *
+xdp_generate_key (GError **error)
+{
+  uint8_t key[16];
+
+  if (getrandom (key, sizeof (key), 0) != sizeof (key))
+    {
+      g_set_error (error, G_IO_ERROR, g_io_error_from_errno (errno),
+                   "Failed to get random data: %s", g_strerror (errno));
+      return NULL;
+    }
+
+  return encode_base64_for_dbus (key, sizeof (key));
 }
