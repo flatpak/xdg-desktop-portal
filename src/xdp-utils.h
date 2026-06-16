@@ -135,6 +135,22 @@ char * xdp_spawn_full (const char * const  *argv,
                        int                  target_fd,
                        GError             **error);
 
+/**
+ * xdp_is_valid_filename:
+ * @filename: a filename to validate
+ *
+ * Checks whether @filename is a valid bare filename, i.e. a single path
+ * component that is safe to append to a directory path. Specifically, a
+ * valid filename must be non-empty and must not contain a path separator
+ * ('/').
+ *
+ * This does NOT check for filesystem length limits or invalid characters
+ * beyond '/'.
+ *
+ * Returns: %TRUE if @filename is valid, %FALSE otherwise
+ */
+gboolean xdp_is_valid_filename (const char *filename);
+
 char * xdp_canonicalize_filename (const char *path);
 gboolean  xdp_has_path_prefix (const char *str,
                                const char *prefix);

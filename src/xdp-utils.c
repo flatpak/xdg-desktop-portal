@@ -639,6 +639,21 @@ xdp_spawn_full (const char * const  *argv,
   return NULL;
 }
 
+gboolean
+xdp_is_valid_filename (const char *filename)
+{
+  if (*filename == '\0')
+    return FALSE;
+
+  if (strcmp (filename, ".") == 0 || strcmp (filename, "..") == 0)
+    return FALSE;
+
+  if (strchr (filename, '/') != NULL)
+    return FALSE;
+
+  return TRUE;
+}
+
 char *
 xdp_canonicalize_filename (const char *path)
 {
