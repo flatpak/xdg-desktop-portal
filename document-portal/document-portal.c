@@ -1155,7 +1155,7 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
         parent_fd = fds[parent_fd_id];
     }
 
-  if (strchr (filename, '/') != NULL || *filename == 0)
+  if (!xdp_is_valid_filename (filename))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
@@ -1283,7 +1283,7 @@ portal_add_named (GDBusMethodInvocation *invocation,
         parent_fd = fds[parent_fd_id];
     }
 
-  if (strchr (filename, '/') != NULL || *filename == 0)
+  if (!xdp_is_valid_filename (filename))
     {
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR, XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
