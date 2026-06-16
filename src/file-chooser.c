@@ -701,12 +701,39 @@ handle_save_file (XdpDbusFileChooser *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static gboolean
+validate_files (const char  *key,
+                GVariant    *value,
+                GVariant    *options,
+                gpointer     user_data,
+                GError     **error)
+{
+  g_autofree const char **filenames = NULL;
+
+  g_variant_get (value, "^a&ay", &filenames);
+
+  for (size_t i = 0; filenames[i] != NULL; i++)
+    {
+      if (!xdp_is_valid_filename (filenames[i]))
+        {
+          g_set_error (error,
+                       XDG_DESKTOP_PORTAL_ERROR,
+                       XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
+                       "invalid filename: \"%s\"",
+                       filenames[i]);
+          return FALSE;
+        }
+    }
+
+  return TRUE;
+}
+
 static XdpOptionKey save_files_options[] = {
   { "accept_label", G_VARIANT_TYPE_STRING, NULL },
   { "modal", G_VARIANT_TYPE_BOOLEAN, NULL },
   { "current_name", G_VARIANT_TYPE_STRING, NULL },
   { "current_folder", G_VARIANT_TYPE_BYTESTRING, NULL },
-  { "files", G_VARIANT_TYPE_BYTESTRING_ARRAY, NULL },
+  { "files", G_VARIANT_TYPE_BYTESTRING_ARRAY, validate_files },
   { "choices", (const GVariantType *)"a(ssa(ss)s)", validate_choices  }
 };
 
