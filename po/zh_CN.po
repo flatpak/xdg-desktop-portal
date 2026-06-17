@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
 "PO-Revision-Date: 2026-03-18 16:33+0800\n"
 "Last-Translator: lumingzh <lumingzh@qq.com>\n"
 "Language-Team: Chinese (China) <i18n-zh@googlegroups.com>\n"
@@ -92,62 +92,62 @@ msgstr "传递给 Install() 的桌面入口文件不是有效的设定键文件"
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "传递给 Install() 的桌面入口文件只能有一个分组"
 
-#: src/dynamic-launcher.c:367
+#: src/dynamic-launcher.c:368
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "提供的令牌无效：%s"
 
-#: src/dynamic-launcher.c:410
+#: src/dynamic-launcher.c:411
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "传递给 Install() 的桌面入口文件无效"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "桌面文件超出最大尺寸（%d）：%s"
 
-#: src/dynamic-launcher.c:603
+#: src/dynamic-launcher.c:618
 #, c-format
 msgid "Given URI is invalid: %s"
 msgstr "提供的 URI 无效：%s"
 
-#: src/dynamic-launcher.c:625
+#: src/dynamic-launcher.c:640
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "无效的启动器类型：%x"
 
-#: src/dynamic-launcher.c:632
+#: src/dynamic-launcher.c:647
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "不支持的启动器类型：%x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
 msgid "Dynamic launcher icon failed validation"
 msgstr "动态启动器图标验证失败"
 
-#: src/dynamic-launcher.c:789
+#: src/dynamic-launcher.c:806
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "应用标识 %s 不允许使用 RequestInstallToken()"
 
-#: src/dynamic-launcher.c:968
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "桌面文件“%s”图标位于未识别的路径"
 
-#: src/dynamic-launcher.c:991
+#: src/dynamic-launcher.c:1008
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "桌面文件“%s”图标序列化失败"
 
-#: src/dynamic-launcher.c:1030
+#: src/dynamic-launcher.c:1047
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "带有标识“%s”的动态启动器不存在"
 
-#: src/dynamic-launcher.c:1049
+#: src/dynamic-launcher.c:1066
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "为带有标识“%s”的启动器创建 GDesktopAppInfo 失败"
