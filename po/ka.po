@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
 "PO-Revision-Date: 2026-02-20 06:01+0100\n"
 "Last-Translator: Ekaterine Papava <papava.e@gtu.ge>\n"
 "Language-Team: Georgian <(nothing)>\n"
@@ -96,62 +96,62 @@ msgstr ""
 "სამუშაო მაგიდის ფაილის ჩანაწერმა ფუნქციას install() ზუსტად ერთი ჯგუფი უნდა "
 "გადასცეს"
 
-#: src/dynamic-launcher.c:367
+#: src/dynamic-launcher.c:368
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "გადმოცემული ტოკენი არასწორია: %s"
 
-#: src/dynamic-launcher.c:410
+#: src/dynamic-launcher.c:411
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "ფუნქციისთვის install() გადაცემული სამუშაო მაგიდის ჩანაწერი არასწორია"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "სამუშაო მაგიდის ფაილის ზომა მაქსიმალურზე (%d) მეტია: %s"
 
-#: src/dynamic-launcher.c:603
+#: src/dynamic-launcher.c:618
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "გადაცემული URL არასწორია: %s"
 
-#: src/dynamic-launcher.c:625
+#: src/dynamic-launcher.c:640
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "არასწორი გამშვების ტიპი: %x"
 
-#: src/dynamic-launcher.c:632
+#: src/dynamic-launcher.c:647
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "მხარდაუჭერელი გამშვების ტიპი: %x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
 msgid "Dynamic launcher icon failed validation"
 msgstr "დინამიკური გამშვების ხატულის გადამოწმება ჩავარდა"
 
-#: src/dynamic-launcher.c:789
+#: src/dynamic-launcher.c:806
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() დაუშვებელია აპისთვის id-ით %s"
 
-#: src/dynamic-launcher.c:968
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "სამუშაო მაგიდის ფაილის '%s' ხატულა უცნობ ბილიკზეა"
 
-#: src/dynamic-launcher.c:991
+#: src/dynamic-launcher.c:1008
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "სამუშაო ფაილის '%s' სერიალიზაციის შეცდომა"
 
-#: src/dynamic-launcher.c:1030
+#: src/dynamic-launcher.c:1047
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "id-ით '%s' დინამიკური გამშვები არ არსებობს"
 
-#: src/dynamic-launcher.c:1049
+#: src/dynamic-launcher.c:1066
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "გამშვებისთვის id-ით '%s' GDesktopAppInfo-ის შექმნა ჩავარდა"

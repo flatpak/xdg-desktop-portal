@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
 "PO-Revision-Date: 2026-02-16 06:40+0500\n"
 "Last-Translator: Baurzhan Muftakhidinov <baurthefirst@gmail.com>\n"
 "Language-Team: Kazakh <kk_KZ@googlegroups.com>\n"
@@ -94,62 +94,62 @@ msgstr ""
 "Install() функциясына берілген жұмыс үстелі элементінде тек бір топ болуы "
 "тиіс"
 
-#: src/dynamic-launcher.c:367
+#: src/dynamic-launcher.c:368
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Берілген токен жарамсыз: %s"
 
-#: src/dynamic-launcher.c:410
+#: src/dynamic-launcher.c:411
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Install() функциясына берілген жұмыс үстелі элементі жарамсыз"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Жұмыс үстелі файлы максималды өлшемнен (%d) асады: %s"
 
-#: src/dynamic-launcher.c:603
+#: src/dynamic-launcher.c:618
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "Берілген URL жарамсыз: %s"
 
-#: src/dynamic-launcher.c:625
+#: src/dynamic-launcher.c:640
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Жөнелткіш түрі жарамсыз: %x"
 
-#: src/dynamic-launcher.c:632
+#: src/dynamic-launcher.c:647
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Жөнелткіш түріне қолдау көрсетілмейді: %x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
 msgid "Dynamic launcher icon failed validation"
 msgstr "Динамикалық жөнелткіш таңбашасын тексеру сәтсіз аяқталды"
 
-#: src/dynamic-launcher.c:789
+#: src/dynamic-launcher.c:806
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "%s қолданба идентификаторы үшін RequestInstallToken() рұқсат етілмеген"
 
-#: src/dynamic-launcher.c:968
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "'%s' жұмыс үстелі файлының таңбашасы танылмаған жолда орналасқан"
 
-#: src/dynamic-launcher.c:991
+#: src/dynamic-launcher.c:1008
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "'%s' жұмыс үстелі файлының таңбашасын сериялау сәтсіз аяқталды"
 
-#: src/dynamic-launcher.c:1030
+#: src/dynamic-launcher.c:1047
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "'%s' идентификаторы бар динамикалық жөнелткіш табылмады"
 
-#: src/dynamic-launcher.c:1049
+#: src/dynamic-launcher.c:1066
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""

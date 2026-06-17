@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal main\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
 "PO-Revision-Date: 2025-08-03 09:48+0200\n"
 "Last-Translator: twlvnn kraftwerk <kraft_werk@tutanota.com>\n"
 "Language-Team: Bulgarian <dict-notifications@fsa-bg.org>\n"
@@ -98,64 +98,64 @@ msgstr ""
 "Записът за работния плот, зададен за „Install()“, трябва да има точно една "
 "група"
 
-#: src/dynamic-launcher.c:367
+#: src/dynamic-launcher.c:368
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Даденият токен е неправилен: %s"
 
-#: src/dynamic-launcher.c:410
+#: src/dynamic-launcher.c:411
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Записът за работния плот, зададен за „Install()“, е неправилен"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Файлът за работния плот надвишава максималния размер (%d): %s"
 
-#: src/dynamic-launcher.c:603
+#: src/dynamic-launcher.c:618
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "Даденият адрес е неправилен: %s"
 
-#: src/dynamic-launcher.c:625
+#: src/dynamic-launcher.c:640
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Неправилен вид стартер: %x"
 
-#: src/dynamic-launcher.c:632
+#: src/dynamic-launcher.c:647
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Неподдържан вид стартер: %x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
 msgid "Dynamic launcher icon failed validation"
 msgstr "Динамичната иконка на стартера не може да се одобри"
 
-#: src/dynamic-launcher.c:789
+#: src/dynamic-launcher.c:806
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr ""
 "Програмата с идентификатор %s няма достъп до функцията "
 "„RequestInstallToken()“"
 
-#: src/dynamic-launcher.c:968
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Иконката на файла „%s“ за работния плот е на неразпознат път"
 
-#: src/dynamic-launcher.c:991
+#: src/dynamic-launcher.c:1008
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Иконката на файла „%s“ за работния плот не може да бъде сериализирана"
 
-#: src/dynamic-launcher.c:1030
+#: src/dynamic-launcher.c:1047
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Не съществува динамичен стартер с идентификатор „%s“"
 
-#: src/dynamic-launcher.c:1049
+#: src/dynamic-launcher.c:1066
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""

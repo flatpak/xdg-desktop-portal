@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
+"POT-Creation-Date: 2026-06-17 18:19+0200\n"
 "PO-Revision-Date: 2025-06-08 21:59+0300\n"
 "Last-Translator: Ahmed Najmawi <iramosu@protonmail.com>\n"
 "Language-Team: \n"
@@ -94,62 +94,62 @@ msgid "Desktop entry given to Install() must have exactly one group"
 msgstr ""
 "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ يجب أن تحتوي على مجموعة واحدة بالضبط"
 
-#: src/dynamic-launcher.c:367
+#: src/dynamic-launcher.c:368
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "الأمارة المعطاة غير صالحة: %s"
 
-#: src/dynamic-launcher.c:410
+#: src/dynamic-launcher.c:411
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "مُدخلة سطح المكتب المُمرَّرة إلى ‏‎Install()‎‏ غير صالحة"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: src/dynamic-launcher.c:420 src/dynamic-launcher.c:896
+#: src/dynamic-launcher.c:945
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "ملف سطح المكتب يتجاوز الحجم الأقصى (%d): ‏%s"
 
-#: src/dynamic-launcher.c:603
+#: src/dynamic-launcher.c:618
 #, fuzzy, c-format
 msgid "Given URI is invalid: %s"
 msgstr "المسار المُعطى غير صالح: %s"
 
-#: src/dynamic-launcher.c:625
+#: src/dynamic-launcher.c:640
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "نوع المُطلِق غير صالح: %x"
 
-#: src/dynamic-launcher.c:632
+#: src/dynamic-launcher.c:647
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "نوع المُطلِق غير مدعوم: %x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: src/dynamic-launcher.c:713 src/dynamic-launcher.c:788
 msgid "Dynamic launcher icon failed validation"
 msgstr "تعذَّر التحقق من أيقونة المشغِّل الحركية"
 
-#: src/dynamic-launcher.c:789
+#: src/dynamic-launcher.c:806
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "الدالة ‏‎RequestInstallToken()‎‏ غير مسموح بها لمعرِّف التطبيق %s"
 
-#: src/dynamic-launcher.c:968
+#: src/dynamic-launcher.c:985
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "أيقونة ملف سطح المكتب ’%s‘ موجودة في مسار مجهول."
 
-#: src/dynamic-launcher.c:991
+#: src/dynamic-launcher.c:1008
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "تعذَّرت سلسلة أيقونة ملف سطح المكتب ’%s‘"
 
-#: src/dynamic-launcher.c:1030
+#: src/dynamic-launcher.c:1047
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "لا يوجد مشغِّل حركي بالمعرِّف ’%s‘."
 
-#: src/dynamic-launcher.c:1049
+#: src/dynamic-launcher.c:1066
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr "تعذَّر إنشاء ‏‎GDesktopAppInfo‎‏ للمشغِّل بالمعرِّف ’%s‘."
