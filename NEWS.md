@@ -1,3 +1,9 @@
+Changes in 1.22.2
+=================
+Released: Not yet
+
+...
+
 Changes in 1.22.1
 =================
 Released: 2026-06-17
