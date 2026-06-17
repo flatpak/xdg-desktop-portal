@@ -1,8 +1,22 @@
 Changes in 1.22.1
 =================
-Released: Not yet
+Released: 2026-06-17
 
-...
+Security fixes:
+
+- Fix a security issue which allows a malicious sandboxed applications to
+  redirect drag-and-drop and copy-paste data to itself via a predictable
+  key in `FileTransfer.RetrieveFiles` (GHSA-c5cf-79w8-pvfh)
+- Fix a security issue which allows a malicious sandboxed applications to gain
+  arbitrary write access to nonexistent files outside of the sandbox via the
+  "files" option in `FileChooser.SaveFiles` (GHSA-cm83-2936-gxjm)
+- Validate all App IDs in the Document Portal to prevent malicious applications
+  from providing a well-crafted App ID which causes the parsing of arbitrary
+  files on the host as `Glib.KeyFile`s (#2023)
+
+Enhancements:
+
+- Disable PipeWire's realtime module to prevent deadlocks (#2012)
 
 Changes in 1.22.0
 =================
