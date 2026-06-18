@@ -217,6 +217,7 @@ def xdg_desktop_portal_dir_default_files() -> Dict[str, bytes]:
         "org.freedesktop.impl.portal.Notification",
         "org.freedesktop.impl.portal.Print",
         "org.freedesktop.impl.portal.RemoteDesktop",
+        "org.freedesktop.impl.portal.ScreenCast",
         "org.freedesktop.impl.portal.Screenshot",
         "org.freedesktop.impl.portal.Settings",
         "org.freedesktop.impl.portal.Usb",
