@@ -253,20 +253,15 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 
-  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD)
     {
-      /* Host portal dbus method invocations run in the main thread without yielding
-       * to the main loop. This means that any later method call of any portal will
-       * see the effects of the host portal method call.
-       *
-       * This is important because the Registry modifies the XdpAppInfo and later
-       * method calls must see the modified value.
-       */
-
       g_dbus_interface_skeleton_set_flags (
         skeleton,
         G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+    }
 
+  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH))
+    {
       g_signal_connect_object (skeleton, "g-authorize-method",
                                G_CALLBACK (authorize_callback),
                                context,
