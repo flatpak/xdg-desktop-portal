@@ -7,7 +7,7 @@ set -eo pipefail
 IMAGE=xdg-desktop-portal-check:latest
 
 PREFIX="${TOOLBOX_PATH:+flatpak-spawn --host}"
-CMD="${PREFIX} $(${PREFIX} command -v podman docker)"
+CMD="${PREFIX} $(${PREFIX} sh -c 'command -v podman docker')"
 
 if ! $CMD inspect "${IMAGE}" >/dev/null; then
   $CMD build -f containerfiles/check.containerfile -t "${IMAGE}" .
