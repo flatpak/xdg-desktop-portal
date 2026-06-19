@@ -17,9 +17,6 @@ G_DECLARE_FINAL_TYPE (XdpAppInfoRegistry,
 
 XdpAppInfoRegistry * xdp_app_info_registry_new (void);
 
-XdpAppInfo * xdp_app_info_registry_lookup_sender (XdpAppInfoRegistry *registry,
-                                                  const char         *sender);
-
 gboolean xdp_app_info_registry_has_sender (XdpAppInfoRegistry *registry,
                                            const char         *sender);
 
