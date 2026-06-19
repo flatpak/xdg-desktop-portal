@@ -235,13 +235,11 @@ authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  /* FIXME: this is a sync call in a fiber, which is really bad because it
-   * blocks all other fibers. We will swap it out with a future variant later
-   */
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  app_info = dex_await_object (xdp_app_info_registry_ensure_future (
+      context->app_info_registry,
+      invocation),
+    &error);
+
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -262,13 +260,15 @@ authorize_callback (GDBusInterfaceSkeleton *interface,
                     gpointer                user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(DexFuture) future = NULL;
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  future = xdp_app_info_registry_ensure_future (context->app_info_registry,
+                                                invocation);
+  dex_thread_wait_for (dex_ref (future), NULL);
+
+  app_info = dex_await_object (g_steal_pointer (&future), &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -366,7 +366,8 @@ on_peer_disconnect (const char *name,
 
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 
-  xdp_app_info_registry_delete (context->app_info_registry, name);
+  dex_future_disown (xdp_app_info_registry_delete_future (context->app_info_registry,
+                                                          name));
 }
 
 gboolean
