@@ -60,7 +60,7 @@ xdp_app_info_registry_new (void)
   return registry;
 }
 
-XdpAppInfo *
+static XdpAppInfo *
 xdp_app_info_registry_lookup_sender (XdpAppInfoRegistry *registry,
                                      const char         *sender)
 {
