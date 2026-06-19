@@ -176,7 +176,15 @@ init_registry (XdpContext *context)
 
   registry = registry_new (app_info_registry);
 
+  /* We must ensure that method dispatches run on the main thread without
+   * yielding to the main loop, so that any later method call of any portal will
+   * see the effects of this portal. In particular this portal modifies the
+   * XdpAppInfo and later method calls must see the modified value.
+   *
+   * Thus, we do not dispatch in threads or fibers, but instead run on the main
+   * thread, and skip authentication (so we don't create a XdpAppInfo).
+   */
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&registry)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL);
+                                      XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH);
 }
