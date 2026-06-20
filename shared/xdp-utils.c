@@ -11,12 +11,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/random.h>
 
 #include <gio/gio.h>
 #include <gio/gunixoutputstream.h>
 #include <json-glib/json-glib.h>
 #include <sys/ioctl.h>
+#include <sys/random.h>
 
 #include "xdp-types.h"
 
@@ -627,7 +627,7 @@ xdp_is_valid_filename (const char *filename)
   if (*filename == '\0')
     return FALSE;
 
-  if (strcmp (filename, ".") == 0 || strcmp (filename, "..") == 0)
+  if (g_strcmp0 (filename, ".") == 0 || g_strcmp0 (filename, "..") == 0)
     return FALSE;
 
   if (strchr (filename, '/') != NULL)
