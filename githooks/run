@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText:
+
+set -eo pipefail
+
+IMAGE=xdg-desktop-portal-check:latest
+
+PREFIX="${TOOLBOX_PATH:+flatpak-spawn --host}"
+CMD="${PREFIX} $(${PREFIX} sh -c 'command -v podman docker')"
+
+if ! $CMD inspect "${IMAGE}" >/dev/null; then
+  $CMD build -f containerfiles/check.containerfile -t "${IMAGE}" .
+fi
+
+$CMD run --rm \
+         -v "$PWD:/workspace:Z" \
+         --entrypoint "pre-commit" \
+         xdg-desktop-portal-check:latest \
+         run \
+         --config=/etc/pre-commit-config.yaml \
+         $@
