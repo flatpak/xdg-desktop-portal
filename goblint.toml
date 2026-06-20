@@ -6,3 +6,4 @@ ignore = [
   "subprojects/**",
   "document-portal/gvdb/**",
 ]
+default_level = "error"
