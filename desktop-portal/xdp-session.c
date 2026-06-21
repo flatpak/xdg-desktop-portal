@@ -277,7 +277,6 @@ xdp_session_initable_init (GInitable     *initable,
   int i;
 
   g_assert (session->sender != NULL);
-  g_assert (session->token != NULL);
   g_assert (session->context != NULL);
 
   sender_escaped = g_strdup (session->sender + 1);
