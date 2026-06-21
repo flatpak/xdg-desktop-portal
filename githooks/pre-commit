@@ -10,13 +10,13 @@ PREFIX="${TOOLBOX_PATH:+flatpak-spawn --host}"
 CMD="${PREFIX} $(${PREFIX} sh -c 'command -v podman docker')"
 
 if ! $CMD inspect "${IMAGE}" >/dev/null; then
-  $CMD build -f containerfiles/check.containerfile -t "${IMAGE}" .
+  "$(dirname "$0")"/build
 fi
 
 $CMD run --rm \
          -v "$PWD:/workspace:Z" \
          --entrypoint "pre-commit" \
-         xdg-desktop-portal-check:latest \
+         "${IMAGE}" \
          hook-impl \
          --hook-type pre-commit \
          --config=/etc/pre-commit-config.yaml \
