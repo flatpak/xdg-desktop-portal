@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
-default_stages: [pre-commit, pre-push]
+default_stages: [pre-commit, pre-push, manual]
 repos:
 - repo: local
   hooks:
@@ -58,4 +58,4 @@ repos:
     - id: gitlint
       stages: [commit-msg]
     - id: gitlint-ci
-      stages: [pre-commit]
+      stages: [manual]

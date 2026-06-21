@@ -18,5 +18,6 @@ $CMD run --rm \
          --entrypoint "pre-commit" \
          "${IMAGE}" \
          run \
+         --hook-stage manual \
          --config=/etc/pre-commit-config.yaml \
          $@
