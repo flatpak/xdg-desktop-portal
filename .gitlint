@@ -5,6 +5,7 @@
 ignore=title-must-not-contain-word, body-max-line-length, body-min-length, body-is-missing, author-valid-email
 ignore-merge-commits=true
 extra-path=.gitlint.conf/
+regex-style-search=True
 
 [ignore-by-title]
 regex=^Merge
