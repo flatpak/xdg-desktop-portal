@@ -29,11 +29,11 @@ RUN apt install -y --no-install-recommends qt6-base-dev-tools
 # Install our potfile check script
 COPY containerfiles/check-potfiles.sh /usr/local/bin
 
-# Install goblint
+# Install gobject-linter
 RUN cargo install --root /usr/local \
-                  --git https://github.com/bilelmoussaoui/goblint \
-                  --rev 9c34d77 \
-                  goblint
+                  --git https://github.com/bilelmoussaoui/gobject-linter \
+                  --rev 0622b96 \
+                  gobject-linter
 
 # Make it possible to use gitlint
 RUN git config --global user.name "John Doe"
