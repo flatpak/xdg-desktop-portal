@@ -5,10 +5,10 @@ default_stages: [pre-commit, pre-push, manual]
 repos:
 - repo: local
   hooks:
-    - id: goblint
-      name: goblint linter
+    - id: gobject-linter
+      name: gobject linter
       language: unsupported
-      entry: goblint .
+      entry: gobject-linter .
       files: \.[ch]$
       pass_filenames: false
     - id: potfiles

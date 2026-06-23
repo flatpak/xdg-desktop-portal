@@ -8,3 +8,6 @@ ignore = [
   "pipewire/pw-module/**",
 ]
 default_level = "error"
+
+[rules.type_style]
+level = "ignore"

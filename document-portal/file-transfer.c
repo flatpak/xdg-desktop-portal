@@ -195,7 +195,7 @@ file_transfer_stop (FileTransfer *transfer)
   g_hash_table_steal (transfers, transfer->key);
   G_UNLOCK (transfers);
 
-  /* goblint-ignore-next-line: g_source_id_not_stored */
+  /* gobject-linter-ignore-next-line: g_source_id_not_stored */
   g_idle_add_once (g_object_unref, g_steal_pointer (&transfer));
 }
 
