@@ -15,7 +15,5 @@ please check
 
 | Version   | Supported          | Status
 | --------  | ------------------ | ------------------------------------------------------------- |
-| 1.23.x    | :white_check_mark: | Development branch, releases may include non-security changes |
 | 1.22.x    | :white_check_mark: | Stable branch, recommended for use in distributions           |
-| 1.20.x    | :white_check_mark: | Old stable branch, still maintained                           |
-| <= 1.18.x | :x:                | Older branches, no longer supported                           |
+| <= 1.20.x | :x:                | Older branches, no longer supported                           |
