@@ -877,6 +877,7 @@ document_add_full (int                      *fd,
                    DocumentPermissionFlags   target_perms,
                    GError                  **error)
 {
+  /* gobject-linter-ignore-next-line: use_auto_cleanup */
   const char *app_id = xdp_app_info_get_id (app_info);
   g_autoptr(GPtrArray) ids = g_ptr_array_new_with_free_func (g_free);
   g_autoptr(GPtrArray) paths = g_ptr_array_new_with_free_func (g_free);
@@ -1006,8 +1007,7 @@ document_add_full (int                      *fd,
         if (as_needed_by_app &&
             app_has_file_access (target_app_id, target_perms, path))
           {
-            g_free (g_ptr_array_index(ids,i));
-            g_ptr_array_index(ids,i) = g_strdup ("");
+            g_set_str ((char **) &g_ptr_array_index (ids, i), "");
             continue;
           }
 
@@ -1039,6 +1039,7 @@ document_add_full (int                      *fd,
   /* Invalidate with lock dropped to avoid deadlock */
   for (i = 0; i < n_args; i++)
     {
+      /* gobject-linter-ignore-next-line: use_auto_cleanup */
       const char *id = g_ptr_array_index (ids,i);
       g_assert (id != NULL);
 
