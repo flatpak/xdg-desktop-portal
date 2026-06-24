@@ -305,6 +305,8 @@ class AppInfoFlatpak(AppInfo):
     instance_id: str | None = None
     usb_queries: str | None = None
     metadata: bytes | None = None
+    entitlements: List[str] | None = None
+    entitlements_version: int = 0
 
     def __post_init__(self):
         if not self.desktop_file:
@@ -350,6 +352,13 @@ devices=dri;
 enumerable-devices={self.usb_queries}
 """
             self.metadata += metadata_usb_str.encode("utf8")
+
+        metadata_entitlements_str = "\n[Policy entitlement]\n"
+        metadata_entitlements_str += f"version={self.entitlements_version}\n"
+        metadata_entitlements_str += "grant="
+        for e in self.entitlements or []:
+            metadata_entitlements_str += f"{e};"
+        self.metadata += metadata_entitlements_str.encode("utf8")
 
     def _initialize(self):
         assert self.desktop_file
