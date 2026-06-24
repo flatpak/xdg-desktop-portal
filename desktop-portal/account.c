@@ -239,7 +239,7 @@ init_account (gpointer user_data)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&account)),
-				      XDP_ENTITLEMENT_NONE,
+				      XDP_ENTITLEMENT_ACCOUNT,
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
 
   return dex_future_new_true ();
