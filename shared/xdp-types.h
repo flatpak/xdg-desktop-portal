@@ -12,8 +12,14 @@ typedef enum {
   XDG_DESKTOP_PORTAL_RESPONSE_OTHER = 2,
 } XdgDesktopPortalResponseEnum;
 
+typedef enum _XdpEntitlement
+{
+  XDP_ENTITLEMENT_NONE = 0,
+} XdpEntitlement;
+
 typedef struct _XdpContext XdpContext;
 typedef struct _XdpAppInfo XdpAppInfo;
+typedef struct _XdpEntitlements XdpEntitlements;
 typedef struct _XdpAppInfoRegistry XdpAppInfoRegistry;
 typedef struct _XdpPortalConfig XdpPortalConfig;
 typedef struct _XdpDbusImplLockdown XdpDbusImplLockdown;
