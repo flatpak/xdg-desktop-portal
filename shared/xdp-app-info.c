@@ -19,6 +19,7 @@
 #include "xdp-app-info-host-private.h"
 #include "xdp-app-info-linyaps-private.h"
 #include "xdp-app-info-snap-private.h"
+#include "xdp-entitlements.h"
 #include "xdp-enum-types.h"
 #include "xdp-utils.h"
 
@@ -57,6 +58,7 @@ typedef struct _XdpAppInfoPrivate
 
   /* misc */
   XdpAppInfoFlags flags;
+  XdpEntitlements *entitlements;
 } XdpAppInfoPrivate;
 
 static void g_initable_init_iface (GInitableIface *iface);
@@ -68,6 +70,7 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (XdpAppInfo, xdp_app_info, G_TYPE_OBJECT,
 typedef enum
 {
   PROP_ENGINE = 1,
+  PROP_ENTITLEMENTS,
   PROP_FLAGS,
   PROP_G_APP_INFO,
   PROP_ID,
@@ -129,6 +132,7 @@ xdp_app_info_dispose (GObject *object)
   g_clear_pointer (&priv->id, g_free);
   g_clear_pointer (&priv->instance, g_free);
   g_clear_object (&priv->gappinfo);
+  g_clear_object (&priv->entitlements);
   g_clear_pointer (&priv->sender, g_free);
 
   if (!g_clear_fd (&priv->pidfd, &error))
@@ -150,6 +154,10 @@ xdp_app_info_get_property (GObject    *object,
     {
     case PROP_ENGINE:
       g_value_set_string (value, priv->engine);
+      break;
+
+    case PROP_ENTITLEMENTS:
+      g_value_set_object (value, priv->entitlements);
       break;
 
     case PROP_FLAGS:
@@ -192,6 +200,11 @@ xdp_app_info_set_property (GObject      *object,
     case PROP_ENGINE:
       g_assert (priv->engine == NULL);
       priv->engine = g_value_dup_string (value);
+      break;
+
+    case PROP_ENTITLEMENTS:
+      g_assert (priv->entitlements == NULL);
+      priv->entitlements = g_value_dup_object (value);
       break;
 
     case PROP_FLAGS:
@@ -239,6 +252,13 @@ xdp_app_info_class_init (XdpAppInfoClass *klass)
   properties[PROP_ENGINE] =
     g_param_spec_string ("engine", NULL, NULL,
                          NULL,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_ENTITLEMENTS] =
+    g_param_spec_object ("entitlements", NULL, NULL,
+                         XDP_TYPE_ENTITLEMENTS,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
@@ -880,4 +900,12 @@ xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
     }
 
   return XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries (app_info);
+}
+
+XdpEntitlements *
+xdp_app_info_get_entitlements (XdpAppInfo *app_info)
+{
+  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
+
+  return priv->entitlements;
 }
