@@ -900,6 +900,6 @@ init_file_chooser (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&file_chooser)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_FILE_CHOOSER,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

@@ -335,6 +335,6 @@ init_settings (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_SETTINGS,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

@@ -1168,6 +1168,6 @@ init_open_uri (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&open_uri)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_OPEN_URI,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

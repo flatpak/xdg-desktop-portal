@@ -323,6 +323,6 @@ init_realtime (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&realtime)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_REALTIME,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

@@ -837,6 +837,6 @@ init_global_shortcuts (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&global_shortcuts)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_GLOBAL_SHORTCUTS,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

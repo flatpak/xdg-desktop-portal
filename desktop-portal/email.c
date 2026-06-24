@@ -366,6 +366,6 @@ init_email (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&email)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_EMAIL,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

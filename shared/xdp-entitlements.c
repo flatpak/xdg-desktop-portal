@@ -32,16 +32,64 @@ typedef struct _XdpEntitlementInfo
 
 static const XdpEntitlementInfo xdp_entitlements[] =
 {
+  [XDP_ENTITLEMENT_ACCOUNT] =
+    { .name = ACCOUNT_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_BACKGROUND] =
+    { .name = BACKGROUND_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_CAMERA] =
+    { .name = CAMERA_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_CLIPBOARD] =
+    { .name = CLIPBOARD_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_DYNAMIC_LAUNCHER] =
+    { .name = DYNAMIC_LAUNCHER_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_EMAIL] =
+    { .name = EMAIL_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_FILE_CHOOSER] =
+    { .name = FILE_CHOOSER_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_GAMEMODE] =
+    { .name = GAMEMODE_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_GLOBAL_SHORTCUTS] =
+    { .name = GLOBAL_SHORTCUTS_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_INHIBIT] =
+    { .name = INHIBIT_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_INPUT_CAPTURE] =
+    { .name = INPUT_CAPTURE_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_LOCATION] =
+    { .name = LOCATION_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_MEMORY_MONITOR] =
+    { .name = MEMORY_MONITOR_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_NETWORK_MONITOR] =
+    { .name = NETWORK_MONITOR_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_NOTIFICATION] =
+    { .name = NOTIFICATION_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_OPEN_URI] =
+    { .name = OPEN_URI_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_POWER_PROFILE_MONITOR] =
+    { .name = POWER_PROFILE_MONITOR_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_PRINT] =
+    { .name = PRINT_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_PROXY_RESOLVER] =
+    { .name = PROXY_RESOLVER_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_REALTIME] =
+    { .name = REALTIME_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_REMOTE_DESKTOP] =
+    { .name = REMOTE_DESKTOP_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_SCREEN_CAST] =
+    { .name = SCREEN_CAST_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_SCREENSHOT] =
+    { .name = SCREENSHOT_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_SECRET] =
+    { .name = SECRET_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_SETTINGS] =
+    { .name = SETTINGS_ENTITLEMENT_NAME, .version = 1 },
+  [XDP_ENTITLEMENT_TRASH] =
+    { .name = TRASH_ENTITLEMENT_NAME, .version = 1 },
   [XDP_ENTITLEMENT_USB] =
-    {
-      .name = USB_ENTITLEMENT_NAME,
-      .version = 1,
-    },
+    { .name = USB_ENTITLEMENT_NAME, .version = 1 },
   [XDP_ENTITLEMENT_USB_DEVICES] =
-    {
-      .name = USB_DEVICES_ENTITLEMENT_NAME,
-      .version = 0,
-    },
+    { .name = USB_DEVICES_ENTITLEMENT_NAME, .version = 0 },
+  [XDP_ENTITLEMENT_WALLPAPER] =
+    { .name = WALLPAPER_ENTITLEMENT_NAME, .version = 1 },
 };
 
 struct _XdpEntitlements

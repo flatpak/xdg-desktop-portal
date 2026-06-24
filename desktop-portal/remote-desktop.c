@@ -1697,6 +1697,6 @@ init_remote_desktop (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&remote_desktop)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_REMOTE_DESKTOP,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }

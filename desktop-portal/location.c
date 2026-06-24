@@ -780,6 +780,6 @@ init_location (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&location)),
-                                      XDP_ENTITLEMENT_NONE,
+                                      XDP_ENTITLEMENT_LOCATION,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
