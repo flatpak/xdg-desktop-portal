@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include "xdp-entitlements-private.h"
+#include "xdp-usb-query.h"
 #include "xdp-utils.h"
 
 /* Entitlement metadata table */
@@ -31,9 +32,14 @@ typedef struct _XdpEntitlementInfo
 
 static const XdpEntitlementInfo xdp_entitlements[] =
 {
-  [XDP_ENTITLEMENT_NONE] =
+  [XDP_ENTITLEMENT_USB] =
     {
-      .name = "org.freedesktop.portal.None",
+      .name = USB_ENTITLEMENT_NAME,
+      .version = 1,
+    },
+  [XDP_ENTITLEMENT_USB_DEVICES] =
+    {
+      .name = USB_DEVICES_ENTITLEMENT_NAME,
       .version = 0,
     },
 };
@@ -44,13 +50,27 @@ struct _XdpEntitlements
 
   unsigned int version;
   uint64_t granted;
+  GPtrArray *usb_queries;
 };
 
 G_DEFINE_FINAL_TYPE (XdpEntitlements, xdp_entitlements, G_TYPE_OBJECT)
 
 static void
+xdp_entitlements_dispose (GObject *object)
+{
+  XdpEntitlements *self = XDP_ENTITLEMENTS (object);
+
+  g_clear_pointer (&self->usb_queries, g_ptr_array_unref);
+
+  G_OBJECT_CLASS (xdp_entitlements_parent_class)->dispose (object);
+}
+
+static void
 xdp_entitlements_class_init (XdpEntitlementsClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
+
+  object_class->dispose = xdp_entitlements_dispose;
 }
 
 static void
@@ -82,10 +102,39 @@ xdp_entitlements_grant (XdpEntitlements *self,
 void
 xdp_entitlements_grant_all (XdpEntitlements *self)
 {
+  g_autoptr(GPtrArray) usb_queries = NULL;
+  g_autoptr(XdpUsbQuery) query = NULL;
+
   g_return_if_fail (XDP_IS_ENTITLEMENTS (self));
 
   for (size_t i = 1; i < G_N_ELEMENTS (xdp_entitlements); i++)
     self->granted |= (1u << i);
+
+  usb_queries =
+    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
+  if (query)
+    g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+
+  g_clear_pointer (&self->usb_queries, g_ptr_array_unref);
+  self->usb_queries = g_steal_pointer (&usb_queries);
+}
+
+void
+xdp_entitlements_grant_usb_devices (XdpEntitlements *self,
+                                    GPtrArray       *usb_queries_arg)
+{
+  g_autoptr(GPtrArray) usb_queries = usb_queries_arg;
+
+  g_return_if_fail (XDP_IS_ENTITLEMENTS (self));
+
+  if (usb_queries == NULL || usb_queries->len <= 0)
+    return;
+
+  self->granted |= (1u << XDP_ENTITLEMENT_USB_DEVICES);
+
+  g_clear_pointer (&self->usb_queries, g_ptr_array_unref);
+  self->usb_queries = g_steal_pointer (&usb_queries);
 }
 
 gboolean
@@ -142,6 +191,17 @@ xdp_entitlements_check (XdpEntitlements  *self,
 
   va_end (args);
   return res;
+}
+
+const GPtrArray *
+xdp_entitlements_get_usb_queries (XdpEntitlements *self)
+{
+  g_return_val_if_fail (XDP_IS_ENTITLEMENTS (self), NULL);
+
+  if (!xdp_entitlements_is_granted (self, XDP_ENTITLEMENT_USB_DEVICES))
+    return NULL;
+
+  return self->usb_queries;
 }
 
 XdpEntitlement
