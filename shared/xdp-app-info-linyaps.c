@@ -13,6 +13,8 @@
 #include <sys/vfs.h>
 #endif
 
+#include "xdp-entitlements-private.h"
+
 #define LINYAPS_ENGINE_ID "cn.org.linyaps"
 
 #define LINYAPS_METADATA_GROUP_GENERAL "General"
@@ -44,6 +46,7 @@ xdp_app_info_linyaps_new_testing (const char *sender,
   g_autofree gchar *app_id = NULL;
   g_autofree gchar *instance_id = NULL;
   g_autofree gchar *network = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   XdpAppInfoFlags flags = 0;
 
   metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_LINYAPS_METADATA");
@@ -78,10 +81,13 @@ xdp_app_info_linyaps_new_testing (const char *sender,
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
   flags |= XDP_APP_INFO_FLAG_REQUIRE_GAPPINFO;
 
+  entitlements = xdp_entitlements_new (0);
+
   app_info_linyaps = g_initable_new (XDP_TYPE_APP_INFO_LINYAPS,
                                      NULL,
                                      error,
                                      "engine", LINYAPS_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", app_id,
                                      "instance", instance_id,
@@ -172,6 +178,7 @@ xdp_app_info_linyaps_new (const char *sender,
   g_autofree gchar *app_id = NULL;
   g_autofree gchar *instance_id = NULL;
   g_autofree gchar *network = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   XdpAppInfoFlags flags = 0;
   struct stat stat_buf;
   const gchar *test_app_info_kind = NULL;
@@ -234,10 +241,13 @@ xdp_app_info_linyaps_new (const char *sender,
   if (g_strcmp0 (network, "shared") == 0)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = xdp_entitlements_new (0);
+
   app_info_linyaps = g_initable_new (XDP_TYPE_APP_INFO_LINYAPS,
                                      NULL,
                                      error,
                                      "engine", LINYAPS_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", app_id,
                                      "instance", instance_id,
