@@ -34,6 +34,8 @@ gboolean xdp_entitlements_check (XdpEntitlements  *self,
                                  GError          **error,
                                  ...) G_GNUC_NULL_TERMINATED;
 
+const GPtrArray * xdp_entitlements_get_usb_queries (XdpEntitlements *self);
+
 XdpEntitlement xdp_entitlement_lookup (const char *entitlement);
 
 const char * xdp_entitlement_get_name (XdpEntitlement entitlement);

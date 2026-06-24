@@ -26,3 +26,6 @@ void xdp_entitlements_grant (XdpEntitlements *self,
                              XdpEntitlement   entitlement);
 
 void xdp_entitlements_grant_all (XdpEntitlements *self);
+
+void xdp_entitlements_grant_usb_devices (XdpEntitlements *self,
+                                         GPtrArray       *usb_queries);

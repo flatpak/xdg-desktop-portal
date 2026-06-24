@@ -888,20 +888,6 @@ xdp_app_info_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                                        error);
 }
 
-const GPtrArray *
-xdp_app_info_get_usb_queries (XdpAppInfo *app_info)
-{
-  XdpAppInfoPrivate *priv = xdp_app_info_get_instance_private (app_info);
-
-  if (!priv->id ||
-      !XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries)
-    {
-      return NULL;
-    }
-
-  return XDP_APP_INFO_GET_CLASS (app_info)->get_usb_queries (app_info);
-}
-
 XdpEntitlements *
 xdp_app_info_get_entitlements (XdpAppInfo *app_info)
 {

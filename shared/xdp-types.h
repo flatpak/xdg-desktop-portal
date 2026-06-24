@@ -15,6 +15,8 @@ typedef enum {
 typedef enum _XdpEntitlement
 {
   XDP_ENTITLEMENT_NONE = 0,
+  XDP_ENTITLEMENT_USB,
+  XDP_ENTITLEMENT_USB_DEVICES,
 } XdpEntitlement;
 
 typedef struct _XdpContext XdpContext;
@@ -132,6 +134,8 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define USB_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Usb"
 #define USB_PERMISSION_TABLE "usb"
 #define USB_PERMISSION_ID "usb"
+#define USB_ENTITLEMENT_NAME USB_DBUS_IFACE
+#define USB_DEVICES_ENTITLEMENT_NAME USB_ENTITLEMENT_NAME ".Devices"
 
 #define WALLPAPER_DBUS_IFACE DESKTOP_DBUS_IFACE ".Wallpaper"
 #define WALLPAPER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Wallpaper"
