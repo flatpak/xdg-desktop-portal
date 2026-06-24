@@ -492,6 +492,7 @@ def xdp_env(
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
     env["XDG_CURRENT_DESKTOP"] = "test"
+    env["WAYLAND_DISPLAY"] = "wayland-0"
     env["PATH"] = xdp_bin_path.as_posix()
 
     for key, val in xdp_app_info_init.get_xdp_executable_env().items():
