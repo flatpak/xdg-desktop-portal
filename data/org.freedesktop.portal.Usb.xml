@@ -16,6 +16,8 @@
       device types, such as the Camera portal for cameras.
 
       This documentation describes version 1 of this interface.
+
+      .. include:: org.freedesktop.portal.Usb.rst
     -->
   <interface name="org.freedesktop.portal.Usb">
 
