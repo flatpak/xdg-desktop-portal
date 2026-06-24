@@ -11,6 +11,7 @@
 
 #include <json-glib/json-glib.h>
 
+#include "xdp-entitlements-private.h"
 #include "xdp-usb-query.h"
 
 #if HAVE_SYS_VFS_H
@@ -30,6 +31,9 @@
 #define FLATPAK_METADATA_KEY_SHARED "shared"
 #define FLATPAK_METADATA_CONTEXT_SHARED_NETWORK "network"
 #define FLATPAK_METADATA_GROUP_RUNTIME "Runtime"
+#define FLATPAK_METADATA_GROUP_ENTITLEMENT "Policy entitlement"
+#define FLATPAK_METADATA_KEY_GRANT "grant"
+#define FLATPAK_METADATA_KEY_VERSION "version"
 
 struct _XdpAppInfoFlatpak
 {
@@ -465,6 +469,39 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static XdpEntitlements *
+create_entitlements (GKeyFile *flatpak_info)
+{
+  g_autoptr(XdpEntitlements) entitlements = NULL;
+  g_auto(GStrv) grants = NULL;
+  unsigned int version;
+
+  version = g_key_file_get_integer (flatpak_info,
+                                    FLATPAK_METADATA_GROUP_ENTITLEMENT,
+                                    FLATPAK_METADATA_KEY_VERSION,
+                                    NULL);
+
+  entitlements = xdp_entitlements_new (version);
+
+  grants = g_key_file_get_string_list (flatpak_info,
+                                       FLATPAK_METADATA_GROUP_ENTITLEMENT,
+                                       FLATPAK_METADATA_KEY_GRANT,
+                                       NULL,
+                                       NULL);
+
+  for (size_t i = 0; grants && grants[i]; i++)
+    {
+      XdpEntitlement entitlement = xdp_entitlement_lookup (grants[i]);
+
+      if (entitlement == XDP_ENTITLEMENT_NONE)
+        g_debug ("Unknown entitlement '%s'", grants[i]);
+      else
+        xdp_entitlements_grant (entitlements, entitlement);
+    }
+
+  return g_steal_pointer (&entitlements);
+}
+
 static void
 xdp_app_info_flatpak_dispose (GObject *object)
 {
@@ -693,6 +730,7 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   XdpAppInfoFlags flags = 0;
 
   metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA");
@@ -739,10 +777,13 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = create_entitlements (metadata);
+
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
                                      "engine", FLATPAK_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
@@ -777,6 +818,7 @@ xdp_app_info_flatpak_new (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   g_autofd int bwrap_pidfd = -1;
   const char *test_app_info_kind;
 
@@ -873,10 +915,13 @@ xdp_app_info_flatpak_new (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = create_entitlements (metadata);
+
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
                                      "engine", FLATPAK_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,

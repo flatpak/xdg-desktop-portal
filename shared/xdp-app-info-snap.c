@@ -13,6 +13,8 @@
 #include <sys/vfs.h>
 #endif
 
+#include "xdp-entitlements-private.h"
+
 #define SNAP_ENGINE_ID "io.snapcraft"
 
 #define SNAP_METADATA_GROUP_INFO "Snap Info"
@@ -215,6 +217,7 @@ xdp_app_info_snap_new_testing (const char  *sender,
   g_autofree char *snap_name = NULL;
   g_autofree char *snap_id = NULL;
   g_autofree char *desktop_id = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
 
@@ -250,10 +253,13 @@ xdp_app_info_snap_new_testing (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = xdp_entitlements_new (0);
+
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
                                   error,
                                   "engine", SNAP_ENGINE_ID,
+                                  "entitlements", entitlements,
                                   "id", snap_id,
                                   "flags", flags,
                                   "desktop-file", desktop_id,
@@ -285,6 +291,7 @@ xdp_app_info_snap_new (const char  *sender,
   g_autofree char *desktop_id = NULL;
   XdpAppInfoFlags flags = 0;
   gboolean has_network;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   const char *test_app_info_kind;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
@@ -346,10 +353,13 @@ xdp_app_info_snap_new (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = xdp_entitlements_new (0);
+
   app_info_snap = g_initable_new (XDP_TYPE_APP_INFO_SNAP,
                                   NULL,
                                   error,
                                   "engine", SNAP_ENGINE_ID,
+                                  "entitlements", entitlements,
                                   "id", snap_id,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", flags,
