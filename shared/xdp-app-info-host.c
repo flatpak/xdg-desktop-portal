@@ -10,6 +10,7 @@
 #endif
 
 #include "xdp-app-info-host-private.h"
+#include "xdp-entitlements-private.h"
 #include "xdp-usb-query.h"
 
 struct _XdpAppInfoHost
@@ -214,14 +215,19 @@ xdp_app_info_host_new_registered (const char  *sender,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   g_autofd int pidfd_owned = pidfd;
 
   maybe_get_pidfd_from_pid (pid, &pidfd_owned);
+
+  entitlements = xdp_entitlements_new (0);
+  xdp_entitlements_grant_all (entitlements);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   error,
                                   "engine", NULL,
+                                  "entitlements", entitlements,
                                   "id", app_id,
                                   "pidfd", g_steal_fd (&pidfd_owned),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
@@ -246,6 +252,7 @@ xdp_app_info_host_new (const char *sender,
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
   const char *test_app_info_kind = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
   if (test_app_info_kind)
@@ -263,15 +270,19 @@ xdp_app_info_host_new (const char *sender,
 
   maybe_get_pidfd_from_pid (pid, pidfd);
 
+  entitlements = xdp_entitlements_new (0);
+  xdp_entitlements_grant_all (entitlements);
+
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   NULL,
                                   "engine", NULL,
+                                  "entitlements", entitlements,
                                   "id", app_id,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
-                                   "sender", sender,
+                                  "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));
