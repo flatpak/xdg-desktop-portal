@@ -88,6 +88,36 @@
       If you use libhidapi, use the function
       ``hid_libusb_wrap_sys_device()`` provided by libhidapi-usb.
 
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.Usb`` · version 1
+        Gates general access to the Usb portal.
+
+      ``org.freedesktop.portal.Usb.Devices`` · version 0
+        Controls which USB devices are visible to an app. This is a
+        feature-level entitlement with associated data.
+
+        The device queries affect all Usb portal operations:
+        ``EnumerateDevices`` only returns matching devices,
+        ``DeviceEvents`` only reports events for matching devices, and
+        ``AcquireDevices`` only allows acquiring matching devices.
+
+        ``enumerable-devices``
+          List of USB device queries specifying which devices the app may
+          see. Use ``all`` to match all devices, or a ``vendor:product``
+          hex pair (e.g. ``1234:5678``) to match a specific device.
+          Devices not matched by any query are not visible to the app.
+
+        ``hidden-devices``
+          List of USB device queries specifying devices to exclude. Hidden
+          devices are always filtered out, even if they match an
+          ``enumerable-devices`` query. Hiding takes precedence over
+          enumerating.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
+
       .. include:: doc-org.freedesktop.portal.Usb.properties.rst
 
       .. include:: doc-org.freedesktop.portal.Usb.methods.rst
