@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.ProxyResolver:
-      @short_description: Proxy information
+      @short_description: Portal for querying proxy information
 
       The ProxyResolver interface provides network proxy information to sandboxed
       applications. It is not a portal in the strict sense, since it does not involve

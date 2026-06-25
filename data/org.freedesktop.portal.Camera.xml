@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.Camera:
-      @short_description: Camera portal
+      @short_description: Portal for accessing cameras
 
       The camera portal enables applications to access camera devices, such as
       web cams.

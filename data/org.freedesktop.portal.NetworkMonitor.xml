@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.NetworkMonitor:
-      @short_description: Network monitoring portal
+      @short_description: Portal for monitoring network status information
 
       The NetworkMonitor interface provides network status information
       to sandboxed applications. It is not a portal in the strict sense,

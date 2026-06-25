@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.Documents:
-      @short_description: Document portal
+      @short_description: Portal for managing files and documents
 
       The document portal allows to make files from the outside world
       available to sandboxed applications in a controlled way.

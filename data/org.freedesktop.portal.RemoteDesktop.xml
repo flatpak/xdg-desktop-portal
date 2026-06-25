@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.RemoteDesktop:
-      @short_description: Remote desktop portal
+      @short_description: Portal for remote desktop sessions
 
       The Remote desktop portal allows to create remote desktop sessions.
 

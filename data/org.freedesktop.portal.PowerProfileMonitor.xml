@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.PowerProfileMonitor:
-      @short_description: Power Profile monitoring portal
+      @short_description: Portal for monitoring the system-wide power profile
 
       The Power Profile Monitor interface provides information about the
       user-selected system-wide power profile, to sandboxed applications.
