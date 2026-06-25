@@ -88,6 +88,7 @@ if build_documentation
     'configuration-file.rst',
     'convenience-libraries.rst',
     'documents-and-fuse.rst',
+    'entitlements.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',
