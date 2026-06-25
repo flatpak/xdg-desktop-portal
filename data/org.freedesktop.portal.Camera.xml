@@ -11,6 +11,15 @@
 
       The camera portal enables applications to access camera devices, such as
       web cams.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.Camera`` · version 1
+        Gates general access to the Camera portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.Camera">
     <!--
