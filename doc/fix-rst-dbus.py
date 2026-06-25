@@ -12,7 +12,76 @@ import sys
 
 output_dir = sys.argv[1]
 filename_prefix = sys.argv[2]
-inputs = sys.argv[3:]
+
+
+SECTION_NAMES = {"Properties", "Methods", "Signals"}
+
+
+def is_section_label(line):
+    """Check if a line is a .. _Name Section: label for a known section."""
+    if not line.startswith(".. _"):
+        return False
+    for name in SECTION_NAMES:
+        if line.rstrip().endswith(f" {name}:"):
+            return True
+    return False
+
+
+def split_sections(lines, output_prefix):
+    """Split Properties, Methods, Signals into separate fragment files.
+
+    Returns (desc_lines, found_sections)."""
+    sections = {}
+    current_section = None
+    current_lines = []
+    desc_lines = []
+
+    for line in lines:
+        if is_section_label(line):
+            if current_section:
+                sections[current_section] = current_lines
+            for name in SECTION_NAMES:
+                if line.rstrip().endswith(f" {name}:"):
+                    current_section = name.lower()
+                    current_lines = [line]
+                    break
+        elif current_section is not None:
+            current_lines.append(line)
+        else:
+            desc_lines.append(line)
+
+    if current_section:
+        sections[current_section] = current_lines
+
+    for section_name, section_lines in sections.items():
+        fragment_path = f"{output_prefix}.{section_name}.rst"
+        with open(fragment_path, "w") as f:
+            heading_written = False
+            skip_transition = False
+            for line in section_lines:
+                if is_section_label(line):
+                    continue
+                # Convert ---- overline+underline to ~~~~ underline-only
+                if not heading_written and set(line.strip()) == {"-"}:
+                    continue
+                if not heading_written and line.strip() in SECTION_NAMES:
+                    title = line.strip()
+                    f.write(f"{title}\n")
+                    f.write(f"{'~' * len(title)}\n")
+                    heading_written = True
+                    skip_transition = True
+                    continue
+                # Skip the ---- transition gdbus-codegen puts after the heading
+                if skip_transition:
+                    if line.strip() == "":
+                        continue
+                    if set(line.strip()) == {"-"}:
+                        skip_transition = False
+                        continue
+                    skip_transition = False
+                f.write(line)
+
+    return desc_lines, set(sections.keys())
 
 
 def adjust_title(lines):
@@ -40,14 +109,51 @@ def adjust_title(lines):
     lines[3] = f"{adjusted_title}\n"
 
 
+inputs = sys.argv[3:]
+
+
+def strip_description_heading(desc_lines):
+    """Remove the Description heading and its label from desc_lines."""
+    out: list[str] = []
+    i = 0
+    while i < len(desc_lines):
+        line = desc_lines[i]
+        if (
+            line.strip() == "Description"
+            and i > 0
+            and set(desc_lines[i - 1].strip()) == {"-"}
+            and i + 1 < len(desc_lines)
+            and set(desc_lines[i + 1].strip()) == {"-"}
+        ):
+            out.pop()
+            i += 2
+        elif line.startswith(".. _") and line.rstrip().endswith(" Description:"):
+            i += 1
+        else:
+            out.append(line)
+            i += 1
+    return out
+
+
 for file in inputs:
     basename = os.path.basename(file)
+    interface_name = basename.replace(".rst", "")
     fullpath = os.path.join(output_dir, f"{filename_prefix}-{basename}")
+    output_prefix = os.path.join(output_dir, f"{filename_prefix}-{interface_name}")
 
     with open(fullpath) as f:
         lines = f.readlines()
 
     adjust_title(lines)
+    desc_lines, found_sections = split_sections(lines, output_prefix)
+    out = strip_description_heading(desc_lines)
+
+    has_includes = any(line.strip().startswith(".. include::") for line in out)
+    if not has_includes:
+        prefix = f"{filename_prefix}-{interface_name}"
+        for section in ["properties", "methods", "signals"]:
+            if section in found_sections:
+                out.append(f"\n.. include:: {prefix}.{section}.rst\n")
 
     with open(fullpath, "w") as f:
-        f.writelines(lines)
+        f.writelines(out)
