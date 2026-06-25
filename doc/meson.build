@@ -88,7 +88,6 @@ if build_documentation
     'configuration-file.rst',
     'convenience-libraries.rst',
     'documents-and-fuse.rst',
-    'org.freedesktop.portal.Usb.rst',
     'for-app-developers.rst',
     'for-contributors.rst',
     'for-desktop-developers.rst',
