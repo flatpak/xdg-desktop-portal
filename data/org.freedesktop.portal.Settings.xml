@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
     org.freedesktop.portal.Settings:
-    @short_description: Settings interface
+    @short_description: Portal for querying settings
 
     This interface provides read-only access to a small number of standardized
     host settings required for toolkits similar to XSettings. It is not for
