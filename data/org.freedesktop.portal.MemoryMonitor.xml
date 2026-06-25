@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.MemoryMonitor:
-      @short_description: Memory monitoring portal
+      @short_description: Portal for monitoring for low system memory
 
       The Memory Monitor interface provides information about low system
       memory to sandboxed applications. It is not a portal in the strict

@@ -7,8 +7,8 @@
 <node name="/"
   xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.portal.Clipboard
-      @short_description: Clipboard portal
+      org.freedesktop.portal.Clipboard:
+      @short_description: Portal for accessing the clipboard
 
       The Clipboard portal allows sessions to access the clipboard.
 

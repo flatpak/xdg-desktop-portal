@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.FileChooser:
-      @short_description: File chooser portal
+      @short_description: Portal for asking the user for access to files
 
       The FileChooser portal allows sandboxed applications to ask
       the user for access to files outside the sandbox. The portal
