@@ -90,6 +90,30 @@ xdp_context_dispose (GObject *object)
       context->peer_disconnect_handle_id = 0;
     }
 
+  g_debug ("Shutting down portal context");
+
+  /* Cancel in-flight fibers and unexport all portals, then drain the main
+   * context so cancelled fibers can run their cleanup (e.g. unclaiming
+   * object paths) before we free the remaining resources. */
+  if (context->exported_portals)
+    {
+      GHashTableIter iter;
+      GDBusInterfaceSkeleton *skeleton;
+
+      g_hash_table_iter_init (&iter, context->exported_portals);
+      while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &skeleton))
+        {
+          if (DEX_IS_DBUS_INTERFACE_SKELETON (skeleton))
+            dex_dbus_interface_skeleton_cancel (DEX_DBUS_INTERFACE_SKELETON (skeleton));
+          g_dbus_interface_skeleton_unexport (skeleton);
+        }
+
+      g_clear_pointer (&context->exported_portals, g_hash_table_unref);
+    }
+
+  while (g_main_context_iteration (NULL, FALSE))
+    ;
+
   g_cancellable_cancel (context->cancellable);
   g_clear_object (&context->cancellable);
   g_clear_object (&context->portal_config);
@@ -97,7 +121,6 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
-  g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
   if (context->registered_object_paths)
     {
