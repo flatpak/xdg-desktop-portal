@@ -484,6 +484,17 @@ xdp_context_register (XdpContext       *context,
 #endif
   init_registry (context);
 
+  // Experimental feature flags
+  char *experimental_flag_env =
+      getenv ("XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL");
+  if (experimental_flag_env != NULL)
+    {
+      gchar **flags = g_strsplit (experimental_flag_env, ",", -1);
+      for (gint i = 0; flags[i] != NULL; i++)
+        {
+        }
+    }
+
   return TRUE;
 }
 
