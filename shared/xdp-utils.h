@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
 #include <glib/gstdio.h>
 
@@ -197,6 +198,12 @@ char *xdp_generate_key (GError **error);
  * and callers do not need to check for them.
  */
 char *xdp_generate_token (void);
+
+/* Whether the app runs in a sandbox (Flatpak or Snap) */
+gboolean xdp_desktop_app_info_is_sandboxed (GDesktopAppInfo *info);
+
+/* Returns the sandboxed app ID, or the desktop file basename as fallback */
+char * xdp_desktop_app_info_get_app_id (GDesktopAppInfo *info);
 
 #define XDP_EXPORT_TEST XDP_EXPORT
 #define XDP_EXPORT __attribute__((visibility("default"))) extern
