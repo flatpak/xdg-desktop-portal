@@ -42,7 +42,9 @@ portal_sources = files(
   'org.freedesktop.portal.Wallpaper.xml',
 )
 
-portal_experimental_sources = files()
+portal_experimental_sources = files(
+  'org.freedesktop.portal.experimental.Credential.xml',
+)
 
 portal_host_sources = files(
   'org.freedesktop.host.portal.Registry.xml',
@@ -75,10 +77,16 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.Wallpaper.xml',
 )
 
-portal_experimental_impl_sources = files()
+portal_experimental_impl_sources = files(
+  'org.freedesktop.impl.portal.experimental.Credential.xml',
+)
 
 background_monitor_sources = files(
   'org.freedesktop.background.Monitor.xml',
+)
+
+portal_experimental_handler_sources = files(
+  'org.freedesktop.handler.portal.experimental.Credential.xml',
 )
 
 install_data(
