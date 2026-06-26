@@ -1460,3 +1460,54 @@ xdp_generate_key (GError **error)
 
   return encode_base64_for_dbus (key, sizeof (key));
 }
+
+char *
+xdp_desktop_app_info_get_app_id (GDesktopAppInfo *info)
+{
+  const char *desktop_id;
+
+  {
+    g_autofree char *flatpak_id =
+      g_desktop_app_info_get_string (info, "X-Flatpak");
+
+    if (flatpak_id && *flatpak_id)
+      return g_steal_pointer (&flatpak_id);
+  }
+
+  {
+    g_autofree char *snap_instance =
+      g_desktop_app_info_get_string (info, "X-SnapInstanceName");
+
+    if (snap_instance && *snap_instance)
+      return g_strconcat ("snap.", snap_instance, NULL);
+  }
+
+  desktop_id = g_app_info_get_id (G_APP_INFO (info));
+
+  if (g_str_has_suffix (desktop_id, ".desktop"))
+    return g_strndup (desktop_id, strlen (desktop_id) - strlen (".desktop"));
+
+  return g_strdup (desktop_id);
+}
+
+gboolean
+xdp_desktop_app_info_is_sandboxed (GDesktopAppInfo *info)
+{
+  {
+    g_autofree char *flatpak_id =
+      g_desktop_app_info_get_string (info, "X-Flatpak");
+
+    if (flatpak_id && *flatpak_id)
+      return TRUE;
+  }
+
+  {
+    g_autofree char *snap_instance =
+      g_desktop_app_info_get_string (info, "X-SnapInstanceName");
+
+    if (snap_instance && *snap_instance)
+      return TRUE;
+  }
+
+  return FALSE;
+}
