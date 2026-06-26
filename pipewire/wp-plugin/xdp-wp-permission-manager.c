@@ -35,10 +35,11 @@ struct _XdpWpPermissionManager
 
 G_DEFINE_FINAL_TYPE (XdpWpPermissionManager, xdp_wp_permission_manager, G_TYPE_OBJECT);
 
-enum {
-  PROP_CORE,
+typedef enum
+{
+  PROP_CORE = 1,
   PROP_CONNECTION,
-};
+} XdpWpPermissionManagerProps;
 
 static GParamSpec *props[PROP_CONNECTION + 1] = { NULL, };
 
@@ -217,7 +218,7 @@ xdp_wp_permission_manager_set_property (GObject      *object,
 {
   XdpWpPermissionManager *self = XDP_WP_PERMISSION_MANAGER (object);
 
-  switch (property_id)
+  switch ((XdpWpPermissionManagerProps)property_id)
     {
     case PROP_CORE:
       self->core = g_object_ref (g_value_get_object (value));
@@ -226,9 +227,6 @@ xdp_wp_permission_manager_set_property (GObject      *object,
     case PROP_CONNECTION:
       self->connection = g_object_ref (g_value_get_object (value));
       break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
     }
 }
 
