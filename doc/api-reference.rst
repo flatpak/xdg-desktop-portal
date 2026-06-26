@@ -65,3 +65,4 @@ replacement will be documented in :doc:`org.freedesktop.host.portal.Registry
    doc-org.freedesktop.portal.Trash.rst
    doc-org.freedesktop.portal.Usb.rst
    doc-org.freedesktop.portal.Wallpaper.rst
+   doc-org.freedesktop.portal.experimental.Credential.rst
