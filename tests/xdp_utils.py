@@ -923,3 +923,9 @@ class SessionPersistenceModeError(TypeError):
 
     def __str__(self) -> str:
         return f"Unknown session persistence mode: {self.persist_mode}"
+
+
+@dataclass
+class PortalProcessOptions:
+    capture_stderr: bool = False
+    capture_stdout: bool = False
