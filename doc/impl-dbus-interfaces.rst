@@ -36,3 +36,4 @@ accessible to sandboxed applications.
    doc-org.freedesktop.impl.portal.Settings.rst
    doc-org.freedesktop.impl.portal.Usb.rst
    doc-org.freedesktop.impl.portal.Wallpaper.rst
+   doc-org.freedesktop.impl.portal.experimental.Credential.rst

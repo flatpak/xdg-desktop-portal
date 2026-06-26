@@ -19,6 +19,7 @@ portal_experimental_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.portal.experimental',
   namespace: 'XdpDbusExperimental',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 host_built_sources = gnome.gdbus_codegen(
   'xdp-host-dbus',
@@ -42,6 +43,7 @@ impl_experimental_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.impl.portal.experimental',
   namespace: 'XdpDbusExperimentalImpl',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 handler_experimental_built_sources = gnome.gdbus_codegen(
   'xdp-experimental-handler-dbus',
@@ -49,6 +51,7 @@ handler_experimental_built_sources = gnome.gdbus_codegen(
   interface_prefix: 'org.freedesktop.handler.portal.experimental',
   namespace: 'XdpDbusExperimentalHandler',
   docbook: 'portal',
+  extra_args: gdbus_codegen_extra_args,
 )
 background_monitor_built_sources = gnome.gdbus_codegen(
   'xdp-background-dbus',
@@ -83,6 +86,7 @@ xdg_desktop_portal_sources = files(
   'background.c',
   'camera.c',
   'clipboard.c',
+  'credential.c',
   'dynamic-launcher.c',
   'email.c',
   'file-chooser.c',

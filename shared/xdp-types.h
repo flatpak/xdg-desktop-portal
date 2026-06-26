@@ -55,6 +55,11 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define CLIPBOARD_DBUS_IFACE DESKTOP_DBUS_IFACE ".Clipboard"
 #define CLIPBOARD_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Clipboard"
 
+#define CREDENTIAL_EXPERIMENTAL_DBUS_IFACE                                     \
+  DESKTOP_EXPERIMENTAL_DBUS_IFACE ".Credential"
+#define CREDENTIAL_EXPERIMENTAL_DBUS_IMPL_IFACE                                \
+  DESKTOP_EXPERIMENTAL_DBUS_IMPL_IFACE ".Credential"
+
 #define DYNAMIC_LAUNCHER_DBUS_IFACE DESKTOP_DBUS_IFACE ".DynamicLauncher"
 #define DYNAMIC_LAUNCHER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".DynamicLauncher"
 
