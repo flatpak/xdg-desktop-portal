@@ -446,15 +446,6 @@ xdp_is_valid_token (const char *string)
   return g_variant_is_object_path (path);
 }
 
-char *
-xdp_get_app_id_from_desktop_id (const char *desktop_id)
-{
-  const gchar *suffix = ".desktop";
-  if (g_str_has_suffix (desktop_id, suffix))
-    return g_strndup (desktop_id, strlen (desktop_id) - strlen (suffix));
-  else
-    return g_strdup (desktop_id);
-}
 
 char *
 xdp_maybe_quote (const char *arg,
