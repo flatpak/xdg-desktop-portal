@@ -911,3 +911,9 @@ class SessionPersistenceMode(IntEnum):
     NONE = 0
     TRANSIENT = 1
     PERSISTENT = 2
+
+
+@dataclass
+class PortalProcessOptions:
+    capture_stderr: bool = False
+    capture_stdout: bool = False
