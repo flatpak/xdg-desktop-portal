@@ -10,10 +10,12 @@
 #include "background.h"
 #include "camera.h"
 #include "clipboard.h"
+#include "credential.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"
 #include "gamemode.h"
+#include "glib.h"
 #include "global-shortcuts.h"
 #include "inhibit.h"
 #include "input-capture.h"
@@ -524,6 +526,11 @@ xdp_context_register (XdpContext       *context,
   init_remote_desktop (context);
   init_clipboard (context);
   init_input_capture (context);
+  if (xdp_context_is_experimental_portal_enabled (context, "Credential"))
+    {
+      g_info ("Enabling experimental Credential portal");
+      init_portal_in_fiber(context, init_credential);
+    }
 #if HAVE_GUDEV
   init_usb (context);
 #endif
