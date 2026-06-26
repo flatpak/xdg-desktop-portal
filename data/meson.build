@@ -78,6 +78,8 @@ portal_impl_sources = files(
 
 portal_impl_experimental_sources = files(
 )
+portal_handler_experimental_sources = files(
+)
 
 background_monitor_sources = files(
   'org.freedesktop.background.Monitor.xml',
