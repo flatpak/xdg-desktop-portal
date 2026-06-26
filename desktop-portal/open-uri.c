@@ -173,15 +173,6 @@ get_latest_choice_info (const char *app_id,
   return (choice_id != NULL);
 }
 
-static gboolean
-is_sandboxed (GDesktopAppInfo *info)
-{
-  g_autofree char *flatpak = NULL;
-
-  flatpak = g_desktop_app_info_get_string (G_DESKTOP_APP_INFO (info), "X-Flatpak");
-
-  return flatpak != NULL;
-}
 
 static char *
 get_handler_id (GAppInfo *info)
@@ -232,18 +223,19 @@ launch_application_with_uri (const char *choice_id,
 
   g_debug ("Launching %s %s", choice_id, uri);
 
-  if (is_sandboxed (info) && is_file_uri (uri))
+  if (xdp_desktop_app_info_is_sandboxed (info) && is_file_uri (uri))
     {
       g_autoptr(GError) local_error = NULL;
+      g_autofree char *app_id = xdp_desktop_app_info_get_app_id (info);
 
-      g_debug ("Registering %s for %s", uri, choice_id);
+      g_debug ("Registering %s for %s", uri, app_id);
       if (writable)
         flags |= XDP_DOCUMENT_FLAG_WRITABLE;
 
-      ruri = xdp_register_document (uri, choice_id, flags, &local_error);
+      ruri = xdp_register_document (uri, app_id, flags, &local_error);
       if (ruri == NULL)
         {
-          g_warning ("Error registering %s for %s: %s", uri, choice_id, local_error->message);
+          g_warning ("Error registering %s for %s: %s", uri, app_id, local_error->message);
           g_propagate_error (error, g_steal_pointer (&local_error));
           return FALSE;
         }
