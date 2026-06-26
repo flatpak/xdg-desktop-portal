@@ -106,6 +106,7 @@ pytest_files = [
   'test_settings.py',
   'test_screencast.py',
   'test_screenshot.py',
+  'test_shutdown.py',
   'test_trash.py',
   'test_usb.py',
   'test_wallpaper.py',
