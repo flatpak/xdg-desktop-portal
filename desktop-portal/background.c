@@ -908,25 +908,21 @@ handle_request_background_in_thread_func (GTask *task,
     {
       g_auto(GVariantBuilder) opt_builder =
         G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE_VARDICT);
-      g_autofree char *app_id = NULL;
       g_autofree char *title = NULL;
       g_autofree char *subtitle = NULL;
       g_autofree char *body = NULL;
       guint32 response = 2;
       g_autoptr(GVariant) results = NULL;
       g_autoptr(GError) error = NULL;
-      GAppInfo *info = NULL;
+      const char *display_name = xdp_app_info_get_app_display_name (request->app_info);
 
-      info = xdp_app_info_get_gappinfo (request->app_info);
-      app_id = info ? xdp_get_app_id_from_desktop_id (g_app_info_get_id (info)) : g_strdup (id);
-
-      title = g_strdup_printf (_("Allow %s to Run in the Background?"), info ? g_app_info_get_display_name (info) : id);
+      title = g_strdup_printf (_("Allow %s to Run in the Background?"), display_name);
       if (reason)
         subtitle = g_strdup (reason);
       else if (autostart_requested)
-        subtitle = g_strdup_printf (_("%s wants to be started automatically and run in the background"), info ? g_app_info_get_display_name (info) : id);
+        subtitle = g_strdup_printf (_("%s wants to be started automatically and run in the background"), display_name);
       else
-        subtitle = g_strdup_printf (_("%s wants to run in the background"), info ? g_app_info_get_display_name (info) : id);
+        subtitle = g_strdup_printf (_("%s wants to run in the background"), display_name);
       body = g_strdup (_("The ‘run in background’ permission can be changed at any time from the app settings"));
 
       g_debug ("Calling backend for background access for: %s", id);
@@ -935,7 +931,7 @@ handle_request_background_in_thread_func (GTask *task,
       g_variant_builder_add (&opt_builder, "{sv}", "grant_label", g_variant_new_string (_("Allow")));
       if (!xdp_dbus_impl_access_call_access_dialog_sync (background->access_impl,
                                                          request->id,
-                                                         app_id,
+                                                         id,
                                                          "",
                                                          title,
                                                          subtitle,
