@@ -921,7 +921,6 @@ xdp_portal_config_find_all (XdpPortalConfig *portal_config,
     {
       PortalConfig *config = g_ptr_array_index (configs, i);
       PortalInterface *iface;
-      size_t prev_impl_count = impls_out->len;
 
       if (portal_config_interface_prefers_none (config, interface))
         return g_steal_pointer (&impls_out);
@@ -932,14 +931,17 @@ xdp_portal_config_find_all (XdpPortalConfig *portal_config,
                                                     interface,
                                                     impls_out);
 
-      if (impls_out->len > prev_impl_count)
-        continue;
+      if (impls_out->len > 0)
+        break;
 
       iface = config->default_portal;
       xdp_portal_config_find_impl_configs_by_iface (portal_config,
                                                     iface,
                                                     interface,
                                                     impls_out);
+
+      if (impls_out->len > 0)
+        break;
     }
 
   if (impls_out->len > 0)
