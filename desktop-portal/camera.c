@@ -18,6 +18,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
+#include "xdp-pw-keys.h"
 #include "xdp-request.h"
 #include "xdp-utils.h"
 
@@ -219,8 +220,8 @@ open_pipewire_camera_remote (const char *app_id,
   struct pw_properties *pipewire_properties;
 
   pipewire_properties =
-    pw_properties_new ("pipewire.access.xdg-desktop-portal.app_id", app_id,
-                       "pipewire.access.xdg-desktop-portal.media_roles", "Camera",
+    pw_properties_new (XDP_PW_KEY_APP_ID, app_id,
+                       XDP_PW_KEY_MEDIA_ROLES, "Camera",
                        NULL);
   remote = pipewire_remote_new_sync (pipewire_properties,
                                      NULL, NULL, NULL, NULL,
@@ -416,8 +417,8 @@ create_pipewire_remote (Camera *camera,
       return FALSE;
     }
 
-  pipewire_properties = pw_properties_new ("pipewire.access.xdg-desktop-portal.is_portal", "true",
-                                           "xdg-desktop-portal.monitor", "Camera",
+  pipewire_properties = pw_properties_new (XDP_PW_NAMESPACE ".is_portal", "true",
+                                           XDP_PW_NAMESPACE ".monitor", "Camera",
                                            NULL);
   camera->pipewire_remote = pipewire_remote_new_sync (pipewire_properties,
                                                       global_added_cb,

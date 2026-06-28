@@ -142,6 +142,7 @@ xdg_desktop_portal_deps = common_deps + [
 
 incs_xdg_desktop_portal = [
   common_includes,
+  xdp_pipewire_includes,
   xdp_utils_includes,
   include_directories('.'),
   include_directories('../document-portal'),
