@@ -18,6 +18,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
+#include "xdp-pw-keys.h"
 #include "xdp-request.h"
 #include "xdp-session-persistence.h"
 #include "xdp-session.h"
@@ -691,8 +692,8 @@ open_pipewire_screen_cast_remote (const char *app_id,
   PipeWireRemote *remote;
   g_autoptr(GArray) permission_items = NULL;
 
-  pipewire_properties = pw_properties_new ("pipewire.access.xdg-desktop-portal.app_id", app_id,
-                                           "pipewire.access.xdg-desktop-portal.media_roles", "",
+  pipewire_properties = pw_properties_new (XDP_PW_KEY_APP_ID, app_id,
+                                           XDP_PW_KEY_MEDIA_ROLES, "",
                                            NULL);
   remote = pipewire_remote_new_sync (pipewire_properties,
                                      NULL, NULL, NULL, NULL,

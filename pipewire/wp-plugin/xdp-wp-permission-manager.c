@@ -11,6 +11,7 @@
 #include <wp/wp.h>
 
 #include "xdp-impl-dbus.h"
+#include "xdp-pw-keys.h"
 
 WP_DEFINE_LOCAL_LOG_TOPIC ("m-xdp-permission-manager");
 
@@ -43,9 +44,6 @@ typedef enum
 
 static GParamSpec *props[PROP_CONNECTION + 1] = { NULL, };
 
-#define PW_KEY_ACCESS_XDP_APP_ID PW_KEY_ACCESS ".xdg-desktop-portal.app_id"
-#define PW_KEY_ACCESS_XDP_MEDIA_ROLES PW_KEY_ACCESS ".xdg-desktop-portal.media_roles"
-
 static void
 update_client_camera_permission (XdpWpPermissionManager *self,
                                  WpClient               *client,
@@ -62,7 +60,7 @@ update_client_camera_permission (XdpWpPermissionManager *self,
     iter && g_variant_iter_next (iter, "s", &value) && (g_strcmp0 (value, "yes") == 0);
 
   roles = wp_pipewire_object_get_property (WP_PIPEWIRE_OBJECT (client),
-                                           PW_KEY_ACCESS_XDP_MEDIA_ROLES);
+                                           XDP_PW_KEY_MEDIA_ROLES);
 
   if (!roles)
     {
@@ -127,7 +125,7 @@ update_camera_permissions (XdpWpPermissionManager *self,
       g_autoptr (GVariantIter) value = NULL;
 
       app_id = wp_pipewire_object_get_property (WP_PIPEWIRE_OBJECT (client),
-                                                PW_KEY_ACCESS_XDP_APP_ID);
+                                                XDP_PW_KEY_APP_ID);
 
       if (app_id)
         {
@@ -152,7 +150,7 @@ update_camera_permissions (XdpWpPermissionManager *self,
           g_autoptr (GVariantIter) value = NULL;
 
           app_id = wp_pipewire_object_get_property (WP_PIPEWIRE_OBJECT (client),
-                                                    PW_KEY_ACCESS_XDP_APP_ID);
+                                                    XDP_PW_KEY_APP_ID);
 
           if (app_id)
             {
@@ -247,9 +245,9 @@ xdp_wp_permission_manager_constructed (GObject *object)
                                   WP_CONSTRAINT_TYPE_PW_PROPERTY,
                                   PW_KEY_ACCESS,
                                   "=s",
-                                  "xdg-desktop-portal",
+                                  XDP_PW_ACCESS,
                                   WP_CONSTRAINT_TYPE_PW_PROPERTY,
-                                  PW_KEY_ACCESS_XDP_APP_ID,
+                                  XDP_PW_KEY_APP_ID,
                                   "+",
                                   NULL);
 

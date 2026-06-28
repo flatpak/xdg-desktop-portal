@@ -257,9 +257,9 @@ pkgconfig.generate(
 
 subdir('data')
 subdir('shared')
+subdir('pipewire')
 subdir('desktop-portal')
 subdir('document-portal')
-subdir('pipewire')
 subdir('po')
 subdir('doc')
 

@@ -25,6 +25,8 @@
 #include <spa/utils/result.h>
 #include <spa/support/dbus.h>
 
+#include "xdp-pw-keys.h"
+
 #define NAME "xdg-desktop-portal"
 
 #define PORTAL_SERVICE_NAME "org.freedesktop.portal.Desktop"
@@ -120,7 +122,7 @@ context_check_access(void *data, struct pw_impl_client *client)
 	if (pid != impl->portal_pid)
 		return;
 
-	items[0] = SPA_DICT_ITEM_INIT(PW_KEY_ACCESS, "xdg-desktop-portal");
+	items[0] = SPA_DICT_ITEM_INIT(PW_KEY_ACCESS, XDP_PW_ACCESS);
 	pw_impl_client_update_properties(client, &SPA_DICT_INIT(items, 1));
 
 	pw_log_info("%p: portal managed client %p added", impl, client);

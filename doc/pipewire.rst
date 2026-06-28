@@ -37,7 +37,7 @@ at the `session manager  <https://docs.pipewire.org/page_session_manager.html>`_
 level.
 
 An object manager watches for clients with ``PW_KEY_ACCESS`` set to
-``"xdg-desktop-portal"`` and ``PW_KEY_ACCESS_XDP_APP_ID`` assigned to a value.
+``"xdg-desktop-portal"`` and ``XDP_PW_KEY_APP_ID`` assigned to a value.
 
 Camera
 """"""
@@ -45,7 +45,7 @@ Camera
 A node is considered a camera if ``PW_KEY_MEDIA_ROLE`` is set to ``"Camera"``
 and ``PW_KEY_MEDIA_CLASS`` to ``"Video/Source"``.
 
-If xdg-desktop-portal assigned ``PW_KEY_ACCESS_XDP_MEDIA_ROLES`` to ``"Camera"``
+If xdg-desktop-portal assigned ``XDP_PW_KEY_MEDIA_ROLES`` to ``"Camera"``
 to the PipeWire client, access to every node considered as camera will be
 granted to the client.
 
