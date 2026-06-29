@@ -9,8 +9,13 @@
     org.freedesktop.background.Monitor:
     @short_description: Background applications monitor
 
-    This interface provides APIs related to applications
-    that are running in the background.
+    This interface is provided by the XDG Desktop Portal frontend to the host
+    system, if the portal backend provides an implementation of the Background
+    portal.
+
+    This API provides information related to running applications without an
+    active window, which can be used by host system services to provide rich
+    interfaces to manage those background applications.
 
     This documentation describes version 1 of this interface.
   -->
