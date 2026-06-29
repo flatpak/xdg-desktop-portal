@@ -10,24 +10,14 @@
 #endif
 
 #include "xdp-app-info-host-private.h"
-#include "xdp-usb-query.h"
+#include "xdp-entitlements-private.h"
 
 struct _XdpAppInfoHost
 {
   XdpAppInfo parent;
-
-  GPtrArray *usb_queries;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoHost, xdp_app_info_host, XDP_TYPE_APP_INFO);
-
-static const GPtrArray *
-xdp_app_info_host_get_usb_queries (XdpAppInfo *app_info)
-{
-  XdpAppInfoHost *app_info_host = XDP_APP_INFO_HOST (app_info);
-
-  return app_info_host->usb_queries;
-}
 
 static gboolean
 xdp_app_info_host_is_valid_sub_app_id (XdpAppInfo *app_info,
@@ -55,25 +45,10 @@ xdp_app_info_host_validate_dynamic_launcher (XdpAppInfo  *app_info,
 }
 
 static void
-xdp_app_info_host_dispose (GObject *object)
-{
-  XdpAppInfoHost *app_info = XDP_APP_INFO_HOST (object);
-
-  g_clear_pointer (&app_info->usb_queries, g_ptr_array_unref);
-
-  G_OBJECT_CLASS (xdp_app_info_host_parent_class)->dispose (object);
-}
-
-static void
 xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
 {
   XdpAppInfoClass *app_info_class = XDP_APP_INFO_CLASS (klass);
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->dispose = xdp_app_info_host_dispose;
-
-  app_info_class->get_usb_queries =
-    xdp_app_info_host_get_usb_queries;
   app_info_class->validate_autostart =
     xdp_app_info_host_validate_autostart;
   app_info_class->validate_dynamic_launcher =
@@ -85,14 +60,6 @@ xdp_app_info_host_class_init (XdpAppInfoHostClass *klass)
 static void
 xdp_app_info_host_init (XdpAppInfoHost *app_info_host)
 {
-  g_autoptr(XdpUsbQuery) query = NULL;
-
-  app_info_host->usb_queries =
-    g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
-
-  query = xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, "all");
-  if (query)
-    g_ptr_array_add (app_info_host->usb_queries, g_steal_pointer (&query));
 }
 
 #if HAVE_LIBSYSTEMD
@@ -214,14 +181,19 @@ xdp_app_info_host_new_registered (const char  *sender,
                                   GError     **error)
 {
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   g_autofd int pidfd_owned = pidfd;
 
   maybe_get_pidfd_from_pid (pid, &pidfd_owned);
+
+  entitlements = xdp_entitlements_new (0);
+  xdp_entitlements_grant_all (entitlements);
 
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   error,
                                   "engine", NULL,
+                                  "entitlements", entitlements,
                                   "id", app_id,
                                   "pidfd", g_steal_fd (&pidfd_owned),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
@@ -246,6 +218,7 @@ xdp_app_info_host_new (const char *sender,
   g_autoptr(XdpAppInfoHost) app_info_host = NULL;
   g_autofree char *app_id = NULL;
   const char *test_app_info_kind = NULL;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
 
   test_app_info_kind = g_getenv ("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND");
   if (test_app_info_kind)
@@ -263,15 +236,19 @@ xdp_app_info_host_new (const char *sender,
 
   maybe_get_pidfd_from_pid (pid, pidfd);
 
+  entitlements = xdp_entitlements_new (0);
+  xdp_entitlements_grant_all (entitlements);
+
   app_info_host = g_initable_new (XDP_TYPE_APP_INFO_HOST,
                                   NULL,
                                   NULL,
                                   "engine", NULL,
+                                  "entitlements", entitlements,
                                   "id", app_id,
                                   "pidfd", g_steal_fd (pidfd),
                                   "flags", XDP_APP_INFO_FLAG_HAS_NETWORK |
                                            XDP_APP_INFO_FLAG_SUPPORTS_OPATH,
-                                   "sender", sender,
+                                  "sender", sender,
                                   NULL);
 
   return XDP_APP_INFO (g_steal_pointer (&app_info_host));

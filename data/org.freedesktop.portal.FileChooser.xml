@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.FileChooser:
-      @short_description: File chooser portal
+      @short_description: Portal for asking the user for access to files
 
       The FileChooser portal allows sandboxed applications to ask
       the user for access to files outside the sandbox. The portal
@@ -22,6 +22,15 @@
       accessible across sessions.
 
       This documentation describes version 4 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.FileChooser`` · version 1
+        Gates general access to the FileChooser portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.FileChooser">
     <!--

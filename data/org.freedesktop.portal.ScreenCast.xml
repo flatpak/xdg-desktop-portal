@@ -7,11 +7,20 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.ScreenCast:
-      @short_description: Screen cast portal
+      @short_description: Portal for screen cast sessions
 
       The Screen cast portal allows to create screen cast sessions.
 
       This documentation describes version 6 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.ScreenCast`` · version 1
+        Gates general access to the ScreenCast portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--

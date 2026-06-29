@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.PowerProfileMonitor:
-      @short_description: Power Profile monitoring portal
+      @short_description: Portal for monitoring the system-wide power profile
 
       The Power Profile Monitor interface provides information about the
       user-selected system-wide power profile, to sandboxed applications.
@@ -16,6 +16,15 @@
       indirectly, via a library API such as the GLib GPowerProfileMonitor interface.
 
       This documentation describes version 1 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.PowerProfileMonitor`` · version 1
+        Gates general access to the PowerProfileMonitor portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.PowerProfileMonitor">
     <!--

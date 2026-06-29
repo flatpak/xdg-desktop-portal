@@ -11,6 +11,7 @@
 
 #include <json-glib/json-glib.h>
 
+#include "xdp-entitlements-private.h"
 #include "xdp-usb-query.h"
 
 #if HAVE_SYS_VFS_H
@@ -30,13 +31,15 @@
 #define FLATPAK_METADATA_KEY_SHARED "shared"
 #define FLATPAK_METADATA_CONTEXT_SHARED_NETWORK "network"
 #define FLATPAK_METADATA_GROUP_RUNTIME "Runtime"
+#define FLATPAK_METADATA_GROUP_ENTITLEMENT "Policy entitlement"
+#define FLATPAK_METADATA_KEY_GRANT "grant"
+#define FLATPAK_METADATA_KEY_VERSION "version"
 
 struct _XdpAppInfoFlatpak
 {
   XdpAppInfo parent;
 
   GKeyFile *flatpak_info;
-  GPtrArray *queries;
 };
 
 G_DEFINE_FINAL_TYPE (XdpAppInfoFlatpak, xdp_app_info_flatpak, XDP_TYPE_APP_INFO);
@@ -353,58 +356,6 @@ xdp_app_info_flatpak_validate_autostart (XdpAppInfo          *app_info,
   return TRUE;
 }
 
-static const GPtrArray *
-xdp_app_info_flaptak_get_usb_queries (XdpAppInfo *app_info)
-{
-  XdpAppInfoFlatpak *app_info_flatpak = XDP_APP_INFO_FLATPAK (app_info);
-
-  if (!app_info_flatpak->queries)
-    {
-      g_autoptr(GPtrArray) usb_queries = NULL;
-
-      usb_queries = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
-
-      g_auto(GStrv) enumerable_devices = NULL;
-      g_auto(GStrv) hidden_devices = NULL;
-
-      enumerable_devices = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
-                                                       "USB Devices",
-                                                       "enumerable-devices",
-                                                       NULL, NULL);
-
-      for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
-        {
-          g_autoptr(XdpUsbQuery) query =
-            xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, enumerable_devices[i]);
-
-          if (query)
-            g_ptr_array_add (usb_queries, g_steal_pointer (&query));
-        }
-
-      hidden_devices = g_key_file_get_string_list (app_info_flatpak->flatpak_info,
-                                                   "USB Devices",
-                                                   "hidden-devices",
-                                                   NULL, NULL);
-
-      for (size_t i = 0; hidden_devices && hidden_devices[i] != NULL; i++)
-        {
-          g_autoptr(XdpUsbQuery) query =
-            xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_HIDDEN, hidden_devices[i]);
-
-          if (query)
-            g_ptr_array_add (usb_queries, g_steal_pointer (&query));
-        }
-
-      g_debug ("Found %d enumerable and %d hidden for app %s",
-               enumerable_devices ? g_strv_length (enumerable_devices) : 0,
-               hidden_devices ? g_strv_length (hidden_devices) : 0,
-               xdp_app_info_get_id (app_info));
-      app_info_flatpak->queries = g_steal_pointer (&usb_queries);
-    }
-
-  return app_info_flatpak->queries;
-}
-
 static gboolean
 xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
                                                 GKeyFile    *key_file,
@@ -465,13 +416,118 @@ xdp_app_info_flatpak_validate_dynamic_launcher (XdpAppInfo  *app_info,
   return TRUE;
 }
 
+static GPtrArray *
+create_usb_queries (GKeyFile *flatpak_info)
+{
+  g_autoptr(GPtrArray) usb_queries = NULL;
+  g_auto(GStrv) enumerable_devices = NULL;
+  g_auto(GStrv) hidden_devices = NULL;
+
+  usb_queries = g_ptr_array_new_with_free_func ((GDestroyNotify) xdp_usb_query_free);
+
+  enumerable_devices = g_key_file_get_string_list (flatpak_info,
+                                                   "USB Devices",
+                                                   "enumerable-devices",
+                                                   NULL, NULL);
+
+  for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, enumerable_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  g_clear_pointer(&enumerable_devices, g_strfreev);
+  enumerable_devices = g_key_file_get_string_list (flatpak_info,
+                                                   "Policy " USB_DEVICES_ENTITLEMENT_NAME,
+                                                   "enumerable-devices",
+                                                   NULL, NULL);
+
+  for (size_t i = 0; enumerable_devices && enumerable_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_ENUMERABLE, enumerable_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  hidden_devices = g_key_file_get_string_list (flatpak_info,
+                                               "USB Devices",
+                                               "hidden-devices",
+                                               NULL, NULL);
+
+  for (size_t i = 0; hidden_devices && hidden_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_HIDDEN, hidden_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  g_clear_pointer(&hidden_devices, g_strfreev);
+  hidden_devices = g_key_file_get_string_list (flatpak_info,
+                                               "Policy " USB_DEVICES_ENTITLEMENT_NAME,
+                                               "hidden-devices",
+                                               NULL, NULL);
+
+  for (size_t i = 0; hidden_devices && hidden_devices[i] != NULL; i++)
+    {
+      g_autoptr(XdpUsbQuery) query =
+        xdp_usb_query_from_string (XDP_USB_QUERY_TYPE_HIDDEN, hidden_devices[i]);
+
+      if (query)
+        g_ptr_array_add (usb_queries, g_steal_pointer (&query));
+    }
+
+  return g_steal_pointer (&usb_queries);
+}
+
+static XdpEntitlements *
+create_entitlements (GKeyFile *flatpak_info)
+{
+  g_autoptr(XdpEntitlements) entitlements = NULL;
+  g_auto(GStrv) grants = NULL;
+  unsigned int version;
+
+  version = g_key_file_get_integer (flatpak_info,
+                                    FLATPAK_METADATA_GROUP_ENTITLEMENT,
+                                    FLATPAK_METADATA_KEY_VERSION,
+                                    NULL);
+
+  entitlements = xdp_entitlements_new (version);
+
+  grants = g_key_file_get_string_list (flatpak_info,
+                                       FLATPAK_METADATA_GROUP_ENTITLEMENT,
+                                       FLATPAK_METADATA_KEY_GRANT,
+                                       NULL,
+                                       NULL);
+
+  for (size_t i = 0; grants && grants[i]; i++)
+    {
+      XdpEntitlement entitlement = xdp_entitlement_lookup (grants[i]);
+
+      if (entitlement == XDP_ENTITLEMENT_NONE)
+        g_debug ("Unknown entitlement '%s'", grants[i]);
+      else
+        xdp_entitlements_grant (entitlements, entitlement);
+    }
+
+  xdp_entitlements_grant_usb_devices (entitlements,
+                                      create_usb_queries (flatpak_info));
+
+  return g_steal_pointer (&entitlements);
+}
+
 static void
 xdp_app_info_flatpak_dispose (GObject *object)
 {
   XdpAppInfoFlatpak *app_info = XDP_APP_INFO_FLATPAK (object);
 
   g_clear_pointer (&app_info->flatpak_info, g_key_file_free);
-  g_clear_pointer (&app_info->queries, g_ptr_array_unref);
 
   G_OBJECT_CLASS (xdp_app_info_flatpak_parent_class)->dispose (object);
 }
@@ -486,8 +542,6 @@ xdp_app_info_flatpak_class_init (XdpAppInfoFlatpakClass *klass)
 
   app_info_class->remap_path =
     xdp_app_info_flatpak_remap_path;
-  app_info_class->get_usb_queries =
-    xdp_app_info_flaptak_get_usb_queries;
   app_info_class->validate_autostart =
     xdp_app_info_flatpak_validate_autostart;
   app_info_class->validate_dynamic_launcher =
@@ -693,6 +747,7 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   XdpAppInfoFlags flags = 0;
 
   metadata_path = g_getenv ("XDG_DESKTOP_PORTAL_TEST_FLATPAK_METADATA");
@@ -739,10 +794,13 @@ xdp_app_info_flatpak_new_testing (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = create_entitlements (metadata);
+
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
                                      "engine", FLATPAK_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,
@@ -777,6 +835,7 @@ xdp_app_info_flatpak_new (const char  *sender,
   g_autofree char *instance = NULL;
   g_auto(GStrv) shared = NULL;
   gboolean has_network;
+  g_autoptr(XdpEntitlements) entitlements = NULL;
   g_autofd int bwrap_pidfd = -1;
   const char *test_app_info_kind;
 
@@ -873,10 +932,13 @@ xdp_app_info_flatpak_new (const char  *sender,
   if (has_network)
     flags |= XDP_APP_INFO_FLAG_HAS_NETWORK;
 
+  entitlements = create_entitlements (metadata);
+
   app_info_flatpak = g_initable_new (XDP_TYPE_APP_INFO_FLATPAK,
                                      NULL,
                                      error,
                                      "engine", FLATPAK_ENGINE_ID,
+                                     "entitlements", entitlements,
                                      "flags", flags,
                                      "id", id,
                                      "instance", instance,

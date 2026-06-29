@@ -40,6 +40,7 @@ XdpDbusImplAccess * xdp_context_get_access_impl (XdpContext *context);
 
 void xdp_context_take_and_export_portal (XdpContext             *context,
                                          GDBusInterfaceSkeleton *skeleton,
+                                         XdpEntitlement          entitlement,
                                          XdpContextExportFlags   flags);
 
 GDBusInterfaceSkeleton * xdp_context_get_portal (XdpContext *context,

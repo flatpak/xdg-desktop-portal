@@ -7,11 +7,20 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
       org.freedesktop.portal.RemoteDesktop:
-      @short_description: Remote desktop portal
+      @short_description: Portal for remote desktop sessions
 
       The Remote desktop portal allows to create remote desktop sessions.
 
       This documentation describes version 2 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.RemoteDesktop`` · version 1
+        Gates general access to the RemoteDesktop portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--

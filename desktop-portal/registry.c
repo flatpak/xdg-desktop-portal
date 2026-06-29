@@ -176,7 +176,9 @@ init_registry (XdpContext *context)
 
   registry = registry_new (app_info_registry);
 
+  // FIXME not entitlement
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&registry)),
+                                      XDP_ENTITLEMENT_NONE,
                                       XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL);
 }

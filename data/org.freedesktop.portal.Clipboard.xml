@@ -7,12 +7,21 @@
 <node name="/"
   xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
-      org.freedesktop.portal.Clipboard
-      @short_description: Clipboard portal
+      org.freedesktop.portal.Clipboard:
+      @short_description: Portal for accessing the clipboard
 
       The Clipboard portal allows sessions to access the clipboard.
 
       This documentation describes version 1 of this interface.
+
+      Entitlements
+      ~~~~~~~~~~~~
+
+      ``org.freedesktop.portal.Clipboard`` · version 1
+        Gates general access to the Clipboard portal.
+
+      See :doc:`entitlements` for general information about the
+      entitlement system.
   -->
   <interface name="org.freedesktop.portal.Clipboard">
     <!-- 

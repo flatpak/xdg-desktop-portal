@@ -7,7 +7,7 @@
 <node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
   <!--
     org.freedesktop.portal.Settings:
-    @short_description: Settings interface
+    @short_description: Portal for querying settings
 
     This interface provides read-only access to a small number of standardized
     host settings required for toolkits similar to XSettings. It is not for
@@ -57,6 +57,15 @@
       Unknown values should be treated as ``0`` (no preference).
 
     This documentation describes version 2 of this interface.
+
+    Entitlements
+    ~~~~~~~~~~~~
+
+    ``org.freedesktop.portal.Settings`` · version 1
+      Gates general access to the Settings portal.
+
+    See :doc:`entitlements` for general information about the
+    entitlement system.
   -->
   <interface name="org.freedesktop.portal.Settings">
 

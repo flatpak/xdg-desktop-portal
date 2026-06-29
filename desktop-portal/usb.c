@@ -23,8 +23,10 @@
 #include <gudev/gudev.h>
 
 #include "xdp-app-info-registry.h"
+#include "xdp-app-info.h"
 #include "xdp-context.h"
 #include "xdp-dbus.h"
+#include "xdp-entitlements.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-permissions.h"
 #include "xdp-portal-config.h"
@@ -321,7 +323,8 @@ usb_sender_info_match_device (UsbSenderInfo *sender_info,
   uint16_t device_subclass;
   uint16_t device_class;
   gboolean match = FALSE;
-  const GPtrArray *queries = NULL;
+  XdpEntitlements *entitlements;
+  const GPtrArray *queries;
 
   permission = usb_sender_info_get_device_permission (sender_info, device);
   if (permission == XDP_PERMISSION_NO)
@@ -343,7 +346,9 @@ usb_sender_info_match_device (UsbSenderInfo *sender_info,
   if (device_subclass_str != NULL && xdp_validate_hex_uint16 (device_subclass_str, 2, &device_subclass))
     device_has_subclass = TRUE;
 
-  queries = xdp_app_info_get_usb_queries (sender_info->app_info);
+  entitlements = xdp_app_info_get_entitlements (sender_info->app_info);
+  queries = xdp_entitlements_get_usb_queries (entitlements);
+
   for (size_t i = 0; queries && i < queries->len; i++)
     {
       XdpUsbQuery *query = g_ptr_array_index (queries, i);
@@ -1556,5 +1561,6 @@ init_usb (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&usb)),
+                                      XDP_ENTITLEMENT_USB,
                                       XDP_CONTEXT_EXPORT_FLAGS_NONE);
 }
