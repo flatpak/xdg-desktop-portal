@@ -10,7 +10,7 @@ requests. They are provided by a separate process (or processes), and are not
 accessible to sandboxed applications.
 
 .. toctree::
-   :maxdepth: 1
+   :hidden:
 
    doc-org.freedesktop.impl.portal.Access.rst
    doc-org.freedesktop.impl.portal.Account.rst
