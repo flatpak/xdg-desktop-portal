@@ -246,9 +246,7 @@ pkgconfig.generate(
   description: 'Desktop integration portal',
   dataonly: true,
   variables: {
-    'prefix': get_option('prefix'),
     'datarootdir': dataroot_dir,
-    'datadir': '${prefix}/@0@'.format(get_option('datadir')),
     'interfaces_dir': '${datadir}/dbus-1/interfaces/',
   },
 )
