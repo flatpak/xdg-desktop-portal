@@ -27,6 +27,9 @@ struct _Settings
 
   XdpDbusImplSettings **impls;
   size_t n_impls;
+
+  GHashTable *last_emitted; /* "namespace\x1fkey" -> GVariant */
+  GCancellable *cancellable;
 };
 
 struct _SettingsClass
@@ -219,6 +222,104 @@ settings_handle_read_one (XdpDbusSettings       *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+typedef struct
+{
+  Settings *self;
+  char *ns;
+  char *key;
+  size_t impl_idx;
+} ResolveData;
+
+static void
+resolve_data_free (ResolveData *data)
+{
+  if (data == NULL)
+    return;
+
+  g_object_unref (data->self);
+  g_free (data->ns);
+  g_free (data->key);
+  g_free (data);
+}
+
+G_DEFINE_AUTOPTR_CLEANUP_FUNC (ResolveData, resolve_data_free)
+
+static ResolveData *
+resolve_data_new (Settings   *self,
+                  const char *ns,
+                  const char *key)
+{
+  ResolveData *data = g_new0 (ResolveData, 1);
+  data->self = g_object_ref (self);
+  data->ns = g_strdup (ns);
+  data->key = g_strdup (key);
+  return data;
+}
+
+static void settings_resolve_read_cb (GObject      *source,
+                                      GAsyncResult *result,
+                                      gpointer      user_data);
+
+static void
+settings_resolve_next (ResolveData *owned_data)
+{
+  g_autoptr(ResolveData) data = owned_data;
+  XdpDbusImplSettings *impl;
+  GCancellable *cancellable;
+  const char *ns;
+  const char *key;
+
+  if (data->impl_idx >= data->self->n_impls)
+    return;
+
+  impl = data->self->impls[data->impl_idx];
+  cancellable = data->self->cancellable;
+  ns = data->ns;
+  key = data->key;
+
+  xdp_dbus_impl_settings_call_read (impl, ns, key, cancellable,
+                                    settings_resolve_read_cb,
+                                    g_steal_pointer (&data));
+}
+
+static void
+settings_resolve_read_cb (GObject      *source,
+                          GAsyncResult *result,
+                          gpointer      user_data)
+{
+  g_autoptr(ResolveData) data = user_data;
+  g_autoptr(GVariant) resolved = NULL;
+  g_autoptr(GError) error = NULL;
+  g_autofree char *cache_key = NULL;
+  GVariant *last_value;
+
+  if (!xdp_dbus_impl_settings_call_read_finish (XDP_DBUS_IMPL_SETTINGS (source),
+                                                &resolved,
+                                                result,
+                                                &error))
+    {
+      data->impl_idx++;
+      settings_resolve_next (g_steal_pointer (&data));
+      return;
+    }
+
+  cache_key = g_strconcat (data->ns, "\x1f", data->key, NULL);
+  last_value = g_hash_table_lookup (data->self->last_emitted, cache_key);
+
+  if (last_value == NULL || !g_variant_equal (resolved, last_value))
+    {
+      g_debug ("Emitting changed for %s %s", data->ns, data->key);
+
+      xdp_dbus_settings_emit_setting_changed (XDP_DBUS_SETTINGS (data->self),
+                                              data->ns, data->key,
+                                              resolved);
+
+      g_hash_table_insert (data->self->last_emitted,
+                           g_steal_pointer (&cache_key),
+                           g_steal_pointer (&resolved));
+    }
+}
+
 static void
 on_impl_settings_changed (XdpDbusImplSettings *impl,
                           const char          *arg_namespace,
@@ -226,9 +327,9 @@ on_impl_settings_changed (XdpDbusImplSettings *impl,
                           GVariant            *arg_value,
                           XdpDbusSettings     *settings)
 {
-  g_debug ("Emitting changed for %s %s", arg_namespace, arg_key);
-  xdp_dbus_settings_emit_setting_changed (settings, arg_namespace,
-                                          arg_key, arg_value);
+  Settings *self = (Settings *)settings;
+
+  settings_resolve_next (resolve_data_new (self, arg_namespace, arg_key));
 }
 
 static void
@@ -256,6 +357,9 @@ settings_finalize (GObject *object)
     }
 
   g_clear_pointer(&self->impls, g_free);
+  g_clear_pointer (&self->last_emitted, g_hash_table_unref);
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
 
   G_OBJECT_CLASS (settings_parent_class)->finalize (object);
 }
@@ -276,6 +380,10 @@ settings_new (GPtrArray *impls)
   settings = g_object_new (settings_get_type (), NULL);
   settings->n_impls = impls->len;
   settings->impls = (XdpDbusImplSettings **) g_ptr_array_steal (impls, NULL);
+  settings->last_emitted = g_hash_table_new_full (g_str_hash, g_str_equal,
+                                                  g_free,
+                                                  (GDestroyNotify) g_variant_unref);
+  settings->cancellable = g_cancellable_new ();
 
   xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (settings), 2);
 
