@@ -3,7 +3,7 @@ SPDX-License-Identifier: LGPL-2.1-or-later
 SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 -->
 
-Changes in 1.23.0
+Changes in 23.0
 =================
 Released: Not yet
 
