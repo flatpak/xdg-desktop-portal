@@ -30,6 +30,9 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 #define DESKTOP_DBUS_IFACE "org.freedesktop.portal"
 #define DESKTOP_DBUS_IMPL_IFACE "org.freedesktop.impl.portal"
 #define DESKTOP_DBUS_PATH "/org/freedesktop/portal/desktop"
+#define DESKTOP_EXPERIMENTAL_DBUS_IFACE "org.freedesktop.portal.experimental"
+#define DESKTOP_EXPERIMENTAL_DBUS_IMPL_IFACE                                   \
+  DESKTOP_DBUS_IMPL_IFACE ".experimental"
 
 #define ACCESS_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Access"
 
@@ -51,6 +54,11 @@ typedef struct _XdpDbusImplAccess XdpDbusImplAccess;
 
 #define CLIPBOARD_DBUS_IFACE DESKTOP_DBUS_IFACE ".Clipboard"
 #define CLIPBOARD_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".Clipboard"
+
+#define CREDENTIAL_EXPERIMENTAL_DBUS_IFACE                                     \
+  DESKTOP_EXPERIMENTAL_DBUS_IFACE ".Credential"
+#define CREDENTIAL_EXPERIMENTAL_DBUS_IMPL_IFACE                                \
+  DESKTOP_EXPERIMENTAL_DBUS_IMPL_IFACE ".Credential"
 
 #define DYNAMIC_LAUNCHER_DBUS_IFACE DESKTOP_DBUS_IFACE ".DynamicLauncher"
 #define DYNAMIC_LAUNCHER_DBUS_IMPL_IFACE DESKTOP_DBUS_IMPL_IFACE ".DynamicLauncher"
