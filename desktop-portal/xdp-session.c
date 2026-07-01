@@ -14,8 +14,7 @@
 typedef enum
 {
   PROP_CONTEXT = 1,
-  PROP_SENDER,
-  PROP_APP_ID,
+  PROP_APP_INFO,
   PROP_TOKEN,
   PROP_CONNECTION,
   PROP_IMPL_CONNECTION,
@@ -64,10 +63,7 @@ xdp_session_from_request (const char *session_handle,
   if (!session)
     return NULL;
 
-  if (g_strcmp0 (session->sender, request->sender) != 0)
-    return NULL;
-
-  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (request->app_info)) != 0)
+  if (request->app_info != session->app_info)
     return NULL;
 
   return g_steal_pointer (&session);
@@ -88,10 +84,7 @@ xdp_session_from_app_info (const char *session_handle,
   if (!session)
     return NULL;
 
-  if (g_strcmp0 (session->sender, xdp_app_info_get_sender (app_info)) != 0)
-    return NULL;
-
-  if (g_strcmp0 (session->app_id, xdp_app_info_get_id (app_info)) != 0)
+  if (app_info != session->app_info)
     return NULL;
 
   return g_steal_pointer (&session);
@@ -276,8 +269,11 @@ xdp_session_initable_init (GInitable     *initable,
   g_autoptr(XdpDbusImplSession) impl_session = NULL;
   int i;
 
-  g_assert (session->sender != NULL);
+  g_assert (session->app_info != NULL);
   g_assert (session->context != NULL);
+
+  session->sender = g_strdup (xdp_app_info_get_sender (session->app_info));
+  session->app_id = g_strdup (xdp_app_info_get_id (session->app_info));
 
   sender_escaped = g_strdup (session->sender + 1);
   for (i = 0; sender_escaped[i]; i++)
@@ -369,12 +365,8 @@ xdp_session_set_property (GObject      *object,
       session->context = g_value_get_object (value);
       break;
 
-    case PROP_SENDER:
-      session->sender = g_strdup (g_value_get_string (value));
-      break;
-
-    case PROP_APP_ID:
-      session->app_id = g_strdup (g_value_get_string (value));
+    case PROP_APP_INFO:
+      g_set_object (&session->app_info, g_value_get_object (value));
       break;
 
     case PROP_TOKEN:
@@ -409,12 +401,8 @@ xdp_session_get_property (GObject    *object,
       g_value_set_object (value, session->context);
       break;
 
-    case PROP_SENDER:
-      g_value_set_string (value, session->sender);
-      break;
-
-    case PROP_APP_ID:
-      g_value_set_string (value, session->app_id);
+    case PROP_APP_INFO:
+      g_value_set_object (value, session->app_info);
       break;
 
     case PROP_TOKEN:
@@ -449,6 +437,7 @@ xdp_session_finalize (GObject *object)
   g_free (session->impl_dbus_name);
   g_clear_object (&session->impl_session);
 
+  g_clear_object (&session->app_info);
   g_free (session->app_id);
   g_free (session->id);
   g_free (session->token);
@@ -485,18 +474,10 @@ xdp_session_class_init (XdpSessionClass *klass)
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
 
-  obj_props[PROP_SENDER] =
-    g_param_spec_string ("sender",
+  obj_props[PROP_APP_INFO] =
+    g_param_spec_object ("app-info",
                          NULL, NULL,
-                         NULL,
-                         G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS);
-
-  obj_props[PROP_APP_ID] =
-    g_param_spec_string ("app-id",
-                         NULL, NULL,
-                         NULL,
+                         XDP_TYPE_APP_INFO,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS);
