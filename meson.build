@@ -5,7 +5,7 @@ project(
   'xdg-desktop-portal',
   'c',
   version: '1.23.0',
-  meson_version: '>= 0.60',
+  meson_version: '>= 1.1',
   license: 'LGPL-2.0-or-later',
   default_options: [
     'warning_level=2',
