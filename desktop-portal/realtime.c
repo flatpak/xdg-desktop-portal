@@ -34,7 +34,7 @@ struct _RealtimeClass
   XdpDbusRealtimeSkeletonClass parent_class;
 };
 
-GType realtime_get_type (void) G_GNUC_CONST;
+GType realtime_get_type (void);
 static void realtime_iface_init (XdpDbusRealtimeIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Realtime, realtime, XDP_DBUS_TYPE_REALTIME_SKELETON,

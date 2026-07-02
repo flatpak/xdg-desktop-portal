@@ -34,7 +34,7 @@ struct _SettingsClass
   XdpDbusSettingsSkeletonClass parent_class;
 };
 
-GType settings_get_type (void) G_GNUC_CONST;
+GType settings_get_type (void);
 static void settings_iface_init (XdpDbusSettingsIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Settings, settings, XDP_DBUS_TYPE_SETTINGS_SKELETON,

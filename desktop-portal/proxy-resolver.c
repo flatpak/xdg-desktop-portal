@@ -30,7 +30,7 @@ struct _ProxyResolverClass
   XdpDbusProxyResolverSkeletonClass parent_class;
 };
 
-GType proxy_resolver_get_type (void) G_GNUC_CONST;
+GType proxy_resolver_get_type (void);
 static void proxy_resolver_iface_init (XdpDbusProxyResolverIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (ProxyResolver, proxy_resolver,

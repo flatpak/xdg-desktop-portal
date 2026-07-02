@@ -63,7 +63,7 @@ enum {
   LAST_PERM
 };
 
-GType open_uri_get_type (void) G_GNUC_CONST;
+GType open_uri_get_type (void);
 static void open_uri_iface_init (XdpDbusOpenURIIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (OpenURI, open_uri, XDP_DBUS_TYPE_OPEN_URI_SKELETON,

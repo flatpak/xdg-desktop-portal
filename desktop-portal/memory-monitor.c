@@ -34,7 +34,7 @@ struct _MemoryMonitorClass
   XdpDbusMemoryMonitorSkeletonClass parent_class;
 };
 
-GType memory_monitor_get_type (void) G_GNUC_CONST;
+GType memory_monitor_get_type (void);
 static void memory_monitor_iface_init (XdpDbusMemoryMonitorIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (MemoryMonitor, memory_monitor,

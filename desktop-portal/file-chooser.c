@@ -40,7 +40,7 @@ struct _FileChooserClass
   XdpDbusFileChooserSkeletonClass parent_class;
 };
 
-GType file_chooser_get_type (void) G_GNUC_CONST;
+GType file_chooser_get_type (void);
 static void file_chooser_iface_init (XdpDbusFileChooserIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (FileChooser, file_chooser,

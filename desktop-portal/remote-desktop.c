@@ -37,7 +37,7 @@ struct _RemoteDesktopClass
   XdpDbusRemoteDesktopSkeletonClass parent_class;
 };
 
-GType remote_desktop_get_type (void) G_GNUC_CONST;
+GType remote_desktop_get_type (void);
 static void remote_desktop_iface_init (XdpDbusRemoteDesktopIface *iface);
 
 static GQuark quark_request_session;

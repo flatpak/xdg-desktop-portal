@@ -39,7 +39,7 @@ struct _AccountClass
   XdpDbusAccountSkeletonClass parent_class;
 };
 
-GType account_get_type (void) G_GNUC_CONST;
+GType account_get_type (void);
 static void account_iface_init (XdpDbusAccountIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Account, account, XDP_DBUS_TYPE_ACCOUNT_SKELETON,

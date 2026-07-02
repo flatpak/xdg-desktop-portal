@@ -34,7 +34,7 @@ struct _ClipboardClass
   XdpDbusClipboardSkeletonClass parent_class;
 };
 
-GType clipboard_get_type (void) G_GNUC_CONST;
+GType clipboard_get_type (void);
 static void clipboard_iface_init (XdpDbusClipboardIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Clipboard,

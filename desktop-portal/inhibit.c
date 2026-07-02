@@ -44,7 +44,7 @@ struct _InhibitClass
   XdpDbusInhibitSkeletonClass parent_class;
 };
 
-GType inhibit_get_type (void) G_GNUC_CONST;
+GType inhibit_get_type (void);
 static void inhibit_iface_init (XdpDbusInhibitIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Inhibit, inhibit, XDP_DBUS_TYPE_INHIBIT_SKELETON,

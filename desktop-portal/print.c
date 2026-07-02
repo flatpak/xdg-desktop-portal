@@ -40,7 +40,7 @@ struct _PrintClass
   XdpDbusPrintSkeletonClass parent_class;
 };
 
-GType print_get_type (void) G_GNUC_CONST;
+GType print_get_type (void);
 static void print_iface_init (XdpDbusPrintIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Print, print, XDP_DBUS_TYPE_PRINT_SKELETON,

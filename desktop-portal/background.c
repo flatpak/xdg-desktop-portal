@@ -78,7 +78,7 @@ struct _BackgroundClass
   XdpDbusBackgroundSkeletonClass parent_class;
 };
 
-GType background_get_type (void) G_GNUC_CONST;
+GType background_get_type (void);
 static void background_iface_init (XdpDbusBackgroundIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Background, background,

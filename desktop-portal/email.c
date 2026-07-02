@@ -40,7 +40,7 @@ struct _EmailClass
   XdpDbusEmailSkeletonClass parent_class;
 };
 
-GType email_get_type (void) G_GNUC_CONST;
+GType email_get_type (void);
 static void email_iface_init (XdpDbusEmailIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Email, email, XDP_DBUS_TYPE_EMAIL_SKELETON,

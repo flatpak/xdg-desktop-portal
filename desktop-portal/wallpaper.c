@@ -37,7 +37,7 @@ struct _WallpaperClass
   XdpDbusWallpaperSkeletonClass parent_class;
 };
 
-GType wallpaper_get_type (void) G_GNUC_CONST;
+GType wallpaper_get_type (void);
 static void wallpaper_iface_init (XdpDbusWallpaperIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Wallpaper, wallpaper, XDP_DBUS_TYPE_WALLPAPER_SKELETON,

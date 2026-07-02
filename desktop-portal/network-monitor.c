@@ -30,7 +30,7 @@ struct _NetworkMonitorClass
   XdpDbusNetworkMonitorSkeletonClass parent_class;
 };
 
-GType network_monitor_get_type (void) G_GNUC_CONST;
+GType network_monitor_get_type (void);
 static void network_monitor_iface_init (XdpDbusNetworkMonitorIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (NetworkMonitor, network_monitor,

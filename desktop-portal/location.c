@@ -48,7 +48,7 @@ typedef struct
   XdpDbusLocationSkeletonClass parent_class;
 } LocationClass;
 
-GType location_get_type (void) G_GNUC_CONST;
+GType location_get_type (void);
 static void location_iface_init (XdpDbusLocationIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Location, location, XDP_DBUS_TYPE_LOCATION_SKELETON,

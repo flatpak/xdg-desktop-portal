@@ -35,7 +35,7 @@ struct _PowerProfileMonitorClass
   XdpDbusPowerProfileMonitorSkeletonClass parent_class;
 };
 
-GType power_profile_monitor_get_type (void) G_GNUC_CONST;
+GType power_profile_monitor_get_type (void);
 static void power_profile_monitor_iface_init (XdpDbusPowerProfileMonitorIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (PowerProfileMonitor, power_profile_monitor,

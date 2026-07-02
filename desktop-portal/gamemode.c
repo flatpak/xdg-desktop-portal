@@ -94,7 +94,7 @@ struct _GameModeClass
   XdpDbusGameModeSkeletonClass parent_class;
 };
 
-GType game_mode_get_type (void) G_GNUC_CONST;
+GType game_mode_get_type (void);
 static void game_mode_iface_init (XdpDbusGameModeIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GameMode, game_mode, XDP_DBUS_TYPE_GAME_MODE_SKELETON,

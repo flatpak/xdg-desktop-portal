@@ -29,7 +29,7 @@ struct _RegistryClass
   XdpDbusHostRegistrySkeletonClass parent_class;
 };
 
-GType registry_get_type (void) G_GNUC_CONST;
+GType registry_get_type (void);
 static void registry_iface_init (XdpDbusHostRegistryIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Registry, registry,

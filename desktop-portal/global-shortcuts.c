@@ -38,7 +38,7 @@ struct _GlobalShortcutsClass
   XdpDbusGlobalShortcutsSkeletonClass parent_class;
 };
 
-GType global_shortcuts_get_type (void) G_GNUC_CONST;
+GType global_shortcuts_get_type (void);
 static void global_shortcuts_iface_init (XdpDbusGlobalShortcutsIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GlobalShortcuts, global_shortcuts, XDP_DBUS_TYPE_GLOBAL_SHORTCUTS_SKELETON,

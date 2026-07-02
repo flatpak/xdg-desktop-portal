@@ -39,7 +39,7 @@ struct _TrashClass
   XdpDbusTrashSkeletonClass parent_class;
 };
 
-GType trash_get_type (void) G_GNUC_CONST;
+GType trash_get_type (void);
 static void trash_iface_init (XdpDbusTrashIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Trash, trash, XDP_DBUS_TYPE_TRASH_SKELETON,

@@ -48,7 +48,7 @@ struct _DynamicLauncherClass
   XdpDbusDynamicLauncherSkeletonClass parent_class;
 };
 
-GType dynamic_launcher_get_type (void) G_GNUC_CONST;
+GType dynamic_launcher_get_type (void);
 static void dynamic_launcher_iface_init (XdpDbusDynamicLauncherIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (DynamicLauncher, dynamic_launcher,

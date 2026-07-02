@@ -52,7 +52,7 @@ struct _ScreenshotClass
   XdpDbusScreenshotSkeletonClass parent_class;
 };
 
-GType screenshot_get_type (void) G_GNUC_CONST;
+GType screenshot_get_type (void);
 static void screenshot_iface_init (XdpDbusScreenshotIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Screenshot, screenshot, XDP_DBUS_TYPE_SCREENSHOT_SKELETON,

@@ -159,7 +159,7 @@ call_data_class_init (CallDataClass *klass)
   object_class->finalize = call_data_finalize;
 }
 
-GType notification_get_type (void) G_GNUC_CONST;
+GType notification_get_type (void);
 static void notification_iface_init (XdpDbusNotificationIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Notification, notification,

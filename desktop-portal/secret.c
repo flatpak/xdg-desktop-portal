@@ -39,7 +39,7 @@ struct _SecretClass
   XdpDbusSecretSkeletonClass parent_class;
 };
 
-GType secret_get_type (void) G_GNUC_CONST;
+GType secret_get_type (void);
 static void secret_iface_init (XdpDbusSecretIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (Secret, secret, XDP_DBUS_TYPE_SECRET_SKELETON,
