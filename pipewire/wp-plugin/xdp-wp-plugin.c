@@ -92,10 +92,11 @@ xdp_wp_plugin_disable (WpPlugin *plugin)
 {
   XdpWpPlugin *self = XDP_WP_PLUGIN (plugin);
 
-  g_clear_object (&self->permission_manager);
-
   g_signal_handler_disconnect (self->dbus_connection_plugin,
                                self->dbus_changed_signal_id);
+
+  g_clear_object (&self->permission_manager);
+
   g_clear_object (&self->dbus_connection_plugin);
 
   wp_object_update_features (WP_OBJECT (self), 0, WP_PLUGIN_FEATURE_ENABLED);
