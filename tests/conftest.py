@@ -566,11 +566,17 @@ def xdp_valgrind_args() -> list[str]:
 
 
 @pytest.fixture
+def xdg_desktop_portal_options() -> xdp.PortalProcessOptions:
+    return xdp.PortalProcessOptions()
+
+
+@pytest.fixture
 def xdg_desktop_portal(
     dbus_con: dbus.Bus,
     xdg_desktop_portal_path: Path,
     xdp_env: dict[str, str],
     xdp_valgrind_args: list[str],
+    xdg_desktop_portal_options: xdp.PortalProcessOptions,
 ) -> Iterator[subprocess.Popen]:
     """
     Fixture which starts and eventually stops xdg-desktop-portal
@@ -582,7 +588,10 @@ def xdg_desktop_portal(
     _maybe_add_asan_preload(xdg_desktop_portal_path, env)
 
     xdg_desktop_portal = subprocess.Popen(
-        xdp_valgrind_args + [xdg_desktop_portal_path], env=env
+        xdp_valgrind_args + [xdg_desktop_portal_path],
+        env=env,
+        stdout=subprocess.PIPE if xdg_desktop_portal_options.capture_stdout else None,
+        stderr=subprocess.PIPE if xdg_desktop_portal_options.capture_stderr else None,
     )
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Desktop"):
@@ -595,14 +604,23 @@ def xdg_desktop_portal(
 
     yield xdg_desktop_portal
 
-    xdg_desktop_portal.send_signal(signal.SIGHUP)
-    returncode = xdg_desktop_portal.wait()
-    assert returncode == 0
+    if xdg_desktop_portal.poll() is None:
+        xdg_desktop_portal.send_signal(signal.SIGHUP)
+        returncode = xdg_desktop_portal.wait()
+        assert returncode == 0
+
+
+@pytest.fixture
+def xdg_permission_store_options() -> xdp.PortalProcessOptions:
+    return xdp.PortalProcessOptions()
 
 
 @pytest.fixture
 def xdg_permission_store(
-    dbus_con: dbus.Bus, xdg_permission_store_path: Path, xdp_env: dict[str, str]
+    dbus_con: dbus.Bus,
+    xdg_permission_store_path: Path,
+    xdp_env: dict[str, str],
+    xdg_permission_store_options: xdp.PortalProcessOptions,
 ) -> Iterator[subprocess.Popen]:
     """
     Fixture which starts and eventually stops xdg-permission-store
@@ -613,7 +631,12 @@ def xdg_permission_store(
     env = xdp_env.copy()
     _maybe_add_asan_preload(xdg_permission_store_path, env)
 
-    permission_store = subprocess.Popen([xdg_permission_store_path], env=env)
+    permission_store = subprocess.Popen(
+        [xdg_permission_store_path],
+        env=env,
+        stdout=subprocess.PIPE if xdg_permission_store_options.capture_stdout else None,
+        stderr=subprocess.PIPE if xdg_permission_store_options.capture_stderr else None,
+    )
 
     while not dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
         returncode = permission_store.poll()
@@ -625,16 +648,25 @@ def xdg_permission_store(
 
     yield permission_store
 
-    permission_store.send_signal(signal.SIGHUP)
-    permission_store.wait()
-    # The permission store does not shut down cleanly currently
-    # returncode = permission_store.wait()
-    # assert returncode == 0
+    if permission_store.poll() is None:
+        permission_store.send_signal(signal.SIGHUP)
+        permission_store.wait()
+        # The permission store does not shut down cleanly currently
+        # returncode = permission_store.wait()
+        # assert returncode == 0
+
+
+@pytest.fixture
+def xdg_document_portal_options() -> xdp.PortalProcessOptions:
+    return xdp.PortalProcessOptions()
 
 
 @pytest.fixture
 def xdg_document_portal(
-    dbus_con: dbus.Bus, xdg_document_portal_path: Path, xdp_env: dict[str, str]
+    dbus_con: dbus.Bus,
+    xdg_document_portal_path: Path,
+    xdp_env: dict[str, str],
+    xdg_document_portal_options: xdp.PortalProcessOptions,
 ) -> Iterator[subprocess.Popen]:
     """
     Fixture which starts and eventually stops xdg-document-portal
@@ -658,7 +690,12 @@ def xdg_document_portal(
     # better solution here.
     env.pop("XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND", None)
 
-    document_portal = subprocess.Popen([xdg_document_portal_path], env=env)
+    document_portal = subprocess.Popen(
+        [xdg_document_portal_path],
+        env=env,
+        stdout=subprocess.PIPE if xdg_document_portal_options.capture_stdout else None,
+        stderr=subprocess.PIPE if xdg_document_portal_options.capture_stderr else None,
+    )
 
     while not dbus_con.name_has_owner("org.freedesktop.portal.Documents"):
         returncode = document_portal.poll()
@@ -670,9 +707,10 @@ def xdg_document_portal(
 
     yield document_portal
 
-    document_portal.send_signal(signal.SIGHUP)
-    returncode = document_portal.wait()
-    assert returncode == 0
+    if document_portal.poll() is None:
+        document_portal.send_signal(signal.SIGHUP)
+        returncode = document_portal.wait()
+        assert returncode == 0
 
     fuse_mount = Path(os.environ["XDG_RUNTIME_DIR"]) / "doc"
 

@@ -90,6 +90,30 @@ xdp_context_dispose (GObject *object)
       context->peer_disconnect_handle_id = 0;
     }
 
+  g_debug ("Shutting down portal context");
+
+  /* Cancel in-flight fibers and unexport all portals, then drain the main
+   * context so cancelled fibers can run their cleanup (e.g. unclaiming
+   * object paths) before we free the remaining resources. */
+  if (context->exported_portals)
+    {
+      GHashTableIter iter;
+      GDBusInterfaceSkeleton *skeleton;
+
+      g_hash_table_iter_init (&iter, context->exported_portals);
+      while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &skeleton))
+        {
+          if (DEX_IS_DBUS_INTERFACE_SKELETON (skeleton))
+            dex_dbus_interface_skeleton_cancel (DEX_DBUS_INTERFACE_SKELETON (skeleton));
+          g_dbus_interface_skeleton_unexport (skeleton);
+        }
+
+      g_clear_pointer (&context->exported_portals, g_hash_table_unref);
+    }
+
+  while (g_main_context_iteration (NULL, FALSE))
+    ;
+
   g_cancellable_cancel (context->cancellable);
   g_clear_object (&context->cancellable);
   g_clear_object (&context->portal_config);
@@ -97,7 +121,6 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
-  g_clear_pointer (&context->exported_portals, g_hash_table_unref);
 
   if (context->registered_object_paths)
     {
@@ -204,18 +227,48 @@ method_needs_request (GDBusMethodInvocation *invocation)
 }
 
 static gboolean
-authorize_callback (GDBusInterfaceSkeleton *interface,
-                    GDBusMethodInvocation  *invocation,
-                    gpointer                user_data)
+authorize_callback_fiber (GDBusInterfaceSkeleton *interface,
+                          GDBusMethodInvocation  *invocation,
+                          gpointer                user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
   g_autoptr(XdpAppInfo) app_info = NULL;
   g_autoptr(GError) error = NULL;
 
-  app_info = xdp_app_info_registry_ensure_for_invocation_sync (context->app_info_registry,
-                                                               invocation,
-                                                               NULL,
-                                                               &error);
+  app_info = dex_await_object (xdp_app_info_registry_ensure_future (
+      context->app_info_registry,
+      invocation),
+    &error);
+
+  if (app_info == NULL)
+    {
+      g_dbus_method_invocation_return_error (invocation,
+                                             G_DBUS_ERROR,
+                                             G_DBUS_ERROR_ACCESS_DENIED,
+                                             "Portal operation not allowed: %s", error->message);
+      return FALSE;
+    }
+
+  g_object_set_data (G_OBJECT (invocation), "xdp-app-info", app_info);
+
+  return TRUE;
+}
+
+static gboolean
+authorize_callback (GDBusInterfaceSkeleton *interface,
+                    GDBusMethodInvocation  *invocation,
+                    gpointer                user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(DexFuture) future = NULL;
+  g_autoptr(XdpAppInfo) app_info = NULL;
+  g_autoptr(GError) error = NULL;
+
+  future = xdp_app_info_registry_ensure_future (context->app_info_registry,
+                                                invocation);
+  dex_thread_wait_for (dex_ref (future), NULL);
+
+  app_info = dex_await_object (g_steal_pointer (&future), &error);
   if (app_info == NULL)
     {
       g_dbus_method_invocation_return_error (invocation,
@@ -253,24 +306,36 @@ xdp_context_take_and_export_portal (XdpContext             *context,
 
   name = g_dbus_interface_skeleton_get_info (skeleton)->name;
 
-  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_HOST_PORTAL))
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD)
     {
-      /* Host portal dbus method invocations run in the main thread without yielding
-       * to the main loop. This means that any later method call of any portal will
-       * see the effects of the host portal method call.
-       *
-       * This is important because the Registry modifies the XdpAppInfo and later
-       * method calls must see the modified value.
-       */
-
       g_dbus_interface_skeleton_set_flags (
         skeleton,
         G_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_THREAD);
+    }
 
-      g_signal_connect_object (skeleton, "g-authorize-method",
-                               G_CALLBACK (authorize_callback),
-                               context,
-                               G_CONNECT_DEFAULT);
+  if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER)
+    {
+      dex_dbus_interface_skeleton_set_flags (
+        DEX_DBUS_INTERFACE_SKELETON (skeleton),
+        DEX_DBUS_INTERFACE_SKELETON_FLAGS_HANDLE_METHOD_INVOCATIONS_IN_FIBER);
+    }
+
+  if (!(flags & XDP_CONTEXT_EXPORT_FLAGS_SKIP_AUTH))
+    {
+      if (flags & XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER)
+        {
+          g_signal_connect_object (skeleton, "g-authorize-method",
+                                   G_CALLBACK (authorize_callback_fiber),
+                                   context,
+                                   G_CONNECT_DEFAULT);
+        }
+      else
+        {
+          g_signal_connect_object (skeleton, "g-authorize-method",
+                                   G_CALLBACK (authorize_callback),
+                                   context,
+                                   G_CONNECT_DEFAULT);
+        }
     }
 
   if (g_dbus_interface_skeleton_export (skeleton,
@@ -301,7 +366,23 @@ on_peer_disconnect (const char *name,
 
   g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
 
-  xdp_app_info_registry_delete (context->app_info_registry, name);
+  dex_future_disown (xdp_app_info_registry_delete_future (context->app_info_registry,
+                                                          name));
+}
+
+static void
+init_portal_in_fiber (XdpContext   *context,
+                      DexFiberFunc  portal_init_func)
+{
+  g_autoptr(DexFuture) f = NULL;
+  GCancellable *cancellable = context->cancellable;
+
+  f = dex_future_first (dex_scheduler_spawn (NULL, 0,
+                                             portal_init_func,
+                                             context, NULL),
+                        dex_cancellable_new_from_cancellable (cancellable),
+                        NULL);
+  dex_future_disown (g_steal_pointer (&f));
 }
 
 gboolean
@@ -367,6 +448,10 @@ xdp_context_register (XdpContext       *context,
                                           G_MAXINT);
     }
 
+  init_portal_in_fiber (context, init_email);
+  init_portal_in_fiber (context, init_global_shortcuts);
+  init_portal_in_fiber (context, init_inhibit);
+  init_portal_in_fiber (context, init_wallpaper);
   init_memory_monitor (context);
   init_power_profile_monitor (context);
   init_network_monitor (context);
@@ -379,18 +464,14 @@ xdp_context_register (XdpContext       *context,
   init_open_uri (context);
   init_print (context);
   init_notification (context);
-  init_inhibit (context);
 #if HAVE_GEOCLUE
   init_location (context);
 #endif
   init_camera (context);
   init_screenshot (context);
   init_background (context);
-  init_wallpaper (context);
   init_account (context);
-  init_email (context);
   init_secret (context, context->cancellable);
-  init_global_shortcuts (context);
   init_dynamic_launcher (context);
   init_screen_cast (context);
   init_remote_desktop (context);

@@ -21,7 +21,7 @@ xdp_get_permissions_sync (XdpAppInfo *app_info,
   g_autoptr(GError) error = NULL;
   g_autoptr(GVariant) out_perms = NULL;
   g_autoptr(GVariant) out_data = NULL;
-  g_autofree char **permissions = NULL;
+  g_auto(GStrv) permissions = NULL;
   const char *app_id;
 
   if (!xdp_dbus_impl_permission_store_call_lookup_sync (permission_store,
@@ -38,14 +38,49 @@ xdp_get_permissions_sync (XdpAppInfo *app_info,
     }
 
   app_id = xdp_app_info_get_id (app_info);
-  if (!g_variant_lookup (out_perms, app_id, "^a&s", &permissions))
+  if (!g_variant_lookup (out_perms, app_id, "^as", &permissions))
     {
       g_debug ("No permissions stored for: %s %s, app %s", table, id, app_id);
 
       return NULL;
     }
 
-  return g_strdupv (permissions);
+  return (char **) g_steal_pointer (&permissions);
+}
+
+static DexFuture *
+xdp_permissions_get_future_finally_cb (DexFuture *future,
+                                       gpointer   user_data)
+{
+  const char *app_id = user_data;
+  g_autoptr(XdpDbusImplPermissionStoreLookupResult) result = NULL;
+  g_auto(GStrv) permissions = NULL;
+
+  result = dex_await_boxed (dex_ref (future), NULL);
+
+  if (result)
+    g_variant_lookup (result->permissions, app_id, "^as", &permissions);
+
+  return dex_future_new_take_boxed (G_TYPE_STRV, g_steal_pointer (&permissions));
+}
+
+DexFuture *
+xdp_permissions_get_future (XdpAppInfo *app_info,
+                            const char *table,
+                            const char *id)
+{
+  DexFuture *future;
+
+  future = xdp_dbus_impl_permission_store_call_lookup_future (permission_store,
+                                                              table,
+                                                              id);
+
+  future = dex_future_finally (future,
+                               xdp_permissions_get_future_finally_cb,
+                               g_strdup (xdp_app_info_get_id (app_info)),
+                               g_free);
+
+  return future;
 }
 
 XdpPermission
@@ -127,6 +162,41 @@ xdp_set_permissions_sync (XdpAppInfo         *app_info,
     }
 }
 
+static DexFuture *
+xdp_permissions_set_future_catch_cb (DexFuture *future,
+                                     gpointer   user_data)
+{
+  g_autoptr(GError) error = NULL;
+
+  dex_future_get_value (future, &error);
+  g_dbus_error_strip_remote_error (error);
+
+  return dex_future_new_for_error (g_steal_pointer (&error));
+}
+
+DexFuture *
+xdp_permissions_set_future (XdpAppInfo         *app_info,
+                            const char         *table,
+                            const char         *id,
+                            const char * const *permissions)
+{
+  DexFuture *future;
+
+  future = xdp_dbus_impl_permission_store_call_set_permission_future (
+    permission_store,
+    table,
+    TRUE,
+    id,
+    xdp_app_info_get_id (app_info),
+    permissions);
+
+  future = dex_future_catch (future,
+                             xdp_permissions_set_future_catch_cb,
+                             NULL, NULL);
+
+  return future;
+}
+
 XdpPermission
 xdp_get_permission_sync (XdpAppInfo *app_info,
                          const char *table,
@@ -141,6 +211,35 @@ xdp_get_permission_sync (XdpAppInfo *app_info,
   return XDP_PERMISSION_UNSET;
 }
 
+static DexFuture *
+xdp_permission_get_future_then_cb (DexFuture *future,
+                                   gpointer   user_data)
+{
+  g_auto(GStrv) perms = NULL;
+  XdpPermission permission = XDP_PERMISSION_UNSET;
+
+  perms = dex_await_boxed (dex_ref (future), NULL);
+  if (perms)
+    permission = xdp_permissions_to_tristate (perms);
+
+  return dex_future_new_for_uint (permission);
+}
+
+DexFuture *
+xdp_permission_get_future (XdpAppInfo *app_info,
+                           const char *table,
+                           const char *id)
+{
+  DexFuture *future;
+
+  future = xdp_permissions_get_future (app_info, table, id);
+  future = dex_future_then (future,
+                            xdp_permission_get_future_then_cb,
+                            NULL, NULL);
+
+  return future;
+}
+
 void
 xdp_set_permission_sync (XdpAppInfo    *app_info,
                          const char    *table,
@@ -151,6 +250,22 @@ xdp_set_permission_sync (XdpAppInfo    *app_info,
 
   perms = xdp_permissions_from_tristate (permission);
   xdp_set_permissions_sync (app_info, table, id, (const char * const *)perms);
+}
+
+DexFuture *
+xdp_permission_set_future (XdpAppInfo    *app_info,
+                           const char    *table,
+                           const char    *id,
+                           XdpPermission  permission)
+{
+  g_auto(GStrv) perms = NULL;
+
+  perms = xdp_permissions_from_tristate (permission);
+
+  return xdp_permissions_set_future (app_info,
+                                     table,
+                                     id,
+                                     (const char * const *) perms);
 }
 
 gboolean

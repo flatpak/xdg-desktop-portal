@@ -254,8 +254,7 @@ remote_desktop_session_new (RemoteDesktop  *remote_desktop,
   session_token = lookup_session_token (options);
   session = g_initable_new (remote_desktop_session_get_type (), NULL, error,
                             "context", remote_desktop->context,
-                            "sender", request->sender,
-                            "app-id", xdp_app_info_get_id (request->app_info),
+                            "app-info", request->app_info,
                             "token", session_token,
                             "connection", connection,
                             "impl-connection", impl_connection,
@@ -1697,5 +1696,5 @@ init_remote_desktop (XdpContext *context)
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&remote_desktop)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_NONE);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
 }
