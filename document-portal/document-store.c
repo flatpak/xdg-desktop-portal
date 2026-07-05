@@ -14,19 +14,20 @@
 const char **
 xdg_unparse_permissions (DocumentPermissionFlags permissions)
 {
-  g_autoptr(GPtrArray) array = g_ptr_array_new ();
+  g_autoptr(GStrvBuilder) builder = NULL;
+
+  builder = g_strv_builder_new ();
 
   if (permissions & DOCUMENT_PERMISSION_FLAGS_READ)
-    g_ptr_array_add (array, "read");
+    g_strv_builder_add (builder, "read");
   if (permissions & DOCUMENT_PERMISSION_FLAGS_WRITE)
-    g_ptr_array_add (array, "write");
+    g_strv_builder_add (builder, "write");
   if (permissions & DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS)
-    g_ptr_array_add (array, "grant-permissions");
+    g_strv_builder_add (builder, "grant-permissions");
   if (permissions & DOCUMENT_PERMISSION_FLAGS_DELETE)
-    g_ptr_array_add (array, "delete");
+    g_strv_builder_add (builder, "delete");
 
-  g_ptr_array_add (array, NULL);
-  return (const char **) g_ptr_array_steal (array, NULL);
+  return (const char **) g_strv_builder_end (builder);
 }
 
 DocumentPermissionFlags
