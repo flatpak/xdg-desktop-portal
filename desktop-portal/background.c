@@ -696,16 +696,12 @@ monitor_background_in_thread (GTask        *task,
                               GCancellable *cancellable)
 {
   Background *background = source_object;
-  gboolean initial_check = GPOINTER_TO_INT (task_data);
 
-  if (initial_check)
-    {
-      check_background_apps (background);
-      g_task_return_boolean (task, TRUE);
-      return;
-    }
+  check_background_apps (background);
 
-  /* We check twice, to avoid killing unlucky apps hit at a bad time */
+  /* First discover existing apps, then check after delays to avoid killing
+   * unlucky apps hit at a bad time.
+   */
   sleep (5);
 
   if (!g_task_set_return_on_cancel (task, FALSE))
@@ -725,8 +721,7 @@ monitor_background_in_thread (GTask        *task,
   g_task_return_boolean (task, TRUE);
 }
 
-static void monitor_background (Background *background,
-                                gboolean    initial_check);
+static void monitor_background (Background *background);
 
 static void
 on_monitor_background_done (GObject      *object,
@@ -744,13 +739,12 @@ on_monitor_background_done (GObject      *object,
   if (background->check_queued)
     {
       background->check_queued = FALSE;
-      monitor_background (background, FALSE);
+      monitor_background (background);
     }
 }
 
 static void
-monitor_background (Background *background,
-                    gboolean    initial_check)
+monitor_background (Background *background)
 {
   if (background->monitor_task)
     {
@@ -763,9 +757,6 @@ monitor_background (Background *background,
                                          on_monitor_background_done,
                                          NULL);
   g_task_set_source_tag (background->monitor_task, monitor_background);
-  g_task_set_task_data (background->monitor_task,
-                        GINT_TO_POINTER (initial_check),
-                        NULL);
   g_task_set_return_on_cancel (background->monitor_task, TRUE);
   g_task_run_in_thread (background->monitor_task, monitor_background_in_thread);
 }
@@ -776,7 +767,7 @@ on_running_apps_changed (gpointer data)
   Background *background = data;
 
   g_debug ("Running app windows changed, wake up monitor thread");
-  monitor_background (background, FALSE);
+  monitor_background (background);
 }
 
 static void
@@ -785,7 +776,7 @@ on_instances_changed (gpointer data)
   Background *background = data;
 
   g_debug ("Running instances changed, wake up monitor thread");
-  monitor_background (background, FALSE);
+  monitor_background (background);
 }
 
 gboolean
@@ -1431,6 +1422,8 @@ background_new (XdpDbusImplBackground *background_impl,
                                G_CONNECT_SWAPPED);
     }
 
+  monitor_background (background);
+
   return g_steal_pointer (&background);
 }
 
@@ -1477,7 +1470,6 @@ init_background (XdpContext *context)
     }
 
   background = background_new (background_impl, access_impl, background_monitor);
-  monitor_background (background, TRUE);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&background)),

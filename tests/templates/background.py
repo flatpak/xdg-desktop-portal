@@ -25,6 +25,7 @@ logger = init_logger(__name__)
 @dataclass
 class BackgroundParameters:
     delay: int
+    app_states: dict[str, int]
 
 
 def load(mock, parameters={}):
@@ -33,6 +34,7 @@ def load(mock, parameters={}):
     assert not hasattr(mock, "background_params")
     mock.background_params = BackgroundParameters(
         delay=parameters.get("delay", 200),
+        app_states=parameters.get("app-states", {}),
     )
 
 
@@ -46,9 +48,16 @@ def GetAppState(self, cb_success, cb_error):
     logger.debug("GetAppState()")
     params = self.background_params
 
-    # FIXME: implement?
     def reply():
-        cb_success({})
+        cb_success(
+            dbus.Dictionary(
+                {
+                    app_id: dbus.UInt32(state, variant_level=1)
+                    for app_id, state in params.app_states.items()
+                },
+                signature="sv",
+            )
+        )
 
     logger.debug(f"scheduling delay of {params.delay}")
     GLib.timeout_add(params.delay, reply)
