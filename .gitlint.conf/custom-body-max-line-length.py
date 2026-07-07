@@ -4,13 +4,6 @@
 import re
 from gitlint.rules import BodyMaxLineLength
 
-TAGS = [
-    "Signed-off-by",
-    "Co-authored-by",
-    "Fixes",
-    "Closes",
-]
-
 
 class CustomBodyMaxLineLength(BodyMaxLineLength):
     name = "custom-body-max-line-length"
@@ -21,16 +14,16 @@ class CustomBodyMaxLineLength(BodyMaxLineLength):
         if line.startswith(" " * 4):
             return None
 
-        # Ignore reference lines (e.g. [2]: https://example.org/foobar)
-        ret = re.match(r"^\[\d+\] ", line)
-        if ret is not None:
+        # Ignore reference lines, such as:
+        #
+        #     [2]: https://example.org/foobar
+        #     Closes: #XYZ
+        #     Co-authored-by: Example <foo@example.com>
+        #     …
+        #
+        # without ignoring lower-case letters.
+        if re.match(r"^([A-Z]|\[\d+\])\S*: ", line):
             return None
-
-        # Ignore length for tags
-        for tag in TAGS:
-            tag = tag + ": "
-            if line[: len(tag)].lower() == tag.lower():
-                return None
 
         # Otherwise behave as the upstream BodyMaxLineLength rule
         return super().validate(line, commit)
