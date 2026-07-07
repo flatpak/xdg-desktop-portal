@@ -48,6 +48,15 @@ If you are developing inside a ``toolbox`` container, you must use
 
    flatpak-spawn --host _build/desktop-portal/xdg-desktop-portal --replace
 
+If you are intending to use ``systemd-sysext`` to temporarily replace
+the service:
+
+.. code-block:: shell
+
+   sysext-build zz-xdg-desktop-portal _build/
+   run0 sysext-add zz-xdg-desktop-portal.sysext.raw
+   run0 systemd-sysext refresh
+
 You may need to restart backends after replacing XDG Desktop Portal (please
 replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
 
