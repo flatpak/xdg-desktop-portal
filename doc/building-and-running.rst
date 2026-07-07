@@ -32,6 +32,13 @@ distribution are in ``/usr/share/xdg-desktop-portal/portals``, re-configure
 Meson using ``meson setup --reconfigure . _build --prefix /usr`` and compile
 again.
 
+If you are using ``systemd-sysext`` from ``sysext-utils``:
+
+.. code-block:: shell
+
+   sysext-build zz-xdg-desktop-portal _build/
+   sysext-add zz-xdg-desktop-portal.sysext.raw
+
 
 Running
 -------
@@ -42,6 +49,13 @@ service that might already be running. To do so, run:
 .. code-block:: shell
 
    _build/desktop-portal/xdg-desktop-portal --replace
+
+If you are using ``systemd-sysext`` from ``sysext-utils`` to
+temporarily replace the service:
+
+.. code-block:: shell
+
+   $PREFIX/libexec/xdg-desktop-portal --replace
 
 You may need to restart backends after replacing XDG Desktop Portal (please
 replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
