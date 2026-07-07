@@ -35,11 +35,20 @@ Running
 -------
 
 XDG Desktop Portal needs to own the D-Bus name and replace the user session
-service that might already be running. To do so, run:
+service that might already be running. There are several ways to
+run xdg-desktop-portal.
+
+Host
+^^^^
+
+To run it on host, run:
 
 .. code-block:: shell
 
    _build/desktop-portal/xdg-desktop-portal --replace
+
+Toolbx
+^^^^^^
 
 If you are developing inside a ``toolbox`` container, you must use
 ``flatpak-spawn`` from ``flatpak-xdg-utils`` to run the service:
@@ -47,6 +56,9 @@ If you are developing inside a ``toolbox`` container, you must use
 .. code-block:: shell
 
    flatpak-spawn --host _build/desktop-portal/xdg-desktop-portal --replace
+
+systemd-sysext
+^^^^^^^^^^^^^^
 
 If you are intending to use ``systemd-sysext`` to temporarily replace
 the service:
@@ -57,8 +69,11 @@ the service:
    run0 sysext-add zz-xdg-desktop-portal.sysext.raw
    run0 systemd-sysext refresh
 
-You may need to restart backends after replacing XDG Desktop Portal (please
-replace ``[name]`` with the backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
+------------
+
+After running the aforementioned command(s) to replace XDG Desktop Portal,
+you may need to restart backends (please replace ``[name]`` with the
+backend name, e.g. ``gnome`` or ``kde`` or ``wlr``):
 
 .. code-block:: shell
 
