@@ -52,10 +52,10 @@ repos:
     - id: forbid-submodules
     - id: mixed-line-ending
       args: [ --fix=no ]
-- repo: https://github.com/jorisroovers/gitlint
-  rev: v0.19.1
+- repo: local
   hooks:
     - id: gitlint
+      name: gitlint
+      language: unsupported
+      entry: gitlint --staged --msg-filename
       stages: [commit-msg]
-    - id: gitlint-ci
-      stages: [manual]

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText:
+
+set -eo pipefail
+
+IMAGE=xdg-desktop-portal-check:latest
+
+PREFIX="${TOOLBOX_PATH:+flatpak-spawn --host}"
+CMD="${PREFIX} $(${PREFIX} sh -c 'command -v podman docker')"
+
+if ! $CMD inspect "${IMAGE}" >/dev/null; then
+  "$(dirname "$0")"/build
+fi
+
+if [ -z "$1" ]; then
+  echo "Usage: $0 <commit-range>"
+  echo "Example: $0 main..HEAD"
+  exit 1
+fi
+
+$CMD run --rm \
+         -v "$PWD:/workspace:Z" \
+         --entrypoint "gitlint" \
+         "${IMAGE}" \
+         --commits "$1"

@@ -12,6 +12,9 @@ Enable the git hooks:
 Run `githooks/run` with `--files path/to files` or `--all-files` to run
 pre-commit on the specific or all files.
 
+Run `githooks/gitlint <commit-range>` to check commit messages, e.g.
+`githooks/gitlint main..HEAD`.
+
 Run `githooks/build` to rebuild the image.
 
 The hooks will build an OCI image which contains all the tools and programs we

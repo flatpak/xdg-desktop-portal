@@ -20,8 +20,8 @@ ENV LANG=en_US.UTF-8
 # Install dependencies
 RUN apt install -y git cargo python3-pip
 
-# Install pre-commit
-RUN pip install --break-system-packages pre-commit
+# Install pre-commit and gitlint
+RUN pip install --break-system-packages pre-commit gitlint-core==0.19.1
 
 # Install qdbusxml2cpp
 RUN apt install -y --no-install-recommends qt6-base-dev-tools
@@ -35,7 +35,7 @@ RUN cargo install --root /usr/local \
                   --rev 0622b96 \
                   gobject-linter
 
-# Make it possible to use gitlint
+# gitlint needs a git identity to function
 RUN git config --global user.name "John Doe"
 RUN git config --global user.email "john.doe@example.org"
 

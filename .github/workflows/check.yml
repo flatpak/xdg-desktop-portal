@@ -35,3 +35,11 @@ jobs:
                          --show-diff-on-failure --color=always \
                          --all-files
         if: always()
+
+      - name: Check commit messages
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.head.sha }} \
+            --depth=$(( ${{ github.event.pull_request.commits }} + 1 ))
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+          gitlint --commits "origin/${{ github.event.pull_request.base.ref }}..${{ github.event.pull_request.head.sha }}"

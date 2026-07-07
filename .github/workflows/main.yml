@@ -21,7 +21,7 @@ jobs:
     permissions:
       packages: write
     with:
-      image: xdg-desktop-portal-checks:2026-06-24.0
+      image: xdg-desktop-portal-checks:2026-07-07.1
       containerfile: containerfiles/check.containerfile
 
   build-and-test:
