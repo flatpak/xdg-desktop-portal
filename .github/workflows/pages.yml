@@ -37,19 +37,16 @@ jobs:
             -Dwerror=true
           ninja -C _build doc/html
 
-      - name: Build website
-        uses: actions/jekyll-build-pages@v1
-        with:
-          source: ./doc/website
-          destination: ./_site
-
-      - name: Prepare docs
-        working-directory: _build/doc
+      - name: Prepare website
         run: |
-          mv ./html ../../_site/docs
+          mkdir -p _build/_site
+          mv _build/doc/html _build/_site/docs
+          cp doc/redirect.html _build/_site/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
+        with:
+          path: _build/_site
 
   # Deployment job
   deploy:

@@ -37,6 +37,12 @@ exclude_patterns = [
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = "furo"
+html_theme_options = {
+    "light_logo": "page-logo.svg",
+    "dark_logo": "page-logo-i.svg",
+    "sidebar_hide_name": True,
+}
+html_title = "XDG Desktop Portal"
 # add custom files that are stored in _static
 html_css_files = ["xdg.css"]
 html_static_path = ["_static"]
