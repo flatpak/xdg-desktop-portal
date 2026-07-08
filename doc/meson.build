@@ -119,12 +119,17 @@ if build_documentation
 
   # Copy static files to the appropriate output subdir
   copy = find_program('copy-subdir.py')
-  copytree = find_program('copy-subtree.py')
 
   static_files = [
     'bullet.svg',
     'card.png',
     'inter.woff2',
+    'logo.svg',
+    'page-logo.svg',
+    'page-logo-i.svg',
+    'splash-dark.png',
+    'splash-light.png',
+    'toc_bullet.svg',
     'toc_bullet.svg',
     'xdg.css',
     'xdg-portal-dark.png',
@@ -134,8 +139,6 @@ if build_documentation
   foreach f: static_files
     run_command(copy, '_static' / f, '_static' / f)
   endforeach
-  
-  run_command(copytree, 'img', '_static' / 'img')
 
   sphinx_command = [ sphinx_build ]
 
