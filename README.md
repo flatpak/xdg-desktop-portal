@@ -7,16 +7,18 @@ SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 # [XDG Desktop Portal](https://flatpak.github.io/xdg-desktop-portal/)
 
-A portal frontend service for [Flatpak](https://flatpak.org) and other
-desktop containment frameworks.
+Portals allow [Flatpak](https://flatpak.org) apps, and other desktop containment
+frameworks, to interact with the system in a secure and well defined way.
 
-xdg-desktop-portal works by exposing a series of D-Bus interfaces known as
-_portals_ under a well-known name (`org.freedesktop.portal.Desktop`) and object
-path (`/org/freedesktop/portal/desktop`).
+XDG Desktop Portal works by exposing a series of D-Bus interfaces known as
+_portals_ to apps. Portals are designed to be usable by all apps, including
+ones which are confined by sandboxes, such as Flatpak.
 
-The portal interfaces include APIs for file access, opening URIs, printing
-and others.
+The portal interfaces include APIs for file access, opening
+URIs, printing and others.
 
-Documentation about the Common Conventions, as well as documentation for
-App Developers, Desktop Developers and Contributors can be found
-[here](https://flatpak.github.io/xdg-desktop-portal/docs/).
+XDG Desktop Portal works together with desktop environment specific backends to
+mediate access to resources and functionality in an integrated manner.
+
+Visit the [website](https://flatpak.github.io/xdg-desktop-portal/) for more
+information.

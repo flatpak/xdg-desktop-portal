@@ -11,5 +11,6 @@ of XDG Desktop Portal.
 .. toctree::
    :maxdepth: 1
 
+   design-considerations
    documents-and-fuse
    pipewire
