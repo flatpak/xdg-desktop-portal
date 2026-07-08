@@ -87,6 +87,7 @@ if build_documentation
     'common-conventions.rst',
     'configuration-file.rst',
     'convenience-libraries.rst',
+    'design-considerations.rst',
     'documents-and-fuse.rst',
     'for-app-developers.rst',
     'for-contributors.rst',

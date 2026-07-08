@@ -9,46 +9,44 @@ layout: default
 
 # XDG Desktop Portal
 
-A portal frontend service for [Flatpak](https://flatpak.org) and other
-desktop containment frameworks.
+Portals allow [Flatpak](https://flatpak.org) apps, and other desktop containment
+frameworks, to interact with the system in a secure and well defined way.
 
-xdg-desktop-portal works by exposing a series of D-Bus interfaces known as
-_portals_ under a well-known name (`org.freedesktop.portal.Desktop`) and object
-path (`/org/freedesktop/portal/desktop`).
+XDG Desktop Portal works by exposing a series of D-Bus interfaces known as
+_portals_ to apps. Portals are designed to be usable by all apps, including
+ones which are confined by sandboxes, such as Flatpak.
 
-The portal interfaces include APIs for file access, opening URIs, printing
-and others.
+The portal interfaces include APIs for file access, opening
+URIs, printing and others.
 
+XDG Desktop Portal works together with desktop environment specific backends to
+mediate access to resources and functionality in an integrated manner.
+
+## Documentation
+
+This documentation covers everything you need to know to
+
+- build apps that use portals
+- configure and distribute portals as part of a distribution
+- write portal backends for your desktop environment
+- contribute to this project
 
 <a href="https://flatpak.github.io/xdg-desktop-portal/docs" class="pixelbutton"><picture>
     <source srcset="assets/docs-button-dark.png" media="(prefers-color-scheme: dark)">
     <img alt="Documentation for the available D-Bus interfaces" src="assets/docs-button.png">
 </picture></a>
 
-## Version Numbering
-
-xdg-desktop-portal uses even minor version numbers for stable versions, and odd
-minor version numbers for unstable versions. During an unstable version cycle,
-portal APIs can make backward incompatible changes, meaning that applications
-should only depend on APIs defined in stable xdg-desktop-portal versions in
-production.
-
-## Building xdg-desktop-portal
-
-xdg-desktop-portal depends on GLib and Flatpak. To build the documentation, you
-will need xmlto and the docbook stylesheets. For more instructions, please read
-[CONTRIBUTING.md](https://github.com/flatpak/xdg-desktop-portal/blob/main/CONTRIBUTING.md).
-
 ## Using Portals
 
-Flatpak grants sandboxed applications _talk_ access to names in the
-org.freedesktop.portal.\* prefix. One possible way to use the portal APIs
-is thus just to make D-Bus calls. For many of the portals, toolkits (e.g.
-GTK) are expected to support portals transparently if you use suitable
-high-level APIs.
+Many toolkits and frameworks already integrate with some portals, and you might
+already be using them without realizing it. For all other cases, there are
+[Convenience Libraries](https://flatpak.github.io/xdg-desktop-portal/docs/convenience-libraries.html)
+and direct [D-Bus access](https://flatpak.github.io/xdg-desktop-portal/docs/api-reference.html).
 
-To implement most portals, xdg-desktop-portal relies on a backend
-that provides implementations of the org.freedesktop.impl.portal.\* interfaces.
+## Backends
+
+To implement most portals, xdg-desktop-portal relies on a desktop environment
+specific backend to provide a part of the functionality.
 
 Here are some examples of available backends:
 
@@ -62,51 +60,16 @@ Here are some examples of available backends:
 - Xapp (Cinnamon, MATE, Xfce) [xdg-desktop-portal-xapp](https://github.com/linuxmint/xdg-desktop-portal-xapp)
 - COSMIC [xdg-desktop-portal-cosmic](https://github.com/pop-os/xdg-desktop-portal-cosmic)
 
-## Design Considerations
-
-There are several reasons for the frontend/backend separation of the portal
-code:
-- We want to have _native_ portal dialogs that match the session desktop (i.e.
-  GTK dialogs for GNOME, Qt dialogs for KDE)
-- One of the limitations of the D-Bus proxying in flatpak is that allowing a
-  sandboxed app to talk to a name implicitly also allows it to talk to any other
-  name owned by the same unique name. Therefore, sandbox-facing D-Bus APIs
-  should generally be hosted on a dedicated bus connection. For portals, the
-  frontend takes care of this for us.
-- The frontend can handle all the interaction with _portal infrastructure_, such
-  as the permission store and the document store, freeing the backends to focus
-  on just providing a user interface.
-- The frontend can also handle argument validation, and be strict about only
-  letting valid requests through to the backend.
-
-The portal apis are all following the pattern of an initial method call, whose
-response returns an object handle for an _org.freedesktop.portal.Request_ object
-that represents the portal interaction. The end of the interaction is done via a
-_Response_ signal that gets emitted on that object. This pattern was chosen over
-a simple method call with return, since portal APIs are expected to show dialogs
-and interact with the user, which may well take longer than the maximum method
-call timeout of D-Bus. Another advantage is that the caller can cancel an
-ongoing interaction by calling the _Cancel_ method on the request object.
-
-One consideration for deciding the shape of portal APIs is that we want them to
-'hide' behind existing library APIs where possible, to make it as easy as
-possible to have apps use them _transparently_. For example, the OpenFile portal
-is working well as a backend for the GtkFileChooserNative API.
-
-When it comes to files, we need to be careful to not let portal APIs subvert the
-limited filesystem view that apps have in their sandbox. Therefore, files should
-only be passed into portal APIs in one of two forms:
-- As a document ID referring to a file that has been exported in the document
-  portal
-- As an open fd. The portal can work its way back to a file path from the fd,
-  and passing an fd proves that the app inside the sandbox has access to the
-  file to open it.
-
-When it comes to processes, passing PIDs around is not useful in a sandboxed
-world where apps are likely in their own PID namespace. And passing PIDs from
-inside the sandbox is problematic, since the app can just lie.
-
 ## Contributing
 
-XDG Desktop Portals is [Free Software](https://www.gnu.org/philosophy/free-sw.html). Contributions [welcome](https://github.com/flatpak/xdg-desktop-portal/blob/main/CONTRIBUTING.md).
+XDG Desktop Portals is [Free Software](https://www.gnu.org/philosophy/free-sw.html).
+Contributions [welcome](https://flatpak.github.io/xdg-desktop-portal/docs/for-contributors.html).
 
+Are you an app developer and want a new portal or feature? Contribute to or open
+a new [discussion](https://github.com/flatpak/xdg-desktop-portal/discussions).
+
+Is there an issue with the portal frontend? Report it to our
+[issue tracker](https://github.com/flatpak/xdg-desktop-portal/issues).
+
+Just want to talk or need help? Join our
+[matrix](https://matrix.to/#/#xdg-desktop-portals:matrix.org).
