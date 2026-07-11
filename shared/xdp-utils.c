@@ -18,6 +18,7 @@
 #include <sys/ioctl.h>
 #include <sys/random.h>
 
+#include "xdp-dex.h"
 #include "xdp-types.h"
 
 #if HAVE_PIDFD_OPEN
@@ -114,6 +115,164 @@ xdp_connection_untrack_peer_disconnect (GDBusConnection *connection,
                                         guint            subscription_id)
 {
   g_dbus_connection_signal_unsubscribe (connection, subscription_id);
+}
+
+XdpPidFdResult *
+xdp_pid_fd_result_ref (XdpPidFdResult *self)
+{
+  g_atomic_ref_count_inc (&self->rc);
+  return self;
+}
+
+void
+xdp_pid_fd_result_unref (XdpPidFdResult *self)
+{
+  if (!g_atomic_ref_count_dec (&self->rc))
+    return;
+  g_clear_fd (&self->fd, NULL);
+  g_free (self);
+}
+
+G_DEFINE_BOXED_TYPE (XdpPidFdResult, xdp_pid_fd_result,
+                     xdp_pid_fd_result_ref, xdp_pid_fd_result_unref);
+
+XdpPidFdResult *
+xdp_pid_fd_result_new (uint32_t pid,
+                       int      fd)
+{
+  XdpPidFdResult *result = g_new0 (XdpPidFdResult, 1);
+
+  g_atomic_ref_count_init (&result->rc);
+  result->pid = pid;
+  result->fd = fd;
+
+  return result;
+}
+
+static XdpPidFdResult *
+connection_get_pidfd_legacy_fiber (GDBusConnection *connection,
+                                   const char      *sender,
+                                   GError         **error)
+{
+  g_autoptr(DexFuture) future = NULL;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GVariant) reply = NULL;
+  uint32_t pid;
+
+  future = dex_dbus_connection_call (connection,
+                                     DBUS_DBUS_NAME,
+                                     DBUS_DBUS_PATH,
+                                     DBUS_DBUS_IFACE,
+                                     "GetConnectionUnixProcessID",
+                                     g_variant_new ("(s)", sender),
+                                     G_VARIANT_TYPE ("(u)"),
+                                     G_DBUS_CALL_FLAGS_NONE,
+                                     30000);
+
+  reply = dex_await_variant (g_steal_pointer (&future), error);
+  if (!reply)
+    return NULL;
+
+  g_variant_get (reply, "(u)", &pid);
+  return xdp_pid_fd_result_new (pid, -1);
+}
+
+static DexFuture *
+connection_get_pidfd_fiber (GDBusConnection *connection,
+                            const char      *sender)
+{
+  g_autoptr(DexFuture) future = NULL;
+  g_autoptr(GError) local_error = NULL;
+  g_autoptr(GVariant) reply = NULL;
+  g_autoptr(GUnixFDList) fd_list = NULL;
+  g_autoptr(GVariant) dict = NULL;
+  g_autoptr(GVariant) process_fd = NULL;
+  g_autoptr(GVariant) process_id = NULL;
+  int fd_id;
+  uint32_t pid;
+  g_autofd int pidfd = -1;
+
+  future = dex_dbus_connection_call_with_unix_fd_list (connection,
+                                                       DBUS_DBUS_NAME,
+                                                       DBUS_DBUS_PATH,
+                                                       DBUS_DBUS_IFACE,
+                                                       "GetConnectionCredentials",
+                                                       g_variant_new ("(s)", sender),
+                                                       G_VARIANT_TYPE ("(a{sv})"),
+                                                       G_DBUS_CALL_FLAGS_NONE,
+                                                       30000,
+                                                       NULL);
+
+  if (!dex_await (dex_ref (future), &local_error))
+    {
+      if (g_error_matches (local_error, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_INTERFACE))
+        {
+          g_autoptr(XdpPidFdResult) result = NULL;
+
+          g_clear_error (&local_error);
+          result = connection_get_pidfd_legacy_fiber (connection, sender, &local_error);
+
+          if (result)
+            return dex_future_new_take_boxed (XDP_TYPE_PID_FD_RESULT,
+                                              g_steal_pointer (&result));
+        }
+      return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+
+  reply = dex_await_variant (dex_ref (dex_future_set_get_future_at (DEX_FUTURE_SET (future), 0)), NULL);
+  fd_list = dex_await_object (dex_ref (dex_future_set_get_future_at (DEX_FUTURE_SET (future), 1)), NULL);
+
+  g_variant_get (reply, "(@a{sv})", &dict);
+
+  process_id = g_variant_lookup_value (dict, "ProcessID", G_VARIANT_TYPE_UINT32);
+  if (!process_id)
+    {
+      g_autoptr(XdpPidFdResult) result = NULL;
+
+      result = connection_get_pidfd_legacy_fiber (connection, sender, &local_error);
+
+      if (result)
+        return dex_future_new_take_boxed (XDP_TYPE_PID_FD_RESULT,
+                                          g_steal_pointer (&result));
+      else
+        return dex_future_new_for_error (g_steal_pointer (&local_error));
+    }
+
+  pid = g_variant_get_uint32 (process_id);
+
+  process_fd = g_variant_lookup_value (dict, "ProcessFD", G_VARIANT_TYPE_HANDLE);
+  if (!process_fd)
+    return dex_future_new_take_boxed (XDP_TYPE_PID_FD_RESULT,
+                                      xdp_pid_fd_result_new (pid, -1));
+
+  fd_id = g_variant_get_handle (process_fd);
+
+  if (fd_list == NULL)
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_FAILED, "Can't find peer pidfd");
+
+  if (!xdp_is_fd_list_index_valid (fd_list, fd_id))
+    return dex_future_new_reject (G_IO_ERROR, G_IO_ERROR_FAILED, "Pidfd index is out of bounds");
+
+  pidfd = g_unix_fd_list_get (fd_list, fd_id, &local_error);
+  if (pidfd < 0)
+    return dex_future_new_for_error (g_steal_pointer (&local_error));
+
+  return dex_future_new_take_boxed (XDP_TYPE_PID_FD_RESULT,
+                                    xdp_pid_fd_result_new (pid, g_steal_fd (&pidfd)));
+}
+
+DexFuture *
+xdp_connection_get_pidfd (GDBusConnection *connection,
+                          const char      *sender)
+{
+  dex_return_error_if_fail (G_IS_DBUS_CONNECTION (connection));
+  dex_return_error_if_fail (sender != NULL);
+
+  return dex_scheduler_spawnv (NULL, 0,
+                               G_CALLBACK (connection_get_pidfd_fiber),
+                               2,
+                               G_TYPE_DBUS_CONNECTION, connection,
+                               G_TYPE_STRING, sender);
 }
 
 static gboolean

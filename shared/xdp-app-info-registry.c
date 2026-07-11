@@ -159,11 +159,8 @@ work_fiber (XdpAppInfoRegistry *registry,
                 g_autoptr(XdpAppInfo) app_info_owned = NULL;
                 g_autoptr(GError) error = NULL;
 
-                /* FIXME convert to future */
                 app_info_owned = app_info =
-                  xdp_app_info_new_for_invocation_sync (data->invocation,
-                                                        NULL,
-                                                        &error);
+                  dex_await_object (xdp_app_info_new_for_invocation (data->invocation), &error);
                 if (!app_info_owned)
                   {
                     dex_promise_reject (data->promise, g_steal_pointer (&error));

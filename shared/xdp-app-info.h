@@ -10,6 +10,7 @@
 
 #include <gio/gdesktopappinfo.h>
 #include <gio/gio.h>
+#include <libdex.h>
 
 typedef enum _XdpAppInfoError
 {
@@ -24,6 +25,11 @@ G_DECLARE_DERIVABLE_TYPE (XdpAppInfo,
                           xdp_app_info,
                           XDP, APP_INFO,
                           GObject);
+
+DexFuture * xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation);
+
+DexFuture * xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
+                                             const char            *appid);
 
 XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
                                                    GCancellable           *cancellable,
