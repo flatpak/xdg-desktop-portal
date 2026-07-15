@@ -139,6 +139,7 @@ endif
 xdg_desktop_portal_deps = common_deps + [
   geoclue_dep,
   pipewire_dep,
+  wireplumber_dep,
   xdp_utils_deps,
 ]
 
