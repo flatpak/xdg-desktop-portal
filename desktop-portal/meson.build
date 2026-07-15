@@ -99,6 +99,7 @@ xdg_desktop_portal_sources = files(
   'xdp-session.c',
   'xdp-session-dex.c',
   'xdp-session-persistence.c',
+  'xdp-wp.c',
 )
 
 xdg_desktop_portal_sources += [
