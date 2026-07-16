@@ -65,7 +65,7 @@ jobs:
       - name: Create dist tarball
         run: |
           ls -la
-          timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C _build --include-subprojects
+          timeout --signal=KILL -v ${TESTS_TIMEOUT}m meson dist -C _build --include-subprojects --no-tests
 
       - name: Upload test logs
         uses: actions/upload-artifact@v4
