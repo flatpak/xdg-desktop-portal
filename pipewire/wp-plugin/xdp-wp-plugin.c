@@ -77,7 +77,15 @@ metadata_init_cb (GObject      *object,
   if (G_UNLIKELY (self->metadata == NULL))
     {
       wp_critical_object (self, "Error while creating metadata: %s", error->message);
+      return;
     }
+
+  self->dbus_changed_signal_id =
+    g_signal_connect_swapped (self->dbus_connection_plugin,
+                              "notify::state",
+                              G_CALLBACK (on_dbus_connection_plugin_state_changed),
+                              self);
+  on_dbus_connection_plugin_state_changed (self, NULL, NULL);
 }
 
 static void
@@ -97,13 +105,6 @@ xdp_wp_plugin_enable (WpPlugin     *plugin,
                                                            "dbus-connection module must be loaded before xdp-desktop-portal"));
       return;
     }
-
-  self->dbus_changed_signal_id =
-    g_signal_connect_swapped (self->dbus_connection_plugin,
-                              "notify::state",
-                              G_CALLBACK (on_dbus_connection_plugin_state_changed),
-                              self);
-  on_dbus_connection_plugin_state_changed (self, NULL, NULL);
 
   xdp_wp_metadata_new (core, self->cancellable, metadata_init_cb, self);
 
