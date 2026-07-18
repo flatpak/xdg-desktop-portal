@@ -18,6 +18,9 @@ struct _XdpWpMetadata
   WpCore *core;
   WpMetadata *metadata;
 
+  WpObjectManager *camera_om;
+  gulong camera_changed_id;
+
   GAsyncReadyCallback init_callback;
   gpointer init_user_data;
 
@@ -33,9 +36,10 @@ G_DEFINE_FINAL_TYPE_WITH_CODE (XdpWpMetadata, xdp_wp_metadata, G_TYPE_OBJECT,
 typedef enum
 {
   PROP_CORE = 1,
+  PROP_CAMERA_OM,
 } XdpWpMetadataProps;
 
-static GParamSpec *props[PROP_CORE + 1] = { NULL, };
+static GParamSpec *props[PROP_CAMERA_OM + 1] = { NULL, };
 
 static void
 on_xdp_daemon_added (XdpWpMetadata   *self,
@@ -45,7 +49,7 @@ on_xdp_daemon_added (XdpWpMetadata   *self,
   struct pw_permission permissions[3];
 
   g_assert (XDP_WP_IS_METADATA (self));
-  g_return_if_fail (WP_IS_CLIENT (client));
+  g_assert (WP_IS_CLIENT (client));
 
   permissions[0] = PW_PERMISSION_INIT (PW_ID_CORE, PW_PERM_R);
   permissions[1] = PW_PERMISSION_INIT (wp_proxy_get_bound_id (WP_PROXY (self->metadata)),
@@ -55,6 +59,21 @@ on_xdp_daemon_added (XdpWpMetadata   *self,
   wp_client_update_permissions_array (client, G_N_ELEMENTS (permissions), permissions);
 
   wp_info_object (client, "Daemon client permission updated");
+}
+
+static void
+on_camera_changed (WpObjectManager *manager,
+                   WpMetadata      *metadata)
+{
+  const char *value = NULL;
+
+  g_assert (WP_IS_METADATA (metadata));
+
+  value = wp_object_manager_get_n_objects (manager) != 0 ? "true" : "false";
+
+  wp_metadata_set (metadata, PW_ID_CORE, XDP_PW_KEY_CAMERA_PRESENT, "Spa:Bool", value);
+
+  wp_debug_object (metadata, XDP_PW_KEY_CAMERA_PRESENT " set to %s", value);
 }
 
 static void
@@ -144,6 +163,11 @@ xdp_wp_metadata_init_finish (GAsyncInitable  *initable,
                                                         self);
   wp_core_install_object_manager (self->core, self->xdp_daemon_om);
 
+  self->camera_changed_id = g_signal_connect (self->camera_om,
+                                              "objects-changed",
+                                              G_CALLBACK (on_camera_changed),
+                                              self->metadata);
+
   return TRUE;
 }
 
@@ -167,6 +191,10 @@ xdp_wp_metadata_set_property (GObject      *object,
     case PROP_CORE:
       self->core = g_object_ref (g_value_get_object (value));
       break;
+
+    case PROP_CAMERA_OM:
+      self->camera_om = g_object_ref (g_value_get_object (value));
+      break;
     }
 }
 
@@ -177,6 +205,7 @@ xdp_wp_metadata_dispose (GObject *object)
 
   wp_debug_object (self, "Disposing metadata");
 
+  g_clear_signal_handler (&self->camera_changed_id, self->camera_om);
   g_clear_signal_handler (&self->xdp_daemon_added_id, self->xdp_daemon_om);
 
   /* Clear daemon clients from metadata permissions since metadata object id
@@ -211,6 +240,8 @@ xdp_wp_metadata_finalize (GObject *object)
 
   g_clear_object (&self->xdp_daemon_om);
 
+  g_clear_object (&self->camera_om);
+
   g_clear_object (&self->metadata);
   g_clear_object (&self->core);
 
@@ -230,6 +261,10 @@ xdp_wp_metadata_class_init (XdpWpMetadataClass *klass)
                                           WP_TYPE_CORE,
                                           G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
+  props[PROP_CAMERA_OM] = g_param_spec_object ("camera-om", NULL, NULL,
+                                               WP_TYPE_OBJECT_MANAGER,
+                                               G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, G_N_ELEMENTS (props), props);
 }
 
@@ -240,16 +275,19 @@ xdp_wp_metadata_init (XdpWpMetadata *self)
 
 void
 xdp_wp_metadata_new (WpCore              *core,
+                     WpObjectManager     *camera_om,
                      GCancellable        *cancellable,
                      GAsyncReadyCallback  callback,
                      gpointer             user_data)
 {
   g_assert (WP_IS_CORE (core));
+  g_assert (WP_IS_OBJECT_MANAGER (camera_om));
 
   g_async_initable_new_async (XDP_WP_TYPE_METADATA,
                               G_PRIORITY_DEFAULT,
                               cancellable, callback, user_data,
                               "core", core,
+                              "camera-om", camera_om,
                               NULL);
 }
 
