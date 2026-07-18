@@ -40,9 +40,10 @@ typedef enum
 {
   PROP_CORE = 1,
   PROP_CONNECTION,
+  PROP_CAMERA_MANAGER,
 } XdpWpPermissionManagerProps;
 
-static GParamSpec *props[PROP_CONNECTION + 1] = { NULL, };
+static GParamSpec *props[PROP_CAMERA_MANAGER + 1] = { NULL, };
 
 static void
 update_client_camera_permission (XdpWpPermissionManager *self,
@@ -225,6 +226,10 @@ xdp_wp_permission_manager_set_property (GObject      *object,
     case PROP_CONNECTION:
       self->connection = g_object_ref (g_value_get_object (value));
       break;
+
+    case PROP_CAMERA_MANAGER:
+      self->camera_manager = g_object_ref (g_value_get_object (value));
+      break;
     }
 }
 
@@ -273,19 +278,11 @@ xdp_wp_permission_manager_constructed (GObject *object)
       return;
     }
 
-  self->camera_manager = wp_object_manager_new ();
-  wp_object_manager_add_interest (self->camera_manager,
-                                  WP_TYPE_NODE,
-                                  WP_CONSTRAINT_TYPE_PW_PROPERTY, PW_KEY_MEDIA_ROLE, "=s", "Camera",
-                                  WP_CONSTRAINT_TYPE_PW_PROPERTY, PW_KEY_MEDIA_CLASS, "=s", "Video/Source",
-                                  NULL);
-
   self->camera_added_signal_id = g_signal_connect_swapped (self->camera_manager,
                                                            "object-added",
                                                            G_CALLBACK (on_camera_added_cb),
                                                            self);
 
-  wp_core_install_object_manager (self->core, self->camera_manager);
   wp_core_install_object_manager (self->core, self->client_manager);
 
   self->permission_changed_signal_id = g_signal_connect_swapped (self->permission_store,
@@ -345,6 +342,10 @@ xdp_wp_permission_manager_class_init (XdpWpPermissionManagerClass *klass)
                                                 G_TYPE_DBUS_CONNECTION,
                                                 G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
+  props[PROP_CAMERA_MANAGER] = g_param_spec_object ("camera-manager", NULL, NULL,
+                                                    WP_TYPE_OBJECT_MANAGER,
+                                                    G_PARAM_WRITABLE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, G_N_ELEMENTS (props), props);
 }
 
@@ -356,10 +357,12 @@ xdp_wp_permission_manager_init (XdpWpPermissionManager *self)
 
 XdpWpPermissionManager *
 xdp_wp_permission_manager_new (WpCore          *core,
+                               WpObjectManager *camera_manager,
                                GDBusConnection *connection)
 {
   return g_object_new (XDP_WP_TYPE_PERMISSION_MANAGER,
                        "core", core,
                        "connection", connection,
+                       "camera-manager", camera_manager,
                        NULL);
 }

@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 /* SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors */
 
+#include <pipewire/keys.h>
 #include <wp/wp.h>
 
 #include "xdp-wp-metadata.h"
@@ -27,6 +28,7 @@ struct _XdpWpPlugin
   gulong dbus_changed_signal_id;
 
   XdpWpMetadata *metadata;
+  WpObjectManager *camera_om;
   XdpWpPermissionManager *permission_manager;
 };
 
@@ -39,30 +41,24 @@ on_dbus_connection_plugin_state_changed (XdpWpPlugin *self,
 {
   WpDBusConnectionState state = -1;
   g_autoptr (GDBusConnection) connection = NULL;
-  g_autoptr (WpCore) core = NULL;
+  g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (self));
 
   g_object_get (self->dbus_connection_plugin, "state", &state, NULL);
 
   if (state != WP_DBUS_CONNECTION_STATE_CONNECTED)
     {
       g_clear_object (&self->permission_manager);
+      wp_debug_object (self, "Permission manager cleared");
       return;
     }
 
   g_object_get (self->dbus_connection_plugin, "connection", &connection, NULL);
   g_return_if_fail (connection != NULL);
 
-  core = wp_object_get_core (WP_OBJECT (self));
-
-  if (core)
-    {
-      self->permission_manager = xdp_wp_permission_manager_new (core, connection);
-      wp_debug_object (self, "Permission manager created");
-    }
-  else
-    {
-      wp_debug_object (self, "No core returned");
-    }
+  self->permission_manager = xdp_wp_permission_manager_new (core,
+                                                            self->camera_om,
+                                                            connection);
+  wp_debug_object (self, "Permission manager created");
 }
 
 static void
@@ -71,6 +67,7 @@ metadata_init_cb (GObject      *object,
                   gpointer      user_data)
 {
   XdpWpPlugin *self = XDP_WP_PLUGIN (user_data);
+  g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (self));;
   g_autoptr (GError) error = NULL;
 
   self->metadata = xdp_wp_metadata_new_finish (object, res, &error);
@@ -79,6 +76,8 @@ metadata_init_cb (GObject      *object,
       wp_critical_object (self, "Error while creating metadata: %s", error->message);
       return;
     }
+
+  wp_core_install_object_manager (core, self->camera_om);
 
   self->dbus_changed_signal_id =
     g_signal_connect_swapped (self->dbus_connection_plugin,
@@ -94,6 +93,7 @@ xdp_wp_plugin_enable (WpPlugin     *plugin,
 {
   XdpWpPlugin *self = XDP_WP_PLUGIN (plugin);
   g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (self));
+  WpObjectInterest *interest;
 
   self->cancellable = g_cancellable_new ();
 
@@ -106,7 +106,27 @@ xdp_wp_plugin_enable (WpPlugin     *plugin,
       return;
     }
 
-  xdp_wp_metadata_new (core, self->cancellable, metadata_init_cb, self);
+  interest = wp_object_interest_new_type (WP_TYPE_NODE);
+  wp_object_interest_add_constraint (interest,
+                                     WP_CONSTRAINT_TYPE_PW_PROPERTY,
+                                     PW_KEY_MEDIA_ROLE,
+                                     WP_CONSTRAINT_VERB_EQUALS,
+                                     g_variant_new_string ("Camera"));
+  wp_object_interest_add_constraint (interest,
+                                     WP_CONSTRAINT_TYPE_PW_PROPERTY,
+                                     PW_KEY_MEDIA_CLASS,
+                                     WP_CONSTRAINT_VERB_EQUALS,
+                                     g_variant_new_string ("Video/Source"));
+  g_assert (wp_object_interest_validate (interest, NULL));
+
+  self->camera_om = wp_object_manager_new ();
+  wp_object_manager_add_interest_full (self->camera_om, g_steal_pointer (&interest));
+
+  xdp_wp_metadata_new (core,
+                       self->camera_om,
+                       self->cancellable,
+                       metadata_init_cb,
+                       self);
 
   wp_object_update_features (WP_OBJECT (self), WP_PLUGIN_FEATURE_ENABLED, 0);
 }
