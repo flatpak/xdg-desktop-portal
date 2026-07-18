@@ -3,6 +3,7 @@
 
 #include <wp/wp.h>
 
+#include "xdp-wp-metadata.h"
 #include "xdp-wp-permission-manager.h"
 
 WP_DEFINE_LOCAL_LOG_TOPIC ("m-xdp-plugin");
@@ -20,9 +21,12 @@ struct _XdpWpPlugin
 {
   WpPlugin parent_instance;
 
+  GCancellable *cancellable;
+
   WpPlugin *dbus_connection_plugin;
   gulong dbus_changed_signal_id;
 
+  XdpWpMetadata *metadata;
   XdpWpPermissionManager *permission_manager;
 };
 
@@ -62,11 +66,28 @@ on_dbus_connection_plugin_state_changed (XdpWpPlugin *self,
 }
 
 static void
+metadata_init_cb (GObject      *object,
+                  GAsyncResult *res,
+                  gpointer      user_data)
+{
+  XdpWpPlugin *self = XDP_WP_PLUGIN (user_data);
+  g_autoptr (GError) error = NULL;
+
+  self->metadata = xdp_wp_metadata_new_finish (object, res, &error);
+  if (G_UNLIKELY (self->metadata == NULL))
+    {
+      wp_critical_object (self, "Error while creating metadata: %s", error->message);
+    }
+}
+
+static void
 xdp_wp_plugin_enable (WpPlugin     *plugin,
                       WpTransition *transition)
 {
   XdpWpPlugin *self = XDP_WP_PLUGIN (plugin);
   g_autoptr (WpCore) core = wp_object_get_core (WP_OBJECT (self));
+
+  self->cancellable = g_cancellable_new ();
 
   self->dbus_connection_plugin = wp_plugin_find (core, "dbus-connection");
   if (!self->dbus_connection_plugin)
@@ -84,6 +105,8 @@ xdp_wp_plugin_enable (WpPlugin     *plugin,
                               self);
   on_dbus_connection_plugin_state_changed (self, NULL, NULL);
 
+  xdp_wp_metadata_new (core, self->cancellable, metadata_init_cb, self);
+
   wp_object_update_features (WP_OBJECT (self), WP_PLUGIN_FEATURE_ENABLED, 0);
 }
 
@@ -92,12 +115,16 @@ xdp_wp_plugin_disable (WpPlugin *plugin)
 {
   XdpWpPlugin *self = XDP_WP_PLUGIN (plugin);
 
+  g_cancellable_cancel (self->cancellable);
+
   g_signal_handler_disconnect (self->dbus_connection_plugin,
                                self->dbus_changed_signal_id);
 
   g_clear_object (&self->permission_manager);
+  g_clear_object (&self->metadata);
 
   g_clear_object (&self->dbus_connection_plugin);
+  g_clear_object (&self->cancellable);
 
   wp_object_update_features (WP_OBJECT (self), 0, WP_PLUGIN_FEATURE_ENABLED);
 }

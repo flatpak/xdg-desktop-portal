@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 xdp_wireplumber_module_sources = [
+  'xdp-wp-metadata.c',
   'xdp-wp-permission-manager.c',
   'xdp-wp-plugin.c',
 ]

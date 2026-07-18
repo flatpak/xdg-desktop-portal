@@ -5,6 +5,7 @@
 
 #define XDP_PW_NAMESPACE "xdg-desktop-portal"
 #define XDP_PW_ACCESS XDP_PW_NAMESPACE
+#define XDP_PW_METADATA_NAME XDP_PW_NAMESPACE
 
 #define XDP_PW_KEY_APP_ID XDP_PW_NAMESPACE ".app_id"
 #define XDP_PW_KEY_MEDIA_ROLES XDP_PW_NAMESPACE ".media_roles"
