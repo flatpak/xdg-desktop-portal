@@ -11,6 +11,7 @@
 G_DECLARE_FINAL_TYPE (XdpWpMetadata, xdp_wp_metadata, XDP_WP, METADATA, GObject);
 
 void xdp_wp_metadata_new (WpCore              *core,
+                          WpObjectManager     *camera_om,
                           GCancellable        *cancellable,
                           GAsyncReadyCallback  callback,
                           gpointer             user_data);
