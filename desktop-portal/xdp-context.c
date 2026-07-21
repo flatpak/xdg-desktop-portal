@@ -6,7 +6,9 @@
 
 #include "xdp-context.h"
 
+#include <pipewire/core.h>
 #include <pipewire/keys.h>
+#include <spa/utils/string.h>
 
 #include "account.h"
 #include "background.h"
@@ -58,6 +60,12 @@ enum
 
 static guint signals[N_SIGNALS] = { 0 };
 
+typedef enum {
+  PROP_CAMERA_PRESENT = 1,
+} XdpContextProps;
+
+static GParamSpec *props[PROP_CAMERA_PRESENT + 1] = { NULL, };
+
 struct _XdpContext
 {
   GObject parent_instance;
@@ -78,6 +86,10 @@ struct _XdpContext
   GCancellable *pw_socket_available;
   WpCore *wp_core;
   gulong wp_core_disconnect_handle_id;
+  WpObjectManager *wp_metadata_om;
+  WpMetadata *wp_metadata;
+  gulong wp_metadata_changed_handle_id;
+  bool camera_present;
 
   GCancellable *cancellable;
 };
@@ -186,6 +198,92 @@ on_pw_socket_changed (GFileMonitor      *monitor,
     }
 }
 
+static void
+on_metadata_changed (WpMetadata *metadata,
+                     guint       subject,
+                     const char *key,
+                     const char *type,
+                     const char *value,
+                     gpointer    user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+
+  g_return_if_fail (key != NULL);
+  g_return_if_fail (type != NULL);
+
+  g_debug ("PipeWire metadata %s (%u) changed to value %s (%s)",
+           key, subject, value, type);
+
+  if (g_strcmp0 (XDP_PW_KEY_CAMERA_PRESENT, key) == 0)
+    {
+      g_return_if_fail (wp_spa_type_from_name (type) == SPA_TYPE_Bool);
+      g_return_if_fail (subject == PW_ID_CORE);
+
+      context->camera_present = spa_atob (value);
+      g_object_notify_by_pspec (G_OBJECT (context), props[PROP_CAMERA_PRESENT]);
+    }
+}
+
+static void
+on_metadata_found (WpObjectManager *manager,
+                   gpointer         object,
+                   gpointer         user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+  WpMetadata *metadata = object;
+  g_autoptr (WpIterator) iter = NULL;
+  g_auto (GValue) value = G_VALUE_INIT;
+
+  /* The client permissions ensure that only one metadata object matches the
+   * object manager interest. */
+  g_return_if_fail (context->wp_metadata == NULL);
+  g_return_if_fail (WP_IS_METADATA (object));
+
+  g_debug (XDP_PW_METADATA_NAME " metadata found");
+
+  context->wp_metadata = g_object_ref (metadata);
+  context->wp_metadata_changed_handle_id = g_signal_connect (context->wp_metadata,
+                                                             "changed",
+                                                             G_CALLBACK (on_metadata_changed),
+                                                             context);
+
+  iter = wp_metadata_new_iterator (context->wp_metadata, PW_ID_ANY);
+  for (; wp_iterator_next (iter, &value); g_value_unset (&value))
+    {
+      WpMetadataItem *item = g_value_get_boxed (&value);
+
+      on_metadata_changed (metadata,
+                           wp_metadata_item_get_subject (item),
+                           wp_metadata_item_get_key (item),
+                           wp_metadata_item_get_value_type (item),
+                           wp_metadata_item_get_value (item),
+                           context);
+    }
+}
+
+static void
+on_metadata_lost (WpObjectManager *manager,
+                  gpointer         object,
+                  gpointer         user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+
+  /* The client permissions ensure that only one metadata object matches the
+   * object manager interest. */
+  g_return_if_fail (g_direct_equal (context->wp_metadata, object));
+
+  g_debug (XDP_PW_METADATA_NAME " metadata lost");
+
+  g_clear_signal_handler (&context->wp_metadata_changed_handle_id, context->wp_metadata);
+  g_clear_object (&context->wp_metadata);
+
+  if (context->camera_present)
+    {
+      context->camera_present = FALSE;
+      g_object_notify_by_pspec (G_OBJECT (context), props[PROP_CAMERA_PRESENT]);
+    }
+}
+
 static DexFuture *
 init_pw_connection_fiber (gpointer user_data)
 {
@@ -193,6 +291,7 @@ init_pw_connection_fiber (gpointer user_data)
   WpProperties *wp_core_props = NULL;
   g_autofree char *pw_socket_path = NULL;
   g_autoptr(GFile) pw_socket = NULL;
+  WpObjectInterest *interest = NULL;
   DexFuture *future = NULL;
   g_autoptr (GError) error = NULL;
 
@@ -206,6 +305,32 @@ init_pw_connection_fiber (gpointer user_data)
                       "disconnected",
                       G_CALLBACK (on_wp_core_disconnected),
                       context);
+
+  interest = wp_object_interest_new_type (WP_TYPE_METADATA);
+  wp_object_interest_add_constraint (interest,
+                                     WP_CONSTRAINT_TYPE_PW_GLOBAL_PROPERTY,
+                                     "metadata.name",
+                                     WP_CONSTRAINT_VERB_EQUALS,
+                                     g_variant_new_string (XDP_PW_METADATA_NAME));
+  g_assert (wp_object_interest_validate (interest, NULL));
+
+  context->wp_metadata_om = wp_object_manager_new ();
+  wp_object_manager_add_interest_full (context->wp_metadata_om,
+                                       g_steal_pointer (&interest));
+  wp_object_manager_request_object_features (context->wp_metadata_om,
+                                             WP_TYPE_METADATA,
+                                             WP_PROXY_FEATURE_BOUND);
+  g_signal_connect_object (context->wp_metadata_om,
+                           "object-added",
+                           G_CALLBACK (on_metadata_found),
+                           context,
+                           G_CONNECT_DEFAULT);
+  g_signal_connect_object (context->wp_metadata_om,
+                           "object-removed",
+                           G_CALLBACK (on_metadata_lost),
+                           context,
+                           G_CONNECT_DEFAULT);
+  wp_core_install_object_manager (context->wp_core, context->wp_metadata_om);
 
   pw_socket_path = g_strdup_printf ("%s/pipewire-0",
                                     g_get_user_runtime_dir ());
@@ -246,6 +371,22 @@ init_pw_connection_fiber (gpointer user_data)
     }
 
   return connect_wp_core_fiber (context);
+}
+
+static void
+xdp_context_get_property (GObject    *object,
+                          guint       property_id,
+                          GValue     *value,
+                          GParamSpec *pspec)
+{
+  XdpContext *context = XDP_CONTEXT (object);
+
+  switch ((XdpContextProps)property_id)
+    {
+    case PROP_CAMERA_PRESENT:
+      g_value_set_boolean (value, context->camera_present);
+      break;
+    }
 }
 
 static void
@@ -302,6 +443,8 @@ xdp_context_dispose (GObject *object)
       g_mutex_clear (&context->registered_object_paths_lock);
     }
 
+  g_clear_object (&context->wp_metadata_om);
+  g_clear_object (&context->wp_metadata);
   g_clear_object (&context->pw_socket_available);
   g_clear_object (&context->pw_socket_monitor);
   g_clear_object (&context->wp_core);
@@ -314,7 +457,15 @@ xdp_context_class_init (XdpContextClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->get_property = xdp_context_get_property;
   object_class->dispose = xdp_context_dispose;
+
+  props[PROP_CAMERA_PRESENT] =
+    g_param_spec_boolean ("camera-present", NULL, NULL,
+                          FALSE,
+                          G_PARAM_READABLE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, G_N_ELEMENTS (props), props);
 
   signals[PEER_DISCONNECT] =
     g_signal_new ("peer-disconnect",
