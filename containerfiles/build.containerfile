@@ -36,8 +36,10 @@ RUN apt install -y --no-install-recommends \
     libglib2.0-dev \
     libgudev-1.0-dev \
     libjson-glib-dev \
+    pipewire \
     libpipewire-0.3-dev \
     libdbus-1-dev \
+    wireplumber \
     libwireplumber-0.5-dev \
     libsystemd-dev \
     libtool \
