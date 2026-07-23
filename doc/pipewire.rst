@@ -32,22 +32,46 @@ Clients connecting from other PIDs are ignored by this module.
 WirePlumber plugin
 ------------------
 
-This plugin performs node access control for clients created by xdg-desktop-portal
+This plugin performs access control for clients created by xdg-desktop-portal
 at the `session manager  <https://docs.pipewire.org/page_session_manager.html>`_
 level.
-
-An object manager watches for clients with ``PW_KEY_ACCESS`` set to
-``"xdg-desktop-portal"`` and ``XDP_PW_KEY_APP_ID`` assigned to a value.
 
 Camera
 """"""
 
-A node is considered a camera if ``PW_KEY_MEDIA_ROLE`` is set to ``"Camera"``
-and ``PW_KEY_MEDIA_CLASS`` to ``"Video/Source"``.
+An object manager is in place to watch for nodes that matches the the following
+properties:
+
+- ``PW_KEY_MEDIA_ROLE`` is set to ``"Camera"``
+- ``PW_KEY_MEDIA_CLASS`` to ``"Video/Source"``
+
+A matching node will be considered as a camera.
+
+Permission Store
+""""""""""""""""
+
+An object manager watches for clients with ``PW_KEY_ACCESS`` set to
+``"xdg-desktop-portal"`` and ``XDP_PW_KEY_APP_ID`` assigned to a value.
 
 If xdg-desktop-portal assigned ``XDP_PW_KEY_MEDIA_ROLES`` to ``"Camera"``
-to the PipeWire client, access to every node considered as camera will be
-granted to the client.
+to the PipeWire client and the application is allowed camera permission, access
+to every node detected by the camera object manager will be granted to the
+client.
 
-An object manager is set to watch node considered as camera, to update allowed
-clients if a new matching node is added.
+Metadata
+""""""""
+
+A metadata object is in place to enable xdp-desktop-portal and WirePlumber to
+share information avoiding duplicating code between the daemon and
+session-manager.
+
+Besides unrestricted clients, this object can only be accessed by
+xdp-desktop-portal clients with:
+
+- ``XDP_PW_KEY_DAEMON`` set to true
+- ``XDP_PW_KEY_APP_ID`` unset
+
+Defined metadata:
+
+- ``XDP_PW_KEY_CAMERA_PRESENT``, with subject ``PW_ID_CORE`` and type boolean,
+  set to true if the camera object manager find any camera, otherwise false
