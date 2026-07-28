@@ -42,10 +42,6 @@
 
         The following results get returned in the @results vardict:
 
-        * ``session_id`` (``s``)
-
-          The session id. A string representing the created input capture session.
-
         * ``capabilities`` (``u``)
 
           The capabilities available to this session. This is always a
