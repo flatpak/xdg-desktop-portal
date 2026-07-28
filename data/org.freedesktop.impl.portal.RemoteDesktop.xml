@@ -29,11 +29,7 @@
         org.freedesktop.portal.ScreenCast), but may only be started and stopped
         with this interface.
 
-        The following results get returned in the @results vardict:
-
-        * ``session`` (``s``)
-
-          The session id. A string representing the created screen cast session.
+        There are currently no supported keys in the @results vardict.
     -->
     <method name="CreateSession">
       <arg type="o" name="handle" direction="in"/>
