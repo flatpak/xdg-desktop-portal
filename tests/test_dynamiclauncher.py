@@ -3,14 +3,14 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import pytest
-import dbus
 import os
-from pathlib import Path
 import stat
+from pathlib import Path
 
+import dbus
+import pytest
+
+import tests.xdp_utils as xdp
 
 SVG_IMAGE_DATA = """<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" height="16px" width="16px"/>

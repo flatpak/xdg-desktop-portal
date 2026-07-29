@@ -3,11 +3,12 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
+from enum import Enum, Flag
 
 import dbus
 import pytest
-from enum import Enum, Flag
+
+import tests.xdp_utils as xdp
 
 
 class InhibitFlags(Flag):

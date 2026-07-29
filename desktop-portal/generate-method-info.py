@@ -3,7 +3,7 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 import argparse
-import xml.etree.ElementTree as ElementTree
+from xml.etree import ElementTree
 
 
 def quote(s: str):
@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
     print('#include "glib.h"')
     print('#include "xdp-method-info.h"')
-    print("")
+    print()
     print("static const XdpMethodInfo method_info[] = {")
 
     for file in args.file:
@@ -66,11 +66,11 @@ if __name__ == "__main__":
 
     print("  { .interface = NULL },")
     print("};")
-    print("")
+    print()
     print(
         "const XdpMethodInfo *xdp_method_info_get_all (void) { return method_info; };"
     )
-    print("")
+    print()
     print(
         "unsigned int xdp_method_info_get_count (void) { return G_N_ELEMENTS(method_info) - 1; };"
     )

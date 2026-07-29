@@ -3,13 +3,14 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
 import os
-import pytest
 import tempfile
 from pathlib import Path
+
+import pytest
 from gi.repository import GLib
+
+import tests.xdp_utils as xdp
 
 
 class TestTrash:

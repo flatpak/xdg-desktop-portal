@@ -3,8 +3,8 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 import os
-import sys
 import shutil
+import sys
 
 subdir = os.environ["MESON_SUBDIR"]
 

@@ -2,6 +2,7 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
 import re
+
 from gitlint.rules import BodyMaxLineLength
 
 

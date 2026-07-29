@@ -3,13 +3,14 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
+import os
+from pathlib import Path
 
 import dbus
 import pytest
-import os
-from pathlib import Path
 from gi.repository import GLib
+
+import tests.xdp_utils as xdp
 
 
 @pytest.fixture

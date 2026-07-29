@@ -3,18 +3,19 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import pytest
 import errno
+import multiprocessing as mp
 import os
 import random
 import stat
 import sys
-import multiprocessing as mp
 import traceback
 from collections import defaultdict
+
+import pytest
 from gi.repository import Gio, GLib
+
+import tests.xdp_utils as xdp
 
 
 @pytest.fixture
@@ -90,9 +91,7 @@ def assertRaisesErrno(error_nr, func, *args, **kwargs):
 
     if excinfo.value.errno != error_nr:
         raise AssertionError(
-            "Wrong errno {0} was raised instead of {1}".format(
-                excinfo.value.errno, error_nr
-            )
+            f"Wrong errno {excinfo.value.errno} was raised instead of {error_nr}"
         )
 
 
@@ -102,13 +101,11 @@ def assertRaisesGError(message, code, func, *args, **kwargs):
 
     if not excinfo.value.message.startswith(message):
         raise AssertionError(
-            "Wrong message {0} doesn't start with {1}".format(
-                excinfo.value.message, message
-            )
+            f"Wrong message {excinfo.value.message} doesn't start with {message}"
         )
     if excinfo.value.code != code:
         raise AssertionError(
-            "Wrong code {0} was raised instead of {1}".format(excinfo.value.code, code)
+            f"Wrong code {excinfo.value.code} was raised instead of {code}"
         )
 
 
@@ -134,41 +131,39 @@ def assertSameStat(a, b, b_mode_mask):
         and a.st_mtime == b.st_mtime
         and a.st_ctime == b.st_ctime
     ):
-        raise AssertionError("Stat value {} was not the expected {})".format(a, b))
+        raise AssertionError(f"Stat value {a} was not the expected {b})")
 
 
 def assertFileExist(path):
     try:
         info = os.lstat(path)
         if info.st_mode & stat.S_IFREG != stat.S_IFREG:
-            raise AssertionError("File {} is not a regular file".format(path))
+            raise AssertionError(f"File {path} is not a regular file")
     except Exception:
-        raise AssertionError("File {} doesn't exist".format(path))
+        raise AssertionError(f"File {path} doesn't exist")
 
 
 def assertDirExist(path):
     try:
         info = os.lstat(path)
         if info.st_mode & stat.S_IFDIR != stat.S_IFDIR:
-            raise AssertionError("File {} is not a directory file".format(path))
+            raise AssertionError(f"File {path} is not a directory file")
     except Exception:
-        raise AssertionError("File {} doesn't exist".format(path))
+        raise AssertionError(f"File {path} doesn't exist")
 
 
 def assertSymlink(path, expected_target):
     try:
         info = os.lstat(path)
         if info.st_mode & stat.S_IFLNK != stat.S_IFLNK:
-            raise AssertionError("File {} is not a symlink".format(path))
+            raise AssertionError(f"File {path} is not a symlink")
         target = os.readlink(path)
         if target != expected_target:
             raise AssertionError(
-                "File {} has wrong target {}, expected {}".format(
-                    path, target, expected_target
-                )
+                f"File {path} has wrong target {target}, expected {expected_target}"
             )
     except Exception:
-        raise AssertionError("Symlink {} doesn't exist".format(path))
+        raise AssertionError(f"Symlink {path} doesn't exist")
 
 
 def assertFileNotExist(path):
@@ -178,11 +173,9 @@ def assertFileNotExist(path):
         return
     except Exception:
         raise AssertionError(
-            "Got wrong execption {} for {}, expected FileNotFoundError".format(
-                sys.exc_info()[0], path
-            )
+            f"Got wrong execption {sys.exc_info()[0]} for {path}, expected FileNotFoundError"
         )
-    raise AssertionError("Path {} unexpectedly exists".format(path))
+    raise AssertionError(f"Path {path} unexpectedly exists")
 
 
 def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
@@ -193,16 +186,12 @@ def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
             remaining.remove(file)
         elif file not in volatile_files:
             raise AssertionError(
-                "Expected file {} not found in dir {} (all: {})".format(
-                    file, path, found_files
-                )
+                f"Expected file {file} not found in dir {path} (all: {found_files})"
             )
     if exhaustive:
         if len(remaining) != 0:
             raise AssertionError(
-                "Unexpected files {} in dir {} (all: {})".format(
-                    remaining, path, found_files
-                )
+                f"Unexpected files {remaining} in dir {path} (all: {found_files})"
             )
 
 
@@ -503,7 +492,6 @@ def verify_doc(doc, app_id=None):
         vdir = os.path.dirname(dir)
         info = os.lstat(vdir)
         check_virtual_stat(info)
-        pass
     else:
         info = os.lstat(dir)
         check_virtual_stat(info, doc.is_writable_by(app_id))

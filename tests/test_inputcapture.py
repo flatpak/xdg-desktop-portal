@@ -3,15 +3,15 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import dbus
-import pytest
 import socket
-from gi.repository import GLib
 from itertools import count
 from typing import Any
 
+import dbus
+import pytest
+from gi.repository import GLib
+
+import tests.xdp_utils as xdp
 
 counter = count()
 

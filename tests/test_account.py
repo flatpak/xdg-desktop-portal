@@ -3,13 +3,13 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
+import os
+import re
+from pathlib import Path
 
 import pytest
-import os
-from pathlib import Path
-import re
 
+import tests.xdp_utils as xdp
 
 ACCOUNT_DATA = {
     "id": "test",

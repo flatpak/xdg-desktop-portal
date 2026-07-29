@@ -3,12 +3,13 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
+import socket
+from typing import Any
 
 import dbus
 import pytest
-import socket
-from typing import List, Dict, Any
+
+import tests.xdp_utils as xdp
 
 
 @pytest.fixture
@@ -226,7 +227,7 @@ class TestRemoteDesktop:
         assert response
         assert response.response == 0
 
-        notifyfuncs: List[Dict[str, Any]] = [
+        notifyfuncs: list[dict[str, Any]] = [
             {"name": "NotifyPointerMotion", "args": (1, 2)},
             {"name": "NotifyPointerMotionAbsolute", "args": (0, 1, 2)},
             {"name": "NotifyPointerButton", "args": (1, 1)},

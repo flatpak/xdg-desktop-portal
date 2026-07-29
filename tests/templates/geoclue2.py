@@ -2,12 +2,11 @@
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 # mypy: disable-error-code="misc"
 
-from tests.templates.xdp_utils import init_logger
-
-import dbus.service
 import dbus
-
+import dbus.service
 from dbusmock import mockobject
+
+from tests.templates.xdp_utils import init_logger
 
 BUS_NAME = "org.freedesktop.GeoClue2"
 MAIN_OBJ = "/org/freedesktop/GeoClue2/Manager"
@@ -23,7 +22,7 @@ logger = init_logger(__name__)
 
 class GeoClueClient(mockobject.DBusMockObject):
     def __init__(self, *args, **kwargs):
-        super(GeoClueClient, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.started = False
         self.location = 0
