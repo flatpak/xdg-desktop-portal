@@ -26,7 +26,7 @@ class SettingsParameters:
     settings: dict
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "settings_params")

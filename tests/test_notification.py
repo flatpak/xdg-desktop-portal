@@ -78,7 +78,9 @@ class NotificationPortal(xdp.GDBusIface):
             "org.freedesktop.portal.Notification",
         )
 
-    def AddNotification(self, id, notification, fds=[]):
+    def AddNotification(self, id, notification, fds=None):
+        if fds is None:
+            fds = []
         return self._call(
             "AddNotification",
             GLib.Variant("(sa{sv})", (id, notification)),
@@ -93,13 +95,15 @@ class NotificationPortal(xdp.GDBusIface):
 
 
 class TestNotification:
-    def add_notification(self, dbus_con, app_id, id, notification, fds=[]):
+    def add_notification(self, dbus_con, app_id, id, notification, fds=None):
         notification_intf = NotificationPortal()
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         method_calls = mock_intf.GetMethodCalls("AddNotification")
         backend_calls = len(method_calls)
 
+        if fds is None:
+            fds = []
         notification_intf.AddNotification(id, notification, fds)
 
         # Check the impl portal was called with the right args

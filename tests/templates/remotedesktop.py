@@ -34,7 +34,9 @@ class RemotedesktopParameters:
     fail_connect_to_eis: bool
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "remotedesktop_params")

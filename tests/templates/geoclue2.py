@@ -92,7 +92,9 @@ class GeoClueClient(mockobject.DBusMockObject):
         )
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     mock.AddMethods(
         MAIN_IFACE,
         [

@@ -31,7 +31,9 @@ class ScreenCastParameters:
     pipewire_serial: int
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "screencast_params")

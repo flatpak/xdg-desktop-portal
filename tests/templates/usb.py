@@ -30,10 +30,13 @@ class UsbParameters:
     filters: dict
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "usb_params")
+
     mock.usb_params = UsbParameters(
         delay=parameters.get("delay", 200),
         response=parameters.get("response", 0),

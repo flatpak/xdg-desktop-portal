@@ -29,7 +29,9 @@ class PrintParameters:
     prepare_results: dict
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "print_params")

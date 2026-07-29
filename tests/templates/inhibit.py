@@ -36,7 +36,9 @@ class InhibitParameters:
     expect_close: bool
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "inhibit_params")

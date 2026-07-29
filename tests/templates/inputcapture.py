@@ -54,7 +54,9 @@ class InputcaptureParameters:
     allow_persistence: bool
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "inputcapture_params")

@@ -17,7 +17,9 @@ MAIN_IFACE = "org.freedesktop.impl.portal.Lockdown"
 logger = init_logger(__name__)
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     mock.AddProperties(
