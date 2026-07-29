@@ -166,7 +166,7 @@ class TestPrint:
         print_intf = xdp.get_portal_iface(dbus_con, "Print")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
-        fd, file_path = tempfile.mkstemp(prefix="print_mock_file_", dir=Path.home())
+        fd, _ = tempfile.mkstemp(prefix="print_mock_file_", dir=Path.home())
         os.write(fd, b"print_mock_file")
 
         title = "Test Title"
@@ -301,7 +301,7 @@ class TestPrint:
 
         title = "Test Title"
 
-        fd, file_path = tempfile.mkstemp(prefix="print_mock_file_", dir=Path.home())
+        fd, _ = tempfile.mkstemp(prefix="print_mock_file_", dir=Path.home())
         os.write(fd, b"print_mock_file")
 
         request = xdp.Request(dbus_con, print_intf)

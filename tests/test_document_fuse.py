@@ -996,7 +996,7 @@ def export_a_named_doc(portal, create_file):
 
 
 def export_a_dir_doc(portal):
-    (dir, count) = ensure_real_dir(False)
+    (dir, _) = ensure_real_dir(False)
     doc = portal.add_dir(dir)
     logv("exported (dir) %s as %s" % (dir, doc))
 
@@ -1220,7 +1220,7 @@ class TestDocumentFuse:
             p.join()
 
             if p.exception:
-                error, traceback = p.exception
+                error, _ = p.exception
                 raise error
 
     def test_single_thread(self, portals, xdg_document_portal, dbus_con):
