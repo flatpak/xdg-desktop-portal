@@ -238,11 +238,11 @@ class Doc:
     def __str__(self):
         name = self.id
         if self.is_dir:
-            return "%s(dir)" % (name)
+            return f"{name}(dir)"
         elif self.content is None:
-            return "%s(missing)" % (name)
+            return f"{name}(missing)"
         else:
-            return "%s" % (name)
+            return name
 
 
 class DocPortal:
@@ -952,7 +952,7 @@ def ensure_real_dir_file(create_file):
 def export_a_doc(portal):
     path = ensure_real_dir_file(True)
     doc = portal.add(path)
-    logv("exported %s as %s" % (path, doc))
+    logv(f"exported {path} as {doc}")
 
     lookup = portal.lookup(path)
     assert lookup == doc.id
@@ -981,7 +981,7 @@ def export_a_doc(portal):
 def export_a_named_doc(portal, create_file):
     path = ensure_real_dir_file(create_file)
     doc = portal.add_named(path)
-    logv("exported (named) %s as %s" % (path, doc))
+    logv(f"exported (named) {path} as {doc}")
 
     if create_file:
         lookup = portal.lookup(path)
@@ -997,7 +997,7 @@ def export_a_named_doc(portal, create_file):
 def export_a_dir_doc(portal):
     (dir, _) = ensure_real_dir(False)
     doc = portal.add_dir(dir)
-    logv("exported (dir) %s as %s" % (dir, doc))
+    logv(f"exported (dir) {dir} as {doc}")
 
     lookup = portal.lookup(dir)
     assert lookup == doc.id
@@ -1055,7 +1055,7 @@ def add_an_app(portal, num_docs):
         doc.apps.append(read_app)
         portal.grant_permissions(doc.id, write_app, ["read", "write"])
         doc.apps.append(write_app)
-    logv("granted acces to %s and %s for %s" % (read_app, write_app, ids))
+    logv(f"granted acces to {read_app} and {write_app} for {ids}")
 
 
 def file_transfer_portal_test():
@@ -1176,7 +1176,7 @@ def run_test(iterations, prefix=None, do_ensure_no_remaining=True):
     verify_fs_layout(doc_portal)
 
     for i in range(iterations):
-        log("Checking permissions, pass %d" % (i + 1))
+        log(f"Checking permissions, pass {i + 1}")
         check_perms(doc_portal)
         verify_fs_layout(doc_portal)
 
