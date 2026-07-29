@@ -188,11 +188,10 @@ def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
             raise AssertionError(
                 f"Expected file {file} not found in dir {path} (all: {found_files})"
             )
-    if exhaustive:
-        if len(remaining) != 0:
-            raise AssertionError(
-                f"Unexpected files {remaining} in dir {path} (all: {found_files})"
-            )
+    if exhaustive and len(remaining) != 0:
+        raise AssertionError(
+            f"Unexpected files {remaining} in dir {path} (all: {found_files})"
+        )
 
 
 class Doc:
