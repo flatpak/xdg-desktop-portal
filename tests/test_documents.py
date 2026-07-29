@@ -315,7 +315,7 @@ class TestDocuments:
         file_path.parent.mkdir(parents=True, exist_ok=True)
         file_path.write_bytes(b"test")
 
-        doc_ids, extra = xdp_doc.export_files(
+        doc_ids, _ = xdp_doc.export_files(
             documents_intf,
             [base_path],
             ["read"],
