@@ -102,9 +102,7 @@ def adjust_title(lines):
 
     # CamelCase → Camel Case
     if adjusted_title not in ["OpenURI", "ScreenCast"]:
-        adjusted_title = "".join(
-            map(lambda x: x if x.islower() else f" {x}", adjusted_title)
-        )
+        adjusted_title = "".join(x if x.islower() else f" {x}" for x in adjusted_title)
 
     lines[3] = f"{adjusted_title}\n"
 
