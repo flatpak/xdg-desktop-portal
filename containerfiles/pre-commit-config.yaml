@@ -23,13 +23,13 @@ repos:
       entry: /usr/lib/qt6/bin/qdbusxml2cpp
       files: data/.+\.xml$
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.7.0
+  rev: v0.16.0
   hooks:
     - id: ruff
     - id: ruff-format
       args: [ --check ]
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: v1.14.1
+  rev: v2.3.0
   hooks:
     - id: mypy
       additional_dependencies:
