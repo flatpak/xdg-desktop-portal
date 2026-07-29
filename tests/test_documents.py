@@ -115,7 +115,7 @@ class TestDocuments:
         # Try to create a tmp file for an app
         assert not (doc_app1_path / "tmp3").exists()
         xdp_doc.write_bytes_atomic(doc_app1_path / "tmp3", b"tmpdata2")
-        (doc_app1_path / "tmp3").read_bytes() == b"tmpdata2"
+        assert (doc_app1_path / "tmp3").read_bytes() == b"tmpdata2"
         assert not (doc_path / "tmp3").exists()
 
         # Re-Create a file from a fuse document file, in various ways
