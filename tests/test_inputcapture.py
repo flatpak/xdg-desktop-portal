@@ -568,7 +568,6 @@ class TestInputCapture:
         def cb_disabled(session_handle, options):
             nonlocal disabled_signal_received
             disabled_signal_received = True
-            assert session_handle == session_handle
 
         inputcapture_intf.connect_to_signal("Disabled", cb_disabled)
         session.enable()
@@ -615,7 +614,6 @@ class TestInputCapture:
         def cb_activated(session_handle, options):
             nonlocal activated_signal_received
             activated_signal_received = True
-            assert session_handle == session_handle
             assert "activation_id" in options
             assert "barrier_id" in options
             assert options["barrier_id"] == 10  # template uses first barrier
@@ -628,7 +626,6 @@ class TestInputCapture:
         def cb_deactivated(session_handle, options):
             nonlocal deactivated_signal_received
             deactivated_signal_received = True
-            assert session_handle == session_handle
             assert "activation_id" in options
             assert "cursor_position" in options
             assert options["cursor_position"] == (
@@ -683,7 +680,6 @@ class TestInputCapture:
         def cb_zones_changed(session_handle, options):
             nonlocal zones_changed_signal_received
             zones_changed_signal_received = True
-            assert session_handle == session_handle
 
         inputcapture_intf.connect_to_signal("ZonesChanged", cb_zones_changed)
         session.enable()
