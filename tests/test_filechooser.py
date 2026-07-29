@@ -3,13 +3,13 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import dbus
-import pytest
 import os
 from pathlib import Path
 
+import dbus
+import pytest
+
+import tests.xdp_utils as xdp
 
 FILECHOOSER_RESULTS = {
     "uris": ["FILLED OUT LATER"],

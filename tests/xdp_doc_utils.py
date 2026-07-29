@@ -5,8 +5,8 @@
 
 import os
 from pathlib import Path
-from gi.repository import GLib, Gio
 
+from gi.repository import Gio, GLib
 
 EXPORT_FILES_FLAG_EXPORT_DIR = 8
 

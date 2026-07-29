@@ -3,15 +3,15 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import dbus
-import pytest
 import os
 import tempfile
 from pathlib import Path
 from typing import Any
 
+import dbus
+import pytest
+
+import tests.xdp_utils as xdp
 
 PRINT_PREPARE_DATA = {
     "token": dbus.UInt32(1337),

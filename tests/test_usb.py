@@ -3,14 +3,15 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-import pytest
 import os
-import gi
-import subprocess
 import re
+import subprocess
 from typing import assert_never
+
+import gi
+import pytest
+
+import tests.xdp_utils as xdp
 
 gi.require_version("UMockdev", "1.0")
 from gi.repository import GLib, UMockdev  # noqa E402

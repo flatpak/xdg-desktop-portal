@@ -4,12 +4,12 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
-from tests.templates.xdp_utils import init_logger
+from dataclasses import dataclass
 
 import dbus.service
 from dbusmock import MOCK_IFACE
-from dataclasses import dataclass
 
+from tests.templates.xdp_utils import init_logger
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"

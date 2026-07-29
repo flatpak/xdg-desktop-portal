@@ -3,16 +3,16 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
+import os
+import re
+from enum import Flag
+from pathlib import Path
+from typing import Any
 
 import dbus
 import pytest
-from enum import Flag
-from typing import Any
-import os
-from pathlib import Path
-import re
 
+import tests.xdp_utils as xdp
 
 SCREENSHOT_DATA = dbus.Dictionary(
     {

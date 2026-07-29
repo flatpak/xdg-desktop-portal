@@ -4,18 +4,17 @@
 # This file is formatted with Python Black
 # mypy: disable-error-code="misc"
 
-from tests.templates.xdp_utils import Response, ImplSession, init_logger
-
+import socket
 from collections import namedtuple
-from itertools import count
-from gi.repository import GLib
 from dataclasses import dataclass
+from itertools import count
+
 import dbus
 import dbus.service
-import socket
+from gi.repository import GLib
 
+from tests.templates.xdp_utils import ImplSession, Response, init_logger
 from tests.xdp_utils import SessionPersistenceMode
-
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"

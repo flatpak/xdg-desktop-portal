@@ -3,13 +3,14 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-import tests.test_inputcapture as inputcapture
+import os
+from enum import Enum
 
 import dbus
 import pytest
-import os
-from enum import Enum
+
+import tests.test_inputcapture as inputcapture
+import tests.xdp_utils as xdp
 
 
 @pytest.fixture

@@ -3,29 +3,28 @@
 #
 # This file is formatted with Python Black
 
-import tests.xdp_utils as xdp
-
-from typing import Any, Dict, Iterator, Optional
-from types import ModuleType
-
-import pytest
-import dbus
-import dbusmock
 import os
+import shutil
+import signal
+import subprocess
 import sys
 import tempfile
-import subprocess
 import time
-import signal
-import shutil
-
-from pathlib import Path
+from collections.abc import Iterator
 from contextlib import chdir
+from pathlib import Path
+from types import ModuleType
+from typing import Any
 
+import dbus
+import dbusmock
 import gi
+import pytest
+
+import tests.xdp_utils as xdp
 
 gi.require_version("UMockdev", "1.0")
-from gi.repository import UMockdev  # noqa E402
+from gi.repository import UMockdev
 
 
 def pytest_configure() -> None:
@@ -95,7 +94,7 @@ def xdg_document_portal_path() -> Path:
 
 
 @pytest.fixture(autouse=True)
-def create_test_dirs(umockdev: Optional[UMockdev.Testbed]) -> Iterator[None]:
+def create_test_dirs(umockdev: UMockdev.Testbed | None) -> Iterator[None]:
     # The umockdev argument is to make sure the testbed
     # is created before we create the tmpdir
     env_dirs = [
@@ -168,7 +167,7 @@ def create_xdp_executables(
 
 
 @pytest.fixture
-def xdg_data_home_files() -> Dict[str, bytes]:
+def xdg_data_home_files() -> dict[str, bytes]:
     """
     Default fixture which can be used to create files in the temporary
     XDG_DATA_HOME directory of the test.
@@ -178,7 +177,7 @@ def xdg_data_home_files() -> Dict[str, bytes]:
 
 @pytest.fixture(autouse=True)
 def ensure_xdg_data_home(
-    create_test_dirs: Any, xdg_data_home_files: Dict[str, bytes]
+    create_test_dirs: Any, xdg_data_home_files: dict[str, bytes]
 ) -> None:
     files = xdg_data_home_files
     for name, content in files.items():
@@ -189,7 +188,7 @@ def ensure_xdg_data_home(
 
 
 @pytest.fixture
-def xdg_desktop_portal_dir_files() -> Dict[str, bytes]:
+def xdg_desktop_portal_dir_files() -> dict[str, bytes]:
     """
     Default fixture which can be used to create files in the temporary
     XDG_DESKTOP_PORTAL_DIR directory of the test.
@@ -198,7 +197,7 @@ def xdg_desktop_portal_dir_files() -> Dict[str, bytes]:
 
 
 @pytest.fixture
-def xdg_desktop_portal_dir_default_files() -> Dict[str, bytes]:
+def xdg_desktop_portal_dir_default_files() -> dict[str, bytes]:
     files = {}
 
     portals = [
@@ -241,8 +240,8 @@ Interfaces={}
 @pytest.fixture(autouse=True)
 def ensure_xdg_desktop_portal_dir(
     create_test_dirs: Any,
-    xdg_desktop_portal_dir_files: Dict[str, bytes],
-    xdg_desktop_portal_dir_default_files: Dict[str, bytes],
+    xdg_desktop_portal_dir_files: dict[str, bytes],
+    xdg_desktop_portal_dir_default_files: dict[str, bytes],
 ) -> None:
     files = xdg_desktop_portal_dir_default_files | xdg_desktop_portal_dir_files
     for name, content in files.items():
@@ -266,7 +265,7 @@ def create_test_dbus() -> Iterator[dbusmock.DBusTestCase]:
 
 
 @pytest.fixture(autouse=True)
-def create_dbus_monitor(create_test_dbus) -> Iterator[Optional[subprocess.Popen]]:
+def create_dbus_monitor(create_test_dbus) -> Iterator[subprocess.Popen | None]:
     if not os.getenv("XDP_DBUS_MONITOR"):
         yield None
         return
@@ -338,8 +337,8 @@ def _terminate_servers(
 def _start_template(
     busses: dict[dbusmock.BusType, dict[str, dbusmock.SpawnedMock]],
     template: str,
-    bus_name: Optional[str],
-    params: Dict[str, Any] = {},
+    bus_name: str | None,
+    params: dict[str, Any] = {},
 ) -> None:
     """
     Start the template and potentially start a server for it
@@ -488,7 +487,7 @@ def xdp_env(
     xdp_overwrite_env: dict[str, str],
     xdp_app_info_init: xdp.AppInfo,
     xdp_bin_path: Path,
-    umockdev: Optional[UMockdev.Testbed],
+    umockdev: UMockdev.Testbed | None,
 ) -> dict[str, str]:
     env = os.environ.copy()
     env["G_DEBUG"] = "fatal-criticals"
@@ -692,11 +691,11 @@ def portals(templates: Any, xdg_desktop_portal: Any, xdg_permission_store: Any) 
     Fixture which starts the required templates, xdg-desktop-portal,
     xdg-document-portal and xdg-permission-store. Most tests require this.
     """
-    return None
+    return
 
 
 @pytest.fixture
-def umockdev() -> Optional[UMockdev.Testbed]:
+def umockdev() -> UMockdev.Testbed | None:
     """
     Default fixture providing a umockdev testbed
     """
