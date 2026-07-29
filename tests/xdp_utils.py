@@ -818,7 +818,7 @@ class GDBusIface:
         )
 
     def _call(
-        self, method_name: str, args_variant: GLib.Variant, fds: list[int] = []
+        self, method_name: str, args_variant: GLib.Variant, fds: list[int] | None = None
     ) -> GLib.Variant:
         """
         Calls a method synchronously with the arguments passed in args_variant,
@@ -826,8 +826,9 @@ class GDBusIface:
         Returns the result of the dbus call.
         """
         fdlist = Gio.UnixFDList.new()
-        for fd in fds:
-            fdlist.append(fd)
+        if fds:
+            for fd in fds:
+                fdlist.append(fd)
 
         return self._proxy.call_with_unix_fd_list_sync(
             method_name,
@@ -842,7 +843,7 @@ class GDBusIface:
         self,
         method_name: str,
         args_variant: GLib.Variant,
-        fds: list[int] = [],
+        fds: list[int] | None = None,
         cb: Callable[[GLib.Variant], None] | None = None,
     ) -> None:
         """
@@ -851,8 +852,9 @@ class GDBusIface:
         Invokes the callback cb when the call finished.
         """
         fdlist = Gio.UnixFDList.new()
-        for fd in fds:
-            fdlist.append(fd)
+        if fds:
+            for fd in fds:
+                fdlist.append(fd)
 
         def internal_cb(s, res, _):
             res = s.call_finish(res)

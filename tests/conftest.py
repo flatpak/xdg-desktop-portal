@@ -338,7 +338,7 @@ def _start_template(
     busses: dict[dbusmock.BusType, dict[str, dbusmock.SpawnedMock]],
     template: str,
     bus_name: str | None,
-    params: dict[str, Any] = {},
+    params: dict[str, Any] | None = None,
 ) -> None:
     """
     Start the template and potentially start a server for it
@@ -361,6 +361,8 @@ def _start_template(
         server = _get_server_for_module(busses, module, bustype)
         main_obj = _get_main_obj_for_module(server, module, bustype)
 
+        if params is None:
+            params = {}
         main_obj.AddTemplate(
             template,
             dbus.Dictionary(params, signature="sv"),

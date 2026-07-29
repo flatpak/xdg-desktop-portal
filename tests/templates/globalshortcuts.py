@@ -32,7 +32,9 @@ class GlobalshortcutsParameters:
     force_close: int
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     assert not hasattr(mock, "globalshortcuts_params")

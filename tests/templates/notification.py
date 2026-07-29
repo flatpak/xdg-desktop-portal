@@ -19,7 +19,9 @@ VERSION = 2
 logger = init_logger(__name__)
 
 
-def load(mock, parameters={}):
+def load(mock, parameters=None):
+    parameters = parameters or {}
+
     logger.debug(f"Loading parameters: {parameters}")
 
     mock.AddProperties(
