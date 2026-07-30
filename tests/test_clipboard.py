@@ -30,6 +30,17 @@ class SessionType(Enum):
     INPUT_CAPTURE = 2
 
 
+class ClipboardTypeError(TypeError):
+    """Exception raised when the type of the clipboard is unknown."""
+
+    def __init__(self, dbus_con: dbus.Bus, type: SessionType) -> None:
+        self.dbus_con = dbus_con
+        self.type = type
+
+    def __str__(self) -> str:
+        return f"Unknown session type {self.type} for connection {self.dbus_con}"
+
+
 @pytest.mark.parametrize(
     "type", (SessionType.REMOTE_DESKTOP, SessionType.INPUT_CAPTURE)
 )
@@ -104,7 +115,7 @@ class TestClipboard:
             return self.start_remote_desktop_session(dbus_con)
         if type == SessionType.INPUT_CAPTURE:
             return self.start_input_capture_session(dbus_con)
-        raise Exception("Unknown type")
+        raise ClipboardTypeError(dbus_con, type)
 
     def test_request_clipboard_and_start_session(self, portals, dbus_con, type):
         _, clipboard_enabled = self.start_session(dbus_con, type)
