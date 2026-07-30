@@ -105,8 +105,8 @@ def SelectionWrite(self, session_handle, serial, cb_success, cb_error):
         logger.debug(f"SelectionWrite({session_handle}, {serial})")
         params = self.clipboard_params
 
-        temp_file = tempfile.TemporaryFile()
-        fd = dbus.types.UnixFd(temp_file.fileno())
+        with tempfile.TemporaryFile() as temp_file:
+            fd = dbus.types.UnixFd(temp_file.fileno())
 
         if params.expect_close:
             cb_success(fd)
@@ -154,8 +154,8 @@ def SelectionRead(self, session_handle, mime_type, cb_success, cb_error):
         logger.debug(f"SelectionRead({session_handle}, {mime_type})")
         params = self.clipboard_params
 
-        temp_file = tempfile.TemporaryFile()
-        fd = dbus.types.UnixFd(temp_file.fileno())
+        with tempfile.TemporaryFile() as temp_file:
+            fd = dbus.types.UnixFd(temp_file.fileno())
 
         if params.expect_close:
             cb_success(fd)
