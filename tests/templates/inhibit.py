@@ -163,5 +163,5 @@ def QueryEndResponse(self, session_handle):
 
         self.ArmTimer(session_handle)
 
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)

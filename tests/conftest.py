@@ -312,7 +312,7 @@ def _get_main_obj_for_module(
             [],
             dbus_interface=dbusmock.MOCK_IFACE,
         )
-    except Exception:
+    except dbus.exceptions.DBusException:
         pass
 
     bustype.wait_for_bus_object(module.BUS_NAME, module.MAIN_OBJ)
