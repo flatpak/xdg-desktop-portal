@@ -177,7 +177,7 @@ def ConnectToEIS(self, session_handle, app_id, options):
         return dbus.types.UnixFd(sockets[1])
     except dbus.exceptions.DBusException as e:
         logger.critical(e)
-        raise e
+        raise
 
 
 @dbus.service.method(MOCK_IFACE, in_signature="s", out_signature="s")
