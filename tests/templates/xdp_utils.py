@@ -80,7 +80,7 @@ class ImplRequest:
             if callable(response):
                 try:
                     res = response()
-                except Exception as e:
+                except dbus.exceptions.DBusException as e:
                     logger.critical(
                         f"Request {self.handle}: failed getting response: {e}"
                     )
@@ -124,7 +124,7 @@ class ImplRequest:
             if close_callback:
                 try:
                     close_callback()
-                except Exception as e:
+                except dbus.exceptions.DBusException as e:
                     logger.critical(
                         f"Request {self.handle}: failed running close callback: {e}"
                     )

@@ -12,6 +12,7 @@ import sys
 import traceback
 from collections import defaultdict
 
+import dbus
 import pytest
 from gi.repository import Gio, GLib
 
@@ -139,7 +140,7 @@ def assertFileExist(path):
         info = os.lstat(path)
         if info.st_mode & stat.S_IFREG != stat.S_IFREG:
             raise AssertionError(f"File {path} is not a regular file")
-    except Exception:
+    except dbus.exceptions.DBusException:
         raise AssertionError(f"File {path} doesn't exist")
 
 
@@ -148,7 +149,7 @@ def assertDirExist(path):
         info = os.lstat(path)
         if info.st_mode & stat.S_IFDIR != stat.S_IFDIR:
             raise AssertionError(f"File {path} is not a directory file")
-    except Exception:
+    except dbus.exceptions.DBusException:
         raise AssertionError(f"File {path} doesn't exist")
 
 
@@ -162,7 +163,7 @@ def assertSymlink(path, expected_target):
             raise AssertionError(
                 f"File {path} has wrong target {target}, expected {expected_target}"
             )
-    except Exception:
+    except dbus.exceptions.DBusException:
         raise AssertionError(f"Symlink {path} doesn't exist")
 
 
@@ -171,7 +172,7 @@ def assertFileNotExist(path):
         os.lstat(path)
     except FileNotFoundError:
         return
-    except Exception:
+    except dbus.exceptions.DBusException:
         raise AssertionError(
             f"Got wrong execption {sys.exc_info()[0]} for {path}, expected FileNotFoundError"
         )
@@ -331,7 +332,7 @@ class DocPortal:
         try:
             with open(path) as f:
                 content = f.read()
-        except Exception:
+        except dbus.exceptions.DBusException:
             content = None
         doc = Doc(self, doc_id, path, content)
         self.docs[doc.id] = doc
@@ -1194,7 +1195,7 @@ class Process(mp.Process):
         try:
             mp.Process.run(self)
             self._cconn.send(None)
-        except Exception as e:
+        except dbus.exceptions.DBusException as e:
             tb = traceback.format_exc()
             self._cconn.send((e, tb))
 

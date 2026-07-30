@@ -175,7 +175,7 @@ def ConnectToEIS(self, session_handle, app_id, options):
         assert self.eis_socket.send(b"HELLO") == 5
 
         return dbus.types.UnixFd(sockets[1])
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         raise e
 

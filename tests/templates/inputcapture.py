@@ -110,7 +110,7 @@ def CreateSession2(self, session_handle, app_id, options):
         self.session_handles.append(session_handle)
 
         return {"session_handle": session_handle}
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -176,7 +176,7 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
         logger.debug(f"Start with response {response}")
 
         return response.response, response.results
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -204,7 +204,7 @@ def GetZones(self, handle, session_handle, app_id, options):
             self.current_zones = response.results["zones"]
 
         return response.response, response.results
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -273,7 +273,7 @@ def SetPointerBarriers(
         logger.debug(f"SetPointerBarriers with response {response}")
 
         return response.response, response.results
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -349,7 +349,7 @@ def Enable(self, session_handle, app_id, options):
 
             GLib.timeout_add(params.zones_changed_delay, zones_changed)
 
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -364,7 +364,7 @@ def Disable(self, session_handle, app_id, options):
         logger.debug(f"Disable({session_handle}, {options})")
 
         assert session_handle in self.active_session_handles
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -379,7 +379,7 @@ def Release(self, session_handle, app_id, options):
         logger.debug(f"Release({session_handle}, {options})")
 
         assert session_handle in self.active_session_handles
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return (2, {})
 
@@ -405,6 +405,6 @@ def ConnectToEIS(self, session_handle, app_id, options):
         logger.debug(f"ConnectToEis with fd {fd.fileno()}")
 
         return dbus.types.UnixFd(fd)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         return -1

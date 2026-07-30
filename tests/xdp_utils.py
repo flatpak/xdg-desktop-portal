@@ -611,7 +611,7 @@ class Request(Closable):
                 self.response = Response(response, results)
                 if self._mainloop:
                     self._mainloop.quit()
-            except Exception as e:
+            except dbus.exceptions.DBusException as e:
                 self.error = e
 
         self.request_interface = dbus.Interface(proxy, "org.freedesktop.portal.Request")
@@ -677,7 +677,7 @@ class Request(Closable):
 
                 if reply_handler:
                     reply_handler(handle)
-            except Exception as e:
+            except dbus.exceptions.DBusException as e:
                 self.error = e
 
         # Handle any exceptions during the actual method call (not the Request
@@ -688,7 +688,7 @@ class Request(Closable):
                 if error_handler:
                     error_handler(error)
                 self.error = error
-            except Exception as e:
+            except dbus.exceptions.DBusException as e:
                 self.error = e
             finally:
                 if self._mainloop:
@@ -748,7 +748,7 @@ class Session(Closable):
                 self.details = details
                 if self._mainloop:
                     self._mainloop.quit()
-            except Exception as e:
+            except dbus.exceptions.DBusException as e:
                 self.error = e
 
         proxy = bus.get_object("org.freedesktop.portal.Desktop", handle)

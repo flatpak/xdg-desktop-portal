@@ -68,7 +68,7 @@ def RequestClipboard(self, session_handle, options, cb_success, cb_error):
         else:
             logger.debug(f"scheduling delay of {params.delay}")
             GLib.timeout_add(params.delay, cb_success)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         cb_error(e)
 
@@ -89,7 +89,7 @@ def SetSelection(self, session_handle, options, cb_success, cb_error):
         else:
             logger.debug(f"scheduling delay of {params.delay}")
             GLib.timeout_add(params.delay, cb_success)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         cb_error(e)
 
@@ -117,7 +117,7 @@ def SelectionWrite(self, session_handle, serial, cb_success, cb_error):
 
             logger.debug(f"scheduling delay of {params.delay}")
             GLib.timeout_add(params.delay, reply)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         cb_error(e)
 
@@ -138,7 +138,7 @@ def SelectionWriteDone(self, session_handle, serial, success, cb_success, cb_err
         else:
             logger.debug(f"scheduling delay of {params.delay}")
             GLib.timeout_add(params.delay, cb_success)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         cb_error(e)
 
@@ -166,6 +166,6 @@ def SelectionRead(self, session_handle, mime_type, cb_success, cb_error):
 
             logger.debug(f"scheduling delay of {params.delay}")
             GLib.timeout_add(params.delay, reply)
-    except Exception as e:
+    except dbus.exceptions.DBusException as e:
         logger.critical(e)
         cb_error(e)
