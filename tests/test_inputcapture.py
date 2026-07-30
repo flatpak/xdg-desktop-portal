@@ -465,7 +465,7 @@ class TestInputCapture:
         ]
         _, results = session.set_pointer_barriers(barriers=barriers)
         failed_barriers = results["failed_barriers"]
-        assert all([id >= 20 for id in failed_barriers])
+        assert all(id >= 20 for id in failed_barriers)
 
         for id in [b["barrier_id"] for b in barriers if b["barrier_id"] >= 20]:
             assert id in failed_barriers
