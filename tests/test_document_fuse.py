@@ -44,7 +44,6 @@ def logv(str):
 
 
 def get_a_count(counter: str):
-    global running_count
     running_count[counter] += 1
     return running_count[counter]
 
