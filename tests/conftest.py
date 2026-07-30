@@ -63,7 +63,7 @@ def ensure_environment_set() -> None:
 
     for env_var in env_vars:
         if not os.getenv(env_var):
-            raise Exception(f"{env_var} must be set")
+            raise OSError(f"{env_var} must be set")
 
 
 def ensure_umockdev_loaded() -> None:

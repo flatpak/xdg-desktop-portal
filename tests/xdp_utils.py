@@ -913,3 +913,13 @@ class SessionPersistenceMode(IntEnum):
     NONE = 0
     TRANSIENT = 1
     PERSISTENT = 2
+
+
+class SessionPersistenceModeError(TypeError):
+    """Exception raised when the session persistence mode is unknown."""
+
+    def __init__(self, persist_mode: SessionPersistenceMode) -> None:
+        self.persist_mode = persist_mode
+
+    def __str__(self) -> str:
+        return f"Unknown session persistence mode: {self.persist_mode}"

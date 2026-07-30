@@ -14,7 +14,7 @@ import dbus.service
 from gi.repository import GLib
 
 from tests.templates.xdp_utils import ImplSession, Response, init_logger
-from tests.xdp_utils import SessionPersistenceMode
+from tests.xdp_utils import SessionPersistenceMode, SessionPersistenceModeError
 
 BUS_NAME = "org.freedesktop.impl.portal.Test"
 MAIN_OBJ = "/org/freedesktop/portal/desktop"
@@ -38,6 +38,16 @@ def make_restore_data(data: str):
         ("GNOME", RESTORE_DATA_VERSION, dbus.String(data, variant_level=1)),
         signature="suv",
     )
+
+
+class RestoreDataError(TypeError):
+    """Exception raised when restore data is invalid."""
+
+    def __init__(self, restore_data: tuple) -> None:
+        self.restore_data = restore_data
+
+    def __str__(self) -> str:
+        return f"Invalid restore_data tuple {self.restore_data}"
 
 
 @dataclass
@@ -146,7 +156,7 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
                     rd for rd in self.restore_datas if rd == restore_data
                 )
             except StopIteration:
-                raise Exception(f"Invalid restore_data tuple {restore_data}")
+                raise RestoreDataError(restore_data)
 
         if persist_mode == SessionPersistenceMode.NONE:
             pass
@@ -157,7 +167,7 @@ def Start(self, handle, session_handle, app_id, parent_window, options):
             if restore_data is None:
                 restore_data = make_restore_data("restore-persistent")
         elif persist_mode is not None:
-            raise Exception(f"Invalid session persistence mode: {persist_mode}")
+            raise SessionPersistenceModeError(persist_mode)
 
         if restore_data and persist_mode in [
             SessionPersistenceMode.TRANSIENT,
