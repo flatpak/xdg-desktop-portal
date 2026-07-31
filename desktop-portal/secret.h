@@ -4,7 +4,8 @@
 
 #pragma once
 
+#include <libdex.h>
+
 #include "xdp-types.h"
 
-void init_secret (XdpContext   *context,
-                  GCancellable *cancellable);
+DexFuture * init_secret (gpointer user_data);

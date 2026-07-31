@@ -372,6 +372,21 @@ on_peer_disconnect (const char *name,
                                                           name));
 }
 
+static void
+init_portal_in_fiber (XdpContext   *context,
+                      DexFiberFunc  portal_init_func)
+{
+  g_autoptr(DexFuture) f = NULL;
+  GCancellable *cancellable = context->cancellable;
+
+  f = dex_future_first (dex_scheduler_spawn (NULL, 0,
+                                             portal_init_func,
+                                             context, NULL),
+                        dex_cancellable_new_from_cancellable (cancellable),
+                        NULL);
+  dex_future_disown (g_steal_pointer (&f));
+}
+
 gboolean
 xdp_context_register (XdpContext       *context,
                       GDBusConnection  *connection,
@@ -435,6 +450,7 @@ xdp_context_register (XdpContext       *context,
                                           G_MAXINT);
     }
 
+  init_portal_in_fiber (context, init_secret);
   init_memory_monitor (context);
   init_power_profile_monitor (context);
   init_network_monitor (context);
@@ -457,7 +473,6 @@ xdp_context_register (XdpContext       *context,
   init_wallpaper (context);
   init_account (context);
   init_email (context);
-  init_secret (context, context->cancellable);
   init_global_shortcuts (context);
   init_dynamic_launcher (context);
   init_screen_cast (context);

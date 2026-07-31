@@ -206,50 +206,37 @@ secret_new (XdpDbusImplSecret *impl)
   return secret;
 }
 
-static void
-proxy_created_cb (GObject      *source_object,
-                  GAsyncResult *result,
-                  gpointer      user_data)
+DexFuture *
+init_secret (gpointer user_data)
 {
-  XdpContext *context;
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(Secret) secret = NULL;
+  GDBusConnection *connection = xdp_context_get_connection (context);
+  XdpPortalConfig *config = xdp_context_get_config (context);
+  XdpImplConfig *impl_config;
   g_autoptr(XdpDbusImplSecret) impl = NULL;
   g_autoptr(GError) error = NULL;
-  g_autoptr(Secret) secret = NULL;
 
-  impl = xdp_dbus_impl_secret_proxy_new_finish (result, &error);
-  if (!impl)
+  impl_config = xdp_portal_config_find (config, SECRET_DBUS_IMPL_IFACE);
+  if (impl_config == NULL)
+    return dex_future_new_true ();
+
+  impl = dex_await_object (xdp_dbus_impl_secret_proxy_new_future (
+      connection,
+      G_DBUS_PROXY_FLAGS_NONE,
+      impl_config->dbus_name,
+      "/org/freedesktop/portal/desktop"),
+    &error);
+
+  if (impl == NULL)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Failed to create secret proxy: %s", error->message);
-      return;
+      g_warning ("Failed to create secret proxy: %s", error->message);
+      return dex_future_new_false ();
     }
-
-  context = XDP_CONTEXT (user_data);
 
   secret = secret_new (impl);
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&secret)),
                                       XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
-}
-
-void
-init_secret (XdpContext   *context,
-             GCancellable *cancellable)
-{
-  GDBusConnection *connection = xdp_context_get_connection (context);
-  XdpPortalConfig *config = xdp_context_get_config (context);
-  XdpImplConfig *impl_config;
-  g_autoptr(GError) error = NULL;
-
-  impl_config = xdp_portal_config_find (config, SECRET_DBUS_IMPL_IFACE);
-  if (impl_config == NULL)
-    return;
-
-  xdp_dbus_impl_secret_proxy_new (connection,
-                                  G_DBUS_PROXY_FLAGS_NONE,
-                                  impl_config->dbus_name,
-                                  DESKTOP_DBUS_PATH,
-                                  cancellable,
-                                  proxy_created_cb,
-                                  context);
+  return dex_future_new_true ();
 }
