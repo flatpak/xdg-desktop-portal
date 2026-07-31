@@ -10,6 +10,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -117,6 +118,7 @@
 #define DOC_DIR_PERMS_DIR 0500
 
 static GThread *fuse_thread = NULL;
+static pthread_t fuse_pthread;
 static struct fuse_session *session = NULL;
 G_LOCK_DEFINE (session);
 static char *mount_path = NULL;
@@ -3529,6 +3531,18 @@ xdp_fuse_thread (gpointer data)
   struct fuse_session *se;
   const char *path;
 
+  sigset_t usr1_set;
+
+  fuse_pthread = pthread_self ();
+
+  /* The teardown nudge in xdp_fuse_exit() must be deliverable to this
+   * thread; make sure SIGUSR1 is not blocked here even if a future caller
+   * creates this thread from a context with a restrictive signal mask
+   * (e.g. GLib worker threads block all signals). */
+  sigemptyset (&usr1_set);
+  sigaddset (&usr1_set, SIGUSR1);
+  pthread_sigmask (SIG_UNBLOCK, &usr1_set, NULL);
+
   locker = g_mutex_locker_new (&thread_data->lock);
 
   g_cond_signal (&thread_data->cond);
@@ -3587,17 +3601,48 @@ xdp_fuse_thread (gpointer data)
   return NULL;
 }
 
+#if FUSE_VERSION < FUSE_MAKE_VERSION (3, 18)
+/* libfuse >= 3.18 wakes fuse_session_loop_mt()'s control thread itself
+ * (fuse_session_exit() does sem_post() as well as setting the flag, commit
+ * c5dbcdce), so this nudge is only needed - and only compiled in - below
+ * that version. This also means an externally-sent SIGUSR1 keeps its
+ * default (terminate) disposition on libfuse >= 3.18, instead of silently
+ * becoming a no-op everywhere. */
+static void
+fuse_teardown_nudge_handler (int sig)
+{
+  /* Deliberately empty and async-signal-safe: SIGUSR1 only exists to
+   * interrupt the fuse mainloop thread's blocking calls with EINTR during
+   * xdp_fuse_exit(). See the comment there. */
+  (void) sig;
+}
+#endif
+
 gboolean
 xdp_fuse_init (GError **error)
 {
   g_autoptr(XdpDomain) by_app_domain = NULL;
   g_autoptr(XdpDomain) root_domain = NULL;
   XdpFuseThreadData thread_data = {0};
+#if FUSE_VERSION < FUSE_MAKE_VERSION (3, 18)
+  struct sigaction sa = { .sa_handler = fuse_teardown_nudge_handler };
+#endif
   struct statfs stfs;
   struct rlimit rl;
   struct stat st;
   const char *path;
   int statfs_res;
+
+#if FUSE_VERSION < FUSE_MAKE_VERSION (3, 18)
+  /* No SA_RESTART, and do not "simplify" this to signal(): the whole
+   * point of the handler is that the fuse mainloop thread's blocking
+   * sem_wait() returns EINTR when nudged from xdp_fuse_exit(). With
+   * SA_RESTART (which signal() implies on both glibc and musl) the
+   * kernel transparently restarts the wait, the nudge is silently lost,
+   * and the shutdown hang returns with no diagnostic. */
+  sigemptyset (&sa.sa_mask);
+  sigaction (SIGUSR1, &sa, NULL);
+#endif
 
   my_uid = getuid ();
   my_gid = getgid ();
@@ -3685,8 +3730,26 @@ xdp_fuse_exit (void)
         fuse_session_exit (session);
         /* Unmount to force the FUSE kernel interface to disconnect,
          * which will cause blocking read() in fuse_session_loop_mt()
-         * to fail and the loop to exit. */
+         * to fail and the loop to exit. This is not guaranteed to work:
+         * the unmount is lazy, so the FUSE connection stays alive while
+         * any process still holds a reference (e.g. an open fd) into the
+         * mount. On libfuse < 3.18, fuse_session_exit() does not wake the
+         * fuse_session_loop_mt() control thread either, so without help
+         * the join below would block until the last client goes away
+         * (systemd then SIGKILLs us after TimeoutStopSec). Nudge the
+         * mainloop thread with a signal so its interruptible sem_wait()
+         * returns and rechecks the (already set) exited flag; current
+         * libfuse (the 3.16+ headers) documents this signal-after-exit
+         * contract on fuse_session_exit(). libfuse >= 3.18 does this
+         * wakeup itself (fuse_session_exit() also does sem_post()), so
+         * the nudge is compiled out entirely on that range - see the
+         * FUSE_VERSION guard around the handler above.
+         */
         fuse_session_unmount (session);
+#if FUSE_VERSION < FUSE_MAKE_VERSION (3, 18)
+        if (fuse_thread)
+          pthread_kill (fuse_pthread, SIGUSR1);
+#endif
       }
   }
 
