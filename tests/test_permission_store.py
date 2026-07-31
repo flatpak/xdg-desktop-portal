@@ -10,7 +10,7 @@ import tests.xdp_utils as xdp
 
 
 class PermissionStore(xdp.GDBusIface):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "org.freedesktop.impl.portal.PermissionStore",
             "/org/freedesktop/impl/portal/PermissionStore",

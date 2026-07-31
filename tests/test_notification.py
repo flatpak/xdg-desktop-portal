@@ -73,7 +73,7 @@ def required_templates() -> xdp.RequiredTemplates:
 
 
 class NotificationPortal(xdp.GDBusIface):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "org.freedesktop.portal.Desktop",
             "/org/freedesktop/portal/desktop",
