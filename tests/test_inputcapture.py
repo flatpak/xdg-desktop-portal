@@ -5,7 +5,7 @@
 
 import socket
 from itertools import count
-from typing import Any
+from typing import Any, TypedDict
 
 import dbus
 import pytest
@@ -30,6 +30,13 @@ def required_templates() -> xdp.RequiredTemplates:
 @pytest.fixture
 def zones() -> Zones:
     return DEFAULT_ZONES
+
+
+class Barriers(TypedDict):
+    """The coordinates of the edges of a canvas such as a display's."""
+
+    barrier_id: dbus.UInt32
+    position: dbus.Struct
 
 
 class InputcaptureSession:
@@ -188,7 +195,7 @@ class InputcaptureSession:
 
         return response
 
-    def set_pointer_barriers(self, barriers) -> xdp.Response:
+    def set_pointer_barriers(self, barriers: list[Barriers]) -> xdp.Response:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -398,7 +405,7 @@ class TestInputCapture:
         _, results = session.start()
         _, results = session.get_zones()
 
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -498,7 +505,7 @@ class TestInputCapture:
         session.get_zones()
 
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -519,7 +526,7 @@ class TestInputCapture:
         session.get_zones()
 
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -562,7 +569,7 @@ class TestInputCapture:
         session.start()
         session.get_zones()
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -604,7 +611,7 @@ class TestInputCapture:
         session.start()
         session.get_zones()
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -682,7 +689,7 @@ class TestInputCapture:
         session.start()
         session.get_zones()
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
@@ -725,7 +732,7 @@ class TestInputCapture:
         session.start()
         session.get_zones()
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
