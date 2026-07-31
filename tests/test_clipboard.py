@@ -82,7 +82,7 @@ class TestClipboard:
         start_session_response = session.start()
         session.get_zones()
         # The default zone is 1920x1080
-        barriers = [
+        barriers: list[inputcapture.Barriers] = [
             {
                 "barrier_id": dbus.UInt32(10, variant_level=1),
                 "position": dbus.Struct(
