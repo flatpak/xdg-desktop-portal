@@ -16,28 +16,31 @@ import tests.xdp_utils as xdp
 counter = count()
 
 
-DEFAULT_ZONES = ((1024, 768, 0, 0), (640, 480, 1024, 0))
+type Zone = tuple[int, int, int, int]
+type Zones = tuple[Zone, Zone]
+
+DEFAULT_ZONES: Zones = ((1024, 768, 0, 0), (640, 480, 1024, 0))
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"inputcapture": {}}
 
 
 @pytest.fixture
-def zones():
+def zones() -> Zones:
     return DEFAULT_ZONES
 
 
 class InputcaptureSession:
-    def __init__(self, dbus_con):
-        self.dbus_con = dbus_con
-        self.type = None
-        self.session = None
-        self.session_handle = None
-        self.current_zone_set = []
+    def __init__(self, dbus_con: dbus.Bus) -> None:
+        self.dbus_con: dbus.Bus = dbus_con
+        self.type: str | None = None
+        self.session: dbus.String | None = None
+        self.session_handle: str = ""
+        self.current_zone_set: dbus.UInt32 = 0
 
-    def create_legacy(self, capabilities=0x7):
+    def create_legacy(self, capabilities: dbus.UInt32 = 0x7) -> xdp.Response:
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -84,7 +87,7 @@ class InputcaptureSession:
 
         return response
 
-    def create(self):
+    def create(self) -> None:
         """
         Call CreateSession for the given capabilities and return the
         (response, results) tuple.
@@ -105,11 +108,11 @@ class InputcaptureSession:
 
     def start(
         self,
-        capabilities=0x7,
+        capabilities: dbus.UInt32 = 0x7,
         persist_mode: xdp.SessionPersistenceMode | None = None,
         restore_token: str | None = None,
         validate_token_data: bool = True,
-    ):
+    ) -> xdp.Response:
         assert self.type == "modern"
 
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
@@ -156,7 +159,7 @@ class InputcaptureSession:
 
         return response
 
-    def get_zones(self):
+    def get_zones(self) -> xdp.Response:
         """
         Call GetZones and return the (response, results) tuple.
         """
@@ -185,7 +188,7 @@ class InputcaptureSession:
 
         return response
 
-    def set_pointer_barriers(self, barriers):
+    def set_pointer_barriers(self, barriers) -> xdp.Response:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -213,7 +216,7 @@ class InputcaptureSession:
 
         return response
 
-    def connect_to_eis(self):
+    def connect_to_eis(self) -> socket.socket:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -233,7 +236,7 @@ class InputcaptureSession:
 
         return eis_socket
 
-    def enable(self):
+    def enable(self) -> None:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -246,7 +249,7 @@ class InputcaptureSession:
         _, args = method_calls[-1]
         assert args[0] == self.session_handle
 
-    def disable(self):
+    def disable(self) -> None:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -259,7 +262,11 @@ class InputcaptureSession:
         _, args = method_calls[-1]
         assert args[0] == self.session_handle
 
-    def release(self, activation_id: int, cursor_position=None):
+    def release(
+        self,
+        activation_id: dbus.UInt32,
+        cursor_position: tuple[float, float] | None = None,
+    ) -> None:
         inputcapture_intf = xdp.get_portal_iface(self.dbus_con, "InputCapture")
         mock_intf = xdp.get_mock_iface(self.dbus_con)
 
@@ -287,7 +294,7 @@ class InputcaptureSession:
 
 
 class TestInputCapture:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "InputCapture", 2)
 
     @pytest.mark.parametrize(
@@ -300,7 +307,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_supported_capabilities(self, portals, dbus_con):
+    def test_supported_capabilities(self, portals: Any, dbus_con: dbus.Bus) -> None:
         properties_intf = xdp.get_iface(dbus_con, "org.freedesktop.DBus.Properties")
 
         caps = properties_intf.Get(
@@ -308,7 +315,7 @@ class TestInputCapture:
         )
         assert caps == 0b101
 
-    def test_create_session(self, portals, dbus_con):
+    def test_create_session(self, portals: Any, dbus_con: dbus.Bus) -> None:
         session = InputcaptureSession(dbus_con)
         session.create()  # KEYBOARD
         session.start(capabilities=0b1)  # KEYBOARD
@@ -326,7 +333,9 @@ class TestInputCapture:
             },
         ),
     )
-    def test_create_session_limited_caps(self, portals, dbus_con):
+    def test_create_session_limited_caps(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         # Request more caps than are supported
         session = InputcaptureSession(dbus_con)
         session.create()
@@ -349,7 +358,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_get_zones(self, portals, dbus_con, zones):
+    def test_get_zones(self, portals: Any, dbus_con: dbus.Bus, zones: Zones) -> None:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         session = InputcaptureSession(dbus_con)
@@ -379,7 +388,9 @@ class TestInputCapture:
             },
         ),
     )
-    def test_set_pointer_barriers(self, portals, dbus_con, zones):
+    def test_set_pointer_barriers(
+        self, portals: Any, dbus_con: dbus.Bus, zones: Zones
+    ) -> None:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         session = InputcaptureSession(dbus_con)
@@ -480,7 +491,7 @@ class TestInputCapture:
         assert args[4] == barriers
         assert args[5] == session.current_zone_set
 
-    def test_connect_to_eis(self, portals, dbus_con):
+    def test_connect_to_eis(self, portals: Any, dbus_con: dbus.Bus) -> None:
         session = InputcaptureSession(dbus_con)
         session.create()
         session.start()
@@ -499,7 +510,7 @@ class TestInputCapture:
 
         session.connect_to_eis()
 
-    def test_enable_disable(self, portals, dbus_con):
+    def test_enable_disable(self, portals: Any, dbus_con: dbus.Bus) -> None:
         mock_intf = xdp.get_mock_iface(dbus_con)
 
         session = InputcaptureSession(dbus_con)
@@ -543,7 +554,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_disable_signal(self, portals, dbus_con):
+    def test_disable_signal(self, portals: Any, dbus_con: dbus.Bus) -> None:
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
         session = InputcaptureSession(dbus_con)
@@ -564,7 +575,9 @@ class TestInputCapture:
 
         disabled_signal_received = False
 
-        def cb_disabled(session_handle, options):
+        def cb_disabled(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal disabled_signal_received
             disabled_signal_received = True
 
@@ -583,7 +596,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_activated_signal(self, portals, dbus_con):
+    def test_activated_signal(self, portals: Any, dbus_con: dbus.Bus) -> None:
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
         session = InputcaptureSession(dbus_con)
@@ -606,11 +619,15 @@ class TestInputCapture:
         activated_signal_received = False
         deactivated_signal_received = False
 
-        def cb_disabled(session_handle, options):
+        def cb_disabled(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal disabled_signal_received
             disabled_signal_received = True
 
-        def cb_activated(session_handle, options):
+        def cb_activated(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal activated_signal_received
             activated_signal_received = True
             assert "activation_id" in options
@@ -622,7 +639,9 @@ class TestInputCapture:
                 20.0,
             )  # template uses x+10, y+20 of first barrier
 
-        def cb_deactivated(session_handle, options):
+        def cb_deactivated(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal deactivated_signal_received
             deactivated_signal_received = True
             assert "activation_id" in options
@@ -655,7 +674,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_zones_changed_signal(self, portals, dbus_con):
+    def test_zones_changed_signal(self, portals: Any, dbus_con: dbus.Bus) -> None:
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
         session = InputcaptureSession(dbus_con)
@@ -676,7 +695,9 @@ class TestInputCapture:
 
         zones_changed_signal_received = False
 
-        def cb_zones_changed(session_handle, options):
+        def cb_zones_changed(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal zones_changed_signal_received
             zones_changed_signal_received = True
 
@@ -696,7 +717,7 @@ class TestInputCapture:
             },
         ),
     )
-    def test_release(self, portals, dbus_con):
+    def test_release(self, portals: Any, dbus_con: dbus.Bus) -> None:
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
         session = InputcaptureSession(dbus_con)
@@ -720,16 +741,22 @@ class TestInputCapture:
         deactivated_signal_received = False
         activation_id = None
 
-        def cb_disabled(session_handle, options):
+        def cb_disabled(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal disabled_signal_received
             disabled_signal_received = True
 
-        def cb_activated(session_handle, options):
+        def cb_activated(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal activated_signal_received, activation_id
             activated_signal_received = True
             activation_id = options["activation_id"]
 
-        def cb_deactivated(session_handle, options):
+        def cb_deactivated(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal deactivated_signal_received
             deactivated_signal_received = True
 
@@ -761,12 +788,14 @@ class TestInputCapture:
         "mode",
         [xdp.SessionPersistenceMode.TRANSIENT, xdp.SessionPersistenceMode.PERSISTENT],
     )
-    def test_persistence(self, portals, dbus_con, mode):
+    def test_persistence(
+        self, portals: Any, dbus_con: dbus.Bus, mode: xdp.SessionPersistenceMode
+    ) -> None:
         def create_persistent_session(
             persist_mode: xdp.SessionPersistenceMode,
             restore_token: str | None,
             validate_token_data: bool = True,
-        ):
+        ) -> str | None:
             ic_session = InputcaptureSession(dbus_con)
             ic_session.create()
             response = ic_session.start(
