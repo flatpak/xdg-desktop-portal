@@ -5,6 +5,7 @@
 
 import os
 from enum import Enum
+from typing import Any
 
 import dbus
 import pytest
@@ -12,9 +13,11 @@ import pytest
 import tests.test_inputcapture as inputcapture
 import tests.xdp_utils as xdp
 
+type SessionInstance = tuple[xdp.Session, dbus.Boolean | None]
+
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {
         "Clipboard": {},
         "RemoteDesktop": {"force-clipboard-enabled": True},
@@ -45,10 +48,12 @@ class ClipboardTypeError(TypeError):
     "type", (SessionType.REMOTE_DESKTOP, SessionType.INPUT_CAPTURE)
 )
 class TestClipboard:
-    def test_version(self, portals, dbus_con, type):
+    def test_version(
+        self, portals: Any, dbus_con: dbus.Bus, type: tuple[SessionType, SessionType]
+    ) -> None:
         xdp.check_version(dbus_con, "Clipboard", 1)
 
-    def start_remote_desktop_session(self, dbus_con):
+    def start_remote_desktop_session(self, dbus_con: dbus.Bus) -> SessionInstance:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
 
@@ -74,7 +79,7 @@ class TestClipboard:
 
         return (session, start_session_response.results.get("clipboard_enabled"))
 
-    def start_input_capture_session(self, dbus_con):
+    def start_input_capture_session(self, dbus_con: dbus.Bus) -> SessionInstance:
         inputcapture_intf = xdp.get_portal_iface(dbus_con, "InputCapture")
 
         session = inputcapture.InputcaptureSession(dbus_con)
@@ -95,7 +100,9 @@ class TestClipboard:
 
         activated_signal_received = False
 
-        def cb_activated(session_handle, options):
+        def cb_activated(
+            session_handle: dbus.ObjectPath, options: dbus.Dictionary
+        ) -> None:
             nonlocal activated_signal_received
             activated_signal_received = True
 
@@ -105,19 +112,23 @@ class TestClipboard:
 
         xdp.wait_for(lambda: activated_signal_received)
 
-        return (
-            session.session,
-            start_session_response.results.get("clipboard_enabled"),
-        )
+        assert session.session
 
-    def start_session(self, dbus_con, type):
+        clipboard_results = start_session_response.results.get("clipboard_enabled")
+        assert isinstance(clipboard_results, dbus.Boolean | None)
+
+        return (session.session, clipboard_results)
+
+    def start_session(self, dbus_con: dbus.Bus, type: SessionType) -> SessionInstance:
         if type == SessionType.REMOTE_DESKTOP:
             return self.start_remote_desktop_session(dbus_con)
         if type == SessionType.INPUT_CAPTURE:
             return self.start_input_capture_session(dbus_con)
         raise ClipboardTypeError(dbus_con, type)
 
-    def test_request_clipboard_and_start_session(self, portals, dbus_con, type):
+    def test_request_clipboard_and_start_session(
+        self, portals: Any, dbus_con: dbus.Bus, type: SessionType
+    ) -> None:
         _, clipboard_enabled = self.start_session(dbus_con, type)
 
         assert clipboard_enabled
@@ -134,7 +145,9 @@ class TestClipboard:
             },
         ),
     )
-    def test_checks_clipboard_enabled(self, portals, dbus_con, type):
+    def test_checks_clipboard_enabled(
+        self, portals: Any, dbus_con: dbus.Bus, type: SessionType
+    ) -> None:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, clipboard_enabled = self.start_session(dbus_con, type)
 
@@ -143,13 +156,17 @@ class TestClipboard:
         with pytest.raises(dbus.exceptions.DBusException):
             clipboard_intf.SetSelection(session.handle, {})
 
-    def test_set_selection(self, portals, dbus_con, type):
+    def test_set_selection(
+        self, portals: Any, dbus_con: dbus.Bus, type: SessionType
+    ) -> None:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con, type)
 
         clipboard_intf.SetSelection(session.handle, {})
 
-    def test_selection_write(self, portals, dbus_con, type):
+    def test_selection_write(
+        self, portals: Any, dbus_con: dbus.Bus, type: SessionType
+    ) -> None:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con, type)
 
@@ -166,7 +183,9 @@ class TestClipboard:
 
         clipboard_intf.SelectionWriteDone(session.handle, 1234, True)
 
-    def test_selection_read(self, portals, dbus_con, type):
+    def test_selection_read(
+        self, portals: Any, dbus_con: dbus.Bus, type: SessionType
+    ) -> None:
         clipboard_intf = xdp.get_portal_iface(dbus_con, "Clipboard")
         session, _ = self.start_session(dbus_con, type)
 
