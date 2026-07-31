@@ -197,7 +197,7 @@ def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
 
 
 class Doc:
-    def __init__(self, portal, id, path, content, is_dir=False) -> None:
+    def __init__(self, portal, id, path, content, is_dir: bool = False) -> None:
         self.portal = portal
         self.id = id
         self.content = content
