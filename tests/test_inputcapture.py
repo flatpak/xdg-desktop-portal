@@ -16,8 +16,7 @@ import tests.xdp_utils as xdp
 counter = count()
 
 
-def default_zones():
-    return [(1024, 768, 0, 0), (640, 480, 1024, 0)]
+DEFAULT_ZONES = ((1024, 768, 0, 0), (640, 480, 1024, 0))
 
 
 @pytest.fixture
@@ -27,7 +26,7 @@ def required_templates():
 
 @pytest.fixture
 def zones():
-    return default_zones()
+    return DEFAULT_ZONES
 
 
 class InputcaptureSession:
@@ -342,7 +341,7 @@ class TestInputCapture:
             {
                 "inputcapture": {
                     "default-zone": dbus.Array(
-                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        [dbus.Struct(z, signature="uuii") for z in DEFAULT_ZONES],
                         signature="(uuii)",
                         variant_level=1,
                     )
@@ -372,7 +371,7 @@ class TestInputCapture:
             {
                 "inputcapture": {
                     "default-zone": dbus.Array(
-                        [dbus.Struct(z, signature="uuii") for z in default_zones()],
+                        [dbus.Struct(z, signature="uuii") for z in DEFAULT_ZONES],
                         signature="(uuii)",
                         variant_level=1,
                     )
