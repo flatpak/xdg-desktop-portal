@@ -1,6 +1,9 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+# Moving from src/ to shared/ and desktop-portal/
 afad7cd2e3faba08be49155eb0c031755b22f24a
 74e087977e0a8ad76ea75a0a433fc9a42af8232d
 
+# Run ruff formatter
+ef50bf5c70c6448827ffde387e7e2d2fd1a8d959
