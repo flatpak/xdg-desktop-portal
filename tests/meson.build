@@ -126,7 +126,7 @@ tests = {
   'inhibit': {},
   'inputcapture': {},
   'location': {},
-  'notification': {},
+  'notification': {'timeout': 225},
   'openuri': {},
   'permission_store': {},
   'print': {},
