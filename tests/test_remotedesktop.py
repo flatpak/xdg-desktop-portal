@@ -17,6 +17,16 @@ def required_templates():
     return {"remotedesktop": {}}
 
 
+# Must match the "node-id" and "stream-size" defaults of the remotedesktop
+# template.
+STREAM_NODE_ID = 42
+STREAM_WIDTH = 1920
+STREAM_HEIGHT = 1080
+
+# DEVICE_TYPE_POINTER | DEVICE_TYPE_TOUCHSCREEN
+DEVICES_POINTER_TOUCH = 0x2 | 0x4
+
+
 class TestRemoteDesktop:
     def test_version(self, portals, dbus_con):
         xdp.check_version(dbus_con, "RemoteDesktop", 2)
@@ -253,3 +263,94 @@ class TestRemoteDesktop:
                 "Session is not allowed to call Notify"
                 in excinfo.value.get_dbus_message()
             )
+
+    def start_session_with_stream(self, dbus_con):
+        """
+        Create, configure and start a RemoteDesktop session. The remotedesktop
+        template is expected to be parametrized to hand out devices and a
+        stream.
+        """
+        remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
+
+        request = xdp.Request(dbus_con, remotedesktop_intf)
+        response = request.call(
+            "CreateSession",
+            options={"session_handle_token": "session_token0"},
+        )
+        assert response
+        assert response.response == 0
+
+        session = xdp.Session.from_response(dbus_con, response)
+
+        request = xdp.Request(dbus_con, remotedesktop_intf)
+        response = request.call(
+            "SelectDevices",
+            session_handle=session.handle,
+            options={"types": dbus.UInt32(DEVICES_POINTER_TOUCH)},
+        )
+        assert response
+        assert response.response == 0
+
+        request = xdp.Request(dbus_con, remotedesktop_intf)
+        response = request.call(
+            "Start",
+            session_handle=session.handle,
+            parent_window="",
+            options={},
+        )
+        assert response
+        assert response.response == 0
+
+        return remotedesktop_intf, session
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"remotedesktop": {"devices": DEVICES_POINTER_TOUCH, "streams": True}},),
+    )
+    def test_notify_absolute_position(self, portals, dbus_con):
+        remotedesktop_intf, session = self.start_session_with_stream(dbus_con)
+        options = dbus.Dictionary({}, signature="sv")
+
+        remotedesktop_intf.NotifyPointerMotionAbsolute(
+            session.handle, options, STREAM_NODE_ID, 100.0, 200.0
+        )
+        remotedesktop_intf.NotifyTouchDown(
+            session.handle, options, STREAM_NODE_ID, 0, 100.0, 200.0
+        )
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"remotedesktop": {"devices": DEVICES_POINTER_TOUCH, "streams": True}},),
+    )
+    @pytest.mark.parametrize(
+        "x, y",
+        (
+            (-1.0, 0.0),
+            (0.0, -1.0),
+            (STREAM_WIDTH, 0.0),
+            (0.0, STREAM_HEIGHT),
+        ),
+    )
+    def test_notify_absolute_position_out_of_bounds(self, portals, dbus_con, x, y):
+        remotedesktop_intf, session = self.start_session_with_stream(dbus_con)
+        options = dbus.Dictionary({}, signature="sv")
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            remotedesktop_intf.NotifyPointerMotionAbsolute(
+                session.handle, options, STREAM_NODE_ID, x, y
+            )
+        assert "Invalid position" in excinfo.value.get_dbus_message()
+
+    @pytest.mark.parametrize(
+        "template_params",
+        ({"remotedesktop": {"devices": DEVICES_POINTER_TOUCH, "streams": True}},),
+    )
+    def test_notify_absolute_position_unknown_stream(self, portals, dbus_con):
+        remotedesktop_intf, session = self.start_session_with_stream(dbus_con)
+        options = dbus.Dictionary({}, signature="sv")
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            remotedesktop_intf.NotifyPointerMotionAbsolute(
+                session.handle, options, STREAM_NODE_ID + 1, 100.0, 200.0
+            )
+        assert "Invalid position" in excinfo.value.get_dbus_message()

@@ -32,6 +32,10 @@ class RemotedesktopParameters:
     force_close: int
     force_clipboard_enabled: bool
     fail_connect_to_eis: bool
+    devices: int
+    streams: bool
+    node_id: int
+    stream_size: tuple[int, int]
 
 
 def load(mock, parameters=None):
@@ -47,6 +51,10 @@ def load(mock, parameters=None):
         force_close=parameters.get("force-close", 0),
         force_clipboard_enabled=parameters.get("force-clipboard-enabled", False),
         fail_connect_to_eis=parameters.get("fail-connect-to-eis", False),
+        devices=parameters.get("devices", 0),
+        streams=parameters.get("streams", False),
+        node_id=parameters.get("node-id", 42),
+        stream_size=parameters.get("stream-size", (1920, 1080)),
     )
 
     mock.AddProperties(
@@ -148,6 +156,25 @@ def Start(
     response = Response(params.response, {})
     if params.force_clipboard_enabled:
         response.results["clipboard_enabled"] = True
+
+    if params.devices:
+        response.results["devices"] = dbus.UInt32(params.devices)
+
+    if params.streams:
+        width, height = params.stream_size
+        stream_properties = dbus.Dictionary(
+            {
+                "size": dbus.Struct(
+                    (dbus.Int32(width), dbus.Int32(height)), signature="ii"
+                )
+            },
+            signature="sv",
+        )
+
+        response.results["streams"] = dbus.Array(
+            [(dbus.UInt32(params.node_id), stream_properties)],
+            signature="(ua{sv})",
+        )
 
     if params.expect_close:
         request.wait_for_close()

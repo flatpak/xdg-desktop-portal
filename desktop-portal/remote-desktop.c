@@ -848,7 +848,7 @@ check_notify (XdpSession *session,
 
 static gboolean
 check_position (XdpSession *session,
-                uint32_t stream,
+                uint32_t node_id,
                 double x,
                 double y)
 {
@@ -860,11 +860,12 @@ check_position (XdpSession *session,
       ScreenCastStream *stream = l->data;
       int32_t width, height;
 
+      if (screen_cast_stream_get_pipewire_node_id (stream) != node_id)
+        continue;
+
       screen_cast_stream_get_size (stream, &width, &height);
 
-      if (x >= 0.0 && x < width &&
-          y >= 0.0 && y < height)
-        return TRUE;
+      return x >= 0.0 && x < width && y >= 0.0 && y < height;
     }
 
   return FALSE;
