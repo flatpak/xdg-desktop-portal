@@ -343,6 +343,35 @@ class TestRemoteDesktop:
 
     @pytest.mark.parametrize(
         "template_params",
+        (
+            {
+                "remotedesktop": {
+                    "devices": DEVICES_POINTER_TOUCH,
+                    "streams": True,
+                    "omit-stream-size": True,
+                }
+            },
+        ),
+    )
+    def test_notify_absolute_position_without_stream_size(self, portals, dbus_con):
+        """
+        The "size" stream property is optional and backends omit it for streams
+        whose size they don't know when the session is started, e.g. virtual
+        streams. There is nothing to validate the position against then, so it
+        must not be rejected.
+        """
+        remotedesktop_intf, session = self.start_session_with_stream(dbus_con)
+        options = dbus.Dictionary({}, signature="sv")
+
+        remotedesktop_intf.NotifyPointerMotionAbsolute(
+            session.handle, options, STREAM_NODE_ID, 100.0, 200.0
+        )
+        remotedesktop_intf.NotifyTouchDown(
+            session.handle, options, STREAM_NODE_ID, 0, 100.0, 200.0
+        )
+
+    @pytest.mark.parametrize(
+        "template_params",
         ({"remotedesktop": {"devices": DEVICES_POINTER_TOUCH, "streams": True}},),
     )
     def test_notify_absolute_position_unknown_stream(self, portals, dbus_con):

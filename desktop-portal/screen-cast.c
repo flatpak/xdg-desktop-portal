@@ -56,6 +56,7 @@ struct _ScreenCastStream
   uint32_t id;
   int32_t width;
   int32_t height;
+  gboolean has_size;
   uint64_t pipewire_serial;
   gboolean has_pipewire_serial;
 };
@@ -733,6 +734,12 @@ open_pipewire_screen_cast_remote (const char *app_id,
   return remote;
 }
 
+gboolean
+screen_cast_stream_has_size (ScreenCastStream *stream)
+{
+  return stream->has_size;
+}
+
 void
 screen_cast_stream_get_size (ScreenCastStream *stream,
                              int32_t *width,
@@ -762,8 +769,9 @@ collect_screen_cast_stream_data (GVariantIter *streams_iter)
 
       stream = g_new0 (ScreenCastStream, 1);
       stream->id = stream_id;
-      g_variant_lookup (stream_options, "size", "(ii)",
-                        &stream->width, &stream->height);
+      stream->has_size =
+        g_variant_lookup (stream_options, "size", "(ii)",
+                          &stream->width, &stream->height);
       stream->has_pipewire_serial =
         g_variant_lookup (stream_options, "pipewire-serial", "t",
                           &stream->pipewire_serial);

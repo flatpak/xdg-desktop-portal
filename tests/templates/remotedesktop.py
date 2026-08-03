@@ -36,6 +36,7 @@ class RemotedesktopParameters:
     streams: bool
     node_id: int
     stream_size: tuple[int, int]
+    omit_stream_size: bool
 
 
 def load(mock, parameters=None):
@@ -55,6 +56,7 @@ def load(mock, parameters=None):
         streams=parameters.get("streams", False),
         node_id=parameters.get("node-id", 42),
         stream_size=parameters.get("stream-size", (1920, 1080)),
+        omit_stream_size=parameters.get("omit-stream-size", False),
     )
 
     mock.AddProperties(
@@ -161,15 +163,14 @@ def Start(
         response.results["devices"] = dbus.UInt32(params.devices)
 
     if params.streams:
-        width, height = params.stream_size
-        stream_properties = dbus.Dictionary(
-            {
-                "size": dbus.Struct(
-                    (dbus.Int32(width), dbus.Int32(height)), signature="ii"
-                )
-            },
-            signature="sv",
-        )
+        stream_properties = dbus.Dictionary({}, signature="sv")
+        # The "size" stream property is optional; a backend omits it for
+        # streams whose size it doesn't know yet, such as virtual streams.
+        if not params.omit_stream_size:
+            width, height = params.stream_size
+            stream_properties["size"] = dbus.Struct(
+                (dbus.Int32(width), dbus.Int32(height)), signature="ii"
+            )
 
         response.results["streams"] = dbus.Array(
             [(dbus.UInt32(params.node_id), stream_properties)],

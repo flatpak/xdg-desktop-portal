@@ -863,6 +863,15 @@ check_position (XdpSession *session,
       if (screen_cast_stream_get_pipewire_node_id (stream) != node_id)
         continue;
 
+      /* The "size" stream property is optional, and backends omit it for
+       * streams whose size isn't known when the session is started, such as
+       * virtual streams. Without it we have no bounds to validate against,
+       * so accept the position and leave it to the backend; rejecting would
+       * make absolute positioning unusable on those streams.
+       */
+      if (!screen_cast_stream_has_size (stream))
+        return TRUE;
+
       screen_cast_stream_get_size (stream, &width, &height);
 
       return x >= 0.0 && x < width && y >= 0.0 && y < height;
