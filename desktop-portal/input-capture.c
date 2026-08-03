@@ -1424,7 +1424,8 @@ handle_connect_to_eis (XdpDbusInputCapture   *object,
                                                              &error))
     {
       g_warning ("Failed to ConnectToEIS: %s", error->message);
-      out_fd_list = g_unix_fd_list_new ();
+      g_dbus_method_invocation_return_gerror (invocation, error);
+      return G_DBUS_METHOD_INVOCATION_HANDLED;
     }
 
   input_capture_session->state = INPUT_CAPTURE_SESSION_STATE_DISABLED;
