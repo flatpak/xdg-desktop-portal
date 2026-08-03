@@ -215,12 +215,8 @@ get_child_mkdir_p_0700 (int                 fd,
                                   stx,
                                   error);
 
-  if ((stx->stx_mode & ~S_IFMT) != 0700)
-    {
-      g_set_error_literal (error, G_IO_ERROR, G_IO_ERROR_PERMISSION_DENIED,
-                           "Directory already exists with bad permissions");
-      return -1;
-    }
+  if (child >= 0 && (stx->stx_mode & ~S_IFMT) != 0700)
+    g_warning ("Directory %s already exists with bad permissions", path);
 
   return g_steal_fd (&child);
 }
