@@ -31,15 +31,6 @@ DexFuture * xdp_app_info_new_for_invocation (GDBusMethodInvocation *invocation);
 DexFuture * xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
                                              const char            *appid);
 
-XdpAppInfo * xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
-                                                   GCancellable           *cancellable,
-                                                   GError                **error);
-
-XdpAppInfo * xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
-                                                   const char             *app_id,
-                                                   GCancellable           *cancellable,
-                                                   GError                **error);
-
 gboolean xdp_app_info_is_host (XdpAppInfo *app_info);
 
 const char * xdp_app_info_get_id (XdpAppInfo *app_info);

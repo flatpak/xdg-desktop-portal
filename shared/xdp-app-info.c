@@ -442,50 +442,6 @@ xdp_app_info_new_for_registered (GDBusMethodInvocation *invocation,
                           closure_data, (GDestroyNotify)app_info_new_registered_data_free);
 }
 
-XdpAppInfo *
-xdp_app_info_new_for_invocation_sync (GDBusMethodInvocation  *invocation,
-                                      GCancellable           *cancellable,
-                                      GError                **error)
-{
-  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autofd int pidfd = -1;
-  uint32_t pid;
-  g_autoptr(GError) local_error = NULL;
-
-  if (!xdp_connection_get_pidfd_sync (connection, sender,
-                                      cancellable,
-                                      &pidfd, &pid,
-                                      error))
-    return NULL;
-
-  return xdp_app_info_new (sender, pid, g_steal_fd (&pidfd), error);
-}
-
-XdpAppInfo *
-xdp_app_info_new_for_registered_sync (GDBusMethodInvocation  *invocation,
-                                      const char             *app_id,
-                                      GCancellable           *cancellable,
-                                      GError                **error)
-{
-  GDBusConnection *connection = g_dbus_method_invocation_get_connection (invocation);
-  const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  g_autofd int pidfd = -1;
-  uint32_t pid;
-  g_autoptr(GError) local_error = NULL;
-
-  if (!xdp_connection_get_pidfd_sync (connection, sender,
-                                      cancellable,
-                                      &pidfd, &pid,
-                                      error))
-    return NULL;
-
-  return xdp_app_info_host_new_registered (sender,
-                                           pid, g_steal_fd (&pidfd),
-                                           app_id,
-                                           error);
-}
-
 const char *
 xdp_app_info_get_app_display_name (XdpAppInfo *app_info)
 {
