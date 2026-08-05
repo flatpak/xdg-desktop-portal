@@ -66,13 +66,6 @@ XdpPidFdResult * xdp_pid_fd_result_new (uint32_t pid,
 DexFuture * xdp_connection_get_pidfd (GDBusConnection *connection,
                                       const char      *sender);
 
-gboolean xdp_connection_get_pidfd_sync (GDBusConnection  *connection,
-                                        const char       *sender,
-                                        GCancellable     *cancellable,
-                                        int              *out_pidfd,
-                                        uint32_t         *out_pid,
-                                        GError          **error);
-
 XdpAppInfo * xdp_invocation_get_app_info (GDBusMethodInvocation *invocation);
 
 typedef int XdpFd;
