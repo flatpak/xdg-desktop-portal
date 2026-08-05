@@ -112,6 +112,35 @@ pytest_files = [
   'test_wallpaper.py',
 ]
 
+tests = {
+  'account': {},
+  'background': {},
+  'camera': {},
+  'clipboard': {},
+  'documents': {},
+  'document_fuse': {},
+  'dynamiclauncher': {},
+  'email': {},
+  'filechooser': {},
+  'globalshortcuts': {},
+  'inhibit': {},
+  'inputcapture': {},
+  'location': {},
+  'notification': {},
+  'openuri': {},
+  'permission_store': {},
+  'print': {},
+  'registry': {},
+  'remotedesktop': {},
+  'settings': {},
+  'screencast': {},
+  'screenshot': {},
+  'shutdown': {},
+  'trash': {},
+  'usb': {},
+  'wallpaper': {},
+}
+
 template_files = [
   'templates/access.py',
   'templates/account.py',
@@ -137,12 +166,11 @@ template_files = [
   'templates/xdp_utils.py',
 ]
 
-foreach pytest_file : pytest_files
-  testname = pytest_file.replace('.py', '').replace('test_', '')
+foreach testname, params : tests
   test(
     'integration/@0@'.format(testname),
     run_test,
-    args: [meson.current_source_dir() / pytest_file] + pytest_args,
+    args: [meson.current_source_dir() / 'test_@0@.py'.format(testname)] + pytest_args,
     depends: [
       xdg_desktop_portal,
       xdp_validate_icon,
@@ -152,7 +180,7 @@ foreach pytest_file : pytest_files
     ],
     env: pytest_env,
     suite: ['integration'],
-    timeout: 200,
+    timeout: params.get('timeout', 200),
   )
 endforeach
 
