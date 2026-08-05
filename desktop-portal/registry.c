@@ -66,10 +66,7 @@ handle_register (XdpDbusHostRegistry   *object,
   {
     g_autoptr(XdpAppInfo) detected_app_info = NULL;
 
-    /* FIXME convert to future */
-    detected_app_info = xdp_app_info_new_for_invocation_sync (invocation,
-                                                              NULL,
-                                                              &error);
+    detected_app_info = dex_await_object (xdp_app_info_new_for_invocation (invocation), &error);
     if (!detected_app_info)
       {
         g_debug ("Failed to detect app info for %s: %s",
@@ -101,11 +98,7 @@ handle_register (XdpDbusHostRegistry   *object,
       }
   }
 
-  /* FIXME convert to future */
-  new_app_info = xdp_app_info_new_for_registered_sync (invocation,
-                                                       arg_app_id,
-                                                       NULL,
-                                                       &error);
+  new_app_info = dex_await_object (xdp_app_info_new_for_registered (invocation, arg_app_id), &error);
   if (!new_app_info)
     {
       g_debug ("Can't create registered app for %s: %s",
