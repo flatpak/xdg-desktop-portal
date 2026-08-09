@@ -22,6 +22,7 @@
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
+#include "xdp-types.h"
 #include "xdp-utils.h"
 
 typedef struct _Secret Secret;
@@ -225,7 +226,7 @@ init_secret (gpointer user_data)
       connection,
       G_DBUS_PROXY_FLAGS_NONE,
       impl_config->dbus_name,
-      "/org/freedesktop/portal/desktop"),
+      DESKTOP_DBUS_PATH),
     &error);
 
   if (impl == NULL)

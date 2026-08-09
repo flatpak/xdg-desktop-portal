@@ -17,6 +17,7 @@
 #include "xdp-portal-config.h"
 #include "xdp-request.h"
 #include "xdp-session.h"
+#include "xdp-types.h"
 #include "xdp-utils.h"
 
 enum {
@@ -569,7 +570,7 @@ init_inhibit (XdpContext *context)
   impl = xdp_dbus_impl_inhibit_proxy_new_sync (connection,
                                                G_DBUS_PROXY_FLAGS_NONE,
                                                impl_config->dbus_name,
-                                               "/org/freedesktop/portal/desktop",
+                                               DESKTOP_DBUS_PATH,
                                                NULL, &error);
   if (impl == NULL)
     {
