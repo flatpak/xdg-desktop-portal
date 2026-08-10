@@ -30,6 +30,10 @@ _counter = count()
 ASV = dict[str, Any]
 
 
+type RequiredTemplates = dict[str, dict[str, Any]]
+type TemplateParams = RequiredTemplates
+
+
 def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for tests. Use as:
