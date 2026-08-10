@@ -371,7 +371,7 @@ def _start_template(
 
 
 @pytest.fixture
-def template_params() -> dict[str, dict[str, Any]]:
+def template_params() -> xdp.TemplateParams:
     """
     Default fixture for overriding the parameters which should be passed to the
     mocking templates. Use required_templates to specify the default parameters
@@ -384,7 +384,7 @@ def template_params() -> dict[str, dict[str, Any]]:
 
 
 @pytest.fixture
-def required_templates() -> dict[str, dict[str, Any]]:
+def required_templates() -> xdp.RequiredTemplates:
     """
     Default fixture for enumerating the mocking templates the test case requires
     to be started. This is a map from a template spec to the parameters which
@@ -421,8 +421,8 @@ def required_templates() -> dict[str, dict[str, Any]]:
 
 @pytest.fixture
 def templates(
-    required_templates: dict[str, dict[str, Any]],
-    template_params: dict[str, dict[str, Any]],
+    required_templates: xdp.RequiredTemplates,
+    template_params: xdp.TemplateParams,
 ) -> Iterator[None]:
     """
     Fixture which starts the required templates with their parameters. Usually
