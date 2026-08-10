@@ -374,9 +374,9 @@ out:
 }
 
 static PortalConfig *
-load_portal_configuration_for_dir (gboolean    opt_verbose,
-                                   const char *base_directory,
-                                   const char *portal_file)
+load_config_file (gboolean    opt_verbose,
+                  const char *base_directory,
+                  const char *portal_file)
 {
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *path = NULL;
@@ -455,7 +455,7 @@ load_config_directory (const char  *dir,
       g_autofree char *portals_conf = NULL;
 
       portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
-      config = load_portal_configuration_for_dir (opt_verbose, dir, portals_conf);
+      config = load_config_file (opt_verbose, dir, portals_conf);
 
       if (config != NULL)
         {
@@ -472,7 +472,7 @@ load_config_directory (const char  *dir,
   {
     g_autoptr(PortalConfig) config = NULL;
 
-    config = load_portal_configuration_for_dir (opt_verbose, dir, "portals.conf");
+    config = load_config_file (opt_verbose, dir, "portals.conf");
     if (config != NULL)
       {
         if (opt_verbose)
