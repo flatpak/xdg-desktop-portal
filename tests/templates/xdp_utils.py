@@ -153,7 +153,7 @@ class ImplRequest:
         returned, like an inhibition.
         """
 
-        def cb_methodcall(name, args):
+        def cb_methodcall(name: str, *_: Any) -> None:
             if name == "Close":
                 logger.debug(f"Request {self.handle}: closed")
                 self.mock.EmitSignal(
@@ -164,7 +164,7 @@ class ImplRequest:
                 )
                 self._unexport()
 
-        def reply():
+        def reply() -> None:
             self._export()
 
             logger.debug(f"Request {self.handle}: replying {response}")
