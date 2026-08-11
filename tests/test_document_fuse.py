@@ -24,7 +24,7 @@ def xdp_app_info() -> xdp.AppInfo:
     return xdp.AppInfoHost(app_id="")
 
 
-def filename_to_ay(filename):
+def filename_to_ay(filename: str) -> list[bytes]:
     return list(filename.encode("utf-8")) + [0]
 
 
@@ -1206,7 +1206,7 @@ class Process(mp.Process):
 
 
 class TestDocumentFuse:
-    def parallel(self, test_function, parallel_tests, parallel_iterations):
+    def parallel(self, test_function, parallel_tests, parallel_iterations) -> None:
         procs = []
         for i in range(parallel_tests):
             p = Process(
