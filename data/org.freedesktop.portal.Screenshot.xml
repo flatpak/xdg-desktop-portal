@@ -36,12 +36,14 @@
 
         * ``modal`` (``b``)
 
-          Whether the dialog should be modal. Default is yes.
+          Whether the dialog should be modal. Defaults to "true".
 
         * ``interactive`` (``b``)
 
           Hint whether the dialog should offer customization before taking a screenshot.
-          Default is no.  **Since version 2.**
+          Defaults to "false".
+
+          This option was added in version 2 of the interface.
 
         * ``target`` (``u``)
 
