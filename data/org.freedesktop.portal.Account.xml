@@ -17,7 +17,7 @@
   <interface name="org.freedesktop.portal.Account">
     <!--
         GetUserInformation:
-        @window: Identifier for the window
+        @window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
