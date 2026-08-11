@@ -142,11 +142,12 @@
         QueryEndResponse:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
 
-        Acknowledges that the caller received the #org.freedesktop.portal.Inhibit::StateChanged
+        Acknowledges that the caller received the
+        :ref:`org.freedesktop.portal.Inhibit::StateChanged`
         signal. This method should be called within one second of receiving a StateChanged
         signal with the 'Query End' state.
 
-        Since version 3.
+        This method was added in version 3 of this interface.
     -->
     <method name="QueryEndResponse">
       <arg type="o" name="session_handle" direction="in"/>
