@@ -73,7 +73,7 @@
         To match different capitalizations of, e.g. ``'*.ico'``, use a pattern
         like: ``'*.[iI][cC][oO]'``.
 
-        Example: ``[('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')]), (1, 'audio/*')])]``
+        Example: ``[('Images', [(0, '*.ico'), (1, 'image/png')]), ('Text', [(0, '*.txt')]), ('Audio', [(1, 'audio/*')])]``
 
         Note that filters are purely there to aid the user in making a useful
         selection. The portal may still allow the user to select files that
