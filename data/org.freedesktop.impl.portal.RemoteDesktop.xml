@@ -17,6 +17,7 @@
     <!--
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
         @app_id: App id of the application
         @options: Vardict with optional further information
         @response: Numeric response
@@ -103,37 +104,15 @@
     <!--
         Start:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @session_handle: Identifier for the remote desktop session
-        @parent_window: Identifier for the application window
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
 
-        Start the remote desktop session. This will typically result the portal
+        Start the remote desktop session. This will typically result in the portal
         presenting a dialog.
-
-        Supported keys in the @options vardict include:
-
-        * ``handle_token`` (``s``)
-
-          A string that will be used as the last element of the @handle. Must be a valid
-          object path element. See the :ref:`org.freedesktop.portal.Request` documentation for
-          more information about the @handle.
-
-        * ``persist_mode`` (``u``)
-
-          How this session should persist. Default is 0. Accepted values are:
-
-          - ``0``: Do not persist (default)
-          - ``1``: Permissions persist as long as the application is running
-          - ``2``: Permissions persist until explicitly revoked
-
-          If the session should persist, ``restore_data`` must be returned in the @results
-          vardict.
-
-          This option was added in version 2 of this interface.
 
         The following results get returned in the @results vardict:
 
