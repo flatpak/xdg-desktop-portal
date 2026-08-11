@@ -276,7 +276,7 @@
         access to.
 
         If a valid token is present in the @options, then this call will print
-        with the settings from the Print call that the token refers to. If
+        with the settings from the PreparePrint call that the token refers to. If
         no token is present, then a print dialog will be presented to the user.
 
         Note that it is up to the portal implementation to determine how long

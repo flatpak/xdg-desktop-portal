@@ -12,7 +12,7 @@
       Interface for setting a thread to realtime from within the
       sandbox. It is analogous to the org.freedesktop.RealtimeKit1
       interface and will proxy requests there but with pid mapping.
-      The latter is necessary in the case that sandbox has pid namespace
+      The latter is necessary in the case that the sandbox has PID namespace
       isolation enabled.
 
       Note that this proxy does not bypass any limitations that

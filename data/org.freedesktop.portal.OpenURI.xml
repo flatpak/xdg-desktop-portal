@@ -40,7 +40,7 @@
 
           Whether to allow the chosen application to write to the file.
 
-          This key only takes effect the uri points to a local file that
+          This key only takes effect if the uri points to a local file that
           is exported in the document portal, and the chosen application
           is sandboxed itself.
 
@@ -49,7 +49,7 @@
           Whether to ask the user to choose an app. If this is not passed, or false,
           the portal may use a default or pick the last choice.
 
-          The ask option was introduced in version 3 of the interface.
+          This option was added in version 3 of this interface.
 
         * ``activation_token`` (``s``)
 
@@ -86,9 +86,9 @@
 
           Whether to allow the chosen application to write to the file.
 
-          This key only takes effect the uri points to a local file that is
-          exported in the document portal, and the chosen application is
-          sandboxed itself.
+          This key only takes effect if the file descriptor points to a
+          local file that is exported in the document portal, and the chosen
+          application is sandboxed itself.
 
         * ``ask`` (``b``)
 

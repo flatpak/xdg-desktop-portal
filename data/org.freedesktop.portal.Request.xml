@@ -18,7 +18,7 @@
       emitting the #org.freedesktop.portal.Request::Response signal on the
       Request object.
 
-      The application can abort the interaction calling
+      The application can abort the interaction by calling
       org.freedesktop.portal.Request.Close() on the Request object.
 
       Since version 0.9 of xdg-desktop-portal, the handle will be of the form
@@ -28,7 +28,7 @@
         /org/freedesktop/portal/desktop/request/SENDER/TOKEN
 
 
-      where ``SENDER`` is the callers unique name, with the initial ``':'`` removed and
+      where ``SENDER`` is the caller's unique name, with the initial ``':'`` removed and
       all ``'.'`` replaced by ``'_'``, and ``TOKEN`` is a unique token that the caller provided
       with the handle_token key in the options vardict.
 

@@ -43,11 +43,11 @@
 
         * ``name`` (``s``)
 
-          The users real name.
+          The user's real name.
 
         * ``image`` (``s``)
 
-          The URI of an image file for the users avatar photo.
+          The URI of an image file for the user's avatar photo.
     -->
     <method name="GetUserInformation">
       <arg type="o" name="handle" direction="in"/>

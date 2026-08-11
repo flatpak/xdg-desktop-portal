@@ -60,7 +60,7 @@
     <!--
         IsCameraPresent:
 
-        A boolean stating whether there is any cameras available.
+        A boolean stating whether there are any cameras available.
     -->
     <property name="IsCameraPresent" type="b" access="read"/>
     <property name="version" type="u" access="read"/>

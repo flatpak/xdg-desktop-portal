@@ -95,9 +95,9 @@
         @doc_ids: the IDs of the files in the document store
         @extra_info: Extra info returned
 
-        Adds multiple files to the document store. The file is passed in the
-        form of an open file descriptor to prove that the caller has
-        access to the file.
+        Adds multiple files to the document store. The files are passed in the
+        form of open file descriptors to prove that the caller has
+        access to the files.
 
         If the ``as-needed-by-app`` flag is given, files will only be added to
         the document store if the application does not already have access to them.

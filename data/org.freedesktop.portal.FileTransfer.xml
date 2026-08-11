@@ -29,7 +29,7 @@
        portal<org.freedesktop.portal.Documents>` by this portal do not stay
        accessible across sessions.
 
-       The D-Bus interface for the this portal is available under the
+       The D-Bus interface for this portal is available under the
        bus name org.freedesktop.portal.Documents and the object path
        ``/org/freedesktop/portal/documents``.
 

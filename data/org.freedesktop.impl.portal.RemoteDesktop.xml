@@ -245,7 +245,7 @@
 
         The axis movement from a 'smooth scroll' device, such as a touchpad.
         When applicable, the size of the motion delta should be equivalent to
-        the motion vector of a pointer motion done using the same advice.
+        the motion vector of a pointer motion done using the same device.
 
         May only be called if POINTER access was provided after starting the
         session.
@@ -292,12 +292,12 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @keycode: Keyboard code that was pressed or released
-        @state: New state of keyboard keysym
+        @state: New state of keyboard keycode
 
         May only be called if KEYBOARD access was provided after starting the
         session.
 
-        Available keyboard keysym states:
+        Available keyboard keycode states:
 
         - ``0``: Released
         - ``1``: Pressed

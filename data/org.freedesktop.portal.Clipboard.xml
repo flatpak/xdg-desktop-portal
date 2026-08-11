@@ -26,7 +26,7 @@
         Note that other interfaces might place restriction on when it's possible
         to interact with the clipboard.
 
-        This portal does NOT create it's own session. Instead, it offers existing sessions
+        This portal does NOT create its own session. Instead, it offers existing sessions
         created from other portals the option to integrate with the clipboard.
 
         For whether this interface is supported for a given session, refer to that portal's

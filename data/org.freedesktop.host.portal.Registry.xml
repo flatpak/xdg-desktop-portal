@@ -31,7 +31,7 @@
         The application ID will be used in org.freedesktop.portal APIs to
         associate a portal action with an application.
 
-        Registering can only done at most once; any subsequent call will result
+        Registering can only be done at most once; any subsequent call will result
         in an error.
 
         Registering must be done before any portal method call; registering
