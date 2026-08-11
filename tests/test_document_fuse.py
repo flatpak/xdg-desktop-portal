@@ -8,9 +8,11 @@ import multiprocessing as mp
 import os
 import random
 import stat
+import subprocess
 import sys
 import traceback
 from collections import defaultdict
+from typing import Any, AnyStr
 
 import dbus
 import pytest
@@ -24,7 +26,7 @@ def xdp_app_info() -> xdp.AppInfo:
     return xdp.AppInfoHost(app_id="")
 
 
-def filename_to_ay(filename):
+def filename_to_ay(filename: str) -> list[bytes]:
     return list(filename.encode("utf-8")) + [0]
 
 
@@ -1132,7 +1134,7 @@ def file_transfer_portal_test():
     log("File transfer tests ok")
 
 
-def run_test(iterations, prefix=None, do_ensure_no_remaining=True):
+def run_test(iterations, prefix=None, do_ensure_no_remaining: bool = True):
     global app_prefix
     global dir_prefix
     global ensure_no_remaining
@@ -1206,7 +1208,7 @@ class Process(mp.Process):
 
 
 class TestDocumentFuse:
-    def parallel(self, test_function, parallel_tests, parallel_iterations):
+    def parallel(self, test_function, parallel_tests, parallel_iterations) -> None:
         procs = []
         for i in range(parallel_tests):
             p = Process(
@@ -1225,7 +1227,12 @@ class TestDocumentFuse:
     def test_single_thread(self, portals, xdg_document_portal, dbus_con):
         run_test(3)
 
-    def test_multi_thread(self, portals, xdg_document_portal, dbus_con):
+    def test_multi_thread(
+        self,
+        portals: Any,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        dbus_con: dbus.Bus,
+    ) -> None:
         if xdp.run_long_tests():
             return self.parallel(run_test, 20, 10)
         if xdp.is_in_ci():
