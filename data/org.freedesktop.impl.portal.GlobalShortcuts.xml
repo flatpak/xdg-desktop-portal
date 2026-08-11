@@ -18,7 +18,7 @@
     <!--
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the ref:`org.freedesktop.impl.portal.Session` object representing the session being created
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
         @app_id: App id of the application
         @options: Vardict with optional further information. See :ref:`org.freedesktop.portal.GlobalShortcuts.CreateSession`
         @response: Numeric Request response
@@ -45,7 +45,8 @@
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @shortcuts: The list of shortcuts to bind. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts`
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @shortcuts: The identifier of the shortcuts we intend to register, empty for all shortcuts
+        @options: Vardict with optional further information
+        @response: Numeric response
         @results: Vardict with the results of the call
 
         Bind the shortcuts of this session. This will typically result in the portal
@@ -75,7 +76,7 @@
 
         Lists shortcuts of a session.
 
-        If `BindShortcuts` was called for `session` all active shortcuts for `session` are returned.
+        If `BindShortcuts` was called for `session`, all active shortcuts for `session` are returned.
         Otherwise returns the shortcuts that were successfully bound in a previous session by the application.
 
         The following results get returned in the @results vardict:
@@ -97,7 +98,7 @@
 
     <!--
         ConfigureShortcuts:
-        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object representing the session
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
 
@@ -172,8 +173,7 @@
 
         Emitted when shortcuts are changed.
 
-        The results get returned via the :ref:`org.freedesktop.portal.Request::Response`
-        signal. See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` for the
+        See :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` for the
         list of supported properties of shortcuts.
     -->
     <signal name="ShortcutsChanged">
