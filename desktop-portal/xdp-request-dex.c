@@ -200,8 +200,6 @@ on_impl_request_proxy_created (DexFuture *future,
   request->impl_request = g_steal_pointer (&impl_request);
   request->skeleton = g_steal_pointer (&data->skeleton);
   request->id = g_steal_pointer (&data->id);
-  request->exported = TRUE;
-
   g_signal_connect_object (request->context, "peer-disconnect",
                            G_CALLBACK (on_peer_disconnect),
                            request,
@@ -212,12 +210,6 @@ on_impl_request_proxy_created (DexFuture *future,
   g_signal_connect (request, "g-authorize-method",
                     G_CALLBACK (request_authorize_callback),
                     request);
-
-  if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (request),
-                                         g_dbus_interface_skeleton_get_connection (request->skeleton),
-                                         request->id,
-                                         &error))
-      return dex_future_new_for_error (g_steal_pointer (&error));
 
   return dex_future_new_for_object (request);
 }
@@ -281,6 +273,20 @@ xdp_request_dex_new (XdpContext             *context,
                             (GDestroyNotify) request_impl_proxy_create_data_free);
 
   return g_steal_pointer (&future);
+}
+
+gboolean
+xdp_request_dex_export (XdpRequestDex  *request,
+                        GError        **error)
+{
+  if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (request),
+                                         g_dbus_interface_skeleton_get_connection (request->skeleton),
+                                         request->id,
+                                         error))
+    return FALSE;
+
+  request->exported = TRUE;
+  return TRUE;
 }
 
 void
