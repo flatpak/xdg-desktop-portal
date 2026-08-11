@@ -50,7 +50,6 @@
 
           true to use D-Bus activation for autostart.
 
-
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``background`` (``b``)
@@ -69,21 +68,21 @@
     </method>
 
     <!--
-      SetStatus:
-      @options: Vardict with optional further information
+        SetStatus:
+        @options: Vardict with optional further information
 
-      This method was added in version 2 of this interface.
+        This method was added in version 2 of this interface.
 
-      Sets the status of the application running in background.
+        Sets the status of the application running in background.
 
-      Supported keys in the @options vardict include:
+        Supported keys in the @options vardict include:
 
-      * ``message`` (``s``)
+        * ``message`` (``s``)
 
-        A string that will be used as the status message of the application.
-        This should be a single line that can be presented to the user in a
-        list, not a full sentence or paragraph. Must be shorter than 96
-        characters.
+          A string that will be used as the status message of the application.
+          This should be a single line that can be presented to the user in a
+          list, not a full sentence or paragraph. Must be shorter than 96
+          characters.
     -->
     <method name="SetStatus">
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>

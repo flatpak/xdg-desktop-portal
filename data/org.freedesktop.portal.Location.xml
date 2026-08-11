@@ -29,9 +29,9 @@
 
         * ``session_handle_token`` (``s``)
 
-              A string that will be used as the last element of the session handle. Must be a valid
-              object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
-              more information about the session handle.
+          A string that will be used as the last element of the session handle. Must be a valid
+          object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
+          more information about the session handle.
 
         * ``distance-threshold`` (``u``)
 
@@ -121,7 +121,7 @@
         * ``Timestamp`` (``(tt)``)
 
           The timestamp, as seconds and microseconds since the Unix epoch.
-      -->
+    -->
     <signal name="LocationUpdated">
       <arg type="o" name="session_handle" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QVariantMap"/>
