@@ -244,13 +244,13 @@
             as long as they have a window. Once the last window of an app
             is closed the persistent notification will be removed.
 
-          * ``hide-on-lockscreen``
+          * ``hide-on-lock-screen``
 
-            Don't show the notification on the lockscreen.
+            Don't show the notification on the lock screen.
 
-          * ``hide-content-on-lockscreen``
+          * ``hide-content-on-lock-screen``
 
-            All content of the notification will be hidden on the lockscreen.
+            All content of the notification will be hidden on the lock screen.
 
           * ``show-as-new``
 
