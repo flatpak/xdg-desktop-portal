@@ -29,12 +29,21 @@
 
         * ``modal`` (``b``)
 
-          Whether the dialog should be modal. Defaults to yes.
+          Whether the dialog should be modal. Defaults to "true".
 
         * ``interactive`` (``b``)
 
           Hint whether the dialog should offer customization before taking a screenshot.
-          Defaults to no.
+          Defaults to "false".
+
+          This option was added in version 2 of this interface.
+
+        * ``permission_store_checked`` (``b``)
+
+          Hint whether the screenshot portal has checked the 'screenshot' permission for
+          the requesting app. Defaults to "false".
+
+          This option was added in version 2 of this interface.
 
         * ``target`` (``u``)
 
@@ -49,13 +58,6 @@
           - ``8``: Active Window: The currently active window.
 
           This option was added in version 3 of this interface.
-
-        * ``permission_store_checked`` (``b``)
-
-          Hint whether the screenshot portal has checked the 'screenshot' permission for
-          the requesting app. Defaults to no.
-
-          This option was added in version 2 of this interface.
 
         The following results get returned via the @results vardict:
 
@@ -87,9 +89,9 @@
 
         The following results get returned via the @results vardict:
 
-        * ``color``` (``(ddd)``)
+        * ``color`` (``(ddd)``)
 
-          The color, RGB values in the range [0,1].
+          The color, RGB values in the range [0,1], in the sRGB color space.
     -->
     <method name="PickColor">
       <arg type="o" name="handle" direction="in"/>
