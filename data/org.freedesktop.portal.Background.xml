@@ -71,8 +71,6 @@
         SetStatus:
         @options: Vardict with optional further information
 
-        This method was added in version 2 of this interface.
-
         Sets the status of the application running in background.
 
         Supported keys in the @options vardict include:
@@ -81,8 +79,10 @@
 
           A string that will be used as the status message of the application.
           This should be a single line that can be presented to the user in a
-          list, not a full sentence or paragraph. Must be shorter than 96
+          list, not a full sentence or paragraph. Must not exceed 96
           characters.
+
+        This method was added in version 2 of this interface.
     -->
     <method name="SetStatus">
       <annotation name="org.qtproject.QtDBus.QtTypeName.In0" value="QVariantMap"/>
