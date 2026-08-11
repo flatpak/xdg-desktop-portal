@@ -36,7 +36,7 @@
       the sRGB color space, in the range [0,1]. Out-of-range RGB values should
       be treated as an unset accent color.
 
-    * ``org.freedesktop.appearance``  ``contrast`` (``u``)
+    * ``org.freedesktop.appearance`` ``contrast`` (``u``)
 
       Indicates the system's preferred contrast level.
       Supported values are:
@@ -46,7 +46,7 @@
 
       Unknown values should be treated as ``0`` (no preference).
 
-    * ``org.freedesktop.appearance``  ``reduced-motion`` (``u``)
+    * ``org.freedesktop.appearance`` ``reduced-motion`` (``u``)
 
       Indicates the system's preferred reduced motion setting.
       Supported values are:

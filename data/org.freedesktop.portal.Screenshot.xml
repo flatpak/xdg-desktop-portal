@@ -92,7 +92,7 @@
         * ``color`` (``(ddd)``)
 
           The color, RGB values in the range [0,1], in the sRGB color space.
-      -->
+    -->
     <method name="PickColor">
       <arg type="s" name="parent_window" direction="in"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>

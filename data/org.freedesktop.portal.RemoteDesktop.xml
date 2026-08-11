@@ -50,7 +50,6 @@
           object path element. See the :ref:`org.freedesktop.portal.Session` documentation for
           more information about the session handle.
 
-
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``session_handle`` (``s``)
@@ -290,7 +289,6 @@
 
         - ``0``: Vertical scroll
         - ``1``: Horizontal scroll
-
     -->
     <method name="NotifyPointerAxisDiscrete">
       <arg type="o" name="session_handle" direction="in"/>

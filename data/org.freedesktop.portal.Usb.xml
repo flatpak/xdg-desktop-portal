@@ -315,7 +315,7 @@
           Device properties attached to the ID. See
           org.freedesktop.portal.Usb.EnumerateDevices() for a list of all
           the properties that may be present in the vardict.
-      -->
+    -->
     <signal name="DeviceEvents">
       <arg type="o" name="session_handle" direction="out"/>
       <annotation name="org.qtproject.QtDBus.QtTypeName.Out1" value="QList&lt;std::tuple&lt;QString,QString,QVariantMap&gt;&gt;"/>

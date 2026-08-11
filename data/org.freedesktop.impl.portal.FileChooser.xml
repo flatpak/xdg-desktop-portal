@@ -178,62 +178,62 @@
       <arg type="a{sv}" name="results" direction="out"/>
     </method>
     <!--
-      SaveFiles:
-      @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-      @title: Title for the file chooser dialog
-      @options: Vardict with optional further information
-      @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
-      @response: Numeric response
-      @results: Vardict with the results of the call
+        SaveFiles:
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @title: Title for the file chooser dialog
+        @options: Vardict with optional further information
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+        @response: Numeric response
+        @results: Vardict with the results of the call
 
-      Asks for a folder as a location to save one or more files. The
-      names of the files will be used as-is and appended to the
-      selected folder's path in the list of returned files. If the
-      selected folder already contains a file with one of the given
-      names, the portal may prompt or take some other action to
-      construct a unique file name and return that instead.
+        Asks for a folder as a location to save one or more files. The
+        names of the files will be used as-is and appended to the
+        selected folder's path in the list of returned files. If the
+        selected folder already contains a file with one of the given
+        names, the portal may prompt or take some other action to
+        construct a unique file name and return that instead.
 
-      Supported keys in the @options vardict include:
+        Supported keys in the @options vardict include:
 
-      * ``accept_label`` (``s``)
+        * ``accept_label`` (``s``)
 
-        Label for the accept button. Mnemonic underlines are allowed.
+          Label for the accept button. Mnemonic underlines are allowed.
 
-      * ``modal`` (``b``)
+        * ``modal`` (``b``)
 
-        Whether the dialog should be modal. Default is yes.
+          Whether the dialog should be modal. Default is yes.
 
-      * ``choices`` (``a(ssa(ss)s)``)
+        * ``choices`` (``a(ssa(ss)s)``)
 
-        List of serialized combo boxes.
-        See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          List of serialized combo boxes.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
 
-      * ``current_folder`` (``ay``)
+        * ``current_folder`` (``ay``)
 
-        Suggested folder to save the files in. The byte array is
-        expected to be null-terminated.
+          Suggested folder to save the files in. The byte array is
+          expected to be null-terminated.
 
-      * ``files`` (``aay``)
+        * ``files`` (``aay``)
 
-        An array of file names to be saved. The array and byte
-        arrays are expected to be null-terminated.
+          An array of file names to be saved. The array and byte
+          arrays are expected to be null-terminated.
 
-      The following results get returned via the
-      :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the
+        :ref:`org.freedesktop.portal.Request::Response` signal:
 
-      * ``uris`` (``as``)
+        * ``uris`` (``as``)
 
-        An array of strings containing the uri corresponding to
-        each file given by @options, in the same order. Note that
-        the file names may have changed, for example if a file
-        with the same name in the selected folder already exists.
+          An array of strings containing the uri corresponding to
+          each file given by @options, in the same order. Note that
+          the file names may have changed, for example if a file
+          with the same name in the selected folder already exists.
 
-        All URIs must have the "file://" scheme.
+          All URIs must have the "file://" scheme.
 
-      * ``choices`` (``a(ss)``)
+        * ``choices`` (``a(ss)``)
 
-        An array of pairs of strings, corresponding to the passed-in choices.
-        See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
+          An array of pairs of strings, corresponding to the passed-in choices.
+          See :ref:`org.freedesktop.portal.FileChooser.OpenFile` for details.
     -->
     <method name="SaveFiles">
       <arg type="o" name="handle" direction="in"/>
