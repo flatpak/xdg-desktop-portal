@@ -66,7 +66,7 @@
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Start the location session.
-        An application can only attempt start a session once.
+        An application can only attempt to start a session once.
 
         Supported keys in the @options vardict include:
 

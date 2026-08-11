@@ -11,9 +11,9 @@
 
       Interface for accessing GameMode from within the sandbox. It
       is analogous to the com.feralinteractive.GameMode interface
-      and will proxy request there, but with additional permission
-      checking and pid mapping. The latter is necessary in the case
-      that sandbox has pid  namespace isolation enabled. See the man
+      and will proxy requests there, but with additional permission
+      checking and PID mapping. The latter is necessary in the case
+      that the sandbox has PID namespace isolation enabled. See the man
       page for pid_namespaces(7) for more details, but briefly, it
       means that the sandbox has its own process id namespace which
       is separated from the one on the host. Thus there will be two

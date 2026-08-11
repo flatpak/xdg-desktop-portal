@@ -115,7 +115,7 @@
         @options: Vardict with optional further information
         @session_handle: Object path for the session.
 
-        Creates an USB monitoring session. This is only necessary to
+        Creates a USB monitoring session. This is only necessary to
         receive device events, like device being plugged or unplugged.
 
         Supported keys in the @options vardict include:
@@ -187,7 +187,7 @@
         @options: Vardict with optional further information
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        Request to acquires (i.e. open) the given device nodes.  The
+        Request to acquire (i.e. open) the given device nodes. The
         process of acquiring is finished by calling
         `FinishAcquireDevices` after the request emitted a `Success`
         response.
@@ -231,11 +231,11 @@
         org.freedesktop.portal.Usb.AcquireDevices(). The file
         descriptors remain usable until the underlying device is
         removed, they are released with `ReleaseDevices`, the D-Bus
-        connections is closed, or the portal revokes the file
+        connection is closed, or the portal revokes the file
         descriptor which can happen at any point. Devices which are
         not needed anymore should be passed to `ReleaseDevices`.
 
-        If not all devices could be send, @finished will be false and
+        If not all devices could be sent, @finished will be false and
         org.freedesktop.portal.Usb.FinishAcquireDevices must be called again
         until @finished is true, before calling
         org.freedesktop.portal.Usb.AcquireDevices again.
@@ -260,7 +260,7 @@
         * ``error`` (``s``)
 
           Error message describing why accessing the device was not
-          successful. Only present if this was an failed device access.
+          successful. Only present if this was a failed device access.
 
         There are no supported keys in the @options vardict.
      -->

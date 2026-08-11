@@ -276,7 +276,7 @@
 
         The zone_set ID increases by an unspecified amount with each change to
         the set of zones. Applications must be able to handle the zone_set ID
-        wrapping around. Implementations of this portal must to increase
+        wrapping around. Implementations of this portal must increase
         the zone_set ID by a sensible amount to allow for
         wrapping detection.
 
@@ -644,7 +644,7 @@
         SupportedCapabilities:
 
         A bitmask of supported capabilities. This list is constant, it is not the list of
-        capabilities currently available but rather which capabilies are
+        capabilities currently available but rather which capabilities are
         implemented by the portal.
 
         Applications must ignore unknown capabilities.

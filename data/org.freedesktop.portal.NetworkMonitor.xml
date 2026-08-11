@@ -29,7 +29,7 @@
         @available: whether the network is available
 
         Returns whether the network is considered available.
-        That is, whether the system as a default route for
+        That is, whether the system has a default route for
         at least one of IPv4 or IPv6.
 
         This method was added in version 2 to replace
@@ -43,8 +43,8 @@
         @metered: whether the network is metered
 
         Returns whether the network is considered metered.
-        That is, whether the system as traffic flowing through
-        the default connection that is subject ot limitations
+        That is, whether the system has traffic flowing through
+        the default connection that is subject to limitations
         by service providers.
 
         This method was added in version 2 to replace

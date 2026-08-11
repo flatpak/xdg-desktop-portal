@@ -43,7 +43,7 @@
 
         * ``commandline`` (``as``)
 
-          Commandline to use add when autostarting at login. If this is not
+          Commandline to use when autostarting at login. If this is not
           specified, the ``Exec`` key from the desktop file will be used.
 
         * ``dbus-activatable`` (``b``)

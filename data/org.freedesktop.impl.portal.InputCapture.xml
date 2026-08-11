@@ -398,8 +398,8 @@
           attribute an event sequence to the portal interaction.
 
           Applications must be able to handle the activation_id number wrapping
-          around. Implementations of this portal must to increase the
-          activation_id number by an sensible amount to allow for wrapping
+          around. Implementations of this portal must increase the
+          activation_id number by a sensible amount to allow for wrapping
           detection.
 
         * ``cursor_position`` (``(dd)``)
@@ -420,7 +420,7 @@
           nonzero, it matches the barrier id as specified in
           org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
 
-          If the id is zero, the pointer barrier could be determined.
+          If the id is zero, the pointer barrier could not be determined.
           If the id is missing, the input capture was not triggered by a
           pointer barrier.
 

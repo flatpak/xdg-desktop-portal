@@ -15,7 +15,7 @@
       will stay alive for the duration of the user interaction related to
       the method call.
 
-      The portal can abort the interaction calling
+      The portal can abort the interaction by calling
       org.freedesktop.impl.portal.Request.Close() on the Request object.
   -->
   <interface name="org.freedesktop.impl.portal.Request">

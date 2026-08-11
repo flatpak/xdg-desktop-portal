@@ -75,9 +75,9 @@
         @options: Vardict with optional further information
         @request_handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        Bind the shortcuts. This will typically result the portal presenting a
+        Bind the shortcuts. This will typically result in the portal presenting a
         dialog showing the shortcuts and allowing users to configure the shortcuts.
-        An application can only attempt bind shortcuts of a session once.
+        An application can only attempt to bind shortcuts of a session once.
 
         Each element of the @shortcuts array is a tuple composed of a shortcut id,
         and a vardict with the following keys:
@@ -142,7 +142,7 @@
         Lists shortcuts of a session.
 
         If `BindShortcuts` was called for `session` all active shortcuts for `session` are returned.
-        Otherwise returns the shortcuts that were sucessfully bound in a previous session by this application.
+        Otherwise returns the shortcuts that were successfully bound in a previous session by this application.
 
         Supported keys in the @options vardict include:
 
