@@ -179,10 +179,11 @@
     </method>
     <!--
         SaveFiles:
+        @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
+        @app_id: App id of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @title: Title for the file chooser dialog
         @options: Vardict with optional further information
-        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
         @response: Numeric response
         @results: Vardict with the results of the call
 
@@ -218,8 +219,7 @@
           An array of file names to be saved. The array and byte
           arrays are expected to be null-terminated.
 
-        The following results get returned via the
-        :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the @results vardict:
 
         * ``uris`` (``as``)
 
