@@ -87,7 +87,7 @@
     <!--
         Start:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
         @app_id: App id of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
@@ -137,7 +137,7 @@
 
           This option was added in version 2 of this interface.
 
-        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the @results vardict:
 
         * ``capabilities`` (``u``)
 
@@ -232,7 +232,7 @@
         * ``barrier_id`` (``u``)
 
           The non-zero id of this barrier. This id is used in the
-          #org.freedesktop.portal.impl.InputCapture::Activated signal to inform
+          #org.freedesktop.impl.portal.InputCapture::Activated signal to inform
           which barrier triggered input capture.
 
         * ``position`` (``(iiii)``)
@@ -334,7 +334,7 @@
 
     <!--
         ConnectToEIS:
-        @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
+        @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
         @app_id: App id of the application
         @options: Vardict with optional further information
         @fd: A file descriptor to an EIS implementation that can be passed to a passive libei context
