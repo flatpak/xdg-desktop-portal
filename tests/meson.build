@@ -83,35 +83,8 @@ if pymod.find_installation('python3', modules: ['xdist'], required: false).found
   pytest_args += ['-n', '5']
 endif
 
-pytest_files = [
-  'test_account.py',
-  'test_background.py',
-  'test_camera.py',
-  'test_clipboard.py',
-  'test_documents.py',
-  'test_document_fuse.py',
-  'test_dynamiclauncher.py',
-  'test_email.py',
-  'test_filechooser.py',
-  'test_globalshortcuts.py',
-  'test_inhibit.py',
-  'test_inputcapture.py',
-  'test_location.py',
-  'test_notification.py',
-  'test_openuri.py',
-  'test_permission_store.py',
-  'test_print.py',
-  'test_registry.py',
-  'test_remotedesktop.py',
-  'test_settings.py',
-  'test_screencast.py',
-  'test_screenshot.py',
-  'test_shutdown.py',
-  'test_trash.py',
-  'test_usb.py',
-  'test_wallpaper.py',
-]
-
+# Portals that are only built when their dependency is available cannot be
+# tested when it is missing: the interface is not on the bus at all.
 tests = {
   'account': {},
   'background': {},
@@ -125,7 +98,7 @@ tests = {
   'globalshortcuts': {},
   'inhibit': {},
   'inputcapture': {},
-  'location': {},
+  'location': {'enabled': have_geoclue},
   'notification': {'timeout': 225},
   'openuri': {},
   'permission_store': {},
@@ -137,7 +110,7 @@ tests = {
   'screenshot': {},
   'shutdown': {},
   'trash': {},
-  'usb': {},
+  'usb': {'enabled': have_gudev},
   'wallpaper': {},
 }
 
@@ -166,7 +139,15 @@ template_files = [
   'templates/xdp_utils.py',
 ]
 
+pytest_files = []
+
 foreach testname, params : tests
+  if not params.get('enabled', true)
+    continue
+  endif
+
+  pytest_files += 'test_@0@.py'.format(testname)
+
   test(
     'integration/@0@'.format(testname),
     run_test,
