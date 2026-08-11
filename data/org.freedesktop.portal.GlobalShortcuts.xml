@@ -15,7 +15,7 @@
 
       To use this portal, applications have to create a session under which its
       actions will be collected. Then shortcuts can be bound (see
-      org.freedesktop.portal.GlobalShortcuts.Bind), and listed (see
+      org.freedesktop.portal.GlobalShortcuts.BindShortcuts), and listed (see
       org.freedesktop.portal.GlobalShortcuts.ListShortcuts).
 
       All global shortcuts are bound to a session, and all sessions are bound to
@@ -101,7 +101,7 @@
           :ref:`org.freedesktop.portal.Request` documentation for more
           information about the @handle.
 
-        The following results get returned via the ref::`org.freedesktop.portal.Request::Response` signal:
+        The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
 
         * ``shortcuts`` (``a(sa{sv})``)
 
@@ -141,7 +141,7 @@
 
         Lists shortcuts of a session.
 
-        If `BindShortcuts` was called for `session` all active shortcuts for `session` are returned.
+        If `BindShortcuts` was called for `session`, all active shortcuts for `session` are returned.
         Otherwise returns the shortcuts that were successfully bound in a previous session by this application.
 
         Supported keys in the @options vardict include:
