@@ -10,16 +10,17 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from contextlib import chdir
 from pathlib import Path
 from types import ModuleType
-from typing import Any
+from typing import Any, cast
 
 import dbus
 import dbusmock
 import gi
 import pytest
+from _pytest.main import Session
 
 import tests.xdp_utils as xdp
 
@@ -32,14 +33,14 @@ def pytest_configure() -> None:
     ensure_umockdev_loaded()
 
 
-def pytest_sessionfinish(session, exitstatus):
+def pytest_sessionfinish(session: Session, exitstatus: pytest.ExitCode) -> None:
     # Meson and ginsttest-runner expect tests to exit with status 77 if all
     # tests were skipped
     if exitstatus == pytest.ExitCode.NO_TESTS_COLLECTED:
         session.exitstatus = 77
 
 
-def pytest_make_parametrize_id(config, val):
+def pytest_make_parametrize_id(config: str, val: xdp.AppInfo | None) -> str | None:
     if isinstance(val, xdp.AppInfo):
         return val.__class__.__name__
     return None
@@ -149,14 +150,16 @@ def xdp_available_executables() -> list[str]:
 
 
 @pytest.fixture
-def xdp_bin_path(create_test_dirs) -> Path:
+def xdp_bin_path(create_test_dirs: Path) -> Path:
     return Path(os.environ["XDP_BIN"])
 
 
 @pytest.fixture(autouse=True)
 def create_xdp_executables(
-    xdp_bin_path, xdp_mocked_executables, xdp_available_executables
-):
+    xdp_bin_path: Path,
+    xdp_mocked_executables: Iterable[xdp.ExecutableMock],
+    xdp_available_executables: Iterable[Path],
+) -> None:
     for mock in xdp_mocked_executables:
         mock.create(xdp_bin_path)
 
@@ -177,7 +180,7 @@ def xdg_data_home_files() -> dict[str, bytes]:
 
 @pytest.fixture(autouse=True)
 def ensure_xdg_data_home(
-    create_test_dirs: Any, xdg_data_home_files: dict[str, bytes]
+    create_test_dirs: Path, xdg_data_home_files: dict[str, bytes]
 ) -> None:
     files = xdg_data_home_files
     for name, content in files.items():
@@ -239,7 +242,7 @@ Interfaces={}
 
 @pytest.fixture(autouse=True)
 def ensure_xdg_desktop_portal_dir(
-    create_test_dirs: Any,
+    create_test_dirs: Path,
     xdg_desktop_portal_dir_files: dict[str, bytes],
     xdg_desktop_portal_dir_default_files: dict[str, bytes],
 ) -> None:
@@ -265,7 +268,9 @@ def create_test_dbus() -> Iterator[dbusmock.DBusTestCase]:
 
 
 @pytest.fixture(autouse=True)
-def create_dbus_monitor(create_test_dbus) -> Iterator[subprocess.Popen | None]:
+def create_dbus_monitor(
+    create_test_dbus: Path,
+) -> Iterator[subprocess.Popen[bytes] | None]:
     if not os.getenv("XDP_DBUS_MONITOR"):
         yield None
         return
@@ -320,7 +325,7 @@ def _get_main_obj_for_module(
     return bus.get_object(module.BUS_NAME, module.MAIN_OBJ)
 
 
-def _terminate_mock_p(process: subprocess.Popen) -> None:
+def _terminate_mock_p(process: subprocess.Popen[bytes]) -> None:
     process.terminate()
     process.wait()
 
@@ -465,21 +470,23 @@ def xdp_overwrite_env() -> dict[str, str]:
         else []
     )
 )
-def xdp_app_info(
-    request,
-) -> xdp.AppInfo:
+def xdp_app_info(request: xdp.Request) -> xdp.AppInfo:
     """
     Default fixture which can be used to override the XdpAppInfo the portal
     frontend will discover.
     The default fixture is parametric and will run each test with all the
     app info kinds.
     """
-
-    return request.param
+    assert hasattr(request, "param")
+    info = request.param
+    assert isinstance(info, xdp.AppInfo)
+    return info
 
 
 @pytest.fixture(autouse=True)
-def xdp_app_info_init(create_test_dirs, xdp_app_info) -> None:
+def xdp_app_info_init(
+    create_test_dirs: Path, xdp_app_info: xdp.AppInfoHost
+) -> xdp.AppInfo:
     xdp_app_info._initialize()
     return xdp_app_info
 
@@ -534,7 +541,9 @@ def _valgrind_glib_suppressions() -> str:
     try:
         import pkgconfig
 
-        return pkgconfig.variables("glib-2.0")["glib_valgrind_suppressions"]
+        return cast(
+            "str", pkgconfig.variables("glib-2.0")["glib_valgrind_suppressions"]
+        )
     except ImportError:
         return "/usr/share/glib-2.0/valgrind/glib.supp"
 
@@ -578,7 +587,7 @@ def xdg_desktop_portal(
     xdp_env: dict[str, str],
     xdp_valgrind_args: list[str],
     xdg_desktop_portal_options: xdp.PortalProcessOptions,
-) -> Iterator[subprocess.Popen]:
+) -> Iterator[subprocess.Popen[bytes]]:
     """
     Fixture which starts and eventually stops xdg-desktop-portal
     """
@@ -622,7 +631,7 @@ def xdg_permission_store(
     xdg_permission_store_path: Path,
     xdp_env: dict[str, str],
     xdg_permission_store_options: xdp.PortalProcessOptions,
-) -> Iterator[subprocess.Popen]:
+) -> Iterator[subprocess.Popen[bytes]]:
     """
     Fixture which starts and eventually stops xdg-permission-store
     """
@@ -668,7 +677,7 @@ def xdg_document_portal(
     xdg_document_portal_path: Path,
     xdp_env: dict[str, str],
     xdg_document_portal_options: xdp.PortalProcessOptions,
-) -> Iterator[subprocess.Popen]:
+) -> Iterator[subprocess.Popen[bytes]]:
     """
     Fixture which starts and eventually stops xdg-document-portal
     """
@@ -715,7 +724,7 @@ def xdg_document_portal(
 
     fuse_mount = Path(os.environ["XDG_RUNTIME_DIR"]) / "doc"
 
-    def unmounted():
+    def unmounted() -> bool:
         try:
             next(fuse_mount.iterdir())
         except StopIteration:
