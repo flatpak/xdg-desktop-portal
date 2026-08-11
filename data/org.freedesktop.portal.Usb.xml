@@ -136,16 +136,14 @@
         EnumerateDevices:
         @options: Vardict with optional further information. There is currently
         no option supported.
+        @devices: An array of tuples containing a device ID and a device
+        information vardict.
 
         Enumerates all connected USB devices that this application has permission
         to see.
 
-        The following results are returned in the @device vardict:
-
-        * ``id`` (``s``)
-
-          Each element of the @devices array contains the device ID, and a
-          device information vardict with the following keys:
+        Each element of the @devices array contains the device ID and a
+        device information vardict with the following keys:
 
         * ``parent`` (``s``)
 
@@ -240,7 +238,7 @@
         until @finished is true, before calling
         org.freedesktop.portal.Usb.AcquireDevices again.
 
-        This method can only be called once for a given token, and only
+        This method can only be called once for a given handle, and only
         after calling org.freedesktop.portal.Usb.AcquireDevices().
 
         Each element of the @results array contains the device ID, and
