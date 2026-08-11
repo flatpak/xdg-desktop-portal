@@ -153,7 +153,7 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
-        @handle: Object path for the :ref:org.freedesktop.portal.Request object representing this call
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Start the input capture session. This will typically result in the portal
         presenting a dialog letting the user decide whether they want to allow the
@@ -329,12 +329,12 @@
         0,0 and 1920,0, respectively. (i.e. a left-right dual-monitor setup).
         The following pointer barriers are permitted:
 
-        - top edge of left screen: `x1=0, y1=0, x2=1919, y1=0`
-        - bottom edge of left screen: `x1=0, y1=1080, x2=1919, y1=1080`
-        - top edge of right screen: `x1=1920, y1=0, x2=3839, y1=0`
-        - bottom edge of right screen: `x1=1920, y1=1080, x2=3839, y1=1080`
-        - left edge of left screen: `x1=0, y1=0, x2=0, y1=1079`
-        - right edge of right screen: `x1=3840, y1=0, x2=3840, y1=1079`
+        - top edge of left screen: `x1=0, y1=0, x2=1919, y2=0`
+        - bottom edge of left screen: `x1=0, y1=1080, x2=1919, y2=1080`
+        - top edge of right screen: `x1=1920, y1=0, x2=3839, y2=0`
+        - bottom edge of right screen: `x1=1920, y1=1080, x2=3839, y2=1080`
+        - left edge of left screen: `x1=0, y1=0, x2=0, y2=1079`
+        - right edge of right screen: `x1=3840, y1=0, x2=3840, y2=1079`
 
         A pointer barrier is considered triggered when the pointer would
         logically move off that zone, even if the actual cursor movement is
@@ -419,9 +419,9 @@
 
         Due to the asynchronous nature of this protocol,
         #org.freedesktop.portal.InputCapture::Deactivated
-        and/or #org.freedesktop.portal.InputCapture::Deactivated signals may
+        and/or #org.freedesktop.portal.InputCapture::Disabled signals may
         nevertheless be received by the application after a call to
-        org.freedesktop.portal.InputCapture.Enable().
+        org.freedesktop.portal.InputCapture.Disable().
 
         Input events will not be captured until a subsequent
         org.freedesktop.portal.InputCapture.Enable() call.
