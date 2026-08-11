@@ -5,6 +5,7 @@
 
 import os
 from pathlib import Path
+from typing import Any
 
 import dbus
 import pytest
@@ -14,15 +15,15 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"background": {}}
 
 
 class TestBackground:
-    def get_autostart_path(self, app_id):
+    def get_autostart_path(self, app_id: str) -> Path:
         return Path(os.environ["XDG_CONFIG_HOME"]) / "autostart" / f"{app_id}.desktop"
 
-    def get_autostart_keyfile(self, app_id):
+    def get_autostart_keyfile(self, app_id: str) -> GLib.KeyFile:
         keyfile = GLib.KeyFile.new()
 
         desktop_file_path = self.get_autostart_path(app_id)
@@ -37,10 +38,12 @@ class TestBackground:
 
         return keyfile
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Background", 2)
 
-    def test_request_background(self, portals, dbus_con, xdp_app_info):
+    def test_request_background(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfo
+    ) -> None:
         app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
         desktop_file = self.get_autostart_path(app_id)
@@ -64,7 +67,9 @@ class TestBackground:
 
         assert not desktop_file.exists()
 
-    def test_autostart_desktopfile(self, portals, dbus_con, xdp_app_info):
+    def test_autostart_desktopfile(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfo
+    ) -> None:
         app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
 
@@ -113,7 +118,9 @@ class TestBackground:
         else:
             assert exec == "/bin/true test"
 
-    def test_autostart_disable(self, portals, dbus_con, xdp_app_info):
+    def test_autostart_disable(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfo
+    ) -> None:
         app_id = xdp_app_info.app_id
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
         desktop_file = self.get_autostart_path(app_id)
@@ -163,7 +170,7 @@ class TestBackground:
 
         assert not desktop_file.exists()
 
-    def test_long_reason(self, portals, dbus_con):
+    def test_long_reason(self, portals: Any, dbus_con: dbus.Bus) -> None:
         background_intf = xdp.get_portal_iface(dbus_con, "Background")
 
         reason = (
