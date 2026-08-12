@@ -20,6 +20,7 @@ typedef struct _XdpRequestDex
   XdpDbusImplRequest *impl_request;
   GDBusInterfaceSkeleton *skeleton;
   char *id;
+  unsigned int impl_request_version;
   gboolean exported;
   gboolean responded;
 } XdpRequestDex;
@@ -157,6 +158,7 @@ typedef struct _RequestImplProxyCreateData {
   XdpAppInfo *app_info;
   GDBusInterfaceSkeleton *skeleton;
   char *id;
+  unsigned int impl_request_version;
 } RequestImplProxyCreateData;
 
 static void
@@ -206,6 +208,7 @@ on_impl_request_proxy_created (DexFuture *future,
   request->impl_request = g_steal_pointer (&impl_request);
   request->skeleton = g_steal_pointer (&data->skeleton);
   request->id = g_steal_pointer (&data->id);
+  request->impl_request_version = data->impl_request_version;
   g_signal_connect_object (request->context, "peer-disconnect",
                            G_CALLBACK (on_peer_disconnect),
                            request,
@@ -225,6 +228,7 @@ xdp_request_dex_new (XdpContext             *context,
                      XdpAppInfo             *app_info,
                      GDBusInterfaceSkeleton *skeleton,
                      GDBusProxy             *proxy_impl,
+                     unsigned int            impl_request_version,
                      GVariant               *arg_options)
 {
   g_autoptr(DexFuture) future = NULL;
@@ -272,6 +276,7 @@ xdp_request_dex_new (XdpContext             *context,
   data->app_info = g_object_ref (app_info);
   data->skeleton = g_object_ref (skeleton);
   data->id = g_steal_pointer (&id);
+  data->impl_request_version = impl_request_version;
 
   future = dex_future_then (future,
                             on_impl_request_proxy_created,
@@ -281,18 +286,37 @@ xdp_request_dex_new (XdpContext             *context,
   return g_steal_pointer (&future);
 }
 
-gboolean
-xdp_request_dex_export (XdpRequestDex  *request,
-                        GError        **error)
+static DexFuture *
+do_export (DexFuture *future,
+           gpointer   user_data)
 {
+  XdpRequestDex *request = XDP_REQUEST_DEX (user_data);
+  g_autoptr(GError) error = NULL;
+
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (request),
                                          g_dbus_interface_skeleton_get_connection (request->skeleton),
                                          request->id,
-                                         error))
-    return FALSE;
+                                         &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
 
   request->exported = TRUE;
-  return TRUE;
+  return dex_future_new_for_boolean (TRUE);
+}
+
+DexFuture *
+xdp_request_dex_export (XdpRequestDex *request)
+{
+  DexFuture *precondition;
+
+  if (request->impl_request_version >= 2)
+    precondition = xdp_dbus_impl_request_wait_created_future (request->impl_request);
+  else
+    precondition = dex_future_new_for_boolean (TRUE);
+
+  return dex_future_then (precondition,
+                          do_export,
+                          g_object_ref (request),
+                          g_object_unref);
 }
 
 void

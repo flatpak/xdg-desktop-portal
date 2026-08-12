@@ -17,6 +17,13 @@
 
       The portal can abort the interaction by calling
       :ref:`org.freedesktop.impl.portal.Request.Close` on the Request object.
+
+      This interface does not have its own version property. Instead,
+      the version of the Request interface supported by a backend is
+      advertised via a ``request-version`` property on each impl portal
+      interface (e.g. org.freedesktop.impl.portal.Account). Backends
+      that do not have a ``request-version`` property are assumed to
+      support version 1.
   -->
   <interface name="org.freedesktop.impl.portal.Request">
 
@@ -28,5 +35,21 @@
     -->
     <method name="Close">
     </method>
+
+    <!--
+        Created:
+
+        Emitted by the backend right after exporting the Request object.
+        The portal waits for this signal before exporting the frontend
+        request, ensuring that a Close call from the app can be forwarded
+        to the backend.
+
+        Backends that support this signal advertise it via the
+        ``request-version`` property on their impl portal interfaces.
+
+        Since: 2
+    -->
+    <signal name="Created">
+    </signal>
   </interface>
 </node>
