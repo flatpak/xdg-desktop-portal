@@ -25,6 +25,85 @@ typedef struct _XdpRequestDex
   gboolean responded;
 } XdpRequestDex;
 
+/**
+ * XdpRequestDex:
+ *
+ * A future-based Request implementation.
+ *
+ * ## Lifecycle
+ *
+ * [ctor@RequestDex.new] creates the request and a proxy for the impl
+ * request, but does not export the request on the bus.
+ *
+ * The request must only be exported after the backend has created the
+ * impl request object, because a `Close` call on the exported request
+ * is forwarded to the impl request. [method@RequestDex.export]
+ * handles this: when `impl_request_version` (passed to
+ * [ctor@RequestDex.new]) is 2 or higher, the returned future resolves
+ * only after the backend emits the `Created` signal on the impl
+ * request. With older backends the future resolves immediately; there
+ * is a small race in that case where a `Close` from the app may
+ * arrive before the backend has created the impl request. The caller
+ * should pass the `request-version` property from the impl portal
+ * interface.
+ *
+ * The D-Bus method call must only be completed to the app after the
+ * export, so that the request object path the app receives is
+ * immediately usable for `Close`.
+ *
+ * ## Response handling
+ *
+ * Use [method@RequestDex.emit_response] to send a `Response` signal
+ * to the app. Calling it more than once is a programming error.
+ *
+ * If the request is disposed without a response having been sent
+ * (e.g. on error paths), dispose automatically emits
+ * `XDG_DESKTOP_PORTAL_RESPONSE_OTHER`. Portal handlers can therefore
+ * simply return on failure and let the `g_autoptr` cleanup take care
+ * of notifying the app.
+ *
+ * ## Long-lived call pattern
+ *
+ * When the backend impl call blocks for the entire duration of the
+ * request (e.g. waiting for user interaction), the portal must issue
+ * the backend call first, then await the export, then complete the
+ * D-Bus method call, and finally await the backend result:
+ *
+ * ```c
+ * request = dex_await_object (xdp_request_dex_new (...), &error);
+ * impl_future = xdp_dbus_impl_foo_call_bar_future (impl, ...,
+ *     xdp_request_dex_get_object_path (request), ...);
+ * dex_await (xdp_request_dex_export (request), NULL);
+ * xdp_dbus_foo_complete_bar (object, g_steal_pointer (&invocation),
+ *     xdp_request_dex_get_object_path (request));
+ * result = dex_await_boxed (g_steal_pointer (&impl_future), &error);
+ * ```
+ *
+ * The backend call must be issued before the export so that the
+ * export's `Created` signal wait does not deadlock: the backend
+ * creates the impl request (and emits `Created`) only in response
+ * to the method call.
+ *
+ * ## Immediate-return pattern
+ *
+ * When the backend impl call returns immediately and the request
+ * lives until something else happens, the reply itself proves the
+ * impl request exists. The portal can await the reply, then export:
+ *
+ * ```c
+ * request = dex_await_object (xdp_request_dex_new (...), &error);
+ * dex_await (xdp_dbus_impl_foo_call_bar_future (impl, ...,
+ *     xdp_request_dex_get_object_path (request), ...),
+ *     &error);
+ * dex_await (xdp_request_dex_export (request), NULL);
+ * xdp_dbus_foo_complete_bar (object, g_steal_pointer (&invocation),
+ *     xdp_request_dex_get_object_path (request));
+ * ```
+ *
+ * This pattern has no race because the method reply guarantees the
+ * backend has created the impl request object.
+ */
+
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
 G_DEFINE_FINAL_TYPE_WITH_CODE (XdpRequestDex,
