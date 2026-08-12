@@ -25,6 +25,7 @@ struct _XdpSettings
   XdpDbusSettingsSkeleton parent_instance;
 
   GPtrArray *impls; /* XdpDbusImplSettings */
+  GCancellable *cancellable; /* (owned) (not nullable) */
 };
 
 #define XDP_TYPE_SETTINGS (xdp_settings_get_type ())
@@ -226,6 +227,41 @@ settings_handle_read_one (XdpDbusSettings       *object,
   return G_DBUS_METHOD_INVOCATION_HANDLED;
 }
 
+static DexFuture *
+settings_changed_fiber (gpointer      self_ptr,
+                        unsigned int  impl_idx,
+                        const char   *ns,
+                        const char   *key,
+                        GVariant     *value)
+{
+  /* self is not owned here, instead we cancel on dispose */
+  XdpSettings *self = XDP_SETTINGS (self_ptr);
+
+  /* Check if any higher priority impl provides this key; suppress if so */
+  for (size_t i = 0; i < impl_idx; i++)
+    {
+      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
+      g_autoptr(GError) error = NULL;
+
+      result = dex_await_boxed (
+        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
+                                                 ns, key),
+        &error);
+
+      if (result != NULL)
+        return dex_future_new_for_boolean (FALSE);
+
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        return dex_future_new_for_boolean (FALSE);
+    }
+
+  g_debug ("Emitting changed for %s %s", ns, key);
+  xdp_dbus_settings_emit_setting_changed (XDP_DBUS_SETTINGS (self),
+                                          ns, key, value);
+
+  return dex_future_new_for_boolean (TRUE);
+}
+
 static void
 on_impl_settings_changed (XdpDbusImplSettings *impl,
                           const char          *arg_namespace,
@@ -233,10 +269,31 @@ on_impl_settings_changed (XdpDbusImplSettings *impl,
                           GVariant            *arg_value,
                           XdpSettings         *self)
 {
-  g_debug ("Emitting changed for %s %s", arg_namespace, arg_key);
-  xdp_dbus_settings_emit_setting_changed (XDP_DBUS_SETTINGS (self),
-                                          arg_namespace, arg_key,
-                                          arg_value);
+  unsigned int impl_idx;
+
+  g_ptr_array_find (self->impls, impl, &impl_idx);
+
+  if (impl_idx == 0)
+    {
+      g_debug ("Emitting changed for %s %s", arg_namespace, arg_key);
+      xdp_dbus_settings_emit_setting_changed (XDP_DBUS_SETTINGS (self),
+                                              arg_namespace, arg_key,
+                                              arg_value);
+      return;
+    }
+
+  dex_future_disown (
+    dex_future_first (
+      dex_scheduler_spawnv (NULL, 0,
+                            G_CALLBACK (settings_changed_fiber),
+                            5,
+                            G_TYPE_POINTER, self,
+                            G_TYPE_UINT, impl_idx,
+                            G_TYPE_STRING, arg_namespace,
+                            G_TYPE_STRING, arg_key,
+                            G_TYPE_VARIANT, arg_value),
+      dex_cancellable_new_from_cancellable (self->cancellable),
+      NULL));
 }
 
 static void
@@ -262,6 +319,9 @@ xdp_settings_dispose (GObject *object)
 
   g_clear_pointer (&self->impls, g_ptr_array_unref);
 
+  g_cancellable_cancel (self->cancellable);
+  g_clear_object (&self->cancellable);
+
   G_OBJECT_CLASS (xdp_settings_parent_class)->dispose (object);
 }
 
@@ -279,6 +339,7 @@ xdp_settings_new (GPtrArray *impls)
   XdpSettings *self;
 
   self = g_object_new (XDP_TYPE_SETTINGS, NULL);
+  self->cancellable = g_cancellable_new ();
   self->impls = g_ptr_array_ref (impls);
 
   xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (self), 2);
