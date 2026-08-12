@@ -10,34 +10,77 @@
       @short_description: Portal for permitting input capture
 
       The InputCapture portal allows capturing input events from connected
-      physical or logical devices. Capturing input has two distinct states:
-      "enabled" where an application has requested that input should be captured
-      once certain conditions are met (but no input events are being delivered
-      yet) and "active", when input events are being delivered to the application.
-      An application can only control the "enabled" state, the compositor decides
-      when to switch into the "active" state - and which devices to capture.
-
-      Once the compositor activates input capturing, events from physical or
-      logical devices are sent directly to the application instead of using
-      those events to update the pointer position on-screen. The compositor
-      is in control of the input capturing and may filter events and/or stop
-      capturing at any time.
-
-      Input capturing is an asynchronous operation using "triggers". An
-      application sets up a number of triggers but it is the compositor who
-      decides when the trigger conditions are met. Currently, the only defined
-      trigger are pointer barriers: horizontal or vertical "lines" on the screen
-      that should trigger when the cursor moves across those lines.
-      See :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`.
-
-      There is currently no way for an application to activate immediate input
-      capture.
-
-      The InputCapture portal merely *manages* the logic when input should be
-      captured. The transport of actual input events is delegated to a
-      transport layer, specifically libei. See :ref:`org.freedesktop.portal.InputCapture.ConnectToEIS`.
+      physical or logical devices. Once the compositor activates input
+      capturing, events from physical or logical devices are sent directly
+      to the application instead of being used to update the pointer
+      position on-screen.
 
       This documentation describes version 2 of this interface.
+
+      Session lifecycle
+      ~~~~~~~~~~~~~~~~~
+
+      An input capture session is created with ``CreateSession2()``. The
+      session must then be started with ``Start()``, which typically
+      presents a dialog to the user. Optionally,
+      :ref:`org.freedesktop.portal.Clipboard.RequestClipboard` can be
+      called before starting to enable clipboard sharing.
+
+      After starting, the application connects to EIS via
+      ``ConnectToEIS()``, retrieves the available screen zones with
+      ``GetZones()``, and sets up pointer barriers with
+      ``SetPointerBarriers()``. Finally, ``Enable()`` arms the session
+      for capture.
+
+      Enabled and active states
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Input capture has two distinct states:
+
+      - **Enabled:** The application has requested that input should be
+        captured when certain conditions are met, but no input events
+        are being delivered yet. The application controls this state
+        via ``Enable()`` and ``Disable()``.
+
+      - **Active:** Input events are being delivered to the application.
+        Only the compositor decides when to enter this state. The
+        ``Activated`` signal is emitted when capture starts, and
+        ``Deactivated`` when it stops.
+
+      The compositor is always in control of input capturing and may
+      filter events or stop capturing at any time. There is currently no
+      way for an application to activate immediate input capture.
+
+      Zones and pointer barriers
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      Input capturing is trigger-based. Currently the only defined trigger
+      is pointer barriers: horizontal or vertical lines at the edges of
+      screen zones that trigger when the cursor moves across them.
+
+      Zones represent logical screen areas available to the session and
+      are retrieved with ``GetZones()``. Each set of zones has a unique
+      ``zone_set`` ID. When zones change (e.g. a monitor is unplugged),
+      the ``ZonesChanged`` signal is emitted and the application must
+      re-request zones and re-establish barriers.
+
+      Pointer barriers must be placed at the outside boundary of zones
+      and must be fully contained within one zone.
+
+      Event transport
+      ~~~~~~~~~~~~~~~
+
+      The InputCapture portal manages when input should be captured. The
+      transport of actual input events is handled by libei via the
+      ``ConnectToEIS()`` method. The EIS connection persists across
+      ``Enable()``/``Disable()`` cycles and only needs to be set up once
+      per session.
+
+      .. include:: doc-org.freedesktop.portal.InputCapture.properties.rst
+
+      .. include:: doc-org.freedesktop.portal.InputCapture.methods.rst
+
+      .. include:: doc-org.freedesktop.portal.InputCapture.signals.rst
    -->
   <interface name="org.freedesktop.portal.InputCapture">
     <!--

@@ -12,6 +12,51 @@
       The Screen cast portal allows to create screen cast sessions.
 
       This documentation describes version 6 of this interface.
+
+      Session lifecycle
+      ~~~~~~~~~~~~~~~~~
+
+      A screen cast session goes through several stages. First, a session
+      is created with ``CreateSession()``. Then, the application configures
+      what to record using ``SelectSources()``, which can only be called
+      once per session. Calling ``Start()`` typically presents a dialog to
+      the user and, upon success, returns the list of PipeWire streams.
+      Finally, ``OpenPipeWireRemote()`` provides a file descriptor to the
+      PipeWire remote where the streams are available.
+
+      Session persistence
+      ~~~~~~~~~~~~~~~~~~~
+
+      Screen cast sessions can be made persistent so that the user does
+      not need to re-select sources every time. The ``persist_mode`` and
+      ``restore_token`` options in ``SelectSources()`` control this
+      behavior.
+
+      When a session is restored, the ``Start()`` method returns a new
+      restore token. Restore tokens are single-use: each new session
+      must use the token from the previous one.
+
+      Persistent remote desktop screen cast sessions can only be handled
+      via the :ref:`org.freedesktop.portal.RemoteDesktop` interface.
+
+      PipeWire streams
+      ~~~~~~~~~~~~~~~~
+
+      The ``Start()`` response contains an array of PipeWire streams. Each
+      stream has a node ID and a properties dictionary with metadata such
+      as position, size, and source type.
+
+      Since version 6 of this interface, the node ID in the stream tuple
+      is deprecated for stream targeting. Consumers should prefer the
+      ``pipewire-serial`` property and ``PW_KEY_TARGET_OBJECT`` for
+      connecting to streams, as PipeWire node IDs can be reused after node
+      destruction.
+
+      .. include:: doc-org.freedesktop.portal.ScreenCast.properties.rst
+
+      .. include:: doc-org.freedesktop.portal.ScreenCast.methods.rst
+
+      .. include:: doc-org.freedesktop.portal.ScreenCast.signals.rst
   -->
   <interface name="org.freedesktop.portal.ScreenCast">
     <!--
