@@ -12,7 +12,58 @@
 
       The Clipboard portal allows sessions to access the clipboard.
 
+      This portal does not create its own sessions. Instead, it extends
+      sessions created by other portals with clipboard access. Currently,
+      the :ref:`org.freedesktop.portal.RemoteDesktop` and
+      :ref:`org.freedesktop.portal.InputCapture` portals support clipboard
+      integration.
+
       This documentation describes version 1 of this interface.
+
+      Setting up clipboard access
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      To use the clipboard, call ``RequestClipboard()`` on a session
+      created by a compatible portal before the session is started.
+      Whether clipboard access was granted is reported in the
+      ``clipboard_enabled`` result of the session's ``Start()`` response.
+
+      Note that other portals may place restrictions on when it is
+      possible to interact with the clipboard. For input capture sessions,
+      clipboard access is only available while the session is active.
+
+      Clipboard data transfer
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+      The clipboard uses a MIME type-based ownership and transfer model:
+
+      - An owner advertises available formats by calling
+        ``SetSelection()`` with a list of MIME types.
+
+      - The ``SelectionOwnerChanged`` signal notifies all participants
+        when the clipboard owner changes, including the list of available
+        MIME types.
+
+      - To read clipboard content, call ``SelectionRead()`` with the
+        desired MIME type. A file descriptor for reading the data is
+        returned.
+
+      - When another participant requests data from this session's
+        clipboard, the ``SelectionTransfer`` signal is emitted with a
+        MIME type and a serial number. The session must call
+        ``SelectionWrite()`` with that serial to obtain a file descriptor
+        for writing the data, and call ``SelectionWriteDone()`` when the
+        transfer is complete or has failed.
+
+      Files can be transferred through the clipboard using the
+      ``application/vnd.portal.filetransfer`` MIME type. See
+      :ref:`org.freedesktop.portal.FileTransfer` for details.
+
+      .. include:: doc-org.freedesktop.portal.Clipboard.properties.rst
+
+      .. include:: doc-org.freedesktop.portal.Clipboard.methods.rst
+
+      .. include:: doc-org.freedesktop.portal.Clipboard.signals.rst
   -->
   <interface name="org.freedesktop.portal.Clipboard">
     <!-- 

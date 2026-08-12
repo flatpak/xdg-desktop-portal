@@ -12,6 +12,62 @@
       The Remote desktop portal allows to create remote desktop sessions.
 
       This documentation describes version 2 of this interface.
+
+      Session lifecycle
+      ~~~~~~~~~~~~~~~~~
+
+      A remote desktop session is created with ``CreateSession()``. The
+      application then calls ``SelectDevices()`` to choose which device
+      types to remote control (keyboard, pointer, touchscreen). Calling
+      ``Start()`` presents a dialog to the user and, upon success, returns
+      the set of devices granted.
+
+      Cross-portal integration
+      ~~~~~~~~~~~~~~~~~~~~~~~~
+
+      A remote desktop session can be used with other portals by passing
+      the session created here to their methods:
+
+      - :ref:`org.freedesktop.portal.ScreenCast`: Call ``SelectSources()``
+        and ``OpenPipeWireRemote()`` with the remote desktop session to
+        capture screen content alongside input control. The session must
+        be started and stopped through this portal.
+
+      - :ref:`org.freedesktop.portal.Clipboard`: Call
+        ``RequestClipboard()`` before starting the session to enable
+        clipboard sharing.
+
+      Input methods
+      ~~~~~~~~~~~~~
+
+      There are two ways to send input events to the remote desktop
+      session:
+
+      - **EIS (recommended):** Call ``ConnectToEIS()`` after starting the
+        session to obtain a file descriptor for a libei sender context.
+        Input events are sent via the EI protocol. Once an EIS connection
+        is established, the ``Notify*`` D-Bus methods must not be used.
+
+      - **D-Bus Notify methods:** Use the various ``Notify*`` methods
+        (``NotifyPointerMotion()``, ``NotifyKeyboardKeycode()``, etc.) to
+        send input events over D-Bus.
+
+      Session persistence
+      ~~~~~~~~~~~~~~~~~~~
+
+      Remote desktop sessions support persistence using the
+      ``persist_mode`` and ``restore_token`` options in
+      ``SelectDevices()``. Persistence for combined remote desktop and
+      screen cast sessions is managed exclusively through this portal; the
+      persistence options in
+      :ref:`org.freedesktop.portal.ScreenCast.SelectSources` must not be
+      used with a remote desktop session.
+
+      .. include:: doc-org.freedesktop.portal.RemoteDesktop.properties.rst
+
+      .. include:: doc-org.freedesktop.portal.RemoteDesktop.methods.rst
+
+      .. include:: doc-org.freedesktop.portal.RemoteDesktop.signals.rst
   -->
   <interface name="org.freedesktop.portal.RemoteDesktop">
     <!--
