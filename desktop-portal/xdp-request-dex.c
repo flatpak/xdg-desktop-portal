@@ -21,6 +21,7 @@ typedef struct _XdpRequestDex
   GDBusInterfaceSkeleton *skeleton;
   char *id;
   gboolean exported;
+  gboolean responded;
 } XdpRequestDex;
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
@@ -97,6 +98,11 @@ xdp_request_dex_dispose (GObject *object)
 
   if (request->exported)
     {
+      if (!request->responded)
+        xdp_request_dex_emit_response (request,
+                                       XDG_DESKTOP_PORTAL_RESPONSE_OTHER,
+                                       NULL);
+
       xdp_dbus_impl_request_call_close (request->impl_request, NULL, NULL, NULL),
 
       g_dbus_interface_skeleton_unexport (G_DBUS_INTERFACE_SKELETON (request));
@@ -294,6 +300,8 @@ xdp_request_dex_emit_response (XdpRequestDex                *request,
                                XdgDesktopPortalResponseEnum  response,
                                GVariant                     *results)
 {
+  g_return_if_fail (!request->responded);
+
   if (!request->exported)
     return;
 
@@ -307,6 +315,8 @@ xdp_request_dex_emit_response (XdpRequestDex                *request,
 
       results = g_variant_builder_end (&empty_results_builder);
     }
+
+  request->responded = TRUE;
 
   xdp_dbus_request_emit_response (XDP_DBUS_REQUEST (request),
                                   response,
