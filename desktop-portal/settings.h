@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <libdex.h>
+
 #include "xdp-types.h"
 
-void init_settings (XdpContext *context);
+DexFuture * init_settings (gpointer user_data);

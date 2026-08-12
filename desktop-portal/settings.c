@@ -12,36 +12,34 @@
 #include <gio/gio.h>
 #include <glib/gi18n.h>
 
+#include <libdex.h>
+
 #include "xdp-context.h"
 #include "xdp-dbus.h"
 #include "xdp-impl-dbus.h"
 #include "xdp-portal-config.h"
 #include "xdp-utils.h"
 
-typedef struct _Settings Settings;
-typedef struct _SettingsClass SettingsClass;
-
-struct _Settings
+struct _XdpSettings
 {
   XdpDbusSettingsSkeleton parent_instance;
 
-  XdpDbusImplSettings **impls;
-  size_t n_impls;
+  GPtrArray *impls; /* XdpDbusImplSettings */
 };
 
-struct _SettingsClass
-{
-  XdpDbusSettingsSkeletonClass parent_class;
-};
+#define XDP_TYPE_SETTINGS (xdp_settings_get_type ())
+G_DECLARE_FINAL_TYPE (XdpSettings,
+                      xdp_settings,
+                      XDP, SETTINGS,
+                      XdpDbusSettingsSkeleton)
 
-GType settings_get_type (void);
-static void settings_iface_init (XdpDbusSettingsIface *iface);
+static void xdp_settings_iface_init (XdpDbusSettingsIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (Settings, settings, XDP_DBUS_TYPE_SETTINGS_SKELETON,
-                         G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SETTINGS,
-                                                settings_iface_init));
-
-G_DEFINE_AUTOPTR_CLEANUP_FUNC (Settings, g_object_unref)
+G_DEFINE_FINAL_TYPE_WITH_CODE (XdpSettings,
+                               xdp_settings,
+                               XDP_DBUS_TYPE_SETTINGS_SKELETON,
+                               G_IMPLEMENT_INTERFACE (XDP_DBUS_TYPE_SETTINGS,
+                                                      xdp_settings_iface_init));
 
 static void
 merge_impl_settings (GHashTable *merged,
@@ -112,7 +110,7 @@ settings_handle_read_all (XdpDbusSettings       *object,
                           GDBusMethodInvocation *invocation,
                           const char    * const *arg_namespaces)
 {
-  Settings *self = (Settings*)object;
+  XdpSettings *self = XDP_SETTINGS (object);
   g_autoptr(GHashTable) merged = NULL;
   g_autoptr(GVariant) settings = NULL;
 
@@ -120,19 +118,22 @@ settings_handle_read_all (XdpDbusSettings       *object,
                                   g_free,
                                   (GDestroyNotify) g_variant_dict_unref);
 
-  for (size_t i = 0; i < self->n_impls; i++)
+  for (size_t i = 0; i < self->impls->len; i++)
     {
+      g_autoptr(XdpDbusImplSettingsReadAllResult) result = NULL;
       g_autoptr(GError) error = NULL;
-      g_autoptr(GVariant) impl_value = NULL;
-      size_t j = self->n_impls - i - 1;
+      size_t j = self->impls->len - i - 1;
 
-      if (!xdp_dbus_impl_settings_call_read_all_sync (self->impls[j],
-                                                      arg_namespaces,
-                                                      &impl_value,
-                                                      NULL, &error))
-        g_warning ("Failed to ReadAll() from Settings implementation: %s", error->message);
+      result = dex_await_boxed (
+        xdp_dbus_impl_settings_call_read_all_future (g_ptr_array_index (self->impls, j),
+                                                     arg_namespaces),
+        &error);
+
+      if (result == NULL)
+        g_warning ("Failed to ReadAll() from Settings implementation: %s",
+                   error->message);
       else
-        merge_impl_settings (merged, impl_value);
+        merge_impl_settings (merged, result->value);
     }
 
   settings = merged_to_variant (merged);
@@ -147,33 +148,36 @@ settings_handle_read (XdpDbusSettings       *object,
                       const char            *arg_namespace,
                       const char            *arg_key)
 {
-  Settings *self = (Settings*)object;
+  XdpSettings *self = XDP_SETTINGS (object);
 
   g_debug ("Read %s %s", arg_namespace, arg_key);
 
-  for (size_t i = 0; i < self->n_impls; i++)
+  for (size_t i = 0; i < self->impls->len; i++)
     {
+      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
       g_autoptr(GError) error = NULL;
-      g_autoptr(GVariant) impl_value = NULL;
 
-      if (!xdp_dbus_impl_settings_call_read_sync (self->impls[i],
-                                                  arg_namespace,
-                                                  arg_key,
-                                                  &impl_value,
-                                                  NULL, &error))
+      result = dex_await_boxed (
+        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
+                                                 arg_namespace,
+                                                 arg_key),
+        &error);
+
+      if (result != NULL)
         {
-          /* A key not being found is expected, continue to our implementation */
-          g_debug ("Failed to Read() from Settings implementation: %s", error->message);
-        }
-      else
-        {
-          g_dbus_method_invocation_return_value (invocation, g_variant_new ("(v)", impl_value));
+          g_dbus_method_invocation_return_value (invocation,
+                                                 g_variant_new ("(v)", result->value));
           return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
+
+      g_debug ("Failed to Read() from Settings implementation: %s",
+               error->message);
     }
 
-  g_debug ("Attempted to read unknown namespace/key pair: %s %s", arg_namespace, arg_key);
-  g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+  g_debug ("Attempted to read unknown namespace/key pair: %s %s",
+           arg_namespace, arg_key);
+  g_dbus_method_invocation_return_error_literal (invocation,
+                                                 XDG_DESKTOP_PORTAL_ERROR,
                                                  XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                  _("Requested setting not found"));
 
@@ -186,33 +190,36 @@ settings_handle_read_one (XdpDbusSettings       *object,
                           const char            *arg_namespace,
                           const char            *arg_key)
 {
-  Settings *self = (Settings*)object;
+  XdpSettings *self = XDP_SETTINGS (object);
 
   g_debug ("ReadOne %s %s", arg_namespace, arg_key);
 
-  for (size_t i = 0; i < self->n_impls; i++)
+  for (size_t i = 0; i < self->impls->len; i++)
     {
+      g_autoptr(XdpDbusImplSettingsReadResult) result = NULL;
       g_autoptr(GError) error = NULL;
-      g_autoptr(GVariant) impl_value = NULL;
 
-      if (!xdp_dbus_impl_settings_call_read_sync (self->impls[i],
-                                                  arg_namespace,
-                                                  arg_key,
-                                                  &impl_value,
-                                                  NULL, &error))
+      result = dex_await_boxed (
+        xdp_dbus_impl_settings_call_read_future (g_ptr_array_index (self->impls, i),
+                                                 arg_namespace,
+                                                 arg_key),
+        &error);
+
+      if (result != NULL)
         {
-          /* A key not being found is expected, continue to our implementation */
-          g_debug ("Failed to Read() from Settings implementation: %s", error->message);
-        }
-      else
-        {
-          g_dbus_method_invocation_return_value (invocation, g_variant_new_tuple (&impl_value, 1));
+          g_dbus_method_invocation_return_value (invocation,
+                                                 g_variant_new_tuple (&result->value, 1));
           return G_DBUS_METHOD_INVOCATION_HANDLED;
         }
+
+      g_debug ("Failed to Read() from Settings implementation: %s",
+               error->message);
     }
 
-  g_debug ("Attempted to read unknown namespace/key pair: %s %s", arg_namespace, arg_key);
-  g_dbus_method_invocation_return_error_literal (invocation, XDG_DESKTOP_PORTAL_ERROR,
+  g_debug ("Attempted to read unknown namespace/key pair: %s %s",
+           arg_namespace, arg_key);
+  g_dbus_method_invocation_return_error_literal (invocation,
+                                                 XDG_DESKTOP_PORTAL_ERROR,
                                                  XDG_DESKTOP_PORTAL_ERROR_NOT_FOUND,
                                                  _("Requested setting not found"));
 
@@ -224,15 +231,16 @@ on_impl_settings_changed (XdpDbusImplSettings *impl,
                           const char          *arg_namespace,
                           const char          *arg_key,
                           GVariant            *arg_value,
-                          XdpDbusSettings     *settings)
+                          XdpSettings         *self)
 {
   g_debug ("Emitting changed for %s %s", arg_namespace, arg_key);
-  xdp_dbus_settings_emit_setting_changed (settings, arg_namespace,
-                                          arg_key, arg_value);
+  xdp_dbus_settings_emit_setting_changed (XDP_DBUS_SETTINGS (self),
+                                          arg_namespace, arg_key,
+                                          arg_value);
 }
 
 static void
-settings_iface_init (XdpDbusSettingsIface *iface)
+xdp_settings_iface_init (XdpDbusSettingsIface *iface)
 {
   iface->handle_read = settings_handle_read;
   iface->handle_read_one = settings_handle_read_one;
@@ -240,60 +248,97 @@ settings_iface_init (XdpDbusSettingsIface *iface)
 }
 
 static void
-settings_init (Settings *settings)
+xdp_settings_init (XdpSettings *self)
 {
 }
 
 static void
-settings_finalize (GObject *object)
+xdp_settings_dispose (GObject *object)
 {
-  Settings *self = (Settings*)object;
+  XdpSettings *self = XDP_SETTINGS (object);
 
-  for (size_t i = 0; i < self->n_impls; i++)
-    {
-      g_signal_handlers_disconnect_by_data (self->impls[i], self);
-      g_clear_object (&self->impls[i]);
-    }
+  for (size_t i = 0; self->impls && i < self->impls->len; i++)
+    g_signal_handlers_disconnect_by_data (g_ptr_array_index (self->impls, i), self);
 
-  g_clear_pointer(&self->impls, g_free);
+  g_clear_pointer (&self->impls, g_ptr_array_unref);
 
-  G_OBJECT_CLASS (settings_parent_class)->finalize (object);
+  G_OBJECT_CLASS (xdp_settings_parent_class)->dispose (object);
 }
 
 static void
-settings_class_init (SettingsClass *klass)
+xdp_settings_class_init (XdpSettingsClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->finalize = settings_finalize;
+  object_class->dispose = xdp_settings_dispose;
 }
 
-static Settings *
-settings_new (GPtrArray *impls)
+static XdpSettings *
+xdp_settings_new (GPtrArray *impls)
 {
-  Settings *settings;
+  XdpSettings *self;
 
-  settings = g_object_new (settings_get_type (), NULL);
-  settings->n_impls = impls->len;
-  settings->impls = (XdpDbusImplSettings **) g_ptr_array_steal (impls, NULL);
+  self = g_object_new (XDP_TYPE_SETTINGS, NULL);
+  self->impls = g_ptr_array_ref (impls);
 
-  xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (settings), 2);
+  xdp_dbus_settings_set_version (XDP_DBUS_SETTINGS (self), 2);
 
-  for (size_t i = 0; i < settings->n_impls; i++)
+  for (size_t i = 0; i < self->impls->len; i++)
     {
-      g_signal_connect_object (settings->impls[i], "setting-changed",
+      g_signal_connect_object (g_ptr_array_index (self->impls, i),
+                               "setting-changed",
                                G_CALLBACK (on_impl_settings_changed),
-                               settings,
+                               self,
                                G_CONNECT_DEFAULT);
     }
 
-  return settings;
+  return self;
 }
 
-void
-init_settings (XdpContext *context)
+static GPtrArray *
+create_impl_proxies (GDBusConnection *connection,
+                     GPtrArray       *impl_configs)
 {
-  g_autoptr(Settings) settings = NULL;
+  g_autoptr(GPtrArray) futures = g_ptr_array_new_with_free_func (dex_unref);
+  g_autoptr(GPtrArray) impl_proxies =
+    g_ptr_array_new_with_free_func (g_object_unref);
+
+  for (size_t i = 0; i < impl_configs->len; i++)
+    {
+      XdpImplConfig *impl_config;
+      g_autoptr(DexFuture) future = NULL;
+
+      impl_config = g_ptr_array_index (impl_configs, i);
+      future = xdp_dbus_impl_settings_proxy_new_future (connection,
+                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                        impl_config->dbus_name,
+                                                        DESKTOP_DBUS_PATH);
+      g_ptr_array_add (futures, g_steal_pointer (&future));
+    }
+
+  dex_await (dex_future_allv ((DexFuture *const *) futures->pdata, futures->len), NULL);
+
+  for (size_t i = 0; i < futures->len; i++)
+    {
+      DexFuture *future = g_ptr_array_index (futures, i);
+      g_autoptr(GError) error = NULL;
+      const GValue *value;
+
+      value = dex_future_get_value (future, &error);
+      if (value == NULL)
+        g_warning ("Failed to create settings proxy: %s", error->message);
+      else
+        g_ptr_array_add (impl_proxies, g_object_ref (g_value_get_object (value)));
+    }
+
+  return g_steal_pointer (&impl_proxies);
+}
+
+DexFuture *
+init_settings (gpointer user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autoptr(XdpSettings) settings = NULL;
   GDBusConnection *connection = xdp_context_get_connection (context);
   XdpPortalConfig *config = xdp_context_get_config (context);
   g_autoptr(GPtrArray) impl_configs = NULL;
@@ -301,39 +346,20 @@ init_settings (XdpContext *context)
 
   impl_configs = xdp_portal_config_find_all (config, SETTINGS_DBUS_IMPL_IFACE);
   if (impl_configs->len == 0)
-    return;
+    return dex_future_new_true ();
 
-  impl_proxies = g_ptr_array_new_with_free_func (g_object_unref);
-
-  for (size_t i = 0; i < impl_configs->len; i++)
-    {
-      XdpImplConfig *impl_config = g_ptr_array_index (impl_configs, i);
-      const char *dbus_name = impl_config->dbus_name;
-      g_autoptr(XdpDbusImplSettings) impl_proxy = NULL;
-      g_autoptr(GError) error = NULL;
-
-      impl_proxy =
-        xdp_dbus_impl_settings_proxy_new_sync (connection,
-                                               G_DBUS_PROXY_FLAGS_NONE,
-                                               dbus_name,
-                                               DESKTOP_DBUS_PATH,
-                                               NULL,
-                                               &error);
-      if (impl_proxy == NULL)
-        g_warning ("Failed to create settings proxy: %s", error->message);
-      else
-        g_ptr_array_add (impl_proxies, g_steal_pointer (&impl_proxy));
-    }
+  impl_proxies = create_impl_proxies (connection, impl_configs);
 
   if (impl_proxies->len == 0)
     {
       g_warning ("Not providing Settings portal: No working backend");
-      return;
+      return dex_future_new_false ();
     }
 
-  settings = settings_new (impl_proxies);
+  settings = xdp_settings_new (impl_proxies);
 
   xdp_context_take_and_export_portal (context,
                                       G_DBUS_INTERFACE_SKELETON (g_steal_pointer (&settings)),
-                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_THREAD);
+                                      XDP_CONTEXT_EXPORT_FLAGS_RUN_IN_FIBER);
+  return dex_future_new_true ();
 }
