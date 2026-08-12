@@ -331,7 +331,8 @@ class DocPortal:
         try:
             with open(path) as f:
                 content = f.read()
-        except dbus.exceptions.DBusException:
+        except (dbus.exceptions.DBusException, FileNotFoundError):
+            assertFileNotExist(path)
             content = None
         doc = Doc(self, doc_id, path, content)
         self.docs[doc.id] = doc
