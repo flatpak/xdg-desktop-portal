@@ -6,6 +6,7 @@
 import os
 import stat
 from pathlib import Path
+from typing import Any
 
 import dbus
 import pytest
@@ -25,7 +26,7 @@ Type=Application
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     # ensure that we have a flatpak executable
     # The dynamiclauncher checks that the thing in the exec line exists and is
     # executable, so for flatpak, it needs the flatpak executable
@@ -38,12 +39,14 @@ def required_templates():
 
 
 class TestDynamicLauncher:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """tests the version of the interface"""
 
         xdp.check_version(dbus_con, "DynamicLauncher", 1)
 
-    def test_basic(self, portals, dbus_con, xdp_app_info):
+    def test_basic(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         """test that the backend receives the expected data"""
 
