@@ -4,6 +4,7 @@
 # This file is formatted with Python Black
 
 import time
+from typing import Any
 
 import dbus
 import pytest
@@ -12,17 +13,17 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"email": {}}
 
 
 class TestEmail:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """tests the version of the interface"""
 
         xdp.check_version(dbus_con, "Email", 4)
 
-    def test_basic(self, portals, dbus_con):
+    def test_basic(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """test that the backend receives the expected data"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -56,7 +57,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
         assert args[3]["body"] == body
 
-    def test_address(self, portals, dbus_con):
+    def test_address(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """test that an invalid address triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -83,7 +84,7 @@ class TestEmail:
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_punycode_address(self, portals, dbus_con):
+    def test_punycode_address(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """test email address containing punycode"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -117,7 +118,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
         assert args[3]["body"] == body
 
-    def test_subject_multiline(self, portals, dbus_con):
+    def test_subject_multiline(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """test that an multiline subject triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -144,7 +145,7 @@ class TestEmail:
         method_calls = mock_intf.GetMethodCalls("ComposeEmail")
         assert len(method_calls) == 0
 
-    def test_subject_too_long(self, portals, dbus_con):
+    def test_subject_too_long(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """test that a subject line over 200 chars triggers an error"""
 
         email_intf = xdp.get_portal_iface(dbus_con, "Email")
@@ -174,7 +175,7 @@ class TestEmail:
         assert len(method_calls) == 0
 
     @pytest.mark.parametrize("template_params", ({"email": {"delay": 2000}},))
-    def test_delay(self, portals, dbus_con):
+    def test_delay(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """
         Test that everything works as expected when the backend takes some
         time to send its response, as * is to be expected from a real backend
@@ -217,7 +218,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
 
     @pytest.mark.parametrize("template_params", ({"email": {"response": 1}},))
-    def test_cancel(self, portals, dbus_con):
+    def test_cancel(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """
         Test that user cancellation works as expected.
         We simulate that the user cancels a hypothetical dialog,
@@ -255,7 +256,7 @@ class TestEmail:
         assert args[3]["subject"] == subject
 
     @pytest.mark.parametrize("template_params", ({"email": {"expect-close": True}},))
-    def test_close(self, portals, dbus_con):
+    def test_close(self, portals: Any, dbus_con: dbus.Bus) -> None:
         """
         Test that app-side cancellation works as expected.
         We cancel the cancellable while while the hypothetical
