@@ -35,8 +35,8 @@ extern XdpAppInfoRegistry *app_info_registry;
 typedef struct
 {
   char *path;
-  int parent_dev;
-  int parent_ino;
+  dev_t parent_dev;
+  ino_t parent_ino;
   gboolean is_dir;
 } ExportedFile;
 
@@ -226,8 +226,8 @@ file_transfer_execute (FileTransfer  *transfer,
   const char *target_app_id;
   int n_fds;
   g_autofree int *fds = NULL;
-  g_autofree int *parent_devs = NULL;
-  g_autofree int *parent_inos = NULL;
+  g_autofree dev_t *parent_devs = NULL;
+  g_autofree ino_t *parent_inos = NULL;
   g_autofree DocumentAddFullFlags *documents_flags = NULL;
   int i;
   g_auto(GStrv) ids = NULL;
@@ -262,8 +262,8 @@ file_transfer_execute (FileTransfer  *transfer,
 
   n_fds = transfer->files->len;
   fds = g_new (int, n_fds);
-  parent_devs = g_new (int, n_fds);
-  parent_inos = g_new (int, n_fds);
+  parent_devs = g_new (dev_t, n_fds);
+  parent_inos = g_new (ino_t, n_fds);
   documents_flags = g_new (DocumentAddFullFlags, n_fds);
   for (i = 0; i < n_fds; i++)
     {
