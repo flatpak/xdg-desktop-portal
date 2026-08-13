@@ -28,8 +28,8 @@ gboolean validate_fd (int           fd,
                       GError      **error);
 
 char ** document_add_full (int                      *fd,
-                           int                      *parent_dev,
-                           int                      *parent_ino,
+                           dev_t                    *parent_dev,
+                           ino_t                    *parent_ino,
                            DocumentAddFullFlags     *documents_flags,
                            int                       n_args,
                            XdpAppInfo               *app_info,
