@@ -10,6 +10,7 @@
 #include "background.h"
 #include "camera.h"
 #include "clipboard.h"
+#include "credential.h"
 #include "dynamic-launcher.h"
 #include "email.h"
 #include "file-chooser.h"
@@ -483,6 +484,23 @@ xdp_context_register (XdpContext       *context,
   init_usb (context);
 #endif
   init_registry (context);
+
+  // Experimental feature flags
+  char *experimental_flag_env =
+      getenv ("XDG_DESKTOP_PORTAL_ENABLE_EXPERIMENTAL");
+  if (experimental_flag_env != NULL)
+    {
+      gchar **flags = g_strsplit (experimental_flag_env, ",", -1);
+      for (gint i = 0; flags[i] != NULL; i++)
+        {
+          gchar *flag = flags[i];
+          if (g_strcmp0 (flag, "credential") == 0)
+            {
+              g_debug ("Enabling experimental portal credential");
+              init_portal_in_fiber(context, init_credential);
+            }
+        }
+    }
 
   return TRUE;
 }
