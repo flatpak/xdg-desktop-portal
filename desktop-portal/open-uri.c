@@ -712,17 +712,32 @@ handle_open_in_thread_func (GTask *task,
           g_variant_builder_add (uris_builder, "s", item_uri);
 
           if (bus)
-            result = g_dbus_connection_call_sync (bus,
-                                                  FILE_MANAGER_DBUS_NAME,
-                                                  FILE_MANAGER_DBUS_PATH,
-                                                  FILE_MANAGER_DBUS_IFACE,
-                                                  FILE_MANAGER_SHOW_ITEMS,
-                                                  g_variant_new ("(ass)", uris_builder, activation_token ? activation_token : ""),
-                                                  NULL,   /* ignore returned type */
-                                                  G_DBUS_CALL_FLAGS_NONE,
-                                                  -1,
-                                                  NULL,
-                                                  &local_error);
+            {
+              /* Drop the request lock across this call. It can block for the
+                 whole GDBus timeout when the file manager has to be activated,
+                 and on_peer_disconnect() takes the same lock from the main
+                 loop, so holding it here stalls every portal for every client
+                 until the call returns. */
+              g_mutex_unlock (&request->mutex);
+
+              result = g_dbus_connection_call_sync (bus,
+                                                    FILE_MANAGER_DBUS_NAME,
+                                                    FILE_MANAGER_DBUS_PATH,
+                                                    FILE_MANAGER_DBUS_IFACE,
+                                                    FILE_MANAGER_SHOW_ITEMS,
+                                                    g_variant_new ("(ass)", uris_builder, activation_token ? activation_token : ""),
+                                                    NULL,   /* ignore returned type */
+                                                    G_DBUS_CALL_FLAGS_NONE,
+                                                    -1,
+                                                    NULL,
+                                                    &local_error);
+
+              g_mutex_lock (&request->mutex);
+
+              /* The request may have been closed while the lock was dropped. */
+              if (!request->exported)
+                return;
+            }
 
           if (result == NULL)
             {
