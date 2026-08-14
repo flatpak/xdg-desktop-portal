@@ -69,6 +69,7 @@ struct _XdpContext
   GHashTable *exported_portals; /* iface name -> GDBusInterfaceSkeleton */
   GHashTable *registered_object_paths; /* char *object_path set */
   GMutex registered_object_paths_lock;
+  GThreadPool *peer_disconnect_pool;
 
   GCancellable *cancellable;
 };
@@ -122,6 +123,12 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
+
+  if (context->peer_disconnect_pool)
+    {
+      g_thread_pool_free (context->peer_disconnect_pool, FALSE, TRUE);
+      context->peer_disconnect_pool = NULL;
+    }
 
   if (context->registered_object_paths)
     {
@@ -360,13 +367,35 @@ xdp_context_get_portal (XdpContext *context,
   return g_hash_table_lookup (context->exported_portals, interface);
 }
 
+/* Emitted from a worker thread, never from the main loop.
+ *
+ * The handlers take the per-request and per-session locks, and those locks are
+ * held across blocking work: open-uri holds the request lock for the whole of
+ * handle_open_in_thread_func(), which includes a synchronous ShowItems call to
+ * the file manager. Emitting on the main loop parks the whole daemon behind
+ * that for as long as the blocking work lasts.
+ *
+ * The pool is a dedicated one rather than the shared pool behind
+ * g_task_run_in_thread(), because handlers that block would otherwise starve
+ * every other GTask user in the process, GDBus method dispatch included.
+ */
+static void
+emit_peer_disconnect_in_thread (gpointer data,
+                                gpointer user_data)
+{
+  XdpContext *context = XDP_CONTEXT (user_data);
+  g_autofree char *peer = data;
+
+  g_signal_emit (context, signals[PEER_DISCONNECT], 0, peer);
+}
+
 static void
 on_peer_disconnect (const char *name,
                     gpointer    user_data)
 {
   XdpContext *context = XDP_CONTEXT (user_data);
 
-  g_signal_emit (context, signals[PEER_DISCONNECT], 0, name);
+  g_thread_pool_push (context->peer_disconnect_pool, g_strdup (name), NULL);
 
   dex_future_disown (xdp_app_info_registry_delete_future (context->app_info_registry,
                                                           name));
@@ -401,6 +430,9 @@ xdp_context_register (XdpContext       *context,
   portal_errors = XDG_DESKTOP_PORTAL_ERROR;
 
   g_set_object (&context->connection, connection);
+
+  context->peer_disconnect_pool =
+    g_thread_pool_new (emit_peer_disconnect_in_thread, context, -1, FALSE, NULL);
 
   context->peer_disconnect_handle_id =
     xdp_connection_track_peer_disconnect (connection,

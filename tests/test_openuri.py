@@ -4,11 +4,15 @@
 # This file is formatted with Python Black
 
 import os
+import subprocess
+import sys
+import time
 from pathlib import Path
 from typing import Any
 
 import dbus
 import pytest
+from gi.repository import GLib
 
 import tests.xdp_doc_utils as xdp_doc
 import tests.xdp_utils as xdp
@@ -77,6 +81,34 @@ def required_templates():
         "appchooser": {},
         "lockdown": {},
     }
+
+
+# Answers ShowItems after a delay, without blocking its own main loop, so a
+# request stays pending in the portal for a known amount of time.
+SLOW_FILE_MANAGER = """
+import dbus
+import dbus.service
+import dbus.mainloop.glib
+from gi.repository import GLib
+
+
+class FileManager1(dbus.service.Object):
+    @dbus.service.method("org.freedesktop.FileManager1",
+                         in_signature="ass", out_signature="",
+                         async_callbacks=("ok", "err"))
+    def ShowItems(self, uris, startup_id, ok, err):
+        GLib.timeout_add(SHOW_ITEMS_DELAY_MS, lambda: ok() or False)
+
+
+dbus.mainloop.glib.DBusGMainLoop(set_as_default=True)
+bus = dbus.SessionBus()
+name = dbus.service.BusName("org.freedesktop.FileManager1", bus)
+FileManager1(bus, "/org/freedesktop/FileManager1")
+print("ready", flush=True)
+GLib.MainLoop().run()
+"""
+
+SHOW_ITEMS_DELAY_MS = 5000
 
 
 class TestOpenURI:
@@ -361,6 +393,78 @@ class TestOpenURI:
         assert path.startswith("file:///")
 
         assert Path(path[7:]) == Path(file_path).parent
+
+    def test_dir_peer_disconnect_does_not_block_portal(
+        self, portals, dbus_con, xdp_app_info
+    ):
+        """A peer dropping off the bus while OpenDirectory is waiting on the
+        file manager must not stall the portal for everyone else.
+
+        The worker thread holds the request lock across the ShowItems call, so
+        emitting peer-disconnect on the main loop parked the whole daemon there
+        until that call timed out.
+        """
+        address = os.environ["DBUS_SESSION_BUS_ADDRESS"]
+        openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
+
+        file_manager = subprocess.Popen(
+            [
+                sys.executable,
+                "-c",
+                f"SHOW_ITEMS_DELAY_MS = {SHOW_ITEMS_DELAY_MS}\n" + SLOW_FILE_MANAGER,
+            ],
+            stdout=subprocess.PIPE,
+            text=True,
+        )
+        assert file_manager.stdout is not None
+        assert file_manager.stdout.readline().strip() == "ready"
+
+        def probe() -> float:
+            bus = dbus.bus.BusConnection(address)
+            proxy = bus.get_object(
+                "org.freedesktop.portal.Desktop", "/org/freedesktop/portal/desktop"
+            )
+            start = time.monotonic()
+            dbus.Interface(proxy, "org.freedesktop.portal.OpenURI").SchemeSupported(
+                "https", {}, timeout=20
+            )
+            elapsed = time.monotonic() - start
+            bus.close()
+            return elapsed
+
+        try:
+            file_path = Path.home() / "openuri_peer_disconnect_file"
+            file_path.write_text("openuri_peer_disconnect_file")
+            fd = os.open(file_path.absolute().as_posix(), os.O_RDONLY)
+
+            request = xdp.Request(dbus_con, openuri_intf)
+            openuri_intf.OpenDirectory(
+                "",
+                dbus.types.UnixFd(fd),
+                dbus.Dictionary({"handle_token": request.handle_token}, signature="sv"),
+                reply_handler=lambda *args: None,
+                error_handler=lambda *args: None,
+            )
+            os.close(fd)
+
+            # Flush the call and let the worker reach ShowItems.
+            loop = GLib.MainLoop()
+            GLib.timeout_add(1000, lambda: loop.quit() or False)
+            loop.run()
+
+            # The portal is responsive while the file manager is busy.
+            assert probe() < 1.0
+
+            # Some unrelated peer goes away.
+            victim = dbus.bus.BusConnection(address)
+            victim.get_unique_name()
+            victim.close()
+            time.sleep(0.3)
+
+            assert probe() < 1.0
+        finally:
+            file_manager.terminate()
+            file_manager.wait()
 
     def test_scheme_supported(self, portals, dbus_con):
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
