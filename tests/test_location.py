@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+from typing import Any
+
 import dbus
 import pytest
 
@@ -8,7 +10,7 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {
         "geoclue2": {},
         "access": {},
@@ -16,10 +18,12 @@ def required_templates():
 
 
 class TestLocation:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Location", 1)
 
-    def get_geoclue_mock(self, dbus_con_sys):
+    def get_geoclue_mock(
+        self, dbus_con_sys: dbus.bus.BusConnection
+    ) -> dbus.proxies.Interface:
         geoclue_manager_proxy = dbus_con_sys.get_object(
             "org.freedesktop.GeoClue2",
             "/org/freedesktop/GeoClue2/Manager",
@@ -36,7 +40,7 @@ class TestLocation:
         return geoclue_mock
 
     @pytest.mark.parametrize("required_templates", ({},))
-    def test_no_geoclue(self, portals, dbus_con):
+    def test_no_geoclue(self, portals: Any, dbus_con: dbus.Bus) -> None:
         location_intf = xdp.get_portal_iface(dbus_con, "Location")
 
         session = xdp.Session(
@@ -55,7 +59,9 @@ class TestLocation:
         assert start_session_response
         assert start_session_response.response == 2
 
-    def test_session_update(self, portals, dbus_con, dbus_con_sys):
+    def test_session_update(
+        self, portals: Any, dbus_con: dbus.Bus, dbus_con_sys: dbus.bus.BusConnection
+    ) -> None:
         location_intf = xdp.get_portal_iface(dbus_con, "Location")
         geoclue_mock_intf = self.get_geoclue_mock(dbus_con_sys)
 
@@ -67,7 +73,9 @@ class TestLocation:
             location_intf.CreateSession({"session_handle_token": "session_token0"}),
         )
 
-        def cb_location_updated(session_handle, location):
+        def cb_location_updated(
+            session_handle: dbus.ObjectPath, location: dbus.Dictionary
+        ) -> None:
             nonlocal location_updated
             nonlocal updated_count
 
@@ -114,7 +122,7 @@ class TestLocation:
 
         assert updated_count == 2
 
-    def test_bad_accuracy(self, portals, dbus_con):
+    def test_bad_accuracy(self, portals: Any, dbus_con: dbus.Bus) -> None:
         location_intf = xdp.get_portal_iface(dbus_con, "Location")
         with pytest.raises(dbus.exceptions.DBusException) as excinfo:
             location_intf.CreateSession(
