@@ -4,6 +4,7 @@
 # This file is formatted with Python Black
 
 import time
+from typing import Any
 
 import dbus
 import pytest
@@ -12,15 +13,17 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"globalshortcuts": {}}
 
 
 class TestGlobalShortcuts:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "GlobalShortcuts", 2)
 
-    def test_create_close_session(self, portals, dbus_con, xdp_app_info):
+    def test_create_close_session(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -51,7 +54,9 @@ class TestGlobalShortcuts:
     @pytest.mark.parametrize(
         "template_params", ({"globalshortcuts": {"force-close": 500}},)
     )
-    def test_create_session_signal_closed(self, portals, dbus_con, xdp_app_info):
+    def test_create_session_signal_closed(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -79,7 +84,7 @@ class TestGlobalShortcuts:
         # Now expect the backend to close it
         xdp.wait_for(lambda: session.closed)
 
-    def test_bind_list_shortcuts(self, portals, dbus_con):
+    def test_bind_list_shortcuts(self, portals: Any, dbus_con: dbus.Bus) -> None:
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
 
         request = xdp.Request(dbus_con, globalshortcuts_intf)
@@ -141,7 +146,7 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    def test_bind_no_shortcuts(self, portals, dbus_con):
+    def test_bind_no_shortcuts(self, portals: Any, dbus_con: dbus.Bus) -> None:
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
 
         request = xdp.Request(dbus_con, globalshortcuts_intf)
@@ -186,7 +191,7 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    def test_trigger(self, portals, dbus_con):
+    def test_trigger(self, portals: Any, dbus_con: dbus.Bus) -> None:
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -229,7 +234,12 @@ class TestGlobalShortcuts:
         activated_count = 0
         deactivated_count = 0
 
-        def cb_activated(session_handle, shortcut_id, timestamp, options):
+        def cb_activated(
+            session_handle: dbus.ObjectPath,
+            shortcut_id: str,
+            timestamp: int,
+            options: dbus.Dictionary,
+        ) -> None:
             nonlocal activated_count
             now_since_epoch = int(time.time() * 1000000)
             # This assert will race twice a year on systems configured with
@@ -241,7 +251,12 @@ class TestGlobalShortcuts:
             assert shortcut_id == "binding1"
             activated_count += 1
 
-        def cb_deactivated(session_handle, shortcut_id, timestamp, options):
+        def cb_deactivated(
+            session_handle: dbus.ObjectPath,
+            shortcut_id: str,
+            timestamp: int,
+            options: dbus.Dictionary,
+        ) -> None:
             nonlocal deactivated_count
             now_since_epoch = int(time.time() * 1000000)
             # This assert will race twice a year on systems configured with
@@ -264,7 +279,7 @@ class TestGlobalShortcuts:
         session.close()
         xdp.wait_for(lambda: session.closed)
 
-    def test_configure_shortcuts(self, portals, dbus_con):
+    def test_configure_shortcuts(self, portals: Any, dbus_con: dbus.Bus) -> None:
         globalshortcuts_intf = xdp.get_portal_iface(dbus_con, "GlobalShortcuts")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
