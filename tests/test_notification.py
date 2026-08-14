@@ -6,7 +6,9 @@
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
 
+import dbus
 import pytest
 from gi.repository import Gio, GLib
 
@@ -62,7 +64,7 @@ ALL_VERSIONS_PARAMS = (
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {
         "notification": {
             "SupportedOptions": SUPPORTED_OPTIONS,
@@ -71,14 +73,19 @@ def required_templates():
 
 
 class NotificationPortal(xdp.GDBusIface):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             "org.freedesktop.portal.Desktop",
             "/org/freedesktop/portal/desktop",
             "org.freedesktop.portal.Notification",
         )
 
-    def AddNotification(self, id, notification, fds=None):
+    def AddNotification(
+        self,
+        id: str,
+        notification: dict[str, GLib.Variant],
+        fds: list[int] | None = None,
+    ) -> GLib.Variant:
         if fds is None:
             fds = []
         return self._call(
@@ -87,7 +94,7 @@ class NotificationPortal(xdp.GDBusIface):
             fds,
         )
 
-    def RemoveNotification(self, id):
+    def RemoveNotification(self, id: str) -> GLib.Variant:
         return self._call(
             "RemoveNotification",
             GLib.Variant("(s)", (id,)),
@@ -95,7 +102,14 @@ class NotificationPortal(xdp.GDBusIface):
 
 
 class TestNotification:
-    def add_notification(self, dbus_con, app_id, id, notification, fds=None):
+    def add_notification(
+        self,
+        dbus_con: dbus.Bus,
+        app_id: str,
+        id: str,
+        notification: dict[str, GLib.Variant],
+        fds: list[int] | None = None,
+    ) -> GLib.Variant:
         notification_intf = NotificationPortal()
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -116,24 +130,37 @@ class TestNotification:
         return args[2]
 
     def check_notification(
-        self, dbus_con, app_id, id, notification_in, notification_expected
-    ):
+        self,
+        dbus_con: dbus.Bus,
+        app_id: str,
+        id: str,
+        notification_in: dict[str, GLib.Variant],
+        notification_expected: dict[str, GLib.Variant],
+    ) -> None:
         mock_notification = self.add_notification(dbus_con, app_id, id, notification_in)
         self.compare_notification(mock_notification, notification_expected)
 
-    def compare_notification(self, mock_notification, notification_expected):
+    def compare_notification(
+        self,
+        mock_notification: dbus.Dictionary,
+        notification_expected: dict[str, GLib.Variant],
+    ) -> None:
         assert (
             mock_notification == GLib.Variant("a{sv}", notification_expected).unpack()
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_version(self, portals, dbus_con, template_params):
+    def test_version(
+        self, portals: Any, dbus_con: dbus.Bus, template_params: xdp.TemplateParams
+    ) -> None:
         xdp.check_version(
             dbus_con, "Notification", template_params["notification"]["version"]
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_basic(self, portals, dbus_con, xdp_app_info):
+    def test_basic(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
 
         self.check_notification(
@@ -145,7 +172,9 @@ class TestNotification:
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_remove(self, portals, dbus_con, xdp_app_info):
+    def test_remove(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
 
         notification_intf = NotificationPortal()
@@ -168,7 +197,9 @@ class TestNotification:
         assert args[1] == id
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_buttons(self, portals, dbus_con, xdp_app_info):
+    def test_buttons(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
 
         self.check_notification(
@@ -179,7 +210,9 @@ class TestNotification:
             NOTIFICATION_BUTTONS,
         )
 
-    def test_markup(self, portals, dbus_con, xdp_app_info):
+    def test_markup(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
 
         bodies = [
@@ -241,7 +274,9 @@ class TestNotification:
             except GLib.GError as e:
                 assert "invalid markup-body" in e.message
 
-    def test_bad_arg(self, portals, dbus_con, xdp_app_info):
+    def test_bad_arg(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
         notification["bodx"] = GLib.Variant("s", "Xtest")
@@ -255,7 +290,9 @@ class TestNotification:
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_bad_priority(self, portals, dbus_con, xdp_app_info):
+    def test_bad_priority(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
         notification["priority"] = GLib.Variant("s", "invalid")
@@ -273,7 +310,9 @@ class TestNotification:
             assert "invalid not a priority" in e.message
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_bad_button(self, portals, dbus_con, xdp_app_info):
+    def test_bad_button(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BUTTONS.copy()
         notification["buttons"] = GLib.Variant(
@@ -298,7 +337,9 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid button" in e.message
 
-    def test_display_hint(self, portals, dbus_con, xdp_app_info):
+    def test_display_hint(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
         notification["display-hint"] = GLib.Variant(
@@ -337,7 +378,9 @@ class TestNotification:
         except GLib.GError as e:
             assert "not a display-hint" in e.message
 
-    def test_category(self, portals, dbus_con, xdp_app_info):
+    def test_category(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
         notification["category"] = GLib.Variant("s", "im.received")
@@ -376,7 +419,7 @@ class TestNotification:
         except GLib.GError as e:
             assert "not a supported category" in e.message
 
-    def test_supported_options(self, portals, dbus_con):
+    def test_supported_options(self, portals: Any, dbus_con: dbus.Bus) -> None:
         properties_intf = xdp.get_iface(dbus_con, "org.freedesktop.DBus.Properties")
 
         options = properties_intf.Get(
@@ -386,7 +429,9 @@ class TestNotification:
         assert options == SUPPORTED_OPTIONS
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_icon_themed(self, portals, dbus_con, xdp_app_info):
+    def test_icon_themed(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = GLib.Variant(
             "(sv)",
@@ -405,7 +450,9 @@ class TestNotification:
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_icon_themed_string(self, portals, dbus_con, xdp_app_info):
+    def test_icon_themed_string(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         notification = NOTIFICATION_BASIC.copy()
         icon = Gio.ThemedIcon.new("test-icon-symbolic")
         notification["icon"] = GLib.Variant("s", icon.get_names()[0])
@@ -428,7 +475,13 @@ class TestNotification:
         )
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_icon_bytes(self, portals, dbus_con, xdp_app_info, template_params):
+    def test_icon_bytes(
+        self,
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        template_params: xdp.TemplateParams,
+    ) -> None:
         image_bytes = SVG_IMAGE_DATA.encode("utf-8")
         notification = NOTIFICATION_BASIC.copy()
         notification["icon"] = GLib.Variant(
@@ -463,7 +516,9 @@ class TestNotification:
         os.close(mock_fd)
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_icon_file(self, portals, dbus_con, xdp_app_info):
+    def test_icon_file(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         fd, file_path = tempfile.mkstemp(prefix="notification_icon_", dir=Path.home())
         os.write(fd, SVG_IMAGE_DATA.encode("utf-8"))
 
@@ -482,7 +537,9 @@ class TestNotification:
 
         assert "icon" not in added_notification
 
-    def test_icon_fd(self, portals, dbus_con, xdp_app_info):
+    def test_icon_fd(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         svg_image_bytes = SVG_IMAGE_DATA.encode("utf-8")
 
         fd = os.memfd_create("notification_sound_test", os.MFD_ALLOW_SEALING)
@@ -517,7 +574,7 @@ class TestNotification:
         os.close(fd)
 
     @pytest.mark.parametrize("template_params", ALL_VERSIONS_PARAMS)
-    def test_icon_bad(self, portals, dbus_con):
+    def test_icon_bad(self, portals: Any, dbus_con: dbus.Bus) -> None:
         notification_intf = NotificationPortal()
 
         notification = NOTIFICATION_BASIC.copy()
@@ -540,7 +597,9 @@ class TestNotification:
             except GLib.GError as e:
                 assert e.matches(Gio.io_error_quark(), Gio.IOErrorEnum.DBUS_ERROR)
 
-    def test_sound_simple(self, portals, dbus_con, xdp_app_info):
+    def test_sound_simple(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         notification = NOTIFICATION_BASIC.copy()
         notification["sound"] = GLib.Variant("s", "default")
@@ -579,7 +638,9 @@ class TestNotification:
         except GLib.GError as e:
             assert "invalid sound: invalid option" in e.message
 
-    def test_sound_file(self, portals, dbus_con, xdp_app_info):
+    def test_sound_file(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         fd, file_path = tempfile.mkstemp(prefix="notification_sound_", dir=Path.home())
         os.write(fd, SOUND_DATA)
 
@@ -603,7 +664,9 @@ class TestNotification:
 
         assert "sound" not in mock_notification
 
-    def test_sound_fd(self, portals, dbus_con, xdp_app_info):
+    def test_sound_fd(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         fd = os.memfd_create("notification_sound_test", os.MFD_ALLOW_SEALING)
         os.write(fd, SOUND_DATA)
 
@@ -635,7 +698,7 @@ class TestNotification:
         os.close(mock_fd)
         os.close(fd)
 
-    def test_sound_bad(self, portals, dbus_con):
+    def test_sound_bad(self, portals: Any, dbus_con: dbus.Bus) -> None:
         notification_intf = NotificationPortal()
 
         notification = NOTIFICATION_BASIC.copy()
