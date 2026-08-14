@@ -71,6 +71,7 @@ struct _XdpContext
   GMutex registered_object_paths_lock;
 
   GCancellable *cancellable;
+  GPtrArray *pending_inits; /* DexFuture */
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -384,7 +385,27 @@ init_portal_in_fiber (XdpContext   *context,
                                              context, NULL),
                         dex_cancellable_new_from_cancellable (cancellable),
                         NULL);
-  dex_future_disown (g_steal_pointer (&f));
+
+  if (context->pending_inits == NULL)
+    context->pending_inits = g_ptr_array_new_with_free_func (dex_unref);
+
+  g_ptr_array_add (context->pending_inits, g_steal_pointer (&f));
+}
+
+static void
+await_pending_inits (XdpContext *context)
+{
+  g_autoptr(GPtrArray) pending_inits = g_steal_pointer (&context->pending_inits);
+  g_autoptr(DexFuture) all = NULL;
+
+  if (pending_inits == NULL)
+    return;
+
+  all = dex_future_allv ((DexFuture *const *) pending_inits->pdata,
+                         pending_inits->len);
+
+  while (dex_future_is_pending (all))
+    g_main_context_iteration (g_main_context_get_thread_default (), TRUE);
 }
 
 gboolean
@@ -483,6 +504,8 @@ xdp_context_register (XdpContext       *context,
   init_usb (context);
 #endif
   init_registry (context);
+
+  await_pending_inits (context);
 
   return TRUE;
 }
