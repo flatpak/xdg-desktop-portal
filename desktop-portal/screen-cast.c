@@ -493,6 +493,7 @@ replace_screen_cast_restore_token_with_data (XdpSession *session,
                        XDG_DESKTOP_PORTAL_ERROR,
                        XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "Remote desktop sessions cannot persist");
+          *in_out_options = g_steal_pointer (&options);
           return FALSE;
         }
     }

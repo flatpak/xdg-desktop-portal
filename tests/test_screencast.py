@@ -11,7 +11,7 @@ import tests.xdp_utils as xdp
 
 @pytest.fixture
 def required_templates():
-    return {"screencast": {}}
+    return {"remotedesktop": {}, "screencast": {}}
 
 
 def start_stream(dbus_con, screencast_intf):
@@ -63,6 +63,51 @@ class TestScreenCast:
         _node_id, props = streams[0]
         assert "pipewire-serial" in props
         assert props["pipewire-serial"] == 133742
+
+    @pytest.mark.parametrize(
+        "persistence_option",
+        (
+            {"persist_mode": dbus.UInt32(xdp.SessionPersistenceMode.TRANSIENT)},
+            {"restore_token": "restore_token"},
+        ),
+    )
+    def test_remote_desktop_session_cannot_persist(
+        self,
+        portals,
+        dbus_con,
+        persistence_option,
+    ):
+        remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
+
+        request = xdp.Request(dbus_con, remotedesktop_intf)
+        response = request.call(
+            "CreateSession",
+            options={"session_handle_token": "session_token0"},
+        )
+        assert response
+        assert response.response == 0
+
+        session = xdp.Session.from_response(dbus_con, response)
+        screencast_intf = xdp.get_portal_iface(dbus_con, "ScreenCast")
+        request = xdp.Request(dbus_con, screencast_intf)
+
+        with pytest.raises(dbus.exceptions.DBusException) as excinfo:
+            request.call(
+                "SelectSources",
+                session_handle=session.handle,
+                options=persistence_option,
+            )
+
+        e = excinfo.value
+        assert e.get_dbus_name() == "org.freedesktop.portal.Error.InvalidArgument"
+        assert e.get_dbus_message() == "Remote desktop sessions cannot persist"
+
+        mock_intf = xdp.get_mock_iface(dbus_con)
+        method_calls = mock_intf.GetMethodCalls("SelectSources")
+        assert len(method_calls) == 0
+
+        # Check that the portal is still alive and responsive.
+        xdp.check_version(dbus_con, "ScreenCast", 6)
 
     @pytest.mark.parametrize(
         "template_params",
