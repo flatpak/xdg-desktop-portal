@@ -103,6 +103,10 @@ handle_register (XdpDbusHostRegistry   *object,
     {
       g_debug ("Can't create registered app for %s: %s",
                sender, error->message);
+      dex_promise_reject (app_info_promise,
+                          g_error_new_literal (G_IO_ERROR,
+                                               G_IO_ERROR_PERMISSION_DENIED,
+                                               "Failed to create app info"));
       g_dbus_method_invocation_return_error (invocation,
                                              XDG_DESKTOP_PORTAL_ERROR,
                                              XDG_DESKTOP_PORTAL_ERROR_FAILED,
