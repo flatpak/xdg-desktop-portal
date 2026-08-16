@@ -519,6 +519,7 @@ class Closable:
         self._mainloop: GLib.MainLoop | None = None
         self._impl_closed = False
         self._bus = bus
+        self._close_source_id: int | None = None
 
         self._closable = type(self).__name__
         assert self._closable in ("Request", "Session")
@@ -566,7 +567,26 @@ class Closable:
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
         assert 0 < timeout_ms < DBUS_TIMEOUT
-        GLib.timeout_add(timeout_ms * 10 if is_valgrind() else timeout_ms, self.close)
+        assert self._close_source_id is None
+
+        def close():
+            self._close_source_id = None
+            try:
+                self.close()
+            except dbus.exceptions.DBusException as e:
+                self.error = e
+                if self._mainloop:
+                    self._mainloop.quit()
+            return GLib.SOURCE_REMOVE
+
+        self._close_source_id = GLib.timeout_add(
+            timeout_ms * 10 if is_valgrind() else timeout_ms, close
+        )
+
+    def _cancel_scheduled_close(self):
+        if self._close_source_id is not None:
+            GLib.source_remove(self._close_source_id)
+            self._close_source_id = None
 
 
 class Request(Closable):
@@ -595,6 +615,9 @@ class Request(Closable):
         self.interface = interface
         self.response: Response | None = None
         self.used = False
+        self._call_active = False
+        self._close_timeout_ms: int | None = None
+        self._request_exported = False
         # GLib makes assertions in callbacks impossible, so we wrap all
         # callbacks into a try: except and store the error on the request to
         # be raised later when we're back in the main context
@@ -624,6 +647,18 @@ class Request(Closable):
         """
         return dbus.String(self._handle_token, variant_level=1)
 
+    def schedule_close(self, timeout_ms=300):
+        """
+        Schedule an automatic Close() after the Request has been exported.
+        """
+        assert 0 < timeout_ms < DBUS_TIMEOUT
+        assert not self.used or self._call_active
+        if self._request_exported:
+            super().schedule_close(timeout_ms)
+        else:
+            assert self._close_timeout_ms is None
+            self._close_timeout_ms = timeout_ms
+
     def call(self, methodname: str, **kwargs) -> Response | None:
         """
         Semi-synchronously call method ``methodname`` on the interface given
@@ -645,6 +680,7 @@ class Request(Closable):
         """
         assert not self.used
         self.used = True
+        self._call_active = True
 
         # Make sure options exists and has the handle_token set
         try:
@@ -672,8 +708,17 @@ class Request(Closable):
         # Response signal on the Request itself or the Close() handling
         def reply_cb(handle):
             try:
+                if not self._call_active:
+                    return
+
                 logger.debug(f"Reply to {methodname} with {self.handle}")
                 assert handle == self.handle
+
+                self._request_exported = True
+                if self._close_timeout_ms is not None:
+                    timeout_ms = self._close_timeout_ms
+                    self._close_timeout_ms = None
+                    Closable.schedule_close(self, timeout_ms)
 
                 if reply_handler:
                     reply_handler(handle)
@@ -703,7 +748,12 @@ class Request(Closable):
             error_handler=error_cb,
         )
 
-        self._mainloop.run()
+        try:
+            self._mainloop.run()
+        finally:
+            self._call_active = False
+            self._close_timeout_ms = None
+            self._cancel_scheduled_close()
 
         if self.error:
             raise self.error
