@@ -21,6 +21,7 @@ portal_sources = files(
   'org.freedesktop.portal.GlobalShortcuts.xml',
   'org.freedesktop.portal.Inhibit.xml',
   'org.freedesktop.portal.InputCapture.xml',
+  'org.freedesktop.portal.Language.xml',
   'org.freedesktop.portal.Location.xml',
   'org.freedesktop.portal.MemoryMonitor.xml',
   'org.freedesktop.portal.NetworkMonitor.xml',
@@ -37,8 +38,10 @@ portal_sources = files(
   'org.freedesktop.portal.Secret.xml',
   'org.freedesktop.portal.Session.xml',
   'org.freedesktop.portal.Settings.xml',
+  'org.freedesktop.portal.Speech.xml',
   'org.freedesktop.portal.Trash.xml',
   'org.freedesktop.portal.Usb.xml',
+  'org.freedesktop.portal.Vision.xml',
   'org.freedesktop.portal.Wallpaper.xml',
 )
 
@@ -58,6 +61,7 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.GlobalShortcuts.xml',
   'org.freedesktop.impl.portal.Inhibit.xml',
   'org.freedesktop.impl.portal.InputCapture.xml',
+  'org.freedesktop.impl.portal.Language.xml',
   'org.freedesktop.impl.portal.Lockdown.xml',
   'org.freedesktop.impl.portal.Notification.xml',
   'org.freedesktop.impl.portal.PermissionStore.xml',
@@ -69,7 +73,9 @@ portal_impl_sources = files(
   'org.freedesktop.impl.portal.Secret.xml',
   'org.freedesktop.impl.portal.Session.xml',
   'org.freedesktop.impl.portal.Settings.xml',
+  'org.freedesktop.impl.portal.Speech.xml',
   'org.freedesktop.impl.portal.Usb.xml',
+  'org.freedesktop.impl.portal.Vision.xml',
   'org.freedesktop.impl.portal.Wallpaper.xml',
 )
 

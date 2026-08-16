@@ -19,6 +19,8 @@ DexFuture * xdp_request_dex_new (XdpContext             *context,
                                  GDBusProxy             *proxy_impl,
                                  GVariant               *arg_options);
 
+void xdp_request_dex_close (XdpRequestDex *request);
+
 void xdp_request_dex_emit_response (XdpRequestDex                *request,
                                     XdgDesktopPortalResponseEnum  response,
                                     GVariant                     *results);

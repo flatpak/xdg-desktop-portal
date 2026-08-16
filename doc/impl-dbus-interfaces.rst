@@ -23,6 +23,7 @@ accessible to sandboxed applications.
    doc-org.freedesktop.impl.portal.GlobalShortcuts.rst
    doc-org.freedesktop.impl.portal.Inhibit.rst
    doc-org.freedesktop.impl.portal.InputCapture.rst
+   doc-org.freedesktop.impl.portal.Language.rst
    doc-org.freedesktop.impl.portal.Lockdown.rst
    doc-org.freedesktop.impl.portal.Notification.rst
    doc-org.freedesktop.impl.portal.PermissionStore.rst
@@ -34,5 +35,7 @@ accessible to sandboxed applications.
    doc-org.freedesktop.impl.portal.Secret.rst
    doc-org.freedesktop.impl.portal.Session.rst
    doc-org.freedesktop.impl.portal.Settings.rst
+   doc-org.freedesktop.impl.portal.Speech.rst
    doc-org.freedesktop.impl.portal.Usb.rst
+   doc-org.freedesktop.impl.portal.Vision.rst
    doc-org.freedesktop.impl.portal.Wallpaper.rst

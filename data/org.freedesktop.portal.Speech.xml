@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<!--
+  SPDX-License-Identifier: LGPL-2.1-or-later
+  SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Speech:
+      @short_description: Portal for local speech model tasks
+
+      Supported use-cases are ``speech.transcribe`` for verbatim source-language
+      transcription, ``speech.translate`` for speech-to-English translation, and
+      ``speech.synthesize`` for text-to-speech.
+
+      Methods returning request handles accept the standard ``handle_token``
+      option. ``handle_token`` is a caller-chosen object-path token used to
+      predict the returned Request path before the call; it is not an
+      authorization token or model identifier. It is optional; callers can omit
+      it and use the returned Request handle unless they need to subscribe to
+      signals before the call. CreateSession also accepts
+      ``session_handle_token``, a caller-chosen object-path token used to
+      predict the Session path returned as ``session_handle`` in the request
+      response. StreamTranscribe also accepts ``source_language_hint`` and ``execution_mode``
+      (``interactive`` or ``background``). StreamSynthesize accepts ``voice_id``,
+      ``language_hint``, and ``execution_mode``. Hints and voice IDs default to
+      empty strings, and ``execution_mode`` defaults to ``interactive``. Other option keys are reserved.
+      Failed request responses may include ``error`` and
+      ``error_name`` strings in the results vardict. Stream payload signals are
+      sent only to the caller that owns the request and are correlated by
+      ``request_handle``.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.Speech">
+    <!--
+        GetUseCaseAvailability:
+        @use_case: ``speech.transcribe``, ``speech.translate``, or ``speech.synthesize``
+        @options: Reserved vardict; no keys are currently defined
+        @availability: Struct containing is_available, a stable availability status code, and human-readable reason
+
+        Returns whether a local profile is assigned and runnable for @use_case.
+        The struct fields are ``is_available``, ``status``, and ``reason``.
+        ``is_available`` is authoritative. ``status`` is a stable,
+        non-localized value intended for application control flow; defined
+        values are ``available``, ``unsupported_use_case``,
+        ``permission_denied``, ``no_profile_assigned``,
+        ``profile_not_installed``, ``artifact_missing``,
+        ``runtime_unsupported``, and ``runtime_missing``. Future versions may
+        add values, so callers must tolerate unknown statuses. ``reason`` is
+        human-readable diagnostic detail and must not be parsed.
+    -->
+    <method name="GetUseCaseAvailability">
+      <arg type="s" name="use_case" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="std::tuple&lt;bool,QString,QString&gt;"/>
+      <arg type="(bss)" name="availability" direction="out"/>
+    </method>
+
+    <!--
+        CreateSession:
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @use_case: Supported speech task token
+        @instructions: Stable system instructions for this session
+        @options: Vardict with optional ``handle_token`` and ``session_handle_token`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        The session @use_case selects whether StreamTranscribe returns a
+        verbatim source-language transcript or an English translation. The
+        session handle is returned in the Request response under the
+        ``session_handle`` key.
+    -->
+    <method name="CreateSession">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="use_case" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        Prewarm:
+        @session_handle: A speech session handle returned by CreateSession
+        @options: Vardict with optional ``handle_token`` string
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Optionally starts the container for the session's assigned profile
+        before the first user-visible operation. First inference starts the
+        runtime on demand if Prewarm is skipped. Prewarm does not prepare a
+        specific stream method or request payload. Completion, cancellation, and
+        failures are reported through the :ref:`org.freedesktop.portal.Request::Response` signal.
+    -->
+    <method name="Prewarm">
+      <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamTranscribe:
+        @session_handle: A speech session handle returned by CreateSession
+        @audio_fd: Readable, sealable memfd containing 16 kHz mono f32le PCM
+        @options: Vardict with optional ``handle_token``, ``source_language_hint``, and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Starts streaming transcription or translation segments. The method
+        returns a Request handle immediately. Segments are emitted as
+        TranscriptionReceived signals; completion, cancellation, and failures
+        are reported through the :ref:`org.freedesktop.portal.Request::Response` signal.
+    -->
+    <method name="StreamTranscribe">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="audio_fd" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamSynthesize:
+        @session_handle: A speech synthesis session handle returned by CreateSession
+        @text: Non-empty phrase to synthesize
+        @options: Vardict with optional ``handle_token``, ``voice_id``, ``language_hint``, and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Starts streaming interleaved PCM audio for one phrase. The method returns
+        a Request handle immediately. Chunks are emitted as AudioReceived signals;
+        completion, cancellation, and failures are reported through the Request.
+    -->
+    <method name="StreamSynthesize">
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="s" name="text" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In2" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        ModelLoading:
+        @request_handle: Request that is preparing its backing model or runtime
+        @session_handle: Speech session used by the request
+        @message: Human-readable, non-localized progress message
+
+        Emitted while the model or runtime for @request_handle is being
+        prepared. Applications must not parse @message for control flow.
+    -->
+    <signal name="ModelLoading">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <arg type="s" name="message"/>
+    </signal>
+
+    <!--
+        TranscriptionReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Speech session used by the request
+        @text: Next transcript or translation segment, possibly empty at the end
+        @done: Whether this is the terminal stream event for the request
+
+        Emitted in order during StreamTranscribe. When @done is true, no later
+        stream payload signal is emitted for @request_handle.
+    -->
+    <signal name="TranscriptionReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <arg type="s" name="text"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <!--
+        AudioReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Speech session used by the request
+        @audio: Headerless, interleaved PCM frames; possibly empty at the end
+        @sample_rate: Number of PCM frames per second
+        @channels: Number of interleaved audio channels
+        @sample_format: PCM sample encoding; version 1 emits ``s16le``
+        @done: Whether this is the terminal stream event for the request
+
+        Emitted in order during StreamSynthesize. ``s16le`` means signed 16-bit
+        little-endian samples. The format, rate, and channel count are constant
+        within a request. When @done is true, no later stream payload signal is
+        emitted for @request_handle.
+    -->
+    <signal name="AudioReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <arg type="ay" name="audio">
+        <annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+      </arg>
+      <arg type="u" name="sample_rate"/>
+      <arg type="u" name="channels"/>
+      <arg type="s" name="sample_format"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

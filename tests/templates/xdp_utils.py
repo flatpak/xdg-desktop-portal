@@ -110,6 +110,7 @@ class ImplRequest:
     def wait_for_close(
         self,
         close_callback: Callable | None = None,
+        respond: bool = True,
     ) -> None:
         def closed():
             logger.debug(f"Request {self.handle}: closed")
@@ -132,8 +133,9 @@ class ImplRequest:
                     self._unexport()
                     return
 
-            response = Response(2, {})
-            self.cb_success(response.response, response.results)
+            if respond:
+                response = Response(2, {})
+                self.cb_success(response.response, response.results)
             self._unexport()
 
         def cb_methodcall(name, args):

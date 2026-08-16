@@ -1,0 +1,305 @@
+<?xml version="1.0"?>
+<!--
+  SPDX-License-Identifier: LGPL-2.1-or-later
+  SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
+-->
+
+<node name="/" xmlns:doc="http://www.freedesktop.org/dbus/1.0/doc.dtd">
+  <!--
+      org.freedesktop.portal.Vision:
+      @short_description: Portal for local vision model tasks
+
+      Supported use-cases are ``vision.describe``, ``vision.ocr``,
+      ``vision.detect``, ``vision.segment``, and ``vision.depth``.
+
+      Methods returning request handles accept the standard ``handle_token``
+      option. ``handle_token`` is a caller-chosen object-path token used to
+      predict the returned Request path before the call; it is not an
+      authorization token or model identifier. It is optional; callers can omit
+      it and use the returned Request handle unless they need to subscribe to
+      signals before the call. CreateSession also accepts
+      ``session_handle_token``, a caller-chosen object-path token used to
+      predict the Session path returned as ``session_handle`` in the request
+      response. Stream methods also accept ``execution_mode`` (``interactive``
+      or ``background``), which defaults to ``interactive``. Segmentation point
+      and box prompts default to empty arrays. Other option keys are reserved. Failed request responses may include ``error`` and
+      ``error_name`` strings in the results vardict. Stream payload signals are
+      sent only to the caller that owns the request and are correlated by
+      ``request_handle``.
+
+      This documentation describes version 1 of this interface.
+  -->
+  <interface name="org.freedesktop.portal.Vision">
+    <!--
+        GetUseCaseAvailability:
+        @use_case: One of the supported ``vision.*`` task tokens
+        @options: Reserved vardict; no keys are currently defined
+        @availability: Struct containing is_available, a stable availability status code, and human-readable reason
+
+        Returns whether a local profile is assigned and runnable for @use_case.
+        The struct fields are ``is_available``, ``status``, and ``reason``.
+        ``is_available`` is authoritative. ``status`` is a stable,
+        non-localized value intended for application control flow; defined
+        values are ``available``, ``unsupported_use_case``,
+        ``permission_denied``, ``no_profile_assigned``,
+        ``profile_not_installed``, ``artifact_missing``,
+        ``runtime_unsupported``, and ``runtime_missing``. Future versions may
+        add values, so callers must tolerate unknown statuses. ``reason`` is
+        human-readable diagnostic detail and must not be parsed.
+    -->
+    <method name="GetUseCaseAvailability">
+      <arg type="s" name="use_case" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out0" value="std::tuple&lt;bool,QString,QString&gt;"/>
+      <arg type="(bss)" name="availability" direction="out"/>
+    </method>
+
+    <!--
+        CreateSession:
+        @parent_window: Identifier for the application window, see :doc:`window-identifiers`
+        @use_case: Supported vision task token
+        @instructions: Stable system instructions for this session
+        @options: Vardict with optional ``handle_token`` and ``session_handle_token`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        The session @use_case selects which vision operation is permitted for
+        the session. Create separate sessions for different vision tasks. The
+        session handle is returned in the Request response under the
+        ``session_handle`` key.
+    -->
+    <method name="CreateSession">
+      <arg type="s" name="parent_window" direction="in"/>
+      <arg type="s" name="use_case" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        Prewarm:
+        @session_handle: A vision session handle returned by CreateSession
+        @options: Vardict with optional ``handle_token`` string
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Optionally starts the container for the session's assigned profile
+        before the first user-visible operation. First inference starts the
+        runtime on demand if Prewarm is skipped. Prewarm does not prepare a
+        specific stream method or request payload. Completion, cancellation, and
+        failures are reported through the :ref:`org.freedesktop.portal.Request::Response` signal.
+    -->
+    <method name="Prewarm">
+      <arg type="o" name="session_handle" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In1" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamDescribe:
+        @session_handle: A ``vision.describe`` session handle returned by CreateSession
+        @image_fd: Readable, sealable memfd containing PNG or JPEG image bytes.
+        @instructions: Optional per-image instructions for this request.
+        @options: Vardict with optional ``handle_token`` and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        The method returns a Request handle immediately. Natural-language image
+        description tokens are emitted as VisionTextReceived signals;
+        completion, cancellation, and failures are reported through the
+        :ref:`org.freedesktop.portal.Request::Response` signal.
+    -->
+    <method name="StreamDescribe">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="image_fd" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamOcr:
+        @session_handle: A ``vision.ocr`` session handle returned by CreateSession
+        @image_fd: Readable, sealable memfd containing PNG or JPEG image bytes.
+        @instructions: Optional per-image instructions for this request.
+        @options: Vardict with optional ``handle_token`` and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        The method returns a Request handle immediately. Text extracted from the
+        image is emitted as VisionTextReceived signals; completion,
+        cancellation, and failures are reported through the :ref:`org.freedesktop.portal.Request::Response`
+        signal.
+    -->
+    <method name="StreamOcr">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="image_fd" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamDetect:
+        @session_handle: A ``vision.detect`` session handle returned by CreateSession
+        @image_fd: Readable, sealable memfd containing PNG or JPEG image bytes.
+        @instructions: Optional per-image instructions for this request.
+        @options: Vardict with optional ``handle_token`` and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Detected objects are emitted as VisionDetectionsReceived signals.
+    -->
+    <method name="StreamDetect">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="image_fd" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamSegment:
+        @session_handle: A ``vision.segment`` session handle returned by CreateSession
+        @image_fd: Readable, sealable memfd containing PNG or JPEG image bytes.
+        @instructions: Optional per-image instructions for this request.
+        @options: Vardict with optional ``handle_token``, ``execution_mode``, ``point_prompts`` (``a(ddb)``), and ``box_prompts`` (``a(dddd)``)
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        The method returns a Request handle immediately. Masks are emitted as
+        VisionMasksReceived signals; completion, cancellation, and
+        failures are reported through the :ref:`org.freedesktop.portal.Request::Response` signal.
+    -->
+    <method name="StreamSegment">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="image_fd" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        StreamDepth:
+        @session_handle: A ``vision.depth`` session handle returned by CreateSession
+        @image_fd: Readable, sealable memfd containing PNG or JPEG image bytes.
+        @instructions: Optional per-image instructions for this request.
+        @options: Vardict with optional ``handle_token`` and ``execution_mode`` strings
+        @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
+
+        Depth maps are emitted as VisionDepthReceived signals.
+    -->
+    <method name="StreamDepth">
+      <annotation name="org.gtk.GDBus.C.UnixFD" value="true"/>
+      <arg type="o" name="session_handle" direction="in"/>
+      <arg type="h" name="image_fd" direction="in"/>
+      <arg type="s" name="instructions" direction="in"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.In3" value="QVariantMap"/>
+      <arg type="a{sv}" name="options" direction="in"/>
+      <arg type="o" name="handle" direction="out"/>
+    </method>
+
+    <!--
+        ModelLoading:
+        @request_handle: Request that is preparing its backing model or runtime
+        @session_handle: Vision session used by the request
+        @message: Human-readable, non-localized progress message
+
+        Emitted while the model or runtime for @request_handle is being
+        prepared. Applications must not parse @message for control flow.
+    -->
+    <signal name="ModelLoading">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <arg type="s" name="message"/>
+    </signal>
+
+    <!--
+        VisionTextReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Vision session used by the request
+        @text: Next description or OCR text fragment, possibly empty at the end
+        @done: Whether this is the terminal stream event for the request
+
+        Emitted in order during StreamDescribe or StreamOcr. When @done is true,
+        no later stream payload signal is emitted for @request_handle.
+    -->
+    <signal name="VisionTextReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <arg type="s" name="text"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <!--
+        VisionDetectionsReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Vision session used by the request
+        @detections: Detections as ``(label, confidence, x, y, width, height)`` structs
+        @done: Whether this is the terminal stream event for the request
+
+        ``confidence`` is in the range 0.0 to 1.0. The rectangle values are
+        normalized to the input image dimensions: ``x`` and ``y`` identify the
+        top-left corner, and every coordinate and extent is in the range 0.0 to
+        1.0. When @done is true, no later stream payload signal is emitted for
+        @request_handle.
+    -->
+    <signal name="VisionDetectionsReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out2" value="QList&lt;std::tuple&lt;QString,double,double,double,double,double&gt;&gt;"/>
+      <arg type="a(sddddd)" name="detections"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <!--
+        VisionMasksReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Vision session used by the request
+        @masks: Masks as ``(label, confidence, x, y, width, height, mask_base64, mask_width, mask_height)`` structs
+        @done: Whether this is the terminal stream event for the request
+
+        ``confidence`` and the bounding rectangle use the same normalized
+        ranges and top-left origin as VisionDetectionsReceived. ``mask_base64``
+        is standard base64 for exactly ``mask_width * mask_height`` row-major
+        8-bit coverage values, where 0 is outside and 255 is fully covered.
+        When @done is true, no later stream payload signal is emitted for
+        @request_handle.
+    -->
+    <signal name="VisionMasksReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out2" value="QList&lt;std::tuple&lt;QString,double,double,double,double,double,QString,int,int&gt;&gt;"/>
+      <arg type="a(sdddddsii)" name="masks"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <!--
+        VisionDepthReceived:
+        @request_handle: Request that produced this event
+        @session_handle: Vision session used by the request
+        @depth: ``(width, height, values, unit, minimum, maximum)`` depth map
+        @done: Whether this is the terminal stream event for the request
+
+        ``values`` contains exactly ``width * height`` row-major, nonnegative
+        distances and is not normalized; smaller values are nearer. In version
+        1, ``unit`` is ``meter``. ``minimum`` and ``maximum`` are the extrema of
+        ``values``. When @done is true, no later stream payload signal is
+        emitted for @request_handle.
+    -->
+    <signal name="VisionDepthReceived">
+      <arg type="o" name="request_handle"/>
+      <arg type="o" name="session_handle"/>
+      <annotation name="org.qtproject.QtDBus.QtTypeName.Out2" value="std::tuple&lt;int,int,QList&lt;double&gt;,QString,double,double&gt;"/>
+      <arg type="(iiadsdd)" name="depth"/>
+      <arg type="b" name="done"/>
+    </signal>
+
+    <property name="version" type="u" access="read"/>
+  </interface>
+</node>

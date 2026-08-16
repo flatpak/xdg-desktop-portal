@@ -30,6 +30,8 @@ gboolean xdp_context_register (XdpContext       *context,
 
 gboolean xdp_context_is_verbose (XdpContext *context);
 
+gboolean xdp_context_is_cancelled (XdpContext *context);
+
 XdpAppInfoRegistry * xdp_context_get_app_info_registry (XdpContext *context);
 
 GDBusConnection * xdp_context_get_connection (XdpContext *context);
