@@ -158,6 +158,8 @@ work_fiber (XdpAppInfoRegistry *registry,
           {
             g_autoptr(XdpAppInfo) app_info = NULL;
 
+            g_debug ("XdpAppInfoRegistry: Ensure for sender %s", sender);
+
             g_mutex_lock (&registry->app_infos_lock);
             app_info = g_hash_table_lookup (registry->app_infos, sender);
             if (app_info)
@@ -169,10 +171,14 @@ work_fiber (XdpAppInfoRegistry *registry,
                 g_autoptr(GError) error = NULL;
                 gboolean key_did_not_exist;
 
+                g_debug ("Ensure creates for sender %s", sender);
+
                 app_info = dex_await_object (xdp_app_info_new_for_invocation (data->invocation),
                                              &error);
                 if (!app_info)
                   {
+                    g_debug ("Could not create app info for sender %s: %s",
+                             sender, error->message);
                     dex_promise_reject (data->promise, g_steal_pointer (&error));
                     break;
                   }
@@ -198,12 +204,15 @@ work_fiber (XdpAppInfoRegistry *registry,
             gboolean already_exists;
             gboolean key_did_not_exist;
 
+            g_debug ("XdpAppInfoRegistry: Insert for sender %s", sender);
+
             g_mutex_lock (&registry->app_infos_lock);
             already_exists = g_hash_table_contains (registry->app_infos, sender);
             g_mutex_unlock (&registry->app_infos_lock);
 
             if (already_exists)
               {
+                g_debug ("Skip replacing app info for sender %s", sender);
                 dex_promise_resolve_boolean (data->promise, FALSE);
                 break;
               }
@@ -212,11 +221,14 @@ work_fiber (XdpAppInfoRegistry *registry,
                                          &error);
             if (!app_info)
               {
-                g_debug ("Could not await app info for sender %s: %s",
+                g_debug ("Could not create app info for sender %s: %s",
                          sender, error->message);
                 dex_promise_resolve_boolean (data->promise, FALSE);
                 break;
               }
+
+            g_debug ("Inserted app info %s for sender %s",
+                     xdp_app_info_get_id (app_info), sender);
 
             g_mutex_lock (&registry->app_infos_lock);
             key_did_not_exist =
@@ -233,6 +245,8 @@ work_fiber (XdpAppInfoRegistry *registry,
           break;
         case QUEUE_DATA_KIND_DELETE:
           {
+            g_debug ("XdpAppInfoRegistry: Delete for sender %s", sender);
+
             g_mutex_lock (&registry->app_infos_lock);
             dex_promise_resolve_boolean (data->promise,
                                          g_hash_table_remove (registry->app_infos,
