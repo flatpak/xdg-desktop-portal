@@ -14,6 +14,7 @@ struct _XdpAppInfoRegistry
   GObject parent_instance;
 
   GHashTable *app_infos; /* unique dbus name -> XdpAppInfo* */
+  GMutex app_infos_lock; /* protects app_infos */
   GHashTable *channels; /* unique dbus name -> DexChannel* */
   GMutex channels_lock; /* protects channels */
 };
@@ -83,6 +84,9 @@ xdp_app_info_registry_dispose (GObject *object)
   if (registry->channels)
     g_mutex_clear (&registry->channels_lock);
 
+  if (registry->app_infos)
+    g_mutex_clear (&registry->app_infos_lock);
+
   g_clear_pointer (&registry->app_infos, g_hash_table_unref);
   g_clear_pointer (&registry->channels, g_hash_table_unref);
 
@@ -111,6 +115,7 @@ xdp_app_info_registry_new (void)
   registry->app_infos = g_hash_table_new_full (g_str_hash, g_str_equal,
                                                g_free,
                                                g_object_unref);
+  g_mutex_init (&registry->app_infos_lock);
 
   registry->channels = g_hash_table_new_full (g_str_hash, g_str_equal,
                                               g_free,
@@ -151,36 +156,53 @@ work_fiber (XdpAppInfoRegistry *registry,
         {
         case QUEUE_DATA_KIND_ENSURE:
           {
-            XdpAppInfo *app_info;
+            g_autoptr(XdpAppInfo) app_info = NULL;
 
+            g_mutex_lock (&registry->app_infos_lock);
             app_info = g_hash_table_lookup (registry->app_infos, sender);
+            if (app_info)
+              g_object_ref (app_info);
+            g_mutex_unlock (&registry->app_infos_lock);
+
             if (!app_info)
               {
-                g_autoptr(XdpAppInfo) app_info_owned = NULL;
                 g_autoptr(GError) error = NULL;
+                gboolean key_did_not_exist;
 
-                app_info_owned = app_info =
-                  dex_await_object (xdp_app_info_new_for_invocation (data->invocation), &error);
-                if (!app_info_owned)
+                app_info = dex_await_object (xdp_app_info_new_for_invocation (data->invocation),
+                                             &error);
+                if (!app_info)
                   {
                     dex_promise_reject (data->promise, g_steal_pointer (&error));
                     break;
                   }
 
-                g_hash_table_insert (registry->app_infos,
-                                     g_strdup (sender),
-                                     g_steal_pointer (&app_info_owned));
+                g_mutex_lock (&registry->app_infos_lock);
+                key_did_not_exist =
+                  g_hash_table_insert (registry->app_infos,
+                                       g_strdup (sender),
+                                       g_object_ref (app_info));
+                /* The running fiber for this app id prevents concurrent updates
+                 * to this specific entry in app_infos. */
+                g_assert (key_did_not_exist);
+                g_mutex_unlock (&registry->app_infos_lock);
               }
 
-            dex_promise_resolve_object (data->promise, g_object_ref (app_info));
+            dex_promise_resolve_object (data->promise, g_steal_pointer (&app_info));
           }
           break;
         case QUEUE_DATA_KIND_INSERT:
           {
             g_autoptr(GError) error = NULL;
             g_autoptr(XdpAppInfo) app_info = NULL;
+            gboolean already_exists;
+            gboolean key_did_not_exist;
 
-            if (g_hash_table_contains (registry->app_infos, sender))
+            g_mutex_lock (&registry->app_infos_lock);
+            already_exists = g_hash_table_contains (registry->app_infos, sender);
+            g_mutex_unlock (&registry->app_infos_lock);
+
+            if (already_exists)
               {
                 dex_promise_resolve_boolean (data->promise, FALSE);
                 break;
@@ -196,19 +218,26 @@ work_fiber (XdpAppInfoRegistry *registry,
                 break;
               }
 
-            g_debug ("Inserted app info %s for sender %s",
-                     xdp_app_info_get_id (app_info), sender);
-            g_hash_table_insert (registry->app_infos,
-                                 g_strdup (sender),
-                                 g_steal_pointer (&app_info));
+            g_mutex_lock (&registry->app_infos_lock);
+            key_did_not_exist =
+              g_hash_table_insert (registry->app_infos,
+                                   g_strdup (sender),
+                                   g_steal_pointer (&app_info));
+            /* The running fiber for this app id prevents concurrent updates
+             * to this specific entry in app_infos. */
+            g_assert (key_did_not_exist);
+            g_mutex_unlock (&registry->app_infos_lock);
+
             dex_promise_resolve_boolean (data->promise, TRUE);
           }
           break;
         case QUEUE_DATA_KIND_DELETE:
           {
+            g_mutex_lock (&registry->app_infos_lock);
             dex_promise_resolve_boolean (data->promise,
                                          g_hash_table_remove (registry->app_infos,
                                                               sender));
+            g_mutex_unlock (&registry->app_infos_lock);
           }
           break;
         default:
@@ -299,8 +328,13 @@ xdp_app_info_registry_delete_future (XdpAppInfoRegistry *registry,
   /* Shortcut if we have no active channel (i.e. no in-flight changes) */
   if (!g_hash_table_contains (registry->channels, sender))
     {
-      return dex_future_new_for_boolean (g_hash_table_remove (registry->app_infos,
-                                                              sender));
+      gboolean removed;
+
+      g_mutex_lock (&registry->app_infos_lock);
+      removed = g_hash_table_remove (registry->app_infos, sender);
+      g_mutex_unlock (&registry->app_infos_lock);
+
+      return dex_future_new_for_boolean (removed);
     }
 
   data = g_new0 (QueueData, 1);
@@ -316,13 +350,23 @@ xdp_app_info_registry_ensure_future (XdpAppInfoRegistry    *registry,
 {
   g_autoptr(QueueData) data = NULL;
   const char *sender = g_dbus_method_invocation_get_sender (invocation);
-  XdpAppInfo *existing = g_hash_table_lookup (registry->app_infos, sender);
 
   G_MUTEX_AUTO_LOCK (&registry->channels_lock, locker);
 
   /* Shortcut if we have no active channel (i.e. no in-flight changes) */
-  if (existing && !g_hash_table_contains (registry->channels, sender))
-    return dex_future_new_take_object (g_object_ref (existing));
+  if (!g_hash_table_contains (registry->channels, sender))
+    {
+      XdpAppInfo *existing;
+
+      g_mutex_lock (&registry->app_infos_lock);
+      existing = g_hash_table_lookup (registry->app_infos, sender);
+      if (existing)
+        g_object_ref (existing);
+      g_mutex_unlock (&registry->app_infos_lock);
+
+      if (existing)
+        return dex_future_new_take_object (existing);
+    }
 
   data = g_new0 (QueueData, 1);
   data->kind = QUEUE_DATA_KIND_ENSURE;
