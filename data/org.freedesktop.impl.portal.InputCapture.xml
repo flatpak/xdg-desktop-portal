@@ -21,7 +21,7 @@
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @response: Numeric response
@@ -62,7 +62,7 @@
     <!--
         CreateSession2:
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @results: Vardict with the results of the call
 
@@ -88,7 +88,7 @@
         Start:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @response: Numeric response
@@ -185,7 +185,7 @@
         GetZones:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
@@ -218,7 +218,7 @@
         SetPointerBarriers:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @barriers: An array of vardicts, each specifying one barrier
         @zone_set: A unique ID referring to the zone set
@@ -231,7 +231,7 @@
 
         * ``barrier_id`` (``u``)
 
-          The non-zero id of this barrier. This id is used in the
+          The non-zero ID of this barrier. This ID is used in the
           #org.freedesktop.impl.portal.InputCapture::Activated signal to inform
           which barrier triggered input capture.
 
@@ -265,7 +265,7 @@
     <!--
         Enable:
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
 
         Enable input capturing.
@@ -283,7 +283,7 @@
     <!--
         Disable:
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
 
         Disable input capturing.
@@ -301,7 +301,7 @@
     <!--
         Release:
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
 
         Release ongoing input capturing.
@@ -335,7 +335,7 @@
     <!--
         ConnectToEIS:
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @fd: A file descriptor to an EIS implementation that can be passed to a passive libei context
 
@@ -416,17 +416,17 @@
 
         * ``barrier_id`` (``u``)
 
-          The barrier id of the barrier that triggered. If the value is
-          nonzero, it matches the barrier id as specified in
+          The barrier ID of the barrier that triggered. If the value is
+          nonzero, it matches the barrier ID as specified in
           org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
 
-          If the id is zero, the pointer barrier could not be determined.
-          If the id is missing, the input capture was not triggered by a
+          If the ID is zero, the pointer barrier could not be determined.
+          If the ID is missing, the input capture was not triggered by a
           pointer barrier.
 
           Where more than one pointer barrier are triggered by the same
           movement it is up to the compositor to choose one barrier (or use
-          a barrier id of zero).
+          a barrier ID of zero).
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="out"/>

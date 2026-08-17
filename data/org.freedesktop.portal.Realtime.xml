@@ -24,8 +24,8 @@
     <interface name="org.freedesktop.portal.Realtime">
       <!--
           MakeThreadRealtimeWithPID:
-          @process: Process id
-          @thread: Thread id
+          @process: Process ID
+          @thread: Thread ID
           @priority: Priority
       -->
       <method name="MakeThreadRealtimeWithPID">
@@ -36,8 +36,8 @@
 
       <!--
           MakeThreadHighPriorityWithPID:
-          @process: Process id
-          @thread: Thread id
+          @process: Process ID
+          @thread: Thread ID
           @priority: Priority
       -->
       <method name="MakeThreadHighPriorityWithPID">

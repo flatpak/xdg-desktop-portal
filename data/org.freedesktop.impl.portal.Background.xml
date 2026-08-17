@@ -34,7 +34,7 @@
     <!--
       NotifyBackground:
       @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
-      @app_id: App id of the application
+      @app_id: App ID of the application
       @name: A display name for the application
       @response: Numeric response, not used
       @results: Vardict with results of the call
@@ -63,7 +63,7 @@
 
     <!--
       EnableAutostart:
-      @app_id: App id of the application
+      @app_id: App ID of the application
       @enable: TRUE to enable autostart, FALSE to disable it
       @commandline: The commandline to use in the autostart file
       @flags: Flags influencing the details of the autostarting

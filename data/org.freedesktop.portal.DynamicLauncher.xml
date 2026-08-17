@@ -42,7 +42,7 @@
 
         Installs a .desktop launcher and icon into appropriate directories to
         allow the desktop environment to find them. Please note that this method
-        overwrites any existing launcher with the same id. If you want to
+        overwrites any existing launcher with the same ID. If you want to
         present the user with a confirmation dialog in that case, you can check
         for it using the org.freedesktop.portal.DynamicLauncher.GetDesktopEntry()
         method and clean up any state from the previous launcher if you want.

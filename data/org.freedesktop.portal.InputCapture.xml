@@ -291,7 +291,7 @@
 
           A unique ID to be used in the
           org.freedesktop.portal.InputCapture.SetPointerBarriers() method to refer to
-          this set of zones. This id increases by an unspecified
+          this set of zones. This ID increases by an unspecified
           amount whenever the zones change and pointer barriers can only be set up
           if the zone_set matches the most recent returned zone_set.
     -->
@@ -362,7 +362,7 @@
 
         * ``barrier_id`` (``u``)
 
-          The non-zero id of this barrier. This id is used in the
+          The non-zero ID of this barrier. This ID is used in the
           #org.freedesktop.portal.InputCapture::Activated signal to inform
           which barrier triggered input capture.
 
@@ -566,17 +566,17 @@
 
         * ``barrier_id`` (``u``)
 
-          The barrier id of the barrier that triggered. If the value is
-          nonzero, it matches the barrier id as specified in
+          The barrier ID of the barrier that triggered. If the value is
+          nonzero, it matches the barrier ID as specified in
           org.freedesktop.portal.InputCapture.SetPointerBarriers().
 
-          If the id is zero, the pointer barrier could not be determined.
-          If the id is missing, the input capture was not triggered by a
+          If the ID is zero, the pointer barrier could not be determined.
+          If the ID is missing, the input capture was not triggered by a
           pointer barrier.
 
           Where more than one pointer barrier are triggered by the same
           movement it is up to the compositor to choose one barrier (or use
-          a barrier id of zero).
+          a barrier ID of zero).
     -->
     <signal name="Activated">
       <arg type="o" name="session_handle" direction="out"/>

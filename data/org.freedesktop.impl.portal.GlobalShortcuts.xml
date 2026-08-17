@@ -19,7 +19,7 @@
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session being created
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information. See :ref:`org.freedesktop.portal.GlobalShortcuts.CreateSession`
         @response: Numeric Request response
         @results: Vardict with the results of the call

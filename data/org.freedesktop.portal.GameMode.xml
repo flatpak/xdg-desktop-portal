@@ -15,14 +15,14 @@
       checking and PID mapping. The latter is necessary in the case
       that the sandbox has PID namespace isolation enabled. See the man
       page for pid_namespaces(7) for more details, but briefly, it
-      means that the sandbox has its own process id namespace which
+      means that the sandbox has its own process ID namespace which
       is separated from the one on the host. Thus there will be two
-      separate process ids (PID) within two different namespaces
-      that both identify same process. One id from the PID namespace
-      inside the sandbox and one id from the host PID namespace.
+      separate process IDs (PID) within two different namespaces
+      that both identify same process. One ID from the PID namespace
+      inside the sandbox and one ID from the host PID namespace.
       Since org.freedesktop.portal.GameMode expects pids from the host
       PID namespace but programs inside the sandbox can only know PID
-      from the sandbox namespace, process ids need to be translated from
+      from the sandbox namespace, process IDs need to be translated from
       the portal to the host namespace. The portal will do that transparently
       for all calls where this is necessary.
 
@@ -39,7 +39,7 @@
     <interface name="org.freedesktop.portal.GameMode">
       <!--
           QueryStatus:
-          @pid: Process id to query the GameMode status of
+          @pid: Process ID to query the GameMode status of
           @result: The GameMode status for @pid
 
           Query the GameMode status for a process.
@@ -62,7 +62,7 @@
       </method>
       <!--
           RegisterGame:
-          @pid: Process id of the game to register
+          @pid: Process ID of the game to register
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Register a game with GameMode and thus request GameMode to
@@ -87,7 +87,7 @@
       </method>
       <!--
           UnregisterGame:
-          @pid: Process id of the game to un-register
+          @pid: Process ID of the game to un-register
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Un-register a game from GameMode.
@@ -110,8 +110,8 @@
 
       <!--
           QueryStatusByPid:
-          @target: Process id to query the GameMode status of
-          @requester: Process id of the process requesting the information
+          @target: Process ID to query the GameMode status of
+          @requester: Process ID of the process requesting the information
           @result: The GameMode status for @target
 
           Query the GameMode status for a process.
@@ -127,8 +127,8 @@
 
       <!--
           RegisterGameByPid:
-          @target: Process id of the game to register
-          @requester: Process id of the process requesting the registration
+          @target: Process ID of the game to register
+          @requester: Process ID of the process requesting the registration
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Register a game with GameMode.
@@ -144,8 +144,8 @@
 
       <!--
           UnregisterGameByPid:
-          @target: Process id of the game to un-register
-          @requester: Process id of the process requesting the un-registration
+          @target: Process ID of the game to un-register
+          @requester: Process ID of the process requesting the un-registration
           @result: Status of the request: 0 for success, -1 indicates an error
 
           Un-register a game with GameMode.

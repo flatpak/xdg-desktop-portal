@@ -52,7 +52,7 @@
         CreateMonitor:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the created :ref:`org.freedesktop.impl.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @window: the parent window
         @response: the result of the operation (0 == success)
 

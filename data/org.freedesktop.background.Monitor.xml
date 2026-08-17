@@ -29,7 +29,7 @@
 
       * ``app_id`` (``s``)
 
-        App id of the application.
+        App ID of the application.
 
       * ``instance`` (``s``)
 

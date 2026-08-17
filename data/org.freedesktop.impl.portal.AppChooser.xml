@@ -18,9 +18,9 @@
     <!--
         ChooseApplication:
         @handle: Object path to export the Request object at
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
-        @choices: App ids of applications to let the user choose from
+        @choices: App IDs of applications to let the user choose from
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
@@ -31,7 +31,7 @@
 
         * ``last_choice`` (``s``)
 
-          The app id that was selected the last time.
+          The app ID that was selected the last time.
 
         * ``modal`` (``b``)
 
@@ -60,7 +60,7 @@
 
         * ``choice`` (``s``)
 
-          The app id that was selected.
+          The app ID that was selected.
 
         * ``activation_token`` (``s``)
 
@@ -87,7 +87,7 @@
     <!--
         UpdateChoices:
         @handle: the request handle
-        @choices: App ids of applications to let the user choose from
+        @choices: App IDs of applications to let the user choose from
 
         This method can be called between the time of a ChooseApplication call
         and receiving the Response signal, to update the list of applications
