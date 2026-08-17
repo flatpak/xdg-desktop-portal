@@ -18,7 +18,7 @@
         CreateSession:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
@@ -46,7 +46,7 @@
         SelectDevices:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object representing the session
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @response: Numeric response
         @results: Vardict with the results of the call
@@ -105,7 +105,7 @@
         Start:
         @handle: Object path for the :ref:`org.freedesktop.impl.portal.Request` object representing this call
         @session_handle: Object path for the :ref:`org.freedesktop.impl.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @parent_window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @response: Numeric response
@@ -382,7 +382,7 @@
     <!--
         ConnectToEIS:
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @options: Vardict with optional further information
         @fd: A file descriptor to an EIS implementation that can be passed to a
         sender libei context

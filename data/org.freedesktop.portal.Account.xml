@@ -42,7 +42,7 @@
 
         * ``id`` (``s``)
 
-          The user id.
+          The user ID.
 
         * ``name`` (``s``)
 

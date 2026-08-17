@@ -18,7 +18,7 @@
     <!--
         GetUserInformation:
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @window: Identifier for the application window, see :doc:`window-identifiers`
         @options: Vardict with optional further information
         @response: Numeric response
@@ -39,7 +39,7 @@
 
         * ``id`` (``s``)
 
-          The user id.
+          The user ID.
 
         * ``name`` (``s``)
 

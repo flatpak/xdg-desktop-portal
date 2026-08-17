@@ -79,7 +79,7 @@
         dialog showing the shortcuts and allowing users to configure the shortcuts.
         An application can only attempt to bind shortcuts of a session once.
 
-        Each element of the @shortcuts array is a tuple composed of a shortcut id,
+        Each element of the @shortcuts array is a tuple composed of a shortcut ID,
         and a vardict with the following keys:
 
         * ``description`` (``s``)
@@ -113,7 +113,7 @@
 
         Each element of the @shortcuts array returned by the
         :ref:`org.freedesktop.portal.Request::Response` signal is a tuple composed of
-        a shortcut id, and a vardict with the following keys:
+        a shortcut ID, and a vardict with the following keys:
 
         * ``description`` (``s``)
 

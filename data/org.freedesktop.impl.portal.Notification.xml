@@ -17,7 +17,7 @@
   <interface name="org.freedesktop.impl.portal.Notification">
     <!--
         AddNotification:
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @id: Application-provided ID for this notification
         @notification: Vardict with the serialized notification
 
@@ -43,7 +43,7 @@
     </method>
     <!--
         RemoveNotification:
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @id: Application-provided ID for this notification
 
         Withdraws a notification.
@@ -68,7 +68,7 @@
 
     <!--
         ActionInvoked:
-        @app_id: App id of the application
+        @app_id: App ID of the application
         @id: the application-provided ID for the notification
         @action: the name of the action
         @parameter: an array containing additional information
