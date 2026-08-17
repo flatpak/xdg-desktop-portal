@@ -48,12 +48,12 @@
     <!--
         Set:
         @table: the name of the table to use
-        @create: whether to create the table if it does not exist
+        @create: whether to create the @table if it does not exist
         @id: the resource ID to modify
         @app_permissions: map from application ID to permissions
         @data: data to associate with the resource
 
-        Writes the entry for a resource in the given table.
+        Writes the entry for a resource in the given @table.
     -->
     <method name="Set">
       <arg name="table" type="s" direction="in"/>
@@ -69,7 +69,7 @@
         @table: the name of the table to use
         @id: the resource ID to delete
 
-        Removes the entry for a resource in the given table.
+        Removes the entry for a resource in the given @table.
     -->
     <method name="Delete">
       <arg name="table" type="s" direction="in"/>
@@ -79,11 +79,11 @@
     <!--
         SetValue:
         @table: the name of the table to use
-        @create: whether to create the table if it does not exist
+        @create: whether to create the @table if it does not exist
         @id: the resource ID to modify
         @data: data to associate with the resource
 
-        Sets just the data for a resource in the given table.
+        Sets just the data for a resource in the given @table.
     -->
     <method name="SetValue">
       <arg name="table" type="s" direction="in"/>
@@ -95,13 +95,13 @@
     <!--
         SetPermission:
         @table: the name of the table to use
-        @create: whether to create the table if it does not exist
+        @create: whether to create the @table if it does not exist
         @id: the resource ID to modify
         @app: the application ID to modify
         @permissions: permissions to set
 
         Sets the permissions for an application and a resource
-        in the given table.
+        in the given @table.
     -->
     <method name="SetPermission">
       <arg name="table" type="s" direction="in"/>
@@ -118,7 +118,7 @@
         @app: the application ID to modify
 
         Removes the entry for an application and a resource
-        in the given table.
+        in the given @table.
 
         This method was added in version 2.
     -->
@@ -136,7 +136,7 @@
         @permissions: permissions to get
 
         Gets the entry for an application and a resource
-        in the given table.
+        in the given @table.
     -->
     <method name="GetPermission">
       <arg name="table" type="s" direction="in"/>
@@ -148,9 +148,9 @@
     <!--
         List:
         @table: the name of the table to use
-        @ids: IDs of all resources that are present in the table
+        @ids: IDs of all resources that are present in the @table
 
-        Returns all the resources that are present in the table.
+        Returns all the resources that are present in the @table.
     -->
     <method name="List">
       <arg name="table" type="s" direction="in"/>

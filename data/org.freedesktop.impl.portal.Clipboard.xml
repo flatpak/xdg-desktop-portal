@@ -70,7 +70,7 @@
         @fd: A UnixFD handle to the contents of the selection being written to
 
         Answer to 'SelectionTransfer' signal. Transfers the clipboard content for
-        the given serial to the method callee via a file descriptor.
+        the given @serial to the method callee via a file descriptor.
         It is the Callee that creates the file descriptor.
 
         May only be called if clipboard access was given after starting the session.

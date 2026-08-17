@@ -310,7 +310,7 @@
         @zone_set: A unique zone_set ID referring to the zone set
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
-        Set up zero or more pointer barriers. Pointer barriers are horizontal
+        Set up zero or more pointer @barriers. Pointer barriers are horizontal
         or vertical "lines" that should trigger the start of input capture when the cursor moves
         across the pointer barrier. After a successful
         org.freedesktop.portal.InputCapture.Enable() call and when the

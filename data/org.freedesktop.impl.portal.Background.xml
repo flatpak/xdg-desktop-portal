@@ -74,7 +74,7 @@
 
       Enables or disables autostart for an application.
 
-      The following flags are understood:
+      The following @flags are understood:
 
       - ``1``: Use D-Bus activation
     -->

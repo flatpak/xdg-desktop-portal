@@ -26,7 +26,7 @@
         call :ref:`org.freedesktop.portal.Request.Close` on the returned
         handle.
 
-        The flags determine what changes are inhibited:
+        The @flags determine what changes are inhibited:
 
         - ``1``: Logout
         - ``2``: User Switch

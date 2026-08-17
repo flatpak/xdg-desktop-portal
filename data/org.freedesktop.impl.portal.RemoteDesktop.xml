@@ -84,7 +84,7 @@
           - ``2``: Permissions persist until explicitly revoked
 
           If the permission for the session to persist is granted, ``restore_data``
-          will be returned in the results of the
+          will be returned in the @results of the
           #org.freedesktop.impl.portal.RemoteDesktop.Start method.
 
           This option was added in version 2 of this interface.

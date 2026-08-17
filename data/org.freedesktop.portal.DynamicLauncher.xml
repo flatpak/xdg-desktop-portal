@@ -50,7 +50,7 @@
         @token must be a token that was returned by a previous
         org.freedesktop.portal.DynamicLauncher.PrepareInstall() or
         org.freedesktop.portal.DynamicLauncher.RequestInstallToken() call.
-        The token can only be used once and is valid for up to five minutes.
+        The @token can only be used once and is valid for up to five minutes.
 
         The icon and name used for the launcher will be the ones from the previous
         org.freedesktop.portal.DynamicLauncher.PrepareInstall() or

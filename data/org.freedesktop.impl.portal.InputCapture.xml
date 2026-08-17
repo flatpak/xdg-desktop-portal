@@ -225,7 +225,7 @@
         @response: Numeric response
         @results: Vardict with the results of the call
 
-        Set up zero or more pointer barriers.
+        Set up zero or more pointer @barriers.
 
         Supported keys in the @barriers vardicts include:
 
