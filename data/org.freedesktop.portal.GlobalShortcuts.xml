@@ -141,7 +141,7 @@
 
         Lists shortcuts of a session.
 
-        If `BindShortcuts` was called for `session`, all active shortcuts for `session` are returned.
+        If `BindShortcuts` was called for @session_handle, all active shortcuts for @session_handle are returned.
         Otherwise returns the shortcuts that were successfully bound in a previous session by this application.
 
         Supported keys in the @options vardict include:

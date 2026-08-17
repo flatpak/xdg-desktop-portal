@@ -26,7 +26,7 @@
         object path @handle. To end the inhibition, call
         :ref:`org.freedesktop.impl.portal.Request.Close` on that object.
 
-        The flags determine what changes are inhibited:
+        The @flags determine what changes are inhibited:
 
         - ``1``: Logout
         - ``2``: User Switch

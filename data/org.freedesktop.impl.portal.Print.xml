@@ -66,7 +66,7 @@
           bypass the print dialog.
 
         The :ref:`org.freedesktop.portal.Print.PreparePrint` documentation has details about
-        the supported keys in settings and page-setup.
+        the supported keys in @settings and @page_setup.
     -->
     <method name="PreparePrint">
       <arg type="o" name="handle" direction="in"/>
