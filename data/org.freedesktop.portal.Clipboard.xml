@@ -155,7 +155,7 @@
         Once the caller is done handling the 'SelectionTransfer' request, they must call
         org.freedesktop.portal.Clipboard.SelectionWriteDone() with the corresponding request's serial
         and whether the request completed successfully. If the request is not handled, the caller should
-        respond by setting 'success' to 'false'.
+        respond by setting ``success`` to 'false'.
 
         Caller will only be notified if clipboard access was given after starting the session.
      -->

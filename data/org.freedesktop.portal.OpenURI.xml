@@ -55,7 +55,7 @@
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The ``activation_token`` option was introduced in version 4 of the interface.
     -->
     <method name="OpenURI">
       <arg type="s" name="parent_window" direction="in"/>
@@ -101,7 +101,7 @@
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The ``activation_token`` option was introduced in version 4 of the interface.
 
         The OpenFile method was introduced in version 2 of the OpenURI portal API.
     -->
@@ -138,7 +138,7 @@
 
           A token that can be used to activate the chosen application.
 
-          The activation_token option was introduced in version 4 of the interface.
+          The ``activation_token`` option was introduced in version 4 of the interface.
 
         The OpenDirectory method was introduced in version 3 of the OpenURI portal API.
     -->

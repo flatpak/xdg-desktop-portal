@@ -211,7 +211,7 @@
 
         Notify about a new absolute pointer motion event. The (x, y) position
         represents the new pointer position in the streams logical coordinate
-        space (see the logical_size stream property in
+        space (see the ``logical_size`` stream property in
         :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyPointerMotionAbsolute">
@@ -355,7 +355,7 @@
 
         Notify about a new touch down event. The (x, y) position
         represents the new touch point position in the streams logical
-        coordinate space (see the logical_size stream property in
+        coordinate space (see the ``logical_size`` stream property in
         :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchDown">
@@ -381,7 +381,7 @@
 
         Notify about a new touch motion event. The (x, y) position
         represents where the touch point position in the streams logical
-        coordinate space moved (see the logical_size stream property in
+        coordinate space moved (see the ``logical_size`` stream property in
         :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyTouchMotion">

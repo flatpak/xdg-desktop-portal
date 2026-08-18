@@ -54,7 +54,7 @@
 
           A token that can be used to activate the application chooser.
 
-          The activation_token option was introduced in version 2 of the interface.
+          The ``activation_token`` option was introduced in version 2 of the interface.
 
         The following results get returned via the @results vardict:
 
@@ -70,7 +70,7 @@
           Otherwise, this token may be the same as the one passed in
           @options.
 
-          The activation_token option was introduced in version 2 of the interface.
+          The ``activation_token`` option was introduced in version 2 of the interface.
     -->
     <method name="ChooseApplication">
       <arg type="o" name="handle" direction="in"/>
