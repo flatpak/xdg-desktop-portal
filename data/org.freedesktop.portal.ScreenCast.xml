@@ -107,7 +107,7 @@
           the same session again, use the new restore token sent in response
           to starting this session.
 
-          Setting a restore_token is only allowed for screen cast sessions.
+          Setting a ``restore_token`` is only allowed for screen cast sessions.
           Persistent remote desktop screen cast sessions can only be handled
           via the :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
@@ -121,7 +121,7 @@
           - ``1``: Permissions persist as long as the application is running
           - ``2``: Permissions persist until explicitly revoked
 
-          Setting persist_mode is only allowed for screen cast sessions. Persistent
+          Setting ``persist_mode`` is only allowed for screen cast sessions. Persistent
           remote desktop screen cast sessions can only be handled via the
           :ref:`org.freedesktop.portal.RemoteDesktop` interface.
 
@@ -181,10 +181,10 @@
           streams. Backends must continue to populate the node ID for
           compatibility with clients that do not support version 6.
 
-          The array will contain a single stream if 'multiple' (see
+          The array will contain a single stream if ``multiple`` (see
           org.freedesktop.portal.ScreenCast.SelectSources())
           was set to 'false', or at least one stream if
-          'multiple' was set to 'true' as part of the
+          ``multiple`` was set to 'true' as part of the
           org.freedesktop.portal.ScreenCast.SelectSources() method.
 
           Each stream contains the following properties:
@@ -222,10 +222,10 @@
             An optional identifier used to map different aspects of the
             resource this stream corresponds to.
 
-            When used in a remote desktop session, the mapping_id can be used to
+            When used in a remote desktop session, the ``mapping_id`` can be used to
             match a libei region of absolute libei devices. There may be
             multiple absolute libei devices, and each device may have multiple
-            regions, but a mapping_id will only match one of these regions per
+            regions, but a ``mapping_id`` will only match one of these regions per
             device.
 
             This property was added in version 5 of this interface.

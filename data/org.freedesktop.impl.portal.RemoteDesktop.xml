@@ -135,7 +135,7 @@
 
         * ``restore_data`` (``(suv)``)
 
-          The data to restore for a future session with a `persist_mode` other than 0.
+          The data to restore for a future session with a ``persist_mode`` other than 0.
           See the #org.freedesktop.impl.portal.RemoteDesktop.SelectDevices method for
           more details.
 
@@ -180,7 +180,7 @@
 
         Notify about a new absolute pointer motion event. The (x, y) position
         represents the new pointer position in the streams logical coordinate
-        space (see the logical_size stream property in
+        space (see the ``logical_size`` stream property in
         :ref:`org.freedesktop.portal.ScreenCast`).
     -->
     <method name="NotifyPointerMotionAbsolute">

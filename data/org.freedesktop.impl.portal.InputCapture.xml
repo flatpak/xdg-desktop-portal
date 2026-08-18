@@ -200,7 +200,7 @@
 
         * ``zone_set`` (``u``)
 
-          The zone_set ID required in
+          The ``zone_set`` ID required in
           org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
     -->
     <method name="GetZones">
@@ -245,8 +245,8 @@
 
         * ``failed_barriers`` (``au``)
 
-          An array of barrier_ids of pointer barriers that have been denied. The
-          id matches the barrier_id of the entries in the @barriers argument.
+          An array of ``barrier_ids`` of pointer barriers that have been denied. The
+          id matches the ``barrier_id`` of the entries in the @barriers argument.
     -->
     <method name="SetPointerBarriers">
       <arg type="o" name="handle" direction="in"/>
@@ -310,7 +310,7 @@
 
         * ``activation_id`` (``u``)
 
-          The same activation_id number as in the
+          The same ``activation_id`` number as in the
           #org.freedesktop.impl.portal.InputCapture::Activated signal.
 
         * ``cursor_position`` (``(dd)``)
@@ -390,16 +390,16 @@
           transport-layer. This number has no intrinsic meaning but
           is guaranteed to increase by an unspecified amount on each call.
 
-          In particular: if the compositor sends an activation_id of N as
+          In particular: if the compositor sends an ``activation_id`` of N as
           part of this request it will also set the sequence in EIS'
           start_emulating event the same value N on the EIS connection
           before the first event from a device is sent.
           This allows an application to have a synchronization point and
           attribute an event sequence to the portal interaction.
 
-          Applications must be able to handle the activation_id number wrapping
+          Applications must be able to handle the ``activation_id`` number wrapping
           around. Implementations of this portal must increase the
-          activation_id number by a sensible amount to allow for wrapping
+          ``activation_id`` number by a sensible amount to allow for wrapping
           detection.
 
         * ``cursor_position`` (``(dd)``)
@@ -447,7 +447,7 @@
 
         * ``activation_id`` (``u``)
 
-          The same activation_id as in the corresponding
+          The same ``activation_id`` as in the corresponding
           #org.freedesktop.impl.portal.InputCapture::Activated signal.
 
         * ``cursor_position`` (``(dd)``)

@@ -58,7 +58,7 @@
         * ``name`` (``s``)
 
           The name chosen by the user for the launcher (or the default if
-          the editable_name option was false).
+          the ``editable_name`` option was false).
 
         * ``icon`` (``v``)
 

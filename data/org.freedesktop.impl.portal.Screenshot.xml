@@ -40,7 +40,7 @@
 
         * ``permission_store_checked`` (``b``)
 
-          Hint whether the screenshot portal has checked the 'screenshot' permission for
+          Hint whether the screenshot portal has checked the ``screenshot`` permission for
           the requesting app. Defaults to "false".
 
           This option was added in version 2 of this interface.

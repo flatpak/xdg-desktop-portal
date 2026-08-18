@@ -117,7 +117,7 @@
 
         To capture clipboard content, you can call
         :ref:`org.freedesktop.portal.Clipboard.RequestClipboard`. When clipboard
-        access has been granted (see `clipboard_enabled` in
+        access has been granted (see ``clipboard_enabled`` in
         :ref:`org.freedesktop.portal.InputCapture.Start`), the clipboard may be
         accessed, but only when the session is active. See
         :ref:`org.freedesktop.portal.Clipboard` for more information on the
@@ -253,7 +253,7 @@
         The zones may not be continuous and may be a logical representation
         of the physical screens (e.g. a 4k screen may be represented as
         low-resolution screen instead). A set of zones is identified by a unique
-        zone_set ID.
+        ``zone_set`` ID.
 
         The name "Zone" was chosen to provide distinction with the libei
         "Region".
@@ -268,16 +268,16 @@
         that no pointer barriers can be set.
 
         Whenever the application calls GetZones, the current
-        zone_set ID is returned that references the current set of zones. To
+        ``zone_set`` ID is returned that references the current set of zones. To
         establish a pointer barrier, the application must pass this ID to
         org.freedesktop.portal.InputCapture.SetPointerBarriers(). A mismatch of
-        zone_set IDs implies the application is not using the current zone set and
+        ``zone_set`` IDs implies the application is not using the current zone set and
         pointer barriers will fail.
 
-        The zone_set ID increases by an unspecified amount with each change to
-        the set of zones. Applications must be able to handle the zone_set ID
+        The ``zone_set`` ID increases by an unspecified amount with each change to
+        the set of zones. Applications must be able to handle the ``zone_set`` ID
         wrapping around. Implementations of this portal must increase
-        the zone_set ID by a sensible amount to allow for
+        the ``zone_set`` ID by a sensible amount to allow for
         wrapping detection.
 
         The following results get returned via the :ref:`org.freedesktop.portal.Request::Response` signal:
@@ -293,7 +293,7 @@
           org.freedesktop.portal.InputCapture.SetPointerBarriers() method to refer to
           this set of zones. This ID increases by an unspecified
           amount whenever the zones change and pointer barriers can only be set up
-          if the zone_set matches the most recent returned zone_set.
+          if the ``zone_set`` matches the most recent returned ``zone_set``.
     -->
     <method name="GetZones">
       <arg type="o" name="session_handle" direction="in"/>
@@ -307,7 +307,7 @@
         @session_handle: Object path for the :ref:`org.freedesktop.portal.Session` object
         @options: Vardict with optional further information
         @barriers: An array of vardicts, each specifying one barrier
-        @zone_set: A unique zone_set ID referring to the zone set
+        @zone_set: A unique ``zone_set`` ID referring to the zone set
         @handle: Object path for the :ref:`org.freedesktop.portal.Request` object representing this call
 
         Set up zero or more pointer @barriers. Pointer barriers are horizontal
@@ -345,7 +345,7 @@
         current session and the application must call org.freedesktop.portal.InputCapture.Enable()
         after this method.
 
-        The @zone_set must be equivalent to the last returned zone_set of the
+        The @zone_set must be equivalent to the last returned ``zone_set`` of the
         org.freedesktop.portal.InputCapture.GetZones() method. A mismatch of ids
         implies the application is not using the current zone set and
         pointer barriers will fail.
@@ -376,8 +376,8 @@
 
         * ``failed_barriers`` (``au``)
 
-          An array of barrier_ids of pointer barriers that have been denied. The
-          id matches the barrier_id of the entries in the @barriers argument.
+          An array of ``barrier_ids`` of pointer barriers that have been denied. The
+          id matches the ``barrier_id`` of the entries in the @barriers argument.
     -->
     <method name="SetPointerBarriers">
       <arg type="o" name="session_handle" direction="in"/>
@@ -446,7 +446,7 @@
         nevertheless be received by the application after a call to
         org.freedesktop.portal.InputCapture.Release().
 
-        The activation_id provided in the @options vardict specifies which
+        The ``activation_id`` provided in the @options vardict specifies which
         currently ongoing input capture should be terminated. The asynchronous
         nature of this portal allows for an input capture to be Deactivated and
         a new input capture to be Activated before the client requests the
@@ -454,13 +454,13 @@
 
         A compositor should ignore a
         org.freedesktop.portal.InputCapture.Release() request for a no longer active
-        activation_id.
+        ``activation_id``.
 
         Supported keys in the @options vardict include:
 
         * ``activation_id`` (``u``)
 
-          The same activation_id number as in the
+          The same ``activation_id`` number as in the
           #org.freedesktop.portal.InputCapture::Activated signal.
 
         * ``cursor_position`` (``(dd)``)
@@ -539,16 +539,16 @@
           transport-layer. This number has no intrinsic meaning but
           is guaranteed to increase by an unspecified amount on each call.
 
-          In particular: if the compositor sends a activation_id of N as
+          In particular: if the compositor sends a ``activation_id`` of N as
           part of this request it will also set the sequence in EIS'
           start_emulating event the same value N on the EIS connection
           before the first event from a device is sent.
           This allows an application to have a synchronization point and
           attribute an event sequence to the portal interaction.
 
-          Applications must be able to handle the activation_id number
+          Applications must be able to handle the ``activation_id`` number
           wrapping around. Implementations of this portal must increase
-          the activation_id number by a sensible amount to allow for
+          the ``activation_id`` number by a sensible amount to allow for
           wrapping detection.
 
         * ``cursor_position`` (``(dd)``)
@@ -597,7 +597,7 @@
 
         * ``activation_id`` (``u``)
 
-            The same activation_id number as in the corresponding
+            The same ``activation_id`` number as in the corresponding
             #org.freedesktop.portal.InputCapture::Activated signal.
     -->
     <signal name="Deactivated">
@@ -618,20 +618,20 @@
         org.freedesktop.portal.InputCapture.SetPointerBarriers() to re-establish
         the pointer barriers.
 
-        The ZonesChanged signal includes the zone_set ID of the set of zones
+        The ZonesChanged signal includes the ``zone_set`` ID of the set of zones
         invalidated, see #org.freedesktop.portal.InputCapture.GetZones().
-        Due to the asynchronous nature of this protocol, the zone_set ID may
+        Due to the asynchronous nature of this protocol, the ``zone_set`` ID may
         identify a set of zones that the application has never (or not yet) seen.
-        Applications must be able to handle unknown zone_set IDs. In particular,
-        because the zone_set ID is guaranteed to increment, an application holding
-        a zone_set ID higher than the ID in this signal can usually simply
+        Applications must be able to handle unknown ``zone_set`` IDs. In particular,
+        because the ``zone_set`` ID is guaranteed to increment, an application holding
+        a ``zone_set`` ID higher than the ID in this signal can usually simply
         discard the signal.
 
         Supported keys in the @options vardict include:
 
         * ``zone_set`` (``u``)
 
-          The zone_set ID of the invalidated zone set as described in
+          The ``zone_set`` ID of the invalidated zone set as described in
           org.freedesktop.portal.InputCapture.GetZones()
     -->
     <signal name="ZonesChanged">
