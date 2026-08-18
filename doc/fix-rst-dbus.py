@@ -146,9 +146,14 @@ for file in inputs:
     desc_lines, found_sections = split_sections(lines, output_prefix)
     out = strip_description_heading(desc_lines)
 
+    prefix = f"{filename_prefix}-{interface_name}"
+    for section in ["properties", "methods", "signals"]:
+        fragment_path = os.path.join(output_dir, f"{prefix}.{section}.rst")
+        if section not in found_sections and not os.path.exists(fragment_path):
+            open(fragment_path, "w").close()
+
     has_includes = any(line.strip().startswith(".. include::") for line in out)
     if not has_includes:
-        prefix = f"{filename_prefix}-{interface_name}"
         for section in ["properties", "methods", "signals"]:
             if section in found_sections:
                 out.append(f"\n.. include:: {prefix}.{section}.rst\n")
