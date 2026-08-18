@@ -28,14 +28,14 @@
       decides when the trigger conditions are met. Currently, the only defined
       trigger are pointer barriers: horizontal or vertical "lines" on the screen
       that should trigger when the cursor moves across those lines.
-      See org.freedesktop.portal.InputCapture.SetPointerBarriers().
+      See :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`.
 
       There is currently no way for an application to activate immediate input
       capture.
 
       The InputCapture portal merely *manages* the logic when input should be
       captured. The transport of actual input events is delegated to a
-      transport layer, specifically libei. See org.freedesktop.portal.InputCapture.ConnectToEIS().
+      transport layer, specifically libei. See :ref:`org.freedesktop.portal.InputCapture.ConnectToEIS`.
 
       This documentation describes version 2 of this interface.
    -->
@@ -270,7 +270,7 @@
         Whenever the application calls GetZones, the current
         ``zone_set`` ID is returned that references the current set of zones. To
         establish a pointer barrier, the application must pass this ID to
-        org.freedesktop.portal.InputCapture.SetPointerBarriers(). A mismatch of
+        :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`. A mismatch of
         ``zone_set`` IDs implies the application is not using the current zone set and
         pointer barriers will fail.
 
@@ -290,7 +290,7 @@
         * ``zone_set`` (``u``)
 
           A unique ID to be used in the
-          org.freedesktop.portal.InputCapture.SetPointerBarriers() method to refer to
+          :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers` method to refer to
           this set of zones. This ID increases by an unspecified
           amount whenever the zones change and pointer barriers can only be set up
           if the ``zone_set`` matches the most recent returned ``zone_set``.
@@ -313,7 +313,7 @@
         Set up zero or more pointer @barriers. Pointer barriers are horizontal
         or vertical "lines" that should trigger the start of input capture when the cursor moves
         across the pointer barrier. After a successful
-        org.freedesktop.portal.InputCapture.Enable() call and when the
+        :ref:`org.freedesktop.portal.InputCapture.Enable` call and when the
         compositor has deemed the pointer barrier to be crossed, input events
         (from compositor-determined input devices) are sent to the application
         via the transport layer.
@@ -342,11 +342,11 @@
 
         A zero-sized array of pointer barriers removes all existing pointer barriers
         for this session. Setting pointer barriers immediately suspends the
-        current session and the application must call org.freedesktop.portal.InputCapture.Enable()
+        current session and the application must call :ref:`org.freedesktop.portal.InputCapture.Enable`
         after this method.
 
         The @zone_set must be equivalent to the last returned ``zone_set`` of the
-        org.freedesktop.portal.InputCapture.GetZones() method. A mismatch of ids
+        :ref:`org.freedesktop.portal.InputCapture.GetZones` method. A mismatch of ids
         implies the application is not using the current zone set and
         pointer barriers will fail.
 
@@ -421,10 +421,10 @@
         #org.freedesktop.portal.InputCapture::Deactivated
         and/or #org.freedesktop.portal.InputCapture::Disabled signals may
         nevertheless be received by the application after a call to
-        org.freedesktop.portal.InputCapture.Disable().
+        :ref:`org.freedesktop.portal.InputCapture.Disable`.
 
         Input events will not be captured until a subsequent
-        org.freedesktop.portal.InputCapture.Enable() call.
+        :ref:`org.freedesktop.portal.InputCapture.Enable` call.
     -->
     <method name="Disable">
       <arg type="o" name="session_handle" direction="in"/>
@@ -444,7 +444,7 @@
         #org.freedesktop.portal.InputCapture::Deactivated
         signal may
         nevertheless be received by the application after a call to
-        org.freedesktop.portal.InputCapture.Release().
+        :ref:`org.freedesktop.portal.InputCapture.Release`.
 
         The ``activation_id`` provided in the @options vardict specifies which
         currently ongoing input capture should be terminated. The asynchronous
@@ -453,7 +453,7 @@
         Release for the previous input capture.
 
         A compositor should ignore a
-        org.freedesktop.portal.InputCapture.Release() request for a no longer active
+        :ref:`org.freedesktop.portal.InputCapture.Release` request for a no longer active
         ``activation_id``.
 
         Supported keys in the @options vardict include:
@@ -486,10 +486,10 @@
 
         Set up the connection to an active EIS implementation. Once input capturing starts,
         input events are sent via the EI protocol between the compositor and the application.
-        This call must be invoked before org.freedesktop.portal.InputCapture.Enable().
+        This call must be invoked before :ref:`org.freedesktop.portal.InputCapture.Enable`.
 
         A session only needs to set this up once, the EIS implementation is not affected by
-        calls to org.freedesktop.portal.InputCapture.Disable() and org.freedesktop.portal.InputCapture.Enable() -
+        calls to :ref:`org.freedesktop.portal.InputCapture.Disable` and :ref:`org.freedesktop.portal.InputCapture.Enable` -
         the same connection can be re-used until the session is closed.
     -->
     <method name="ConnectToEIS">
@@ -511,7 +511,7 @@
         #org.freedesktop.portal.InputCapture::Deactivated signal is emitted
         before this signal.
 
-        Applications must call org.freedesktop.portal.InputCapture.Enable() to
+        Applications must call :ref:`org.freedesktop.portal.InputCapture.Enable` to
         request future input capturing for this session.
     -->
     <signal name="Disabled">
@@ -529,7 +529,7 @@
         are about to be sent to the application.
 
         This signal is only emitted after a prior call
-        to org.freedesktop.portal.InputCapture.Enable().
+        to :ref:`org.freedesktop.portal.InputCapture.Enable`.
 
         Supported keys in the @options vardict include:
 
@@ -568,7 +568,7 @@
 
           The barrier ID of the barrier that triggered. If the value is
           nonzero, it matches the barrier ID as specified in
-          org.freedesktop.portal.InputCapture.SetPointerBarriers().
+          :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers`.
 
           If the ID is zero, the pointer barrier could not be determined.
           If the ID is missing, the input capture was not triggered by a
@@ -591,7 +591,7 @@
 
         The Deactivated signal is emitted when input capture stopped and input events
         are no longer sent to the application. To prevent future input
-        capture, an application must call org.freedesktop.portal.InputCapture.Disable().
+        capture, an application must call :ref:`org.freedesktop.portal.InputCapture.Disable`.
 
         Supported keys in the @options vardict include:
 
@@ -613,9 +613,9 @@
 
         The ZonesChanged signal is emitted when the set of zones
         available **to this session** change. An application should immediately
-        call org.freedesktop.portal.InputCapture.GetZones() to update its state
+        call :ref:`org.freedesktop.portal.InputCapture.GetZones` to update its state
         of the zones followed by
-        org.freedesktop.portal.InputCapture.SetPointerBarriers() to re-establish
+        :ref:`org.freedesktop.portal.InputCapture.SetPointerBarriers` to re-establish
         the pointer barriers.
 
         The ZonesChanged signal includes the ``zone_set`` ID of the set of zones
@@ -632,7 +632,7 @@
         * ``zone_set`` (``u``)
 
           The ``zone_set`` ID of the invalidated zone set as described in
-          org.freedesktop.portal.InputCapture.GetZones()
+          :ref:`org.freedesktop.portal.InputCapture.GetZones`
     -->
     <signal name="ZonesChanged">
       <arg type="o" name="session_handle" direction="out"/>

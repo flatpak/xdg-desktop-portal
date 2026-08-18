@@ -16,7 +16,7 @@
       the method call.
 
       The portal can abort the interaction by calling
-      org.freedesktop.impl.portal.Request.Close() on the Request object.
+      :ref:`org.freedesktop.impl.portal.Request.Close` on the Request object.
   -->
   <interface name="org.freedesktop.impl.portal.Request">
 

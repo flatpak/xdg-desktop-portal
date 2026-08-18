@@ -15,7 +15,7 @@
       object, which will stay alive for the duration of the session.
 
       The portal can abort the interaction by calling
-      org.freedesktop.impl.portal.Session.Close() on the Session object.
+      :ref:`org.freedesktop.impl.portal.Session.Close` on the Session object.
   -->
   <interface name="org.freedesktop.impl.portal.Session">
 

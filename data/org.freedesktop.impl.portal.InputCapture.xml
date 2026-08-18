@@ -201,7 +201,7 @@
         * ``zone_set`` (``u``)
 
           The ``zone_set`` ID required in
-          org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+          :ref:`org.freedesktop.impl.portal.InputCapture.SetPointerBarriers`.
     -->
     <method name="GetZones">
       <arg type="o" name="handle" direction="in"/>
@@ -380,7 +380,7 @@
         are about to be sent to the application.
 
         This signal is only emitted after a prior call
-        to org.freedesktop.impl.portal.InputCapture.Enable().
+        to :ref:`org.freedesktop.impl.portal.InputCapture.Enable`.
 
         Supported keys in the @options vardict include:
 
@@ -418,7 +418,7 @@
 
           The barrier ID of the barrier that triggered. If the value is
           nonzero, it matches the barrier ID as specified in
-          org.freedesktop.impl.portal.InputCapture.SetPointerBarriers().
+          :ref:`org.freedesktop.impl.portal.InputCapture.SetPointerBarriers`.
 
           If the ID is zero, the pointer barrier could not be determined.
           If the ID is missing, the input capture was not triggered by a

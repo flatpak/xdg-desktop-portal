@@ -62,7 +62,7 @@
 
         * ``token`` (``u``)
 
-          Token that can be passed to a subsequent org.freedesktop.impl.portal.Print.Print() call to
+          Token that can be passed to a subsequent :ref:`org.freedesktop.impl.portal.Print.Print` call to
           bypass the print dialog.
 
         The :ref:`org.freedesktop.portal.Print.PreparePrint` documentation has details about
@@ -114,7 +114,7 @@
 
         * ``token`` (``u``)
 
-          Token that was returned by a previous org.freedesktop.impl.portal.Print.PreparePrint() call.
+          Token that was returned by a previous :ref:`org.freedesktop.impl.portal.Print.PreparePrint` call.
 
         * ``supported_output_file_formats`` (``as``)
 

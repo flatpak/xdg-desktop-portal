@@ -152,13 +152,13 @@
         * ``readable`` (``b``)
 
           Whether the device can be opened for reading with
-          org.freedesktop.portal.Usb.AcquireDevices(). If not present, then
+          :ref:`org.freedesktop.portal.Usb.AcquireDevices`. If not present, then
           it should be assumed to be false.
 
         * ``writable`` (``b``)
 
           Whether the device can be opened for writing with
-          org.freedesktop.portal.Usb.AcquireDevices(). If not present, then
+          :ref:`org.freedesktop.portal.Usb.AcquireDevices`. If not present, then
           it should be assumed to be false.
 
         * ``device-file`` (``s``)
@@ -226,7 +226,7 @@
         @finished: Whether all device results were reported
 
         Retrieves the file descriptors of the devices requested during
-        org.freedesktop.portal.Usb.AcquireDevices(). The file
+        :ref:`org.freedesktop.portal.Usb.AcquireDevices`. The file
         descriptors remain usable until the underlying device is
         removed, they are released with `ReleaseDevices`, the D-Bus
         connection is closed, or the portal revokes the file
@@ -234,12 +234,12 @@
         not needed anymore should be passed to `ReleaseDevices`.
 
         If not all devices could be sent, @finished will be false and
-        org.freedesktop.portal.Usb.FinishAcquireDevices must be called again
+        :ref:`org.freedesktop.portal.Usb.FinishAcquireDevices` must be called again
         until @finished is true, before calling
-        org.freedesktop.portal.Usb.AcquireDevices again.
+        :ref:`org.freedesktop.portal.Usb.AcquireDevices` again.
 
         This method can only be called once for a given handle, and only
-        after calling org.freedesktop.portal.Usb.AcquireDevices().
+        after calling :ref:`org.freedesktop.portal.Usb.AcquireDevices`.
 
         Each element of the @results array contains the device ID, and
         a vardict with the following keys:
@@ -296,7 +296,7 @@
 
         The DeviceEvents signal is emitted when one or more USB devices have
         been added, changed, or removed. This signal is only emitted for active
-        sessions created with org.freedesktop.portal.Usb.CreateSession().
+        sessions created with :ref:`org.freedesktop.portal.Usb.CreateSession`.
 
         Each element of the @events array is composed of the following fields:
 
@@ -311,7 +311,7 @@
         * ``device`` (``a{sv}``)
 
           Device properties attached to the ID. See
-          org.freedesktop.portal.Usb.EnumerateDevices() for a list of all
+          :ref:`org.freedesktop.portal.Usb.EnumerateDevices` for a list of all
           the properties that may be present in the vardict.
     -->
     <signal name="DeviceEvents">
