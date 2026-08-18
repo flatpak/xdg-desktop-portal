@@ -51,7 +51,7 @@
 
         * ``attachments`` (``as``)
 
-          The uris for files to attach.
+          The URIs for files to attach.
 
         * ``activation_token`` (``s``)
 

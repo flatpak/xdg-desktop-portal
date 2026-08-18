@@ -43,7 +43,7 @@
 
         * ``uri`` (``s``)
 
-          The uri to choose an application for.
+          The URI to choose an application for.
 
         * ``filename`` (``s``)
 

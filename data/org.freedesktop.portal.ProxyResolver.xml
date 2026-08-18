@@ -20,10 +20,10 @@
     <!--
         Lookup:
         @uri: A URI, as described in RFC 3986, of the destination to connect to
-        @proxies: List of proxy uris
+        @proxies: List of proxy URIs
 
         Looks up which proxy to use to connect to @uri. The returned
-        proxy uri are of the form ``protocol://[user[:password] AT host:port``.
+        proxy URI are of the form ``protocol://[user[:password] AT host:port``.
         The protocol can be ``http``, ``rtsp``, ``socks`` or another proxying
         protocol. ``direct://`` is used when no proxy is needed.
     -->

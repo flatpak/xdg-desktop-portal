@@ -72,7 +72,7 @@
 
         * ``uris`` (``as``)
 
-          An array of strings containing the uris of the selected files. All
+          An array of strings containing the URIs of the selected files. All
           URIs must have the ``file://`` scheme.
 
         * ``choices`` (``a(ss)``)
@@ -153,7 +153,7 @@
 
         * ``uris`` (``as``)
 
-          An array of strings containing the uri of the selected file. It must
+          An array of strings containing the URI of the selected file. It must
           have exactly one element. All URIs must have the "file://" scheme.
 
         * ``choices`` (``a(ss)``)
@@ -223,7 +223,7 @@
 
         * ``uris`` (``as``)
 
-          An array of strings containing the uri corresponding to
+          An array of strings containing the URI corresponding to
           each file given by @options, in the same order. Note that
           the file names may have changed, for example if a file
           with the same name in the selected folder already exists.
