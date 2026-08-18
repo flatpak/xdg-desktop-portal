@@ -5,9 +5,10 @@
 
 import os
 import re
+import subprocess
 from enum import Flag
 from pathlib import Path
-from typing import Any
+from typing import Any, AnyStr
 
 import dbus
 import pytest
@@ -45,7 +46,7 @@ SCREENSHOT_TARGETS_ALL = (
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     image = Path(os.environ["XDG_DATA_HOME"]) / "screenshot-image.png"
     image.write_text("image contents")
     SCREENSHOT_DATA["uri"] = f"file://{image.absolute().as_posix()}"
@@ -60,7 +61,7 @@ def required_templates():
 
 
 class TestScreenshot:
-    def set_permission(self, dbus_con, appid, permission):
+    def set_permission(self, dbus_con: dbus.Bus, appid: str, permission: str) -> None:
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
         perm_store_intf.SetPermission(
             "screenshot",
@@ -70,10 +71,10 @@ class TestScreenshot:
             [permission],
         )
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Screenshot", 3)
 
-    def test_available_targets(self, portals, dbus_con):
+    def test_available_targets(self, portals: Any, dbus_con: dbus.Bus) -> None:
         properties_intf = dbus.Interface(
             xdp.get_xdp_dbus_object(dbus_con), "org.freedesktop.DBus.Properties"
         )
@@ -85,8 +86,13 @@ class TestScreenshot:
 
     @pytest.mark.parametrize("target", SCREENSHOT_TARGETS_GOOD)
     def test_screenshot_target(
-        self, xdg_document_portal, portals, dbus_con, xdp_app_info, target
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        target: int,
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -112,7 +118,9 @@ class TestScreenshot:
         assert args[3]["target"] == target
 
     @pytest.mark.parametrize("target", SCREENSHOT_TARGETS_BAD)
-    def test_screenshot_invalid_target(self, portals, dbus_con, target):
+    def test_screenshot_invalid_target(
+        self, portals: Any, dbus_con: dbus.Bus, target: int
+    ) -> None:
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -141,7 +149,9 @@ class TestScreenshot:
             },
         ),
     )
-    def test_screenshot_unavailable_target(self, portals, dbus_con):
+    def test_screenshot_unavailable_target(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -171,8 +181,11 @@ class TestScreenshot:
         ),
     )
     def test_screenshot_options_forwarded_to_v2_backend(
-        self, xdg_document_portal, portals, dbus_con
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+    ) -> None:
         xdp.check_version(dbus_con, "Screenshot", 2)
 
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
@@ -201,8 +214,14 @@ class TestScreenshot:
     @pytest.mark.parametrize("modal", [True, False])
     @pytest.mark.parametrize("interactive", [True, False])
     def test_screenshot_basic(
-        self, xdg_document_portal, portals, dbus_con, xdp_app_info, modal, interactive
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        modal: bool,
+        interactive: bool,
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -247,7 +266,7 @@ class TestScreenshot:
     @pytest.mark.parametrize(
         "template_params", ({"screenshot": {"expect-close": True}},)
     )
-    def test_screenshot_close(self, portals, dbus_con):
+    def test_screenshot_close(self, portals: Any, dbus_con: dbus.Bus) -> None:
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -265,7 +284,9 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_screenshot_cancel(self, portals, dbus_con, xdp_app_info):
+    def test_screenshot_cancel(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -298,8 +319,13 @@ class TestScreenshot:
 
     @pytest.mark.parametrize("permission", ["", "yes", "no", "ask"])
     def test_screenshot_permissions(
-        self, xdg_document_portal, portals, dbus_con, xdp_app_info, permission
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        permission: str,
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -346,7 +372,9 @@ class TestScreenshot:
         else:
             assert len(method_calls_2) == len(method_calls)
 
-    def test_pick_color_basic(self, portals, dbus_con, xdp_app_info):
+    def test_pick_color_basic(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -373,7 +401,7 @@ class TestScreenshot:
     @pytest.mark.parametrize(
         "template_params", ({"screenshot": {"expect-close": True}},)
     )
-    def test_pick_color_close(self, portals, dbus_con):
+    def test_pick_color_close(self, portals: Any, dbus_con: dbus.Bus) -> None:
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
 
         request = xdp.Request(dbus_con, screenshot_intf)
@@ -389,7 +417,9 @@ class TestScreenshot:
         assert request.closed
 
     @pytest.mark.parametrize("template_params", ({"screenshot": {"response": 1}},))
-    def test_pick_color_cancel(self, portals, dbus_con, xdp_app_info):
+    def test_pick_color_cancel(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         screenshot_intf = xdp.get_portal_iface(dbus_con, "Screenshot")
         mock_intf = xdp.get_mock_iface(dbus_con)
