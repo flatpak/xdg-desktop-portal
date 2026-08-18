@@ -15,8 +15,8 @@
 
       To use this portal, applications have to create a session under which its
       actions will be collected. Then shortcuts can be bound (see
-      org.freedesktop.portal.GlobalShortcuts.BindShortcuts), and listed (see
-      org.freedesktop.portal.GlobalShortcuts.ListShortcuts).
+      :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts`), and listed (see
+      :ref:`org.freedesktop.portal.GlobalShortcuts.ListShortcuts`).
 
       All global shortcuts are bound to a session, and all sessions are bound to
       the application that created them.
@@ -160,7 +160,7 @@
           A list of shortcuts.
 
           See the :ref:`org.freedesktop.portal.Request::Response` signal of the
-          org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for
+          :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for
           the list of supported properties of shortcuts.
     -->
     <method name="ListShortcuts">
@@ -244,12 +244,12 @@
     <!--
         ShortcutsChanged:
         @session_handle: Session that requested the shortcut
-        @shortcuts: The different shortcuts that have been registered. See org.freedesktop.portal.GlobalShortcuts.
+        @shortcuts: The different shortcuts that have been registered. See :ref:`org.freedesktop.portal.GlobalShortcuts`.
 
         Indicates that the information associated with some of the shortcuts has changed.
 
         See the :ref:`org.freedesktop.portal.Request::Response` signal of the
-        org.freedesktop.portal.GlobalShortcuts.BindShortcuts() method for the
+        :ref:`org.freedesktop.portal.GlobalShortcuts.BindShortcuts` method for the
         list of supported properties of shortcuts.
     -->
     <signal name="ShortcutsChanged">

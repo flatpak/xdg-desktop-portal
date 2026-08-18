@@ -69,8 +69,9 @@
         @serial: The serial of the request where this answer is directed towards
         @fd: A UnixFD handle to the contents of the selection being written to
 
-        Answer to 'SelectionTransfer' signal. Transfers the clipboard content for
-        the given @serial to the method callee via a file descriptor.
+        Answer to #org.freedesktop.impl.portal.Clipboard::SelectionTransfer
+        signal. Transfers the clipboard content for the given @serial to
+        the method callee via a file descriptor.
         It is the Callee that creates the file descriptor.
 
         May only be called if clipboard access was given after starting the session.
@@ -150,8 +151,11 @@
         callee provides a serial to track the request, which any 
         :ref:`org.freedesktop.portal.Clipboard.SelectionWrite` responses must use.
 
-        Once the caller is done handling the 'SelectionTransfer' request, they must call
-        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone` with the corresponding request's serial
+        Once the caller is done handling the
+        #org.freedesktop.impl.portal.Clipboard::SelectionTransfer
+        request, they must call
+        :ref:`org.freedesktop.portal.Clipboard.SelectionWriteDone`
+        with the corresponding request's serial
         and whether the request completed successfully. If the request is not handled, the caller should
         respond by setting ``success`` to 'false'.
 

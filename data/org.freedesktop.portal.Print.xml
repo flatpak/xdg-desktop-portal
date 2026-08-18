@@ -13,8 +13,8 @@
 
       Due to the way in which printing requires bi-directional communication,
       using this portal will often require applications to make multiple requests.
-      First, use org.freedesktop.portal.Print.PreparePrint() to obtain print settings,
-      use them to format your output, then use org.freedesktop.portal.Print.Print()
+      First, use :ref:`org.freedesktop.portal.Print.PreparePrint` to obtain print settings,
+      use them to format your output, then use :ref:`org.freedesktop.portal.Print.Print`
       to print the formatted document. It is expected that high-level toolkit
       APIs such as GtkPrintOperation will hide most of this complexity.
 
@@ -246,7 +246,7 @@
 
         * ``token`` (``u``)
 
-          Token that can be passed to a subsequent org.freedesktop.portal.Print.Print() call to
+          Token that can be passed to a subsequent :ref:`org.freedesktop.portal.Print.Print` call to
           bypass the print dialog.
     -->
     <method name="PreparePrint">
@@ -296,7 +296,7 @@
 
         * ``token`` (``u``)
 
-          Token that was returned by a previous org.freedesktop.portal.Print.PreparePrint() call.
+          Token that was returned by a previous :ref:`org.freedesktop.portal.Print.PreparePrint` call.
 
         * ``supported_output_file_formats`` (``as``)
 

@@ -25,7 +25,7 @@
         Asks to set a given picture as the desktop background picture.
 
         Note that file: URIs are explicitly not supported here. To use a local image file as
-        background, use the org.freedesktop.portal.Wallpaper.SetWallpaperFile() method.
+        background, use the :ref:`org.freedesktop.portal.Wallpaper.SetWallpaperFile` method.
 
         Supported keys in the @options vardict include:
 

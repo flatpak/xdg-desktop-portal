@@ -78,7 +78,7 @@
 
         When the session state changes to 'Query End', clients with active monitoring
         sessions are expected to respond by calling
-        org.freedesktop.impl.portal.Inhibit.QueryEndResponse() within a second
+        :ref:`org.freedesktop.impl.portal.Inhibit.QueryEndResponse` within a second
         of receiving the StateChanged signal.
 
         The following information may get returned in the @state vardict:

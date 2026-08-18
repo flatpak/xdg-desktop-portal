@@ -20,11 +20,11 @@
 
       Individual files will appear at ``/run/user/$UID/doc/$DOC_ID/filename``,
       where $DOC_ID is the ID of the file in the document store. It is
-      returned by the org.freedesktop.portal.Documents.Add() and
-      org.freedesktop.portal.Documents.AddNamed() calls.
+      returned by the :ref:`org.freedesktop.portal.Documents.Add` and
+      :ref:`org.freedesktop.portal.Documents.AddNamed` calls.
 
       The permissions that the application has for a document store entry
-      (see org.freedesktop.portal.Documents.GrantPermissions()) are reflected
+      (see :ref:`org.freedesktop.portal.Documents.GrantPermissions`) are reflected
       in the POSIX mode bits in the fuse filesystem.
 
       The D-Bus interface for the document portal is available under the
@@ -105,7 +105,7 @@
         contain an empty string.
 
         Additionally, if @app_id is specified, it will be given the permissions
-        listed in org.freedesktop.portal.Documents.GrantPermissions().
+        listed in :ref:`org.freedesktop.portal.Documents.GrantPermissions`.
 
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the
@@ -145,7 +145,7 @@
         contain an empty string.
 
         Additionally, if @app_id is specified, it will be given the permissions
-        listed in org.freedesktop.portal.Documents.GrantPermissions().
+        listed in :ref:`org.freedesktop.portal.Documents.GrantPermissions`.
 
         The method also returns some extra info that can be used to avoid
         multiple roundtrips. For now it only contains as "mountpoint", the

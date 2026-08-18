@@ -93,7 +93,7 @@
 
           If the permission for the session to persist is granted,
           "persist_mode" will be returned in the @results of the
-          org.freedesktop.impl.portal.ScreenCast.Start() method.
+          :ref:`org.freedesktop.impl.portal.ScreenCast.Start` method.
 
           This option was added in version 4 of this interface.
 

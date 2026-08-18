@@ -26,7 +26,7 @@
         Asks to open a URI.
 
         Note that ``file://`` URIs are explicitly not supported by this method.
-        To request opening local files, use org.freedesktop.portal.OpenURI.OpenFile().
+        To request opening local files, use :ref:`org.freedesktop.portal.OpenURI.OpenFile`.
 
         Supported keys in the @options vardict include:
 

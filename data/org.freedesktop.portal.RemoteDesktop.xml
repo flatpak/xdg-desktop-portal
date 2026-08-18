@@ -168,7 +168,7 @@
 
           The restore token. This token is a single use token that can later
           be used to restore a session. See
-          org.freedesktop.portal.RemoteDesktop.SelectDevices() for details.
+          :ref:`org.freedesktop.portal.RemoteDesktop.SelectDevices` for details.
 
           This response option was added in version 2 of this interface.
 
@@ -425,7 +425,7 @@
         This method may only be called once per session, where the EIS
         implementation disconnects the session should be closed.
 
-        This method must be called after org.freedesktop.portal.RemoteDesktop.Start()
+        This method must be called after :ref:`org.freedesktop.portal.RemoteDesktop.Start`
 
         Once an EIS connection is established, input events must be sent exclusively via
         the EIS connection. Any events submitted via NotifyPointerMotion,

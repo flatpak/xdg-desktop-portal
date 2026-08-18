@@ -28,7 +28,7 @@
           more information about the @handle.
 
         Following the :ref:`org.freedesktop.portal.Request::Response` signal, if
-        granted, org.freedesktop.portal.Camera.OpenPipeWireRemote() can be used to
+        granted, :ref:`org.freedesktop.portal.Camera.OpenPipeWireRemote` can be used to
         open a PipeWire remote.
     -->
     <method name="AccessCamera">

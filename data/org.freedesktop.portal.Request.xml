@@ -19,7 +19,7 @@
       Request object.
 
       The application can abort the interaction by calling
-      org.freedesktop.portal.Request.Close() on the Request object.
+      :ref:`org.freedesktop.portal.Request.Close` on the Request object.
 
       Since version 0.9 of xdg-desktop-portal, the handle will be of the form
 
