@@ -1,6 +1,8 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 # SPDX-FileCopyrightText: Copyright © the xdg-desktop-portal contributors
 
+from typing import Any
+
 import dbus
 import pytest
 
@@ -16,7 +18,7 @@ Type=Application
 
 
 @pytest.fixture
-def xdg_data_home_files():
+def xdg_data_home_files() -> dict[str, bytes]:
     return {
         "applications/org.example.CorrectAppId.desktop": CORRECT_APP_ID_DESKTOP,
     }
@@ -28,12 +30,12 @@ def xdp_app_info() -> xdp.AppInfo:
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"remotedesktop": {}}
 
 
 class TestRegistry:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         documents = dbus_con.get_object(
             "org.freedesktop.portal.Desktop",
             "/org/freedesktop/portal/desktop",
@@ -49,7 +51,7 @@ class TestRegistry:
         )
         assert int(portal_version) == 1
 
-    def create_dummy_session(self, dbus_con):
+    def create_dummy_session(self, dbus_con: dbus.Bus) -> xdp.Session:
         remotedesktop_intf = xdp.get_portal_iface(dbus_con, "RemoteDesktop")
         request = xdp.Request(dbus_con, remotedesktop_intf)
 
@@ -69,7 +71,9 @@ class TestRegistry:
 
         return xdp.Session.from_response(dbus_con, response)
 
-    def test_registerless(self, portals, dbus_con, xdp_app_info):
+    def test_registerless(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -80,7 +84,7 @@ class TestRegistry:
         app_id = mock_intf.GetSessionAppId(session.handle)
         assert app_id == expected_app_id
 
-    def test_register(self, portals, dbus_con):
+    def test_register(self, portals: Any, dbus_con: dbus.Bus) -> None:
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -92,7 +96,9 @@ class TestRegistry:
         app_id = mock_intf.GetSessionAppId(session.handle)
         assert app_id == expected_app_id
 
-    def test_late_register(self, portals, dbus_con, xdp_app_info):
+    def test_late_register(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -114,7 +120,9 @@ class TestRegistry:
         new_app_id = mock_intf.GetSessionAppId(new_session.handle)
         assert new_app_id == expected_app_id
 
-    def test_multiple_connections(self, portals, dbus_con, xdp_app_info):
+    def test_multiple_connections(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -145,7 +153,7 @@ class TestRegistry:
         assert app_id3 == expected_app_id
         dbus_con3.close()
 
-    def test_no_reregister(self, portals, dbus_con):
+    def test_no_reregister(self, portals: Any, dbus_con: dbus.Bus) -> None:
         registry_intf = xdp.get_portal_iface(dbus_con, "Registry", domain="host")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
