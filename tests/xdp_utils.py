@@ -30,6 +30,10 @@ _counter = count()
 ASV = dict[str, Any]
 
 
+type RequiredTemplates = dict[str, dict[str, Any]]
+type TemplateParams = RequiredTemplates
+
+
 def init_logger(name: str) -> logging.Logger:
     """
     Common logging setup for tests. Use as:
@@ -69,7 +73,7 @@ def is_valgrind() -> bool:
     return os.getenv("XDP_TEST_VALGRIND") is not None
 
 
-def check_program_success(cmd) -> bool:
+def check_program_success(cmd: str) -> bool:
     proc = subprocess.Popen(
         cmd, stdout=None, stderr=None, shell=True, universal_newlines=True
     )
@@ -77,13 +81,13 @@ def check_program_success(cmd) -> bool:
     return proc.returncode == 0
 
 
-def uri_same_file(uri1, uri2):
+def uri_same_file(uri1: str, uri2: str) -> bool:
     orig = Path(unquote(urlparse(uri1).path))
     path = Path(unquote(urlparse(uri2).path))
     return orig.read_text() == path.read_text()
 
 
-def uris_same_files(uris, uris_other):
+def uris_same_files(uris: str, uris_other: str) -> bool:
     return all(
         uri_same_file(uri, uri_other) for uri, uri_other in zip(uris, uris_other)
     )
@@ -111,7 +115,7 @@ def ensure_fuse_supported() -> None:
         raise FuseNotSupportedException("no /etc/mtab")
 
 
-def wait(ms: int):
+def wait(ms: int) -> None:
     """
     Waits for the specified amount of milliseconds.
     """
@@ -120,7 +124,7 @@ def wait(ms: int):
     mainloop.run()
 
 
-def wait_for(fn: Callable[[], bool]):
+def wait_for(fn: Callable[[], bool]) -> None:
     """
     Waits and dispatches to mainloop until the function fn returns true. This is
     useful in combination with a lambda which captures a variable:
@@ -223,7 +227,7 @@ def get_xdp_dbus_object(bus: dbus.Bus) -> dbus.proxies.ProxyObject:
     return obj
 
 
-def check_version(bus: dbus.Bus, portal_name: str, expected_version: int):
+def check_version(bus: dbus.Bus, portal_name: str, expected_version: int) -> None:
     """
     Checks that the portal_name portal version is equal to expected_version.
     """
@@ -259,10 +263,10 @@ class AppInfo:
     app_id: str
     desktop_file: str | None
 
-    def __init__(self):
-        self._env = {}
+    def __init__(self) -> None:
+        self._env: dict[str, str] = {}
 
-    def get_xdp_executable_env(self):
+    def get_xdp_executable_env(self) -> dict[str, str]:
         return self._env
 
     def gapp_info(self) -> GioUnix.DesktopAppInfo:
@@ -280,7 +284,7 @@ class AppInfoHost(AppInfo):
     desktop_file: str | None = None
     desktop_entry: bytes | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.desktop_file:
             self.desktop_file = f"{self.app_id}.desktop"
 
@@ -289,7 +293,7 @@ class AppInfoHost(AppInfo):
             "XDG_DESKTOP_PORTAL_TEST_HOST_APPID": self.app_id,
         }
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         assert self.desktop_file
 
         if self.desktop_entry:
@@ -306,7 +310,7 @@ class AppInfoFlatpak(AppInfo):
     usb_queries: str | None = None
     metadata: bytes | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         if not self.desktop_file:
             self.desktop_file = f"{self.app_id}.desktop"
 
@@ -353,7 +357,7 @@ enumerable-devices={self.usb_queries}
 """
             self.metadata += metadata_usb_str.encode("utf8")
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         assert self.desktop_file
         assert self.desktop_entry
         assert self.metadata
@@ -380,7 +384,7 @@ class AppInfoSnap(AppInfo):
     app_name: str = "test"
     metadata: bytes | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.app_id = f"snap.{self.snap_name}"
         self.desktop_file = f"{self.snap_name}_{self.app_name}.desktop"
         self._env = {
@@ -409,7 +413,7 @@ DesktopFile={self.desktop_file}
 """
             self.metadata = metadata_str.encode("UTF-8")
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         assert self.desktop_file
         assert self.desktop_entry
         assert self.metadata
@@ -434,7 +438,7 @@ class AppInfoLinyaps(AppInfo):
     instance_id: str | None = None
     metadata: bytes | None = None
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.desktop_file = f"{self.app_id}.desktop"
         self._env = {
             "XDG_DESKTOP_PORTAL_TEST_APP_INFO_KIND": "linyaps",
@@ -470,7 +474,7 @@ Network=shared
 """
             self.metadata = metadata_str.encode("utf8")
 
-    def _initialize(self):
+    def _initialize(self) -> None:
         assert self.desktop_file
         assert self.desktop_entry
         assert self.metadata
@@ -509,7 +513,7 @@ class Closable:
     method.
     """
 
-    def __init__(self, bus: dbus.Bus, objpath: str):
+    def __init__(self, bus: dbus.Bus, objpath: str) -> None:
         self.objpath = objpath
         # GLib makes assertions in callbacks impossible, so we wrap all
         # callbacks into a try: except and store the error on the request to
@@ -541,7 +545,7 @@ class Closable:
     def close(self) -> None:
         signal_match = None
 
-        def cb_impl_closed_by_portal(handle) -> None:
+        def cb_impl_closed_by_portal(handle: str) -> None:
             if handle == self.objpath:
                 logger.debug(f"Impl{self._closable} {self.objpath} was closed")
                 signal_match.remove()  # type: ignore
@@ -561,7 +565,7 @@ class Closable:
         logger.debug(f"Closing {self._closable} {self.objpath}")
         self._closable_interface.Close()
 
-    def schedule_close(self, timeout_ms=300):
+    def schedule_close(self, timeout_ms: int = 300) -> None:
         """
         Schedule an automatic Close() on the given timeout in milliseconds.
         """
@@ -582,8 +586,8 @@ class Request(Closable):
     instantiate a new Request object.
     """
 
-    def __init__(self, bus: dbus.Bus, interface: dbus.Interface):
-        def sanitize(name):
+    def __init__(self, bus: dbus.Bus, interface: dbus.Interface) -> None:
+        def sanitize(name: str) -> str:
             return name.lstrip(":").replace(".", "_")
 
         sender_token = sanitize(bus.get_unique_name())
@@ -624,7 +628,7 @@ class Request(Closable):
         """
         return dbus.String(self._handle_token, variant_level=1)
 
-    def call(self, methodname: str, **kwargs) -> Response | None:
+    def call(self, methodname: str, **kwargs: Any) -> Response | None:
         """
         Semi-synchronously call method ``methodname`` on the interface given
         in the Request's constructor. The kwargs must be specified in the
@@ -670,7 +674,7 @@ class Request(Closable):
         # Handle the normal method reply which returns is the Request object
         # path. We don't exit the mainloop here, we're waiting for either the
         # Response signal on the Request itself or the Close() handling
-        def reply_cb(handle):
+        def reply_cb(handle: str) -> None:
             try:
                 logger.debug(f"Reply to {methodname} with {self.handle}")
                 assert handle == self.handle
@@ -682,7 +686,7 @@ class Request(Closable):
 
         # Handle any exceptions during the actual method call (not the Request
         # handling itself). Can exit the mainloop if that happens
-        def error_cb(error):
+        def error_cb(error: Exception) -> None:
             try:
                 logger.debug(f"Error after {methodname} with {error}")
                 if error_handler:
@@ -728,7 +732,7 @@ class Session(Closable):
         >>> session.close()  # to close the session or
     """
 
-    def __init__(self, bus: dbus.Bus, handle: str):
+    def __init__(self, bus: dbus.Bus, handle: str) -> None:
         assert handle
         super().__init__(bus, handle)
 
@@ -756,7 +760,7 @@ class Session(Closable):
         self.session_interface.connect_to_signal("Closed", cb_closed)
 
     @property
-    def closed(self):
+    def closed(self) -> bool:
         """
         Returns True if the session was closed by the backend
         """
@@ -773,11 +777,11 @@ class GDBusIfaceSignal:
     used to disconnect from the signal.
     """
 
-    def __init__(self, signal_id: int, proxy: Gio.DBusProxy):
+    def __init__(self, signal_id: int, proxy: Gio.DBusProxy) -> None:
         self.signal_id = signal_id
         self.proxy = proxy
 
-    def disconnect(self):
+    def disconnect(self) -> None:
         """
         Disconnects the signal
         """
@@ -793,7 +797,7 @@ class GDBusIface:
     a method.
     """
 
-    def __init__(self, bus: str, obj: str, iface: str):
+    def __init__(self, bus: str, obj: str, iface: str) -> None:
         """
         Creates a GDBusIface for a specific bus, object and interface on the
         session bus.
@@ -856,7 +860,7 @@ class GDBusIface:
             for fd in fds:
                 fdlist.append(fd)
 
-        def internal_cb(s, res, _):
+        def internal_cb(s: Gio.DBusProxy, res: GLib.Variant, _: Any) -> None:
             res = s.call_finish(res)
             if cb:
                 cb(res)
@@ -880,7 +884,12 @@ class GDBusIface:
         representing the connection which can be used to disconnect it again.
         """
 
-        def internal_cb(proxy, sender_name, signal_name, parameters):
+        def internal_cb(
+            proxy: Gio.DBusProxy,
+            sender_name: str,
+            signal_name: str,
+            parameters: GLib.Variant,
+        ) -> None:
             if signal_name != name:
                 return
             cb(parameters)
@@ -896,16 +905,16 @@ class FileAccessMode(Enum):
 
 
 class ExecutableMock:
-    def __init__(self, executable: str, access_mode: FileAccessMode):
+    def __init__(self, executable: str, access_mode: FileAccessMode) -> None:
         self.executable = executable
         self.access_mode = access_mode
 
-    def create(self, path: Path):
+    def create(self, path: Path) -> None:
         self.path = path / self.executable
         self.path.write_bytes(self.get_executable())
         self.path.chmod(0o755)
 
-    def get_executable(self):
+    def get_executable(self) -> bytes:
         return f"#!/usr/bin/env sh\necho {self.access_mode.value}".encode()
 
 

@@ -21,7 +21,7 @@ logger = init_logger(__name__)
 
 
 class GeoClueClient(mockobject.DBusMockObject):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
 
         self.started = False

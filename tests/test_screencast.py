@@ -3,6 +3,8 @@
 #
 # This file is formatted with Python Black
 
+from typing import Any
+
 import dbus
 import pytest
 
@@ -10,11 +12,11 @@ import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"screencast": {}}
 
 
-def start_stream(dbus_con, screencast_intf):
+def start_stream(dbus_con: dbus.Bus, screencast_intf: dbus.Interface) -> xdp.Response:
     """Drive CreateSession, SelectSources and Start, returning the Start response."""
     request = xdp.Request(dbus_con, screencast_intf)
     response = request.call("CreateSession", options={"session_handle_token": "t0"})
@@ -46,12 +48,14 @@ def start_stream(dbus_con, screencast_intf):
 
 
 class TestScreenCast:
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         # The frontend advertises MIN(impl_version, 6); the backend here
         # implements version 6, so the portal exposes version 6.
         xdp.check_version(dbus_con, "ScreenCast", 6)
 
-    def test_pipewire_serial_present_with_v6_backend(self, portals, dbus_con):
+    def test_pipewire_serial_present_with_v6_backend(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         # A version 6 backend returns pipewire-serial in the stream
         # properties (added in #1942). The frontend forwards the stream
         # properties to the application, so the serial is visible there.
@@ -68,7 +72,9 @@ class TestScreenCast:
         "template_params",
         ({"screencast": {"version": 5}},),
     )
-    def test_no_pipewire_serial_with_v5_backend(self, portals, dbus_con):
+    def test_no_pipewire_serial_with_v5_backend(
+        self, portals: Any, dbus_con: dbus.Bus
+    ) -> None:
         # A version 5 backend predates pipewire-serial: the portal exposes
         # version 5 and the stream carries no pipewire-serial property.
         xdp.check_version(dbus_con, "ScreenCast", 5)
