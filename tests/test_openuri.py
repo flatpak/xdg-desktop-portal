@@ -4,8 +4,9 @@
 # This file is formatted with Python Black
 
 import os
+import subprocess
 from pathlib import Path
-from typing import Any
+from typing import Any, AnyStr
 
 import dbus
 import pytest
@@ -62,7 +63,7 @@ x-scheme-handler/xdg-desktop-portal-test=furrfix.desktop;furrfix2.desktop;
 
 
 @pytest.fixture
-def xdg_data_home_files():
+def xdg_data_home_files() -> dict[str, bytes]:
     return {
         "applications/defaults.list": defaults_list,
         "applications/furrfix.desktop": furrfix_desktop,
@@ -72,7 +73,7 @@ def xdg_data_home_files():
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {
         "appchooser": {},
         "lockdown": {},
@@ -80,7 +81,9 @@ def required_templates():
 
 
 class TestOpenURI:
-    def set_permissions(self, dbus_con, type, permissions):
+    def set_permissions(
+        self, dbus_con: dbus.Bus, type: str, permissions: list[str]
+    ) -> None:
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
         perm_store_intf.SetPermission(
             "desktop-used-apps",
@@ -90,7 +93,7 @@ class TestOpenURI:
             permissions,
         )
 
-    def enable_paranoid_mode(self, dbus_con, type):
+    def enable_paranoid_mode(self, dbus_con: dbus.Bus, type: str) -> None:
         # turn on paranoid mode to ensure we get a backend call
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
         perm_store_intf.SetValue(
@@ -105,10 +108,12 @@ class TestOpenURI:
             ),
         )
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "OpenURI", 5)
 
-    def test_http1(self, portals, dbus_con, xdp_app_info):
+    def test_http1(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -146,7 +151,7 @@ class TestOpenURI:
         assert args[4]["content_type"] == scheme_handler
         assert args[4]["activation_token"] == activation_token
 
-    def test_http2(self, portals, dbus_con):
+    def test_http2(self, portals: Any, dbus_con: dbus.Bus) -> None:
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
 
@@ -177,7 +182,9 @@ class TestOpenURI:
         method_calls = mock_intf.GetMethodCalls("ChooseApplication")
         assert len(method_calls) == 0
 
-    def test_file(self, portals, dbus_con, xdp_app_info):
+    def test_file(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -227,7 +234,7 @@ class TestOpenURI:
             assert openuri_file_contents == "openuri_mock_file"
 
     @pytest.mark.parametrize("template_params", ({"appchooser": {"response": 1}},))
-    def test_cancel(self, portals, dbus_con):
+    def test_cancel(self, portals: Any, dbus_con: dbus.Bus) -> None:
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         scheme_handler = "x-scheme-handler/http"
@@ -250,7 +257,9 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"appchooser": {"expect-close": True}},)
     )
-    def test_close(self, portals, dbus_con, xdp_app_info):
+    def test_close(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -292,7 +301,7 @@ class TestOpenURI:
     @pytest.mark.parametrize(
         "template_params", ({"lockdown": {"disable-application-handlers": True}},)
     )
-    def test_lockdown(self, portals, dbus_con):
+    def test_lockdown(self, portals: Any, dbus_con: dbus.Bus) -> None:
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         scheme_handler = "x-scheme-handler/http"
@@ -318,7 +327,9 @@ class TestOpenURI:
             excinfo.value.get_dbus_name() == "org.freedesktop.portal.Error.NotAllowed"
         )
 
-    def test_dir(self, portals, dbus_con, xdp_app_info):
+    def test_dir(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -362,7 +373,7 @@ class TestOpenURI:
 
         assert Path(path[7:]) == Path(file_path).parent
 
-    def test_scheme_supported(self, portals, dbus_con):
+    def test_scheme_supported(self, portals: Any, dbus_con: dbus.Bus) -> None:
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
 
         supported = openuri_intf.SchemeSupported("https", {})
@@ -384,8 +395,13 @@ class TestOpenURI:
         "path", ("file.html", "dir/file.html", "dir/subdir/file.html")
     )
     def test_openfile_opens_host_path(
-        self, xdg_document_portal, portals, dbus_con, xdp_app_info, path
-    ):
+        self,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        portals: Any,
+        dbus_con: dbus.Bus,
+        xdp_app_info: xdp.AppInfoFlatpak,
+        path: str,
+    ) -> None:
         app_id = xdp_app_info.app_id
         openuri_intf = xdp.get_portal_iface(dbus_con, "OpenURI")
         documents_intf = xdp.get_document_portal_iface(dbus_con)
