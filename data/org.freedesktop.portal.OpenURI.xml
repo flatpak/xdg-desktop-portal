@@ -40,7 +40,7 @@
 
           Whether to allow the chosen application to write to the file.
 
-          This key only takes effect if the uri points to a local file that
+          This key only takes effect if the URI points to a local file that
           is exported in the document portal, and the chosen application
           is sandboxed itself.
 

@@ -188,7 +188,7 @@
 
         * ``output-uri`` (``s``)
 
-          The uri used for print-to-file.
+          The URI used for print-to-file.
 
         The following keys are supported in the @page_setup vardict:
 

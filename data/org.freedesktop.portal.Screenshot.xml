@@ -65,7 +65,7 @@
 
         * ``uri`` (``s``)
 
-          String containing the uri of the screenshot.
+          String containing the URI of the screenshot.
     -->
     <method name="Screenshot">
       <arg type="s" name="parent_window" direction="in"/>
