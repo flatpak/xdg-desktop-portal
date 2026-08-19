@@ -246,6 +246,7 @@ xdp_session_persistence_replace_restore_token_with_data (XdpSession *session,
       g_clear_pointer (&value, g_variant_unref);
     }
 
+  g_clear_pointer (in_out_options, g_variant_unref);
   *in_out_options = g_variant_ref_sink (g_variant_builder_end (&options_builder));
 }
 

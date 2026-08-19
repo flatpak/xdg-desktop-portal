@@ -505,17 +505,14 @@ static XdpOptionKey remote_desktop_select_devices_options[] = {
 };
 
 static void
-replace_remote_desktop_restore_token_with_data (XdpSession *session,
-                                                GVariant **in_out_options,
-                                                GError **error)
+replace_remote_desktop_restore_token_with_data (XdpSession  *session,
+                                                GVariant   **in_out_options,
+                                                GError     **error)
 {
   RemoteDesktopSession *remote_desktop_session = REMOTE_DESKTOP_SESSION (session);
-  g_autoptr(GVariant) options = NULL;
   XdpSessionPersistenceMode persist_mode;
 
-  options = *in_out_options;
-
-  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+  if (!g_variant_lookup (*in_out_options, "persist_mode", "u", &persist_mode))
     persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   remote_desktop_session->persist_mode = persist_mode;
