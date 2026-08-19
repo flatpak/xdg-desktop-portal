@@ -472,28 +472,24 @@ static XdpOptionKey screen_cast_select_sources_options[] = {
 };
 
 static gboolean
-replace_screen_cast_restore_token_with_data (XdpSession *session,
-                                             GVariant **in_out_options,
-                                             GError **error)
+replace_screen_cast_restore_token_with_data (XdpSession  *session,
+                                             GVariant   **in_out_options,
+                                             GError     **error)
 {
-  g_autoptr(GVariant) options = NULL;
   XdpSessionPersistenceMode persist_mode;
 
-  options = *in_out_options;
-
-  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+  if (!g_variant_lookup (*in_out_options, "persist_mode", "u", &persist_mode))
     persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   if (IS_REMOTE_DESKTOP_SESSION (session))
     {
       if (persist_mode != XDP_SESSION_PERSISTENCE_MODE_NONE ||
-          xdp_variant_contains_key (options, "restore_token"))
+          xdp_variant_contains_key (*in_out_options, "restore_token"))
         {
           g_set_error (error,
                        XDG_DESKTOP_PORTAL_ERROR,
                        XDG_DESKTOP_PORTAL_ERROR_INVALID_ARGUMENT,
                        "Remote desktop sessions cannot persist");
-          *in_out_options = g_steal_pointer (&options);
           return FALSE;
         }
     }
@@ -507,10 +503,6 @@ replace_screen_cast_restore_token_with_data (XdpSession *session,
                                                                SCREEN_CAST_PERMISSION_TABLE,
                                                                in_out_options,
                                                                &screen_cast_session->restore_token);
-    }
-  else
-    {
-      *in_out_options = g_steal_pointer (&options);
     }
 
   return TRUE;

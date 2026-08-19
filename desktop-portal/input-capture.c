@@ -550,17 +550,14 @@ out:
 }
 
 static gboolean
-replace_input_capture_restore_token_with_data (XdpSession *session,
-                                               GVariant **in_out_options,
-                                               GError **error)
+replace_input_capture_restore_token_with_data (XdpSession  *session,
+                                               GVariant   **in_out_options,
+                                               GError     **error)
 {
   InputCaptureSession *input_capture_session = INPUT_CAPTURE_SESSION (session);
-  g_autoptr(GVariant) options = NULL;
   XdpSessionPersistenceMode persist_mode;
 
-  options = *in_out_options;
-
-  if (!g_variant_lookup (options, "persist_mode", "u", &persist_mode))
+  if (!g_variant_lookup (*in_out_options, "persist_mode", "u", &persist_mode))
     persist_mode = XDP_SESSION_PERSISTENCE_MODE_NONE;
 
   input_capture_session->persist_mode = persist_mode;
