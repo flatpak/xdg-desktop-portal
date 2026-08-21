@@ -11,6 +11,7 @@
 #include <glib-unix.h>
 #include <glib/gi18n.h>
 #include <libdex.h>
+#include <wp/wp.h>
 
 #include "xdp-context.h"
 
@@ -145,6 +146,9 @@ main (int argc, char *argv[])
   textdomain (GETTEXT_PACKAGE);
 
   dex_init ();
+
+  /* Initialize without replacing GLib log handler */
+  wp_init (WP_INIT_PIPEWIRE | WP_INIT_SET_PW_LOG);
 
   /* Note: if you add any more environment variables here, update
    * handle_launch() in dynamic-launcher.c to unset them before launching apps
