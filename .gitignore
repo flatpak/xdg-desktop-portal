@@ -8,3 +8,4 @@ subprojects/gvdb
 # Tooling specific files
 __pycache__
 .wraplock
+.buildconfig
