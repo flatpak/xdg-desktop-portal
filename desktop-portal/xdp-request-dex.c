@@ -20,9 +20,89 @@ typedef struct _XdpRequestDex
   XdpDbusImplRequest *impl_request;
   GDBusInterfaceSkeleton *skeleton;
   char *id;
+  unsigned int impl_request_version;
   gboolean exported;
   gboolean responded;
 } XdpRequestDex;
+
+/**
+ * XdpRequestDex:
+ *
+ * A future-based Request implementation.
+ *
+ * ## Lifecycle
+ *
+ * [ctor@RequestDex.new] creates the request and a proxy for the impl
+ * request, but does not export the request on the bus.
+ *
+ * The request must only be exported after the backend has created the
+ * impl request object, because a `Close` call on the exported request
+ * is forwarded to the impl request. [method@RequestDex.export]
+ * handles this: when `impl_request_version` (passed to
+ * [ctor@RequestDex.new]) is 2 or higher, the returned future resolves
+ * only after the backend emits the `Created` signal on the impl
+ * request. With older backends the future resolves immediately; there
+ * is a small race in that case where a `Close` from the app may
+ * arrive before the backend has created the impl request. The caller
+ * should pass the `request-version` property from the impl portal
+ * interface.
+ *
+ * The D-Bus method call must only be completed to the app after the
+ * export, so that the request object path the app receives is
+ * immediately usable for `Close`.
+ *
+ * ## Response handling
+ *
+ * Use [method@RequestDex.emit_response] to send a `Response` signal
+ * to the app. Calling it more than once is a programming error.
+ *
+ * If the request is disposed without a response having been sent
+ * (e.g. on error paths), dispose automatically emits
+ * `XDG_DESKTOP_PORTAL_RESPONSE_OTHER`. Portal handlers can therefore
+ * simply return on failure and let the `g_autoptr` cleanup take care
+ * of notifying the app.
+ *
+ * ## Long-lived call pattern
+ *
+ * When the backend impl call blocks for the entire duration of the
+ * request (e.g. waiting for user interaction), the portal must issue
+ * the backend call first, then await the export, then complete the
+ * D-Bus method call, and finally await the backend result:
+ *
+ * ```c
+ * request = dex_await_object (xdp_request_dex_new (...), &error);
+ * impl_future = xdp_dbus_impl_foo_call_bar_future (impl, ...,
+ *     xdp_request_dex_get_object_path (request), ...);
+ * dex_await (xdp_request_dex_export (request), NULL);
+ * xdp_dbus_foo_complete_bar (object, g_steal_pointer (&invocation),
+ *     xdp_request_dex_get_object_path (request));
+ * result = dex_await_boxed (g_steal_pointer (&impl_future), &error);
+ * ```
+ *
+ * The backend call must be issued before the export so that the
+ * export's `Created` signal wait does not deadlock: the backend
+ * creates the impl request (and emits `Created`) only in response
+ * to the method call.
+ *
+ * ## Immediate-return pattern
+ *
+ * When the backend impl call returns immediately and the request
+ * lives until something else happens, the reply itself proves the
+ * impl request exists. The portal can await the reply, then export:
+ *
+ * ```c
+ * request = dex_await_object (xdp_request_dex_new (...), &error);
+ * dex_await (xdp_dbus_impl_foo_call_bar_future (impl, ...,
+ *     xdp_request_dex_get_object_path (request), ...),
+ *     &error);
+ * dex_await (xdp_request_dex_export (request), NULL);
+ * xdp_dbus_foo_complete_bar (object, g_steal_pointer (&invocation),
+ *     xdp_request_dex_get_object_path (request));
+ * ```
+ *
+ * This pattern has no race because the method reply guarantees the
+ * backend has created the impl request object.
+ */
 
 static void xdp_request_skeleton_iface_init (XdpDbusRequestIface *iface);
 
@@ -157,6 +237,7 @@ typedef struct _RequestImplProxyCreateData {
   XdpAppInfo *app_info;
   GDBusInterfaceSkeleton *skeleton;
   char *id;
+  unsigned int impl_request_version;
 } RequestImplProxyCreateData;
 
 static void
@@ -206,6 +287,7 @@ on_impl_request_proxy_created (DexFuture *future,
   request->impl_request = g_steal_pointer (&impl_request);
   request->skeleton = g_steal_pointer (&data->skeleton);
   request->id = g_steal_pointer (&data->id);
+  request->impl_request_version = data->impl_request_version;
   g_signal_connect_object (request->context, "peer-disconnect",
                            G_CALLBACK (on_peer_disconnect),
                            request,
@@ -225,6 +307,7 @@ xdp_request_dex_new (XdpContext             *context,
                      XdpAppInfo             *app_info,
                      GDBusInterfaceSkeleton *skeleton,
                      GDBusProxy             *proxy_impl,
+                     unsigned int            impl_request_version,
                      GVariant               *arg_options)
 {
   g_autoptr(DexFuture) future = NULL;
@@ -272,6 +355,7 @@ xdp_request_dex_new (XdpContext             *context,
   data->app_info = g_object_ref (app_info);
   data->skeleton = g_object_ref (skeleton);
   data->id = g_steal_pointer (&id);
+  data->impl_request_version = impl_request_version;
 
   future = dex_future_then (future,
                             on_impl_request_proxy_created,
@@ -281,18 +365,37 @@ xdp_request_dex_new (XdpContext             *context,
   return g_steal_pointer (&future);
 }
 
-gboolean
-xdp_request_dex_export (XdpRequestDex  *request,
-                        GError        **error)
+static DexFuture *
+do_export (DexFuture *future,
+           gpointer   user_data)
 {
+  XdpRequestDex *request = XDP_REQUEST_DEX (user_data);
+  g_autoptr(GError) error = NULL;
+
   if (!g_dbus_interface_skeleton_export (G_DBUS_INTERFACE_SKELETON (request),
                                          g_dbus_interface_skeleton_get_connection (request->skeleton),
                                          request->id,
-                                         error))
-    return FALSE;
+                                         &error))
+    return dex_future_new_for_error (g_steal_pointer (&error));
 
   request->exported = TRUE;
-  return TRUE;
+  return dex_future_new_for_boolean (TRUE);
+}
+
+DexFuture *
+xdp_request_dex_export (XdpRequestDex *request)
+{
+  DexFuture *precondition;
+
+  if (request->impl_request_version >= 2)
+    precondition = xdp_dbus_impl_request_wait_created_future (request->impl_request);
+  else
+    precondition = dex_future_new_for_boolean (TRUE);
+
+  return dex_future_then (precondition,
+                          do_export,
+                          g_object_ref (request),
+                          g_object_unref);
 }
 
 void

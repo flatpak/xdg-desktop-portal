@@ -26,6 +26,7 @@ class AccountParameters:
     response: int
     results: dict
     expect_close: bool
+    request_version: int
 
 
 def load(mock, parameters=None):
@@ -39,6 +40,16 @@ def load(mock, parameters=None):
         response=parameters.get("response", 0),
         results=parameters.get("results", {}),
         expect_close=parameters.get("expect-close", False),
+        request_version=parameters.get("request-version", 1),
+    )
+
+    mock.AddProperties(
+        MAIN_IFACE,
+        dbus.Dictionary(
+            {
+                "request-version": dbus.UInt32(mock.account_params.request_version),
+            }
+        ),
     )
 
 
@@ -59,6 +70,7 @@ def GetUserInformation(self, handle, app_id, window, options, cb_success, cb_err
         logger,
         cb_success,
         cb_error,
+        request_version=params.request_version,
     )
 
     if params.expect_close:
