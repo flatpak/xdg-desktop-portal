@@ -374,9 +374,9 @@ out:
 }
 
 static PortalConfig *
-load_portal_configuration_for_dir (gboolean    opt_verbose,
-                                   const char *base_directory,
-                                   const char *portal_file)
+load_config_file (gboolean    opt_verbose,
+                  const char *base_directory,
+                  const char *portal_file)
 {
   g_autoptr(GKeyFile) key_file = NULL;
   g_autofree char *path = NULL;
@@ -441,11 +441,9 @@ load_portal_configuration_for_dir (gboolean    opt_verbose,
   return NULL;
 }
 
-/*
- * Returns: %TRUE if configuration was found in @dir
- */
-static PortalConfig *
-load_config_directory (const char  *dir,
+static void
+load_config_directory (GPtrArray   *configs,
+                       const char  *dir,
                        const char **desktops,
                        gboolean     opt_verbose)
 {
@@ -455,37 +453,35 @@ load_config_directory (const char  *dir,
       g_autofree char *portals_conf = NULL;
 
       portals_conf = g_strdup_printf ("%s-portals.conf", desktops[i]);
-      config = load_portal_configuration_for_dir (opt_verbose, dir, portals_conf);
+      config = load_config_file (opt_verbose, dir, portals_conf);
 
       if (config != NULL)
         {
           if (opt_verbose)
             {
-              g_debug ("Using portal configuration file '%s/%s' for desktop '%s'",
+              g_debug ("Loaded portal configuration file '%s/%s' for desktop '%s'",
                        dir, portals_conf, desktops[i]);
             }
 
-          return g_steal_pointer (&config);
+          g_ptr_array_add (configs, g_steal_pointer (&config));
         }
     }
 
   {
     g_autoptr(PortalConfig) config = NULL;
 
-    config = load_portal_configuration_for_dir (opt_verbose, dir, "portals.conf");
+    config = load_config_file (opt_verbose, dir, "portals.conf");
     if (config != NULL)
       {
         if (opt_verbose)
           {
-            g_debug ("Using portal configuration file '%s/%s' for non-specific desktop",
+            g_debug ("Loaded portal configuration file '%s/%s' for non-specific desktop",
                      dir, "portals.conf");
           }
 
-        return g_steal_pointer (&config);
+        g_ptr_array_add (configs, g_steal_pointer (&config));
       }
   }
-
-  return NULL;
 }
 
 static GPtrArray *
@@ -509,9 +505,7 @@ load_portal_configurations (XdpPortalConfig *portal_config,
 
   if (portal_dir != NULL)
     {
-      config = load_config_directory (portal_dir, desktops, opt_verbose);
-      if (config)
-        g_ptr_array_add (configs, g_steal_pointer (&config));
+      load_config_directory (configs, portal_dir, desktops, opt_verbose);
       /* All other config directories are ignored when this is set */
       return g_steal_pointer (&configs);
     }
@@ -519,9 +513,7 @@ load_portal_configurations (XdpPortalConfig *portal_config,
   /* $XDG_CONFIG_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf */
   user_portal_dir = g_build_filename (g_get_user_config_dir (), XDP_SUBDIR, NULL);
 
-  config = load_config_directory (user_portal_dir, desktops, opt_verbose);
-  if (config)
-    g_ptr_array_add (configs, g_steal_pointer (&config));
+  load_config_directory (configs, user_portal_dir, desktops, opt_verbose);
 
   /* $XDG_CONFIG_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
   dirs = g_get_system_config_dirs ();
@@ -530,25 +522,18 @@ load_portal_configurations (XdpPortalConfig *portal_config,
     {
       g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
 
-      config = load_config_directory (dir, desktops, opt_verbose);
-      if (config)
-        g_ptr_array_add (configs, g_steal_pointer (&config));
+      load_config_directory (configs, dir, desktops, opt_verbose);
     }
 
   /* ${sysconfdir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
-  config = load_config_directory (SYSCONFDIR "/" XDP_SUBDIR, desktops, opt_verbose);
-  if (config)
-    g_ptr_array_add (configs, g_steal_pointer (&config));
-
+  load_config_directory (configs, SYSCONFDIR "/" XDP_SUBDIR, desktops, opt_verbose);
 
   /* $XDG_DATA_HOME/xdg-desktop-portal/(DESKTOP-)portals.conf
    * (just for consistency with other XDG specifications) */
   g_clear_pointer (&user_portal_dir, g_free);
   user_portal_dir = g_build_filename (g_get_user_data_dir (), XDP_SUBDIR, NULL);
 
-  config = load_config_directory (user_portal_dir, desktops, opt_verbose);
-  if (config)
-    g_ptr_array_add (configs, g_steal_pointer (&config));
+  load_config_directory (configs, user_portal_dir, desktops, opt_verbose);
 
   /* $XDG_DATA_DIRS/xdg-desktop-portal/(DESKTOP-)portals.conf */
   dirs = g_get_system_data_dirs ();
@@ -557,15 +542,11 @@ load_portal_configurations (XdpPortalConfig *portal_config,
     {
       g_autofree char *dir = g_build_filename (*iter, XDP_SUBDIR, NULL);
 
-      config = load_config_directory (dir, desktops, opt_verbose);
-      if (config)
-        g_ptr_array_add (configs, g_steal_pointer (&config));
+      load_config_directory (configs, dir, desktops, opt_verbose);
     }
 
   /* ${datadir}/xdg-desktop-portal/(DESKTOP-)portals.conf */
-  config = load_config_directory (DATADIR "/" XDP_SUBDIR, desktops, opt_verbose);
-  if (config)
-    g_ptr_array_add (configs, g_steal_pointer (&config));
+  load_config_directory (configs, DATADIR "/" XDP_SUBDIR, desktops, opt_verbose);
 
   return g_steal_pointer (&configs);
 }
