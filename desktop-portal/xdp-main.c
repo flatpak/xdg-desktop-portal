@@ -144,6 +144,12 @@ main (int argc, char *argv[])
   bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
   textdomain (GETTEXT_PACKAGE);
 
+  if (!getenv ("WAYLAND_DISPLAY") && !getenv ("DISPLAY"))
+    {
+      g_critical ("Windowing system environment variables not set; "
+                  "make sure your session integrates with graphical-session.target.");
+    }
+
   dex_init ();
 
   /* Note: if you add any more environment variables here, update
