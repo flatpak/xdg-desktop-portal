@@ -27,7 +27,7 @@ def is_section_label(line):
     return False
 
 
-def split_sections(lines, output_prefix):
+def split_sections(lines, output_prefix, interface_name):
     """Split Properties, Methods, Signals into separate fragment files.
 
     Returns (desc_lines, found_sections)."""
@@ -58,7 +58,11 @@ def split_sections(lines, output_prefix):
         with open(fragment_path, "w") as f:
             heading_written = False
             skip_transition = False
+            skip_next = False
             for line in section_lines:
+                if skip_next:
+                    skip_next = False
+                    continue
                 if is_section_label(line):
                     continue
                 # Convert ---- overline+underline to ~~~~ underline-only
@@ -79,6 +83,17 @@ def split_sections(lines, output_prefix):
                         skip_transition = False
                         continue
                     skip_transition = False
+                if line.startswith(interface_name):
+                    member_name = (
+                        line.removeprefix(interface_name)
+                        .removeprefix("::")
+                        .removeprefix(":")
+                        .removeprefix(".")
+                    ).strip()
+                    f.write(f"{member_name}\n")
+                    f.write(f"{'^' * len(member_name)}\n")
+                    skip_next = True
+                    continue
                 f.write(line)
 
     return desc_lines, set(sections.keys())
@@ -143,7 +158,7 @@ for file in inputs:
         lines = f.readlines()
 
     adjust_title(lines)
-    desc_lines, found_sections = split_sections(lines, output_prefix)
+    desc_lines, found_sections = split_sections(lines, output_prefix, interface_name)
     out = strip_description_heading(desc_lines)
 
     prefix = f"{filename_prefix}-{interface_name}"
