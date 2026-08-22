@@ -4,6 +4,7 @@
 # This file is formatted with Python Black
 
 import os
+import time
 from pathlib import Path
 
 import dbus
@@ -11,6 +12,17 @@ import pytest
 
 import tests.xdp_doc_utils as xdp_doc
 import tests.xdp_utils as xdp
+
+
+def permission_store_iface(dbus_con: dbus.Bus) -> dbus.Interface:
+    permission_store = dbus_con.get_object(
+        "org.freedesktop.impl.portal.PermissionStore",
+        "/org/freedesktop/impl/portal/PermissionStore",
+    )
+    return dbus.Interface(
+        permission_store,
+        "org.freedesktop.impl.portal.PermissionStore",
+    )
 
 
 @pytest.fixture
@@ -129,6 +141,150 @@ class TestDocuments:
         # Ensure we can make a unique document
         doc_id5 = xdp_doc.export_file(documents_intf, file_path, unique=True)
         assert doc_id5 != doc_id
+
+    def test_external_revocation(
+        self, xdg_permission_store, xdg_document_portal, dbus_con
+    ):
+        """The documents table is shared with the permission store, which is a
+        separate process. A revocation made there, as `flatpak
+        permission-remove` and `flatpak permission-reset` do, has to be
+        honoured by the running document portal rather than only after it is
+        restarted.
+
+        https://github.com/flatpak/xdg-desktop-portal/issues/197
+        """
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = xdp_doc.get_mountpoint(documents_intf)
+
+        app_id = "com.test.App1"
+        content = b"content"
+        file_name = "a-file"
+
+        file_path = Path(os.environ["TMPDIR"]) / file_name
+        xdp_doc.write_bytes_atomic(file_path, content)
+
+        # Only persistent documents are mirrored into the permission store,
+        # and so only they can be revoked from outside the document portal
+        with open(file_path.absolute().as_posix(), "r") as file:
+            doc_id = documents_intf.Add(file.fileno(), True, True)
+        assert doc_id
+
+        doc_app_path = mountpoint / "by-app" / app_id / doc_id
+
+        # The app can read and write the document while it holds the grant
+        documents_intf.GrantPermissions(doc_id, app_id, ["read", "write"])
+        assert (doc_app_path / file_name).read_bytes() == content
+        xdp_doc.write_bytes_atomic(doc_app_path / file_name, b"written by app")
+        assert file_path.read_bytes() == b"written by app"
+
+        # Revoke through the permission store rather than through the document
+        # portal, which is what the flatpak CLI does
+        permission_store_iface(dbus_con).DeletePermission("documents", doc_id, app_id)
+
+        # The store notifies us with a Changed signal, so the document portal
+        # is not expected to have caught up the instant the call returns. It is
+        # expected to catch up without being restarted.
+        deadline = time.monotonic() + 10
+        while (doc_app_path / file_name).exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+
+        assert not (doc_app_path / file_name).exists()
+        assert not doc_app_path.exists()
+
+        with pytest.raises(OSError):
+            (doc_app_path / file_name).write_bytes(b"written after revocation")
+
+        # The document itself is untouched; only the app's grant is gone
+        assert (mountpoint / doc_id / file_name).read_bytes() == b"written by app"
+
+    def test_external_deletion(
+        self, xdg_permission_store, xdg_document_portal, dbus_con
+    ):
+        """Deleting the whole entry from the permission store, rather than one
+        app's permissions, has to be honoured too. The store answers a lookup
+        for a deleted entry with NotFound, which is a different path through
+        the portal than an entry that merely changed.
+        """
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = xdp_doc.get_mountpoint(documents_intf)
+
+        app_id = "com.test.App1"
+        content = b"content"
+        file_name = "a-file"
+
+        file_path = Path(os.environ["TMPDIR"]) / file_name
+        xdp_doc.write_bytes_atomic(file_path, content)
+
+        with open(file_path.absolute().as_posix(), "r") as file:
+            doc_id = documents_intf.Add(file.fileno(), True, True)
+        assert doc_id
+
+        doc_app_path = mountpoint / "by-app" / app_id / doc_id
+
+        documents_intf.GrantPermissions(doc_id, app_id, ["read", "write"])
+        assert (doc_app_path / file_name).read_bytes() == content
+
+        permission_store_iface(dbus_con).Delete("documents", doc_id)
+
+        deadline = time.monotonic() + 10
+        while (doc_app_path / file_name).exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+
+        assert not (doc_app_path / file_name).exists()
+        assert not doc_app_path.exists()
+
+    def test_external_revocation_after_store_restart(
+        self,
+        xdg_permission_store,
+        xdg_document_portal,
+        restart_xdg_permission_store,
+        dbus_con,
+    ):
+        """The permission store can go away and come back under a running
+        document portal, on a crash or an upgrade. The subscription has to
+        survive that, so a revocation made through the instance that replaced
+        it is honoured like any other.
+        """
+        documents_intf = xdp.get_document_portal_iface(dbus_con)
+        mountpoint = xdp_doc.get_mountpoint(documents_intf)
+
+        app_id = "com.test.App1"
+        content = b"content"
+        file_name = "a-file"
+
+        file_path = Path(os.environ["TMPDIR"]) / file_name
+        xdp_doc.write_bytes_atomic(file_path, content)
+
+        with open(file_path.absolute().as_posix(), "r") as file:
+            doc_id = documents_intf.Add(file.fileno(), True, True)
+        assert doc_id
+
+        doc_app_path = mountpoint / "by-app" / app_id / doc_id
+
+        documents_intf.GrantPermissions(doc_id, app_id, ["read", "write"])
+        assert (doc_app_path / file_name).read_bytes() == content
+
+        # The portal mirrors the grant into the store asynchronously. Write it
+        # again from here and wait for the reply: the store answers only once
+        # the table has been written out, so the replacement instance is
+        # guaranteed to load the grant rather than come up without it.
+        permission_store_iface(dbus_con).SetPermission(
+            "documents", True, doc_id, app_id, ["read", "write"]
+        )
+
+        restart_xdg_permission_store()
+
+        permission_store_iface(dbus_con).DeletePermission("documents", doc_id, app_id)
+
+        deadline = time.monotonic() + 10
+        while (doc_app_path / file_name).exists() and time.monotonic() < deadline:
+            time.sleep(0.05)
+
+        assert not (doc_app_path / file_name).exists()
+        assert not doc_app_path.exists()
+
+        # The document itself is untouched; only the app's grant is gone
+        assert (mountpoint / doc_id / file_name).read_bytes() == content
 
     def test_recursive_doc(self, xdg_document_portal, dbus_con):
         documents_intf = xdp.get_document_portal_iface(dbus_con)
