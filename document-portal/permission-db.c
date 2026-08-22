@@ -1157,6 +1157,8 @@ remove_permissions (GVariant   *app_permissions,
 
       if (g_strcmp0 (app, child_app_id) != 0)
         g_variant_builder_add_value (&builder, child);
+
+      g_variant_unref (child);
     }
 
   return g_variant_builder_end (&builder);

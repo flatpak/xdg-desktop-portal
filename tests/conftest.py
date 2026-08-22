@@ -10,7 +10,7 @@ import subprocess
 import sys
 import tempfile
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from contextlib import chdir
 from pathlib import Path
 from types import ModuleType
@@ -616,6 +616,60 @@ def xdg_permission_store_options() -> xdp.PortalProcessOptions:
     return xdp.PortalProcessOptions()
 
 
+PERMISSION_STORE_BUS_NAME = "org.freedesktop.impl.portal.PermissionStore"
+
+
+def _wait_for_name_owner(
+    dbus_con: dbus.Bus, name: str, owned: bool, timeout: float = 10
+) -> None:
+    deadline = time.monotonic() + timeout
+    while dbus_con.name_has_owner(name) != owned and time.monotonic() < deadline:
+        time.sleep(0.05)
+
+    if dbus_con.name_has_owner(name) != owned:
+        state = "owned" if owned else "unowned"
+        raise TimeoutError(f"{name} did not become {state} within {timeout}s")
+
+
+def _start_permission_store(
+    dbus_con: dbus.Bus,
+    path: Path,
+    env: dict[str, str],
+    options: xdp.PortalProcessOptions,
+) -> subprocess.Popen:
+    if not path.exists():
+        raise FileNotFoundError(f"{path} does not exist")
+
+    env = env.copy()
+    _maybe_add_asan_preload(path, env)
+
+    permission_store = subprocess.Popen(
+        [path],
+        env=env,
+        stdout=subprocess.PIPE if options.capture_stdout else None,
+        stderr=subprocess.PIPE if options.capture_stderr else None,
+    )
+
+    while not dbus_con.name_has_owner(PERMISSION_STORE_BUS_NAME):
+        returncode = permission_store.poll()
+        if returncode is not None:
+            raise subprocess.SubprocessError(
+                f"xdg-permission-store exited with {returncode}"
+            )
+        time.sleep(0.1)
+
+    return permission_store
+
+
+def _stop_permission_store(permission_store: subprocess.Popen) -> None:
+    if permission_store.poll() is None:
+        permission_store.send_signal(signal.SIGHUP)
+        permission_store.wait()
+        # The permission store does not shut down cleanly currently
+        # returncode = permission_store.wait()
+        # assert returncode == 0
+
+
 @pytest.fixture
 def xdg_permission_store(
     dbus_con: dbus.Bus,
@@ -626,35 +680,48 @@ def xdg_permission_store(
     """
     Fixture which starts and eventually stops xdg-permission-store
     """
-    if not xdg_permission_store_path.exists():
-        raise FileNotFoundError(f"{xdg_permission_store_path} does not exist")
-
-    env = xdp_env.copy()
-    _maybe_add_asan_preload(xdg_permission_store_path, env)
-
-    permission_store = subprocess.Popen(
-        [xdg_permission_store_path],
-        env=env,
-        stdout=subprocess.PIPE if xdg_permission_store_options.capture_stdout else None,
-        stderr=subprocess.PIPE if xdg_permission_store_options.capture_stderr else None,
+    permission_store = _start_permission_store(
+        dbus_con, xdg_permission_store_path, xdp_env, xdg_permission_store_options
     )
-
-    while not dbus_con.name_has_owner("org.freedesktop.impl.portal.PermissionStore"):
-        returncode = permission_store.poll()
-        if returncode is not None:
-            raise subprocess.SubprocessError(
-                f"xdg-permission-store exited with {returncode}"
-            )
-        time.sleep(0.1)
 
     yield permission_store
 
-    if permission_store.poll() is None:
-        permission_store.send_signal(signal.SIGHUP)
-        permission_store.wait()
-        # The permission store does not shut down cleanly currently
-        # returncode = permission_store.wait()
-        # assert returncode == 0
+    _stop_permission_store(permission_store)
+
+
+@pytest.fixture
+def restart_xdg_permission_store(
+    dbus_con: dbus.Bus,
+    xdg_permission_store: subprocess.Popen,
+    xdg_permission_store_path: Path,
+    xdp_env: dict[str, str],
+    xdg_permission_store_options: xdp.PortalProcessOptions,
+) -> Iterator[Callable[[], subprocess.Popen]]:
+    """
+    Fixture returning a callable that kills the running xdg-permission-store
+    and brings a fresh one up in its place, as a crash or an upgrade would.
+    """
+    replacements: list[subprocess.Popen] = []
+
+    def restart() -> subprocess.Popen:
+        current = replacements[-1] if replacements else xdg_permission_store
+
+        if current.poll() is None:
+            current.kill()
+            current.wait()
+
+        _wait_for_name_owner(dbus_con, PERMISSION_STORE_BUS_NAME, owned=False)
+
+        permission_store = _start_permission_store(
+            dbus_con, xdg_permission_store_path, xdp_env, xdg_permission_store_options
+        )
+        replacements.append(permission_store)
+        return permission_store
+
+    yield restart
+
+    for permission_store in replacements:
+        _stop_permission_store(permission_store)
 
 
 @pytest.fixture
