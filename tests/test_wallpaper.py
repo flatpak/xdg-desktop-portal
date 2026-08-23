@@ -6,19 +6,21 @@
 import os
 import tempfile
 from pathlib import Path
+from typing import Any
 
+import dbus
 import pytest
 
 import tests.xdp_utils as xdp
 
 
 @pytest.fixture
-def required_templates():
+def required_templates() -> xdp.RequiredTemplates:
     return {"wallpaper": {}}
 
 
 class TestWallpaper:
-    def set_permission(self, dbus_con, app_id, permission):
+    def set_permission(self, dbus_con: dbus.Bus, app_id: str, permission: str) -> None:
         perm_store_intf = xdp.get_permission_store_iface(dbus_con)
         perm_store_intf.SetPermission(
             "wallpaper",
@@ -28,10 +30,12 @@ class TestWallpaper:
             [permission],
         )
 
-    def test_version(self, portals, dbus_con):
+    def test_version(self, portals: Any, dbus_con: dbus.Bus) -> None:
         xdp.check_version(dbus_con, "Wallpaper", 1)
 
-    def test_wallpaper_uri(self, portals, dbus_con, xdp_app_info):
+    def test_wallpaper_uri(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -65,7 +69,9 @@ class TestWallpaper:
         assert args[4]["show-preview"] == show_preview
         assert args[4]["set-on"] == set_on
 
-    def test_wallpaper_file(self, portals, dbus_con, xdp_app_info):
+    def test_wallpaper_file(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
@@ -105,7 +111,7 @@ class TestWallpaper:
             assert wallpaper_file_contents == "wallpaper_mock_file"
 
     @pytest.mark.parametrize("template_params", ({"wallpaper": {"response": 1}},))
-    def test_wallpaper_cancel(self, portals, dbus_con):
+    def test_wallpaper_cancel(self, portals: Any, dbus_con: dbus.Bus) -> None:
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
 
         uri = "file:///test"
@@ -127,7 +133,9 @@ class TestWallpaper:
         assert response
         assert response.response == 1
 
-    def test_wallpaper_permission(self, portals, dbus_con, xdp_app_info):
+    def test_wallpaper_permission(
+        self, portals: Any, dbus_con: dbus.Bus, xdp_app_info: xdp.AppInfoFlatpak
+    ) -> None:
         app_id = xdp_app_info.app_id
         wallpaper_intf = xdp.get_portal_iface(dbus_con, "Wallpaper")
         mock_intf = xdp.get_mock_iface(dbus_con)
