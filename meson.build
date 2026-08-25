@@ -220,6 +220,23 @@ config_h.set10('HAVE_LIBSYSTEMD', have_libsystemd)
 have_gudev = gudev_dep.found()
 config_h.set10('HAVE_GUDEV', have_gudev)
 
+speechprovider_dep = dependency(
+  'speech-provider-1.0',
+  version: '>= 1.0.3',
+  required: get_option('speech'),
+  fallback: ['libspeechprovider', 'speech_provider_lib_dep'],
+  default_options: [
+    'docs=false',
+    'tests=false',
+    'introspection=false',
+  ],
+)
+
+have_speech = speechprovider_dep.found()
+if have_speech
+  config_h.set('HAVE_SPEECH', 1)
+endif
+
 add_project_arguments(['-DGLIB_VERSION_MIN_REQUIRED=GLIB_VERSION_2_72'], language: 'c')
 
 build_documentation = false
@@ -290,6 +307,7 @@ summary({
     'Enable documentation': build_documentation,
     'Enable libsystemd support': have_libsystemd,
     'Enable geoclue support': have_geoclue,
+    'Enable speech support': have_speech,
     'Enable gudev support': have_gudev,
     'Enable test suite': enable_tests,
     'Enable installed tests:': enable_installed_tests,

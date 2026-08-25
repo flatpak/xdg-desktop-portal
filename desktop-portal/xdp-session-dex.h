@@ -25,6 +25,8 @@ XdpAppInfo * xdp_session_dex_get_app_info (XdpSessionDex *session);
 
 const char * xdp_session_dex_get_object_path (XdpSessionDex *session);
 
+GDBusConnection * xdp_session_dex_get_connection (XdpSessionDex *session);
+
 #define XDP_TYPE_SESSION_DEX_STORE (xdp_session_dex_store_get_type ())
 G_DECLARE_FINAL_TYPE (XdpSessionDexStore,
                       xdp_session_dex_store,
