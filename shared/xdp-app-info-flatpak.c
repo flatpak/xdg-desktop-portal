@@ -636,20 +636,19 @@ open_flatpak_info (int      pid,
     {
       if (errno == EACCES)
         {
-          struct statfs buf;
-
-          /* Access to the root dir isn't allowed. This can happen if the root is on a fuse
-           * filesystem, such as in a toolbox container. We will never have a fuse rootfs
-           * in the flatpak case, so in that case its safe to ignore this and
-           * continue to detect other types of apps.
+          /* Access to the root dir isn't allowed. This can happen if the root is on a
+           * fuse filesystem (e.g. a toolbox container), or if the target process is
+           * non-dumpable because it was exec'd with file capabilities set (e.g.
+           * cap_net_admin on kdeconnectd, cap_sys_nice on kwin_wayland) -- the kernel
+           * then denies /proc/<pid>/root access to any other process, including
+           * same-uid ones, without CAP_SYS_PTRACE. A real Flatpak-confined process is
+           * always dumpable and same-uid accessible, so any EACCES here safely means
+           * "not a flatpak"; continue trying other app-kind detectors instead of
+           * hard failing.
            */
-          if (statfs (root_path, &buf) == 0 &&
-              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
-            {
-              g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
-                           "Not a flatpak (fuse rootfs)");
-              return -1;
-            }
+          g_set_error (error, XDP_APP_INFO_ERROR, XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                       "Not a flatpak (EACCES opening root dir)");
+          return -1;
         }
 
       /* Otherwise, we should be able to open the root dir. Probably the app died and
