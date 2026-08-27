@@ -106,14 +106,28 @@ open_linyaps_info (int      pid,
     {
       if (errno == EACCES)
         {
-          /* See the matching comment in xdp-app-info-flatpak.c: EACCES here can mean
-           * a fuse rootfs, or a non-dumpable target process (file capabilities set),
-           * neither of which a real linyaps app would ever be. Treat it as "not a
-           * linyaps" and keep looking. */
-          g_set_error (error, XDP_APP_INFO_ERROR,
-                       XDP_APP_INFO_ERROR_WRONG_APP_KIND,
-                       "Not a linyaps (EACCES opening root dir)");
-          return -1;
+          struct statfs buf;
+          if (statfs (root_path, &buf) == 0 &&
+              buf.f_type == 0x65735546) /* FUSE_SUPER_MAGIC */
+          {
+            g_set_error (error, XDP_APP_INFO_ERROR,
+                         XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                         "Not a linyaps (fuse rootfs)");
+            return -1;
+          }
+
+          /* See the matching comment in xdp-app-info-flatpak.c: EACCES also happens
+           * for a non-dumpable target process (e.g. file capabilities set). Only
+           * treat that as "not a linyaps" when the target actually holds real
+           * capabilities -- a signal a genuinely sandboxed app can't fake by making
+           * itself non-dumpable via prctl(PR_SET_DUMPABLE, 0). */
+          if (xdp_pid_has_capabilities (pid))
+            {
+              g_set_error (error, XDP_APP_INFO_ERROR,
+                           XDP_APP_INFO_ERROR_WRONG_APP_KIND,
+                           "Not a linyaps (capability-bearing process)");
+              return -1;
+            }
         }
 
       g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED, "Unable to open %s",

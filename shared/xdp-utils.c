@@ -1091,6 +1091,83 @@ xdp_pidfd_get_pidns (int      pidfd,
   return TRUE;
 }
 
+/*
+ * Returns TRUE if the process holds any Linux capability at all (permitted
+ * or effective), as reported by /proc/<pid>/status.
+ *
+ * This is used to tell apart two different reasons a process's
+ * /proc/<pid>/root can be inaccessible (EACCES) to another same-uid process:
+ * the target being on a fuse rootfs (handled separately, by statfs()), or the
+ * target being non-dumpable. A process becomes non-dumpable automatically
+ * when it gains capabilities via file capabilities at exec() (see
+ * cap_bprm_creds_from_file() in the kernel), which is common for ordinary,
+ * unsandboxed system daemons (e.g. cap_net_admin, cap_sys_nice) and has
+ * nothing to do with Flatpak/linyaps sandboxing. But a process can also make
+ * itself non-dumpable directly via the unprivileged
+ * prctl(PR_SET_DUMPABLE, 0) -- something a genuinely sandboxed app could do
+ * to itself. Checking for real held capabilities distinguishes the two: a
+ * Flatpak/linyaps sandbox unconditionally strips all capabilities from
+ * confined apps, so a process that holds any could never be one, regardless
+ * of how it became non-dumpable.
+ *
+ * Returns FALSE (conservatively) if /proc/<pid>/status can't be read or
+ * parsed.
+ */
+gboolean
+xdp_pid_has_capabilities (pid_t pid)
+{
+  g_autofree char *status_path = NULL;
+  g_autofree char *key = NULL;
+  g_autofree char *val = NULL;
+  gboolean has_caps = FALSE;
+  FILE *f;
+  size_t keylen = 0;
+  size_t vallen = 0;
+  ssize_t n;
+  int fd;
+
+  g_return_val_if_fail (pid > 0, FALSE);
+
+  status_path = g_strdup_printf ("/proc/%u/status", (guint) pid);
+  fd = open (status_path, O_RDONLY | O_CLOEXEC | O_NOCTTY);
+  if (fd == -1)
+    return FALSE;
+
+  f = fdopen (fd, "r");
+  if (f == NULL)
+    {
+      close (fd);
+      return FALSE;
+    }
+
+  while ((n = getdelim (&key, &keylen, ':', f)) != -1)
+    {
+      n = getdelim (&val, &vallen, '\n', f);
+      if (n == -1)
+        break;
+
+      g_strstrip (key);
+      g_strstrip (val);
+
+      /* CapPrm and CapEff are both hex bitmasks; any process actually
+       * holding capabilities will have at least one of them nonzero. */
+      if (!strcmp (key, "CapPrm") || !strcmp (key, "CapEff"))
+        {
+          guint64 mask = g_ascii_strtoull (val, NULL, 16);
+
+          if (mask != 0)
+            {
+              has_caps = TRUE;
+              break;
+            }
+        }
+    }
+
+  fclose (f);
+
+  return has_caps;
+}
+
 static gboolean
 xdp_pid_dirfd_get_pidns (int      pid_dirfd,
                          ino_t   *ns,

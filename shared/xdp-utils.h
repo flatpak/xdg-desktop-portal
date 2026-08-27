@@ -163,6 +163,8 @@ gboolean xdp_pidfd_get_pidns (int      pidfd,
                               ino_t   *ns,
                               GError **error);
 
+gboolean xdp_pid_has_capabilities (pid_t pid);
+
 gboolean xdp_map_pids_full (DIR     *proc,
                             ino_t    pidns,
                             pid_t   *pids,
