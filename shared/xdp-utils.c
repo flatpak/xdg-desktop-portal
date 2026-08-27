@@ -1151,7 +1151,7 @@ xdp_pid_has_capabilities (pid_t pid)
 
       /* CapPrm and CapEff are both hex bitmasks; any process actually
        * holding capabilities will have at least one of them nonzero. */
-      if (!strcmp (key, "CapPrm") || !strcmp (key, "CapEff"))
+      if (g_strcmp0 (key, "CapPrm") == 0 || g_strcmp0 (key, "CapEff") == 0)
         {
           guint64 mask = g_ascii_strtoull (val, NULL, 16);
 
