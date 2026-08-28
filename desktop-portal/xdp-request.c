@@ -180,16 +180,14 @@ get_token (GDBusMethodInvocation *invocation)
 }
 
 static void
-on_peer_disconnect (XdpContext *context,
-                    const char *peer,
-                    gpointer    user_data)
+on_peer_disconnect_in_thread_func (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
 {
-  XdpRequest *request = XDP_REQUEST (user_data);
+  XdpRequest *request = XDP_REQUEST (source_object);
 
   REQUEST_AUTOLOCK (request);
-
-  if (g_strcmp0 (request->sender, peer) != 0)
-    return;
 
   if (!request->exported)
     return;
@@ -199,6 +197,30 @@ on_peer_disconnect (XdpContext *context,
 
   xdp_request_unexport (request);
   xdp_context_unclaim_object_path (request->context, request->id);
+}
+
+static void
+on_peer_disconnect (XdpContext *context,
+                    const char *peer,
+                    gpointer    user_data)
+{
+  XdpRequest *request = XDP_REQUEST (user_data);
+  g_autoptr(GTask) task = NULL;
+
+  /* The sender is fixed for the lifetime of the request, so the peer
+   * check is safe without the lock. This lets the main loop skip the
+   * lock for every disconnect event that is not this request's owner,
+   * which would otherwise stall every portal while a handler holds it. */
+  if (g_strcmp0 (request->sender, peer) != 0)
+    return;
+
+  /* The disconnect sequence needs the lock, but taking it here would
+   * block the main loop if a portal handler is currently holding it
+   * (e.g. open-uri blocking on ShowItems for the full D-Bus timeout).
+   * Run it in a worker thread instead. */
+  task = g_task_new (request, NULL, NULL, NULL);
+  g_task_set_source_tag (task, on_peer_disconnect_in_thread_func);
+  g_task_run_in_thread (task, on_peer_disconnect_in_thread_func);
 }
 
 gboolean
