@@ -244,18 +244,39 @@ xdp_session_authorize_callback (GDBusInterfaceSkeleton *interface,
 }
 
 static void
+on_peer_disconnect_in_thread_func (GTask        *task,
+                                   gpointer      source_object,
+                                   gpointer      task_data,
+                                   GCancellable *cancellable)
+{
+  XdpSession *session = XDP_SESSION (source_object);
+
+  SESSION_AUTOLOCK_UNREF (g_object_ref (session));
+
+  xdp_session_close (session, FALSE);
+}
+
+static void
 on_peer_disconnect (XdpContext *context,
                     const char *peer,
                     gpointer    user_data)
 {
   XdpSession *session = XDP_SESSION (user_data);
+  g_autoptr(GTask) task = NULL;
 
-  SESSION_AUTOLOCK (session);
-
+  /* The sender is fixed after session init, so the peer check is safe
+   * without the lock. This keeps the main loop from taking the session
+   * lock on every disconnect event, which would stall portals while a
+   * handler holds it (e.g. screen-cast joining a PipeWire thread). */
   if (g_strcmp0 (session->sender, peer) != 0)
     return;
 
-  xdp_session_close (session, FALSE);
+  /* The disconnect sequence needs the lock, but taking it here would
+   * block the main loop if a portal handler is currently holding it.
+   * Run it in a worker thread instead. */
+  task = g_task_new (session, NULL, NULL, NULL);
+  g_task_set_source_tag (task, on_peer_disconnect_in_thread_func);
+  g_task_run_in_thread (task, on_peer_disconnect_in_thread_func);
 }
 
 static gboolean
