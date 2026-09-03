@@ -197,7 +197,7 @@ def assertDirFiles(path, expected_files, exhaustive=True, volatile_files=None):
 
 
 class Doc:
-    def __init__(self, portal, id, path, content, is_dir=False):
+    def __init__(self, portal, id, path, content, is_dir: bool = False) -> None:
         self.portal = portal
         self.id = id
         self.content = content
@@ -248,7 +248,7 @@ class Doc:
 
 
 class DocPortal:
-    def __init__(self):
+    def __init__(self) -> None:
         self.apps = []
         self.volatile_apps = set()
         self.docs = {}
@@ -407,7 +407,7 @@ class DocPortal:
 
 
 class FileTransferPortal(DocPortal):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.ft_proxy = Gio.DBusProxy.new_sync(
             self.bus,
@@ -1187,12 +1187,12 @@ def run_test(iterations, prefix=None, do_ensure_no_remaining: bool = True):
 
 
 class Process(mp.Process):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         mp.Process.__init__(self, *args, **kwargs)
         self._pconn, self._cconn = mp.Pipe()
         self._exception = None
 
-    def run(self):
+    def run(self) -> None:
         try:
             mp.Process.run(self)
             self._cconn.send(None)
@@ -1201,7 +1201,7 @@ class Process(mp.Process):
             self._cconn.send((e, tb))
 
     @property
-    def exception(self):
+    def exception(self) -> Exception:
         if self._pconn.poll():
             self._exception = self._pconn.recv()
         return self._exception
@@ -1224,7 +1224,12 @@ class TestDocumentFuse:
                 error, _ = p.exception
                 raise error
 
-    def test_single_thread(self, portals, xdg_document_portal, dbus_con):
+    def test_single_thread(
+        self,
+        portals: Any,
+        xdg_document_portal: subprocess.Popen[AnyStr],
+        dbus_con: dbus.Bus,
+    ) -> None:
         run_test(3)
 
     def test_multi_thread(
