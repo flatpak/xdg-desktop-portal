@@ -5,10 +5,10 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: xdg-desktop-portal master\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-07 13:57+0200\n"
-"PO-Revision-Date: 2025-11-01 14:12+0300\n"
-"Last-Translator: Aleksandr Melman <Alexmelman88@gmail.com>\n"
+"Report-Msgid-Bugs-To: https://github.com/flatpak/xdg-desktop-portal/issues\n"
+"POT-Creation-Date: 2026-08-19 11:52+0000\n"
+"PO-Revision-Date: 2026-09-02 19:32+0300\n"
+"Last-Translator: Artur So <arturios2005@mail.ru>\n"
 "Language-Team: RU\n"
 "Language: ru\n"
 "MIME-Version: 1.0\n"
@@ -16,24 +16,24 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.9\n"
 
-#: src/background.c:941
+#: desktop-portal/background.c:919
 #, c-format
 msgid "Allow %s to Run in the Background?"
 msgstr "Разрешить приложению \"%s\" работать в фоне?"
 
-#: src/background.c:945
+#: desktop-portal/background.c:923
 #, c-format
 msgid "%s wants to be started automatically and run in the background"
 msgstr "Приложение \"%s\" хочет запускаться автоматически и работать в фоне"
 
-#: src/background.c:947
+#: desktop-portal/background.c:925
 #, c-format
 msgid "%s wants to run in the background"
 msgstr "Приложение \"%s\" хочет работать в фоне"
 
-#: src/background.c:948
+#: desktop-portal/background.c:926
 msgid ""
 "The ‘run in background’ permission can be changed at any time from the app "
 "settings"
@@ -41,173 +41,175 @@ msgstr ""
 "Разрешение на ‘работу в фоне’ можно изменить в любой момент в настройках "
 "приложения"
 
-#: src/background.c:952
+#: desktop-portal/background.c:930
 msgid "Don't allow"
 msgstr "Запретить"
 
-#: src/background.c:953 src/screenshot.c:275 src/wallpaper.c:192
+#: desktop-portal/background.c:931 desktop-portal/screenshot.c:261
+#: desktop-portal/wallpaper.c:174
 msgid "Allow"
 msgstr "Разрешить"
 
-#: src/camera.c:105
+#: desktop-portal/camera.c:90
 #, c-format
 msgid "Allow %s to Use the Camera?"
 msgstr "Разрешить приложению \"%s\" использовать камеру?"
 
-#: src/camera.c:106
+#: desktop-portal/camera.c:91
 #, c-format
 msgid "%s wants to access the camera"
 msgstr "Приложение \"%s\" хочет получить доступ к камере"
 
-#: src/camera.c:110
+#: desktop-portal/camera.c:95
 msgid "Allow Apps to Use the Camera?"
 msgstr "Разрешить приложениям использовать камеру?"
 
-#: src/camera.c:111
+#: desktop-portal/camera.c:96
 msgid "An app wants to access the camera"
 msgstr "Приложение хочет получить доступ к камере"
 
-#: src/camera.c:114 src/screenshot.c:327 src/wallpaper.c:208
+#: desktop-portal/camera.c:99 desktop-portal/screenshot.c:313
+#: desktop-portal/wallpaper.c:190
 msgid "This permission can be changed at any time from the privacy settings"
 msgstr ""
 "Это разрешение можно изменить в любой момент в настройках конфиденциальности"
 
-#: src/dynamic-launcher.c:127
+#: desktop-portal/dynamic-launcher.c:109
 #, c-format
 msgid "Desktop file id missing .desktop suffix: %s"
 msgstr "В идентификаторе desktop-файла отсутствует суффикс .desktop: %s"
 
-#: src/dynamic-launcher.c:138
+#: desktop-portal/dynamic-launcher.c:120
 #, c-format
 msgid "Desktop file id is not valid"
 msgstr "Идентификатор desktop-файла недействителен"
 
-#: src/dynamic-launcher.c:316
+#: desktop-portal/dynamic-launcher.c:298
 #, c-format
 msgid "Desktop entry given to Install() not a valid key file"
 msgstr ""
 "Desktop-запись, переданная в Install(), не содержит действительного файла "
 "ключа"
 
-#: src/dynamic-launcher.c:329
+#: desktop-portal/dynamic-launcher.c:311
 #, c-format
 msgid "Desktop entry given to Install() must have exactly one group"
 msgstr "Desktop-запись, переданная в Install(), должна иметь ровно одну группу"
 
-#: src/dynamic-launcher.c:367
+#: desktop-portal/dynamic-launcher.c:350
 #, c-format
 msgid "Token given is invalid: %s"
 msgstr "Указанный токен недействителен: %s"
 
-#: src/dynamic-launcher.c:410
+#: desktop-portal/dynamic-launcher.c:393
 #, c-format
 msgid "Desktop entry given to Install() not valid"
 msgstr "Desktop-запись, переданная в Install(), недействительна"
 
-#: src/dynamic-launcher.c:419 src/dynamic-launcher.c:879
-#: src/dynamic-launcher.c:928
+#: desktop-portal/dynamic-launcher.c:402 desktop-portal/dynamic-launcher.c:878
+#: desktop-portal/dynamic-launcher.c:927
 #, c-format
 msgid "Desktop file exceeds max size (%d): %s"
 msgstr "Desktop-файл превышает максимальный размер (%d): %s"
 
-#: src/dynamic-launcher.c:603
-#, fuzzy, c-format
+#: desktop-portal/dynamic-launcher.c:600
+#, c-format
 msgid "Given URI is invalid: %s"
-msgstr "Указанный URL недействителен: %s"
+msgstr "Указанный URI недействителен: %s"
 
-#: src/dynamic-launcher.c:625
+#: desktop-portal/dynamic-launcher.c:622
 #, c-format
 msgid "Invalid launcher type: %x"
 msgstr "Недействительный тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:632
+#: desktop-portal/dynamic-launcher.c:629
 #, c-format
 msgid "Unsupported launcher type: %x"
 msgstr "Неподдерживаемый тип программы запуска: %x"
 
-#: src/dynamic-launcher.c:698 src/dynamic-launcher.c:773
+#: desktop-portal/dynamic-launcher.c:695 desktop-portal/dynamic-launcher.c:770
 msgid "Dynamic launcher icon failed validation"
 msgstr "Значок динамической программы запуска не прошел проверку"
 
-#: src/dynamic-launcher.c:789
+#: desktop-portal/dynamic-launcher.c:788
 #, c-format
 msgid "RequestInstallToken() not allowed for app id %s"
 msgstr "RequestInstallToken() не разрешен для идентификатора приложения %s"
 
-#: src/dynamic-launcher.c:968
+#: desktop-portal/dynamic-launcher.c:967
 #, c-format
 msgid "Desktop file '%s' icon at unrecognized path"
 msgstr "Значок desktop-файла '%s' находится по нераспознанному пути"
 
-#: src/dynamic-launcher.c:991
+#: desktop-portal/dynamic-launcher.c:990
 #, c-format
 msgid "Desktop file '%s' icon failed to serialize"
 msgstr "Не удалось сериализовать значок desktop-файла '%s'"
 
-#: src/dynamic-launcher.c:1030
+#: desktop-portal/dynamic-launcher.c:1029
 #, c-format
 msgid "No dynamic launcher exists with id '%s'"
 msgstr "Не существует динамической программы запуска с идентификатором '%s'"
 
-#: src/dynamic-launcher.c:1049
+#: desktop-portal/dynamic-launcher.c:1048
 #, c-format
 msgid "Failed to create GDesktopAppInfo for launcher with id '%s'"
 msgstr ""
 "Не удалось создать GDesktopAppInfo для программы запуска с идентификатором "
 "'%s'"
 
-#: src/location.c:555
+#: desktop-portal/location.c:535
 msgid "Deny Access"
 msgstr "Отказать в доступе"
 
-#: src/location.c:557
+#: desktop-portal/location.c:537
 msgid "Grant Access"
 msgstr "Предоставить доступ"
 
-#: src/location.c:563
+#: desktop-portal/location.c:543
 #, c-format
 msgid "Allow %s to Access Your Location?"
 msgstr "Разрешить приложению \"%s\" доступ к вашему местоположению?"
 
-#: src/location.c:573
+#: desktop-portal/location.c:553
 #, c-format
 msgid "%s wants to use your location"
 msgstr "Приложение \"%s\" хочет использовать ваше местоположение"
 
-#: src/location.c:579
+#: desktop-portal/location.c:559
 msgid "Allow Apps to Access Your Location?"
 msgstr "Разрешить приложениям доступ к вашему местоположению?"
 
-#: src/location.c:580
+#: desktop-portal/location.c:560
 msgid "An app wants to use your location"
 msgstr "Приложение хочет использовать ваше местоположение"
 
-#: src/location.c:583
+#: desktop-portal/location.c:563
 msgid "Location access can be changed at any time from the privacy settings"
 msgstr ""
 "Доступ к местоположению можно изменить в любой момент в настройках "
 "конфиденциальности"
 
-#: src/screenshot.c:273 src/wallpaper.c:190
+#: desktop-portal/screenshot.c:259 desktop-portal/wallpaper.c:172
 msgid "Deny"
 msgstr "Отказать"
 
-#: src/screenshot.c:299
+#: desktop-portal/screenshot.c:285
 #, c-format
 msgid "Allow %s to Take Screenshots?"
 msgstr "Разрешить приложению \"%s\" делать снимки экрана?"
 
-#: src/screenshot.c:300
+#: desktop-portal/screenshot.c:286
 #, c-format
 msgid "%s wants to take screenshots at any time"
 msgstr "Приложение \"%s\" хочет делать снимки экрана в любое время"
 
-#: src/screenshot.c:304
+#: desktop-portal/screenshot.c:290
 #, c-format
 msgid "Allow %s to Take a Screenshot?"
 msgstr "Разрешить приложению \"%s\" сделать снимок экрана?"
 
-#: src/screenshot.c:305
+#: desktop-portal/screenshot.c:291
 #, c-format
 msgid "%s wants to take a screenshot"
 msgstr "Приложение \"%s\" хочет сделать снимок экрана"
@@ -215,49 +217,49 @@ msgstr "Приложение \"%s\" хочет сделать снимок эк�
 #. Note: this will set the screenshot permission for all unsandboxed
 #. * apps for which an app ID can't be determined.
 #.
-#: src/screenshot.c:316
+#: desktop-portal/screenshot.c:302
 msgid "Allow Apps to Take Screenshots?"
 msgstr "Разрешить приложениям делать снимки экрана?"
 
-#: src/screenshot.c:317
+#: desktop-portal/screenshot.c:303
 msgid "An app wants to take screenshots at any time"
 msgstr "Приложение хочет делать снимки экрана в любое время"
 
-#: src/screenshot.c:321
+#: desktop-portal/screenshot.c:307
 msgid "Allow to Take a Screenshot?"
 msgstr "Разрешить сделать снимок экрана?"
 
-#: src/screenshot.c:322
+#: desktop-portal/screenshot.c:308
 msgid "An app wants to take a screenshot"
 msgstr "Приложение хочет сделать снимок экрана"
 
-#: src/settings.c:196 src/settings.c:235
+#: desktop-portal/settings.c:183 desktop-portal/settings.c:225
 msgid "Requested setting not found"
 msgstr "Запрашиваемая настройка не найдена"
 
-#: src/usb.c:1333
+#: desktop-portal/usb.c:1308
 msgid "Device not available"
 msgstr "Устройство недоступно"
 
-#: src/usb.c:1347
+#: desktop-portal/usb.c:1322
 msgid "Not allowed"
 msgstr "Запрещено"
 
-#: src/wallpaper.c:198
+#: desktop-portal/wallpaper.c:180
 #, c-format
 msgid "Allow %s to Set Backgrounds?"
 msgstr "Разрешить приложению \"%s\" устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:199
+#: desktop-portal/wallpaper.c:181
 #, c-format
 msgid "%s wants to change the background image"
 msgstr "Приложение \"%s\" хочет изменить фоновое изображение"
 
-#: src/wallpaper.c:204
+#: desktop-portal/wallpaper.c:186
 msgid "Allow Apps to Set Backgrounds?"
 msgstr "Разрешить приложениям устанавливать фоновые изображения?"
 
-#: src/wallpaper.c:205
+#: desktop-portal/wallpaper.c:187
 msgid "An app wants to change the background image"
 msgstr "Приложение хочет изменить фоновое изображение"
 
