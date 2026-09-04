@@ -72,7 +72,9 @@
 
           Delay in seconds before the screenshot is captured. The delay starts
           after any required user input, such as selecting a window or area,
-          has completed. The value must not be greater than 3600.
+          has completed. A value of 0 requests capture without delay. If this
+          option is omitted, the portal preserves the backend's default capture
+          timing. The value must not be greater than 3600.
 
           This option was added in version 4 of this interface.
 
