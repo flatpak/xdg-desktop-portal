@@ -980,6 +980,21 @@ document_add_full (int                      *fd,
       g_ptr_array_index(paths,i) = g_steal_pointer (&path);
     }
 
+  /* Check if app has direct access before locking db.
+   * This avoids holding the database mutex across external subprocess
+   * spawns which could lead to long fuse latency or even deadlock if
+   * the external helper does fuse ops.
+   */
+  for (i = 0; i < n_args; i++)
+    {
+      DocumentAddFullFlags flags = documents_flags[i];
+      if ((flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0 &&
+          app_has_file_access (target_app_id, target_perms, g_ptr_array_index (paths, i)))
+        {
+          g_set_str ((char **) &g_ptr_array_index (ids, i), "");
+        }
+    }
+
   {
     XDP_AUTOLOCK (db); /* Lock once for all ops */
 
@@ -989,11 +1004,15 @@ document_add_full (int                      *fd,
         DocumentPermissionFlags caller_base_perms = DOCUMENT_PERMISSION_FLAGS_GRANT_PERMISSIONS |
                                                     DOCUMENT_PERMISSION_FLAGS_READ;
         DocumentPermissionFlags caller_write_perms = DOCUMENT_PERMISSION_FLAGS_WRITE;
-        gboolean reuse_existing, persistent, as_needed_by_app, is_dir;
+        gboolean reuse_existing, persistent, is_dir;
+
+        /* Skip if app already has direct file access */
+        if (g_ptr_array_index (ids, i) != NULL &&
+            g_strcmp0 (g_ptr_array_index (ids, i), "") == 0)
+          continue;
 
         flags = documents_flags[i];
         reuse_existing = (flags & DOCUMENT_ADD_FLAGS_REUSE_EXISTING) != 0;
-        as_needed_by_app = (flags & DOCUMENT_ADD_FLAGS_AS_NEEDED_BY_APP) != 0;
         persistent = (flags & DOCUMENT_ADD_FLAGS_PERSISTENT) != 0;
         is_dir = (flags & DOCUMENT_ADD_FLAGS_DIRECTORY) != 0;
 
@@ -1003,13 +1022,6 @@ document_add_full (int                      *fd,
 
         const char *path = g_ptr_array_index(paths,i);
         g_assert (path != NULL);
-
-        if (as_needed_by_app &&
-            app_has_file_access (target_app_id, target_perms, path))
-          {
-            g_set_str ((char **) &g_ptr_array_index (ids, i), "");
-            continue;
-          }
 
         if (g_ptr_array_index(ids,i) == NULL)
           {
@@ -1175,8 +1187,6 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
     if (!reuse_existing)
       caller_perms |= DOCUMENT_PERMISSION_FLAGS_DELETE;
 
-    XDP_AUTOLOCK (db);
-
     if (as_needed_by_app &&
         app_has_file_access (target_app_id, target_perms, path))
       {
@@ -1184,6 +1194,8 @@ portal_add_named_full (GDBusMethodInvocation *invocation,
       }
     else
       {
+        XDP_AUTOLOCK (db);
+
         id = do_create_doc (&parent_st_buf, handle, path, reuse_existing, persistent, FALSE);
 
         if (app_id[0] != '\0' && g_strcmp0 (app_id, target_app_id) != 0)
