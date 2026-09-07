@@ -589,6 +589,7 @@ xdp_spawn_full (const char * const  *argv,
   GInputStream *in;
   g_autoptr(GOutputStream) out = NULL;
   g_autoptr(GMainLoop) loop = NULL;
+  g_autoptr(GMainContext) context = NULL;
   SpawnData data = {0};
   g_autofree char *commandline = NULL;
 
@@ -605,7 +606,10 @@ xdp_spawn_full (const char * const  *argv,
   if (subp == NULL)
     return NULL;
 
-  loop = g_main_loop_new (NULL, FALSE);
+  context = g_main_context_new ();
+  g_main_context_push_thread_default (context);
+
+  loop = g_main_loop_new (context, FALSE);
 
   data.loop = loop;
   data.refs = 2;
@@ -623,6 +627,8 @@ xdp_spawn_full (const char * const  *argv,
   g_subprocess_wait_async (subp, NULL, spawn_exit_cb, &data);
 
   g_main_loop_run (loop);
+
+  g_main_context_pop_thread_default (context);
 
   if (data.error)
     {
