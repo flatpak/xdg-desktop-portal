@@ -26,6 +26,10 @@ xdp_utils_sources += gnome.mkenums_simple(
   ),
 )
 
+if have_varlink
+  xdp_utils_sources += files('xdp-peer-varlink.c')
+endif
+
 if have_libsystemd
   xdp_utils_sources += files('sd-escape.c')
   xdp_utils_deps += [libsystemd_dep]

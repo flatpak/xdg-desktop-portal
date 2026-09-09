@@ -123,6 +123,14 @@ if have_gudev
   )
 endif
 
+if have_varlink
+  xdg_desktop_portal_sources += files(
+    'xdp-varlink.c',
+    'xdp-varlink-connection.c',
+    'xdp-varlink-instance.c',
+  )
+endif
+
 common_deps = [
   glib_dep,
   gio_dep,
@@ -141,6 +149,10 @@ xdg_desktop_portal_deps = common_deps + [
   pipewire_dep,
   xdp_utils_deps,
 ]
+
+if have_varlink
+  xdg_desktop_portal_deps += libvarlink_dep
+endif
 
 incs_xdg_desktop_portal = [
   common_includes,

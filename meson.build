@@ -110,6 +110,7 @@ config_h.set_quoted('LOCALEDIR', localedir)
 config_h.set_quoted('SYSCONFDIR', sysconfdir)
 config_h.set_quoted('GETTEXT_PACKAGE', 'xdg-desktop-portal')
 config_h.set_quoted('PACKAGE_STRING', 'xdg-desktop-portal @0@'.format(meson.project_version()))
+config_h.set_quoted('PACKAGE_VERSION', meson.project_version())
 
 foreach ident : [
         ['renameat2',         '''#include <stdio.h>'''],
@@ -164,6 +165,7 @@ pipewire_dep = dependency(f'lib@pipewire_dep_base_name@', version: '>= 1.3.81')
 libdbus_dep = dependency('dbus-1')
 wireplumber_dep = dependency(wireplumber_dep_name)
 libsystemd_dep = dependency('libsystemd', required: get_option('systemd'))
+libvarlink_dep = dependency('libvarlink', version: '>= 24', required: get_option('varlink'))
 gudev_dep = dependency('gudev-1.0', required: get_option('gudev'))
 umockdev_dep = dependency('umockdev-1.0', required: get_option('tests'))
 libglnx_dep = dependency('libglnx')
@@ -216,6 +218,17 @@ config_h.set10('HAVE_GEOCLUE', have_geoclue)
 
 have_libsystemd = libsystemd_dep.found()
 config_h.set10('HAVE_LIBSYSTEMD', have_libsystemd)
+
+have_varlink = libvarlink_dep.found()
+if have_varlink and not cc.has_function('varlink_call_take_fd',
+                                        prefix: '''#include <varlink.h>''',
+                                        dependencies: libvarlink_dep)
+  if get_option('varlink').enabled()
+    error('libvarlink lacks file descriptor passing support')
+  endif
+  have_varlink = false
+endif
+config_h.set10('HAVE_VARLINK', have_varlink)
 
 have_gudev = gudev_dep.found()
 config_h.set10('HAVE_GUDEV', have_gudev)

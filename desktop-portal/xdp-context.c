@@ -47,6 +47,10 @@
 #include "xdp-session-persistence.h"
 #include "xdp-utils.h"
 
+#if HAVE_VARLINK
+#include "xdp-varlink.h"
+#endif
+
 enum
 {
   PEER_DISCONNECT,
@@ -73,6 +77,10 @@ struct _XdpContext
 
   GCancellable *cancellable;
   GPtrArray *pending_inits; /* DexFuture */
+
+#if HAVE_VARLINK
+  XdpVarlinkService *portal_varlink;
+#endif
 };
 
 G_DEFINE_FINAL_TYPE (XdpContext,
@@ -124,6 +132,10 @@ xdp_context_dispose (GObject *object)
   g_clear_object (&context->lockdown_impl);
   g_clear_object (&context->access_impl);
   g_clear_object (&context->app_info_registry);
+
+#if HAVE_VARLINK
+  g_clear_object (&context->portal_varlink);
+#endif
 
   if (context->registered_object_paths)
     {
@@ -382,6 +394,22 @@ on_peer_disconnect (const char *name,
                                                           name));
 }
 
+#if HAVE_VARLINK
+static gboolean
+init_varlink (XdpContext *context,
+              GError **error)
+{
+  context->portal_varlink =
+    xdp_varlink_service_new (PORTAL_VARLINK_SOCKET,
+                             context->app_info_registry,
+                             error);
+  if (context->portal_varlink == NULL)
+    return FALSE;
+
+  return init_registry_varlink (context->portal_varlink, error);
+}
+#endif
+
 static void
 init_portal_in_fiber (XdpContext   *context,
                       DexFiberFunc  portal_init_func)
@@ -515,6 +543,14 @@ xdp_context_register (XdpContext       *context,
   init_registry (context);
 
   await_pending_inits (context);
+
+#if HAVE_VARLINK
+  if (!init_varlink (context, error))
+    {
+      g_prefix_error_literal (error, "No varlink socket: ");
+      return FALSE;
+    }
+#endif
 
   return TRUE;
 }

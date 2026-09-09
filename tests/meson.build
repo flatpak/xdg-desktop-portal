@@ -49,6 +49,30 @@ test(
   protocol: test_protocol,
 )
 
+if have_varlink
+  test_xdp_varlink = executable(
+    'test-xdp-varlink',
+    'test-xdp-varlink.c',
+    files(
+      '../desktop-portal/xdp-varlink-connection.c',
+      '../desktop-portal/xdp-varlink-instance.c',
+    ),
+    xdp_utils_sources,
+    dependencies: [common_deps, xdp_utils_deps, libvarlink_dep],
+    include_directories: incs_xdg_desktop_portal,
+    install: enable_installed_tests,
+    install_dir: installed_tests_dir,
+  )
+  test(
+    'unit/xdp-varlink',
+    test_xdp_varlink,
+    suite: ['unit'],
+    env: env_tests,
+    is_parallel: false,
+    protocol: test_protocol,
+  )
+endif
+
 test_method_info = executable(
   'test-xdp-method-info',
   'test-xdp-method-info.c',
@@ -111,6 +135,7 @@ tests = {
   'shutdown': {},
   'trash': {},
   'usb': {'enabled': have_gudev},
+  'varlink': {'enabled': have_varlink},
   'wallpaper': {},
 }
 
